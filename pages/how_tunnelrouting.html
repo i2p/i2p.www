@@ -1,5 +1,5 @@
 <p>
-As briefly explained on the <a href="iip-wiki?I2P/Overview">I2P/Overview</a>, I2P builds virtual "tunnels" -
+As briefly explained in the <a href="how_intro.html">intro</a>, I2P builds virtual "tunnels" -
 temporary and unidirectional paths through a sequence of routers.  These 
 tunnels can be categorized as either inbound tunnels (where everything 
 given to it goes towards the creator of the tunnel) and outbound tunnels
@@ -9,14 +9,16 @@ her existing outbound tunnels with instructions for that tunnel's endpoint
 to forward it to the gateway router for one of Bob's current inbound 
 tunnels, which in turn passes it to Bob.
 <p>
-<img src="http://i2p.net/~jrandom/wiki/tunnelSending.png">
+<img src="http://dev.i2p.net/~jrandom/wiki/tunnelSending.png">
 <p>
 
 <H2>Tunnel vocabulary</H2>
 
 <p>
 <UL>
-<li> <b>Tunnel gateway</b> - the first router in a tunnel.  For inbound tunnels, this is the one mentioned in the I2P/LeaseSet<a href="iip-wiki?action=edit&id=I2P/LeaseSet">?</a> published in the I2P/NetworkDb<a href="iip-wiki?action=edit&id=I2P/NetworkDb">?</a>.  For outbound tunnels, the gateway is the originating router.  (e.g. both A and D above)
+<li> <b>Tunnel gateway</b> - the first router in a tunnel.  For inbound tunnels, this is the one mentioned in the 
+        LeaseSet published in the <a href="how_networkdatabase.html">network database</a>.  For outbound tunnels, the 
+        gateway is the originating router.  (e.g. both A and D above)
 </UL>
 <p>
 <UL>
@@ -34,13 +36,15 @@ tunnels, which in turn passes it to Bob.
 <UL>
 <li> <b>0-hop tunnel</b> - a tunnel where the gateway is also the endpoint
 <li> <b>1-hop tunnel</b> - a tunnel where the gateway talks directly to the endpoint
-<li> <b>2-(or more)-hop tunnel</b> - a tunnel where there is at least one tunnel participant. (the above diagram includes two 2-hop tunnels - one outbound from Alice, one inbound to Bob)
+<li> <b>2-(or more)-hop tunnel</b> - a tunnel where there is at least one tunnel participant. (the above diagram includes two 
+        2-hop tunnels - one outbound from Alice, one inbound to Bob)
 </UL>
 </UL>
 <p>
 <UL>
 
-<li> <b>Tunnel lifetime</b> - how long a particular tunnel is supposed to be in operation for (each client specifies this when contacting their router, and the router makes sure sufficient tunnels meeting that criteria are built)
+<li> <b>Tunnel lifetime</b> - how long a particular tunnel is supposed to be in operation for (each client specifies this 
+        when contacting their router, and the router makes sure sufficient tunnels meeting that criteria are built)
 </UL>
 <p>
 <H2>Tunnel information</H2>
@@ -113,7 +117,7 @@ tunnels are more complex, but could show similar information (though would be sl
 
 <p>
 With only one remote router in a tunnel, the user has both plausible deniability and basic anonymity, as long
-as they are not up against an internal adversary (as described on <a href="iip-wiki?I2P/ThreatModel">I2P/ThreatModel</a>).  However, if the adversary
+as they are not up against an internal adversary (as described on <a href="how_threatmodel.html">threat model</a>).  However, if the adversary
 ran a sufficient number of routers such that the single remote router in the tunnel is often one of those 
 compromised ones, they would be able to mount the above statistical traffic analysis attack.
 <p>
@@ -135,7 +139,7 @@ pools are refreshed every minute or so, using the router's default settings]
 <H2>Tunnel testing</H2>
 
 <p>
-All tunnels are periodically tested by their creator by sending a DeliveryStatusMessage<a href="iip-wiki?action=edit&id=DeliveryStatusMessage">?</a> out the tunnel and bound
+All tunnels are periodically tested by their creator by sending a DeliveryStatusMessage out the tunnel and bound
 for another inbound tunnel (testing both tunnels at once).  If either fails, both are marked as no longer functional,
 and if they were used for a client's inbound tunnel, a new leaseSet is created.  Other techniques can be used to test
 tunnels later on, such as garlic wrapping a number of tests into cloves, testing individual tunnel participants 
@@ -145,21 +149,23 @@ not implemented at the moment.
 <H2>Tunnel creation</H2>
 
 <p>
-Tunnel creation is handled by garlic routing (see <a href="iip-wiki?I2P/GarlicRouting">I2P/GarlicRouting</a>) a TunnelCreateMessage<a href="iip-wiki?action=edit&id=TunnelCreateMessage">?</a> to a router, 
+Tunnel creation is handled by <a href="how_garlicrouting.html">garlic routing</a>) a TunnelCreateMessage to a router, 
 requesting that they participate in the tunnel (providing them with all of the appropriate information, as above, 
 along with a certificate, which right now is a 'null' cert, but will support hashcash or other non-free certificates 
-when necessary).  The message also includes a SourceRouteReplyBlock<a href="iip-wiki?action=edit&id=SourceRouteReplyBlock">?</a>, which allows the router to encrypt their 
-TunnelCreateStatusMessage<a href="iip-wiki?action=edit&id=TunnelCreateStatusMessage">?</a> into a SourceRouteReplyMessage<a href="iip-wiki?action=edit&id=SourceRouteReplyMessage">?</a>, which is sent to another router (specified in the 
-SourceRouteReplyBlock<a href="iip-wiki?action=edit&id=SourceRouteReplyBlock">?</a>), who then decrypts the rest of the SourceRouteReplyBlock<a href="iip-wiki?action=edit&id=SourceRouteReplyBlock">?</a>, reads out the delivery instructions 
-contained therein, and forwards the TunnelCreateStatusMessage<a href="iip-wiki?action=edit&id=TunnelCreateStatusMessage">?</a> accordingly.  (the delivery instructions can specify 
+when necessary).  The message also includes a SourceRouteReplyBlock, which allows the router to encrypt their 
+TunnelCreateStatusMessage into a SourceRouteReplyMessage, which is sent to another router (specified in the 
+SourceRouteReplyBlock), who then decrypts the rest of the SourceRouteReplyBlock, reads out the delivery instructions 
+contained therein, and forwards the TunnelCreateStatusMessage accordingly.  (the delivery instructions can specify 
 delivery to a specific router or can point at a tunnel)
 
 <p>
-<H2>Issues</H2>
+<H2>Issues/todo</H2>
 
 <p>
 <UL>
-<li> Should we assign unique tunnel ids for each router in the tunnel, rather than having a single id across the whole tunnel?  this would make traffic analysis even harder
-<li> Should inbound tunnels that will be used by clients ever be used for general messages (network database, etc), rather than being free for use until its allocated?
-<li> I2P 3.0 tunnel mixing / pooling details
-<li> Tunnel limiting details
+<li> We will assign unique tunnel ids for each router in the tunnel, rather than having a single id across the whole tunnel.  this would make traffic analysis even harder</li>
+<li> Get rid of the sourceRouteBlock stuff</li>
+<li> Should inbound tunnels that will be used by clients ever be used for general messages (network database, etc), rather than being free for use until its allocated?</li>
+<li> I2P 3.0 tunnel mixing / pooling details</li>
+<li> Tunnel throttling details
+</ul>
