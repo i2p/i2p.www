@@ -3,26 +3,31 @@
 	I2P is a generic anonymous and secure peer to peer communication layer. It is
 	a network that sits on top of another network (in this case, it sits on top of
 	the internet). It is responsible for delivering a message anonymously and
-	securely to another location.  More tech details are
-	<a href="how">available</a><!-- Not sure if I got this link right (ugha) -->
+	securely to another location.  We have both a more detailed 
+        <a href="about">summary</a> and more in depth <a href="how">tech info</a>
+        available.
 </p>
 
-<h3>What does that mean?</h3>
-<p>
-	It means that you can do things anonymously and host services anonymously from
-	your computer. You will need to use programs that are designed to work with
-	I2P, though in some cases you can use regular internet programs with I2P by
-	creating something called an <a href="i2ptunnel">I2PTunnel</a>
-</p>
+<h3>How does it scale?</h3>
 
-<h3>What is the difference between I2P and the internet?</h3>
-<p>
-	Data transferred via I2P is anonymous and encrypted. Regular internet traffic
-	is not (although it can be encrypted). If you set up a web page using I2P,
-	nobody will know who you are. If you browse a web page using I2P, nobody will
-	know who you are. If you transfer files using I2P, nobody will know who you
-	are.
-</p>
+For now, we'll answer that question in three parts:
+<ul>
+ <li>End to end communication consumes O(1) resources (bandwidth, CPU, etc).
+     More specifically, the load on the network (bytes transferred) is
+     <code>Bm*(Hi+Ho+1)</code>.  Note that the size of the network (N) does
+     not come into play at any time.<ul>
+      <li><i>Bm</i>: number of bytes in a message</li>
+      <li><i>Hi</i>: number of hops in the target's inbound tunnel</li>
+      <li><i>Ho</i>: number of hops in the source's outbound tunnel</li>
+     </ul></li>
+ <li>Network database operation and maintenance consumes O(log(N)) resources
+     (where N = number of peers in the network).  This is derived from the
+     <a href="http://citeseer.ist.psu.edu/529075.html">Kademlia</a> base.</li>
+ <li>For engineering reasons, the I2P implementation is not yet able to handle 
+     operation in a large network.  This is bound at the moment by threading 
+     issues associated with our current TCP transport.  The 
+     <a href="roadmap">0.4.2 and 0.4.3</a> releases should address this.</li>
+</ul>
 
 <h3>Whats an "eepsite"?</h3>
 <p>
@@ -98,12 +103,58 @@
 	through some other mechanism).
 </p>
 
-<!--
+<h3>What about greedy users?  Won't there be a tragedy of the commons?</h3>
+<p>Quoting a recent discussion on the mailing list:</p>
+<pre>
+&gt; Now for this ultra-greedy user, it's irrational
+&gt; to allocate downstream bandwidth for anything other
+&gt; than his current huge Bittorrent download.  So he
+&gt; uses 99% of his bandwidth for his own tunnels, and
+&gt; 1% of his bandwidth for everyone else's tunnels.
+
+&gt; It will become a practical issue because people will
+&gt; write "I2P download optimizers," which will abuse the
+&gt; network in exactly this way.
+
+Here, I'll write the optimal download optimizer for them.
+Turn
+ java -jar i2ptunnel.jar
+into
+ java -Dtunnels.depthInbound=0 -jar i2ptunnel.jar
+
+voila.  The data they receive goes through no other routers,
+allowing them to get obscene transfer rates (but not wire
+speed, since we /do/ have some overhead :).  They still do
+have some level of anonymity, since no one else knows their
+tunnels are 0 hops long (at least, not without statistical
+analysis or some powerful traffic analysis).  This is
+probably (IANAL) sufficient "plausible deniability" for
+many people (the RIAA/MPAA won't get the court orders to
+mount the necessary traffic analysis, though the NSA
+wouldn't bother)
+
+The load on the network is negligible - while they don't add
+any resources to the net, they don't take much away either.
+The network routes around these users, and peers only bother
+to attempt routing their tunnels through those other peers
+who *do* have excess bandwidth.
+
+There is no rational cause for someone who only needs a
+basic level of anonymity (e.g. for illicit copying of bits)
+but still wants high throughput to want longer tunnels.
+
+Now, the scenario where the user needs better anonymity but
+still wants higher throughput, they must be made to
+understand that they simply *can't get* better anonymity
+unless they route other people's traffic.  Its a functional
+necessity for dealing with powerful adversaries, since
+otherwise their traffic sticks out like a sore thumb.
+</pre>
+
 <hr />
 <h3>I have a question!</h3>
 <p>
-	Great!  Please leave a comment and we'll include it here (with the answer,
-	hopefully)
-</p>
-- People can't comment articles anymore. :) (ugha)
--->
+Great!  Please either drop an email to the 
+<a href="http://dev.i2p.net/mailman/listinfo/i2p">mailing list</a> 
+or post to the <a href="http://forum.i2p.net/">forum</a> and we'll
+post it here (with the answer, hopefully).</p>
