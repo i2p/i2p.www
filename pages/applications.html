@@ -1,15 +1,14 @@
-<p>here's some content that might help someone who wants to put together an application developer's guide for I2P - I dont have time to polish this up before I leave, but thought it might be of use to someone.  Feel free to tear this up, edit like mad, or just read it :)</p>
-
 <h1>Application development guide</h1>
 
 <h2>Why write I2P specific code?</h2>
 
-<p>Using mihi's I2PTunnel application, you can hook up application instances and 
-have them talk to each other over standard TCP sockets.  In plain client-server
-scenarios, this is an effective technique for many simple protocols, but for 
-distributed systems where each peer may contact a number of other peers (instead
-of just a single server), or for systems that expose TCP or IP information within
-the communication protocols themselves, there are problems.</p>
+<p>Using mihi's <a href="i2ptunnel">I2PTunnel</a> application, you can hook up 
+application instances and have them talk to each other over standard TCP 
+sockets.  In plain client-server scenarios, this is an effective technique for 
+many simple protocols, but for distributed systems where each peer may contact 
+a number of other peers (instead of just a single server), or for systems that 
+expose TCP or IP information within the communication protocols themselves, 
+there are problems.</p>
 
 <p>With I2PTunnel, you need to explicitly instantiate an I2PTunnel for each peer 
 you want to contact - if you are building a distributed instant messenger 
@@ -122,14 +121,13 @@ application without having to write fragmentation, resends, etc.</p>
 
 <h3>SAM</h3>
 
-<p>SAM is the <a href="book/view/144?PHPSESSID=ee3d79e304bf6e3746ccc3592c38a972">Simple Anonymous Messaging</a> protocol, allowing an
+<p>SAM is the <a href="sam">Simple Anonymous Messaging</a> protocol, allowing an
 application written in any language to talk to a SAM bridge through a plain TCP socket and have
 that bridge multiplex all of its I2P traffic, transparently coordinating the encryption/decryption
 and event based handling.  SAM supports three styles of operation:</p>
 <ul>
 <li>streams, for when Alice and Bob want to send data to each other reliably and in order</li>
 <li>repliable datagrams, for when Alice wants to send Bob a message that Bob can reply to</li>
-
 <li>raw datagrams, for when Alice wants to squeeze the most bandwidth and performance as possible,
     and Bob doesn't care whether the data's sender is authenticated or not (e.g. the data transferred
     is self authenticating)</li>
@@ -149,28 +147,28 @@ their own unique I2P destination and their own set of tunnels, keys, etc.</p>
 <p>For applications written in Java, the simplest way to go is to use the libraries that the SAM
 bridge and I2PTunnel applications use.  The streaming functionality is exposed in the 'ministreaming'
 library, which is centered on the 
-<a href="http://www.i2p.net/javadocs/net/i2p/client/streaming/package-summary.html">I2PSocketManager</a>,
-the <a href="http://www.i2p.net/javadocs/net/i2p/client/streaming/I2PSocket.html">I2PSocket</a>, and the
-<a href="http://www.i2p.net/javadocs/net/i2p/client/streaming/I2PServerSocket.html">I2PServerSocket</a>.</p>
+<a href="http://www.i2p.net/javadoc/net/i2p/client/streaming/package-summary.html">I2PSocketManager</a>,
+the <a href="http://www.i2p.net/javadoc/net/i2p/client/streaming/I2PSocket.html">I2PSocket</a>, and the
+<a href="http://www.i2p.net/javadoc/net/i2p/client/streaming/I2PServerSocket.html">I2PServerSocket</a>.</p>
 
 <p>For applications that want to use repliable datagrams, they can be built with the 
-<a href="http://www.i2p.net/javadocs/net/i2p/client/datagram/I2PDatagramMaker.html">I2PDatagramMaker</a>
+<a href="http://www.i2p.net/javadoc/net/i2p/client/datagram/I2PDatagramMaker.html">I2PDatagramMaker</a>
 and parsed on the receiving side by the 
-<a href="http://www.i2p.net/javadocs/net/i2p/client/datagram/I2PDatagramDissector.html">I2PDatagramDissector</a>.
+<a href="http://www.i2p.net/javadoc/net/i2p/client/datagram/I2PDatagramDissector.html">I2PDatagramDissector</a>.
 In turn, these are sent and received through an 
 
-<a href="http://www.i2p.net/javadocs/net/i2p/client/I2PSession.html">I2PSession</a>.</p>
+<a href="http://www.i2p.net/javadoc/net/i2p/client/I2PSession.html">I2PSession</a>.</p>
 
 <p>Applications that want to use raw datagrams simply send directly through the I2PSession's 
-<a href="http://www.i2p.net/javadocs/net/i2p/client/I2PSession.html#sendMessage(net.i2p.data.Destination,%20byte[])">sendMessage(...)</a>
+<a href="http://www.i2p.net/javadoc/net/i2p/client/I2PSession.html#sendMessage(net.i2p.data.Destination,%20byte[])">sendMessage(...)</a>
 method, receiving notification of available messages through the 
-<a href="http://www.i2p.net/javadocs/net/i2p/client/I2PSessionListener.html">I2PSessionListener</a> and 
+<a href="http://www.i2p.net/javadoc/net/i2p/client/I2PSessionListener.html">I2PSessionListener</a> and 
 then fetching those messages by calling 
-<a href="http://www.i2p.net/javadocs/net/i2p/client/I2PSession.html#receiveMessage(int)">receiveMessage(...)</a>.
+<a href="http://www.i2p.net/javadoc/net/i2p/client/I2PSession.html#receiveMessage(int)">receiveMessage(...)</a>.
 
 <h3>I2CP</h3>
 
-<p>I2CP itself is a language independent protocol, but to implement an I2CP library in something other
-than Java there is a significant amount of code to be written (encryption routines, object marshalling,
-asynchronous message handling, etc).  While someone could write an I2CP library in C or something else,
-it would most likely be more useful to write a C SAM library instead. </p>
+<p><a href="i2cp">I2CP</a> itself is a language independent protocol, but to implement an I2CP library 
+in something other than Java there is a significant amount of code to be written (encryption routines, 
+object marshalling, asynchronous message handling, etc).  While someone could write an I2CP library in 
+C or something else, it would most likely be more useful to use the C SAM library instead. </p>
