@@ -1,61 +1,152 @@
 <h1>Performance</h1>
-<p>Probably one of the most frequent things people ask is "how fast is I2P?", and no one seems to like the answer - "it depends".  After trying out I2P, the next thing they ask is "will it get faster?", and the answer to that is a most emphatic <b>yes</b>.</p>
-
-
-<p>There are a few major techniques that can be done to improve the percieved performance of I2P - some of the following are CPU related, others bandwidth related, and others still are protocol related.  However, all of those dimensions affect the latency, throughput, and percieved performance of the network, as they reduce contention for scarce resources.  This list is of course not comprehensive, but it does cover the major ones that I see.</p>
+<p>Probably one of the most frequent things people ask is "how fast is I2P?",
+and no one seems to like the answer - "it depends".  After trying out I2P, the
+next thing they ask is "will it get faster?", and the answer to that is a most
+emphatic <b>yes</b>.</p>
+<p>There are a few major techniques that can be done to improve the percieved
+performance of I2P - some of the following are CPU related, others bandwidth
+related, and others still are protocol related.  However, all of those
+dimensions affect the latency, throughput, and percieved performance of the
+network, as they reduce contention for scarce resources.  This list is of course
+not comprehensive, but it does cover the major ones that I see.</p>
 
 <h2>Native math</h2>
-
-<p>When I last profiled the I2P code, the vast majority of time was spent within one function: java.math.BigInteger's <a href="http://java.sun.com/j2se/1.4.2/docs/api/java/math/BigInteger.html#modPow(java.math.BigInteger,%20java.math.BigInteger)">modPow</a>.  Rather than try to tune this method, we'll call out to <a href="http://www.swox.com/gmp/">GNU MP</a> - an insanely fast math library (with tuned assembler for many architectures). (<i>Editor: see <a href="/node/view/147?PHPSESSID=288375bed2d584c74d7a9fdbc87e326a">NativeBigInteger for faster public key cryptography</a></i>)</p>
-
-<p><a href="/user/view/8?PHPSESSID=288375bed2d584c74d7a9fdbc87e326a">ughabugha</a> and <a href="/user/view/7?PHPSESSID=288375bed2d584c74d7a9fdbc87e326a">duck</a> are working on the C/JNI glue code, and the existing java code is already deployed with hooks for that whenever its ready.  Preliminary results look fantastic - running the router with the native GMP modPow is providing over a 800% speedup in encryption performance, and the load was cut in half.  This was just on one user's machine, and things are nowhere near ready for packaging and deployment, yet.</p>
+<p>When I last profiled the I2P code, the vast majority of time was spent within
+one function: java.math.BigInteger's
+<a href="http://java.sun.com/j2se/1.4.2/docs/api/java/math/BigInteger.html#modPow(java.math.BigInteger,%20java.math.BigInteger)">modPow</a>.
+Rather than try to tune this method, we'll call out to
+<a href="http://www.swox.com/gmp/">GNU MP</a> - an insanely fast math library
+(with tuned assembler for many architectures). (<i>Editor: see
+<a href="jbigi">NativeBigInteger for faster public key cryptography</a></i>)</p>
+<p>ugha and duck are working on the C/JNI glue code, and the existing java code
+is already deployed with hooks for that whenever its ready.  Preliminary results
+look fantastic - running the router with the native GMP modPow is providing over
+a 800% speedup in encryption performance, and the load was cut in half.  This
+was just on one user's machine, and things are nowhere near ready for packaging
+and deployment, yet.</p>
 
 <h2>Garlic wrapping a "reply" LeaseSet</h2>
-
-<p>This algorithm tweak will only be relevent for applications that want their peers to reply to them (though that includes everything that uses I2PTunnel or <a href="/user/view/10?PHPSESSID=288375bed2d584c74d7a9fdbc87e326a">mihi</a>'s ministreaming lib):</p>
-
-<p>Currently, when Alice sends Bob a message, when Bob replies he has to do a lookup in the network database - sending out a few requests to get Alice's current LeaseSet.  If he already has Alice's current LeaseSet, he can instead just send his reply immediately - this is (part of) why it typically takes a little longer talking to someone the first time you connect, but subsequent communication is faster.  What we'll do - for clients that want it - is to wrap the sender's current LeaseSet in the garlic that is delivered to the recipient, so that when they go to reply, they'll <i>always</i> have the LeaseSet locally stored - completely removing any need for a network database lookup on replies.  Sure, this trades off a bit of the sender's bandwidth for that faster reply (though overall network bandwidth usage decreases, since the recipient doesn't have to do the network database lookup).</p>
+<p>This algorithm tweak will only be relevent for applications that want their
+peers to reply to them (though that includes everything that uses I2PTunnel or
+mihi's ministreaming lib):</p>
+<p>Currently, when Alice sends Bob a message, when Bob replies he has to do a
+lookup in the network database - sending out a few requests to get Alice's
+current LeaseSet.  If he already has Alice's current LeaseSet, he can instead
+just send his reply immediately - this is (part of) why it typically takes a
+little longer talking to someone the first time you connect, but subsequent
+communication is faster.  What we'll do - for clients that want it - is to wrap
+the sender's current LeaseSet in the garlic that is delivered to the recipient,
+so that when they go to reply, they'll <i>always</i> have the LeaseSet locally
+stored - completely removing any need for a network database lookup on replies.
+Sure, this trades off a bit of the sender's bandwidth for that faster reply
+(though overall network bandwidth usage decreases, since the recipient doesn't
+have to do the network database lookup).</p>
 
 <h2>Better peer profiling and selection</h2>
-
-<p>Probably one of the most important parts of getting faster performance will be improving how routers choose the peers that they build their tunnels through - making sure they don't use peers with slow links or ones with fast links that are overloaded, etc.  In addition, we've got to make sure we don't expose ourselves to a <a href="http://www.cs.rice.edu/Conferences/IPTPS02/101.pdf">sybil</a> attack from a powerful adversary with lots of fast machines. </p>
+<p>Probably one of the most important parts of getting faster performance will
+be improving how routers choose the peers that they build their tunnels through
+- making sure they don't use peers with slow links or ones with fast links that
+are overloaded, etc.  In addition, we've got to make sure we don't expose
+ourselves to a
+<a href="http://www.cs.rice.edu/Conferences/IPTPS02/101.pdf">sybil</a> attack
+from a powerful adversary with lots of fast machines. </p>
 
 <h2>Network database tuning</h2>
-
-<p>We're going to want to be more efficient with the network database's healing and maintenance algorithms - rather than constantly explore the keyspace for new peers - causing a significant number of network messages and router load - we can slow down or even stop exploring until we detect that there's something new worth finding (e.g. decay the exploration rate based upon the last time someone gave us a reference to someone we had never heard of).  We can also do some tuning on what we actually send - how many peers we bounce back (or even if we bounce back a reply), as well as how many concurrent searches we perform.</p>
+<p>We're going to want to be more efficient with the network database's healing
+and maintenance algorithms - rather than constantly explore the keyspace for new
+peers - causing a significant number of network messages and router load - we
+can slow down or even stop exploring until we detect that there's something new
+worth finding (e.g. decay the exploration rate based upon the last time someone
+gave us a reference to someone we had never heard of).  We can also do some
+tuning on what we actually send - how many peers we bounce back (or even if we
+bounce back a reply), as well as how many concurrent searches we perform.</p>
 
 <h2>Longer SessionTag lifetime</h2>
-
-<p>The way the <a href="/book/view/46?PHPSESSID=288375bed2d584c74d7a9fdbc87e326a">ElGamal/AES+SessionTag</a> algorithm works is by managing a set of random one-time-use 32 byte arrays, and expiring them if they aren't used quickly enough.  If we expire them too soon, we're forced to fall back on a full (expensive) ElGamal encryption, but if we don't expire them quickly enough, we've got to reduce their quantity so that we don't run out of memory (and if the recipient somehow gets corrupted and loses some tags, even more encryption failures may occur prior to detection).  With some more active detection and feedback driven algorithms, we can safely and more efficiently tune the lifetime of the tags, replacing the ElGamal encryption with a trivial AES operation.</p>
+<p>The way the <a href="how_elgamalaes">ElGamal/AES+SessionTag</a> algorithm
+works is by managing a set of random one-time-use 32 byte arrays, and expiring
+them if they aren't used quickly enough.  If we expire them too soon, we're
+forced to fall back on a full (expensive) ElGamal encryption, but if we don't
+expire them quickly enough, we've got to reduce their quantity so that we don't
+run out of memory (and if the recipient somehow gets corrupted and loses some
+tags, even more encryption failures may occur prior to detection).  With some
+more active detection and feedback driven algorithms, we can safely and more
+efficiently tune the lifetime of the tags, replacing the ElGamal encryption with
+a trivial AES operation.</p>
 
 <h2>Longer lasting tunnels</h2>
-
-<p>The current default tunnel duration of 10 minutes is fairly arbitrary, though it "feels ok".  Once we've got tunnel healing code and more effective failure detection, we'll be able to more safely vary those durations, reducing the network and CPU load (due to expensive tunnel creation messages).</p>
+<p>The current default tunnel duration of 10 minutes is fairly arbitrary, though
+it "feels ok".  Once we've got tunnel healing code and more effective failure
+detection, we'll be able to more safely vary those durations, reducing the
+network and CPU load (due to expensive tunnel creation messages).</p>
 
 <h2>Adjust the timeouts</h2>
-
-<p>Yet another of the fairly arbitrary but "ok feeling" things we've got are the current timeouts for various activities.  Why do we have a 60 second "peer unreachable" timeout?  Why do we try sending through a different tunnel that a LeaseSet advertises after 10 seconds?  Why are the network database queries bounded by 60 or 20 second limits?  Why are destinations configured to ask for a new set of tunnels every 10 minutes?  Why do we allow 60 seconds for a peer to reply to our request that they join a tunnel?  Why do we consider a tunnel that doesn't pass our test within 60 seconds "dead"?</p>
-
-<p>Each of those imponderables can be addressed with more adaptive code, as well as tuneable parameters to allow for more appropriate tradeoffs between bandwidth, latency, and CPU usage.</p>
+<p>Yet another of the fairly arbitrary but "ok feeling" things we've got are the
+current timeouts for various activities.  Why do we have a 60 second "peer
+unreachable" timeout?  Why do we try sending through a different tunnel that a
+LeaseSet advertises after 10 seconds?  Why are the network database queries
+bounded by 60 or 20 second limits?  Why are destinations configured to ask for a
+new set of tunnels every 10 minutes?  Why do we allow 60 seconds for a peer to
+reply to our request that they join a tunnel?  Why do we consider a tunnel that
+doesn't pass our test within 60 seconds "dead"?</p>
+<p>Each of those imponderables can be addressed with more adaptive code, as well
+as tuneable parameters to allow for more appropriate tradeoffs between
+bandwidth, latency, and CPU usage.</p>
 
 <h2>More efficient TCP rejection</h2>
-
-<p>At the moment, all TCP connections do all of their peer validation after going through the full (expensive) Diffie-Hellman handshaking to negotiate a private session key.  This means that if someone's clock is really wrong, or their NAT/firewall/etc is improperly configured (or they're just running an incompatible version of the router), they're going to consistently (though not constantly, thanks to the shitlist) cause a futile expensive cryptographic operation on all the peers they know about.  While we will want to keep some verification/validation within the encryption boundary, we'll want to update the protocol to do some of it first, so that we can reject them cleanly without wasting much CPU or other resources.</p>
+<p>At the moment, all TCP connections do all of their peer validation after
+going through the full (expensive) Diffie-Hellman handshaking to negotiate a
+private session key.  This means that if someone's clock is really wrong, or
+their NAT/firewall/etc is improperly configured (or they're just running an
+incompatible version of the router), they're going to consistently (though not
+constantly, thanks to the shitlist) cause a futile expensive cryptographic
+operation on all the peers they know about.  While we will want to keep some
+verification/validation within the encryption boundary, we'll want to update the
+protocol to do some of it first, so that we can reject them cleanly
+without wasting much CPU or other resources.</p>
 
 <h2>Adjust the tunnel testing</h2>
-
-<p>Rather than going with the fairly random scheme we have now, we should use a more context aware algorithm for testing tunnels.  e.g. if we already know its passing valid data correctly, there's no need to test it, while if we haven't seen any data through it recently, perhaps its worthwhile to throw some data its way.  This will reduce the tunnel contetion due to excess messages, as well as improve the speed at which we detect - and address - failing tunnels.</p>
+<p>Rather than going with the fairly random scheme we have now, we should use a
+more context aware algorithm for testing tunnels.  e.g. if we already know its
+passing valid data correctly, there's no need to test it, while if we haven't
+seen any data through it recently, perhaps its worthwhile to throw some data its
+way.  This will reduce the tunnel contetion due to excess messages, as well as
+improve the speed at which we detect - and address - failing tunnels.</p>
 
 <h2>Compress some data structures</h2>
-
-<p>The I2NP messages and the data they contain is already defined in a fairly compact structure, though one attribute of the RouterInfo structure is not - "options" is a plain ASCII name = value mapping.  Right now, we're filling it with those published statistics - around 3300 bytes per peer.  Trivial to implement GZip compression would nearly cut that to 1/3 its size, and when you consider how often RouterInfo structures are passed across the network, thats significant savings - every time a router asks another router for a networkDb entry that the peer doesn't have, it sends back 3-10 RouterInfo of them.</p>
+<p>The I2NP messages and the data they contain is already defined in a fairly
+compact structure, though one attribute of the RouterInfo structure is not -
+"options" is a plain ASCII name = value mapping.  Right now, we're filling it
+with those published statistics - around 3300 bytes per peer.  Trivial to
+implement GZip compression would nearly cut that to 1/3 its size, and when you
+consider how often RouterInfo structures are passed across the network, thats
+significant savings - every time a router asks another router for a networkDb
+entry that the peer doesn't have, it sends back 3-10 RouterInfo of them.</p>
 
 <h2>Update the ministreaming protocol</h2>
-
-<p>Currently <a href="/user/view/10?PHPSESSID=288375bed2d584c74d7a9fdbc87e326a">mihi</a>'s ministreaming library has a fairly simple stream negotiation protocol - Alice sends Bob a SYN message, Bob replies with an ACK message, then Alice and Bob send each other some data, until one of them sends the other a CLOSE message.  For long lasting connections (to an irc server, for instance), that overhead is negligible, but for simple one-off request/response situations (an HTTP request/reply, for instance), thats more than twice as many messages as necessary.  If, however, Alice piggybacked her first payload in with the SYN message, and Bob piggybacked his first reply with the ACK - and perhaps also included the CLOSE flag - transient streams such as HTTP requests could be reduced to a pair of messages, instead of the SYN+ACK+request+response+CLOSE.</p>
+<p>Currently mihi's ministreaming library has a fairly simple stream negotiation
+protocol - Alice sends Bob a SYN message, Bob replies with an ACK message, then
+Alice and Bob send each other some data, until one of them sends the other a
+CLOSE message.  For long lasting connections (to an irc server, for instance),
+that overhead is negligible, but for simple one-off request/response situations
+(an HTTP request/reply, for instance), thats more than twice as many messages as
+necessary.  If, however, Alice piggybacked her first payload in with the SYN
+message, and Bob piggybacked his first reply with the ACK - and perhaps also
+included the CLOSE flag - transient streams such as HTTP requests could be
+reduced to a pair of messages, instead of the SYN+ACK+request+response+CLOSE.</p>
 
 <h2>Implement full streaming protocol</h2>
-
-<p>The ministreaming protocol takes advantage of a poor design decision in the I2P client procotol (I2CP) - the exposure of "mode=GUARANTEED", allowing what would otherwise be an unreliable, best-effort, message based protocol to be used for reliable, blocking operation (under the covers, its still all unreliable and message based, with the router providing delivery guarantees by garlic wrapping an "ack" message in with the payload, so once the data gets to the target, the ack message is forwarded back to us [through tunnels, of course]).</p>
-
-<p>As I've <a href="http://i2p.net/pipermail/i2p/2004-March/000167.html">said</a>, having I2PTunnel (and the ministreaming lib) go this route was the best thing that could be done, but more efficient mechanisms are available.  When we rip out the "mode=GUARANTEED" functionality, we're essentially leaving ourselves with an I2CP that looks like an anonymous IP layer, and as such, we'll be able to implement the streaming library to take advantage of the design experiences of the TCP layer - selective ACKs, congestion detection, nagle, etc.</p>
+<p>The ministreaming protocol takes advantage of a poor design decision in the
+I2P client procotol (I2CP) - the exposure of "mode=GUARANTEED", allowing what
+would otherwise be an unreliable, best-effort, message based protocol to be used
+for reliable, blocking operation (under the covers, its still all unreliable and
+message based, with the router providing delivery guarantees by garlic wrapping
+an "ack" message in with the payload, so once the data gets to the target, the
+ack message is forwarded back to us [through tunnels, of course]).</p>
+<p>As I've
+<a href="http://i2p.net/pipermail/i2p/2004-March/000167.html">said</a>, having
+I2PTunnel (and the ministreaming lib) go this route was the best thing that
+could be done, but more efficient mechanisms are available.  When we rip out the
+"mode=GUARANTEED" functionality, we're essentially leaving ourselves with an
+I2CP that looks like an anonymous IP layer, and as such, we'll be able to
+implement the streaming library to take advantage of the design experiences of
+the TCP layer - selective ACKs, congestion detection, nagle, etc.</p>
