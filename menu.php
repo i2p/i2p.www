@@ -24,10 +24,10 @@ function buildmenu() {
 					print "<br /><b><a href=\"$link\">$title</a></b><br />\n";
 					break;
 				case 2:
-					print "- <a href=\"$link\">$title</a><br />\n";
+					print "-&nbsp;<a href=\"$link\">$title</a><br />\n";
 					break;
 				case 3:
-					print "&nbsp;&nbsp;* <a href=\"$link\">$title</a><br />\n";
+					print "&nbsp;&nbsp;&sdot;&nbsp;<a href=\"$link\">$title</a><br />\n";
 					break;
 				default:
 			}
