@@ -22,7 +22,6 @@ up, especially as I2P gets more peer review, but these are the main 'big things'
   </ul></li>
  <li><a href="#performance">Performance</a><ul>
   <li><a href="#sessionTag">Migrate sessionTag to synchronized PRNG</a></li>
-  <li><a href="#connection">A lightweight connection protocol</a></li>
   <li><a href="#streaming">Full streaming protocol with sliding windows and congestion control</a></li>
   </ul></li>
 </ul>
@@ -334,20 +333,6 @@ replacing the delivery of the tags with a synchronized PRNG - when a new session
 (through an ElGamal encrypted block), both sides seed a PRNG for use and generate the session tags
 on demand (with the recipient precalculating the next few possible values to handle out of order
 delivery).</p>
-
- </li>
- <li><h3><a name="connection">A lightweight connection protocol</a></h3>
-
-<p>For whatever transport layer is used, there needs to be a lightweight way of reestablishing
-communication between peers without requiring a full asymmetric encryption operation each time.
-To accomplish this, we can simply use the same session tag concept as the ElGamal/AES+SessionTag
-algorithm - when establishing a brand new session with a peer, do a full asymmetric key 
-negotiation (the TCP transport uses DH + station to station w/ DSA), and generate a random tag
-that will be used during future connection establishments.  In turn, these random tags are saved
-to disk so that subsequent connections (even after restart) will not be CPU intensive.</p>
-
-<p>Connectionless protocols such as UDP avoid the connection idea, but will still require the same
-sort of session tag reuse.</p>
 
  </li>
  <li><h3><a name="streaming">Full streaming protocol with sliding windows and congestion control</a></h3>
