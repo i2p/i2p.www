@@ -24,7 +24,7 @@ if(is_readable(PAGE_DIR.$page.PAGE_EXT)) {
     include(PAGE_DIR.$page.PAGE_EXT);
     include(PAGE_DIR.'footer'.PAGE_EXT);
 } else {                                                                                            
-    header("Status: 404 Not Found");
+    header("HTTP/1.0 404 Not Found");
     include(PAGE_DIR.'header'.PAGE_EXT);
     print "<h1>Error: Page \"$page\" not found</h1>";
     include(PAGE_DIR.'footer'.PAGE_EXT);
