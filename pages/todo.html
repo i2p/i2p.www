@@ -22,7 +22,7 @@ up, especially as I2P gets more peer review, but these are the main 'big things'
   </ul></li>
  <li><a href="#performance">Performance</a><ul>
   <li><a href="#sessionTag">Migrate sessionTag to synchronized PRNG</a></li>
-  <li><a href="#streaming">Full streaming protocol with sliding windows and congestion control</a></li>
+  <li><a href="#streaming">Full streaming protocol improvements</a></li>
   </ul></li>
 </ul>
 
@@ -335,27 +335,33 @@ on demand (with the recipient precalculating the next few possible values to han
 delivery).</p>
 
  </li>
- <li><h3><a name="streaming">Full streaming protocol with sliding windows and congestion control</a></h3>
+ <li><h3><a name="streaming">Full streaming protocol improvements</a></h3>
 
-<p>The introduction of mihi's ministreaming library within the <a href="i2ptunnel">I2PTunnel</a>
-application ushered in a whole suite of functionality by exposing I2P's message oriented 
-interface as reliable streams.  However, the implementation makes two substantial shortcuts -
-waiting on an ACK of each message sent before sending subsequent messages (to guarantee order)
-and failing entirely if any message in the stream is not acknowleged.  The implications of these
-details are that each stream has limited throughput (due to the artificial latency caused by 
-waiting for the message and the ACK to travel across all of the hops in both tunnels) and that
-the streams will fail to deliver large transfers (a 0.1% failure rate would cause streams to
-fail after only 16MB is transferred).</p>
+<p>Since I2P <a href="http://dev.i2p.net/pipermail/i2p/2004-November/000491.html">0.4.2</a>,
+we have had a full sliding window streaming library, improving upon the older 
+fixed window size and resend delay implementation greatly.  However, there are 
+still a few avenues for further optimization:</p>
 
-<p>There are many techniques available to improve the situation, but we can learn the most by 
-following the lead of the TCP protocol - adding a 
-<a href="http://en.wikipedia.org/wiki/Sliding_window">sliding window</a> for the number of outstanding
-messages, tag messages with sequence IDs to allow reordering, include 
-<a href="http://www.icir.org/floyd/sacks.html">SACK</a> support, and even
-enable more <a href="http://www-nrg.ee.lbl.gov/floyd/ecn.html">explicit</a> 
-<a href="http://www.ana.lcs.mit.edu/dina/XCP/">congestion</a> 
-<a href="http://www.cs.helsinki.fi/u/sarolaht/capacity.html">control</a>.  It may be a lot of 
-work, but with it, we can make the streaming protocol as efficient as necessary.</p>
+<ul>
+<li>some algorithms to share congestion and RTT information across
+   streams (per target destination?  per source destination?  for
+   all of the local destinations?)</li>
+<li>further optimizations for interactive streams (most of the focus
+   in the current implementation is on bulk streams)</li>
+<li>more explicit use of the new streaming lib's features in
+   I2PTunnel and the SAM bridge, reducing the per-tunnel overhead.</li>
+<li>client level bandwidth limiting (in either or both directions
+   on a stream, or possibly shared across multiple streams).  This
+   would be in addition to the router's overall bandwidth limiting,
+   of course.</li>
+<li>various controls for destinations to throttle how many streams
+   they accept or create (we have some basic code, but largely
+   disabled)</li>
+<li>access control lists (only allowing streams to or from certain
+   other known destinations)</li>
+<li>web controls and monitoring the health of the various streams,
+   as well as the ability to explicitly close or throttle them</li>
+</ul>
 
  </li>
 </ul></li>
