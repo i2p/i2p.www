@@ -1,473 +1,473 @@
 <h3>I2P dev meeting, September 7, 2004</h3>
-<pre>
-14:09 &lt; jrandom&gt; 0) hi
-14:09 &lt; jrandom&gt; 1) 0.4
-14:09 &lt; jrandom&gt; 2) Capacity and overload
-14:09  * cervantes pulls up a bar stool
-14:09 &lt; jrandom&gt; 3) Website updates
-14:09 &lt; jrandom&gt; 4) I2PTunnel web interface
-14:09 &lt; jrandom&gt; 5) Roadmap and todo
-14:09 &lt; jrandom&gt; 6) ???
-14:09 &lt; jrandom&gt; 0) hi
-14:09 &lt; nicktastic&gt; ugha, Ah, -x isn't even necessary to see what's being resolved - silly me
-14:09 &lt; cervantes&gt; hullo
-14:09  * nicktastic resumes lurking
-14:10 &lt; jrandom&gt; 'lo all, sorry for the delay in the notes - http://dev.i2p.net/pipermail/i2p/2004-September/000437.html
-14:10  * jrandom just had to reply to Derick's E post :)
-14:10 &lt; deer&gt; &lt;ugha2p&gt; nicktastic: Right. The meeting already started though. :)
-14:10 &lt; luckypunk&gt; h wow, i didn't miss it.
-14:10 &lt; jrandom&gt; !hi5
-14:10 &lt; jrandom&gt; ok, swinging on in to 1) 0.4
-14:11 &lt; jrandom&gt; we finally got it out the door, and it doesn't seem to have bitten us too bad
-14:12 &lt; jrandom&gt; the network is larger than its ever been (I counted 60 TCP connections a few hours back), eepsites are retrievable, and irc is often usable
-14:12 &lt; dm&gt; hey!! meeting?
-14:12 &lt; jrandom&gt; hypercubus has done some great work with the new install, systray, and service manager, which I know has helped us out a bunch
-14:13 &lt; modulus&gt; yay
-14:13 &lt; hypercubus&gt; still a ways to go though
-14:13 &lt; hypercubus&gt; but i think we're getting somewhere now
-14:13 &lt; jrandom&gt; agreed, ever onwards :)
-14:14 &lt; jrandom&gt; this release also has the widespread deployment of oOo's ?i2paddresshelper 
-14:14 &lt; jrandom&gt; we covered that a bit the other week [http://dev.i2p.net/pipermail/i2p/2004-August/000419.html item 2.3], but now its probably a good idea for people to consider using it for their links
-14:15 &lt; hypercubus&gt; does it work with name-based vhosts?
-14:15 &lt; jrandom&gt; the i2ptunnel httpclient still correctly sends Host: $base64dest
-14:17 &lt; jrandom&gt; on that note, there has been some more talk about using the bundled webserver to serve some eepsites, and i think if someone has some time to figure out the configuration necessary, that'd be pretty kickass (saving us from the vhost / apache config problems)
-14:18 &lt; jrandom&gt; ok, anyone else have anything to bring up about 0.4?
-14:18 &lt; deer&gt; &lt;baffled&gt; is this web server in cvs?
-14:18 &lt; demonic_1&gt; ?
-14:18 &lt; hypercubus&gt; the web server is in 0.4
-14:18 &lt; demonic_1&gt; what i miss
-14:18 &lt; deer&gt; &lt;ugha2p&gt; baffled: It's going to be.
-14:18 &lt; hypercubus&gt; hence CVS
-14:18 &lt; jrandom&gt; baffled: yeah, its all in cvs (lib/org.mortbay.*)
-14:18 &lt; cervantes&gt; btw I experimented with window's url protocol handers... it's very easy to set the registry up so "i2p://base64" will launch in a browser with a http://site.i2p?i2paddresshelper=base64 ...
-14:19 &lt; deer&gt; &lt;ugha2p&gt; Oh, it already is.
-14:19 &lt; dm&gt; this is all very very cool
-14:19 &lt; hypercubus&gt; i already wrote registry interfacing code
-14:19 &lt; hypercubus&gt; we can use that to set up an .i2p association
-14:19 &lt; fvw&gt; cervantes: i2p:// wouldn't be quite right I think. After all, it's http over i2p; just as you could have irc:// over i2p.
-14:19 &lt; cervantes&gt; you can also specify security and proxy settings on a per protocol basis
-14:19 &lt; jrandom&gt; cervantes: does firefox/etc honor those?
-14:19 &lt; cervantes&gt; yup
-14:20 -!- shardy_ is now known as shardy
-14:20 &lt; jrandom&gt; woah, hi shardy_ 
-14:20 &lt; shardy&gt; hey jrandom, long time no talk
-14:20 &lt; cervantes&gt; although admittedly I need more testing...
-14:20 &lt; nicktastic&gt; konqueror should, too
-14:20 &lt; cervantes&gt; I was just playing in a spare moment ;-)
-14:20 &lt; deer&gt; &lt;ugha2p&gt; Opera doesn't.
-14:20 &lt; cervantes&gt; although I doubt firefox takes any notice of windows proxy and security settings
-14:20 &lt; hypercubus&gt; you can set it in opera's ini file
-14:21 &lt; hypercubus&gt; i did that to opera so ed2k:// would work
-14:21 &lt; deer&gt; &lt;ugha2p&gt; hypercubus: Ah, cool.
-14:21 &lt; fvw&gt; only up to a point. You can't turn URL handlers into http:// handlers handled by opera itsself alas.
-14:21 &lt; hypercubus&gt; though they don't document it very well
-14:21 &lt; deer&gt; &lt;duck&gt; really, what benefit does i2p:// give?
-14:22 &lt; fvw&gt; hypercube: You're handing it off to a helper app I suppose? I did much the same, but I couldn't find a way to make opera display a "download started" page.
-14:22 &lt; hypercubus&gt; yes, it gets handed to eMule
-14:22 &lt; dm&gt; yes, who wants to pee in public anyway?
-14:22 &lt; hypercubus&gt; we could hand i2p:// to the eeproxy
-14:22 &lt; hypercubus&gt; then you web guys can figure out the rest from there ;-)
-14:22 &lt; Sciatica&gt; is https not http over, uh, "s"?
-14:23 &lt; jrandom&gt; but, as i think duck is getting at, we'll already be tied in to the eepproxy anyway?
-14:23 &lt; deer&gt; &lt;ugha2p&gt; Sciatica: It's HTTP over SSL, yes. :)
-14:23 &lt; jrandom&gt; Sciatica: http over i2p (well, anything over i2p) is secure and authenticated.  what happens after it reaches the other side is outside i2p's scope
-14:23 &lt; deer&gt; &lt;ugha2p&gt; But that's an established convention.
-14:24 &lt; Sciatica&gt; yes, I knew that.  I'm just saying that the argument against i2p:// isn't as clear as "isn't it juts http _over_ i2p?"
-14:24 &lt; dm&gt; htt2p
-14:24 &lt; hypercubus&gt; i don't know if i2p:// is necessary, but i do believe it's possbile to get the major browsers at least to work with it
-14:24 &lt; deer&gt; &lt;ugha2p&gt; jrandom: I think he just referred to the 'https://' prefix.
-14:24 &lt; jrandom&gt; ah, sorry.
-14:24 &lt; deer&gt; &lt;duck&gt; we need an anonymizing filter plus http://127.0.0.1:7657/www.duck.i2p/ anyway
-14:25 &lt; deer&gt; &lt;duck&gt; with those you dont need to tweak browser settings
-14:25 &lt; jrandom&gt; but yeah, I agree with fvw, this sounds like excessive overloading of the url protocol
-14:25 &lt; demonic_1&gt; not here &gt;&gt; as a lame use i feel i2p:// links would rule &lt;&lt; not here
-14:25 &lt; jrandom&gt; right duck
-14:25 &lt; jrandom&gt; hehe
-14:25 &lt; cervantes&gt; perhaps i2p:// could me made to operate as a protocol arbiter:  i2p://irc/base64
-14:26 &lt; fvw&gt; ungh, that's ugly and abusing URLs in the worst possible way.
-14:26 &lt; deer&gt; &lt;ugha2p&gt; cervantes: How would that work in IRC's case?
-14:26 &lt; deer&gt; &lt;duck&gt; URIs :)
-14:26 &lt; cervantes&gt; that way you can launch different apps based on a single url standard
-14:26 &lt; fvw&gt; (not that there's anything wrong with that)
-14:26 &lt; jrandom&gt; wouldn't the more appropriate URL mod be irc://i2p/base64/#i2p ?
-14:27 &lt; jrandom&gt; but, ok, we're a bit off track..
-14:27 &lt; jrandom&gt; anything else on 0.4?  :)
-14:28 &lt; fvw&gt; I don't think that URI's allow for specifying transport mechanism seperately from protocol, which is a shame really.
-14:28 &lt; dm&gt; you can use the filesystem
-14:28 &lt; fvw&gt; Yes, sort of: *applause*
-14:28 &lt; dm&gt; c:\i2p\irc #i2p
-14:29 &lt; dm&gt; ha! I confused you all
-14:29 &lt; deer&gt; * mule_iip agrees with fvw
-14:29 &lt; fvw&gt; dm: I'm going to seriously hurt you. Maybe not today, maybe not tomorrow, but soon and for the rest of your life.
-14:29 &lt; jrandom&gt; :) thanks, we do our best
-14:29 &lt; fvw&gt; &lt;/pinky and the brain&gt;
-14:29 &lt; jrandom&gt; heh
-14:29 &lt; jrandom&gt; ok, jumping on to 2) Capacity and overload
-14:30 &lt; deer&gt; &lt;DrVince&gt; Hi everyone
-14:30 &lt; jrandom&gt; i'd rather not just copy out what was posted in the notes, so review whats there :)
-14:30 &lt; dm&gt; hi
-14:30 &lt; hypercubus&gt; welcome to our meeting DrVince ;-)
-14:30 &lt; deer&gt; &lt;ugha2p&gt; Hi, DrVince.
-14:31 &lt; jrandom&gt; one thing I'd like to mention wrt 2) was something a few people have seen - severe skew in participating tunnels
-14:31 &lt; jrandom&gt; e.g. someone with DSL had 300+ tunnels the other day
-14:31 &lt; dm&gt; me
-14:31 &lt; modulus&gt; yeah
-14:31 &lt; jrandom&gt; (and when they go down, that breaks a *lot* of tunnels)
-14:31 &lt; jrandom&gt; the problem is tunnels are really lightweight - 2-20bps on average
-14:31 &lt; cervantes&gt; and my OC3 has practically nada
-14:31 &lt; hypercubus&gt; i only have 8 atm
-14:32 &lt; dm&gt; i had 270+, and I am on 150kbps
-14:32 &lt; jrandom&gt; overall, the network has ~ 20*n tunnels on average at any given time
-14:32 &lt; jrandom&gt; (where n = # nodes in the network)
-14:32 &lt; jrandom&gt; at an average of 2 hops per node, that means every node participates in an average of 40 tunnels
-14:33 &lt; hypercubus&gt; ideally ;-)
-14:33 &lt; jrandom&gt; well, thats the thing, balancing like that *isnt* ideal
-14:33 &lt; jrandom&gt; since not all nodes are as fast or have as much bandwidth
-14:33 &lt; jrandom&gt; on the ohter hand, balancing the tunnels so they all go through 2 or 3 really fast peers also sucks
-14:33 &lt; jrandom&gt; since if one of those go down, *boom*
-14:34 &lt; hypercubus&gt; right, so why is dm's inferior DSL connection so overloaded, while my much faster DSL connection has been under-utilized?
-14:34 &lt; Sciatica&gt; will this problem go away as the # of nodes in the network grows beyond 100, 200, etc.?
-14:34 &lt; dm&gt; inferior? :'(
-14:34 &lt; jrandom&gt; hypercubus: because i2p is currently nonresponsive to the bandwidth available, unless people turn on bandwidth limiting
-14:34 &lt; hypercubus&gt; dm: technically speaking ;-)
-14:34 &lt; hypercubus&gt; ok i have bandwidth limiting enabled... dm must not?
-14:35 &lt; Sciatica&gt; (at some point won't the number of nodes a server can host be greatly dwarfed compared the the number of total nodes [e.g., tunnels]?
-14:35 &lt; ugha_node&gt; Arrr!
-14:35 &lt; ugha_node&gt; '(the local message processing time exceeds 1s)' -- I don't think we should program any such constants into the router. I think all such values should be taken from the (I2P network) environment, so it would still work in case the router lands in an unexpected enviromnent.
-14:35 &lt; dm&gt; yeah, I don't, also my uplink is decent: 256kbps (downlink 150kbps)
-14:35 &lt; Sciatica&gt; bad terminiology -- I type too slow for such issues :-)
-14:35 &lt; jrandom&gt; Sciatica: it isn't a problem, is just a reality.  if every node maintains 20 tunnels at any given time, with each tunnel an average of 2 hops, no matter how large the network is, it averages out
-14:36 &lt; jrandom&gt; ugha_node: agreed - the 1s thing is random #, but how can we derive the "right" value?  what amount of delay is "a lot"?
-14:37 &lt; jrandom&gt; we do have some code in the RouterThrottleImpl that tracks "how much bandwidth we've agreed to allocate"
-14:37 &lt; jrandom&gt; but at the moment, it doesn't throttle based on that
-14:37 &lt; dm&gt; hmmmm I don't like these overload discussions... flashbacks of freenet.
-14:37 &lt; jrandom&gt; (bandwidth agreed to == # participating tunnels * # messages per tunnel on average * # bytes per message on average)
-14:37 &lt; dm&gt; Maybe we should use estimators?
-14:38  * jrandom kicks dm
-14:38 &lt; hypercubus&gt; dm: are you using bandwidth limiting in your router?
-14:38 &lt; dm&gt; hypercubus: no
-14:38 &lt; hypercubus&gt; dm: i highly recommend using it ;-)
-14:38 &lt; dm&gt; jrandom: three words... NGR
-14:38 &lt; fvw&gt; It's really up to the node that requested the tunnel, right? What kind of lag are they willing to put up with? Would it be viable to make it one of the tunnel parameters?
-14:39  * fvw wonders if dm is trying to scare us or if it's merely an added benefit.
-14:39 &lt; jrandom&gt; hmm, that has potential
-14:39 &lt; dm&gt; errr.. won't that just move the arbitrary threshold to the requesting router? ;)
-14:39 &lt; dm&gt; I don't want to choose, you choose!
-14:40 &lt; jrandom&gt; yes dm, but the requesting router knows what the tunnel will be used for (irc w/ low lag vs bulk w/ high lag and high throughput)
-14:40 &lt; fvw&gt; yes, but for some things 10s lag is no problem (think file transfers), whereas other stuff (irc) needs low latency.
-14:40 &lt; dm&gt; yeah, so you have the app layer decide the threshold?
-14:40 &lt; jrandom&gt; that is, however, dangerous
-14:40 &lt; fvw&gt; the only problem is using high-latency links will not increase capacity, so in the end file transfers get all the resources.
-14:41 &lt; cat-a-puss&gt; can you really trust any load claims made by the router, otherwise a malicious preson could try to get another nodes traffic to go through all their routers
-14:41 &lt; jrandom&gt; cat-a-puss: these are only used to reject requests to participate, not to solicit
-14:41 &lt; ugha_node&gt; You can't.
-14:41 &lt; cat-a-puss&gt; ok
-14:42 &lt; jrandom&gt; a malicious user can of course accept tunnels when they're totally overloaded, but we'll detect that when the tunnel fails
-14:42 &lt; jrandom&gt; (and the freeloader can reject the tunnel when they arent loaded, but, c'est la vie)
-14:43 &lt; jrandom&gt; the throttle based on local overload is pretty effective though.  however, that isn't enough
-14:43 &lt; dm&gt; greedy bastard
-14:43 &lt; jrandom&gt; i've been trying to find out an ideal way to work out whether to accept it or not, and i think that there is some potential for probabalistically rejecting requests we would otherwise accept, based on how many tunnels we are already in
-14:44 &lt; jrandom&gt; the concept there is that the peer wants other people to take on some load
-14:44 &lt; cat-a-puss&gt; should we run as many virtual routers as avalable bandwidth?
-14:44 &lt; jrandom&gt; (so as to distribute the failure)
-14:44 &lt; jrandom&gt; hmm cat-a-puss?
-14:44 &lt; jrandom&gt; are you running the sim on the live net?
-14:45 &lt; jrandom&gt; in any case, no, a single router should be able to address the local capacity
-14:46 &lt; deer&gt; &lt;mule_iip&gt; problem is that bandwidth used in a tunnel may change significantly over time, right?
-14:46 &lt; cervantes&gt; which is not currently happening...at least not for me
-14:46 &lt; cat-a-puss&gt; well if it's all random how can you take advantage of an oc3 any more than some poor guy on a 56k? You ether have to advertise: problematic, or run virtual routers, ether way I think a malicious party could try to encircle a node for some sort of stistical attack
-14:46 &lt; jrandom&gt; right mule_i2p.  we need to do some more monitoring of the tunnel activity
-14:46 &lt; cervantes&gt; 14 participents each have 11.5mbit ... that's a bit of a waste :)
-14:47 &lt; jrandom&gt; cat-a-puss: probabalistic != random :)  
-14:47 &lt; jrandom&gt; heh cervantes 
-14:48 &lt; jrandom&gt; the basic idea behind probabalistically rejecting would be to spread the load out to other peers.  however, if the network really is saturated, the probability won't be a problem as people will just ask again
-14:48 &lt; jrandom&gt; the issue is that we currently have an overwhelming *excess* of capacity
-14:48 &lt; Sugadude&gt; Poor i2p, having *too* much capacity. Don't worry, I'm on it. ;)
-14:49 &lt; fvw&gt; assuming everyone is wellbehaved, you could perhaps not reject from people who come back within a short interval of being probabilisticly rejected?
-14:49 &lt; deer&gt; &lt;mule_iip&gt; so fill any tunnel with some cover traffic
-14:49 &lt; jrandom&gt; heh Sugadude :)
-14:49 &lt; cervantes&gt; that's because everyone's requests are being handled by dm's router ;-)
-14:49 &lt; jrandom&gt; fvw: we dont know who requests a tunnel
-14:49 &lt; fvw&gt; hmm, good point. *screws head back on*
-14:50 &lt; jrandom&gt; fvw: probabalistically, subsequent requests would be accepted - we'd want the 'reject' factor to stay low enough
-14:50 &lt; deer&gt; &lt;mule_iip&gt; which will increase anonymity and make load calculation easier
-14:51 &lt; jrandom&gt; true mule_iip, but it'd be nice to actually have the net operate effectively without requiring high load :)
-14:51 &lt; jrandom&gt; but that is definitely a worthwhile scenario for the sim
-14:51 &lt; deer&gt; &lt;mule_iip&gt; effectively make i2p use a constant bitrate with cover traffic. but that was for a future release, i guess :)
-14:52 &lt; jrandom&gt; we *could* use ATM-style allocation
-14:52 &lt; fvw&gt; Doesn't bandwidth usage vary too much for that to be viable?
-14:52 &lt; jrandom&gt; e.g. assume 5 messages per minute per tunnel @ 32KB each, and compare that with the bandwidth limits, and reject accordingly
-14:52 &lt; cervantes&gt; hyper has some ascii we can use to pad the messages out
-14:52 &lt; hypercubus&gt; hmmmm, i don't like that constant bitrate idea... i2p would be filtered by ISPs very quickly if that were implemented
-14:53 &lt; jrandom&gt; heh cervantes 
-14:53 &lt; deer&gt; &lt;kaji&gt; yes
-14:53  * hypercubus doesn't know what cervantes is talking about
-14:53  * hypercubus hides his floppy
-14:53 &lt; jrandom&gt; fvw: padding?  or allocation?
-14:53 &lt; fvw&gt; allocation
-14:53 &lt; cervantes&gt; ah ya plausable deniability huh
-14:54 &lt; jrandom&gt; hmm fvw.  perhaps, but I think we can monitor them statistically and compensate
-14:54 &lt; deer&gt; &lt;kaji&gt; constant bitrate sounds like Waste
-14:54 &lt; jrandom&gt; for instance, http://localhost:7657/oldstats.jsp#tunnel.bytesAllocatedAtAccept
-14:54 &lt; hypercubus&gt; hence its name ;-)
-14:55 &lt; jrandom&gt; that stat monitors how much bandwidth we have agreed to pass on for other people's tunnels
-14:55 &lt; jrandom&gt; (using the last 10 minutes as a guideline)
-14:56 &lt; jrandom&gt; so my peer with 85 tunnels says it will transfer 3,676,945.65 bytes over the next 10 minutes for all of those tunnels, combined
-14:56 &lt; deer&gt; &lt;mule_iip&gt; kaji: it is waste, and we probably should use it only for the more severe threat models. but would be nice for low latency like irc.
-14:56 &lt; jrandom&gt; thats 72bps each, but I'm not sure how skewed it is (probably *very*)
-14:57 &lt; jrandom&gt; however, if all of those tunnels started using lots and lots of bandwidth, the total value would shoot up, and we could throttle it
-14:57  * fvw nods. 
-14:57  * fvw notes this is in fact a wildly interesting problem, theoreticly speaking.
-14:57 &lt; fvw&gt; (but maybe that's just me being weird)
-14:57 &lt; jrandom&gt; agreed
-14:58 &lt; jrandom&gt; (to both ;)
-14:58 &lt; jrandom&gt; but yeah, we dont have the Right Answer yet.  but its something to be worked on
-14:59 &lt; jrandom&gt; ok, unless there's anything else on that, moving on to 3) Website updates
-14:59 &lt; fvw&gt; We could ofcourse go totally lossy and just drop datagrams when we're overloaded, and make people run something like tcp over that.
-14:59 &lt; jrandom&gt; we tried that, and lots and lots and lots of tunnels failed
-15:00 &lt; jrandom&gt; (since if a tunnel drops 1 message, we mark it as failed)
-15:00 &lt; fvw&gt; yes, you shouldn't do that if you take that approach.
-15:00 &lt; jrandom&gt; ((and when we tried not being such fascists, we didn't notice when a tunnel *really* fails))
-15:00  * fvw nods and strokes his beard. Good point. (mental note to self: grow beard to stroke in situations like this)
-15:01 &lt; jrandom&gt; heh
-15:01 &lt; jrandom&gt; ok, anyway, as you've all seen, our new installer and new web interface is completely different from the old way of doing things
-15:01  * hypercubus gives fvw his beard
-15:02 &lt; jrandom&gt; while that is Good, since the old way was Painful, all our old docs are now wildly incorrect
-15:02 &lt; fvw&gt; could we stick on 2) a few minutes longer? I still have a few bad ideas I want you to shoot down.
-15:02 &lt; jrandom&gt; sure
-15:02 &lt; dm&gt; I can't use the internet... 
-15:02 &lt; dm&gt; Bandwidth in/out
-15:02 &lt; dm&gt; 1m: 13.32/11.98KBps
-15:02 &lt; dm&gt; 5m: 10.74/9.46KBps
-15:02 &lt; jrandom&gt; how many tunnels dm?
-15:02 &lt; hypercubus&gt; dm: that's why i suggested you turn on i2p's bandwidth limiting ;-)
-15:02 &lt; dm&gt; only 166
-15:02 &lt; jrandom&gt; yeah, throttle it down to 6KBps
-15:02 &lt; jrandom&gt; lol
-15:03 &lt; dm&gt; (participating)
-15:03 &lt; jrandom&gt; (or maybe 8KBps if you're nice)
-15:03 &lt; dm&gt; I'll leave it as is, I just need to view this one page
-15:03 &lt; jrandom&gt; btw, the 13.32 vs 11.98 lets us know you're downloading approximately 1KBps locally
-15:03 &lt; jrandom&gt; (through i2p)
-15:03 &lt; fvw&gt; What happens if we just time-out tunnels at a reasonably large idle-time? Say 30 mins or something. The next protocol up would have to do keepalives, but wouldn't that solve the not-detecting-dead-tunnels thing?
-15:03 &lt; hypercubus&gt; he's downloading far more than that actually
-15:04 &lt; jrandom&gt; ((though that 1KBps might be small enough to be netDb))
-15:04 &lt; dm&gt; hypercubus: our transfer is stalling badly, actually.
-15:04 &lt; jrandom&gt; fvw: tunnels expire after 10 minutes
-15:04 &lt; deer&gt; &lt;kaji&gt; hold it, is bandwidth working now? if so what sould i turn it to?
-15:04 &lt; dm&gt; dissapointed in the getright/i2p combo
-15:04 &lt; jrandom&gt; they're not long lived fvw, unlike TOR
-15:04 &lt; fvw&gt; and that had most tunnels failing, even with keepalives?
-15:04 &lt; hypercubus&gt; dm: periodically yes... i think the solution would be to limit your upstream to about 8KB/s
-15:04 &lt; jrandom&gt; kaji: http://localhost:7657/
-15:05 &lt; hypercubus&gt; since it seems you're saturated
-15:05 &lt; jrandom&gt; er, /config.jsp
-15:05 &lt; fvw&gt; ok, but you don't want them dissapearing in flurries of packet loss.
-15:05 &lt; jrandom&gt; every minute (on average) each peer tests each tunnel to make sure its alive (so that other people can send us data - without tunnels, we're fucked)
-15:06 &lt; fvw&gt; Ok. I need to read more of how i2p currently works. On to 3) as far as I'm concerned.
-15:06 &lt; deer&gt; &lt;kaji&gt; right now its set on the default -1 but I dont know what a 1.5/750@1.2ghz connections translates to from maximum tunnel partisipation
-15:07 &lt; deer&gt; &lt;kaji&gt; i seem to be participation in 166
-15:07 &lt; jrandom&gt; kaji: your router will never get so many tunnels that it'll be CPU congested ;)
-15:07 &lt; deer&gt; &lt;mule_iip&gt; off-topic: don't you need a tunnel to be fucked :)
-15:07 &lt; deer&gt; &lt;kaji&gt; *ing
-15:07 &lt; jrandom&gt; heh
-15:07  * fvw votes "nay"
-15:08 &lt; deer&gt; &lt;kaji&gt; jrandom, i just finnished reading the letter about tunnels without bandwidth, i just didnt know what to set the limmit to
-15:08 &lt; jrandom&gt; ok, i agree, lots more to be done to figure this stuff out
-15:08 &lt; jrandom&gt; ok cool kaji, just enable your bandwidth limiter to something like 8KBps
-15:08 &lt; jrandom&gt; (or 12 if you're nice :)
-15:09 &lt; deer&gt; &lt;kaji&gt; &lt;/oftopic&gt;
-15:09 &lt; jrandom&gt; ok, on to 3) website updates
-15:09 &lt; deer&gt; &lt;kaji&gt; inbound and outbound?
-15:09 &lt; jrandom&gt; yes kaji
-15:09 &lt; jrandom&gt; ok, as I said, we need help with the docs
-15:09 &lt; jrandom&gt; (heeeeeeeeelp!)
-15:09 &lt; hypercubus&gt; i move we fill the long-vacant team positions of Webmaster and Web Editor
-15:10  * jrandom seconds that motion
-15:10 &lt; jrandom&gt; (now all we need is someone to volunteer ;)
-15:10 &lt; hypercubus&gt; i know cervantes is a busy guy
-15:10 &lt; jrandom&gt; its more up to the invidual to volunteer /themselves/ hyper ;)
-15:10 &lt; hypercubus&gt; i nominate Curiosity for Webmaster or Web Editor, or both if she's up for it ;-)
-15:11 &lt; deer&gt; &lt;ugha2p&gt; Uhh.
-15:11 &lt; dm&gt; Man, even my CPU is starting to max out because of I2P...
-15:11 &lt; dm&gt; You love, you REALLY love me :'(
-15:11 &lt; dm&gt; oops, :')
-15:12  * cervantes feels someone pushing him into the bull ring
-15:12 &lt; jrandom&gt; i think we can use all the help we can get, and if she is up for helping, we'd love it
-15:13 &lt; hypercubus&gt; i've seen her web designs and can vouch for her work
-15:13 &lt; hypercubus&gt; and she expressed interest, i don't know what she finally decided however
-15:13 &lt; jrandom&gt; ok great
-15:13 &lt; dm&gt; she?
-15:13 &lt; cervantes&gt; I'm sure she can devote far more care and attention to it than I ever could
-15:14 &lt; dm&gt; that word must not be used in our world
-15:14 &lt; fvw&gt; never mind that, he said 'care and attention'.
-15:15  * jrandom groans
-15:15 &lt; fvw&gt; present company excluded ofcourse.
-15:15 &lt; jrandom&gt; ok, in any case, we'll need some people to help out on the docs - generating new walk throughs, intro docs, etc
-15:16 &lt; jrandom&gt; we'll chat with Curiosity about what we can get her to hack on :)
-15:16 &lt; hypercubus&gt; i can take on the installation related stuff
-15:16 &lt; hypercubus&gt; s/on/of/
-15:16 &lt; hypercubus&gt; i know how everyone loves to read these baroque howto's that i write ;-)
-15:16 &lt; jrandom&gt; :)
-15:17 &lt; jrandom&gt; an install guide / walkthrough would KickAss
-15:17 &lt; fvw&gt; that's not how you spell 'broke'.
-15:17 &lt; jrandom&gt; heh
-15:17  * hypercubus snickers, then steals fvw's wallet
-15:17 &lt; hypercubus&gt; that's how you spell "broke" ;-)
-15:17 &lt; deer&gt; &lt;kaji&gt; hyper what system are you on? i'll take a crack on the winxp version but im not very reliable, i may see something shiny and quit
-15:17 &lt; deer&gt; * Curiosity is away for a bit...
-15:18 &lt; hypercubus&gt; kaji: ?
-15:18 &lt; deer&gt; &lt;kaji&gt; hyper, i was asking what OS you are using
-15:18 &lt; hypercubus&gt; OSes
-15:18 &lt; deer&gt; &lt;kaji&gt; OSESES
-15:19 &lt; hypercubus&gt; i have vmware, so i can run all the windowses and freebsd and such
-15:19 &lt; hypercubus&gt; also have pearpc, so i can run OS X
-15:20 &lt; jrandom&gt; ok, if there's nothing else on the web side
-15:20 &lt; jrandom&gt; moving on to * 4) I2PTunnel web interface
-15:21  * jrandom declares the i2ptunnel web interface shitty.  functional.  but shitty.
-15:21 &lt; deer&gt; &lt;DrVince&gt; I could dig in for french translation if interest may be
-15:21 &lt; jrandom&gt; duck had a few ideas for improving it, but he had to jet, so let me paste a few lines
-15:21 &lt; hypercubus&gt; again, we need more web devs ;-)
-15:21 &lt; jrandom&gt; oh, translating web pages to french would rule
-15:22 &lt; jrandom&gt; s/french/french and other langs/
-15:22 &lt; jrandom&gt; here are some duck-isms:
-15:22 &lt; jrandom&gt; &lt;duck&gt; reduce data load on general page; use tables/div to order stuff
-15:22 &lt; jrandom&gt; &lt;duck&gt; provide a edit/detailed page with info most dont care about, tunnels, dest hash, full key
-15:22 &lt; jrandom&gt; &lt;duck&gt; feedback after clicking buttons, 'item saved' etc. give dest as output when new one created
-15:22 &lt; jrandom&gt; &lt;duck&gt; (hide under edit/details otherwise)
-15:22 &lt; jrandom&gt; &lt;duck&gt; tag the top messages as being 'log'; sometimes confusing
-15:22 &lt; jrandom&gt; &lt;duck&gt; make clear that 'confirm' is only needed for remove, not save
-15:22  * jrandom agrees with what he says
-15:23 &lt; jrandom&gt; there have been a slew of bugfixes behind the scenes in the /i2ptunnel/ web interface since 0.4 too, so the functional kinks should be cleaned up
-15:24 &lt; jrandom&gt; the code implementing those pages are pretty ugly though
-15:24 &lt; jrandom&gt; probably the best approach would be to write up the screens in plain html / css / images / etc, then give it to one of the java devs to integrate
-15:25 &lt; hypercubus&gt; whatever happened to the days when there was an overabundance of web devs? ;-)
-15:25 &lt; jrandom&gt; they're all working at mcdonalds
-15:25 &lt; hypercubus&gt; ah right
-15:25 &lt; deer&gt; * Curiosity is back :)
-15:25 &lt; jrandom&gt; anyway, if anyone is interested in helping out, or has further suggestions, please get in touch
-15:25 &lt; jrandom&gt; wb Curiosity
-15:26 &lt; deer&gt; &lt;Curiosity&gt; should i bring up the idea i told oyu about jrandom?
-15:26 &lt; cat-a-puss&gt; I know someone who might be able to help with the web stuff
-15:26 &lt; jrandom&gt; ah, the live cd?
-15:27 &lt; jrandom&gt; great cat-a-puss, we need all the help we can get
-15:27 &lt; deer&gt; &lt;Curiosity&gt; teah :)
-15:27 &lt; deer&gt; &lt;Curiosity&gt; err yeah
-15:27 &lt; jrandom&gt; Curiosity: yeah, please bring that up when we get to item 6) ???
-15:28 &lt; deer&gt; &lt;Curiosity&gt; okay :)
-15:28 &lt; cat-a-puss&gt; ok, I'll get them on the list, and give them jrandom's e-mail (curiosity I don't know your email)
-15:28 &lt; jrandom&gt; ok, does anyone have anything else to mention regarding the I2PTunnel web interface?
-15:28 &lt; jrandom&gt; r0x0r cat-a-puss
-15:29 &lt; deer&gt; &lt;Curiosity&gt; also, i don't mind helping wiht the web editing, etc. also :)
-15:29 &lt; jrandom&gt; ok, if there's nothing else, 5) Roadmap and todo
-15:30 &lt; jrandom&gt; awesome Curiosity, thanks!  we can chat a bit after the meeting about taking over the world^W^W^W^Wweb stuff
-15:30 &lt; deer&gt; &lt;Curiosity&gt; okies :)
-15:30 &lt; jrandom&gt; as y'all probably saw, there's a new big scary page on the website (http://www.i2p.net/todo)
-15:31 &lt; jrandom&gt; that covers the big scary issues we have ahead of us (and doesnt even touch on all the client apps we need, etc)
-15:31 &lt; jrandom&gt; as you can see, we've got a shitload to do, but the good news is, we dont have to have it all done right away. 
-15:32 &lt; jrandom&gt; in fact, those things are really just the bullet items from the roadmap page (with a heap of text introducing each)
-15:33 &lt; jrandom&gt; while i know thats a lot to sort through, what would be great is if people could let me know if they come across something that we will need to deal with that isn't on that page
-15:34 &lt; jrandom&gt; that isn't necessary today or this week even, just a general "hey, let us know"
-15:35 &lt; jrandom&gt; with mule's suggestion (http://www.i2p.net/todo#nat) i've been doing a lot of soul searching, and the roadmap will likely be moved around a bit
-15:35 &lt; jrandom&gt; but we'll see.
-15:36 &lt; jrandom&gt; if you have any strong feelings on certain issues ("omg we *cannot* function without X, Y, and Z!"), please let me know or post onto the list
-15:36 &lt; jrandom&gt; while i'm no champion of democracy, i am open to reason :)
-15:37 &lt; jrandom&gt; ok, thats all i've got to say about that.. anyone have anything to throw out there?
-15:37 &lt; deer&gt; &lt;Curiosity&gt; benevolent dictatorship :)
-15:37 -!- Sonium_ is now known as Sonium
-15:37 &lt; jrandom&gt; bah, i'm no dictator - i dont control what other people code :)
-15:37 &lt; cervantes&gt; tranquil hegemony
-15:37 &lt; cat-a-puss&gt; I've aquired two more developers
-15:37 &lt; jrandom&gt; w00t!
-15:38 &lt; cat-a-puss&gt; and have grand plans for a distributed search engine
-15:38 &lt; jrandom&gt; oh, kickass
-15:38 &lt; jrandom&gt; would that be something http://files.i2p/ could tie into?
-15:38 &lt; jrandom&gt; or, well, let me just say, oh, kickass :)
-15:38 &lt; cat-a-puss&gt; er: I can't get there (hostile enviroment)
-15:39 &lt; jrandom&gt; ah 'k
-15:39 &lt; cat-a-puss&gt; anyway, some CVS space would be nice, once we get there
-15:40 &lt; jrandom&gt; certainly, space on cvs.i2p is available
-15:40 &lt; jrandom&gt; either within the i2p/apps/ directory or your own module, if preferred
-15:40 &lt; jrandom&gt; (cvs.i2p == cvs.i2p.net)
-15:40 &lt; cat-a-puss&gt; I should probably talk to the people working on the dht huh?
-15:41 &lt; cat-a-puss&gt; what is the status of that thusfar
-15:41 &lt; jrandom&gt; :)
-15:41 &lt; jrandom&gt; i haven't heard any status updates from aum in the last few days, but i'm sure he's churning away
-15:42 &lt; jrandom&gt; last update was in http://dev.i2p.net/pipermail/i2p/2004-August/000425.html
-15:43 &lt; jrandom&gt; ok, i guess that moves us on to * 6) ???
-15:44 &lt; jrandom&gt; Curiosity was bouncing around the idea of a 'live cd' idea with i2p
-15:44 &lt; jrandom&gt; which i think is pretty cool, and something we will want
-15:44 &lt; deer&gt; &lt;Curiosity&gt; kewl :)
-15:44 &lt; jrandom&gt; though we aren't really stable enough for that yet, with a release every 2 weeks or so
-15:44 &lt; hypercubus&gt; agreed... it could even be integrated into a Knoppix ISO
-15:45 &lt; deer&gt; &lt;Curiosity&gt; ?
-15:45 &lt; hypercubus&gt; Knoppix, a livecd distro of linux
-15:45 &lt; hypercubus&gt; very user friendly
-15:45 &lt; deer&gt; &lt;Curiosity&gt; k
-15:45 &lt; jrandom&gt; though once we have the Really Simple Update functionality that is a one click download from http://dev.i2p/i2p/i2pupdate.tar.bz2, it might not be too bad
-15:46 &lt; jrandom&gt; Curiosity: do you have anything else you want to discuss about that?
-15:46 &lt; fvw&gt; ...and as soon as it becomes widely used, anyone controlling dev.i2p can compromise the network.
-15:47 &lt; jrandom&gt; as long as people use that Really Simple Update functionality
-15:47  * fvw nods.
-15:47 &lt; deer&gt; &lt;Curiosity&gt; i just wanted a way for people to run it w/o having to download a bunch of stuff onto their computer
-15:47 &lt; jrandom&gt; (and if dev.i2p is compromised, we put up a new hosts.txt entry for dev.i2p)
-15:48 &lt; hypercubus&gt; a knoppix i2p livecd would be prime for cybercafe use
-15:48 &lt; deer&gt; &lt;mule_iip&gt; jarndom: won't a real i2p user grab the source, study the diff against the latest peer reviewed version and build from source :)
-15:48 &lt; fvw&gt; yes but people will just hit 'update'; They won't listen to discussions about whether the new version might have vulnerabilities...
-15:48 &lt; demonic_1&gt; is there anyway to not need hosts file. u know like a dns server?
-15:48 &lt; deer&gt; &lt;Curiosity&gt; yeah... riiiight mule_iip. lol
-15:49 &lt; fvw&gt; but anyway, I'll be very happy when we get to the stage where this becomes a problem.
-15:49 &lt; fvw&gt; demonic_l: It's possible, but there'd still be a central authority.
-15:49 &lt; hypercubus&gt; demonic_1: there are currently a couple of proposals for such functionality, but global names have been ruled out
-15:49 &lt; jrandom&gt; demonic_1: yes, see the mailing list (recent discussions on http://dev.i2p.net/pipermail/i2p/2004-September/000432.html )
-15:49 &lt; jrandom&gt; (and my take @ http://dev.i2p.net/pipermail/i2p/2004-September/000435.html :)
-15:50 &lt; hypercubus&gt; *globally unique names
-15:50 &lt; demonic_1&gt; k 
-15:51 &lt; jrandom&gt; ok, anyone have anything else they want to bring up?
-15:52 &lt; deer&gt; &lt;Curiosity&gt; I would also like ot suggest putting service only items into a service folder... i was trying to uninstall i2p (one time of many) and was hitting the wrong uninstall thingie
-15:52 &lt; hypercubus&gt; Curiosity: that's being done
-15:52 &lt; jrandom&gt; w3rd
-15:52 &lt; hypercubus&gt; the installer will install shortcuts for i2p to the Start menu in Windows
-15:52 &lt; hypercubus&gt; and optionally on your desktop
-15:52 &lt; deer&gt; &lt;Curiosity&gt; okies :)
-15:52 &lt; hypercubus&gt; among them will be "uninstall"
-15:53 &lt; deer&gt; &lt;Curiosity&gt; i was talking about when i go into program files/i2p 
-15:53 &lt; hypercubus&gt; you don't need to from there
-15:54 &lt; hypercubus&gt; Windows users don't ever go into the program folders ;-)
-15:54 &lt; demonic_1&gt; :/
-15:54 &lt; deer&gt; &lt;Curiosity&gt; i do! :P
-15:54 &lt; jrandom&gt; we could perhaps add a bin/ dir with all the scripts
-15:54 &lt; jrandom&gt; er, nm
-15:54 &lt; hypercubus&gt; then you would have seen the folder called "Uninstall" ;-)
-15:54  * jrandom remembers the paths
-15:54 &lt; hypercubus&gt; which is where the uninstaller is located
-15:54 &lt; jrandom&gt; we can move the service scripts into lib though
-15:54 &lt; hypercubus&gt; i'm not sure we can
-15:55 &lt; cervantes&gt; you could go the 'doze method and have the "uninstall" option in the installer ;-)
-15:55 &lt; hypercubus&gt; wrapper is very particular about where you put those
-15:55 &lt; jrandom&gt; at the very least they can "cd .." first
-15:55 &lt; hypercubus&gt; i'll look into changing their location
-15:55 &lt; hypercubus&gt; but it might not be doable
-15:55 &lt; jrandom&gt; cool, thanks.  it'd be nice to remove some of the clutter in the install dir
-15:55 &lt; hypercubus&gt; agreed
-15:55 &lt; jrandom&gt; (most of which is my fautlt with all those .config files :)
-15:56 &lt; hypercubus&gt; we could have a config dir i guess
-15:56 &lt; cervantes&gt; ./conf ?
-15:56 &lt; jrandom&gt; c'mon, we're geeks.  etc/ :)
-15:56 &lt; jrandom&gt; that would be Really Easy though
-15:56 &lt; jrandom&gt; (just a few -D parameters on the CLI)
-15:56 &lt; hypercubus&gt; then we'll have to field questions from Windows users that "etc" isn't obvious enough ;-)
-15:56 &lt; jrandom&gt; people shouldnt need to touch their config
-15:57 &lt; jrandom&gt; thats what the web is for
-15:57 &lt; cervantes&gt; I've always gone for the blatant:  ./configuration/
-15:57 &lt; hypercubus&gt; right, but Windows users shouldn't need to launch the uninstaller from their program directory either heheh
-15:57 &lt; jrandom&gt; ./thesefilestellstufftodothings/
-15:57 &lt; cervantes&gt; ./scripts/
-15:57 &lt; cervantes&gt; ./asciipr0n
-15:57 &lt; jrandom&gt; ok, but yeah, some work we can flesh out
-15:57 &lt; deer&gt; &lt;Curiosity&gt; lol
-15:58 &lt; jrandom&gt; anyone have anything else to bring up for the meeting?
-15:58 &lt; jrandom&gt; if not
-15:58  * jrandom winds up
-15:59  * jrandom *baf*s the meeting closed
-</pre>
+<div class="irclog">
+<p>14:09 &lt; jrandom&gt; 0) hi</p>
+<p>14:09 &lt; jrandom&gt; 1) 0.4</p>
+<p>14:09 &lt; jrandom&gt; 2) Capacity and overload</p>
+<p>14:09  * cervantes pulls up a bar stool</p>
+<p>14:09 &lt; jrandom&gt; 3) Website updates</p>
+<p>14:09 &lt; jrandom&gt; 4) I2PTunnel web interface</p>
+<p>14:09 &lt; jrandom&gt; 5) Roadmap and todo</p>
+<p>14:09 &lt; jrandom&gt; 6) ???</p>
+<p>14:09 &lt; jrandom&gt; 0) hi</p>
+<p>14:09 &lt; nicktastic&gt; ugha, Ah, -x isn't even necessary to see what's being resolved - silly me</p>
+<p>14:09 &lt; cervantes&gt; hullo</p>
+<p>14:09  * nicktastic resumes lurking</p>
+<p>14:10 &lt; jrandom&gt; 'lo all, sorry for the delay in the notes - http://dev.i2p.net/pipermail/i2p/2004-September/000437.html</p>
+<p>14:10  * jrandom just had to reply to Derick's E post :)</p>
+<p>14:10 &lt; deer&gt; &lt;ugha2p&gt; nicktastic: Right. The meeting already started though. :)</p>
+<p>14:10 &lt; luckypunk&gt; h wow, i didn't miss it.</p>
+<p>14:10 &lt; jrandom&gt; !hi5</p>
+<p>14:10 &lt; jrandom&gt; ok, swinging on in to 1) 0.4</p>
+<p>14:11 &lt; jrandom&gt; we finally got it out the door, and it doesn't seem to have bitten us too bad</p>
+<p>14:12 &lt; jrandom&gt; the network is larger than its ever been (I counted 60 TCP connections a few hours back), eepsites are retrievable, and irc is often usable</p>
+<p>14:12 &lt; dm&gt; hey!! meeting?</p>
+<p>14:12 &lt; jrandom&gt; hypercubus has done some great work with the new install, systray, and service manager, which I know has helped us out a bunch</p>
+<p>14:13 &lt; modulus&gt; yay</p>
+<p>14:13 &lt; hypercubus&gt; still a ways to go though</p>
+<p>14:13 &lt; hypercubus&gt; but i think we're getting somewhere now</p>
+<p>14:13 &lt; jrandom&gt; agreed, ever onwards :)</p>
+<p>14:14 &lt; jrandom&gt; this release also has the widespread deployment of oOo's ?i2paddresshelper </p>
+<p>14:14 &lt; jrandom&gt; we covered that a bit the other week [http://dev.i2p.net/pipermail/i2p/2004-August/000419.html item 2.3], but now its probably a good idea for people to consider using it for their links</p>
+<p>14:15 &lt; hypercubus&gt; does it work with name-based vhosts?</p>
+<p>14:15 &lt; jrandom&gt; the i2ptunnel httpclient still correctly sends Host: $base64dest</p>
+<p>14:17 &lt; jrandom&gt; on that note, there has been some more talk about using the bundled webserver to serve some eepsites, and i think if someone has some time to figure out the configuration necessary, that'd be pretty kickass (saving us from the vhost / apache config problems)</p>
+<p>14:18 &lt; jrandom&gt; ok, anyone else have anything to bring up about 0.4?</p>
+<p>14:18 &lt; deer&gt; &lt;baffled&gt; is this web server in cvs?</p>
+<p>14:18 &lt; demonic_1&gt; ?</p>
+<p>14:18 &lt; hypercubus&gt; the web server is in 0.4</p>
+<p>14:18 &lt; demonic_1&gt; what i miss</p>
+<p>14:18 &lt; deer&gt; &lt;ugha2p&gt; baffled: It's going to be.</p>
+<p>14:18 &lt; hypercubus&gt; hence CVS</p>
+<p>14:18 &lt; jrandom&gt; baffled: yeah, its all in cvs (lib/org.mortbay.*)</p>
+<p>14:18 &lt; cervantes&gt; btw I experimented with window's url protocol handers... it's very easy to set the registry up so "i2p://base64" will launch in a browser with a http://site.i2p?i2paddresshelper=base64 ...</p>
+<p>14:19 &lt; deer&gt; &lt;ugha2p&gt; Oh, it already is.</p>
+<p>14:19 &lt; dm&gt; this is all very very cool</p>
+<p>14:19 &lt; hypercubus&gt; i already wrote registry interfacing code</p>
+<p>14:19 &lt; hypercubus&gt; we can use that to set up an .i2p association</p>
+<p>14:19 &lt; fvw&gt; cervantes: i2p:// wouldn't be quite right I think. After all, it's http over i2p; just as you could have irc:// over i2p.</p>
+<p>14:19 &lt; cervantes&gt; you can also specify security and proxy settings on a per protocol basis</p>
+<p>14:19 &lt; jrandom&gt; cervantes: does firefox/etc honor those?</p>
+<p>14:19 &lt; cervantes&gt; yup</p>
+<p>14:20 -!- shardy_ is now known as shardy</p>
+<p>14:20 &lt; jrandom&gt; woah, hi shardy_ </p>
+<p>14:20 &lt; shardy&gt; hey jrandom, long time no talk</p>
+<p>14:20 &lt; cervantes&gt; although admittedly I need more testing...</p>
+<p>14:20 &lt; nicktastic&gt; konqueror should, too</p>
+<p>14:20 &lt; cervantes&gt; I was just playing in a spare moment ;-)</p>
+<p>14:20 &lt; deer&gt; &lt;ugha2p&gt; Opera doesn't.</p>
+<p>14:20 &lt; cervantes&gt; although I doubt firefox takes any notice of windows proxy and security settings</p>
+<p>14:20 &lt; hypercubus&gt; you can set it in opera's ini file</p>
+<p>14:21 &lt; hypercubus&gt; i did that to opera so ed2k:// would work</p>
+<p>14:21 &lt; deer&gt; &lt;ugha2p&gt; hypercubus: Ah, cool.</p>
+<p>14:21 &lt; fvw&gt; only up to a point. You can't turn URL handlers into http:// handlers handled by opera itsself alas.</p>
+<p>14:21 &lt; hypercubus&gt; though they don't document it very well</p>
+<p>14:21 &lt; deer&gt; &lt;duck&gt; really, what benefit does i2p:// give?</p>
+<p>14:22 &lt; fvw&gt; hypercube: You're handing it off to a helper app I suppose? I did much the same, but I couldn't find a way to make opera display a "download started" page.</p>
+<p>14:22 &lt; hypercubus&gt; yes, it gets handed to eMule</p>
+<p>14:22 &lt; dm&gt; yes, who wants to pee in public anyway?</p>
+<p>14:22 &lt; hypercubus&gt; we could hand i2p:// to the eeproxy</p>
+<p>14:22 &lt; hypercubus&gt; then you web guys can figure out the rest from there ;-)</p>
+<p>14:22 &lt; Sciatica&gt; is https not http over, uh, "s"?</p>
+<p>14:23 &lt; jrandom&gt; but, as i think duck is getting at, we'll already be tied in to the eepproxy anyway?</p>
+<p>14:23 &lt; deer&gt; &lt;ugha2p&gt; Sciatica: It's HTTP over SSL, yes. :)</p>
+<p>14:23 &lt; jrandom&gt; Sciatica: http over i2p (well, anything over i2p) is secure and authenticated.  what happens after it reaches the other side is outside i2p's scope</p>
+<p>14:23 &lt; deer&gt; &lt;ugha2p&gt; But that's an established convention.</p>
+<p>14:24 &lt; Sciatica&gt; yes, I knew that.  I'm just saying that the argument against i2p:// isn't as clear as "isn't it juts http _over_ i2p?"</p>
+<p>14:24 &lt; dm&gt; htt2p</p>
+<p>14:24 &lt; hypercubus&gt; i don't know if i2p:// is necessary, but i do believe it's possbile to get the major browsers at least to work with it</p>
+<p>14:24 &lt; deer&gt; &lt;ugha2p&gt; jrandom: I think he just referred to the 'https://' prefix.</p>
+<p>14:24 &lt; jrandom&gt; ah, sorry.</p>
+<p>14:24 &lt; deer&gt; &lt;duck&gt; we need an anonymizing filter plus http://127.0.0.1:7657/www.duck.i2p/ anyway</p>
+<p>14:25 &lt; deer&gt; &lt;duck&gt; with those you dont need to tweak browser settings</p>
+<p>14:25 &lt; jrandom&gt; but yeah, I agree with fvw, this sounds like excessive overloading of the url protocol</p>
+<p>14:25 &lt; demonic_1&gt; not here &gt;&gt; as a lame use i feel i2p:// links would rule &lt;&lt; not here</p>
+<p>14:25 &lt; jrandom&gt; right duck</p>
+<p>14:25 &lt; jrandom&gt; hehe</p>
+<p>14:25 &lt; cervantes&gt; perhaps i2p:// could me made to operate as a protocol arbiter:  i2p://irc/base64</p>
+<p>14:26 &lt; fvw&gt; ungh, that's ugly and abusing URLs in the worst possible way.</p>
+<p>14:26 &lt; deer&gt; &lt;ugha2p&gt; cervantes: How would that work in IRC's case?</p>
+<p>14:26 &lt; deer&gt; &lt;duck&gt; URIs :)</p>
+<p>14:26 &lt; cervantes&gt; that way you can launch different apps based on a single url standard</p>
+<p>14:26 &lt; fvw&gt; (not that there's anything wrong with that)</p>
+<p>14:26 &lt; jrandom&gt; wouldn't the more appropriate URL mod be irc://i2p/base64/#i2p ?</p>
+<p>14:27 &lt; jrandom&gt; but, ok, we're a bit off track..</p>
+<p>14:27 &lt; jrandom&gt; anything else on 0.4?  :)</p>
+<p>14:28 &lt; fvw&gt; I don't think that URI's allow for specifying transport mechanism seperately from protocol, which is a shame really.</p>
+<p>14:28 &lt; dm&gt; you can use the filesystem</p>
+<p>14:28 &lt; fvw&gt; Yes, sort of: *applause*</p>
+<p>14:28 &lt; dm&gt; c:\i2p\irc #i2p</p>
+<p>14:29 &lt; dm&gt; ha! I confused you all</p>
+<p>14:29 &lt; deer&gt; * mule_iip agrees with fvw</p>
+<p>14:29 &lt; fvw&gt; dm: I'm going to seriously hurt you. Maybe not today, maybe not tomorrow, but soon and for the rest of your life.</p>
+<p>14:29 &lt; jrandom&gt; :) thanks, we do our best</p>
+<p>14:29 &lt; fvw&gt; &lt;/pinky and the brain&gt;</p>
+<p>14:29 &lt; jrandom&gt; heh</p>
+<p>14:29 &lt; jrandom&gt; ok, jumping on to 2) Capacity and overload</p>
+<p>14:30 &lt; deer&gt; &lt;DrVince&gt; Hi everyone</p>
+<p>14:30 &lt; jrandom&gt; i'd rather not just copy out what was posted in the notes, so review whats there :)</p>
+<p>14:30 &lt; dm&gt; hi</p>
+<p>14:30 &lt; hypercubus&gt; welcome to our meeting DrVince ;-)</p>
+<p>14:30 &lt; deer&gt; &lt;ugha2p&gt; Hi, DrVince.</p>
+<p>14:31 &lt; jrandom&gt; one thing I'd like to mention wrt 2) was something a few people have seen - severe skew in participating tunnels</p>
+<p>14:31 &lt; jrandom&gt; e.g. someone with DSL had 300+ tunnels the other day</p>
+<p>14:31 &lt; dm&gt; me</p>
+<p>14:31 &lt; modulus&gt; yeah</p>
+<p>14:31 &lt; jrandom&gt; (and when they go down, that breaks a *lot* of tunnels)</p>
+<p>14:31 &lt; jrandom&gt; the problem is tunnels are really lightweight - 2-20bps on average</p>
+<p>14:31 &lt; cervantes&gt; and my OC3 has practically nada</p>
+<p>14:31 &lt; hypercubus&gt; i only have 8 atm</p>
+<p>14:32 &lt; dm&gt; i had 270+, and I am on 150kbps</p>
+<p>14:32 &lt; jrandom&gt; overall, the network has ~ 20*n tunnels on average at any given time</p>
+<p>14:32 &lt; jrandom&gt; (where n = # nodes in the network)</p>
+<p>14:32 &lt; jrandom&gt; at an average of 2 hops per node, that means every node participates in an average of 40 tunnels</p>
+<p>14:33 &lt; hypercubus&gt; ideally ;-)</p>
+<p>14:33 &lt; jrandom&gt; well, thats the thing, balancing like that *isnt* ideal</p>
+<p>14:33 &lt; jrandom&gt; since not all nodes are as fast or have as much bandwidth</p>
+<p>14:33 &lt; jrandom&gt; on the ohter hand, balancing the tunnels so they all go through 2 or 3 really fast peers also sucks</p>
+<p>14:33 &lt; jrandom&gt; since if one of those go down, *boom*</p>
+<p>14:34 &lt; hypercubus&gt; right, so why is dm's inferior DSL connection so overloaded, while my much faster DSL connection has been under-utilized?</p>
+<p>14:34 &lt; Sciatica&gt; will this problem go away as the # of nodes in the network grows beyond 100, 200, etc.?</p>
+<p>14:34 &lt; dm&gt; inferior? :'(</p>
+<p>14:34 &lt; jrandom&gt; hypercubus: because i2p is currently nonresponsive to the bandwidth available, unless people turn on bandwidth limiting</p>
+<p>14:34 &lt; hypercubus&gt; dm: technically speaking ;-)</p>
+<p>14:34 &lt; hypercubus&gt; ok i have bandwidth limiting enabled... dm must not?</p>
+<p>14:35 &lt; Sciatica&gt; (at some point won't the number of nodes a server can host be greatly dwarfed compared the the number of total nodes [e.g., tunnels]?</p>
+<p>14:35 &lt; ugha_node&gt; Arrr!</p>
+<p>14:35 &lt; ugha_node&gt; '(the local message processing time exceeds 1s)' -- I don't think we should program any such constants into the router. I think all such values should be taken from the (I2P network) environment, so it would still work in case the router lands in an unexpected enviromnent.</p>
+<p>14:35 &lt; dm&gt; yeah, I don't, also my uplink is decent: 256kbps (downlink 150kbps)</p>
+<p>14:35 &lt; Sciatica&gt; bad terminiology -- I type too slow for such issues :-)</p>
+<p>14:35 &lt; jrandom&gt; Sciatica: it isn't a problem, is just a reality.  if every node maintains 20 tunnels at any given time, with each tunnel an average of 2 hops, no matter how large the network is, it averages out</p>
+<p>14:36 &lt; jrandom&gt; ugha_node: agreed - the 1s thing is random #, but how can we derive the "right" value?  what amount of delay is "a lot"?</p>
+<p>14:37 &lt; jrandom&gt; we do have some code in the RouterThrottleImpl that tracks "how much bandwidth we've agreed to allocate"</p>
+<p>14:37 &lt; jrandom&gt; but at the moment, it doesn't throttle based on that</p>
+<p>14:37 &lt; dm&gt; hmmmm I don't like these overload discussions... flashbacks of freenet.</p>
+<p>14:37 &lt; jrandom&gt; (bandwidth agreed to == # participating tunnels * # messages per tunnel on average * # bytes per message on average)</p>
+<p>14:37 &lt; dm&gt; Maybe we should use estimators?</p>
+<p>14:38  * jrandom kicks dm</p>
+<p>14:38 &lt; hypercubus&gt; dm: are you using bandwidth limiting in your router?</p>
+<p>14:38 &lt; dm&gt; hypercubus: no</p>
+<p>14:38 &lt; hypercubus&gt; dm: i highly recommend using it ;-)</p>
+<p>14:38 &lt; dm&gt; jrandom: three words... NGR</p>
+<p>14:38 &lt; fvw&gt; It's really up to the node that requested the tunnel, right? What kind of lag are they willing to put up with? Would it be viable to make it one of the tunnel parameters?</p>
+<p>14:39  * fvw wonders if dm is trying to scare us or if it's merely an added benefit.</p>
+<p>14:39 &lt; jrandom&gt; hmm, that has potential</p>
+<p>14:39 &lt; dm&gt; errr.. won't that just move the arbitrary threshold to the requesting router? ;)</p>
+<p>14:39 &lt; dm&gt; I don't want to choose, you choose!</p>
+<p>14:40 &lt; jrandom&gt; yes dm, but the requesting router knows what the tunnel will be used for (irc w/ low lag vs bulk w/ high lag and high throughput)</p>
+<p>14:40 &lt; fvw&gt; yes, but for some things 10s lag is no problem (think file transfers), whereas other stuff (irc) needs low latency.</p>
+<p>14:40 &lt; dm&gt; yeah, so you have the app layer decide the threshold?</p>
+<p>14:40 &lt; jrandom&gt; that is, however, dangerous</p>
+<p>14:40 &lt; fvw&gt; the only problem is using high-latency links will not increase capacity, so in the end file transfers get all the resources.</p>
+<p>14:41 &lt; cat-a-puss&gt; can you really trust any load claims made by the router, otherwise a malicious preson could try to get another nodes traffic to go through all their routers</p>
+<p>14:41 &lt; jrandom&gt; cat-a-puss: these are only used to reject requests to participate, not to solicit</p>
+<p>14:41 &lt; ugha_node&gt; You can't.</p>
+<p>14:41 &lt; cat-a-puss&gt; ok</p>
+<p>14:42 &lt; jrandom&gt; a malicious user can of course accept tunnels when they're totally overloaded, but we'll detect that when the tunnel fails</p>
+<p>14:42 &lt; jrandom&gt; (and the freeloader can reject the tunnel when they arent loaded, but, c'est la vie)</p>
+<p>14:43 &lt; jrandom&gt; the throttle based on local overload is pretty effective though.  however, that isn't enough</p>
+<p>14:43 &lt; dm&gt; greedy bastard</p>
+<p>14:43 &lt; jrandom&gt; i've been trying to find out an ideal way to work out whether to accept it or not, and i think that there is some potential for probabalistically rejecting requests we would otherwise accept, based on how many tunnels we are already in</p>
+<p>14:44 &lt; jrandom&gt; the concept there is that the peer wants other people to take on some load</p>
+<p>14:44 &lt; cat-a-puss&gt; should we run as many virtual routers as avalable bandwidth?</p>
+<p>14:44 &lt; jrandom&gt; (so as to distribute the failure)</p>
+<p>14:44 &lt; jrandom&gt; hmm cat-a-puss?</p>
+<p>14:44 &lt; jrandom&gt; are you running the sim on the live net?</p>
+<p>14:45 &lt; jrandom&gt; in any case, no, a single router should be able to address the local capacity</p>
+<p>14:46 &lt; deer&gt; &lt;mule_iip&gt; problem is that bandwidth used in a tunnel may change significantly over time, right?</p>
+<p>14:46 &lt; cervantes&gt; which is not currently happening...at least not for me</p>
+<p>14:46 &lt; cat-a-puss&gt; well if it's all random how can you take advantage of an oc3 any more than some poor guy on a 56k? You ether have to advertise: problematic, or run virtual routers, ether way I think a malicious party could try to encircle a node for some sort of stistical attack</p>
+<p>14:46 &lt; jrandom&gt; right mule_i2p.  we need to do some more monitoring of the tunnel activity</p>
+<p>14:46 &lt; cervantes&gt; 14 participents each have 11.5mbit ... that's a bit of a waste :)</p>
+<p>14:47 &lt; jrandom&gt; cat-a-puss: probabalistic != random :)  </p>
+<p>14:47 &lt; jrandom&gt; heh cervantes </p>
+<p>14:48 &lt; jrandom&gt; the basic idea behind probabalistically rejecting would be to spread the load out to other peers.  however, if the network really is saturated, the probability won't be a problem as people will just ask again</p>
+<p>14:48 &lt; jrandom&gt; the issue is that we currently have an overwhelming *excess* of capacity</p>
+<p>14:48 &lt; Sugadude&gt; Poor i2p, having *too* much capacity. Don't worry, I'm on it. ;)</p>
+<p>14:49 &lt; fvw&gt; assuming everyone is wellbehaved, you could perhaps not reject from people who come back within a short interval of being probabilisticly rejected?</p>
+<p>14:49 &lt; deer&gt; &lt;mule_iip&gt; so fill any tunnel with some cover traffic</p>
+<p>14:49 &lt; jrandom&gt; heh Sugadude :)</p>
+<p>14:49 &lt; cervantes&gt; that's because everyone's requests are being handled by dm's router ;-)</p>
+<p>14:49 &lt; jrandom&gt; fvw: we dont know who requests a tunnel</p>
+<p>14:49 &lt; fvw&gt; hmm, good point. *screws head back on*</p>
+<p>14:50 &lt; jrandom&gt; fvw: probabalistically, subsequent requests would be accepted - we'd want the 'reject' factor to stay low enough</p>
+<p>14:50 &lt; deer&gt; &lt;mule_iip&gt; which will increase anonymity and make load calculation easier</p>
+<p>14:51 &lt; jrandom&gt; true mule_iip, but it'd be nice to actually have the net operate effectively without requiring high load :)</p>
+<p>14:51 &lt; jrandom&gt; but that is definitely a worthwhile scenario for the sim</p>
+<p>14:51 &lt; deer&gt; &lt;mule_iip&gt; effectively make i2p use a constant bitrate with cover traffic. but that was for a future release, i guess :)</p>
+<p>14:52 &lt; jrandom&gt; we *could* use ATM-style allocation</p>
+<p>14:52 &lt; fvw&gt; Doesn't bandwidth usage vary too much for that to be viable?</p>
+<p>14:52 &lt; jrandom&gt; e.g. assume 5 messages per minute per tunnel @ 32KB each, and compare that with the bandwidth limits, and reject accordingly</p>
+<p>14:52 &lt; cervantes&gt; hyper has some ascii we can use to pad the messages out</p>
+<p>14:52 &lt; hypercubus&gt; hmmmm, i don't like that constant bitrate idea... i2p would be filtered by ISPs very quickly if that were implemented</p>
+<p>14:53 &lt; jrandom&gt; heh cervantes </p>
+<p>14:53 &lt; deer&gt; &lt;kaji&gt; yes</p>
+<p>14:53  * hypercubus doesn't know what cervantes is talking about</p>
+<p>14:53  * hypercubus hides his floppy</p>
+<p>14:53 &lt; jrandom&gt; fvw: padding?  or allocation?</p>
+<p>14:53 &lt; fvw&gt; allocation</p>
+<p>14:53 &lt; cervantes&gt; ah ya plausable deniability huh</p>
+<p>14:54 &lt; jrandom&gt; hmm fvw.  perhaps, but I think we can monitor them statistically and compensate</p>
+<p>14:54 &lt; deer&gt; &lt;kaji&gt; constant bitrate sounds like Waste</p>
+<p>14:54 &lt; jrandom&gt; for instance, http://localhost:7657/oldstats.jsp#tunnel.bytesAllocatedAtAccept</p>
+<p>14:54 &lt; hypercubus&gt; hence its name ;-)</p>
+<p>14:55 &lt; jrandom&gt; that stat monitors how much bandwidth we have agreed to pass on for other people's tunnels</p>
+<p>14:55 &lt; jrandom&gt; (using the last 10 minutes as a guideline)</p>
+<p>14:56 &lt; jrandom&gt; so my peer with 85 tunnels says it will transfer 3,676,945.65 bytes over the next 10 minutes for all of those tunnels, combined</p>
+<p>14:56 &lt; deer&gt; &lt;mule_iip&gt; kaji: it is waste, and we probably should use it only for the more severe threat models. but would be nice for low latency like irc.</p>
+<p>14:56 &lt; jrandom&gt; thats 72bps each, but I'm not sure how skewed it is (probably *very*)</p>
+<p>14:57 &lt; jrandom&gt; however, if all of those tunnels started using lots and lots of bandwidth, the total value would shoot up, and we could throttle it</p>
+<p>14:57  * fvw nods. </p>
+<p>14:57  * fvw notes this is in fact a wildly interesting problem, theoreticly speaking.</p>
+<p>14:57 &lt; fvw&gt; (but maybe that's just me being weird)</p>
+<p>14:57 &lt; jrandom&gt; agreed</p>
+<p>14:58 &lt; jrandom&gt; (to both ;)</p>
+<p>14:58 &lt; jrandom&gt; but yeah, we dont have the Right Answer yet.  but its something to be worked on</p>
+<p>14:59 &lt; jrandom&gt; ok, unless there's anything else on that, moving on to 3) Website updates</p>
+<p>14:59 &lt; fvw&gt; We could ofcourse go totally lossy and just drop datagrams when we're overloaded, and make people run something like tcp over that.</p>
+<p>14:59 &lt; jrandom&gt; we tried that, and lots and lots and lots of tunnels failed</p>
+<p>15:00 &lt; jrandom&gt; (since if a tunnel drops 1 message, we mark it as failed)</p>
+<p>15:00 &lt; fvw&gt; yes, you shouldn't do that if you take that approach.</p>
+<p>15:00 &lt; jrandom&gt; ((and when we tried not being such fascists, we didn't notice when a tunnel *really* fails))</p>
+<p>15:00  * fvw nods and strokes his beard. Good point. (mental note to self: grow beard to stroke in situations like this)</p>
+<p>15:01 &lt; jrandom&gt; heh</p>
+<p>15:01 &lt; jrandom&gt; ok, anyway, as you've all seen, our new installer and new web interface is completely different from the old way of doing things</p>
+<p>15:01  * hypercubus gives fvw his beard</p>
+<p>15:02 &lt; jrandom&gt; while that is Good, since the old way was Painful, all our old docs are now wildly incorrect</p>
+<p>15:02 &lt; fvw&gt; could we stick on 2) a few minutes longer? I still have a few bad ideas I want you to shoot down.</p>
+<p>15:02 &lt; jrandom&gt; sure</p>
+<p>15:02 &lt; dm&gt; I can't use the internet... </p>
+<p>15:02 &lt; dm&gt; Bandwidth in/out</p>
+<p>15:02 &lt; dm&gt; 1m: 13.32/11.98KBps</p>
+<p>15:02 &lt; dm&gt; 5m: 10.74/9.46KBps</p>
+<p>15:02 &lt; jrandom&gt; how many tunnels dm?</p>
+<p>15:02 &lt; hypercubus&gt; dm: that's why i suggested you turn on i2p's bandwidth limiting ;-)</p>
+<p>15:02 &lt; dm&gt; only 166</p>
+<p>15:02 &lt; jrandom&gt; yeah, throttle it down to 6KBps</p>
+<p>15:02 &lt; jrandom&gt; lol</p>
+<p>15:03 &lt; dm&gt; (participating)</p>
+<p>15:03 &lt; jrandom&gt; (or maybe 8KBps if you're nice)</p>
+<p>15:03 &lt; dm&gt; I'll leave it as is, I just need to view this one page</p>
+<p>15:03 &lt; jrandom&gt; btw, the 13.32 vs 11.98 lets us know you're downloading approximately 1KBps locally</p>
+<p>15:03 &lt; jrandom&gt; (through i2p)</p>
+<p>15:03 &lt; fvw&gt; What happens if we just time-out tunnels at a reasonably large idle-time? Say 30 mins or something. The next protocol up would have to do keepalives, but wouldn't that solve the not-detecting-dead-tunnels thing?</p>
+<p>15:03 &lt; hypercubus&gt; he's downloading far more than that actually</p>
+<p>15:04 &lt; jrandom&gt; ((though that 1KBps might be small enough to be netDb))</p>
+<p>15:04 &lt; dm&gt; hypercubus: our transfer is stalling badly, actually.</p>
+<p>15:04 &lt; jrandom&gt; fvw: tunnels expire after 10 minutes</p>
+<p>15:04 &lt; deer&gt; &lt;kaji&gt; hold it, is bandwidth working now? if so what sould i turn it to?</p>
+<p>15:04 &lt; dm&gt; dissapointed in the getright/i2p combo</p>
+<p>15:04 &lt; jrandom&gt; they're not long lived fvw, unlike TOR</p>
+<p>15:04 &lt; fvw&gt; and that had most tunnels failing, even with keepalives?</p>
+<p>15:04 &lt; hypercubus&gt; dm: periodically yes... i think the solution would be to limit your upstream to about 8KB/s</p>
+<p>15:04 &lt; jrandom&gt; kaji: http://localhost:7657/</p>
+<p>15:05 &lt; hypercubus&gt; since it seems you're saturated</p>
+<p>15:05 &lt; jrandom&gt; er, /config.jsp</p>
+<p>15:05 &lt; fvw&gt; ok, but you don't want them dissapearing in flurries of packet loss.</p>
+<p>15:05 &lt; jrandom&gt; every minute (on average) each peer tests each tunnel to make sure its alive (so that other people can send us data - without tunnels, we're fucked)</p>
+<p>15:06 &lt; fvw&gt; Ok. I need to read more of how i2p currently works. On to 3) as far as I'm concerned.</p>
+<p>15:06 &lt; deer&gt; &lt;kaji&gt; right now its set on the default -1 but I dont know what a 1.5/750@1.2ghz connections translates to from maximum tunnel partisipation</p>
+<p>15:07 &lt; deer&gt; &lt;kaji&gt; i seem to be participation in 166</p>
+<p>15:07 &lt; jrandom&gt; kaji: your router will never get so many tunnels that it'll be CPU congested ;)</p>
+<p>15:07 &lt; deer&gt; &lt;mule_iip&gt; off-topic: don't you need a tunnel to be fucked :)</p>
+<p>15:07 &lt; deer&gt; &lt;kaji&gt; *ing</p>
+<p>15:07 &lt; jrandom&gt; heh</p>
+<p>15:07  * fvw votes "nay"</p>
+<p>15:08 &lt; deer&gt; &lt;kaji&gt; jrandom, i just finnished reading the letter about tunnels without bandwidth, i just didnt know what to set the limmit to</p>
+<p>15:08 &lt; jrandom&gt; ok, i agree, lots more to be done to figure this stuff out</p>
+<p>15:08 &lt; jrandom&gt; ok cool kaji, just enable your bandwidth limiter to something like 8KBps</p>
+<p>15:08 &lt; jrandom&gt; (or 12 if you're nice :)</p>
+<p>15:09 &lt; deer&gt; &lt;kaji&gt; &lt;/oftopic&gt;</p>
+<p>15:09 &lt; jrandom&gt; ok, on to 3) website updates</p>
+<p>15:09 &lt; deer&gt; &lt;kaji&gt; inbound and outbound?</p>
+<p>15:09 &lt; jrandom&gt; yes kaji</p>
+<p>15:09 &lt; jrandom&gt; ok, as I said, we need help with the docs</p>
+<p>15:09 &lt; jrandom&gt; (heeeeeeeeelp!)</p>
+<p>15:09 &lt; hypercubus&gt; i move we fill the long-vacant team positions of Webmaster and Web Editor</p>
+<p>15:10  * jrandom seconds that motion</p>
+<p>15:10 &lt; jrandom&gt; (now all we need is someone to volunteer ;)</p>
+<p>15:10 &lt; hypercubus&gt; i know cervantes is a busy guy</p>
+<p>15:10 &lt; jrandom&gt; its more up to the invidual to volunteer /themselves/ hyper ;)</p>
+<p>15:10 &lt; hypercubus&gt; i nominate Curiosity for Webmaster or Web Editor, or both if she's up for it ;-)</p>
+<p>15:11 &lt; deer&gt; &lt;ugha2p&gt; Uhh.</p>
+<p>15:11 &lt; dm&gt; Man, even my CPU is starting to max out because of I2P...</p>
+<p>15:11 &lt; dm&gt; You love, you REALLY love me :'(</p>
+<p>15:11 &lt; dm&gt; oops, :')</p>
+<p>15:12  * cervantes feels someone pushing him into the bull ring</p>
+<p>15:12 &lt; jrandom&gt; i think we can use all the help we can get, and if she is up for helping, we'd love it</p>
+<p>15:13 &lt; hypercubus&gt; i've seen her web designs and can vouch for her work</p>
+<p>15:13 &lt; hypercubus&gt; and she expressed interest, i don't know what she finally decided however</p>
+<p>15:13 &lt; jrandom&gt; ok great</p>
+<p>15:13 &lt; dm&gt; she?</p>
+<p>15:13 &lt; cervantes&gt; I'm sure she can devote far more care and attention to it than I ever could</p>
+<p>15:14 &lt; dm&gt; that word must not be used in our world</p>
+<p>15:14 &lt; fvw&gt; never mind that, he said 'care and attention'.</p>
+<p>15:15  * jrandom groans</p>
+<p>15:15 &lt; fvw&gt; present company excluded ofcourse.</p>
+<p>15:15 &lt; jrandom&gt; ok, in any case, we'll need some people to help out on the docs - generating new walk throughs, intro docs, etc</p>
+<p>15:16 &lt; jrandom&gt; we'll chat with Curiosity about what we can get her to hack on :)</p>
+<p>15:16 &lt; hypercubus&gt; i can take on the installation related stuff</p>
+<p>15:16 &lt; hypercubus&gt; s/on/of/</p>
+<p>15:16 &lt; hypercubus&gt; i know how everyone loves to read these baroque howto's that i write ;-)</p>
+<p>15:16 &lt; jrandom&gt; :)</p>
+<p>15:17 &lt; jrandom&gt; an install guide / walkthrough would KickAss</p>
+<p>15:17 &lt; fvw&gt; that's not how you spell 'broke'.</p>
+<p>15:17 &lt; jrandom&gt; heh</p>
+<p>15:17  * hypercubus snickers, then steals fvw's wallet</p>
+<p>15:17 &lt; hypercubus&gt; that's how you spell "broke" ;-)</p>
+<p>15:17 &lt; deer&gt; &lt;kaji&gt; hyper what system are you on? i'll take a crack on the winxp version but im not very reliable, i may see something shiny and quit</p>
+<p>15:17 &lt; deer&gt; * Curiosity is away for a bit...</p>
+<p>15:18 &lt; hypercubus&gt; kaji: ?</p>
+<p>15:18 &lt; deer&gt; &lt;kaji&gt; hyper, i was asking what OS you are using</p>
+<p>15:18 &lt; hypercubus&gt; OSes</p>
+<p>15:18 &lt; deer&gt; &lt;kaji&gt; OSESES</p>
+<p>15:19 &lt; hypercubus&gt; i have vmware, so i can run all the windowses and freebsd and such</p>
+<p>15:19 &lt; hypercubus&gt; also have pearpc, so i can run OS X</p>
+<p>15:20 &lt; jrandom&gt; ok, if there's nothing else on the web side</p>
+<p>15:20 &lt; jrandom&gt; moving on to * 4) I2PTunnel web interface</p>
+<p>15:21  * jrandom declares the i2ptunnel web interface shitty.  functional.  but shitty.</p>
+<p>15:21 &lt; deer&gt; &lt;DrVince&gt; I could dig in for french translation if interest may be</p>
+<p>15:21 &lt; jrandom&gt; duck had a few ideas for improving it, but he had to jet, so let me paste a few lines</p>
+<p>15:21 &lt; hypercubus&gt; again, we need more web devs ;-)</p>
+<p>15:21 &lt; jrandom&gt; oh, translating web pages to french would rule</p>
+<p>15:22 &lt; jrandom&gt; s/french/french and other langs/</p>
+<p>15:22 &lt; jrandom&gt; here are some duck-isms:</p>
+<p>15:22 &lt; jrandom&gt; &lt;duck&gt; reduce data load on general page; use tables/div to order stuff</p>
+<p>15:22 &lt; jrandom&gt; &lt;duck&gt; provide a edit/detailed page with info most dont care about, tunnels, dest hash, full key</p>
+<p>15:22 &lt; jrandom&gt; &lt;duck&gt; feedback after clicking buttons, 'item saved' etc. give dest as output when new one created</p>
+<p>15:22 &lt; jrandom&gt; &lt;duck&gt; (hide under edit/details otherwise)</p>
+<p>15:22 &lt; jrandom&gt; &lt;duck&gt; tag the top messages as being 'log'; sometimes confusing</p>
+<p>15:22 &lt; jrandom&gt; &lt;duck&gt; make clear that 'confirm' is only needed for remove, not save</p>
+<p>15:22  * jrandom agrees with what he says</p>
+<p>15:23 &lt; jrandom&gt; there have been a slew of bugfixes behind the scenes in the /i2ptunnel/ web interface since 0.4 too, so the functional kinks should be cleaned up</p>
+<p>15:24 &lt; jrandom&gt; the code implementing those pages are pretty ugly though</p>
+<p>15:24 &lt; jrandom&gt; probably the best approach would be to write up the screens in plain html / css / images / etc, then give it to one of the java devs to integrate</p>
+<p>15:25 &lt; hypercubus&gt; whatever happened to the days when there was an overabundance of web devs? ;-)</p>
+<p>15:25 &lt; jrandom&gt; they're all working at mcdonalds</p>
+<p>15:25 &lt; hypercubus&gt; ah right</p>
+<p>15:25 &lt; deer&gt; * Curiosity is back :)</p>
+<p>15:25 &lt; jrandom&gt; anyway, if anyone is interested in helping out, or has further suggestions, please get in touch</p>
+<p>15:25 &lt; jrandom&gt; wb Curiosity</p>
+<p>15:26 &lt; deer&gt; &lt;Curiosity&gt; should i bring up the idea i told oyu about jrandom?</p>
+<p>15:26 &lt; cat-a-puss&gt; I know someone who might be able to help with the web stuff</p>
+<p>15:26 &lt; jrandom&gt; ah, the live cd?</p>
+<p>15:27 &lt; jrandom&gt; great cat-a-puss, we need all the help we can get</p>
+<p>15:27 &lt; deer&gt; &lt;Curiosity&gt; teah :)</p>
+<p>15:27 &lt; deer&gt; &lt;Curiosity&gt; err yeah</p>
+<p>15:27 &lt; jrandom&gt; Curiosity: yeah, please bring that up when we get to item 6) ???</p>
+<p>15:28 &lt; deer&gt; &lt;Curiosity&gt; okay :)</p>
+<p>15:28 &lt; cat-a-puss&gt; ok, I'll get them on the list, and give them jrandom's e-mail (curiosity I don't know your email)</p>
+<p>15:28 &lt; jrandom&gt; ok, does anyone have anything else to mention regarding the I2PTunnel web interface?</p>
+<p>15:28 &lt; jrandom&gt; r0x0r cat-a-puss</p>
+<p>15:29 &lt; deer&gt; &lt;Curiosity&gt; also, i don't mind helping wiht the web editing, etc. also :)</p>
+<p>15:29 &lt; jrandom&gt; ok, if there's nothing else, 5) Roadmap and todo</p>
+<p>15:30 &lt; jrandom&gt; awesome Curiosity, thanks!  we can chat a bit after the meeting about taking over the world^W^W^W^Wweb stuff</p>
+<p>15:30 &lt; deer&gt; &lt;Curiosity&gt; okies :)</p>
+<p>15:30 &lt; jrandom&gt; as y'all probably saw, there's a new big scary page on the website (http://www.i2p.net/todo)</p>
+<p>15:31 &lt; jrandom&gt; that covers the big scary issues we have ahead of us (and doesnt even touch on all the client apps we need, etc)</p>
+<p>15:31 &lt; jrandom&gt; as you can see, we've got a shitload to do, but the good news is, we dont have to have it all done right away. </p>
+<p>15:32 &lt; jrandom&gt; in fact, those things are really just the bullet items from the roadmap page (with a heap of text introducing each)</p>
+<p>15:33 &lt; jrandom&gt; while i know thats a lot to sort through, what would be great is if people could let me know if they come across something that we will need to deal with that isn't on that page</p>
+<p>15:34 &lt; jrandom&gt; that isn't necessary today or this week even, just a general "hey, let us know"</p>
+<p>15:35 &lt; jrandom&gt; with mule's suggestion (http://www.i2p.net/todo#nat) i've been doing a lot of soul searching, and the roadmap will likely be moved around a bit</p>
+<p>15:35 &lt; jrandom&gt; but we'll see.</p>
+<p>15:36 &lt; jrandom&gt; if you have any strong feelings on certain issues ("omg we *cannot* function without X, Y, and Z!"), please let me know or post onto the list</p>
+<p>15:36 &lt; jrandom&gt; while i'm no champion of democracy, i am open to reason :)</p>
+<p>15:37 &lt; jrandom&gt; ok, thats all i've got to say about that.. anyone have anything to throw out there?</p>
+<p>15:37 &lt; deer&gt; &lt;Curiosity&gt; benevolent dictatorship :)</p>
+<p>15:37 -!- Sonium_ is now known as Sonium</p>
+<p>15:37 &lt; jrandom&gt; bah, i'm no dictator - i dont control what other people code :)</p>
+<p>15:37 &lt; cervantes&gt; tranquil hegemony</p>
+<p>15:37 &lt; cat-a-puss&gt; I've aquired two more developers</p>
+<p>15:37 &lt; jrandom&gt; w00t!</p>
+<p>15:38 &lt; cat-a-puss&gt; and have grand plans for a distributed search engine</p>
+<p>15:38 &lt; jrandom&gt; oh, kickass</p>
+<p>15:38 &lt; jrandom&gt; would that be something http://files.i2p/ could tie into?</p>
+<p>15:38 &lt; jrandom&gt; or, well, let me just say, oh, kickass :)</p>
+<p>15:38 &lt; cat-a-puss&gt; er: I can't get there (hostile enviroment)</p>
+<p>15:39 &lt; jrandom&gt; ah 'k</p>
+<p>15:39 &lt; cat-a-puss&gt; anyway, some CVS space would be nice, once we get there</p>
+<p>15:40 &lt; jrandom&gt; certainly, space on cvs.i2p is available</p>
+<p>15:40 &lt; jrandom&gt; either within the i2p/apps/ directory or your own module, if preferred</p>
+<p>15:40 &lt; jrandom&gt; (cvs.i2p == cvs.i2p.net)</p>
+<p>15:40 &lt; cat-a-puss&gt; I should probably talk to the people working on the dht huh?</p>
+<p>15:41 &lt; cat-a-puss&gt; what is the status of that thusfar</p>
+<p>15:41 &lt; jrandom&gt; :)</p>
+<p>15:41 &lt; jrandom&gt; i haven't heard any status updates from aum in the last few days, but i'm sure he's churning away</p>
+<p>15:42 &lt; jrandom&gt; last update was in http://dev.i2p.net/pipermail/i2p/2004-August/000425.html</p>
+<p>15:43 &lt; jrandom&gt; ok, i guess that moves us on to * 6) ???</p>
+<p>15:44 &lt; jrandom&gt; Curiosity was bouncing around the idea of a 'live cd' idea with i2p</p>
+<p>15:44 &lt; jrandom&gt; which i think is pretty cool, and something we will want</p>
+<p>15:44 &lt; deer&gt; &lt;Curiosity&gt; kewl :)</p>
+<p>15:44 &lt; jrandom&gt; though we aren't really stable enough for that yet, with a release every 2 weeks or so</p>
+<p>15:44 &lt; hypercubus&gt; agreed... it could even be integrated into a Knoppix ISO</p>
+<p>15:45 &lt; deer&gt; &lt;Curiosity&gt; ?</p>
+<p>15:45 &lt; hypercubus&gt; Knoppix, a livecd distro of linux</p>
+<p>15:45 &lt; hypercubus&gt; very user friendly</p>
+<p>15:45 &lt; deer&gt; &lt;Curiosity&gt; k</p>
+<p>15:45 &lt; jrandom&gt; though once we have the Really Simple Update functionality that is a one click download from http://dev.i2p/i2p/i2pupdate.tar.bz2, it might not be too bad</p>
+<p>15:46 &lt; jrandom&gt; Curiosity: do you have anything else you want to discuss about that?</p>
+<p>15:46 &lt; fvw&gt; ...and as soon as it becomes widely used, anyone controlling dev.i2p can compromise the network.</p>
+<p>15:47 &lt; jrandom&gt; as long as people use that Really Simple Update functionality</p>
+<p>15:47  * fvw nods.</p>
+<p>15:47 &lt; deer&gt; &lt;Curiosity&gt; i just wanted a way for people to run it w/o having to download a bunch of stuff onto their computer</p>
+<p>15:47 &lt; jrandom&gt; (and if dev.i2p is compromised, we put up a new hosts.txt entry for dev.i2p)</p>
+<p>15:48 &lt; hypercubus&gt; a knoppix i2p livecd would be prime for cybercafe use</p>
+<p>15:48 &lt; deer&gt; &lt;mule_iip&gt; jarndom: won't a real i2p user grab the source, study the diff against the latest peer reviewed version and build from source :)</p>
+<p>15:48 &lt; fvw&gt; yes but people will just hit 'update'; They won't listen to discussions about whether the new version might have vulnerabilities...</p>
+<p>15:48 &lt; demonic_1&gt; is there anyway to not need hosts file. u know like a dns server?</p>
+<p>15:48 &lt; deer&gt; &lt;Curiosity&gt; yeah... riiiight mule_iip. lol</p>
+<p>15:49 &lt; fvw&gt; but anyway, I'll be very happy when we get to the stage where this becomes a problem.</p>
+<p>15:49 &lt; fvw&gt; demonic_l: It's possible, but there'd still be a central authority.</p>
+<p>15:49 &lt; hypercubus&gt; demonic_1: there are currently a couple of proposals for such functionality, but global names have been ruled out</p>
+<p>15:49 &lt; jrandom&gt; demonic_1: yes, see the mailing list (recent discussions on http://dev.i2p.net/pipermail/i2p/2004-September/000432.html )</p>
+<p>15:49 &lt; jrandom&gt; (and my take @ http://dev.i2p.net/pipermail/i2p/2004-September/000435.html :)</p>
+<p>15:50 &lt; hypercubus&gt; *globally unique names</p>
+<p>15:50 &lt; demonic_1&gt; k </p>
+<p>15:51 &lt; jrandom&gt; ok, anyone have anything else they want to bring up?</p>
+<p>15:52 &lt; deer&gt; &lt;Curiosity&gt; I would also like ot suggest putting service only items into a service folder... i was trying to uninstall i2p (one time of many) and was hitting the wrong uninstall thingie</p>
+<p>15:52 &lt; hypercubus&gt; Curiosity: that's being done</p>
+<p>15:52 &lt; jrandom&gt; w3rd</p>
+<p>15:52 &lt; hypercubus&gt; the installer will install shortcuts for i2p to the Start menu in Windows</p>
+<p>15:52 &lt; hypercubus&gt; and optionally on your desktop</p>
+<p>15:52 &lt; deer&gt; &lt;Curiosity&gt; okies :)</p>
+<p>15:52 &lt; hypercubus&gt; among them will be "uninstall"</p>
+<p>15:53 &lt; deer&gt; &lt;Curiosity&gt; i was talking about when i go into program files/i2p </p>
+<p>15:53 &lt; hypercubus&gt; you don't need to from there</p>
+<p>15:54 &lt; hypercubus&gt; Windows users don't ever go into the program folders ;-)</p>
+<p>15:54 &lt; demonic_1&gt; :/</p>
+<p>15:54 &lt; deer&gt; &lt;Curiosity&gt; i do! :P</p>
+<p>15:54 &lt; jrandom&gt; we could perhaps add a bin/ dir with all the scripts</p>
+<p>15:54 &lt; jrandom&gt; er, nm</p>
+<p>15:54 &lt; hypercubus&gt; then you would have seen the folder called "Uninstall" ;-)</p>
+<p>15:54  * jrandom remembers the paths</p>
+<p>15:54 &lt; hypercubus&gt; which is where the uninstaller is located</p>
+<p>15:54 &lt; jrandom&gt; we can move the service scripts into lib though</p>
+<p>15:54 &lt; hypercubus&gt; i'm not sure we can</p>
+<p>15:55 &lt; cervantes&gt; you could go the 'doze method and have the "uninstall" option in the installer ;-)</p>
+<p>15:55 &lt; hypercubus&gt; wrapper is very particular about where you put those</p>
+<p>15:55 &lt; jrandom&gt; at the very least they can "cd .." first</p>
+<p>15:55 &lt; hypercubus&gt; i'll look into changing their location</p>
+<p>15:55 &lt; hypercubus&gt; but it might not be doable</p>
+<p>15:55 &lt; jrandom&gt; cool, thanks.  it'd be nice to remove some of the clutter in the install dir</p>
+<p>15:55 &lt; hypercubus&gt; agreed</p>
+<p>15:55 &lt; jrandom&gt; (most of which is my fautlt with all those .config files :)</p>
+<p>15:56 &lt; hypercubus&gt; we could have a config dir i guess</p>
+<p>15:56 &lt; cervantes&gt; ./conf ?</p>
+<p>15:56 &lt; jrandom&gt; c'mon, we're geeks.  etc/ :)</p>
+<p>15:56 &lt; jrandom&gt; that would be Really Easy though</p>
+<p>15:56 &lt; jrandom&gt; (just a few -D parameters on the CLI)</p>
+<p>15:56 &lt; hypercubus&gt; then we'll have to field questions from Windows users that "etc" isn't obvious enough ;-)</p>
+<p>15:56 &lt; jrandom&gt; people shouldnt need to touch their config</p>
+<p>15:57 &lt; jrandom&gt; thats what the web is for</p>
+<p>15:57 &lt; cervantes&gt; I've always gone for the blatant:  ./configuration/</p>
+<p>15:57 &lt; hypercubus&gt; right, but Windows users shouldn't need to launch the uninstaller from their program directory either heheh</p>
+<p>15:57 &lt; jrandom&gt; ./thesefilestellstufftodothings/</p>
+<p>15:57 &lt; cervantes&gt; ./scripts/</p>
+<p>15:57 &lt; cervantes&gt; ./asciipr0n</p>
+<p>15:57 &lt; jrandom&gt; ok, but yeah, some work we can flesh out</p>
+<p>15:57 &lt; deer&gt; &lt;Curiosity&gt; lol</p>
+<p>15:58 &lt; jrandom&gt; anyone have anything else to bring up for the meeting?</p>
+<p>15:58 &lt; jrandom&gt; if not</p>
+<p>15:58  * jrandom winds up</p>
+<p>15:59  * jrandom *baf*s the meeting closed</p>
+</div>
