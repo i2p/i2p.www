@@ -25,4 +25,5 @@ if(is_readable(PAGE_DIR.$page.PAGE_EXT)) {
     print "<h1>Error: Page \"$page\" not found</h1>";
     include(PAGE_DIR.'footer'.PAGE_EXT);
 }
+
 ?>
