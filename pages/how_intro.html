@@ -47,45 +47,35 @@ model.</p>
 <p>The network at a glance is made up of a set of nodes ("routers") with a number of unidirectional 
 inbound and outbound virtual paths ("tunnels", as outlined on the <a href="how_tunnelrouting">tunnel routing</a> page). 
 Each router is identified by a cryptographic RouterIdentity which is typically long lived. These routers 
-communicate with each other through existing transport mechanisms (e.g. TCP, UDP, PHTTP), passing various 
+communicate with each other through existing transport mechanisms (TCP, UDP, etc), passing various 
 messages.  Client applications have their own cryptographic identifier ("Destination") which enables it 
 to send and receive messages. These clients can connect to any router and authorize the temporary 
 allocation ("lease") of some tunnels that will be used for sending and receiving messages through the 
 network.  I2P has its own internal <a href="how_networkdatabase">network database</a> (using a modification of 
-the Kademlia algorithm) for distributing routing and contact information.</p>
+the Kademlia algorithm) for scalably distributing routing and contact information securely.</p>
 
-<p>The following illustration is a simplistic view regarding how tunnels, routers, and destinations 
-are associated, with a pair of inbound tunnels (pink lines) leading towards the router which the 
-destination is connected to (little "a"), with a set of outbound tunnels (green lines) leading away 
-from that router. The gateway for each of the inbound tunnels (big "A"s) are identified in the lease 
-as published in the network database.</p>
+<p><img src="images/net.png" alt="Network topology example" /></p>
 
-<p><img src="http://dev.i2p.net/~jrandom/wiki/topology.png" alt="The network topology" /></p>
-
-<p>Messages send from one Destination to another are (typically) sent through a pair of tunnels - first 
-they go out one of the local router's outbound tunnels with instructions specifying that the outbound 
-tunnel's end point forward the message to one of the target Destination's inbound tunnel gateways, 
-which, on receiving the message, passes it down the tunnel to the recipient. Various mechanisms are 
-used to secure these tunnel routed messages, as described <a href="how_tunnelrouting">tunnel routing</a>. 
-In addition, they can be sent in parallel down multiple tunnels, with the last router discarding 
-duplicates.</p>
-
-<p><img src="http://dev.i2p.net/~jrandom/wiki/tunnelSending.png" alt="I2P Tunnel sending" /></p>
-
-<p>Some of the messages sent in the network (such as those used to manage tunnels, publish some Leases, 
-and deliver long lived end to end messages) may be instead are sent via 
-<a href="how_garlicrouting">garlic routing</a>. Inspired by a subsection for future works written by 
-Michael Freedman within Roger Dingledine's freehaven 
-<a href="http://www.freehaven.net/doc/freehaven10.ps">thesis</a>, and with some similarities to 
-<a href="http://onion-router.net/">onion routing</a>.  I2P's garlic routing allows multiple messages 
-("cloves") to be wrapped inside a single message ("garlic") so that only the intended recipient can 
-determine how many cloves are contained as well as how those cloves should be processed.</p>
+<p>In the above, Alice, Bob, Charlie, and Dave are all running routers with a single Destination on their 
+local router.  They each have a pair of 2-hop inbound tunnels per destination (labeled 1,2,3,4,5 and 6),
+and a small subset of each of those router's outbound tunnel pool is shown with 2-hop outbound tunnels.
+For simplicity, Charlie's inbound tunnels and Dave's outbound tunnels are not shown, nor are the rest of
+each router's outbound tunnel pool (typically stocked with 5-10 tunnels at a time).  When Alice and Bob
+talk to each other, Alice sends a message out one of her (pink) outbound tunnels targetting one of Bob's
+inbound tunnels (tunnel 3 or 4).  She knows to send to those tunnels on the correct router by querying the
+network database, which is constantly updated as new leases are authorized and old ones expire.</p>
+  
+<p>If Bob wants to reply to Alice, he simply goes through the same process - send a message out one of his
+outbound tunnels targetting one of Alice's inbound tunnels (tunnel 1 or 2).  To make things easier, all 
+but the initial messages sent between a Alice and Bob are <a href="how_garlicrouting">garlic</a> wrapped,
+bundling the sender's own current lease information so that the recipient can reply immediately without 
+having to look in the network database for the current data.</p>
 
 <p>To deal with a wide range of attacks, I2P is fully distributed with no centralized resources - and 
 hence there are no directory servers keeping statistics regarding the performance and reliability of 
 routers within the network. As such, each router must keep and maintain profiles of various routers 
 and is responsible for selecting appropriate peers to meet the anonymity, performance, and reliability 
-needs of the users, as described in the <a href="how_peerselection">peer selection</a> pages</p>
+needs of the users, as described in the <a href="how_peerselection">peer selection</a> page.</p>
 
 <p>The network itself makes use of a significant number of cryptographic techniques and altorithms - 
 a full laundry list includes 2048bit ElGamal encryption, 256bit AES in CBC mode with PKCS#5 padding, 
@@ -98,7 +88,7 @@ the recipient), tunnel encryption (all messages passing through a tunnel is encr
 gateway to the tunnel endpoint), and interrouter transport layer encryption (e.g. the TCP transport 
 uses AES256 with ephemeral keys):</p>
 
-<p><img src="http://dev.i2p.net/~jrandom/endToEndEncryption.png" alt="end to end layered encryption" /></p>
+<p><img src="images/endToEndEncryption.png" alt="end to end layered encryption" /></p>
 
 <p>The specific use of these algorithms are outlined <a href="how_cryptography">elsewhere</a></p>
 
