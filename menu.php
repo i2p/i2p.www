@@ -23,7 +23,7 @@ function buildmenu() {
 			if (isset($page_config['nolink'])) {
 				$link = $title;
 			} else {
-				$link = "<a href=\"$uri\">$title</a>";
+				$link = "<a href=\"/$uri\">$title</a>";
 			}
 
 			switch ($page_config['depth']) {
