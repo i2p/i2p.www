@@ -1,0 +1,332 @@
+<h3>I2P dev meeting, January 18, 2005</h3>
+<div class="irclog">
+<p>13:04 &lt; jrandom&gt; 0) hi</p>
+<p>13:04 &lt; jrandom&gt; 1) Net status</p>
+<p>13:04 &lt; jrandom&gt; 2) 0.5</p>
+<p>13:04 &lt; jrandom&gt; 3) i2pmail.v2</p>
+<p>13:04 &lt; jrandom&gt; 4) azneti2p_0.2</p>
+<p>13:04 &lt; jrandom&gt; 5) ???</p>
+<p>13:04 &lt; ant&gt; &lt;duck&gt; (the sound of the crypto talk flying past my ears)</p>
+<p>13:04 &lt; jrandom&gt; :)</p>
+<p>13:04  * jrandom waves</p>
+<p>13:04 &lt; cervantes&gt; 'lo</p>
+<p>13:04 &lt; jrandom&gt; you too can listen to the sound of crypto talk flying past your ears!  weekly status note posted @ http://dev.i2p.net/pipermail/i2p/2005-January/000559.html</p>
+<p>13:04 -!- dox [me@free.duck.i2p] has joined #i2p</p>
+<p>13:05 &lt; bla&gt; hi</p>
+<p>13:05 &lt; jrandom&gt; jumping on in, since we're cutting into an interesting discussion anyway... 1) net status</p>
+<p>13:05 &lt; jrandom&gt; i dont really have anything to add beyond whats in the mail - anyone have anything they want to bring up wrt the net status?</p>
+<p>13:06 &lt; bla&gt; Other that we have, for the first time, seen nodes on *all* continents except Antarctica, no.</p>
+<p>13:06 &lt; jrandom&gt; w00t!</p>
+<p>13:07 &lt; jrandom&gt; ok, moving on to 2) 0.5 stuff</p>
+<p>13:07 &lt; mule&gt; hey, my father is just on his way to antarctica, should have given him a node</p>
+<p>13:07 &lt; ant&gt; &lt;duck&gt; bloody Antarticans</p>
+<p>13:07 &lt; Xan&gt; no antarcticans? :(</p>
+<p>13:07 &lt; jrandom&gt; hah nice</p>
+<p>13:07 &lt; jrandom&gt; though i dont think there's much of an anonymity set up there </p>
+<p>13:07 &lt; Frooze&gt; blame antarctica</p>
+<p>13:08  * cervantes sets up an oil rig in antartica so he can finance a node there</p>
+<p>13:09 &lt; jrandom&gt; ok ok, there's a lot of 0.5 stuff, so we can take it in pieces</p>
+<p>13:09 &lt; jrandom&gt; first up, thanks to the folks who gathered a days worth of stats - lots of interesting data @ http://dev.i2p.net/~jrandom/messageSizes/</p>
+<p>13:09 &lt; postman&gt; it was a pleasure :)</p>
+<p>13:10 -!- lucky [lucky@free.duck.i2p] has quit [Ping timeout]</p>
+<p>13:10 &lt; cervantes&gt; wrt net status...seen quite a few people having troubles getting I2P up and running lately (on the forums etc) - I don't know if that's just down to increase user volume or perhaps more i2p based apps for things to go wrong with</p>
+<p>13:10 -!- mule2p [anon@free.duck.i2p] has joined #i2p</p>
+<p>13:10 &lt;+protokol&gt; jrandom: LIAR! you said the data was interesting!</p>
+<p>13:10  * jrandom flings mud at protokol </p>
+<p>13:11 &lt; ant&gt; &lt;duck&gt; cervantes: I have also seen reports of ppl able to get it up and running within a couple of minutes</p>
+<p>13:11 -!- lucky [lucky@free.duck.i2p] has joined #i2p</p>
+<p>13:11 &lt; ant&gt; &lt;duck&gt; I think that NAT is causing most problems</p>
+<p>13:11 &lt; cervantes&gt; duck: true...</p>
+<p>13:11 &lt; ant&gt; &lt;dmdm&gt; who is NAT?</p>
+<p>13:11 &lt; jrandom&gt; cervantes: there are some ugly issues still, certainly.  the NAT issue and osx has been a bit of a pain lately, but Jhor's help with the later should improve the later</p>
+<p>13:12 &lt; cervantes&gt; aye</p>
+<p>13:12 &lt; cervantes&gt; *cough* so... 0.5</p>
+<p>13:13 &lt; Xan&gt; dmdm: network address translation</p>
+<p>13:13 &lt; jrandom&gt; heh, ok.  basically the drive with those message size stats is to explore the padding issues </p>
+<p>13:13 -!- wern__ [wilde@irc.metropipe.net] has quit [Quit: Lämnar]</p>
+<p>13:14 &lt; jrandom&gt; unfortunately, the strategy i built by cherry picking numbers sucked, giving a 25% overhead just with padding data</p>
+<p>13:14 &lt; jrandom&gt; if we go with one of the proposals for the 0.5 encryption (tunnels-alt.html), we won't have that issue</p>
+<p>13:15 &lt; jrandom&gt; (since it'll force small fixes sizes with fragmentation)</p>
+<p>13:15 &lt; mule&gt; what type of messages do you want to pad, those a router sees or those an external observer sees?</p>
+<p>13:15 &lt; jrandom&gt; mule: important question</p>
+<p>13:15 &lt; jrandom&gt; if we're just worried about the external observer, we can leave the messages unpadded, doing any chaff generation at the transport layer</p>
+<p>13:16 &lt; Teal`c&gt; http://microsoft.i2p/david_hasselhoff_05_christmas_album__silent_night.mp3</p>
+<p>13:16 &lt; jrandom&gt; otoh, if we're worried about tunnel participants doing flow analysis, we need to worry about padding down the tunnel</p>
+<p>13:16 &lt;@duck&gt; with 5-6 hops, how big is the danger of a router doing traffic analysis?</p>
+<p>13:16 &lt; cervantes&gt; Teal`c: meeting atm... can you use #i2p-chat for mp3 announce ;-)</p>
+<p>13:17 &lt; Teal`c&gt; sorry</p>
+<p>13:17 &lt; cervantes&gt; :) for david hasselhoff?</p>
+<p>13:18 &lt; jrandom&gt; depends upon what level of analysis duck.  if they've somehow tracked down what tunnel they're in (e.g. they're the inbound tunnel gateway and have harvested the netDb, correlatign that with a destination), thats nontrivial data.  otoh its not a direct exposure, but does give some info</p>
+<p>13:18 -!- polecat [polecat@free.duck.i2p] has joined #i2p</p>
+<p>13:18 -!- mode/#i2p [+v polecat] by ChanServ</p>
+<p>13:18 &lt; jrandom&gt; even more than the tunnel padding though is end to end padding, hiding message flow data from gateways and endpoints.</p>
+<p>13:19 &lt; jrandom&gt; if we're crazy/stupid, we could go all the way to a pipenet, using constant bitrate everywhere</p>
+<p>13:19 &lt;+polecat&gt; I got it!</p>
+<p>13:19 &lt; jrandom&gt; (and end up with no users running i2p)</p>
+<p>13:19 &lt;+polecat&gt; What we need to do is tunnel i2p over email!</p>
+<p>13:19 &lt; cervantes&gt; what's the likelyhood of colluding routers ending up in the same tunnel on a sufficiently large network?</p>
+<p>13:19 &lt;+polecat&gt; No ISP would be dumb enough to stop email!</p>
+<p>13:20  * jrandom awaits the net.i2p.router.transport.gmail implementation</p>
+<p>13:20 &lt; postman&gt; polecat: gee , this is silly </p>
+<p>13:20 &lt; postman&gt; :)</p>
+<p>13:20 &lt; bla&gt; cervantes: N^(-h) (N is # of fast nodes, h = # hops). It seems</p>
+<p>13:20 &lt;+polecat&gt; =3   I know.</p>
+<p>13:21 &lt; cervantes&gt; is that a lot? :)</p>
+<p>13:21 &lt; jrandom&gt; not the # of fast nodes, as external people won't know your profiles</p>
+<p>13:21 &lt;+polecat&gt; Seriously though, in shameless abuse of existing IP services, we could tunnel i2p in any number of ingenious ways.</p>
+<p>13:21 &lt; jrandom&gt; c^2/N^h to get two peers into the same tunnel</p>
+<p>13:21 &lt; jrandom&gt; agreed polecat.  thats one of the reasons why we don't have bidirectional tunnels</p>
+<p>13:22 &lt; jrandom&gt; some transports (e.g. email) suck for bidirectional comm</p>
+<p>13:22 &lt; bla&gt; jrandom: c = ?</p>
+<p>13:22 &lt; jrandom&gt; c==# colluding peers</p>
+<p>13:23 &lt;+polecat&gt; Hm, interesting point.</p>
+<p>13:23 &lt; ant&gt; &lt;duck&gt; roadmap wise, what is the impact of i2p going a wrong direction and picking a wrong crypto solution?</p>
+<p>13:23 &lt;+polecat&gt; Or carrier pigeon protocol, not bidi in the slightest.</p>
+<p>13:23 &lt;+polecat&gt; crypto is modular already, isn't it?</p>
+<p>13:23 &lt; jrandom&gt; duck: its just one bullet point out of 0.5, and one subsection of the tunnels*.html doc.  theres lots more to the tunnel routing than just how we wrap the data</p>
+<p>13:24 &lt; bla&gt; jrandom: Then again, this is the prob. for getting them in the tunnel *now*. However, over T tunnel refreshments (every so many minutes), this goes as P = 1 - (1 - c^2/N^h)^T</p>
+<p>13:24 &lt; jrandom&gt; otoh, the difference between "fixed 1KB blocks" and "0-40KB blocks" has substantial impact</p>
+<p>13:24 &lt;+polecat&gt; I'd hate to see this network go the way of Entropy, stuck in McEliece.</p>
+<p>13:24 &lt; jrandom&gt; polecat: read http://dev.i2p.net/cgi-bin/cvsweb.cgi/i2p/router/doc/tunnel-alt.html?rev=HEAD</p>
+<p>13:24 &lt; bla&gt; jrandom: And thus tends to zero for large enough time. I.e.: for large enough time, the attackers will be in the same tunnel at last one time</p>
+<p>13:25 &lt; jrandom&gt; the plan is standard AES256/CBC</p>
+<p>13:25 &lt;+protokol&gt; i hear dns is good for tunneling stuff, most people dont block it</p>
+<p>13:25 &lt; jrandom&gt; certainly bla, though its not quite that direct (for exploratory tunnels it is, but not for client tunnels)</p>
+<p>13:26 -!- frosk [frosk@free.duck.i2p] has quit [Ping timeout]</p>
+<p>13:26 &lt;+polecat&gt; And if somehow even AES gets cracked, some equivalent symmetric cipher.</p>
+<p>13:27 &lt; jrandom&gt; bla: i dont think its large enough of a practical worry for most cases in that degree, but when you mount it as part of a predecessor attack, the issue is largely moot</p>
+<p>13:28 &lt; jrandom&gt; (because of the way we do the rest of the tunnel routing)</p>
+<p>13:28 &lt; bla&gt; jrandom: k</p>
+<p>13:28 &lt; jrandom&gt; right polecat </p>
+<p>13:28 -!- frosk [frosk@free.duck.i2p] has joined #i2p</p>
+<p>13:29 &lt; jrandom&gt; duck: if we go w/ the second option, changing to another later will likely be easy.  </p>
+<p>13:29 &lt; jrandom&gt; otoh, the second option will require some hefty performance tuning to Not Suck</p>
+<p>13:29 &lt; jrandom&gt; but i'm sure we can pull it off</p>
+<p>13:30 -!- TelRip [Nope@free.duck.i2p] has quit [Ping timeout]</p>
+<p>13:31 &lt; jrandom&gt; anyway, I think the above covers where we are right now wrt 0.5 work</p>
+<p>13:31 &lt; jrandom&gt; does anyone have any more questions/comments/concerns?</p>
+<p>13:31 &lt; bla&gt; jrandom: One</p>
+<p>13:32 &lt; bla&gt; jrandom: I think we should values anon. slightly more than performance atm: so yes, the PRNG options sounds good</p>
+<p>13:32 -!- kaji [kaji@free.duck.i2p] has joined #i2p</p>
+<p>13:33 &lt; jrandom&gt; agreed.  performance can be tuned later, "adding in" better anonymity however, is much harder</p>
+<p>13:33 &lt; jrandom&gt; (but, of course, performance /is/ a security parameter.  if it Sucks, no one uses it)</p>
+<p>13:33 &lt; bla&gt; Yes.</p>
+<p>13:33 &lt; bla&gt; jrandom: </p>
+<p>13:33 &lt; bla&gt; sorry</p>
+<p>13:33 &lt;@duck&gt; right, /me flips the magical Freenet-performance bit</p>
+<p>13:33 &lt; cervantes&gt; perhaps it'll deter all those torrent waving leechers to stay away a while longer ;-)</p>
+<p>13:34 &lt; jrandom&gt; heh</p>
+<p>13:34 &lt; cervantes&gt; &lt;-- connection reset</p>
+<p>13:34 &lt; bla&gt; cervantes: No, I'm not! :)</p>
+<p>13:34 &lt; cervantes&gt; :)</p>
+<p>13:35 &lt; jrandom&gt; i do think that we can pull off some really cool optimizations, and it seems a lot of our choke is not related to the peer selection, but merely (heh) bugs in the jobqueue</p>
+<p>13:36 &lt; jrandom&gt; but, anyway, anything else for 2) 0.5?</p>
+<p>13:36 -!- TelRip [Nope@free.duck.i2p] has joined #i2p</p>
+<p>13:36 &lt; ant&gt; &lt;BS314159&gt; could you post an explanation for this loop attack?</p>
+<p>13:37 &lt; ant&gt; &lt;BS314159&gt; it sounds more dangerous than your treatment implies it is</p>
+<p>13:37 &lt; jrandom&gt; loop: build a tunnel containing A--&gt;B--&gt;C--&gt;D--&gt;C, send in 10 messages.</p>
+<p>13:37 &lt; jrandom&gt; without the PRNGs, you can add as many messages to that C&lt;--&gt;D loop as you want</p>
+<p>13:38 &lt; ant&gt; &lt;BS314159&gt; ok</p>
+<p>13:38 &lt; jrandom&gt; effectively DoSing any routers with just a few messages</p>
+<p>13:38 &lt; ant&gt; &lt;BS314159&gt; but only A can do this</p>
+<p>13:38 &lt; jrandom&gt; with the PRNGs, it limits the number of messages that can go into the loop</p>
+<p>13:38 &lt; ant&gt; &lt;BS314159&gt; so there's no danger of an attacker shortening my tunnels by introducing loops</p>
+<p>13:38 &lt; jrandom&gt; no, no one can shorten your tunnels</p>
+<p>13:39 &lt; jrandom&gt; the only thing this is useful for is a DoS</p>
+<p>13:39 &lt; jrandom&gt; (a very cheap DoS)</p>
+<p>13:39 &lt; jrandom&gt; (but when you can selectively DoS peers without much cost, you can do naaaasty stuff)</p>
+<p>13:40 &lt; ant&gt; &lt;BS314159&gt; comprendo</p>
+<p>13:40 &lt;+protokol&gt; and hashcash certs will help this?</p>
+<p>13:40 &lt; jrandom&gt; protokol: hashcash addresses the issue of a peer building too many tunnels, and perhaps building too many hops</p>
+<p>13:40 -!- Sonnax [Sonax@free.duck.i2p] has quit [Quit: Leaving]</p>
+<p>13:41 -!- TelRip [Nope@free.duck.i2p] has quit [Ping timeout]</p>
+<p>13:41 &lt; jrandom&gt; protokol: it doesnt help with loops.  the two ways i could find that /did/ were the PRNGs (tunnel-alt.html) or verifying at each step (tunnel.html)</p>
+<p>13:42 &lt; jrandom&gt; verifying at each step has dangers, so the current leaning is towards the PRNGs</p>
+<p>13:42 &lt;+Ragnarok&gt; how effective will the prng method be?</p>
+<p>13:42 &lt; Xan&gt; A--&gt;B--&gt;C--&gt;D--&gt;C - shouldnt each hop get a different id or something, so that messages leave the tunnel the second time they reach C rather than looping?</p>
+<p>13:42 -!- polecat [polecat@free.duck.i2p] has quit [Quit: DOOK]</p>
+<p>13:42 -!- Nightblade [incognito@irc.metropipe.net] has quit [Quit: ircII EPIC4-2.0 -- Are we there yet?]</p>
+<p>13:43 &lt; jrandom&gt; Xan: they do, but without verifying each step, you can't tell whether its bad or not</p>
+<p>13:44 &lt; jrandom&gt; Ragnarok: i think it'll be very effective at minimizing the damage done</p>
+<p>13:45 -!- PieSpy [piespy@free.duck.i2p] has quit [Ping timeout]</p>
+<p>13:45 &lt; jrandom&gt; at least, from what I can see so far</p>
+<p>13:45 -!- Frooze [Frooze@free.duck.i2p] has quit [Ping timeout]</p>
+<p>13:45 -!- dox [me@free.duck.i2p] has quit [Ping timeout]</p>
+<p>13:45 &lt; jrandom&gt; if anyone sees any problems/issues with it, or suggestions for improvement, please get in touch :)</p>
+<p>13:46 &lt; Xan&gt; or maybe Im missing the point</p>
+<p>13:46 &lt; Xan&gt; bbl</p>
+<p>13:46 -!- jdot [jdot@free.baffled.i2p] has quit [Ping timeout]</p>
+<p>13:46 -!- dust [dust@free.baffled.i2p] has quit [Ping timeout]</p>
+<p>13:46 -!- Delta [Blow@free.duck.i2p] has quit [Ping timeout]</p>
+<p>13:46 -!- Quadn [Disposable@free.duck.i2p] has quit [Ping timeout]</p>
+<p>13:46 -!- Quadn [Disposable@free.baffled.i2p] has joined #i2p</p>
+<p>13:46 -!- Frooze [Frooze@free.duck.i2p] has joined #i2p</p>
+<p>13:46 -!- mode/#i2p [+v Quadn] by ChanServ</p>
+<p>13:46 -!- PieSpy [piespy@free.duck.i2p] has joined #i2p</p>
+<p>13:46 &lt; jrandom&gt; 'k l8r, i'll update the doc to be more clear </p>
+<p>13:47 -!- Irssi: #i2p: Total of 39 nicks [2 ops, 0 halfops, 8 voices, 29 normal]</p>
+<p>13:47 &lt; jrandom&gt; ok, unless there's something else, shall we move on to 3) i2pmail.v2?</p>
+<p>13:47 -!- detonate [d@free.duck.i2p] has quit [Connection reset by peer]</p>
+<p>13:47 &lt; jrandom&gt; postman: you 'round?</p>
+<p>13:47 -!- mule2p [anon@free.duck.i2p] has quit [Connection reset by peer]</p>
+<p>13:47 -!- kaji [kaji@free.duck.i2p] has quit [Connection reset by peer]</p>
+<p>13:47 -!- Ch0Hag [mking@free.duck.i2p] has quit [Ping timeout]</p>
+<p>13:48 -!- dox [me@free.duck.i2p] has joined #i2p</p>
+<p>13:48 &lt; postman&gt; yes</p>
+<p>13:48 -!- Delta [Blow@free.duck.i2p] has joined #i2p</p>
+<p>13:49 -!- kaji [kaji@free.duck.i2p] has joined #i2p</p>
+<p>13:49 &lt; postman&gt; :)</p>
+<p>13:49 &lt; jrandom&gt; anything to add from your post on the forum?  it sounds pretty cool</p>
+<p>13:49 &lt; postman&gt; well, a few of you might have read the draft for i2pmail.v2 already</p>
+<p>13:50 &lt; bla&gt; wtf is happening? Massive disconnects. I've got trouble reaching sites (say orion, library) here too</p>
+<p>13:50 &lt; postman&gt; it aims towards a fully decentralized mail infrastructure in the future</p>
+<p>13:50 -!- mule3p [anon@free.baffled.i2p] has joined #i2p</p>
+<p>13:50 &lt; postman&gt; but is in need of proxysoftware on the nodes as well as a bunch of dedicated relays</p>
+<p>13:50 -!- Xan [jonny9@free.duck.i2p] has quit [Ping timeout]</p>
+<p>13:51 &lt; postman&gt; all are invited to contribute ideas / concepts / rants</p>
+<p>13:51 &lt; postman&gt; development already has started - dont expect anything before late spring :)</p>
+<p>13:51 &lt; jrandom&gt; w00t</p>
+<p>13:51 &lt; kaji&gt; hmm, the cops just showed up at my door</p>
+<p>13:52 &lt; bla&gt; kaji: ?</p>
+<p>13:52 &lt; jrandom&gt; quick, blow your hard drive</p>
+<p>13:52 &lt; postman&gt; jrandom: well, this is all i have to say for now :) </p>
+<p>13:52 &lt; cervantes&gt; hide the blackjack table!</p>
+<p>13:52 &lt; jrandom&gt; wikked, thanks postman </p>
+<p>13:52 &lt; kaji&gt; they said i dialed 911, but im quite sure neither i nor my brother did</p>
+<p>13:52 -!- PieSpy [piespy@free.duck.i2p] has quit [Ping timeout]</p>
+<p>13:53 &lt;+protokol&gt; kaji: they're just checking up on i2p</p>
+<p>13:53 &lt; jrandom&gt; ok, unless there's anytihng else on 3) i2pmail, lets move over to 4) azneti2p_0.2</p>
+<p>13:53 &lt;+protokol&gt; &lt;creepy music&gt;</p>
+<p>13:53 &lt; jrandom&gt; as mentioned in the email, there's been some important progress lately</p>
+<p>13:53 &lt; kaji&gt; then they said cordless phones can freak out when off the hook, but all my cordless phones are on their charger -&gt; #i2p-chat</p>
+<p>13:53 -!- Ch0Hag [mking@free.duck.i2p] has joined #i2p</p>
+<p>13:54 -!- mode/#i2p [+v Ch0Hag] by ChanServ</p>
+<p>13:54 -!- PieSpy [piespy@free.duck.i2p] has joined #i2p</p>
+<p>13:55 &lt; jrandom&gt; the azureus folks have been very responsive in getting an update ready (yay!), but people should also be on the lookout for problems</p>
+<p>13:55 &lt; jrandom&gt; (if you don't read the i2p mailing list and use azneti2p, read the i2p mailing list)</p>
+<p>13:55 &lt; jrandom&gt; ((or even if yuo dont use azneti2p, read the list, as thats where we announce important things ;)</p>
+<p>13:56 &lt; jrandom&gt; duck and orion have also been making lots of updates to accomodate the new bt client and formatting</p>
+<p>13:56 &lt; jrandom&gt; (yay!)</p>
+<p>13:56  * orion smiles</p>
+<p>13:57 &lt; orion&gt; theres still a ways to go, but for now, it works.</p>
+<p>13:57 &lt; jrandom&gt; (inasmuch as i2p lets it ;)</p>
+<p>13:58 &lt; orion&gt; hehe, yes. ;)</p>
+<p>13:58 &lt; jrandom&gt; does anyone else have anything to bring up wrt azneti2p or i2p-bt?</p>
+<p>13:58 &lt; jrandom&gt; (or bytemonsoon2p ;)</p>
+<p>14:00 &lt; jrandom&gt; ok if not, moving right along to 5) ???</p>
+<p>14:00 &lt; jrandom&gt; open floor - anyone else have anything to bring up? </p>
+<p>14:00 &lt; postman&gt; jrandom: why does the addressbook publich userhosts entries ?</p>
+<p>14:01 &lt; jrandom&gt; postman: bug.  </p>
+<p>14:01 &lt; postman&gt; so this was no planned behaviour and will be changed?</p>
+<p>14:01 &lt; cervantes&gt; just one thing...</p>
+<p>14:01 &lt; jrandom&gt; postman: correct, and will be changed</p>
+<p>14:02 &lt; jrandom&gt; (right Ragnarok?  :)</p>
+<p>14:02 &lt;+Ragnarok&gt; depends on exactly what postman means...</p>
+<p>14:03 -!- Xan [jonny9@free.duck.i2p] has joined #i2p</p>
+<p>14:03 &lt; jrandom&gt; Ragnarok: new entries added by the local user to their own private hosts shouldn't be propogated to the hosts published</p>
+<p>14:03 &lt; jrandom&gt; (e.g. userhosts.txt is private, hosts.txt is synchronized with other people and is public)</p>
+<p>14:03 &lt; cervantes&gt; As part of a semi regular slot on the forum, there will be recognition and awards for those that have contributed good things to I2P either recently or over the project's lifetime</p>
+<p>14:03 &lt; postman&gt; Ragnarok: after updating to 0.4.2.6 i found entries from my userhosts.txt in the published addressbook in my eepsite folder</p>
+<p>14:03 &lt; ant&gt; &lt;BS314159&gt; hmm</p>
+<p>14:04 -!- Delta [Blow@free.duck.i2p] has quit [Ping timeout]</p>
+<p>14:04 &lt; postman&gt; Ragnarok: those have been manually added keys, which haven't been supposed to be published</p>
+<p>14:04 &lt; cervantes&gt; this week we recognise duck for general excellence as a service provider for the community and as an all round great idler: http://forum.i2p/viewtopic.php?t=275</p>
+<p>14:04 &lt; jrandom&gt; w00t!</p>
+<p>14:04 &lt; jrandom&gt; (go duck go, go duck go)</p>
+<p>14:05 -!- BrockSamson [brocksamso@free.baffled.i2p] has joined #i2p</p>
+<p>14:05 &lt; Teal`c&gt; what about domain name hijacking ?</p>
+<p>14:05  * brachtus applauds</p>
+<p>14:05  * orion does a duck waddle as a sign of respect.</p>
+<p>14:05 &lt; cervantes&gt; one important point for the future...you don't have to be a cryptographic genius to get praise!</p>
+<p>14:06 &lt;+Ragnarok&gt; no, that's expected behaviour.  I can change it, but first I'll have to finish implementing file locking so you can change hosts.txt directly</p>
+<p>14:06 &lt; orion&gt; (but it helps)</p>
+<p>14:06 -!- Delta [Blow@free.baffled.i2p] has joined #i2p</p>
+<p>14:06 &lt; cervantes&gt; you might just have contributed a cracking eepsite or something...</p>
+<p>14:06 &lt; cervantes&gt; or been a helpful bod on the forum etc</p>
+<p>14:07 &lt; ant&gt; &lt;BS314159&gt; hmm</p>
+<p>14:07 &lt; cervantes&gt; (otherwise, lets face it, jrandom would win every week)</p>
+<p>14:07 &lt; jrandom&gt; hey, y'all are paying for my beer fund, this stuff aint free ;)</p>
+<p>14:07 &lt; ant&gt; &lt;BS314159&gt; could you just make a new file, "publichosts.txt"?</p>
+<p>14:07 &lt; ant&gt; &lt;BS314159&gt; then have addressbook ignore userhosts.txt, but allowed users to subscribe to their own publichosts.txt?</p>
+<p>14:08 &lt; jrandom&gt; Teal`c: there is no way to hijack a domain name, no entries are overwritten, and userhosts always overrides hosts</p>
+<p>14:08 -!- dust [dust@free.baffled.i2p] has joined #i2p</p>
+<p>14:09 &lt; jrandom&gt; Ragnarok: perhaps the web interface can address the locking issue, since users won't be adding to the files manually</p>
+<p>14:09 &lt;+Ragnarok&gt; once the locking is done, there's no real reason to pull in addresses from userhosts.txt anymore (it's currently the only way to dodge a race), so there's no real point in adding a third file</p>
+<p>14:10 &lt;+Ragnarok&gt; jrandom: well, I was planning on using the java file locking api</p>
+<p>14:10 &lt; jrandom&gt; if you think its necessary, you're the boss :)</p>
+<p>14:10 &lt; ant&gt; &lt;BS314159&gt; it would allow you to kill all the names gotten from other people while keeping the ones you made yourself</p>
+<p>14:10 &lt; ant&gt; &lt;BS314159&gt; simply by clearing hosts.txt and changing your subscriptiong</p>
+<p>14:11 &lt; ant&gt; &lt;BS314159&gt; but I guess that can wait for name-signing</p>
+<p>14:11 &lt; orion&gt; metadata will solve this problem.  Is a spec drafted yet?</p>
+<p>14:11 &lt; jrandom&gt; using just two files should be fine - one managed by the addressbook, one not</p>
+<p>14:12 &lt; jrandom&gt; (you could even have the addressbook ignore userhosts.txt entirely - userhosts.txt overrides hosts.txt anyway)</p>
+<p>14:12 -!- sleon|lap [sleon@free.baffled.i2p] has joined #i2p</p>
+<p>14:12 -!- sleon_ [sleon@free.duck.i2p] has quit [Ping timeout]</p>
+<p>14:12 &lt;+Ragnarok&gt; jrandom: that would be the plan, once locking is done (which really shouldn't be too much work, I just haven't gotten around to it :)</p>
+<p>14:13 &lt;+Ragnarok&gt; and I'm currently working on learning enough xml schema to write one for the namerecords</p>
+<p>14:13 &lt; ant&gt; &lt;dr_kavra&gt; is this the channel for kenosis? another channel told me to come here :D</p>
+<p>14:13 &lt; jrandom&gt; lol</p>
+<p>14:13 &lt; jrandom&gt; nah, sorry, this is i2p</p>
+<p>14:14 &lt; jrandom&gt; (unless you're looking for an anonymous comm layer)</p>
+<p>14:14 &lt; jrandom&gt; wikked Ragnarok </p>
+<p>14:14 &lt; ant&gt; &lt;BS314159&gt; I still the XML is too verbose and non-human-readable for this, compared to YAML, but I'm not the one writing the code</p>
+<p>14:14 &lt; jrandom&gt; Ragnarok: the tough part will be doing the crypto w/ XML without reverting to ugly CDATA</p>
+<p>14:14 &lt; orion&gt; anybody write a working draft for the metadata spec yet?</p>
+<p>14:15 &lt; jrandom&gt; (i personally think xml sucks, but i'm just a naysayer)</p>
+<p>14:15 &lt; jrandom&gt; orion: http://dev.i2p.net/pipermail/i2p/2004-February/000135.html has a basic setup</p>
+<p>14:15 &lt; orion&gt; (name/key metadata)</p>
+<p>14:15 &lt; dox&gt; has the addressbook and its features been announced somewhere? I didn't know my hosts.txt is published</p>
+<p>14:15 &lt; jrandom&gt; (see NameReference and LocalEntry elements)</p>
+<p>14:16 &lt; jrandom&gt; dox: its written to the location specified in addressbook/config.txt</p>
+<p>14:16 &lt; jrandom&gt; (by default, ./eepsite/docroot/hosts.txt)</p>
+<p>14:17 &lt; orion&gt; is missing a public/private (i.e. distribute, don't) flag.</p>
+<p>14:17 &lt; ant&gt; &lt;cervantes&gt; the only good thing about XML (and this is a large + point) is that it's a widely accepted standard</p>
+<p>14:17 -!- bla [bla@free.duck.i2p] has quit [Quit: leaving]</p>
+<p>14:17 &lt; jrandom&gt; right orion, lots of good ideas have come up since that post</p>
+<p>14:17 -!- Frooze [Frooze@free.duck.i2p] has quit [Ping timeout]</p>
+<p>14:17 &lt;+Ragnarok&gt; xml may suck, but frankly, it better than any of the alternatives for what I'm doing</p>
+<p>14:17 &lt; jrandom&gt; cervantes: so is EDI</p>
+<p>14:17 &lt; orion&gt; is there a place to condense them?  i.e. forum area?</p>
+<p>14:18 &lt; orion&gt; or maybe a wiki page?</p>
+<p>14:18 &lt; jrandom&gt; orion: susi's or ugha's wiki</p>
+<p>14:18 &lt; orion&gt; I'm going to set up wikis for bytemonsoon and orion.i2p to help get some community consensus as to the future development goals of each.</p>
+<p>14:18 &lt; BrockSamson&gt; xml + crypto w/o CDATA = mime, no?</p>
+<p>14:19 &lt; jrandom&gt; wikked orion </p>
+<p>14:19 &lt; jrandom&gt; BrockSamson: smime, with different parsers ;)</p>
+<p>14:19 &lt; orion&gt; (also one for name metadata)</p>
+<p>14:19 -!- Frooze [Frooze@free.baffled.i2p] has joined #i2p</p>
+<p>14:21 &lt; jrandom&gt; there are lots of ways to do the metadata, the important thing is flexibility and 'correctness' so that it can grow or change over time</p>
+<p>14:21  * jrandom is sure Ragnarok et al will come up with some good stuff :)</p>
+<p>14:21 &lt; orion&gt; thats why I think a public draft is in order.</p>
+<p>14:22 &lt; ant&gt; &lt;cervantes&gt; i2p consortium :P</p>
+<p>14:22 &lt; jrandom&gt; well, people have been saying "someone should put up their ideas on the wiki" for the last few meetings, but the wiki pages aren't growing too much ;)  which is fine, we take the pace we take</p>
+<p>14:23  * orion promises to have three wikis up within a day and email everyone their locations</p>
+<p>14:23 &lt; BrockSamson&gt; call me lazy, but compare an ANSI 850 Purchase order EDI to nearly any other XML based purchase order, and i'd rather decode, code, and debug for the XML version. Even if it's 5x the EDI size</p>
+<p>14:23 &lt; jrandom&gt; w00t</p>
+<p>14:23 &lt; jrandom&gt; heh BrockSamson </p>
+<p>14:24 &lt; BrockSamson&gt; Position 10 is ST? oh then position 310 should be name</p>
+<p>14:24 &lt; BrockSamson&gt; duh me</p>
+<p>14:24 &lt; jrandom&gt; BrockSamson: don't think the xml schemas for POs are much better ;)</p>
+<p>14:24 &lt; jrandom&gt; (but yeah, that stuff is just a totally bloody disaster)</p>
+<p>14:25 &lt; BrockSamson&gt; they are at 4:30 in the morning</p>
+<p>14:25 &lt; BrockSamson&gt; unless...</p>
+<p>14:25 &lt; jrandom&gt; heh</p>
+<p>14:25 &lt; BrockSamson&gt; it's written by an ex EDI programmer</p>
+<p>14:25 &lt; BrockSamson&gt; and the xml looks like this: &lt;p1&gt;&lt;po&gt;&lt;q&gt;1&lt;/q&gt;&lt;/po&gt;&lt;/p1&gt;</p>
+<p>14:26 &lt; BrockSamson&gt; i bet though, if you add up the horuse OpenSource projects spend talking about to 'XML' or not 'XML' you could code linux 10x over.</p>
+<p>14:26 &lt; BrockSamson&gt; every project i've ever been part of has had massive debates on it</p>
+<p>14:27 &lt; orion&gt; debates are good for a project, depending on who's debating. ;)</p>
+<p>14:27 &lt; jrandom&gt; eh, it does what it does, but its not a panacea.  it may work well for the naming stuff</p>
+<p>14:28 &lt; BrockSamson&gt; many people are in projects just to debate though.</p>
+<p>14:28 &lt; jrandom&gt; not here.  i'm here for the free beer</p>
+<p>14:28 &lt; ant&gt; &lt;cervantes&gt; that's debatable</p>
+<p>14:28 &lt; orion&gt; the implementation details will be clearer when the draft spec is more tangable.</p>
+<p>14:28 &lt; orion&gt; hence the need for a wiki/peer review.</p>
+<p>14:29 &lt; BrockSamson&gt; I heard this project gave away free Garlic</p>
+<p>14:29 &lt; jrandom&gt; lots of it</p>
+<p>14:30 &lt; jrandom&gt; ok, anyone else have anything to bring up for the meeting?</p>
+<p>14:30 &lt; ant&gt; * cervantes wheels out the ceremonial call with bell</p>
+<p>14:30 &lt; ant&gt; &lt;cervantes&gt; call =cow</p>
+<p>14:30  * jrandom winds up</p>
+<p>14:31  * jrandom *baf*s the cowbell, closing the meeting</p>
+</div>
