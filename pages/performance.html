@@ -1,12 +1,12 @@
 <h1>Performance</h1>
-<p>Probably one of the most frequent things people ask is "how fast is <B style="color:black;background-color:#ffff66">I2P</B>?", and no one seems to like the answer - "it depends".  After trying out <B style="color:black;background-color:#ffff66">I2P</B>, the next thing they ask is "will it get faster?", and the answer to that is a most emphatic <b>yes</b>.</p>
+<p>Probably one of the most frequent things people ask is "how fast is I2P?", and no one seems to like the answer - "it depends".  After trying out I2P, the next thing they ask is "will it get faster?", and the answer to that is a most emphatic <b>yes</b>.</p>
 
 
-<p>There are a few major techniques that can be done to improve the percieved performance of <B style="color:black;background-color:#ffff66">I2P</B> - some of the following are CPU related, others bandwidth related, and others still are protocol related.  However, all of those dimensions affect the latency, throughput, and percieved performance of the network, as they reduce contention for scarce resources.  This list is of course not comprehensive, but it does cover the major ones that I see.</p>
+<p>There are a few major techniques that can be done to improve the percieved performance of I2P - some of the following are CPU related, others bandwidth related, and others still are protocol related.  However, all of those dimensions affect the latency, throughput, and percieved performance of the network, as they reduce contention for scarce resources.  This list is of course not comprehensive, but it does cover the major ones that I see.</p>
 
 <h2>Native math</h2>
 
-<p>When I last profiled the <B style="color:black;background-color:#ffff66">I2P</B> code, the vast majority of time was spent within one function: java.math.BigInteger's <a href="http://java.sun.com/j2se/1.4.2/docs/api/java/math/BigInteger.html#modPow(java.math.BigInteger,%20java.math.BigInteger)">modPow</a>.  Rather than try to tune this method, we'll call out to <a href="http://www.swox.com/gmp/">GNU MP</a> - an insanely fast math library (with tuned assembler for many architectures). (<i>Editor: see <a href="/node/view/147?PHPSESSID=288375bed2d584c74d7a9fdbc87e326a">NativeBigInteger for faster public key cryptography</a></i>)</p>
+<p>When I last profiled the I2P code, the vast majority of time was spent within one function: java.math.BigInteger's <a href="http://java.sun.com/j2se/1.4.2/docs/api/java/math/BigInteger.html#modPow(java.math.BigInteger,%20java.math.BigInteger)">modPow</a>.  Rather than try to tune this method, we'll call out to <a href="http://www.swox.com/gmp/">GNU MP</a> - an insanely fast math library (with tuned assembler for many architectures). (<i>Editor: see <a href="/node/view/147?PHPSESSID=288375bed2d584c74d7a9fdbc87e326a">NativeBigInteger for faster public key cryptography</a></i>)</p>
 
 <p><a href="/user/view/8?PHPSESSID=288375bed2d584c74d7a9fdbc87e326a">ughabugha</a> and <a href="/user/view/7?PHPSESSID=288375bed2d584c74d7a9fdbc87e326a">duck</a> are working on the C/JNI glue code, and the existing java code is already deployed with hooks for that whenever its ready.  Preliminary results look fantastic - running the router with the native GMP modPow is providing over a 800% speedup in encryption performance, and the load was cut in half.  This was just on one user's machine, and things are nowhere near ready for packaging and deployment, yet.</p>
 
@@ -30,11 +30,11 @@
 
 <h2>Longer lasting tunnels</h2>
 
-<p>The current default <B style="color:black;background-color:#A0FFFF">tunnel</B> duration of 10 minutes is fairly arbitrary, though it "feels ok".  Once we've got <B style="color:black;background-color:#A0FFFF">tunnel</B> healing code and more effective failure detection, we'll be able to more safely vary those durations, reducing the network and CPU load (due to expensive <B style="color:black;background-color:#A0FFFF">tunnel</B> creation messages).</p>
+<p>The current default tunnel duration of 10 minutes is fairly arbitrary, though it "feels ok".  Once we've got tunnel healing code and more effective failure detection, we'll be able to more safely vary those durations, reducing the network and CPU load (due to expensive tunnel creation messages).</p>
 
 <h2>Adjust the timeouts</h2>
 
-<p>Yet another of the fairly arbitrary but "ok feeling" things we've got are the current timeouts for various activities.  Why do we have a 60 second "peer unreachable" timeout?  Why do we try sending through a different <B style="color:black;background-color:#A0FFFF">tunnel</B> that a LeaseSet advertises after 10 seconds?  Why are the network database queries bounded by 60 or 20 second limits?  Why are destinations configured to ask for a new set of tunnels every 10 minutes?  Why do we allow 60 seconds for a peer to reply to our request that they join a <B style="color:black;background-color:#A0FFFF">tunnel</B>?  Why do we consider a <B style="color:black;background-color:#A0FFFF">tunnel</B> that doesn't pass our test within 60 seconds "dead"?</p>
+<p>Yet another of the fairly arbitrary but "ok feeling" things we've got are the current timeouts for various activities.  Why do we have a 60 second "peer unreachable" timeout?  Why do we try sending through a different tunnel that a LeaseSet advertises after 10 seconds?  Why are the network database queries bounded by 60 or 20 second limits?  Why are destinations configured to ask for a new set of tunnels every 10 minutes?  Why do we allow 60 seconds for a peer to reply to our request that they join a tunnel?  Why do we consider a tunnel that doesn't pass our test within 60 seconds "dead"?</p>
 
 <p>Each of those imponderables can be addressed with more adaptive code, as well as tuneable parameters to allow for more appropriate tradeoffs between bandwidth, latency, and CPU usage.</p>
 
@@ -42,9 +42,9 @@
 
 <p>At the moment, all TCP connections do all of their peer validation after going through the full (expensive) Diffie-Hellman handshaking to negotiate a private session key.  This means that if someone's clock is really wrong, or their NAT/firewall/etc is improperly configured (or they're just running an incompatible version of the router), they're going to consistently (though not constantly, thanks to the shitlist) cause a futile expensive cryptographic operation on all the peers they know about.  While we will want to keep some verification/validation within the encryption boundary, we'll want to update the protocol to do some of it first, so that we can reject them cleanly without wasting much CPU or other resources.</p>
 
-<h2>Adjust the <B style="color:black;background-color:#A0FFFF">tunnel</B> testing</h2>
+<h2>Adjust the tunnel testing</h2>
 
-<p>Rather than going with the fairly random scheme we have now, we should use a more context aware algorithm for testing tunnels.  e.g. if we already know its passing valid data correctly, there's no need to test it, while if we haven't seen any data through it recently, perhaps its worthwhile to throw some data its way.  This will reduce the <B style="color:black;background-color:#A0FFFF">tunnel</B> contetion due to excess messages, as well as improve the speed at which we detect - and address - failing tunnels.</p>
+<p>Rather than going with the fairly random scheme we have now, we should use a more context aware algorithm for testing tunnels.  e.g. if we already know its passing valid data correctly, there's no need to test it, while if we haven't seen any data through it recently, perhaps its worthwhile to throw some data its way.  This will reduce the tunnel contetion due to excess messages, as well as improve the speed at which we detect - and address - failing tunnels.</p>
 
 <h2>Compress some data structures</h2>
 
@@ -56,6 +56,6 @@
 
 <h2>Implement full streaming protocol</h2>
 
-<p>The ministreaming protocol takes advantage of a poor design decision in the <B style="color:black;background-color:#ffff66">I2P</B> client procotol (I2CP) - the exposure of "mode=GUARANTEED", allowing what would otherwise be an unreliable, best-effort, message based protocol to be used for reliable, blocking operation (under the covers, its still all unreliable and message based, with the router providing delivery guarantees by garlic wrapping an "ack" message in with the payload, so once the data gets to the target, the ack message is forwarded back to us [through tunnels, of course]).</p>
+<p>The ministreaming protocol takes advantage of a poor design decision in the I2P client procotol (I2CP) - the exposure of "mode=GUARANTEED", allowing what would otherwise be an unreliable, best-effort, message based protocol to be used for reliable, blocking operation (under the covers, its still all unreliable and message based, with the router providing delivery guarantees by garlic wrapping an "ack" message in with the payload, so once the data gets to the target, the ack message is forwarded back to us [through tunnels, of course]).</p>
 
 <p>As I've <a href="http://i2p.net/pipermail/i2p/2004-March/000167.html">said</a>, having I2PTunnel (and the ministreaming lib) go this route was the best thing that could be done, but more efficient mechanisms are available.  When we rip out the "mode=GUARANTEED" functionality, we're essentially leaving ourselves with an I2CP that looks like an anonymous IP layer, and as such, we'll be able to implement the streaming library to take advantage of the design experiences of the TCP layer - selective ACKs, congestion detection, nagle, etc.</p>

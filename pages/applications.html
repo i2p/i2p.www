@@ -1,9 +1,9 @@
 <h1>Applications</h1>
-<p>here's some content that might help someone who wants to put together an application developer's guide for <B style="color:black;background-color:#ffff66">I2P</B> - I dont have time to polish this up before I leave, but thought it might be of use to someone.  Feel free to tear this up, edit like mad, or just read it :)</p>
+<p>here's some content that might help someone who wants to put together an application developer's guide for I2P - I dont have time to polish this up before I leave, but thought it might be of use to someone.  Feel free to tear this up, edit like mad, or just read it :)</p>
 
 <h1>Application development guide</h1>
 
-<h2>Why write <B style="color:black;background-color:#ffff66">I2P</B> specific code?</h2>
+<h2>Why write I2P specific code?</h2>
 
 <p>Using mihi's I2PTunnel application, you can hook up application instances and 
 have them talk to each other over standard TCP sockets.  In plain client-server
@@ -24,7 +24,7 @@ chat, everyone needs to agree that port 10001 is Alice, port 10002 is Bob, port
 10003 is Charlie, and so on, since the protocol includes TCP/IP specific information
 (host and port).</p>
 
-<p>Applications that are designed to work with <B style="color:black;background-color:#ffff66">I2P</B> can take advantage of its 
+<p>Applications that are designed to work with I2P can take advantage of its 
 built in data security and optional pseudonymous authentication.  All data sent 
 over the network is transparently end to end encrypted (not even the router's
 get the cleartext), and any application using the ministreaming or datagram 
@@ -33,21 +33,21 @@ public key.  As an aside, environments where anonymity instead of pseudonymity
 is required are trivially accomodated by either using the I2CP directly, SAM RAW 
 sessions, or by simply creating a new sending destination whenever needed).</p>
 
-<p>Another important thing to remember is that <B style="color:black;background-color:#ffff66">I2P</B> is simply a communication 
+<p>Another important thing to remember is that I2P is simply a communication 
 system - what data is sent and what is done with that data is outside of its scope.
-Applications that are used on top of <B style="color:black;background-color:#ffff66">I2P</B> should be carefully sanitized of any 
+Applications that are used on top of I2P should be carefully sanitized of any 
 insecure or identifying data or protocols (hostnames, port numbers, time zone, 
 character set, etc).  This in and of itself is often a daunting task, as 
 analyzing the safety of a system that has had anonymity and security strapped on to
 it is no small feat, giving significant incentive to learn from the experiences of
 the traditional application base, but design the application and its communication
-protocols with <B style="color:black;background-color:#ffff66">I2P's</B> anonymity and security in mind.</p>
+protocols with I2P's anonymity and security in mind.</p>
 
 <p>There are also efficiency considerations to review when determining how to 
-interact on top of <B style="color:black;background-color:#ffff66">I2P</B>.  The ministreaming library and things built on top of it
-operate with handshakes similar to TCP, while the core <B style="color:black;background-color:#ffff66">I2P</B> protocols (I2NP and I2CP)
+interact on top of I2P.  The ministreaming library and things built on top of it
+operate with handshakes similar to TCP, while the core I2P protocols (I2NP and I2CP)
 are strictly message based (like UDP or in some instances raw IP).  The important
-distinction is that with <B style="color:black;background-color:#ffff66">I2P</B>, communication is operating over a long fat network - 
+distinction is that with I2P, communication is operating over a long fat network - 
 each end to end message will have nontrivial latencies, but may contain payloads 
 of up to 32KB.  An application that needs a simple request and response can get rid
 of any state and drop the latency incurred by the startup and teardown handshakes
@@ -57,35 +57,35 @@ functional but inefficient scheme for dealing with reliable and in order deliver
 by requiring the equivilant of an ACK after each message which must traverse the 
 network end to end again (though there are plans for improving this with a more 
 efficient and robust algorithm).  Given that as the current state, an application
-that uses one of the <B style="color:black;background-color:#ffff66">I2P</B> message oriented protocols can in some situations get 
+that uses one of the I2P message oriented protocols can in some situations get 
 substantially better performance.</p>
 
 <h2>Important ideas</h2>
 
-<p>There are a few changes that require adjusting to when using <B style="color:black;background-color:#ffff66">I2P</B>:</p>
+<p>There are a few changes that require adjusting to when using I2P:</p>
 
 <h3>Destination ~= host+port</h3>
 
-<p>An application running on <B style="color:black;background-color:#ffff66">I2P</B> sends messages from and receives messages to a
+<p>An application running on I2P sends messages from and receives messages to a
 unique cryptographically secure end point - a "destination".  In TCP or UDP
 terms, a destination could (largely) be considered the equivilant of a hostname
 plus port number pair, though there are a few differences.  </p> 
 
 <ul>
-<li>An <B style="color:black;background-color:#ffff66">I2P</B> destination itself is a cryptographic construct - all data sent to one is 
+<li>An I2P destination itself is a cryptographic construct - all data sent to one is 
 encrypted as if there were universal deployment of IPsec with the (anonymized)
 location of the end point signed as if there were universal deployment of DNSSEC. </li>
 
-<li><B style="color:black;background-color:#ffff66">I2P</B> destinations are mobile identifiers - they can be moved from one <B style="color:black;background-color:#ffff66">I2P</B> router
+<li>I2P destinations are mobile identifiers - they can be moved from one I2P router
 to another (or with some special software, it can even operate on multiple routers at
 once).  This is quite different from the TCP or UDP world where a single end point (port)
 must stay on a single host.</li>
-<li><B style="color:black;background-color:#ffff66">I2P</B> destinations are ugly and large - behind the scenes, they contain a 2048bit ElGamal
+<li>I2P destinations are ugly and large - behind the scenes, they contain a 2048bit ElGamal
 public key for encryption, a 1024bit DSA public key for signing, and a variable size 
 certificate (currently this is the null type, but may contain proof of work, blinded
 data, or other information to increase the 'cost' of a destination in an effort to fight
 Sybil).  <br />There are existing ways to refer to these large and ugly destinations by short
-and pretty names (e.g. "irc.duck.<B style="color:black;background-color:#ffff66">i2p</B>"), but at the moment those techniques do not guarantee
+and pretty names (e.g. "irc.duck.i2p"), but at the moment those techniques do not guarantee
 globally uniqueness (since they're stored locally at each person's machine as "hosts.txt")
 and the current mechanism is neither scalable nor secure (updates to those hosts files are 
 manually managed within CVS, and as such, anyone with commit rights on the repository can
@@ -96,36 +96,36 @@ since there are those who don't think such a beast is possible :)</li>
 
 <h3>Anonymity and confidentiality</h3>
 
-<p>A useful thing to remember is that <B style="color:black;background-color:#ffff66">I2P</B> has transparent end to end encryption
+<p>A useful thing to remember is that I2P has transparent end to end encryption
 and authentication for all data passed over the network - if Bob sends Alice's destination,
 only Alice's destination can receive it, and if Bob is using the datagrams or streaming 
 library, Alice knows for certain that Bob's destination is the one who sent the data. </p>
 
-<p>Of course, another useful thing to remember is that <B style="color:black;background-color:#ffff66">I2P</B> transparently anonymizes the
+<p>Of course, another useful thing to remember is that I2P transparently anonymizes the
 data sent between Alice and Bob, but it does nothing to anonymize the content of what they
 send.  For instance, if Alice sends Bob a form with her full name, government IDs, and 
-credit card numbers, there is nothing <B style="color:black;background-color:#ffff66">I2P</B> can do.  As such, protocols and applications should 
+credit card numbers, there is nothing I2P can do.  As such, protocols and applications should 
 keep in mind what information they are trying to protect and what information they are willing
 to expose.</p>
 
-<h3><B style="color:black;background-color:#ffff66">I2P</B> datagrams can be up to 32KB</h3>
+<h3>I2P datagrams can be up to 32KB</h3>
 
-<p>Applications that use <B style="color:black;background-color:#ffff66">I2P</B> datagrams (either raw or repliable ones) can essentially be thought
+<p>Applications that use I2P datagrams (either raw or repliable ones) can essentially be thought
 of in terms of UDP - the datagrams are unordered, best effort, and connectionless - but unlike
 UDP, applications don't need to worry about MTU detection and can simply fire off 32KB datagrams
 (31KB when using the repliable kind).  For many applications, 32KB of data is sufficient for an
-entire request or response, allowing them to transparently operate in <B style="color:black;background-color:#ffff66">I2P</B> as a UDP-like 
+entire request or response, allowing them to transparently operate in I2P as a UDP-like 
 application without having to write fragmentation, resends, etc.</p>
 
 <h2>Integration techniques</h2>
 
-<p>There are four means of sending data over <B style="color:black;background-color:#ffff66">I2P</B>, each with their own pros and cons.</p>
+<p>There are four means of sending data over I2P, each with their own pros and cons.</p>
 
 <h3>SAM</h3>
 
 <p>SAM is the <a href="book/view/144?PHPSESSID=ee3d79e304bf6e3746ccc3592c38a972">Simple Anonymous Messaging</a> protocol, allowing an
 application written in any language to talk to a SAM bridge through a plain TCP socket and have
-that bridge multiplex all of its <B style="color:black;background-color:#ffff66">I2P</B> traffic, transparently coordinating the encryption/decryption
+that bridge multiplex all of its I2P traffic, transparently coordinating the encryption/decryption
 and event based handling.  SAM supports three styles of operation:</p>
 <ul>
 <li>streams, for when Alice and Bob want to send data to each other reliably and in order</li>
@@ -139,12 +139,12 @@ and event based handling.  SAM supports three styles of operation:</p>
 <h3>I2PTunnel</h3>
 <p>The I2PTunnel application allows applications to build specific TCP-like tunnels to peers 
 by creating either I2PTunnel 'client' applications (which listen on a specific port and connect
-to a specific <B style="color:black;background-color:#ffff66">I2P</B> destination whenever a socket to that port is opened) or I2PTunnel 'server'
-applications (which listen to a specific <B style="color:black;background-color:#ffff66">I2P</B> destination and whenever it gets a new <B style="color:black;background-color:#ffff66">I2P</B> 
+to a specific I2P destination whenever a socket to that port is opened) or I2PTunnel 'server'
+applications (which listen to a specific I2P destination and whenever it gets a new I2P 
 connection it outproxies to a specific TCP host/port).  These streams are 8bit clean and are
 authenticated and secured through the same streaming library that SAM uses, but there is a 
 nontrivial overhead involved with creating multiple unique I2PTunnel instances, since each have
-their own unique <B style="color:black;background-color:#ffff66">I2P</B> destination and their own set of tunnels, keys, etc.</p>
+their own unique I2P destination and their own set of tunnels, keys, etc.</p>
 
 <h3>ministreaming and datagrams</h3>
 <p>For applications written in Java, the simplest way to go is to use the libraries that the SAM
