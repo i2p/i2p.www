@@ -14,20 +14,27 @@ function buildmenu() {
 		if (isset($page_config['depth'])) {
 			$title = getpagetitle($page);
 			$link = '';
+			$uri = '';
 			if (isset($page_config['link'])) {
-				$link = $page_config['link'];
+				$uri = $page_config['link'];
 			} else {
-				$link = $page;
+				$uri = $page;
 			}
+			if (isset($page_config['nolink'])) {
+				$link = $title;
+			} else {
+				$link = "<a href=\"$uri\">$title</a>";
+			}
+
 			switch ($page_config['depth']) {
 				case 1:
-					print "<br /><b><a href=\"$link\">$title</a></b><br />\n";
+					print "<br /><b>$link</b><br />\n";
 					break;
 				case 2:
-					print "-&nbsp;<a href=\"$link\">$title</a><br />\n";
+					print "-&nbsp;$link<br />\n";
 					break;
 				case 3:
-					print "&nbsp;&nbsp;&sdot;&nbsp;<a href=\"$link\">$title</a><br />\n";
+					print "&nbsp;&nbsp;&sdot;&nbsp;$link<br />\n";
 					break;
 				default:
 			}
