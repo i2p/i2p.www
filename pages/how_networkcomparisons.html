@@ -128,37 +128,97 @@ http://dev.i2p.net/~jrandom/wiki/comparison.png</a>)</p>
 <h2>TOR / Onion Routing</h2>
 <i><a href="http://freehaven.net/tor/">[TOR]</a> 
    <a href="http://www.onion-router.net">[Onion Routing]</a></i>
-<p>TOR and Onion Routing are both anonymizing proxy networks, allowing people
-to tunnel out through their low latency mix network.  The two primary 
-differences between TOR / OnionRouting and I2P are again related to differences
-in the threat model and the out-proxy design (though TOR is working to provide 
-redevous points within the mix network, which will provide recipient anonymity).
-In addition, these networks take the directory based approach - providing a 
-centralized point to manage the overall 'view' of the network, as well as gather 
-and report statistics, as opposed to I2P's distributed <a href="how_networkdatabase">network 
+<p>TOR and Onion Routing are both anonymizing proxy networks, 
+allowing people to tunnel out through their low latency mix 
+network. The two primary differences between TOR / 
+Onion-Routing and I2P are again related to differences in 
+the threat model and the out-proxy design (though TOR now
+supports hidden services).  In addition, these networks 
+take the directory based approach - providing a 
+centralized point to manage the overall 'view' of the 
+network, as well as gather and report statistics, as 
+opposed to I2P's distributed <a href="how_networkdatabase">network 
 database</a> and <a href="how_peerselection">peer selection</a>.</p>
 
-<p>On the technical side, there are 5 main differences between TOR and I2P:</p>
+<p>The following is a more detailed comparison of TOR and
+I2P, but in it, one of the really cool features of TOR is 
+overlooked - the ability to outproxy onto the normal internet.
+That feature is a very useful one, and relevant for many 
+situations.</p>
+
+<p>However, the outproxy functionality does have a few 
+substantial weaknesses against certain attackers - 
+once the communication leaves the mixnet, global passive
+adversaries can more easily mount traffic analysis.  In 
+addition, the outproxies have access to the cleartext 
+of the data transferred in both directions, and 
+outproxies are prone to abuse, along with all of the 
+other security issues we've come to know and love with 
+normal internet traffic.</p>
+
+<p>However, most people don't need to worry about those 
+situations, as they are outside their threat model.  It
+is, also, outside I2P's functional scope (if people want
+to build outproxy functionality on top of an anonymous
+communication layer, they can).  In fact, some I2P users
+currently take advantage of TOR to outproxy.</p>
+
+<h3>Benefits of TOR over I2P</h3>
 <ul>
- <li>TOR is centrally managed (trusted directories, only some people fully participate
-     in the network with cover traffic) while I2P is fully distributed.  This has serious
-     anonymity implications for people using TOR that are not one of the TOR nodes,
-     since a powerful attacker could determine your identity, or coerce the maintainer 
-     of TOR's directory server to include untrustworthy nodes.</li>
+ <li>More efficient w/ memory usage</li>
+ <li>TOR client nodes have very low bandwidth overhead</li>
+ <li>Centralized control reduces the complexity at each
+     node and can efficiently address Sybil attacks</li>
+ <li>A core of high capacity nodes provides higher
+     throughput and lower latency</li>
+ <li>C, not Java (ewww)</li>
+</ul>
 
- <li>TOR is circuit based (with reliable, ordered, bidirectional tunnels), while I2P
-     is packet based (with unreliable, unordered, unidirectional tunnels).  As with the
-     TCP/IP separation, I2P optionally adds TCL-like functionality on top of the packet
-     based network by means of mihi's ministreaming library.</li>
- <li>TOR is low latency, while I2P is variable latency (both ASAP and stop+go).  This will
-     allow I2P to provide a higher level of anonymity by blending the anonymity set of 
-     different user bases together - for example, filesharing users and militants look 
-     the same, though make use of different techniques to balance their own anonymity 
-     and security needs)</li>
+<h3>Benefits of I2P over TOR</h3>
+<ul>
+ <li>Fully distributed and self organizing</li>
+ <li>Packet switched instead of circuit switched
+  <ul>
+   <li>implicit transparent load balancing of messages 
+      across multiple peers, rather than a single path</li>
+   <li>resiliance vs. failures by running multiple 
+       tunnels in parallel, plus rotating tunnels</li>
+   <li>scale each client's connections at O(1) instead 
+       of O(N) (Alice has e.g. 2 inbound tunnels that are 
+       used by all of the peers Alice is talking with, 
+       rather than a circuit for each)</li>
+  </ul></li>
+ <li>Unidirectional tunnels instead of bidirectional
+    circuits, doubling the number of nodes a peer has to
+    compromise to get the same information.</li>
+ <li>Protection against detecting client activity, even
+     when an attacker is participating in the tunnel, as
+     tunnels are used for more than simply passing end 
+     to end messages (e.g. netDb, tunnel management, 
+     tunnel testing)</li>
+ <li>Tunnels in I2P are short lived, decreasing the number
+     of samples that an attacker can use to mount an 
+     active attack with, unlike circuits in TOR, which are
+     typically long lived.</li>
+ <li>I2P APIs are designed specifically for anonymity and
+     security, while SOCKS is designed for functionality.</li>
+ <li>The bandwidth overhead of being a full peer is low, 
+     while in TOR, while client nodes don't require much
+     bandwidth, they don't fully participate in the mixnet.</li>
+ <li>Java, not C (ewww)</li>
+</ul>
 
- <li>TOR is IP addressed, relying on the security of the IP layer for authenticating
-     and securing the message delivery, while I2P is cryptographically addressed.</li>
- <li>TOR is written in C while I2P is written in Java</li>
+<h3>Other benefits of I2P but not yet implemented</h3>
+<ul>
+ <li>Defense vs. message count analysis by garlic wrapping 
+     multiple messages</li>
+ <li>Defense vs. long term intersection by adding delays 
+     at various hops (where the delays are not discernable
+     by other hops)</li>
+ <li>Various mixing strategies at the tunnel level (e.g.
+     create a tunnel that will handle 500 messages / minute,
+     where the endpoint will inject dummy messages if there
+     are insufficient messages, etc)</li>
 </ul>
 
 <h2>Mixminion / Mixmaster</h2>
