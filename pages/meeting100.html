@@ -1,0 +1,193 @@
+<h2>I2P dev meeting, July 27 @ 21:00 GMT</h2>
+
+<pre>
+14:02 &lt; jrandom&gt; 0) hi
+14:02 &lt; jrandom&gt; 1) 0.3.3 & current updates
+14:02 &lt; jrandom&gt; 2) NativeBigInteger
+14:03 &lt; jrandom&gt; 3) ???
+14:03 &lt; jrandom&gt; 0) hi
+14:03  * jrandom waves
+14:03 &lt; jrandom&gt; weekly status notes up @ http://dev.i2p.net/pipermail/i2p/2004-July/000372.html
+14:03 &lt; jrandom&gt; (thanks to hypercubus' prodding i got it out before the meeting :)
+14:04 &lt; jrandom&gt; ok, jumping on in
+14:04 &lt; jrandom&gt; 1) 0.3.3 & current updates
+14:06 &lt; jrandom&gt; there's a truckload of info in the email describing whats going on, and there should be a substantial reduction in bandwidth usage coming up
+14:07 &lt; jrandom&gt; it won't be backwards compatible because it changes a lot of things, so the next release will be a bumpy upgrade as well, but c'est la vie
+14:08 &lt; jrandom&gt; anyone have any questions wrt the 0.3.3 rev or the things posted in the status notes?
+14:08  * dm waves
+14:08  * jrandom is seeing 23s lag here @ freenode
+14:09  * hypercubus sees 0.10 secs lag
+14:09 &lt; jrandom&gt; ah back to normal
+14:09 &lt; jrandom&gt; ok, if there's nthing, we can just jump in to 2) NativeBigInteger
+14:10 &lt; jrandom&gt; Iakin3 has modified some things so it'll be simpler to deploy the crypto code out of the box, which is Good
+14:10 &lt; jrandom&gt; every once in a while i look in the netDb and see some people with 2-400ms delays when doing ElGamal encryption, which means some people aren't using jbigi
+14:11 &lt; jrandom&gt; (and everyone should use jbigi)
+14:12 &lt; deer&gt; &lt;Nightblade&gt; how do you know they are not just on slow computers
+14:12 &lt; Sonium&gt; why isn't it use automaticaly?
+14:12 &lt; hypercubus&gt; because it must be custom compiled for each platform
+14:12 &lt; jrandom&gt; we might be able to get that deployed in this next rev, but we'll see
+14:12 &lt; deer&gt; &lt;oOo&gt; If the DLL is not present, the program continue using java-only code (needed for cross-platform support)
+14:12 &lt; hypercubus&gt; and currently the platform is not detected
+14:12 &lt; jrandom&gt; Nightblade: thats possible, of course
+14:13 &lt; jrandom&gt; oOo right, we definitely will keep that functionality
+14:13 &lt; deer&gt; &lt;oOo&gt; Nope, force the existence of the dll an .so files, even if empty or useless
+14:13 &lt; jrandom&gt; actually, thats another one of the things we're gaining with some of the current mods i'm working on - we only need to do half as many elGamal encryptions (since the sourceRouteBlock is gone)
+14:14 &lt; jrandom&gt; hmm oOo?
+14:14 &lt; jrandom&gt; why would we want to do that?
+14:15 &lt; deer&gt; &lt;oOo&gt; Force a check of the _existence_ of the library files. If they are not use, you most likely aren't on a x86 Win/Linux platform and are forced to use the Java code. Anyway you did your best to force the use of native stuff
+14:15 &lt; jrandom&gt; oh, right, we have always checked for libjbigi.so / jbigi.dll, the thing Iakin's code adds is the ability to package up a whole bunch of DLL and .so files into a jar and choose the *right* one at runtime
+14:16 &lt; hypercubus&gt; &lt;/obvious&gt;
+14:16 &lt; jrandom&gt; (falling back on pure java if none match)
+14:17 &lt; jrandom&gt; anyway, thats some good stuff that'll hopefully help new users out a bunch
+14:17 &lt; jrandom&gt; (and saves me the time of doing some ugly drop down boxes on the admin interface :)
+14:18 &lt; jrandom&gt; ok, if there's nothing more on that, i think thats all i've got
+14:18 &lt; jrandom&gt; so moving on to 3) ???
+14:18 &lt; jrandom&gt; anyone else have anything they want to bring up?
+14:18 &lt; hypercubus&gt; someone should run a spellchecker on the new website ;-)
+14:19 &lt; jrandom&gt; you've got cvs access now... :)
+14:19 &lt; jrandom&gt; (module: i2pwww)
+14:19 &lt; hypercubus&gt; damn
+14:19 &lt; deer&gt; &lt;oOo&gt; The corruption on big transfer, even local one, is under investigation (like grabbing several Mb from your own eepsite) ?
+14:20 &lt; hypercubus&gt; i've had many interrupted downloads of big files, but never a corruption
+14:20 &lt; jrandom&gt; hmm, most instances of that issue have been resolved, but i've heard reports recently about it.  i haven't gone through the app layer and audited things yet again
+14:21 &lt; jrandom&gt; i consider interrupted downloads corrupted
+14:21 &lt; jrandom&gt; it must work first time, all the way through
+14:21 &lt; hypercubus&gt; well you can't help it, because that's what happens on the real WWW too ;-)
+14:21 &lt; deer&gt; &lt;oOo&gt; Not when the grabber is on the same computer then the server ^^
+14:22 &lt; jrandom&gt; oOo: can you reproduce that?
+14:22 &lt; jrandom&gt; (or is it intermittent?)
+14:22 &lt; deer&gt; &lt;oOo&gt; jrandom: Did twice, was thinking it was knowed, will try again
+14:23 &lt; jrandom&gt; thanks.  if you can reproduce it, please let me know the details of the test and i'll dig further into it.  
+14:23 &lt; jrandom&gt; (i've got to audit the app layer again anyway soo)
+14:23 &lt; deer&gt; &lt;oOo&gt; jrandom: No problem, thanks
+14:24 &lt; jrandom&gt; ok, anyone else have anything they want to ask/bring up?
+14:25 &lt; cat-a-puss&gt; I'm still interested in talking about how to do myI2P
+14:25 &lt; cat-a-puss&gt; I may be able to bring a few people in in a few months
+14:25 &lt; jrandom&gt; awesome!
+14:26 &lt; hypercubus&gt; a class project? ;-)
+14:26 &lt; cat-a-puss&gt; something like that ;-)
+14:27 &lt; jrandom&gt; i think once we get 0.4 out there with the new web interface, it should be much easier to put together apps (like myi2p) w/ a web frontend
+14:27 &lt; cat-a-puss&gt; so you think that can be done on the purely application layer?
+14:27 &lt; jrandom&gt; absolutely
+14:28 &lt; jrandom&gt; what else did you have in mind?
+14:28 &lt; cat-a-puss&gt; well the network DB could be used to store metadata
+14:28 &lt; jrandom&gt; ahh
+14:28 &lt; cat-a-puss&gt; would it have access to that?
+14:28 &lt; hypercubus&gt; *cough*
+14:28 &lt; jrandom&gt; no, nothing has access to the netDb
+14:29 &lt; jrandom&gt; we're able to work some magic in the netDb because its quite focused just on serving as our distributed routing table
+14:29 &lt; hypercubus&gt; cat-a-puss: what you want is the DHT that Nightblade is working on
+14:29 &lt; jrandom&gt; myi2p (et al) could certainly use a DHT on top of i2p though
+14:30 &lt; hypercubus&gt; (enclave)
+14:30 &lt; jrandom&gt; what sort of metadata were you thinking about?
+14:31 &lt; cat-a-puss&gt; well I invesioned doing something like chanels in Frost which runs off of an ssk in freenet
+14:31 &lt; cat-a-puss&gt; so you run the ssks on the DHT on top of I2p
+14:31 &lt; jrandom&gt; right
+14:31 &lt; jrandom&gt; that might be a bit of an overkill for some things though
+14:31 &lt; cat-a-puss&gt; but you still need a metakey that lists all the people's ssks that are subscribed to the channel
+14:32 &lt; dm&gt; dht over i2p... 
+14:32  * dm doesn't see that working reliable any time soon.
+14:32 &lt; Connelly&gt; a generic DHT library would be nice
+14:32 &lt; dm&gt; reliably
+14:32 &lt; deer&gt; &lt;Nightblade&gt; what's a dht library
+14:32 &lt; cat-a-puss&gt; that needs to work diferently ...
+14:33 &lt; jrandom&gt; cat-a-puss: i suppose it depends on what sort of activity would go on, but while frost style boards might be good for some things, fmb style boards might be good for others, and blog aggregators might be good for still others
+14:34 &lt; Connelly&gt; well a kademlia implementation or somesuch
+14:34 &lt; Connelly&gt; I assume enclave would be something like it
+14:34 &lt; deer&gt; &lt;Nightblade&gt; i think i'm going to do some changes on LibSAM first
+14:34 &lt; deer&gt; &lt;Nightblade&gt; only two weeks of classes left, for me, counting this week
+14:34 &lt; deer&gt; &lt;Nightblade&gt; then I will be able to do some stuff I hope
+14:35 &lt; jrandom&gt; w00t!  :)
+14:37 &lt; cat-a-puss&gt; jrandom: basicly the goal is to be all things to all people. If the network does not do everything, people will use something else. (and it needs to be better at it to attract cover traffic)
+14:38 &lt; jrandom&gt; i've worked on too many projects that try to do the 'swiss army knife' style - if you build it, they will come
+14:38 &lt; hypercubus&gt; the network is a transport layer, not the application layer ;-)
+14:38 &lt; jrandom&gt; it very, very, very rarely works out.
+14:38 &lt; jrandom&gt; the i2p transport layer should support all possible point to point comm, definitely
+14:38 &lt; jrandom&gt; but applications on top of i2p should be user friendly - meaning they address a specific user need and help them with it
+14:39 &lt; jrandom&gt; the masses don't want a comm layer, they want a way to talk to people, to read what people say, and to explore
+14:39 &lt; Connelly&gt; naw, we should create an XUL, and all new Gecko system
+14:39 &lt; Connelly&gt; then build a conglomerate of Mozilla programs on top of that
+14:39 &lt; Connelly&gt; then integrate collaborative systems into Mozilla ;)
+14:40 &lt; cat-a-puss&gt; great provided the app has enough control over the comm layer to make it do what it wants.
+14:40 &lt; dm&gt; Maxthon &gt; Mozilla
+14:40 &lt; jrandom&gt; cat-a-puss: absolutely.  all apps using SAM, I2CP, or the SDK can do what every other app can do
+14:41 &lt; jrandom&gt; (which should be sufficient [the functionality / API is modelled after JMS and MOMs, which has been battle tested for well over a decade in industry])
+14:43 &lt; cat-a-puss&gt; ok, so I've essencialy got: Tcp, datagram, both of those + anonymity if I want it, and a DHT that operates above all that.
+14:44 &lt; hypercubus&gt; you have some anonymity, whether you like it or not ;-)
+14:44 &lt; cat-a-puss&gt; so the app cannot set the tunnel lenth to 0 even if it wants to?
+14:44 &lt; jrandom&gt; right - i2p itself is the TCP/datagram stuff, and the enclave DHT app could be used as a base for the data store
+14:44 &lt; jrandom&gt; absolutely
+14:45 &lt; jrandom&gt; in fact, with 0 hop tunnels and the defense Connelly outlined last week, it can be pretty anon vs some attackers
+14:45 &lt; jrandom&gt; er, i misread what you said.  yes the app can set the tunnel length to 0, but in fact, that still provides some degree of anonymity
+14:46 &lt; cat-a-puss&gt; ok
+14:46 &lt; jrandom&gt; (sufficient for some people, but insufficient vs some statistical attacks)
+14:46 &lt; hypercubus&gt; if you wanted no anonymity, you shouldn't be running your traffic over i2p
+14:47 &lt; cat-a-puss&gt; and different apps on the same host/port I assume are just handled with seperate keys?
+14:47 &lt; jrandom&gt; exactly
+14:47 &lt; deer&gt; &lt;DrWoo&gt; low anonymity could be popular for running p2p over I2P ?
+14:47 &lt; cat-a-puss&gt; then the only question I have left is some sort of an "answering service"
+14:47 &lt; jrandom&gt; right DrWoo - filesharing / etc would probably be able to use 0 hop tunnels
+14:48 &lt; deer&gt; &lt;DrWoo&gt; hey soros!
+14:48 &lt; hypercubus&gt; i'm thinking BitTorrent-style apps on i2p would likely need 0-1 hop tunnels
+14:48 &lt; Connelly&gt; jrandom: which defense for 0 hop tunnels?
+14:48 &lt; deer&gt; &lt;soros&gt; hey woo :D
+14:48 &lt; deer&gt; &lt;DrWoo&gt; soros: you were hiding hehe
+14:48 &lt; cat-a-puss&gt; IE: set something up in the i2p database where my traffic goes to someone else while I am offline, and then when I come back up I contact them and they fill me in on what I missed?
+14:48 &lt; cat-a-puss&gt; they needn't be able to decrypt it
+14:48 &lt; deer&gt; &lt;soros&gt; gave up on iip for a few months
+14:48 &lt; dm&gt; soros and drwoo reunion...
+14:48 &lt; dm&gt; TEAR
+14:48 &lt; hypercubus&gt; cat-a-puss: again, app layer stuff
+14:49 &lt; jrandom&gt; cat-a-puss: i don't know, that sort of functionality i hadn't really envisioned w/ myi2p, but there are a few ways to do it
+14:49 &lt; deer&gt; &lt;soros&gt; is this going to freenode automatically ?
+14:49 &lt; deer&gt; &lt;soros&gt; oops.. this is i2p sorry
+14:49 &lt; jrandom&gt; Connelly: using strict ordering for the peers in the tunnel
+14:49 &lt; deer&gt; &lt;DrWoo&gt; soros: it's a little confusing lol
+14:50 &lt; Connelly&gt; ok
+14:50 &lt; hypercubus&gt; we need to run a poll on the forum to vote for a new name for myI2P ;-)
+14:51 &lt; jrandom&gt; betty
+14:51 &lt; hypercubus&gt; MyBetty?
+14:51 &lt; dm&gt; MY TOOPIE
+14:51 &lt; jrandom&gt; heh
+14:51 &lt; deer&gt; &lt;Nightblade&gt; how about acropolis....... was that it?
+14:51 &lt; hypercubus&gt; Betty Toop?
+14:51 &lt; deer&gt; &lt;soros&gt; MOAP2P
+14:51 &lt; deer&gt; &lt;DrWoo&gt; I2P H@ME
+14:51 &lt; deer&gt; &lt;soros&gt; Mother of all P2P
+14:52 &lt; hypercubus&gt; nightblade: yeah, acropolis
+14:52 &lt; hypercubus&gt; i like it
+14:53 &lt; dm&gt; How about: Pipi in your face
+14:53 &lt; hypercubus&gt; dm: you do know this is all going in the meeting log right? ;-)
+14:53 &lt; Connelly&gt; man, I got a great idea
+14:53 &lt; deer&gt; &lt;DrWoo&gt; Center of the Known I2P
+14:53 &lt; dm&gt; hypercubus: pipi in your face
+14:53 &lt; Connelly&gt; let's integrate a 3D user-programmable RPG into I2P H@ME
+14:53 &lt; deer&gt; &lt;soros&gt; call it HyperCube.
+14:54 &lt; Connelly&gt; and use Mozilla technology to do it :)
+14:54 &lt; dm&gt; Maxthon pipi on mozilla
+14:54 &lt; Connelly&gt; fine, Maxthon
+14:54 &lt; hypercubus&gt; you on a xul kick connelly? ;-)
+14:54 &lt; Connelly&gt; yeah!
+14:55 &lt; Connelly&gt; but we should create a whole XML-based programming language
+14:55 &lt; Connelly&gt; it would be more flexible that way
+14:55 &lt; jrandom&gt; and then lets build our own hardware too
+14:55 &lt; hypercubus&gt; i2p custom wireless mesh routers
+14:55 &lt; jrandom&gt; and put together a distribution company with ships and trains to get 'em out there! :)
+14:55 &lt; dm&gt; I know CPUs
+14:55 &lt; dm&gt; I build one
+14:56 &lt; deer&gt; &lt;mule&gt; plus build the chip production facilities ...
+14:56 &lt; Connelly&gt; yeah, an anonymous shipping corporation
+14:56 &lt; hypercubus&gt; call it WhoEx
+14:56 &lt; Connelly&gt; and use reflectors on the moon to beam laser internet traffic to each other!
+14:57 &lt; hypercubus&gt; time to boof the meeting i sense
+14:57 &lt; jrandom&gt; on that not..
+14:57 &lt; jrandom&gt; er, note
+14:57 &lt; jrandom&gt; anything else people want to bring up?  if not, we've got the forums and the mailing list
+14:57 &lt; jrandom&gt; (and we're here all the time ;)
+14:57  * jrandom winds up
+14:57 &lt; dm&gt; not me, I have a life.
+14:57 &lt; dm&gt; LOSERS
+14:57 &lt; dm&gt; NEEEEEEEEEEEEEEEERRRRRRRRRDDDDDDDSSSSS
+14:57  * jrandom *baf*s dm on the head
+14:58 &lt; jrandom&gt; (closing the meeting)
+</pre>
