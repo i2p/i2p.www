@@ -23,7 +23,10 @@ function buildmenu() {
 			if (isset($page_config['nolink'])) {
 				$link = $title;
 			} else {
-				$link = "<a href=\"/$uri\">$title</a>";
+				if(preg_match("/^(http:\/\/|\/)", $title))
+					$link = "<a href=\"$uri\">$title</a>";
+				else
+					$link = "<a href=\"$uri\">/$title</a>";
 			}
 
 			switch ($page_config['depth']) {
