@@ -1,4 +1,5 @@
 <?php
+include('menu.php');
 
 define(PAGE_DIR,'pages/');
 define(PAGE_EXT,'.html');
@@ -14,6 +15,8 @@ if(isset($_REQUEST['page'])) {
 } else {
     $page = 'home';
 }
+
+$pagetitle = getpagetitle($page);
 
 if(is_readable(PAGE_DIR.$page.PAGE_EXT)) {
     include(PAGE_DIR.'header'.PAGE_EXT);
