@@ -7,16 +7,16 @@ performance of I2P - some of the following are CPU related, others bandwidth
 related, and others still are protocol related.  However, all of those
 dimensions affect the latency, throughput, and percieved performance of the
 network, as they reduce contention for scarce resources.  This list is of course
-not comprehensive, but it does cover the major ones that I see.</p>
+not comprehensive, but it does cover the major ones that are seen.</p>
 
-<h2>Native math</h2>
+<h2>Native math <b>[implemented]</b></h2>
 <p>When I last profiled the I2P code, the vast majority of time was spent within
 one function: java.math.BigInteger's
 <a href="http://java.sun.com/j2se/1.4.2/docs/api/java/math/BigInteger.html#modPow(java.math.BigInteger,%20java.math.BigInteger)">modPow</a>.
 Rather than try to tune this method, we'll call out to
 <a href="http://www.swox.com/gmp/">GNU MP</a> - an insanely fast math library
 (with tuned assembler for many architectures). (<i>Editor: see
-<a href="jbigi">NativeBigInteger for faster public key cryptography</a></i>)</p>
+<a href="jbigi.html">NativeBigInteger for faster public key cryptography</a></i>)</p>
 <p>ugha and duck are working on the C/JNI glue code, and the existing java code
 is already deployed with hooks for that whenever its ready.  Preliminary results
 look fantastic - running the router with the native GMP modPow is providing over
@@ -24,7 +24,7 @@ a 800% speedup in encryption performance, and the load was cut in half.  This
 was just on one user's machine, and things are nowhere near ready for packaging
 and deployment, yet.</p>
 
-<h2>Garlic wrapping a "reply" LeaseSet</h2>
+<h2>Garlic wrapping a "reply" LeaseSet <b>[implemented]</b></h2>
 <p>This algorithm tweak will only be relevent for applications that want their
 peers to reply to them (though that includes everything that uses I2PTunnel or
 mihi's ministreaming lib):</p>
@@ -91,7 +91,7 @@ doesn't pass our test within 60 seconds "dead"?</p>
 as tuneable parameters to allow for more appropriate tradeoffs between
 bandwidth, latency, and CPU usage.</p>
 
-<h2>More efficient TCP rejection</h2>
+<h2>More efficient TCP rejection <b>[implemented]</b></h2>
 <p>At the moment, all TCP connections do all of their peer validation after
 going through the full (expensive) Diffie-Hellman handshaking to negotiate a
 private session key.  This means that if someone's clock is really wrong, or
@@ -103,7 +103,7 @@ verification/validation within the encryption boundary, we'll want to update the
 protocol to do some of it first, so that we can reject them cleanly
 without wasting much CPU or other resources.</p>
 
-<h2>Adjust the tunnel testing</h2>
+<h2>Adjust the tunnel testing <b>[implemented]</b></h2>
 <p>Rather than going with the fairly random scheme we have now, we should use a
 more context aware algorithm for testing tunnels.  e.g. if we already know its
 passing valid data correctly, there's no need to test it, while if we haven't
@@ -111,7 +111,7 @@ seen any data through it recently, perhaps its worthwhile to throw some data its
 way.  This will reduce the tunnel contetion due to excess messages, as well as
 improve the speed at which we detect - and address - failing tunnels.</p>
 
-<h2>Compress some data structures</h2>
+<h2>Compress some data structures <b>[implemented]</b></h2>
 <p>The I2NP messages and the data they contain is already defined in a fairly
 compact structure, though one attribute of the RouterInfo structure is not -
 "options" is a plain ASCII name = value mapping.  Right now, we're filling it
