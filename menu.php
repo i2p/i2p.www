@@ -34,10 +34,10 @@ function buildmenu() {
                                         print "<br /><b>$link</b><br />\n";
                                         break;
                                 case 2:
-                                        print "-&nbsp;$link<br />\n";
+                                        print "&bull;&nbsp;$link<br />\n";
                                         break;
                                 case 3:
-                                        print "&nbsp;&nbsp;&sdot;&nbsp;$link<br />\n";
+                                        print "&nbsp;&nbsp;-&nbsp;$link<br />\n";
                                         break;
                                 default:
                         }
