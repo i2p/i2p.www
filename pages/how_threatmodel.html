@@ -1,124 +1,286 @@
 <p>
-There are a great many other applications and projects working on anonymous 
-communication and I2P has been inspired by much of their efforts.  This is not 
-a comprehensive list of anonymity resources - both freehaven's 
-<a href="http://freehaven.net/anonbib/topic.html">Anonymity Bibliography</a>
-and GNUnet's <a href="http://www.ovmj.org/GNUnet/links.php3">related projects</a> serve
-that purpose well.  That said, a few systems stand out for further comparison:</p>
+Saying that I2P is an anonymous and secure communication system may sound 
+interesting, but by itself, that statement is meaningless.  </p>
 
 <UL>
-<li> Morphmix and Tarzan
-<li> TOR / Onion Routing
-<li> Mixminion / Mixmaster
-<li> Freenet
-<li> JAP
+<li> <b>Who</b> does it support?
+<li> <b>What</b> information does it hide?
+<li> <b>From whom</b> does it hide it?
+<li> <b>How</b> does it perform under attack?
+<li> <b>How easy</b> are those attacks to mount?
 </UL>
 
-<H2>Morphmix and Tarzan</H2>
+<p>
+The three basic assumptions that we make are that the user's local computer is 
+secure, that the cryptographic algorithms are sound, and that the user does not
+intentionally expose their identity.  For researchers studying anonymity, I2P's 
+threat model includes everything up through a well funded global active adversary,
+and if I2P does its job correctly, the weak link in the chain will be the user.
+The rest of this discussion explains what that means in the context of I2P.</p>
 
-<i><a href="http://www.tik.ee.ethz.ch/~morphmix/">[Morphmix]</a> 
-   <a href="http://www.pdos.lcs.mit.edu/tarzan/">[Tarzan]</a></i>
+<H2>Users</H2>
+
+Some example user scenarios might be illustrative of the scope of I2P's threat model:
+
+<UL>
+<li> Someone who <b>chats with his grandmother</b>.</li>
+<li> Someone who <b>researches potentially embarassing medical conditions</b>.</li>
+<li> Someone who <b>shares copyrighted music online</b> (with or without permission).</li>
+<li> Someone who <b>browses alternative news sources</b>.</li>
+<li> Someone who <b>publishes subversive information</b>.</li>
+<li> Someone who <b>provides services</b> without getting the required permits or paying associated fees or taxes.</li>
+<li> Someone who <b>plans and executes politically subversive actions</b>.</li>
+</UL>
+
+<H2>Fears</H2>
 
 <p>
-Morphmix and Tarzan are both fully distributed, peer to peer networks of 
-anonymizing proxies, allowing people to tunnel out through the low latency 
-mix network.  Morphmix includes some very interesting collusion detection 
-algorithms and Sybil defenses, while Tarzan makes use of the scarcity of IP
-addresses to accomplishs the same.  The two primary differences between 
-these systems and I2P are related to I2P's <a href="/book/view/41?PHPSESSID=42d2b0545f243f2537476db228ce1636">threat model</a> 
-and their out-proxy design (as opposed to providing both sender and receiver 
-anonymity).  There is source code available to both systems, but we are not aware 
-of their use outside of academic environments.</p>
-<p>
-Stealing quite directly from the Tarzan paper, the following includes a quick
-comparison of Tarzan, Crowds, Onion Routing (OR), and I2P:</p>
+Each of the seven user types above have their own set of concerns - reasons
+why they want privacy and anonymity. </p>
 
-<img src="http://i2p.net/~jrandom/wiki/comparison.png">
 
-<H2>TOR / Onion Routing</H2>
+<UL>
+<li> <b>Unintended disclosure of data</b> - they need the content of what they say to be available only to whom they say it (though I2P does not address disclosure after delivery to the target destination - they can call up the new york times and tell the story)</li>
+<li> <b>Exposure that they were looking at something</b> - perhaps simple worries like "if my employer knew I was looking for jobs, they'd fire me".</li>
+<li> <b>Impersonation of someone trusted</b> - Data sent over I2P is end to end encrypted to the destination specified - I2P does not bind any sort of "user" identity to each destination, so while I2P guarantees that only the intended recipient will get the information, I2P cannot make sure that the user sends it to the right person.</li>
+<li> <b>Suspicion that they are publishing / distributing something</b> - suspicion can allow an adversary to narrow their focus on the target, allowing them to mount more sophisticated attacks to try to locate, track, or disable the communication.</li>
+<li> <b>Suspicion that their activities can be linked to their identity</b> - beyond disabling communication, there can be significant repercussions if one has engaged in communication that is prohibited.</li>
+</UL>
 
-<i><a href="http://freehaven.net/tor/">[TOR]</a> 
-   <a href="http://www.onion-router.net">[Onion Routing]</a></i>
-<p>
-TOR and Onion Routing are both anonymizing proxy networks, allowing people
-to tunnel out through their low latency mix network.  The two primary 
-differences between TOR / OnionRouting and I2P are again related to differences
-in the threat model and the out-proxy design (though TOR is working to provide 
-redevous points within the mix network, which will provide recipient anonymity).
-In addition, these networks take the directory based approach - providing a 
-centralized point to manage the overall 'view' of the network, as well as gather 
-and report statistics, as opposed to I2P's distributed 
+<H2>Adversaries</H2>
 
-<a href="/book/view/44?PHPSESSID=42d2b0545f243f2537476db228ce1636">network database</a> and <a href="/book/view/135?PHPSESSID=42d2b0545f243f2537476db228ce1636">peer selection</a>.</p>
-
-<p>On the technical side, there are 5 main differences between TOR and I2P:</p>
-<ul>
- <li>TOR is centrally managed (trusted directories, only some people fully participate
-     in the network with cover traffic) while I2P is fully distributed.  This has serious
-     anonymity implications for people using TOR that are not one of the TOR nodes,
-     since a powerful attacker could determine your identity, or coerce the maintainer 
-     of TOR's directory server to include untrustworthy nodes.</li>
-
- <li>TOR is circuit based (with reliable, ordered, bidirectional tunnels), while I2P
-     is packet based (with unreliable, unordered, unidirectional tunnels).  As with the
-     TCP/IP separation, I2P optionally adds TCL-like functionality on top of the packet
-     based network by means of mihi's ministreaming library.</li>
- <li>TOR is low latency, while I2P is variable latency (both ASAP and stop+go).  This will
-     allow I2P to provide a higher level of anonymity by blending the anonymity set of 
-     different user bases together - for example, filesharing users and militants look 
-     the same, though make use of different techniques to balance their own anonymity 
-     and security needs)</li>
-
- <li>TOR is IP addressed, relying on the security of the IP layer for authenticating
-     and securing the message delivery, while I2P is cryptographically addressed.</li>
- <li>TOR is written in C on *nix (windows port w/ cygwin?), while I2P is written in 
-     Java and tested on *nix, windows, and macs</li>
-</ul>
-
-<H2>Mixminion / Mixmaster</H2>
-
-<i><a href="http://mixminion.net/">[Mixminion]</a> 
-   <a href="http://mixmaster.sourceforge.net/">[Mixmaster]</a></i>
+<UL>
+<li> <b>Normal peer</b> without any nontrivial means of attack</li>
+<li> <b>Sophisticated peer</b> with extensive technical knowledge and time, but without many resources</li>
+<li> <b>Entity with access to a single point of presence at an ISP</b>, either legitimately or illegitimately, with or without a court order</li>
+<li> <b>Entity with access to all points of presence in a country for an ISP</b></li>
+<li> <b>Entity with access to several points of presence for several ISPs</b></li>
+<li> <b>Entity with access to all points of presence in a country for all ISPs</b></li>
+<li> <b>Entity with access to any network connection worldwide</b></li>
+</UL>
 
 <p>
-Mixminion and Mixmaster are networks to support anonymous email against a very
-powerful adversary.  I2P aims to provide an adequate means to meet their threat
-model as we reach I2P 3.0 along side the needs of low latency users, providing
-a significantly larger anonymity set.  As with TOR and Onion Routing above, 
-both Mixminion and Mixmaster take the directory based approach as well.</p>
+Those adversaries could be interested in piercing the anonymity or confidentiality
+of the data for mere curiosity, to find out if some particular person was communicating
+with anyone else, to find out who those people are, to find out where those people are,
+and to confirm or deny whether their suspicions are correct.  In addition, they could 
+be passively gathering the data and storing it away for later analysis, or actively
+trying to trip up the network into revealing more than it should. </p>
 
-<H2>Freenet</H2>
-
-<i><a href="http://freenetproject.org/">[Freenet]</a></i>
-<p>
-Freenet is a fully distributed, peer to peer anonymous publishing network.  
-As such, generic anonymous communication over it requires the use of the global
-blackboard model - storing data somewhere that the recipient will then check 
-for a message.  Freenet also does not support the concept of user defined delays -
-it stores and fetches data as quickly as it can, rather than queueing up, pooling,
-delaying, and mixing the data, leaving a hole with regards to long term intersection
-attacks.  In addition, there seem to be some performance issues that can arguably
-be attributed to the global blackboard model which will likely rule out interactive
-low latency communication.</p>
-
-<H2>JAP</H2>
-
-<i><a href="http://anon.inf.tu-dresden.de/index_en.html">[JAP]</a></i>
+<H2>Attacks</H2>
 
 <p>
-JAP (Java Anonymous Proxy) is a network of mix cascades for anonymizing web requests,
-and as such it has a few centralized nodes (participants in the cascade) that blend
-and mix requests from clients through the sequence of nodes (the cascade) before 
-proxying out onto the web.  The scope, threat model, and security is substantially 
-different from I2P, but for those who don't require significant anonymity but still
-are not satisfied with an Anonymizer-like service, JAP is worth reviewing.  One
-caution to note is that anyone under the jurisdiction of the German courts may want
-to take care, as the German Federal Bureau of Criminal Investigation (FBCI) has has 
-successfully mounted an 
-<a href="http://www.datenschutzzentrum.de/material/themen/presse/anonip3_e.htm">[attack]</a> 
-on the network.  Even though the method of this attack was later found to be illegal 
-in the German courts, the fact that the data was successfully collected is the 
-concern.  Courts change their minds based upon circumstance, and this is evidence that 
-if a government body or intelligence agency wanted to, they could gather the data, even 
-if it may be found inadmissible in some courts later)
+Various adversaries can mount different attacks against users of the network,
+but the cost may be significant and may require determined action.  </p>
+
+<H3>Greedy user attacks</H3>
+
+<p>
+The most plausible attack against the network is simply people behaving like they
+do on nearly every other network - greedily.  I2P must operate in such a way that
+the Nash equilibrium can be found quickly and quite visibly, so that users are 
+aware that antisocial behavior actually degrades their own performance.  In addition,
+I2P must build obstacles against excessive use of network resources, while allowing
+people with diverse resources to still use the network effectively.</p>
+<p>
+
+A large part of how I2P will convince the user that they shouldn't be antisocial
+is due to the anonymous nature of the network - when a router receives a request 
+to provide some service (participate in a tunnel, pass on some garlic routed messages,
+handle some network database entries, etc), it has no idea what router it is
+being asked to perform this task for, and therefor cannot satisfy the requests of
+routers it wants to please and refuse the requests of routers it is not concerned with
+gaining the favor of (it would otherwise want to do this since every router keeps a 
+profile of what its peers agree to, refuse to do, or fail to do after agreeing).</p>
+<p>
+The network doesn't inherently expose scarce resources that one router would want to
+gain from another, but some routers will obviously have significantly varied 
+capabilities - CPU, latency, and throughput - and all routers will want the "best" 
+peers to perform services for them.  The main way that routers provide better service 
+to preferred peers is by using more efficient (but scarcer) transports (e.g. keeping
+a TCP connection open to them, rather than using UDP or email, or quickly ejecting them
+from the connection pool).</p>
+
+<p>
+Another aspect of greedy operation can occur when a peer wants to build an 
+excessive number of tunnels with a large number of participants per tunnel.  To
+counter this, requests for tunnel participation includes a certificate which may
+be filled with some proof of work, or even a token proving payment (intertwined
+with the message recipient, message ID, and message expiration date to prevent 
+reuse).  The same mechanism is available for garlic routed messages - each garlic
+and each clove has its own certificate attached.  (As a side note, all router
+identities and destinations also have one of these certificates attached so as
+to allow the introduction of increased 'cost' for identity)  Currently however, 
+all of these certificates are of the 'null' type, providing no proof of work.
 </p>
+<H3>Denial of service attacks</H3>
+
+<p>
+In addition to the above greedy user attacks, there are a whole class of denial of
+service attacks that can be mounted on the network.  At the extreme, nothing can
+defend against an attacker who outright disables all means of communication, from
+T1 lines through carrier pigeon.  Thankfully that attack has been ruled out as too
+expensive, but plausible attacks still remain, falling into three camps - attacks 
+against the entire network, attacks against a specific router, and attacks against
+a specific destination. </p>
+<p>
+The entire network can be attacked by legal means (making the use of the software
+illegal), and for those who still wish to use it, there are a few techniques available.  
+First, with I2P 2.0 people will be able to set up temporary trusted peers (perhaps at 
+a public net cafe) and have their own router behind that one via restricted routes, 
+and after a specified amount of time have that temporary router securely delete any 
+data it has.  In addition, with I2P 2.0 people will be able to use alternate transports 
+that do not expose one's location (such as email, PHTTP, usenet, or even over another 
+existing network).  The router information for all peers in the network can be 
+gathered without much effort by an attacker by simply mounting a harvesting 
+attack - running a router and keeping track of all routers it sees passing through 
+the network database.</p>
+<p>
+The entire network can also be attacked technically by running a significant 
+number of malicious routers that perform incorrectly or otherwise refuse to service
+its peers.  On the other hand, the router's peer profiling and peer selection 
+algorithms should fairly quickly identify these malicious routers and cease to 
+use them.  In addition, for those who are convinced that these profiles must be 
+managed centrally, each router can include its own peer rankings in its published
+router information data for all to see.</p>
+<p>
+An attacker can go after specific routers both trivially and successfully, using
+known techniques to flood its host.  When I2P 2.0 includes alternate transports
+that are not subject to such IP level flooding, the attacker can send more valid data than 
+the router can process.  While the router will do what it can to operate 
+effectively under attack, its likely that a determined adversary will be 
+successful at disabling a router, and it is for this reason that the I2P client
+protocol defines a way for it to notify client applications that the router is 
+under attack and is essentially useless.  At that point, the client would simply
+have to migrate the destination to another router and grant a new lease.</p>
+
+<p>
+An attacker who wants to go after a specific destination, regardless of what
+router it is located on, has a harder time.  The I2P network database distributes
+the destination's current leases according to the Kademlia algorithm, which by
+itself is succeptible to Sybil attacks where an attacker takes over the keyspace
+surrounding the target and drops the data.  However, I2P has modified the 
+algorithm to both include a random exploration factor when publishing the data
+(so that the attacker cannot compromise all of the hosts with the data), plus
+the location within the Kademlia keyspace is modified every day through some 
+predictable date driven transform against the key, requiring the attacker to
+remount the Sybil attack every day.  </p>
+<p>
+
+An additional way to mount a denial of service attack against a specific 
+destination is to attempt to make all of its inbound tunnels unusable by looking up
+the current leases for that destination and mounting a denial of service 
+attack against each of the routers serving as gateways (this obviously is
+useless against those trying to keep a destination from sending data, since
+outbound tunnels aren't published anywhere).  To defend against this, the
+destination's router periodically performs essentially 'real world' tests
+against all of its inbound tunnels, marking ones that do not deliver the
+test message back to itself within the allotted time as invalid.  If a 
+sufficient number of a destination's inbound tunnels fail, the router simply
+creates new ones and the client authorizes a new set of leases.  In addition,
+leases are rotated frequently (currently no tunnels last for more than 10 minutes),
+so over time, the attacker would have to flood a significant number of routers.
+</p>
+<H3>Traffic analysis attacks</H3>
+
+<p>
+There are many different mechanisms for traffic analysis and entire categories of 
+associated attacks.  </p>
+<p>
+Analysis by a <b>passive external observer</b> is simple to do, but 
+unlikely to provide valuable results.  All users on the network must run a router
+locally (or have a secure channel to one), and all routers serve as tunnel gateways,
+participants, and endpoints for other routers, as well as all other aspects of the
+I2P network protocol, so a simple short term intersection attack, even by a global 
+attacker, is useless.  Traffic confirmation attacks are also much harder, since 
+routers continually forward on other messages.  I2P 2.0 may include transports with
+support for constant bitrate links, giving passive external attackers no information
+whatsoever.</p>
+<p>
+Analysis by <b>passive internal observers</b> is also quite simple to do by simply
+running a number of I2P routers.  Even if all routers along the inbound and outbound
+tunnels from one destination to another are compromised by passive internal attackers,
+they will not know with certainty that the next hop in the tunnel is the final hop.
+In addition, transports available do not necessarily rely on exposing the IP address
+of the peer (e.g. PHTTP relays or email gateways, to be deployed in I2P 2.0), so that 
+those who need to defend themselves against attackers who would go to such lengths to
+identify them would still be unsuccessful.  In addition, I2P 2.0's support for a
+restricted route topology would provide additional hops that an attacker would have 
+to compromise to determine the location of a destination, and I2P 3.0's nontrivial
+delays would prevent long term intersection attacks by allowing those that need such
+defenses to delay their messages for even days per hop, as well as including 
+redundancy within the wrapped garlic cloves to fan out and distribute the payload.</p>
+
+<p>
+Internal observers are also not able to detect to whom messages are bound, as the
+<a href="how_elgamalaes">ElGamal/AES+SessionTag</a> algorithm uses essentially random bits to observers not privvy
+to the decryption keys involved.  No one in I2P inherently knows the sender of a 
+message either - unlike IP, there is no 'from' address on plain I2P messages (while 
+protocols built on top of I2P will likely include this information when necessary)</p>
+<p>
+Analysis by <b>active external observers</b> is essentially limited to mounting 
+denial of service attacks on selected peers and monitoring the traffic flow.  As 
+with the passive external observer above, this does not expose much information.</p>
+<p>
+Analysis by <b>active internal observers</b> can include attacking the peers of 
+their target (if those peers can somehow be identified?) and replacing them with peers
+under the attacker's control.  Even if the attacker were able to replace all of their
+target's peers with those under the attacker's control, the subject of the attack would
+still be able to communicate with peers beyond their control if such a link were 
+possible, and if not, it would seem as if the peer was simply unreachable.  As above,
+there would still be no way to determine whether the subject of the attack was actually
+the router in question, plus I2P 2.0's restricted routes additionally provide not just
+plausible, but likely reason to believe that the router in question isn't the subject
+of the attack.</p>
+
+<H3>Replay attacks</H3>
+
+<p>
+All messages within I2P have both a unique ID and an expiration date, preventing 
+messages from being delivered twice before that date, or ever after it.  I2P also
+does require that all routers have access to a synchronized clock - possible if the
+computer uses NTP, the user manually keeps the time correct, or a few other techniques
+to automate synchronization.  Routers will refuse to talk to any other router whose
+clock is too far out of sync.</p>
+<H3>Cryptographic attacks</H3>
+
+<p>
+We are still assuming the security of the cryptographic primitives explained 
+<a href="how_cryptography.html">elsewhere</a>.  That includes the immediate detection of 
+altered messages along the path, the inability to decrypt messages not addressed to you,
+and defense against man-in-the-middle attacks.  The network protocol and data structures
+support securely padding messages to arbitrary sizes, so messages could be made constant
+size or garlic messages could be modified randomly so that some cloves appear to contain
+more subcloves than they actually do.</p>
+
+<H3>Development attacks</H3>
+
+<p>
+These attacks aren't directly on the network, but instead go after its development and
+adoption, either by introducing legal hurdles on anyone contributing to the development
+of the software, or by using whatever means are available to get the developers to 
+subvert the software.  Traditional technical measures cannot defeat these attacks, and
+if someone threatened the lives of a developer's loved ones (or even just issuing a 
+court order along with a gag order, under threat of prison), everyone should expect that 
+the code would be modified.  </p>
+
+<p>
+However, two techniques help defend against these attacks:
+<UL>
+<li> All components of the network must be open source to enable inspection, verification, modification, and improvement.  If a developer is compromised, once it is noticed the community should demand explanation and cease to accept that developer's work.</li>
+<li> Development over the network itself, allowing developers to stay anonymous but still secure the development process.  There is currently a destination in I2P pointing at our CVS server, and the rest of the development resources can be accessed through outbound web proxies (e.g. bugzilla, wiki, etc)</li>
+</UL>
+</p>
+<H3>Implementation attacks</H3>
+<p>
+Try as we might, most nontrivial applications include errors in the design or 
+implementation, and it is possible that any of them could be exploited to attack the anonymity
+or security of the communication running over I2P in unexpected ways.  To help withstand
+attacks against the design or protocols in use, we are publishing all designs and 
+documentation in the open and asking for any and all criticism with the hope that many
+eyes will improve the system.  In addition, the code is being treated the same way, 
+with little aversion towards reworking or throwing out something that isn't meeting the
+needs of the software system (including ease of modification).  Documentation for the 
+design and implementation of the network and the software components are an essential part 
+of security, as without them it is unlikely that developers would be willing to spend the 
+time to learn the software enough to identify shortcomings and bugs.</p>
