@@ -1,2 +1,72 @@
-(old version of this page lost... we need a rewrite.  basic gist of it is we follow the 
-guidelines of Kademlia to manage a distributed routing table)
+<p><b>(This page is awfully out of date, it was just imported from the old IIP
+Wiki backups, which were already out of date!)</b></p>
+
+<p>The NetworkDb, accessed by other components by the NetworkDatabaseFacade,
+manages the distribution and lookup of RouterInfo (keyed by H(RouterIdentity))
+and LeaseSet (keyed by H(Destination)) structures.  (<b>Note: this page is a
+little out of date - the BroadcastNetworkDb has been replaced with the
+KademliaNetworkDb as of i2p 0.2.3</b>)</p>
+
+<p>Locally, everything is stored in the netDb directory (overridden by the
+router.networkDatabase.dbDir config property).  In that dir is a file for each
+entry:</p>
+<ul>
+ <li>leaseSet-(base 64 of H(Destination)).dat</li>
+ <li>routerInfo-(base 64 of H(RouterIdentity)).dat</li>
+</ul>
+
+<p>Periodically that directory is synchronized with the network db
+implementation in memory (aka write out new ones, delete removed ones, load new
+ones).  This should simplify distribution of RouterInfo structures ("hey, send
+me your routerInfo" or "hey, send me all your routerInfo" to get integrated into
+the network).</p>
+
+<p>The file router.info in the base install dir is duplicated here (stored as
+routerInfo-(base 64 of H(RouterIdentity)).dat as well)</p>
+
+<p>Requests to lookup data come in two varieties via the NetworkDatabaseFacade -
+lookupXYZLocally and lookupXYZ.  The former just checks the local db and blocks,
+and the latter is provided a pair of Jobs to be fired off once the data is
+received or lookup fails.</p>
+
+<p>Requests to store data never blocks.</p>
+
+<p>Currently the network database is kludged via the BroadcastNetworkDatabase
+implementation - it publishes all data given to it to all known routers, and the
+SearchDBJob wildly does a broadcast search (searching SEARCH_BREADTH (5) peers
+at a time, adding newly received peers to the list of possible peers, and
+keeping track of who it has asked already.  similar to kademlia search, except
+without the xor metric)</p>
+
+<p>
+The SendDBStoreMessageJob attempts to send the DatabaseStoreMessage via an
+outbound tunnel (using SendTunnelMessageJob) or if no satisfactory tunnels
+exist, it sends it through the SendDBStoreMessageAsGarlicJob which selects a set
+of peers (by asking the
+<a href="#peermanagement">PeerManagement</a> subsystem)
+to garlic route through and builds a garlic including that message and an ack
+(DeliveryStatusMessage).  It then takes the garlic and fires a SendGarlicJob off.</p>
+
+<p>Currently the SendDBStoreMessageJob is forced to send via garlic, and the
+garlic is configured to go directly to the destination, using no intermediary
+hops.</p>
+
+<p>The BroadastNetworkDatabase needs to get cut and the send jobs need to get
+revised.  This is planned for the 0.3 release.</p>
+
+<h2 id="peermanagement">PeerManagement</h2>
+
+<p>The PeerManagement subsystem is accessed via the PeerManagerFacade -
+requesting the H(routerIdentity) of peers by providing a PeerSelectionCriteria</p>
+
+<p>Currently its incredibly kludged - not maintaining any statistics, testing
+any peers, or doing anything intelligent. It simply picks random peers atm.</p>
+
+<p>Testing peers is currently implemented but disabled - the
+CheckPeerTestPoolJob verifies that a sufficient number of peer test messages are
+in the OutNetMessagePool, but currently shortcircuits instead of queueing up
+some TestPeerJob jobs.</p>
+
+<p>This subsystem is probably the most complex part of I2P to implement
+efficiently, requiring long term tracking of peer performance and testing their
+operation and reliability.</p>
