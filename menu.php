@@ -1,4 +1,7 @@
 <?php
+
+error_reporting(E_ALL);
+
 function getpagetitle($page) {
         global $site_structure;
         if (isset($site_structure[$page]['title'])) {
@@ -23,8 +26,11 @@ function buildmenu() {
                         if (isset($page_config['nolink'])) {
                                 $link = $title;
                         } else {
-                                $link = "<a href=\"$uri\">$title</a>";
-                        }
+								if(eregi("^(http://|/).*", $uri))	
+										$link = "<a href=\"$uri\">$title</a>";	
+								else	
+										$link = "<a href=\"/$uri\">$title</a>";        
+						}
 
                         switch ($page_config['depth']) {
                                 case 1:
