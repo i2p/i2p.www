@@ -1,6 +1,7 @@
 <?php
 include('menu.php');
 
+define(MENU_FILE,'menu.ini');
 define(PAGE_DIR,'pages/');
 define(PAGE_EXT,'.html');
 
@@ -15,7 +16,7 @@ if(isset($_REQUEST['page'])) {
 } else {
     $page = 'home';
 }
-
+$site_structure = parse_ini_file(MENU_FILE, true);
 $pagetitle = getpagetitle($page);
 
 if(is_readable(PAGE_DIR.$page.PAGE_EXT)) {
