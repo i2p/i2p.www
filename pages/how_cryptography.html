@@ -5,14 +5,14 @@ one asymmetric algorithm, one signing algorithm, and one hashing algorithm.  How
 we do combine them in some particular ways to provide message integrity (rather than
 relying on a MAC).  In addition, as much as we hate doing anything new in regards to 
 cryptography, we can't seem to find a reference discussing (or even naming) the 
-technique used in <a href="iip-wiki?I2P/ElGamalAESSessionTag">I2P/ElGamalAESSessionTag</a> (but we're sure others have done it).
+technique used in <a href="how_elgamalaes.html">ElGamal/AES+SessionTag</a> (but we're sure others have done it).
 <p>
-<H2>ElGamal<a href="iip-wiki?action=edit&id=ElGamal">?</a> encryption</H2>
+<H2>ElGamal encryption</H2>
 
 <p>
-We use common primes for 2048 ElGamal<a href="iip-wiki?action=edit&id=ElGamal">?</a> encryption and decryption, and we currently only
-use ElGamal<a href="iip-wiki?action=edit&id=ElGamal">?</a> to encrypt the IV and session key in a single block, followed by the 
-AES encrypted payload using that key and IV.  Specifically, the unencrypted ElGamal<a href="iip-wiki?action=edit&id=ElGamal">?</a> 
+We use common primes for 2048 ElGamal encryption and decryption, and we currently only
+use ElGamal to encrypt the IV and session key in a single block, followed by the 
+AES encrypted payload using that key and IV.  Specifically, the unencrypted ElGamal 
 block is formatted (in network byte order):
 <p>
 <p>
@@ -29,10 +29,10 @@ block is formatted (in network byte order):
 The H(data) is the SHA256 of the data that is encrypted in the ElGamal<a href="iip-wiki?action=edit&id=ElGamal">?</a> block,
 and is preceeded by a random nonzero byte.  The data encrypted in the block 
 can be up to 222 bytes long.  Specifically, see 
-<a href="http://i2p.net/cgi-bin/cvsweb.cgi/i2p/code/core/java/src/net/invisiblenet/i2p/crypto/ElGamalEngine.java">[the code]</a>.
+<a href="http://i2p.net/cgi-bin/cvsweb.cgi/i2p/core/java/src/net/i2p/crypto/ElGamalEngine.java">[the code]</a>.
 <p>
-ElGamal<a href="iip-wiki?action=edit&id=ElGamal">?</a> is never used on its own in I2P, but instead always as part of 
-<a href="iip-wiki?I2P/ElGamalAESSessionTag">I2P/ElGamalAESSessionTag</a>.
+ElGamal is never used on its own in I2P, but instead always as part of 
+<a href="how_elgamalaes.html">ElGamal/AES+SessionTag</a>.
 <p>
 The shared prime is the 
 
@@ -48,14 +48,14 @@ Using 2 as the generator.
 <p>
 We use 256bit AES in CBC mode with PKCS#5 padding for 16 byte blocks (aka each block is end 
 padded with the number of pad bytes).  Speficially, see 
-<a href="http://i2p.net/cgi-bin/cvsweb.cgi/i2p/code/core/java/src/net/invisiblenet/i2p/crypto/CryptixAESEngine.java">[the CBC code]</a> 
+<a href="http://i2p.net/cgi-bin/cvsweb.cgi/i2p/core/java/src/net/i2p/crypto/CryptixAESEngine.java">[the CBC code]</a> 
 and the Cryptix AES 
 
-<a href="http://i2p.net/cgi-bin/cvsweb.cgi/i2p/code/core/java/src/net/invisiblenet/i2p/crypto/CryptixRijndael_Algorithm.java">[implementation]</a>
+<a href="http://i2p.net/cgi-bin/cvsweb.cgi/i2p/core/java/src/net/i2p/crypto/CryptixRijndael_Algorithm.java">[implementation]</a>
 <p>
 For situations where we stream AES data, we still use the same algorithm, as implemented in
-<a href="http://i2p.net/cgi-bin/cvsweb.cgi/i2p/code/core/java/src/net/invisiblenet/i2p/crypto/AESOutputStream.java">[AESOutputStream]</a>
-<a href="http://i2p.net/cgi-bin/cvsweb.cgi/i2p/code/core/java/src/net/invisiblenet/i2p/crypto/AESInputStream.java">[AESInputStream]</a>
+<a href="http://i2p.net/cgi-bin/cvsweb.cgi/i2p/core/java/src/net/i2p/crypto/AESOutputStream.java">[AESOutputStream]</a>
+<a href="http://i2p.net/cgi-bin/cvsweb.cgi/i2p/core/java/src/net/i2p/crypto/AESInputStream.java">[AESInputStream]</a>
 <p>
 For situations where we know the size of the data to be sent, we AES encrypt the following:
 <p>
@@ -70,13 +70,13 @@ this entire segment (from H(data) through the end of the random bytes) is AES en
 
 <p>
 This code is implemented in the safeEncrypt and safeDecrypt methods of 
-<a href="http://i2p.net/cgi-bin/cvsweb.cgi/i2p/code/core/java/src/net/invisiblenet/i2p/crypto/AESEngine.java">[AESEngine]</a>
+<a href="http://i2p.net/cgi-bin/cvsweb.cgi/i2p/core/java/src/net/i2p/crypto/AESEngine.java">[AESEngine]</a>
 <p>
 <H2>DSA</H2>
 
 <p>
 Signatures are generated and verified with 1024bit DSA, as implemented in
-<a href="http://i2p.net/cgi-bin/cvsweb.cgi/i2p/code/core/java/src/net/invisiblenet/i2p/crypto/DSAEngine.java">[DSAEngine]</a> 
+<a href="http://i2p.net/cgi-bin/cvsweb.cgi/i2p/core/java/src/net/i2p/crypto/DSAEngine.java">[DSAEngine]</a> 
 <p>
 <H3>The DSA constants</H3>
 
@@ -128,7 +128,7 @@ Signatures are generated and verified with 1024bit DSA, as implemented in
 
 <p>
 Hashes within I2P are plain old SHA256, as implemented in
-<a href="http://i2p.net/cgi-bin/cvsweb.cgi/i2p/code/core/java/src/net/invisiblenet/i2p/crypto/SHA256Generator.java">[SHA256Generator]</a>
+<a href="http://i2p.net/cgi-bin/cvsweb.cgi/i2p/core/java/src/net/i2p/crypto/SHA256Generator.java">[SHA256Generator]</a>
 <p>
 <H2>TCP connections</H2>
 
@@ -137,22 +137,23 @@ TCP connections are currently negotiated with a 2048 Diffie-Hellman implementati
 using the router's identity to proceed with a station to station agreement, followed by
 some encrypted protocol specific fields, with all subsequent data encrypted with AES
 (as above).  Down the line, we will want to use session tags like we do with 
-<a href="iip-wiki?I2P/ElGamalAESSessionTag">I2P/ElGamalAESSessionTag</a> to avoid the 2048bit DH negotiation.  
+<a href="how_elgamalaes.html">ElGamalAES+SessionTag</a> to avoid the 2048bit DH negotiation.  
 <p>
 We would like to migrate to a more standardized implementation (TLS/SSL or even SSH), but:
 <p>
 <OL>
 <li> can we somehow reestablish sessions securely (ala session tags) or do we need to do full negotiation each time?
-<li> can we simplify/avoid the x509 or other certificate formats and use our own RouterInfo<a href="iip-wiki?action=edit&id=RouterInfo">?</a> structure (which contains the ElGamal<a href="iip-wiki?action=edit&id=ElGamal">?</a> and DSA keys)?
+<li> can we simplify/avoid the x509 or other certificate formats and use our own RouterInfo structure (which 
+     contains the ElGamal and DSA keys)?
 
 </OL>
 <p>
 The basic TCP connection algorithm is implemented in establishConnection() (which calls 
-exchangeKey() and identifyStationToStation<a href="iip-wiki?action=edit&id=StationToStation">?</a>()) in 
-<a href="http://i2p.net/cgi-bin/cvsweb.cgi/i2p/code/router/java/src/net/invisiblenet/i2p/router/transport/tcp/TCPConnection.java">[TCPConnection]</a>
+exchangeKey() and identifyStationToStation()) in 
+<a href="http://i2p.net/cgi-bin/cvsweb.cgi/i2p/router/java/src/net/i2p/router/transport/tcp/TCPConnection.java">[TCPConnection]</a>
 <p>
 However, this is extended by 
-<a href="http://i2p.net/cgi-bin/cvsweb.cgi/i2p/code/router/java/src/net/invisiblenet/i2p/router/transport/tcp/RestrictiveTCPConnection.java">[RestrictiveTCPConnection]</a>
+<a href="http://i2p.net/cgi-bin/cvsweb.cgi/i2p/router/java/src/net/i2p/router/transport/tcp/RestrictiveTCPConnection.java">[RestrictiveTCPConnection]</a>
 which updates the establishConnection() method to validate the protocol version, the time, and
 the peer's publicly reachable addresses (since we don't support restricted routes yet, we 
 refuse to talk to those who other people can't talk to as well).  
