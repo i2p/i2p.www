@@ -1,14 +1,3 @@
-<h3 id="what">What is I2P?
-<span class="permalink">(<a href="#what">link</a>)</span></h3>
-<p>
-	I2P is a generic anonymous and secure peer to peer communication layer. It is
-	a network that sits on top of another network (in this case, it sits on top of
-	the internet). It is responsible for delivering a message anonymously and
-	securely to another location.  We have both a more detailed 
-    <a href="home">summary</a> and more in depth <a href="how">tech info</a>
-    available.
-</p>
-
 <h3 id="remote_webconsole">How can I access the web console from my other machines or password protect it?
 <span class="permalink">(<a href="#remote_webconsole">link</a>)</span></h3>
 <p>
@@ -24,56 +13,18 @@
     <code>clientApp.0.args=7657 0.0.0.0 ./webapps/</code></li>
 <li>Go to <a href="http://localhost:7657/configadvanced.jsp">http://localhost:7657/configadvanced.jsp</a>
     and add a new option: <code>consolePassword=foo</code> (or whatever password you want)</li>
-<li>Go to <a href="http://localhost:7657/configservice.jsp">http://localhost:7657/configservice.jsp</a>
-    and hit "Hard restart", which restarts the JVM and reloads the client applications</li>
+<li>Go to <a href="http://localhost:7657/index.jsp">http://localhost:7657/index.jsp</a>
+    and hit "Graceful restart", which restarts the JVM and reloads the client applications</li>
 </ol>
 
 <p>
     After that fires up, you should now be able to reach your console remotely.
     You will be prompted for a username and password though - the username is
-    "admin" and the password is whatever you specified in step 2 above.
+    "admin" and the password is whatever you specified in step 2 above.  Note: the
+    <code>0.0.0.0</code> above specifies an <i>interface</i>, not a network or netmask.  0.0.0.0
+    means "bind to all interfaces", so it can be reachable on 127.0.0.1:7657 as well as
+    any LAN/WAN IP.
 </p>
-
-<h3 id="remote_sambridge">How can I access the SAM bridge from my other machines?
-<span class="permalink">(<a href="#remote_sambridge">link</a>)</span></h3>
-<p>
-    Simular to the above answer:
- </p>
-<ol>
-<li>Open up clients.config and replace<br />
-    <code>clientApp.1.args=sam.keys 127.0.0.1 7656 i2cp.tcp.host=localhost i2cp.tcp.port=7654</code><br />
-    with <br />
-    <code>clientApp.1.args=sam.keys 0.0.0.0 7656 i2cp.tcp.host=localhost i2cp.tcp.port=7654</code></li>
-<li>Go to <a href="http://localhost:7657/configservice.jsp">http://localhost:7657/configservice.jsp</a>
-    and hit "Hard restart", which restarts the JVM and reloads the client applications</li>
-</ol>
-
-<p>
-    After that fires up, you should now be able to reach the SAM bridge remotely.
-</p>
-
-<h3 id="scale">How does I2P scale?
-<span class="permalink">(<a href="#scale">link</a>)</span></h3>
-<p>
-    For now, we'll answer that question in three parts:
-</p>
-<ul>
- <li>End to end communication consumes O(1) resources (bandwidth, CPU, etc).
-     More specifically, the load on the network (bytes transferred) is
-     <code>Bm*(Hi+Ho+1)</code>.  Note that the size of the network (N) does
-     not come into play at any time.<ul>
-      <li><i>Bm</i>: number of bytes in a message</li>
-      <li><i>Hi</i>: number of hops in the target's inbound tunnel</li>
-      <li><i>Ho</i>: number of hops in the source's outbound tunnel</li>
-     </ul></li>
- <li>Network database operation and maintenance consumes O(log(N)) resources
-     (where N = number of peers in the network).  This is derived from the
-     <a href="http://citeseer.ist.psu.edu/529075.html">Kademlia</a> base.</li>
- <li>For engineering reasons, the I2P implementation is not yet able to handle 
-     operation in a large network.  This is bound at the moment by threading 
-     issues associated with our current TCP transport.  The 
-     <a href="roadmap">0.6.1</a> release should address this.</li>
-</ul>
 
 <h3 id="eepsite">Whats an "eepsite"?
 <span class="permalink">(<a href="#eepsite">link</a>)</span></h3>
@@ -112,13 +63,8 @@
 </p>
 
 	<ul>
-	<li><b>TCP port 8887 inbound</b><br />
-		This is used for interrouter communication, and must be reachable 
-		from the outside world.  Everything will fail if this isn't - 
-		you'll have "Active: 0/x".</li>
-	<li><b>Outbound TCP on any port</b><br />
-		Since anyone can change their router to listen on any port, 
-		you need to be able to contact them</li>
+	<li><b>Outbound UDP from port 8887 to arbitrary remote UDP ports, allowing replies</b></li>
+	<li><b>(optional, but recommended) Inbound UDP to port 8887 from arbitrary locations</b></li>
 	<li><b>Outbound UDP on port 123, allowing replies</b><br />
 		This is necessary for I2P's internal time sync (via SNTP - 
 		querying a random SNTP host in pool.ntp.org or another
@@ -132,9 +78,9 @@
 	<li><b>Default I2PTunnel ports:</b><ul>
 	      	<li><b>2401:</b> cvs.i2p (disabled by default)</li>
 	    	<li><b>4444:</b> HTTP proxy</li>
-		<li><b>6668:</b> irc.duck.i2p</li>
-		<li><b>7659:</b> smtp.postman.i2p (disabled by default)</li>
-		<li><b>7660:</b> pop.postman.i2p (disabled by default)</li></ul></li>
+		<li><b>6668:</b> round robin across the irc2p IRC network</li>
+		<li><b>7659:</b> smtp.postman.i2p</li>
+		<li><b>7660:</b> pop.postman.i2p</li></ul></li>
 	</ul>
 		      
 <p>
@@ -146,142 +92,13 @@
 </p>
 
 <p>
-	So, to summarize, the only thing that needs to be reachable from the outside
-	world is your inbound I2NP port (default 8887).  You will also need any 
-	software firewall to allow local TCP access to the local ports, as well as
-	any LAN or WAN access to other proxies you choose to expose.
+	So, to summarize, nothing needs to be reachable by unsolicted remote peers, but
+	if you can configure your NAT/firewall to allow inbound UDP to port 8887, you'll
+	get better performance.  You will also need to be able to send outbound UDP packets
+	to arbitrary remote peers (blocking IPs randomly with something like PeerGuardian
+	only hurts you - don't do it).
 </p>
 	
-
-<h3 id="anonymous">How anonymous is I2P anyway?
-<span class="permalink">(<a href="#anonymous">link</a>)</span></h3>
-<p>
-	I2P is working to support militant grade anonymity, <b>but we're not there
-	yet</b>.  You should not use I2P if you <i>need</i> your anonymity - there are
-	likely bugs and perhaps other issues, and it has not gone through sufficient
-	peer review.  However, we're confident that we'll get to the point that we can
-	provide anonymity strong enough even for militantly subversive political
-	action (so it should be fine for you to chat online with your friends)
-</p>
-<p>
-	An important point to note is that I2P does <b>not</b> provide anonymity or
-	security of content after it is transferred - you can still download and run a
-	virus, or even submit your full name and bank account numbers on an eepsite.
-	I2P only tries to provide communication security and anonymity - what you say
-	or do is up to you.
-</p>
-
-<h3 id="dos">How does I2P protect itself from denial of service attacks?
-<span class="permalink">(<a href="#dos">link</a>)</span></h3>
-<p>
-	For this too, there are several answers. Short summary is "the best it can".  
-	Briefly, I2P attempts to defend against several forms of denial of service 
-	attack, all without centralized coordination. For applications using I2P, 
-	the computer they are located on is not exposed to the public, so the 
-	standard denial of service attack cannot be directly mounted against them
-	(ala ping floods, etc). Instead, attackers are forced to go after the 
-	gateways to that application's inbound tunnels - of which there can be many
-	at any given time. Each gateway also has its own limits for how many messages
-	and/or bytes it agrees to send down the tunnel. The application itself 
-	periodically tests these tunnels to make sure they're still reachable and 
-	usable, so if one of them is taken out by an IP level attack of any kind,
-	it will know and rebuild its leases, specifying new gateways.  
-</p>
-<p>
-	To prevent individual users from consuming excessive resources (registering
-	too many tunnels, sending too many messages, looking up too many entries in
-	the network database, and creating too many router and destination
-	identities), various messages and identities have a certificate attached to
-	them.  Currently these certificates are blank, but down the line they will be
-	filled with
-	<a href="http://en.wikipedia.org/wiki/Hashcash">HashCash</a>
-	- a computationally expensive collision based on the contents of the
-	message or identity.  They can also be filled with other certificates as
-	deemed necessary (e.g. a blinded certificate from an anonymous certificate
-	authority, a receipt for real currency payments, etc).  It is also believed
-	that through this certificate attachment system I2P will be able to overcome
-	the <a href="http://citeseer.nj.nec.com/douceur02sybil.html">sybil attack</a>.
-</p>
-<p>
-	Other denial of service attacks include creating a few thousand high quality 
-	I2P routers, running them for a week, and then taking them all offline.  This 
-	indeed may force the creation of islands within the network, but the
-	underlying <a href="how_networkdatabase">Network Database</a> is built off of
-	a modified <a href="http://citeseer.nj.nec.com/529075.html">Kademlia</a>,
-	which should allow the network to recover with minimal overhead (though, of
-	course, if a router has literally no other peers left after the bad ones
-	leave, that router will need to 'reseed' - fetch a reference to another router
-	through some other mechanism).
-</p>
-
-<h3 id="greedy">What about greedy users?  Won't there be a tragedy of the commons?
-<span class="permalink">(<a href="#greedy">link</a>)</span></h3>
-<p>
-    Quoting a <a href="http://dev.i2p.net/pipermail/i2p/2004-August/000400.html">recent
-    discussion</a> on the mailing list:
-</p>
-<pre>
-&gt; Now for this ultra-greedy user, it's irrational
-&gt; to allocate downstream bandwidth for anything other
-&gt; than his current huge Bittorrent download.  So he
-&gt; uses 99% of his bandwidth for his own tunnels, and
-&gt; 1% of his bandwidth for everyone else's tunnels.
-
-&gt; It will become a practical issue because people will
-&gt; write "I2P download optimizers," which will abuse the
-&gt; network in exactly this way.
-
-Here, I'll write the optimal download optimizer for them.
-Turn
- java -jar i2ptunnel.jar
-into
- java -Dtunnels.depthInbound=0 -jar i2ptunnel.jar
-
-voila.  The data they receive goes through no other routers,
-allowing them to get obscene transfer rates (but not wire
-speed, since we /do/ have some overhead :).  They still do
-have some level of anonymity, since no one else knows their
-tunnels are 0 hops long (at least, not without statistical
-analysis or some powerful traffic analysis).  This is
-probably (IANAL) sufficient "plausible deniability" for
-many people (the RIAA/MPAA won't get the court orders to
-mount the necessary traffic analysis, though the NSA
-wouldn't bother)
-
-The load on the network is negligible - while they don't add
-any resources to the net, they don't take much away either.
-The network routes around these users, and peers only bother
-to attempt routing their tunnels through those other peers
-who *do* have excess bandwidth.
-
-There is no rational cause for someone who only needs a
-basic level of anonymity (e.g. for illicit copying of bits)
-but still wants high throughput to want longer tunnels.
-
-Now, the scenario where the user needs better anonymity but
-still wants higher throughput, they must be made to
-understand that they simply *can't get* better anonymity
-unless they route other people's traffic.  Its a functional
-necessity for dealing with powerful adversaries, since
-otherwise their traffic sticks out like a sore thumb.
-</pre>
-
-<h3 id="addressing">How do I know that I'm talking with who I'm trying to talk with?
-<span class="permalink">(<a href="#addressing">link</a>)</span></h3>
-<p>
-    I2P is "cryptographically addressed" - meaning when you try to talk to
-    someone, you are trying to talk to whomever has their cryptographic private
-    key. In addition, everything is end to end encrypted.  No one - not even
-    your local router - knows the contents of what you send to them (unless
-    2048bit ElGamal is broken).
-</p>
-
-<h3 id="updatehosts">Do I have to restart my router after updating my hosts.txt?
-<span class="permalink">(<a href="#updatehosts">link</a>)</span></h3>
-<p>
-    No, the host should just work after saving the file.
-</p>
-
 <hr />
 <h3 id="question">I have a question!
 <span class="permalink">(<a href="#question">link</a>)</span></h3>
