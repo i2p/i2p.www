@@ -1,4 +1,4 @@
-lkjasdflkajsl;kasjl;aksjlkajsl;kajslkasjlkasdflj<?php
+<?php
 include('menu.php');
 
 define('MENU_FILE','menu.ini');
