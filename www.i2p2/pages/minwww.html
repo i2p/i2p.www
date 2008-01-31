@@ -1,0 +1,103 @@
+{% extends "_layout.html" %}
+{% block title %}minwww{% endblock %}
+{% block content %}<p>Here's an outline and rationale for a minimal WWW proxy app for use over
+I2P.</p>
+<p>HTTP operation over I2P using I2PTunnel.  When the base SocketLibrary
+is out, the only significant difference will be the 'wrapRequest' and
+'unwrapRequest' will functionally be placed in the socketLibrary, not
+in the router (but later versions of the SocketLibrary will be able to
+use selective ACK and large window sizes, allowing more ACKs to be
+skipped)</p>
+<pre>
+---BROWSER---&gt;-I2PTUNNEL---&gt;-ROUTERA---&gt;-ROUTERB---&gt;-I2PTUNNEL---&gt;-HTTPD----------
+ 1: openCon
+ 2:            requestCon
+ 3:                         wrapRequest
+ 4:                                    unwrapRequest
+ 5:                         receiveACK               receiveCon
+ 6:            sentSuccess                           sendSYN
+ 7:                                     wrapRequest
+ 8:                       unwrapRequest
+ 9:            receiveSYN               receiveACK
+10: "GET /"                                          sentSuccess
+11:            sendData
+12:                         wrapRequest
+13:                                    unwrapRequest
+14:                         receiveACK               receiveData
+15:            sentSuccess                                        "GET /"
+16:                                                               "HTTP 200\n\nHi"
+17:                                                  sendData
+18:                                     wrapRequest
+19:                       unwrapRequest
+20:            receiveData              receiveACK
+21: "HTTP 200\n\nHi"                                 sentSuccess
+22: closeCon
+23:            sendClose
+24:                         wrapRequest
+25:                                    unwrapRequest
+26:                         receiveACK               receiveClose
+27:            sentSuccess
+</pre>
+<p>An optimized form, designed to handle only 128KB [1] files and pages, can
+operate significantly faster:</p>
+<pre>
+   BROWSER --&gt; MinWWW   --&gt; ROUTERA --&gt; ROUTERB --&gt; MinWWW    --&gt; HTTPD
+ 1: openCon
+ 2:            opened
+ 3: "GET /"
+ 4:            sendData
+ 5:                         forward
+ 6:                                     receive
+ 7:                                                 receiveData
+ 8:                                                               "GET /"
+ 9:                                                               "HTTP 200\n\nHi"
+10:                                                 sendData
+11:                                     forward
+12:                         receive
+13:            receiveData
+14: "HTTP 200\n\nHi"
+15: closeCon
+16:            closed
+</pre>
+<p>The difference in network load and latency is significant - this is
+essentially a UDP version of HTTP.  On the normal web, we can't really do that,
+since most HTTP requests and responses are orders of magnitude larger than UDP
+packets functionally support, but in I2P, messages can be large.  The savings
+for the network load comes from the fact that we don't need to send any ACK
+messages - rather than the earlier wrap/unwrap request (that bundles a
+DataMessage with a DeliveryStatusMessage to provide guaranteed delivery), the
+MinWWW proxy deals with resends (if necessary - in I2PTunnel today, there are no
+resends).</p>
+<p>The data that the MinWWW proxy and server need to wrap is trivial - when the
+proxy wants to send "GET /", it prepends it with the I2P Destination sending
+the request, followed by a 4 byte request ID.  The MinWWW server receives those
+requests, contacts the appropriate HTTPD, sends the request, waits for the
+response, and sends a reply to the MinWWW proxy containing the response,
+prefixed with the original request ID.  That response is taken and passed back
+to the browser and the connection is closed.</p>
+<p>In addition, the MinWWW proxy can choose the MinWWW server to use from a
+list, going through some round robin or other algorithm, so that there are
+multiple outproxies merged transparently.  The bandwidth required for running
+one of these outproxies is also greatly reduced, since it will only handle 128KB
+files (aka no one is going to be downloading porn, warez, etc).</p>
+<p>The functionality /is/ limited, but 128KB of data is a lot for a single HTTP
+request or response.  The above diagrams are also unrealistic in their hops -
+ROUTERA will really never talk directly to ROUTERB.  ROUTERA will send each
+of the messages through two additional outbound routers, then forwarded to
+two additional inbound routers to ROUTERB, so the lag there is significant -
+while the above only saves 11 steps, 8 of those steps need to traverse the
+entire tunnel path (4+ remote hops each time when tunnels are 2 remote hops
+in each stretch), leaving MinWWW with only two full traversals (one for the
+request, one for the response), instead of 10.</p>
+<p>Implementing the MinWWW proxy and server should be fairly easy - read an HTTP
+request from the client fully (perhaps only start out with HTTP GET, leaving
+HTTP POST for later), wrap the message, and wait for the response.  The server
+in turn simply needs to parse the request to either open a socket or URL,
+send the request, wait for the response, and send it back through the network.
+If someone were to implement this, it would be Good :)</p>
+<p>[1] Why 128KB files?  Currently I2CP allows functionally arbitrary message
+size, but thats going to be going away since it involves either excessive memory
+overhead on intermediary routers, or additional implementation details to
+handle.  I2PTunnel is currently limited to 128KB and hasn't been a burden,
+so perhaps it could be increased to 256KB when the I2CP spec is updated)</p>
+{% endblock %}

@@ -1,0 +1,276 @@
+{% extends "_layout.html" %}
+{% block title %}Pages/meeting152.html{% endblock %}
+{% block content %}<h3>I2P dev meeting, October 18, 2005</h3>
+<div class="irclog">
+<p>16:10 &lt; jrandom&gt; 0) hi</p>
+<p>16:10 &lt; jrandom&gt; 1) 0.6.1.3</p>
+<p>16:10 &lt; jrandom&gt; 2) Freenet, I2P, and darknets (oh my)</p>
+<p>16:10 &lt; jrandom&gt; 3) Tunnel bootstrap attacks</p>
+<p>16:10 &lt; jrandom&gt; 4) I2Phex</p>
+<p>16:10 &lt; jrandom&gt; 5) Syndie/Sucker</p>
+<p>16:10 &lt; jrandom&gt; 6) ???</p>
+<p>16:10 &lt; jrandom&gt; 0) hi</p>
+<p>16:10  * jrandom waves</p>
+<p>16:10 &lt; jrandom&gt; weekly status notes are up at http://dev.i2p.net/pipermail/i2p/2005-October/001017.html</p>
+<p>16:10 &lt; dust&gt; yay, works now. thanks Gregor</p>
+<p>16:10 &lt; cervantes&gt; hullo</p>
+<p>16:11 &lt;+fox&gt; &lt;blx&gt; heloa</p>
+<p>16:11 &lt; jrandom&gt; ok, jumping into 1) 0.6.1.3</p>
+<p>16:11 &lt; jrandom&gt; y'all have updated at a pretty good clip, thanks!  </p>
+<p>16:12 &lt; jrandom&gt; things seem to be in reasonable condition, but I don't have much to add beyond whats in the status notes</p>
+<p>16:12 &lt; jrandom&gt; anyone have any questions/comments/concerns re: 0.6.1.3?</p>
+<p>16:13 &lt; jrandom&gt; ok if not, lets jump on in to 2) Freenet, I2P, and darknets (oh my)</p>
+<p>16:13 &lt; cervantes&gt; 609 known peers!</p>
+<p>16:14 &lt; cervantes&gt; (w00t)</p>
+<p>16:14 &lt; jrandom&gt; aye, network has been growin'</p>
+<p>16:14 &lt;+fox&gt; &lt;blx&gt; oh my!</p>
+<p>16:14  * cervantes is holding a sweepstake for how long until the big 1000</p>
+<p>16:14 &lt; jrandom&gt; heh</p>
+<p>16:14 &lt; tethra&gt; heheh</p>
+<p>16:15 &lt; tethra&gt; are we betting with digital cash? ;)</p>
+<p>16:15 &lt; cervantes&gt; but it show how solid i2p core has got lately that the user uptake has been accelerating</p>
+<p>16:16 &lt; cervantes&gt; nah...jrandom has already unknowningly donated all his beer money for this year</p>
+<p>16:16 &lt; jrandom&gt; hehe</p>
+<p>16:16 &lt; jrandom&gt; ok, on 2), i'm not sure if i've got anything else to add to the subject (i think we've flogged that horse).  anyone have any questions/comments/concerns on it?</p>
+<p>16:18 &lt; cervantes&gt; as you said, if nothing else it has stimulated some interesting semi-related security discussions ie 3)</p>
+<p>16:18 &lt; jrandom&gt; if not, we can jump forward at a quick pace to 3) Tunnel bootstrap attacks</p>
+<p>16:18 &lt; jrandom&gt; aye, that it has</p>
+<p>16:19 &lt; jrandom&gt; the issue Michael brought up quantifies a general view i've had, but its nice to make it explicit</p>
+<p>16:20 &lt; jrandom&gt; there's going to be some further discussion on the newer attack later this evening (once i can write up a reply), but the former doesn't seem to be much of a problem</p>
+<p>16:21 &lt; jrandom&gt; does it make sense to people, or do people have any questions or concerns about it?</p>
+<p>16:22 &lt; cervantes&gt; heh...that either means everyone is cool with it or they can't make head of tail of what the issues are</p>
+<p>16:23 &lt; cervantes&gt; I'll put myself in the ignorance is bliss category</p>
+<p>16:23 &lt; jrandom&gt; heh its basically an attack where the mean guys just happen to be the outbound endpoint of every tunnel you've ever built</p>
+<p>16:23 &lt; jrandom&gt; now, when you're just starting up, "every tunnel you've ever built" is a very small number (eg. 0, 1, 2)</p>
+<p>16:24 &lt; jrandom&gt; but after a few seconds, the number grows large enough to turn (c/n)^t into a really really small number</p>
+<p>16:25 &lt; tethra&gt; (c/n)^t is...</p>
+<p>16:25 &lt; jrandom&gt; (this is one of the reasons why we don't start up the i2cp listener - and hence, i2ptunnel/etc - until a little while after startup)</p>
+<p>16:25 &lt; jrandom&gt; c == # of colluding peers (bad guys), n == # of peers in the network, t == # of tunnels you've built.</p>
+<p>16:25 &lt; cervantes&gt; right...</p>
+<p>16:25 &lt; tethra&gt; ah</p>
+<p>16:26 &lt; jrandom&gt; so as t grows, the probability of successful attack gets really small</p>
+<p>16:26 &lt; cervantes&gt; so for it to be even viable you'd have to start using your router for sensitive tasks within a couple of minutes of it starting up?</p>
+<p>16:26 &lt; jrandom&gt; (or, in any case, smaller than the probability of taking over all hops in a tunnel)</p>
+<p>16:26 &lt; tethra&gt; ahh, i see</p>
+<p>16:27 &lt; jrandom&gt; cervantes: immediately, before the 3rd tunnel is built</p>
+<p>16:27 &lt; jrandom&gt; (assuming you use 3 hop tunnels)</p>
+<p>16:27 &lt; cervantes&gt; that's fairly improbable</p>
+<p>16:28 &lt; cervantes&gt; just from a use case perspective</p>
+<p>16:28 &lt; jrandom&gt; 'zactly.</p>
+<p>16:28 &lt; jrandom&gt; and since we build more than 3 tunnels on startup before letting any clients run, its not just a probability issue</p>
+<p>16:28 &lt; jrandom&gt; but its good to quanitify the attack anyway</p>
+<p>16:29 &lt; cervantes&gt; is it worth letting the router churn for a bit longer to guard against any likelyhood?</p>
+<p>16:30 &lt; cervantes&gt; or churn harder...</p>
+<p>16:30 &lt; jrandom&gt; perhaps.  if we ignore connection establishment time as well as nonrandom peer selection, it has no likelihood</p>
+<p>16:31 &lt; tethra&gt; that's cause for a "woot!" i take it?</p>
+<p>16:32 &lt; jrandom&gt; aye, though from an engineering perspective, we shouldn't ignore those characteristics ;)  </p>
+<p>16:32 &lt; jrandom&gt; so, for 0.6.2 we may want to look at it during the revamped tunnel peer selection / ordering implementation, to make sure its behaving Sanely</p>
+<p>16:34 &lt; jrandom&gt; ok, if there's nothing else on 3), lets move on to 4) I2Phex</p>
+<p>16:34 &lt; jrandom&gt; sirup isn't here, and i haven't seen striker on irc - redzara, you around?</p>
+<p>16:36 &lt;+redzara&gt; yes</p>
+<p>16:36 &lt;+redzara&gt; First pass is nearly completed : port Sirup's mod to lastest phex cvs.</p>
+<p>16:36 &lt; jrandom&gt; nice1!</p>
+<p>16:36 &lt;+redzara&gt; next : Second pass : diff from Sirup code to base phex code used in initial release, to be sure i don't forget anything :)</p>
+<p>16:37 &lt;+redzara&gt; maybe terminated for this W.E.</p>
+<p>16:37 &lt; jrandom&gt; wow that'd be great</p>
+<p>16:37 &lt;+redzara&gt; Pass three : refactoring comm layer with GregorK</p>
+<p>16:37 &lt;+fox&gt; &lt;GregorK&gt; hope you are aware that in latest Phex CVS the download code is not stable and the download file is not compatible with previous releases</p>
+<p>16:38 &lt; jrandom&gt; this is i2p, we're used to instability :)</p>
+<p>16:38 &lt;+fox&gt; &lt;GregorK&gt; :)</p>
+<p>16:38 &lt;+redzara&gt; For the last pass, as I've currently no contact with GregorK, this sould be pretty hard :(</p>
+<p>16:38 &lt; jrandom&gt; GregorK: what would you recommend for inegration?</p>
+<p>16:39 &lt;+fox&gt; &lt;GregorK&gt; well you now have contact with me ;)</p>
+<p>16:39 &lt; jrandom&gt; ah 'k redzara, the first two are big enough in any case :)</p>
+<p>16:39 &lt;+redzara&gt; GregorK : hi man</p>
+<p>16:40 &lt;+redzara&gt; GregorK : I've read carefully all codes</p>
+<p>16:40 &lt;+fox&gt; &lt;GregorK&gt; I have a idea on how to build a layer... I can try to prepare it as good as i can and then we can see how good it fits and what needs to be changed</p>
+<p>16:40 &lt;+fox&gt; &lt;GregorK&gt; all?? wow...</p>
+<p>16:40 &lt;+redzara&gt; Gregork : yes, all !!</p>
+<p>16:41 &lt; cervantes&gt; he even knows the size of your underwear</p>
+<p>16:41 &lt; Rawn&gt; :D</p>
+<p>16:41 &lt;+fox&gt; &lt;GregorK&gt; great... next time I'm shopping I just need to ask you... </p>
+<p>16:43 &lt;+fox&gt; &lt;GregorK&gt; what would be nice if we could maybe have someone from the i2phex team on the phex team too..</p>
+<p>16:43 &lt; jrandom&gt; redzara: so, do you think we'll have a 0.1.2 I2Phex release with the results of your second pass before we get everything merged into a plugin layer in the mainline Phex?  or will that be all in one go?</p>
+<p>16:43 &lt;+redzara&gt; Sorry, but I don't understand / speak /read / write english good enough to  laugh with what you have writed</p>
+<p>16:43 &lt;+fox&gt; &lt;GregorK&gt; this would also help solve bugs that are on both sides</p>
+<p>16:44 &lt; jrandom&gt; GregorK: hopefully we'll find a way that the I2P side is just a thin plugin in Phex though, right?</p>
+<p>16:44 &lt; jrandom&gt; or do you think the two should stay separate?</p>
+<p>16:44 &lt;+redzara&gt; jrandom : I think we could have an Phex 2.6.4 over I2P, for me I2Phex is down</p>
+<p>16:45 &lt; jrandom&gt; down?</p>
+<p>16:45 &lt;+fox&gt; &lt;GregorK&gt; i'm not sure if we can make it this way right from the start, but I think the major part of it could be separated into a plugin.</p>
+<p>16:45 &lt; jrandom&gt; cool, yeah, its a lot of work, I'm sure</p>
+<p>16:46 &lt; jrandom&gt; especially when you look at things like java.net.URL (which leaks DNS requests on instantiation, etc)</p>
+<p>16:46 &lt;+redzara&gt; jrandom : down, endded</p>
+<p>16:46 &lt;+Ragnarok&gt; grr</p>
+<p>16:47 &lt; jrandom&gt; ok right redzara, one we can get everything working in Phex 2.6.4 over I2P, I agree, there wouldn't seem to be much of a need for an I2Phex</p>
+<p>16:47 &lt;+fox&gt; &lt;GregorK&gt; right... I think Phex uses the apache URI class in some places to work around this.. but only when necessary</p>
+<p>16:48 &lt; jrandom&gt; ah right, I remember playing around with that library, looks good</p>
+<p>16:49 &lt; jrandom&gt; we'll definitely be helping audit things a bit for anonymity/security before pushing it for end users over i2p</p>
+<p>16:49 &lt; jrandom&gt; (not to suggest there are any problems in Phex, just there are problems in every app, and hopefully we can help sort 'em out)</p>
+<p>16:50 &lt;+fox&gt; &lt;GregorK&gt; for some things like Socket use and these things I have an idea on how to integrate it smothly... but other places like different features UDP and such... I'm not sure yet how to solve them best</p>
+<p>16:50 &lt;+fox&gt; &lt;GregorK&gt; oh i'm sure there are many problems in phex. :)</p>
+<p>16:50 &lt; jrandom&gt; ah, yeah sockets will be easy, but we may need to disable other things.  what is udp used for - quick queries?</p>
+<p>16:51 &lt;+fox&gt; &lt;GregorK&gt; currently only bootstrapping</p>
+<p>16:51 &lt;+fox&gt; &lt;GregorK&gt; UDP Host Cache.. a replacement for GWebCache</p>
+<p>16:52 &lt; jrandom&gt; ahhh, ok.  </p>
+<p>16:52 &lt;+redzara&gt; So we don't need it if we have a descent GwebCache ?</p>
+<p>16:53 &lt;+fox&gt; &lt;GregorK&gt; yes... but the standard GWebCache have there security problems too...</p>
+<p>16:53 &lt;+redzara&gt; GregorK : not inside I2P I think</p>
+<p>16:54 &lt; jrandom&gt; oh, that part could be overcome - I2PSocket is authenticated - you know the 'destination' of the peer on the other end, so they couldn't say "I'm, er... whitehouse.gov.. yeah!"</p>
+<p>16:54 &lt; jrandom&gt; but you're right, its soemthing that needs to be verified </p>
+<p>16:54 &lt;+fox&gt; &lt;GregorK&gt; also firewall to firewall transfers would be a UDP topic we like to implement once we find a volunteer :)</p>
+<p>16:54 &lt; jrandom&gt; ah, well, I2P doesn't need firewall to firewall transfers - I2P exposes an entirely open end to end address space :)</p>
+<p>16:55 &lt; jrandom&gt; but... ooh, thats something that might be useful</p>
+<p>16:55 &lt; jrandom&gt; if Phex users had "0 hop tunnels", they'd get free NAT traversal/firewall to firewall transfers with pretty decent speed</p>
+<p>16:55 &lt;+fox&gt; &lt;GregorK&gt; another one would be LAN broadcasts of queries and such... for easier sharing of contents in private networks</p>
+<p>16:56 &lt; jrandom&gt; (0 hop tunnels offers a level of plausible deniability without requiring any intermediary peers to carry the trafffic)</p>
+<p>16:57 &lt; jrandom&gt; hmm, lan broadcast is good, though i'm not sure if i2p would really need that (since its an anonymity risk to know where the other peer is :), so perhaps that feature could be disabled when using the I2P plugin?</p>
+<p>16:58 &lt; cervantes&gt; *disabled by default</p>
+<p>16:58 &lt;+fox&gt; &lt;GregorK&gt; well its not available yet.. but in this case user usually know each other anyway to build that private network..</p>
+<p>16:58 &lt; jrandom&gt; oh right cervantes </p>
+<p>16:58 &lt; jrandom&gt; right right GregorK</p>
+<p>16:59 &lt;+fox&gt; &lt;GregorK&gt; are there any changes regarding the user interface??</p>
+<p>17:00 &lt;+bar&gt; well, we won't need flags :)</p>
+<p>17:00 &lt; jrandom&gt; at the least, the ability to have a few configuration options related to I2P would be useful.</p>
+<p>17:01 &lt; jrandom&gt; i think sirup was able to switch in some of the display to use I2P 'destinations' instead of showing IP + port numbers, so I think it was fine </p>
+<p>17:01 &lt;+redzara&gt; And what about bitzyNot for the moment, but flags and countries are unused</p>
+<p>17:01 &lt; jrandom&gt; bitzy?</p>
+<p>17:01 &lt;+redzara&gt; sorry, wrong coupy/paste :(</p>
+<p>17:02 &lt;+fox&gt; &lt;GregorK&gt; can you provide a list of configuration options and optional features you need?</p>
+<p>17:03 &lt; jrandom&gt; I'm sure we can get those to you.  a host+port that I2P is running on and a few drop downs regarding performance/anonymity tweaks should do it</p>
+<p>17:03 &lt; jrandom&gt; we'll get you the details though</p>
+<p>17:02 &lt;cervantes&gt; [x] Super transfer speed mode</p>
+<p>17:02 &lt;+fox&gt; &lt; GregorK&gt; well bitzi is used to identify files.. is that an anonymity problem?</p>
+<p>17:03 &lt; vulpine&gt; &lt;redzara&gt; GregorK : I'm preparing it, but basicly, thre is no changes</p>
+<p>17:03 &lt;+fox&gt; &lt; GregorK&gt; :) ask your provider cervantes...</p>
+<p>17:03 &lt;redzara&gt; GregorK : maybe, I'm working on it</p>
+<p>17:04 &lt;cervantes&gt; GregorK: heh UK resident....no chance ;-)</p>
+<p>17:04 &lt;+fox&gt; &lt; GregorK&gt; if you transfer files between 2 Phex instances on the same PC.. transfers are lightning fast ;)</p>
+<p>17:05 &lt;cervantes&gt; cool...I have lots of cool movies I can share with myself :)</p>
+<p>17:05 &lt;cervantes&gt; * strike that from the meeting notes *</p>
+<p>17:06 &lt;bar&gt; jrandom touched the subject before, but, here's that crazy idea again:</p>
+<p>17:06 &lt;+bar&gt; how 'bout integrating i2p into Phex, so that ordinary users have 0-hop tunnels?</p>
+<p>17:07 &lt;+fox&gt; &lt;GregorK&gt; I think display of flags and IP+port comes from the HostAddress object.. which would be hidden from the new layer.. so you can display something else</p>
+<p>17:07 &lt;+bar&gt; (for plausible deniability and udp firewall hole punching)</p>
+<p>17:08 &lt;+fox&gt; &lt;GregorK&gt; not sure if I really understand what that means ;)</p>
+<p>17:08 &lt;+bar&gt; probably me neither ;)</p>
+<p>17:09 &lt; jrandom&gt; GregorK: essentially, it means that Phex users would talk to each other directly, but would get plausible deniability, as they could be talking indirectly</p>
+<p>17:09 &lt;+bar&gt; jrandom, i'm sure you're catching my drift here, could you elaborate?</p>
+<p>17:09 &lt; jrandom&gt; they'd also get I2P's NAT traversal thrown in for free, as well as data security and protection from sniffing by ISPs/etc</p>
+<p>17:09 &lt;+redzara&gt; GregorK : so you have to strip all code related to host+port + IsLocalIP + Is PrivateIP + ...</p>
+<p>17:10 &lt; jrandom&gt; on the other hand, (a BIG other hand), it wouldn't be able to talk to gnutella clients that don't run on top of I2P</p>
+<p>17:10 &lt; jrandom&gt; (though eventually, they all will ;)</p>
+<p>17:10 &lt;+fox&gt; &lt;GregorK&gt; Well I think the first step is - and that step is already big enough - to bring i2p and phex closer together.</p>
+<p>17:10 &lt; jrandom&gt; agreed</p>
+<p>17:10 &lt;+bar&gt; (damn, didn't think of that)</p>
+<p>17:11 &lt;+bar&gt; yeah, def.</p>
+<p>17:11 &lt; jrandom&gt; this is flying pony stuff.  lets get the practical things first</p>
+<p>17:11 &lt;+fox&gt; &lt;GregorK&gt; and after we see how good that worked we can decide how we go further.. </p>
+<p>17:11 &lt; jrandom&gt; exactly</p>
+<p>17:12 &lt;+fox&gt; &lt;GregorK&gt; redzara: I like to have two implementations of HostAddress one for i2p and on like the current.</p>
+<p>17:14 &lt;+redzara&gt; Gregork : no pb, I've commented all code in my mod you could easyly build two implementations. Just let me finish the initial work please</p>
+<p>17:14 &lt;+fox&gt; &lt;GregorK&gt; sure.. no problem..</p>
+<p>17:14 &lt; jrandom&gt; :)  ok, so redzara, you think we may be able to get an alpha test of the new Phex-2.4.2 based version sometime next week?</p>
+<p>17:15 &lt; jrandom&gt; (for the phase 2 part.  your phase 3 will take more work integrating with the mainline)</p>
+<p>17:15 &lt;+redzara&gt; jrandom : next sems to be ok for me</p>
+<p>17:16 &lt; jrandom&gt; ok great</p>
+<p>17:16 &lt;+redzara&gt; s/next/next week/</p>
+<p>17:16 &lt; jrandom&gt; ok, this is pretty exciting stuff, it'll be wonderful to get it going smoothly </p>
+<p>17:17 &lt; jrandom&gt; does anyone have anything else to bring up for 4) I2Phex, or shall we move on briefly to 5) Syndie/Sucker?</p>
+<p>17:17 &lt; cervantes&gt; I2P will surely benefit from such killer apps</p>
+<p>17:18 &lt;+fox&gt; &lt;GregorK&gt; btw there is a Phex CVS mailing list for all CVS changes in Phex... if that is of any help</p>
+<p>17:18 &lt; jnymo&gt; *ehem*.. hell yes</p>
+<p>17:18 &lt; jrandom&gt; ok great, thanks GregorK</p>
+<p>17:18 &lt; jrandom&gt; definitely cervantes </p>
+<p>17:19 &lt; jrandom&gt; ok, on 5), I don't really have anything to add beyond whats there</p>
+<p>17:19 &lt; jrandom&gt; dust: are you around?</p>
+<p>17:19 &lt;+redzara&gt; GregorK : Thanks but handlingone version is far enough for me :)</p>
+<p>17:19 &lt; jrandom&gt; hehe redzara </p>
+<p>17:19 &lt; dust&gt; I haven't had much spare time lately, but if I do I'm thinking I'll try to get a handle on this addresses.jsp thing, add 'RSS' in the protocol dropdown in there and then build a path through Updater, Sucker to BlogManager.</p>
+<p>17:20 &lt; dust&gt; unless anyone have a better idea</p>
+<p>17:20 &lt; jrandom&gt; kickass</p>
+<p>17:20 &lt; jrandom&gt; that sounds perfect.</p>
+<p>17:21 &lt; jrandom&gt; though, hmm, maybe it'd need an additional field (the "what blog to post it in" and "what tag prefix")...</p>
+<p>17:21 &lt; jrandom&gt; maybe a separate form/table would make sense, though maybe not</p>
+<p>17:22 &lt; dust&gt; oh, I thought addresses.jsp was for one blog only (since you have to login to get there?)</p>
+<p>17:22 &lt; jrandom&gt; ah, true, good point</p>
+<p>17:23 &lt; jrandom&gt; the updater part is kind of fuzzy, but you're right</p>
+<p>17:23 &lt; dust&gt; (we'll figure it out when we get there)</p>
+<p>17:23 &lt; jrandom&gt; aye</p>
+<p>17:24  * jnymo thinks www.i2p.net could start up a 'merchandise cafe' type thing</p>
+<p>17:24 &lt; jnymo&gt; with eyetoopie shirts that say "I am Jrandom" on them ;)</p>
+<p>17:24  * mrflibble  is still catching up on the "flamewar",  which seems to be spiraling into  a proper flamewar :)</p>
+<p>17:24 &lt; jrandom&gt; heh jnymo </p>
+<p>17:25 &lt; jrandom&gt; yeah, there's a lot of content in that thread</p>
+<p>17:25 &lt; jrandom&gt; ok, maybe this gets us to 6) ???</p>
+<p>17:25 &lt; jrandom&gt; anyone have anything else to bring up for the meeting?</p>
+<p>17:25 &lt;+bar&gt; aye, just a quick note on the symmetric nat issue (been doin a lil snoopin'):</p>
+<p>17:25 &lt;+nickless_head&gt; jrandom: I know the truth!</p>
+<p>17:25 &lt;+fox&gt; &lt;blx&gt; kaffe?</p>
+<p>17:25 &lt; mrflibble&gt; oops,  sorry jr</p>
+<p>17:26 &lt; jnymo&gt; but seriously.. every open source project of any size has their own merchandise section</p>
+<p>17:26 &lt;+nickless_head&gt; jrandom: I have definite proof you hacked the last.fm homepage!</p>
+<p>17:26 &lt;+nickless_head&gt; (the what you get when you sign up section listed 'a pony')</p>
+<p>17:26 &lt; jrandom&gt; jnymo: i think you're right, we will want to explore that avenue, might be a good method of fundraising too</p>
+<p>17:27 &lt; jnymo&gt; jrandom: exactly</p>
+<p>17:27  * mrflibble would buy the tshirt</p>
+<p>17:27 &lt;+bar&gt; right, regarding symmetric nats,</p>
+<p>17:27 &lt;+bar&gt; for what it's worth, i think that unlike for the already supported nats, there's no magic trick. the only way to do it properly, is to study and examine each and every symmetric nat's behaviour and use introducers for probing.</p>
+<p>17:28 &lt; jrandom&gt; blx: the latest kaffe CVS is completely b0rked.  the crypto packages aren't in the source, the prng fails to initialize, and the url handlers can't deal with file:// :(</p>
+<p>17:28 &lt; jnymo&gt; You probably wouldn't want to wear it in public until i2p has a few thousand users though ;)</p>
+<p>17:28 &lt;+bar&gt; (i believe this is how e.g. Hamachi and Skype do udp hole punching from behind symmetric nats)</p>
+<p>17:28 &lt;+nickless_head&gt; jnymo: cups would rule :)</p>
+<p>17:28 &lt;+bar&gt; based on what i have read on the 'net so far, symmetric nat prediction algos pretty much suck.</p>
+<p>17:28 &lt; jrandom&gt; hmm bar</p>
+<p>17:28 &lt; mrflibble&gt; hehe, i wouldn't put my nick on it. oh, and i'm still allive/unarrested even though  i've got an IIP ttshirt</p>
+<p>17:28 &lt; jrandom&gt; yeah, thats what i read too</p>
+<p>17:29 &lt;+bar&gt; i will try gathering some more good, relevant reading material on this.</p>
+<p>17:29 &lt;+redzara&gt; Small question : what was the common average percentage of bytes retransmitted in 0.6.1.3 ?</p>
+<p>17:29 &lt; jrandom&gt; thanks bar</p>
+<p>17:29 &lt;+fox&gt; &lt;jme___&gt; bar, the prediction they got are consistent ? </p>
+<p>17:29 &lt;+fox&gt; &lt;jme___&gt; bar, let me rephrase :)</p>
+<p>17:29 &lt;+fox&gt; &lt;blx&gt; jrandom, i'm sad to hear</p>
+<p>17:30 &lt; jrandom&gt; redzara: I unfortunately forgot to put that into the netDb.  I do see 2.6 and 3.8 right now though</p>
+<p>17:30 &lt; jrandom&gt; blx: me too :(</p>
+<p>17:30 &lt;+fox&gt; &lt;jme___&gt; bar, when you analyze the nat box behaviour and find a formula to predict it. does this always work for this nat box ? or later once it worked, once it fails ?</p>
+<p>17:30 &lt; jrandom&gt; blx: i know they're doing some merging with classpath now though, so hopefully once thats sorted</p>
+<p>17:30 &lt;+fox&gt; &lt;blx&gt; probably means i wont be joining the party</p>
+<p>17:30 &lt; jrandom&gt; blx: are you kaffe-specific, or OSS/DFSG-specific?</p>
+<p>17:31 &lt;+fox&gt; &lt;blx&gt; free software</p>
+<p>17:31 &lt;+fox&gt; &lt;blx&gt; dfsg you could say</p>
+<p>17:31 &lt; jnymo&gt; encase an i2p user wants to use a hosted server for i2p, what would be a liberal, cheap hosted services company to go with?</p>
+<p>17:31 &lt;+bar&gt; jme___: hamachi is reportedly able to mediate 97% of all connection attempts. i guess there are some nats out there that show an almost random behaviour when it comes to assigning ports</p>
+<p>17:32 &lt; jrandom&gt; ok, I'm sure we'll get something going blx.  kaffe used to work, and we don't depend upon anything sun specific</p>
+<p>17:32 &lt; jrandom&gt; jnymo: i use sagonet.net, but they've cranked up their prices from 65/mo to 99/mo (but on a fast link w/ 1250GB/mo)</p>
+<p>17:32 &lt; jrandom&gt; i know there are some cheap ones in germany too</p>
+<p>17:33 &lt;+fox&gt; &lt;jme___&gt; bar, 97% would be terrific</p>
+<p>17:33 &lt; jrandom&gt; redzara: what are you seeing for retransmission rate?</p>
+<p>17:33 &lt;+bar&gt; jme___: yeah, so i guess most symmetric nats are predictable</p>
+<p>17:33 &lt;+fox&gt; &lt;blx&gt; jrandom, i sure hope so. i'm really interested in this shit :)</p>
+<p>17:33 &lt;+fox&gt; &lt;jme___&gt; bar, what would you do ? relay, udp hole punching, cnx reversal.. is there others thech ?</p>
+<p>17:33 &lt; jnymo&gt; is 99 expensive, on average?</p>
+<p>17:34 &lt;+redzara&gt; jrandom between 3;8 and 4.2</p>
+<p>17:34 &lt; jrandom&gt; jme___: we're udp, no need for connection reversal :)</p>
+<p>17:35 &lt;+bar&gt; jme___: i'm no expert, perhaps i'll have some more info for next week's meeting (but it sure smells like profiling + udp hole punching ;)</p>
+<p>17:35 &lt; jrandom&gt; jnymo: for 1250GB, not really.  i've seen 60-120USD/mo for 50-100GB/mo</p>
+<p>17:35 &lt; jrandom&gt; bar: perhaps UPnP would be a better way to go?</p>
+<p>17:35 &lt;+fox&gt; &lt;jme___&gt; jrandom, even with udp it is usefull :)</p>
+<p>17:35 &lt;+redzara&gt; jrandom : but only some node done major impact, maybe some olders</p>
+<p>17:35 &lt;+fox&gt; &lt;jme___&gt; vulpine: ok</p>
+<p>17:35 &lt; jrandom&gt; though that only helps the people who could control their NAT</p>
+<p>17:36 &lt;+fox&gt; &lt;jme___&gt; upnp must be supported but it isnt exclusive to other means</p>
+<p>17:36 &lt; jrandom&gt; well, we're doing everything we do now without any UPnP</p>
+<p>17:36 &lt;+fox&gt; &lt;jme___&gt; because upnp isnt supported by all nat, far from it</p>
+<p>17:36 &lt; jrandom&gt; right, e.g. an ISP's nat</p>
+<p>17:36 &lt;+bar&gt; jrandom: if there are no security issues with upnp, i guess it can't hurt. though, hamachi doesn't use upnp</p>
+<p>17:36 &lt;+fox&gt; &lt;jme___&gt; here by 'must' = to provide the max connectivity</p>
+<p>17:37 &lt;+fox&gt; &lt;jme___&gt; ok going back to my c++ :)</p>
+<p>17:38 &lt; jrandom&gt; right jme___, though if we can do symmetric hole punching in addition to cone/restrited hole punching, we're in great shape</p>
+<p>17:38 &lt; jrandom&gt; l8s jme___</p>
+<p>17:38 &lt; jrandom&gt; yeah, it'd be ideal if we didn't need it</p>
+<p>17:39 &lt; jrandom&gt; ok, anyone have anything else to bring up for the meeting?</p>
+<p>17:41 &lt; jrandom&gt; if not...</p>
+<p>17:41  * jrandom winds up</p>
+<p>17:41  * jrandom *baf*s the meeting closed</p>
+</div>
+{% endblock %}

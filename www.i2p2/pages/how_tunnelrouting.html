@@ -1,0 +1,174 @@
+{% extends "_layout.html" %}
+{% block title %}How tunnelrouting{% endblock %}
+{% block content %}<i>Note: these documents have not yet been updated to include the changes made
+in I2P 0.5 - the new 
+<a href="http://dev.i2p.net/cgi-bin/cvsweb.cgi/i2p/router/doc/tunnel-alt.html?rev=HEAD">tunnel 
+routing and encryption</a> algorithms, addressing <a href="todo#tunnelId">several</a>
+<a href="todo#tunnelLength">issues</a> (with the groundwork for addressing
+<a href="todo#ordering">others</a>).</i>
+
+<p>As briefly explained in the <a href="how_intro">intro</a>, I2P builds virtual "tunnels" -
+temporary and unidirectional paths through a sequence of routers.  These 
+tunnels can be categorized as either inbound tunnels (where everything 
+given to it goes towards the creator of the tunnel) and outbound tunnels
+(where the tunnel creator shoves messages away from them).  When Alice
+wants to send a message to Bob, she will (typically) send it out one of
+her existing outbound tunnels with instructions for that tunnel's endpoint
+to forward it to the gateway router for one of Bob's current inbound 
+tunnels, which in turn passes it to Bob.</p>
+<img src="http://dev.i2p.net/~jrandom/wiki/tunnelSending.png" alt="Tunnel" />
+
+<h2>Tunnel vocabulary</h2>
+<ul>
+	<li class="gap"><b>Tunnel gateway</b> - the first router in a tunnel.  For inbound tunnels,
+		this is the one mentioned in the LeaseSet published in the
+	<a href="how_networkdatabase">network database</a>.  For outbound tunnels, the
+		gateway is the originating router.  (e.g. both A and D above)</li>
+	<li class="gap"><b>Tunnel endpoint</b> - the last router in a tunnel.  (e.g. both C and F above)</li>
+	<li class="gap"><b>Tunnel participant</b> - all routers in a tunnel except for the gateway or
+		endpoint (e.g. both B and E above)</li>
+	<li><b>n-Hop tunnel</b> - a tunnel with a specific number of inter-router jumps, e.g.:
+		<ul>
+			<li><b>0-hop tunnel</b> - a tunnel where the gateway is also the endpoint</li>
+			<li><b>1-hop tunnel</b> - a tunnel where the gateway talks directly to the
+				endpoint</li>
+			<li><b>2-(or more)-hop tunnel</b> - a tunnel where there is at least one
+				tunnel participant. (the above diagram includes two 2-hop tunnels - one
+				outbound from Alice, one inbound to Bob)</li>
+		</ul>
+	</li>
+	<li class="gap"><b>Tunnel lifetime</b> - how long a particular tunnel is
+		supposed to be in operation for (each client specifies this when contacting
+		their router, and the router makes sure sufficient tunnels meeting that
+		criteria are built)</li>
+</ul>
+
+<h2>Tunnel information</h2>
+<p>Routers performing the three roles (gateway, endpoint, participant) are given
+different pieces of data to accomplish their tasks:</p>
+
+<ul>
+	<li class="gap"><b>The tunnel gateway gets:</b>
+		<ul>
+			<li><b>tunnel signing key</b> - a DSA private key for authenticating
+				messages sent down the tunnel</li>
+			<li><b>tunnel encryption key</b> - an AES private key for encrypting
+				messages and instructions to the endpoint</li>
+			<li><b>tunnel id</b> - 4 byte integer (each router can obviously only have
+				one tunnel with each tunnel id at any time)</li>
+			<li><b>next hop [optional]</b> - what router is the next one in the path</li>
+			<li><b>configuration key</b> - an AES private key used by the tunnel's
+				creator for updating the tunnel later on (if necessary)</li>
+		</ul>
+	</li>
+	<li class="gap"> <b>The tunnel endpoint gets:</b>
+		<ul>
+			<li><b>tunnel verification key</b> - a DSA public key for authenticating
+				messages sent down the tunnel</li>
+			<li><b>tunnel encryption key</b> - an AES private key for decrypting
+				messages and instructions sent by the gateway</li>
+			<li><b>tunnel id</b> - 4 byte integer (each router can obviously only have
+				one tunnel with each tunnel id at any time)</li>
+			<li><b>configuration key</b> - an AES private key used by the tunnel's
+				creator for updating the tunnel later on (if necessary)</li>
+		</ul>
+	</li>
+	<li class="gap"><b>All tunnel participants get:</b>
+		<ul>
+			<li><b>tunnel verification key</b> - a DSA public key for authenticating
+				messages sent down the tunnel</li>
+			<li><b>tunnel id</b> - 4 byte integer (each router can obviously only have
+				one tunnel with each tunnel id at any time)</li>
+			<li><b>next hop [optional]</b> - what router is the next one in the path</li>
+			<li><b>configuration key</b> - an AES private key used by the tunnel's
+				creator for updating the tunnel later on (if necessary)</li>
+		</ul>
+	</li>
+</ul>
+
+<p>In addition, there are a series of options that the creator of a tunnel sends
+when requesting a router to join a tunnel, such as the expiration date. In I2P
+3.0, options specifying the pooling, mixing, and chaff generation settings will
+be honored, and limits on the quantity and size of messages allowed during the
+tunnel's lifetime will be implemented earlier (e.g. no more than 300 messages or
+1MB per minute).</p>
+
+<h2>Tunnel length</h2>
+<p>As mentioned above, each client requests that their router provide tunnels to
+include at least a certain number of hops (plus other criteria that aren't
+honored yet, such as bandwidth limits, etc). The decision as to how many routers
+to have in one's outbound and inbound tunnels has an important effect upon the
+latency, throughput, reliabilty, and anonymity provided by I2P - the more peers
+that messages have to go through, the longer it takes to get there and the more
+likely that one of those routers will fail prematurely.  The less routers in a
+tunnel, the easier it is for an adversary to mount traffic analysis attacks and
+pierce someone's anonymity.</p>
+
+<h3>0-hop tunnels</h3>
+<p>With no remote routers in a tunnel, the user has very basic plausible
+deniability (since no one knows for sure that the peer that sent them the
+message wasn't simply just forwarding it on as part of the tunnel). However, it
+would be fairly easy to mount a statistical analysis attack and notice that
+messages targetting a specific destination are always sent through a single
+gateway.  Statistical analysis against outbound 0-hop tunnels are more complex,
+but could show similar information (though would be slightly harder to mount)</p>
+
+<h3>1-hop tunnels</h3>
+<p>With only one remote router in a tunnel, the user has both plausible
+deniability and basic anonymity, as long as they are not up against an internal
+adversary (as described on <a href="how_threatmodel">threat model</a>). However,
+if the adversary ran a sufficient number of routers such that the single remote
+router in the tunnel is often one of those compromised ones, they would be able
+to mount the above statistical traffic analysis attack.</p>
+
+<h3>2-hop (or more) tunnels</h3>
+<p>With two or more remote routers in a tunnel, the costs of mouting the traffic
+analysis attack increases, since all remote routers would have to be compromised
+to mount it.</p>
+
+<p>The router will by default use <b>2-hop tunnels</b>, at least in the main
+distribution.  Prior to the 0.2.5 release, all tunnels were 1-hop by default.</p>
+
+<h2>Tunnel pooling</h2>
+<p>[explain tunnel pools, how we keep a free inbound pool, an outbound pool, and
+a client inbound pool, and how the pools are refreshed every minute or so, using
+the router's default settings]</p>
+
+<h2>Tunnel testing</h2>
+<p>All tunnels are periodically tested by their creator by sending a
+DeliveryStatusMessage out the tunnel and bound for another inbound tunnel
+(testing both tunnels at once).  If either fails, both are marked as no longer
+functional, and if they were used for a client's inbound tunnel, a new leaseSet
+is created.  Other techniques can be used to test tunnels later on, such as
+garlic wrapping a number of tests into cloves, testing individual tunnel
+participants seperately (and using the tunnel configuration key to update the
+next hop to work around failures), etc, but that is not implemented at the
+moment.
+</p>
+
+<h2>Tunnel creation</h2>
+<p>Tunnel creation is handled by <a href="how_garlicrouting">garlic routing</a>
+a TunnelCreateMessage to a router, requesting that they participate in the
+tunnel (providing them with all of the appropriate information, as above, along
+with a certificate, which right now is a 'null' cert, but will support hashcash
+or other non-free certificates when necessary).  The message also includes a
+SourceRouteReplyBlock, which allows the router to encrypt their
+TunnelCreateStatusMessage into a SourceRouteReplyMessage, which is sent to
+another router (specified in the SourceRouteReplyBlock), who then decrypts the
+rest of the SourceRouteReplyBlock, reads out the delivery instructions contained
+therein, and forwards the TunnelCreateStatusMessage accordingly.  (the delivery
+instructions can specify delivery to a specific router or can point at a tunnel)
+</p>
+
+<h2>Issues/todo</h2>
+<ul>
+	<li>We will assign unique tunnel IDs for each router in the tunnel, rather
+		than having a single ID across the whole tunnel.  this would make traffic
+		analysis even harder</li>
+	<li>Get rid of the sourceRouteBlock stuff</li>
+	<li>Should inbound tunnels that will be used by clients ever be used for
+		general messages (network database, etc), rather than being free for use until
+		its allocated?</li>
+	<li>I2P 3.0 tunnel mixing / pooling details</li>
+	<li>Tunnel throttling details</li>
+</ul>{% endblock %}

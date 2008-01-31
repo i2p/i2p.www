@@ -1,0 +1,80 @@
+{% extends "_layout.html" %}
+{% block title %}How elgamalaes{% endblock %}
+{% block content %}<p>
+Within I2P, various messages are encrypted, but we don't want anyone to know 
+to whom or from whom it is bound, so we can't just toss a "to" or "from" address.
+In addition, messages are not delivered in order (or reliably), so we can't simply
+ElGamal encrypt the first message and AES the subsequent messages.  The alternative
+of ElGamal encrypting each individual message is daunting in light of the message
+frequency desired.  Instead, we take each message and evaluate whether it fits into
+the three possible conditions:</p>
+
+<OL>
+
+<li> its ElGamal encrypted to us</li>
+<li> its AES encrypted to us</li>
+<li> its not encrypted to us</li>
+</OL>
+<p>
+If its ElGamal encrypted to us, the message is considered a new session, and
+is encrypted per encryptNewSession(...) in 
+<a href="http://dev.i2p.net/cgi-bin/cvsweb.cgi/i2p/core/java/src/net/i2p/crypto/ElGamalAESEngine.java">[ElGamalAESEngine]</a> 
+as follows -</p>
+
+<p>An initial ElGamal block, encrypted <a href="how_cryptography">as before</a>:</p>
+
+<PRE>
+ |_______1_______2_______3_______4_______5_______6_______7_______8
+ |   32 byte session key
+ |
+ |
+ |                                                               |
+ |   32 byte pre-IV (first 16 bytes of H(pre-IV) == IV)
+ |
+ |
+ |                                                               |
+ | (158 bytes of random data)
+ |                              ...
+ |                                                               |
+</PRE>
+
+<p>Followed by the following, AES encrypted <a href="how_cryptography">as before</a>,
+using the session key and IV from the header:</p>
+
+<PRE>
+ |_______1_______2_______3_______4_______5_______6_______7_______8
+ | # session tags| that many sessionTags (32 byte random numbers)
+ |                              ...
+ |               |  size of the payload (bytes)  | H(payload)
+ |
+ |
+ |
+ |                                               | flag  |payload
+ |                              ...
+ |                                                               |
+ | random bytes leaving the total AES block (size % 16 == 0)     |
+
+</PRE>
+
+<p>If the flag is 0x01, it is followed by a new session key, replacing
+the old one.</p>
+
+<p>The session tags delivered successfully are remembered for a 
+brief period (30 minutes currently) until they are used (and discarded).
+They are used by packaging in a message that is not preceeded by an
+ElGamal block.  Instead, it is encrypted per encryptExistingSession(...) in 
+<a href="http://dev.i2p.net/cgi-bin/cvsweb.cgi/i2p/core/java/src/net/i2p/crypto/ElGamalAESEngine.java">[ElGamalAESEngine]</a> 
+as follows -</p>
+
+<PRE>
+ |_______1_______2_______3_______4_______5_______6_______7_______8
+ | session tag (32 byte random number previously delivered and 
+ |    not yet expired or used).  the session tag also serves as
+ |    the pre-IV (the first 16 bytes of H(sessionTag) == IV)
+ |                                                               |
+</PRE>
+
+<p>Followed by the AES encrypted block above (2 byte # session tags,
+that many session tags, sizeof(payload), H(payload), flag, payload,
+random padding).</p>
+{% endblock %}
