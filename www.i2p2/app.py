@@ -42,6 +42,8 @@ def app(environ, start_response):
             tmpl = env.get_template(path)
             if path[-3:] == 'txt':
                 mime_type='text/plain'
+            if path[-3:] == 'xml':
+                mime_type='text/xml'
         except ValueError:
             tmpl = env.get_template(path + '.html')
     except TemplateNotFound:
