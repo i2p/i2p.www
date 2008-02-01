@@ -1,0 +1,154 @@
+{% extends "_layout.html" %}
+{% block title %}Pages/meeting177.html{% endblock %}
+{% block content %}<h3>I2P dev meeting, April 25, 2005</h3>
+<div class="irclog">
+<p>16:12 &lt; jrandom&gt; 0) hi</p>
+<p>16:12 &lt; jrandom&gt; 1) Net status and 0.6.1.17</p>
+<p>16:12 &lt; jrandom&gt; 2) I2Phex</p>
+<p>16:13 &lt; jrandom&gt;  3) ???</p>
+<p>16:13 &lt; jrandom&gt; 0) hi</p>
+<p>16:13  * jrandom waves</p>
+<p>16:13 &lt;@cervantes&gt; 'lo</p>
+<p>16:13 &lt; jrandom&gt; weekly status notes posted up @ http://dev.i2p.net/pipermail/i2p/2006-April/001283.html</p>
+<p>16:14 &lt; jrandom&gt; while y'all skim that, lets jump into 1) Net status </p>
+<p>16:14 &lt; jrandom&gt; so, as most of y'all have seen, we've got a new release out, and so far, the results have been pretty positive</p>
+<p>16:15 &lt;@cervantes&gt; (yay!)</p>
+<p>16:15 &lt; jrandom&gt; still not where we need to be, but it pretty much sorts out the main issues we were seeing</p>
+<p>16:15 &lt; jrandom&gt; aye, 'tis nice to have halfway decent tunnel build rates again, at 2+ hop tunnels :)</p>
+<p>16:16  * jrandom has 50%+ success rates on another router w/ 1hop tunnels</p>
+<p>16:17 &lt; jrandom&gt; I think the last few changes in 0.6.1.17 should help avoid this sort of congestion collapse in the future as well</p>
+<p>16:17 &lt; jrandom&gt; the user-visible result though is that we'll occationally see lease expirations, but rather than compounding itself, it'll back off</p>
+<p>16:17  * cervantes sparks up azureus</p>
+<p>16:18 &lt;+Complication&gt; This morning, I recorded client tunnel (length 2 +/- 1) success rates near 35%</p>
+<p>16:18 &lt;+Complication&gt; Currently it's lower, since I tried making some modifications, and the latest of them wasn't so great :D</p>
+<p>16:18 &lt;@cervantes&gt; jrandom: well done tracking that down - we were beginning to look like freenet for a bit :)</p>
+<p>16:19 &lt; jrandom&gt; *cough* ;)</p>
+<p>16:20 &lt;+fox&gt; &lt;inkeystring&gt; jrandom: would you mind briefly describing the backoff mechanism? i'm working on something like that for freenet 0.7 at the moment</p>
+<p>16:21 &lt; jrandom&gt; inkeystring: we've had a transport layer backoff mechanism in place to cut down transmissions to a peer when the transport layer is overloaded, but that wasn't sufficient</p>
+<p>16:21 &lt;@cervantes&gt; *cough* did I say freenet, I meant tor</p>
+<p>16:21 &lt;+fox&gt; &lt;inkeystring&gt; :-)</p>
+<p>16:22 &lt; jrandom&gt; inkeystring: the new change was to propogate that up to a higher level so that we stopped trying to build tunnels when our comm layer was saturated</p>
+<p>16:22 &lt; jrandom&gt; (rather than sending more tunnel build attempts)</p>
+<p>16:22 &lt;+fox&gt; &lt;inkeystring&gt; thanks - does the transport layer only back off when packets are lost, or is there some way for the receiver to control the flow?</p>
+<p>16:23  * jrandom seems to recall discussing the impact of congestion *vs* routing w/ toad a few times (on irc and my old flog), though i don't recall any net-positive solution :/</p>
+<p>16:23 &lt; jrandom&gt; the receiver can NACK, and we've got hooks for ECN, but they haven't been necessary</p>
+<p>16:23 &lt;+fox&gt; &lt;inkeystring&gt; yeah the debate has resurfaced on freenet-dev :-) still no silver bullet</p>
+<p>16:24 &lt;+fox&gt; &lt;inkeystring&gt; cool, thanks for the information</p>
+<p>16:24 &lt;+Complication&gt; They're using UDP too these days, aren't they?</p>
+<p>16:24 &lt; jrandom&gt; currently, the highly congested peers have trouble not with per-peer throttling, but with the breadth of the peer comm</p>
+<p>16:24 &lt;+Complication&gt; (as the transport protocol)</p>
+<p>16:24 &lt;+fox&gt; &lt;inkeystring&gt; breadth = number of peers?</p>
+<p>16:24 &lt; jrandom&gt; yes</p>
+<p>16:25 &lt; jrandom&gt; with the increased tunnel success rates, peers no longer need to talk to hundreds of peers just to get a tunnel built</p>
+<p>16:25 &lt; jrandom&gt; so they can get by with just 20-30 peers</p>
+<p>16:25 &lt; jrandom&gt; (directly connected peers, that is)</p>
+<p>16:26 &lt;+fox&gt; &lt;inkeystring&gt; i guess that's good news for nat hole punching, keepalives etc?</p>
+<p>16:26 &lt; jrandom&gt; otoh, w/ 2-300 active SSU connections, a 6KBps link is going to have trouble</p>
+<p>16:26 &lt; jrandom&gt; aye</p>
+<p>16:26 &lt;+fox&gt; &lt;inkeystring&gt; Complication: yes</p>
+<p>16:27 &lt;+fox&gt; &lt;inkeystring&gt; (in the 0.7 alpha)</p>
+<p>16:27 &lt;+Complication&gt; Aha, then they're likely facing some similar stuff</p>
+<p>16:27 &lt;+Complication&gt; I hope someone finds the magic bullet :D</p>
+<p>16:27 &lt; jrandom&gt; in a different way though.  the transport layer is a relatively easy issue</p>
+<p>16:27 &lt;+fox&gt; &lt;inkeystring&gt; i think they might have reused some of the SSU code... or at least they talked about it</p>
+<p>16:27 &lt; jrandom&gt; (aka well studied for 30+ years)</p>
+<p>16:28 &lt; jrandom&gt; but i2p (and freenet) load balancing works at a higher level than point to point links, and has different requirements</p>
+<p>16:28 &lt;+fox&gt; &lt;inkeystring&gt; yeah it's the interaction with routing that's tricky</p>
+<p>16:29 &lt; jrandom&gt; aye, though i2p's got it easy (we don't need to find specific peers with the data in question, just anyone with capacity to participate in our tunnels)</p>
+<p>16:30 &lt;+fox&gt; &lt;inkeystring&gt; so there's no efficiency loss if you avoid an overloaded peer...</p>
+<p>16:30 &lt;+fox&gt; &lt;inkeystring&gt; whereas in freenet, routing around an overloaded peer could increase the path length</p>
+<p>16:30 &lt;+fox&gt; &lt;inkeystring&gt; anyway sorry this is OT</p>
+<p>16:31 &lt; jrandom&gt; np, though explaining why the changes in 0.6.1.17 affect our congestion collapse was relevent :)</p>
+<p>16:31 &lt; jrandom&gt; ok, anyone else have anything for 1) Net status?</p>
+<p>16:32 &lt;+Complication&gt; Well, as actually mentioned before, while running pure .17, I observed a noticable periodism in bandwidth and active peers</p>
+<p>16:32 &lt;+Complication&gt; And a few other people seem to experience it too, though I've got no clue about how common it is</p>
+<p>16:33 &lt;+Complication&gt; I've been wondering about its primary causes, mostly from the perspective of tunnel throttling, but no solution yet</p>
+<p>16:33 &lt;+Complication&gt; I managed to get my own graphs to look flatter, but only at the cost of some overall deterioration</p>
+<p>16:33 &lt;+Complication&gt; Tried modifications like:</p>
+<p>16:34 &lt;+Complication&gt; &gt; _log.error("Allowed was " + allowed + ", but we were overloaded, so ended up allowing " + Math.min(allowed,1));</p>
+<p>16:34 &lt;+Complication&gt; (this was to avoid it totally refraining from build attempts for its own tunnels)</p>
+<p>16:35 &lt; jrandom&gt; ah right</p>
+<p>16:35 &lt;+Complication&gt; (oh, and naturally the loglevel is wacky, since I changed those for testing)</p>
+<p>16:35 &lt; jrandom&gt; we've got some code in there that tries to skew the periodicity a bit, but it isn't working quite right (obviously)</p>
+<p>16:36  * perv just shot his system :(</p>
+<p>16:36 &lt;+Complication&gt; But I tried some things like that, and tried reducing the growth factor for tunnel counts</p>
+<p>16:36 &lt; perv&gt; is there an undelete for reiser4?</p>
+<p>16:36 &lt; jrandom&gt; basically, if we just act as if tunnels expire (randomly) earlier than they actually do, it should help</p>
+<p>16:36 &lt;+Complication&gt; Currently reading the big "countHowManyToBuild" function in TunnelPool.java :D</p>
+<p>16:36 &lt;+Complication&gt; But I've not read it through yet</p>
+<p>16:37 &lt; jrandom&gt; (though it'd obviously increase the tunnel build frequency, which prior to 0.6.1.17, wouldn't have been reasonable)</p>
+<p>16:37 &lt;+Complication&gt; perv: there is something</p>
+<p>16:37 &lt; jrandom&gt; hmm, putting a randomization in there would be tough Complication, as we call that function quite frequently</p>
+<p>16:38  * perv considers salvaging and switching to gentoo</p>
+<p>16:38 &lt; jrandom&gt; what i'd recommend would be to look at randomizing the expiration time of successfully built tunnels</p>
+<p>16:38 &lt;+Complication&gt; perv: you're better off with reiser than ext3, certainly</p>
+<p>16:38 &lt;+Complication&gt; perv: but I don't know it by heart</p>
+<p>16:38 &lt;+Complication&gt; jrandom: true, sometimes it could overbuild this way</p>
+<p>16:38 &lt; jrandom&gt; (so that the existing countHowManyToBuild thinks it needs them before it actually does)</p>
+<p>16:38 &lt;+Complication&gt; (and sometimes it inevitably overbuilds, when tunnels break and it gets hasty)</p>
+<p>16:40 &lt;+Complication&gt; Hmm, a possibility I've not considered...</p>
+<p>16:41 &lt;+Complication&gt; Either way, playing with it too, but no useful observations yet</p>
+<p>16:42 &lt; jrandom&gt; cool, i've got some tweaks i've been playing with on that, perhaps we can get those together for the next build to see how it works on the reasonably-viable net ;)</p>
+<p>16:43 &lt; spinky&gt; Is there a stat where you can see the amount of overhead the i2p network adds to the application data?</p>
+<p>16:43 &lt; jrandom&gt; "overhead" is such a loaded term... ;)</p>
+<p>16:43 &lt; jrandom&gt; we call it the cost of anonymity ;)</p>
+<p>16:43 &lt; spinky&gt; hehe</p>
+<p>16:45 &lt; jrandom&gt; (aka not really.  application layer payload on a perfect net w/ 0 congestion & 1+1hops gets something like 70-80% efficiency for the endpoints)</p>
+<p>16:45 &lt; jrandom&gt; ((last i measured))</p>
+<p>16:45 &lt; jrandom&gt; but thats really lab conditions</p>
+<p>16:45 &lt; jrandom&gt; live net is much more complicated</p>
+<p>16:47 &lt; spinky&gt; Right, I meant just the amount of extra data used for setting up tunnels, keys, padding etc </p>
+<p>16:47 &lt; spinky&gt; ...compared to the application data transferred</p>
+<p>16:47 &lt; jrandom&gt; depends on the message framing, congestion, tunnel build success rates, etc</p>
+<p>16:48 &lt; jrandom&gt; a 2 hop tunnel can be built by the network bearing 20KB</p>
+<p>16:48 &lt;+Complication&gt; I've wanted to test that sometimes, primarily with the goal of estimating the "wastefulness" of mass transfer applications like BitTorrent and I2Phex</p>
+<p>16:48 &lt;+Complication&gt; But I never got around to doing a clean measurement between my two nodes</p>
+<p>16:48 &lt;+Complication&gt; Some day, I'll get back to that, though</p>
+<p>16:49 &lt; jrandom&gt; Complication: its pretty tough with chatty apps, much simpler to measure wget :)</p>
+<p>16:49 &lt;+Complication&gt; How very true</p>
+<p>16:50 &lt;+Complication&gt; In what I managed to try, no resemblance of precision was involved</p>
+<p>16:54 &lt; jrandom&gt; ok, if there's nothing else on 1), lets slide on over to 2) I2Phex</p>
+<p>16:55 &lt; jrandom&gt; Complication: whatcha upta?  :)</p>
+<p>16:55 &lt;+Complication&gt; Well, yesterday's commit was a fix to certain problems which some people experienced with my silly first-run detector</p>
+<p>16:56 &lt;+Complication&gt; The first-run detector is now less silly, and bar reported that it seemed to start behaving normally</p>
+<p>16:56 &lt;+Complication&gt; However, since I2Phex seems runnable already in current network conditions,</p>
+<p>16:56 &lt;+Complication&gt; I'll try finding the rehash bug too.</p>
+<p>16:57 &lt;+Complication&gt; If I only can</p>
+<p>16:57 &lt; jrandom&gt; cool, i know that one has been haunting you for months now </p>
+<p>16:57 &lt;+Complication&gt; What is interesting that mainline Phex may also have it, and locating + reading their observations is something I'll try doing too</p>
+<p>16:58 &lt; jrandom&gt; but nice to hear the startup fix is in there</p>
+<p>16:58 &lt; jrandom&gt; ah word</p>
+<p>16:58 &lt;+Complication&gt; =is that</p>
+<p>16:58 &lt;+Complication&gt; I can't confirm currently if mainline Phex has it or not, though - never seen it personally there</p>
+<p>16:59 &lt; jrandom&gt; (intermittent bugs)--</p>
+<p>16:59 &lt;+Complication&gt; It's difficult to cause in controlled fashion, and thus difficult to find</p>
+<p>17:00 &lt;+Complication&gt; And on my side, that's about all currently</p>
+<p>17:00 &lt;+Complication&gt; Later on, I was wondering if it would be worthwhile to limit the number of parallel peer contacting attempts I2Phex fires at a time</p>
+<p>17:01 &lt; jrandom&gt; aye, likely</p>
+<p>17:01 &lt;+Complication&gt; Since they'd create a whole bunch of NetDB lookups in a short time, and that could be potentially not-so-nice from an I2P router's perspective</p>
+<p>17:02 &lt; jrandom&gt; and new destination contacts require elG instead of aes</p>
+<p>17:02 &lt;+Complication&gt; But I've not read or written any actual code towards that goal yet</p>
+<p>17:04 &lt; jrandom&gt; k np.  perhaps the mythical i2phex/phex merge'll bundle a solution :)</p>
+<p>17:04 &lt;+Complication&gt; And on my part, that's about all the news from the I2Phex front...</p>
+<p>17:04 &lt; jrandom&gt; cool, thanks for the update and the effort looking into things!</p>
+<p>17:05 &lt; jrandom&gt; ok, lets jump on over to 3) ???</p>
+<p>17:05 &lt; jrandom&gt; anyone have anything else to bring up for the meeting?</p>
+<p>17:05 &lt; lsmith&gt; hello! i just want to commend the devs on the fantastic improvements with the latest release, my total bw reads 0.9/1.4 KBps and i remain connected to irc... it's...insanely cool :)</p>
+<p>17:05 &lt;+Complication&gt; :D</p>
+<p>17:06 &lt; jrandom&gt; thanks for your patience along the way - supporting low bw users is critical</p>
+<p>17:06 &lt;@cervantes&gt; lsmith: that's really good to</p>
+<p>17:06 &lt;@cervantes&gt; * Connection Reset</p>
+<p>17:06 &lt; jrandom&gt; heh</p>
+<p>17:07 &lt; lsmith&gt; :)</p>
+<p>17:09 &lt; jrandom&gt; oh, one other thing of note is that zzz is back, and with 'im comes stats.i2p :)</p>
+<p>17:09 &lt; jrandom&gt; [wewt]</p>
+<p>17:11 &lt;+Complication&gt; A quite useful source of comparison data :)</p>
+<p>17:11 &lt; jrandom&gt; mos' def'</p>
+<p>17:11 &lt; jrandom&gt; ok, anyone have anything else for the meeting?</p>
+<p>17:13 &lt; jrandom&gt; if not...</p>
+<p>17:13 &lt; jdot&gt; i have a post-baf question or two</p>
+<p>17:13 &lt; jrandom&gt; heh ok, then lets get the baffer rollin' :)</p>
+<p>17:13  * jrandom winds up...</p>
+<p>17:13  * jrandom *baf*s the meeting closed</p>
+</div>
+{% endblock %}

@@ -1,0 +1,54 @@
+{% extends "_layout.html" %}
+{% block title %}How garlicrouting{% endblock %}
+{% block content %}<p>
+As briefly explained on the <a href="how_intro">intro</a>, in addition to sending 
+messages through tunnels (via <a href="how_tunnelrouting">tunnels</a>), I2P uses a technique called
+"garlic routing" - layered encryption of messages, passing through routers 
+selected by the original sender.  This is similar to the way Mixmaster
+(see <a href="how_networkcomparisons">network comparisons</a>) sends messages - taking a message, encrypting it
+to the recipient's public key, taking that encrypted message and encrypting
+it (along with instructions specifying the next hop), and then taking that
+resulting encrypted message and so on, until it has one layer of encryption
+per hop along the path.  The only significant difference between that technique
+and I2P's garlic routing is that at each layer, any number of messages can be
+contained, instead of just a single message.
+
+<p>
+<img src="http://dev.i2p.net/~jrandom/wiki/garlic.png">
+<p>
+In addition to the cloves, each unwrapped garlic message contains a sender
+specified amount of padding data, allowing the sender to take active countermeasures 
+against traffic analysis.
+<p>
+<H2>Uses within I2P</H2>
+
+<p>
+I2P uses garlic routing in three places:
+<UL>
+<li> For building tunnels
+<li> For determining the success or failure of end to end message delivery (by wrapping an additional 
+     DeliveryStatusMessage in with the payload, where the clove containing the DeliveryStatusMessage 
+     has instructions forwarding it back through other routers and tunnels to the original sender)
+
+<li> For publishing some network database entries (dampening the probability of a successful traffic analysis attack)
+</UL>
+<p>
+There are also significant ways that this technique can be used to improve the performance of the network, 
+exploiting transport latency/throughput tradeoffs, and branching data through redundant paths to increase reliability.  
+<p>
+<H2>Encryption</H2>
+
+<p>
+The encryption of each layer in the garlic message uses the <a href="how_elgamalaes">ElGamal/AES+SessionTag</a> algorithm, 
+which avoids the cost of a full 2048bit ElGamal encryption for subsequent messages (using instead a random previously 
+specified SessionTag plus 256bit AES encryption).
+<p>
+<H2>References</H2>
+
+<p>
+The term garlic routing was first coined by Michael Freedman in Roger Dingledine's freehaven 
+<a href="http://www.freehaven.net/doc/freehaven10.ps">[masters thesis]</a>, which was derived from 
+<a href="http://onion-router.net/">[Onion Routing]</a>.  The main difference with I2P's garlic routing
+is that the path is unidirectional - there is no "turning point" as seen in onion routing
+or mixmaster reply blocks, which greatly simplifies the algorithm and allows for more flexible
+and reliable delivery.{% endblock %}
