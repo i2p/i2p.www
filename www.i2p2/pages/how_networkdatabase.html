@@ -166,7 +166,7 @@ Floodfill was introduced in release 0.6.0.4, keeping Kademlia as a backup algori
 </p>
 
 <p>
-(Adapted from a post by jrandom in the old Syndie, Nov. 26, 2005)
+(Adapted from posts by jrandom in the old Syndie, Nov. 26, 2005)
 <br />
 As I've often said, I'm not particularly bound to any specific technology - 
 what matters to me is what will get results.  While I've been working through 
@@ -288,6 +288,26 @@ eepsite/irc/bt/mail/syndie/etc data.  We can even do some optimizations as I2P
 grows to distribute that load a bit further (perhaps passing bloom filters 
 between the netdb participants to see what they need to share), but it seems we 
 can get by with a much simpler solution for now.
+</p><p>
+One fact may be worth digging 
+into - not all leaseSets need to be published in the netdb!  In fact, most 
+don't need to be - only those for destinations which will be receiving 
+unsolicited messages (aka servers).  This is because the garlic wrapped 
+messages sent from one destination to another already bundles the sender's 
+leaseSet so that any subsequent send/recv between those two destinations 
+(within a short period of time) work without any netdb activity.
+</p><p>
+So, back at those equations, we can change L from 5 to something like 0.1 
+(assuming only 1 out of every 50 destinations is a server).  The previous 
+equations also brushed over the network load required to answer queries from 
+clients, but while that is highly variable (based on the user activity), it's 
+also very likely to be quite insignificant as compared to the publishing 
+frequency.
+</p><p>
+Anyway, still no magic, but a nice reduction of nearly 1/5th the bandwidth/disk 
+space required (perhaps more later, depending upon whether the routerInfo 
+distribution goes directly as part of the peer establishment or only through 
+the netdb).
 </p>
 
 <h3>The Disabling of the Kademlia Algorithm</h3>
