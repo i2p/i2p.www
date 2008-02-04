@@ -5,7 +5,7 @@
 <center>
 <b class="title">Introducing I2P</b><br />
 <span class="subtitle">a scalable framework for anonymous communication</span><br />
-<i style="font-size: 8">$Id: techintro.html,v 1.8.2.1 2006/02/13 07:13:35 jrandom Exp $</i>
+<!-- <i style="font-size: 8">$Id: techintro.html,v 1.8.2.1 2006/02/13 07:13:35 jrandom Exp $</i> -->
 <br />
 <br />
 
@@ -47,6 +47,7 @@ FOR MORE INFORMATION
   * <a href="how_networkdatabase.html">NetDb Status</a>
   * <a href="package-naming.html">Naming Javadoc</a>
   * <a href="jbigi.html">Native BigInteger Lib</a>
+  * <a href="ntcp.html">NTCP</a>
   * <a href="performance.html">Performance</a>
   * <a href="sam.html">SAM</a>
   * <a href="samv2.html">SAM V2</a>
@@ -447,11 +448,21 @@ Communication between routers needs to provide confidentiality and integrity
 against external adversaries while authenticating that the router contacted
 is the one who should receive a given message.  The particulars of how routers
 communicate with other routers aren't critical - three separate protocols have
-been used at different points to provide those bare necessities.  To accommodate
+been used at different points to provide those bare necessities.
+</p><p>
+
+I2P started with a
+<a href="package-tcp.html">TCP-based protocol</a> which has since been disabled.
+Then, to accommodate
 the need for high degree communication (as a number of routers will end up 
 speaking with many others), I2P moved from a TCP based transport
-to a UDP based one - "Secure Semireliable UDP", or "SSU".  As described in the
-<a href="/udp.html">SSU spec</a>:</p>
+to a 
+<a href="udp.html">UDP-based one</a>
+ - "Secure Semireliable UDP", or "SSU". 
+
+</p><p>
+As described in the
+<a href="udp.html">SSU spec</a>:</p>
 
 <blockquote>
 The goal of this protocol is to provide secure, authenticated, 
@@ -462,6 +473,33 @@ PMTU detection. It should be capable of efficiently moving bulk data at rates
 sufficient for home users. In addition, it should support techniques for 
 addressing network obstacles, like most NATs or firewalls.
 </blockquote>
+
+<p>
+Following the introduction of SSU, after issues with congestion collapse appeared,
+a new NIO-based TCP transport called
+<a href="ntcp.html">NTCP</a> was implemented.
+It is enabled by default for outbound
+connections only.  Those who configure their NAT/firewall to allow
+inbound connections and specify the external host and port
+(dyndns/etc is ok) on /config.jsp can receive inbound connections.
+As NTCP is NIO based, so it doesn't suffer from the 1 thread per connection issues of the old TCP transport.
+
+</p><p>
+I2P supports multiple transports simultaneously.
+A particular transport for an outbound connection is selected with "bids".
+Each transport bids for the connection and the relative value of these bids
+assigns the priority.
+Transports may reply with different bids, depending on whether there is
+already an established connection to the peer.
+</p><p>
+
+The current implementation ranks NTCP as the highest-priority transport for outbound connections in
+most situations. SSU is enabled for both outbound and inbound connections.
+Your firewall and your I2P router must be configured to allow inbound NTCP connections.
+For further information see the
+<a href="ntcp.html">NTCP page</a>.
+
+</p>
 
 <h2 id="op.crypto">Cryptography</h2>
 
