@@ -1,0 +1,136 @@
+{% extends "_layout.html" %}
+{% block title %}Streaming Lib{% endblock %}
+{% block content %}
+<h2>Overview</h2>
+
+<p>
+The streaming library is technically part of the "application" layer,
+as it is not a core router function.
+In practice, however, it provides a vital function for almost all
+existing I2P applications, by providing a TCP-like
+streams over I2P, and allowing exising apps to be easily ported to I2P.
+</p>
+
+<p>The streaming library is a layer on top of the core 
+<a href="i2cp">I2CP</a> that allows reliable, in order, and authenticated streams
+of messages to operate across an unreliable, unordered, and unauthenticated 
+message layer.  Just like the TCP to IP relationship, this streaming 
+functionality has a whole series of tradeoffs and optimizations available, but
+rather than embed that functionality into the base I2P code, it has been factored
+off into its own library both to keep the TCP-esque complexities seperate and to
+allow alternative optimized implemenations.</p>
+
+<h2>History</h2>
+<p><i>copied from the tech intro</i></p>
+<p>
+The streaming library has grown organically for I2P - first mihi implemented the
+"mini streaming library" as part of I2PTunnel, which was limited to a window
+size of 1 message (requiring an ACK before sending the next one), and then it was
+refactored out into a generic streaming interface (mirroring TCP sockets) and the
+full streaming implementation was deployed with a sliding window protocol and 
+optimizations to take into account the high bandwidth x delay product.  Individual
+streams may adjust the maximum packet size and other options, though the default
+of 4KB compressed seems a reasonable tradeoff between the bandwidth costs of 
+retransmitting lost messages and the latency of multiple messages.
+</p>
+
+<p>
+In addition, in consideration of the relatively high cost of subsequent messages, 
+the streaming library's protocol for scheduling and delivering messages has been optimized to
+allow individual messages passed to contain as much information as is available.
+For instance, a small HTTP transaction proxied through the streaming library can
+be completed in a single round trip - the first message bundles a SYN, FIN, and
+the small payload (an HTTP request typically fits) and the reply bundles the SYN,
+FIN, ACK, and the small payload (many HTTP responses fit).  While an additional
+ACK must be transmitted to tell the HTTP server that the SYN/FIN/ACK has been
+received, the local HTTP proxy can deliver the full response to the browser 
+immediately.  
+</p>
+
+<p>
+On the whole, however, the streaming library bears much resemblance to an 
+abstraction of TCP, with its sliding windows, congestion control algorithms
+(both slow start and congestion avoidance), and general packet behavior (ACK,
+SYN, FIN, RST, rto calculation, etc).  
+</p>
+
+
+<h2>Usage</h2>
+<p>
+The standard interface to the streaming lib is for the application to set up
+a I2PSocketManagerFactory from the <a href="ministreaming.html">ministreaming lib</a>.
+Only I2PSocketManagerFactory is used here - everything else is from the full streaming lib
+(I2PSocketManagerFull, not I2PSocketManagerImpl, and I2PSocketFull, not I2PSocketImpl).
+The remainder of the ministreaming lib is not normally used - don't be confused.
+</p>
+
+<p>
+For a good example of usage, see the i2psnark code.
+</p>
+
+
+<h2>Status</h2>
+<p>The streaming lib has many advantages over the ministreaming library was written by mihi as a part of his 
+<a href="i2ptunnel">I2PTunnel</a> application.
+The streaming library is
+a more robust streaming library
+which is further optimized for operation over I2P.  The two main issues with 
+the ministreaming library are its use of the traditional TCP two phase 
+establishment protocol and the current fixed window size of 1.
+jhe streaming lib fixes both of these issues - it has a one-phase setup, and
+it contains a full windowing implementation.
+</p>
+
+<p>
+Significant tuning of the streaming lib parameters,
+greatly increasing outbound performance, was implemented in 0.6.1.28.
+After the changes in that release, the current default values
+in the implementation are listed below.
+These values are tuned for HTTP performance over typical I2P conditions. Other applications such
+as peer-to-peer services are strongly encouraged to
+modify as necessary, by setting the options and passing them via the call to
+I2PSocketManagerFactory.createManager(_i2cpHost, _i2cpPort, opts).
+Time values are in ms.
+<ul>
+<li>MIN_RESEND_DELAY = 2*1000
+<li>MAX_RESEND_DELAY = 45*1000
+<li>DISCONNECT_TIMEOUT = 5*60*1000
+<li>INITIAL_RECEIVE_WINDOW = 1
+<li>INITIAL_WINDOW_SIZE = 12 // i2psnark sets to 1
+<li>MIN_WINDOW_SIZE = 1
+<li>MAX_WINDOW_SIZE = 64
+<li>TREND_COUNT = 3
+<li>DEFAULT_MAX_SENDS = 8
+<li>RTT_DAMPENING = 0.9
+<li>PROFILE_BULK
+<li>MAX_MESSAGE_SIZE = 960 // 960 fits inside a single tunnel message
+<li>INITIAL_RTT = 10*1000
+<li>INITIAL_RESEND_DELAY = 1000
+<li>INITIAL_ACK_DELAY = 2000
+<li>INACTIVITY_TIMEOUT = 90*1000
+<li>CONGESTION_AVOIDANCE_GROWTH_RATE_FACTOR = 1
+<li>SLOW_START_GROWTH_RATE_FACTOR = 1
+</ul>
+</p>
+
+<p>
+The interaction of the routing algorithms with the streaming lib strongly affects performance.
+In particular, random distribtion of messages to multiple tunnels in a pool
+leads to a high degree of out-of-order delivery which results in smaller window
+sizes than would otherwise be the case.
+In release 0.6.1.30, the routing of messages to the outbound tunnels was made
+consistent, with pushback when a tunnel was backlogged.
+This had a significant positive impact on bandwidths.
+The pushback code was reverted in release 0.6.1.31 due to anonymity concerns.
+Consistent message routing to inbound tunnels is more difficult,
+as there is currently no tracking in the code of the message source.
+Perhaps to be implemented in 0.6.1.32.
+</p>
+
+<p>
+Another area for research is the interaction of the streaming lib with the
+NTCP and SSU transport layers.
+See <a href="ntcp.html">the NTCP page</a> for a discussion.
+</p>
+
+{% endblock %}
