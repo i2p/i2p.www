@@ -1,6 +1,7 @@
 {% extends "_layout.html" %}
-{% block title %}How networkdatabase{% endblock %}
-{% block content %}<p>I2P's network database is a specialized kademlia derived DHT, containing 
+{% block title %}How the Network Database (netDb) Works{% endblock %}
+{% block content %}
+<p>I2P's netDb is a specialized distributed database, containing 
 just two types of data - router contact information and destination contact
 information.  Each piece of data is signed by the appropriate party and verified
 by anyone who uses or stores it.  In addition, the data has liveliness information
@@ -8,6 +9,19 @@ within it, allowing irrelevent entries to be dropped, newer entries to replace
 older ones, and, for the paranoid, protection against certain classes of attack.
 (Note that this is also why I2P bundles in the necessary code to determine the
 correct time).</p>
+
+<p>
+The netDb is distributed with a simple technique called "floodfill".
+Previously, the netDb also used kademlia as a fallback algorithm. However,
+it did not work will in our application, and it was completely disabled
+in release 0.6.1.20. More information is <a href="status">below</a>.
+</p>
+
+<p>
+Note that this document has been updated to include floodfill details,
+but there are still some incorrect statements about the use of kademlia that
+need to be fixed up.
+</p>
 
 <h2><a name="routerInfo">RouterInfo</a></h2>
 
@@ -60,7 +74,48 @@ netDb directory.  To simplify the process of finding someone with a RouterInfo,
 an alias has been made to the <a href="http://dev.i2p.net/i2pdb/">netDb</a> dir
 of one of the routers on dev.i2p.net.</p>
 
+<h2><a name="floodfill">Floodfill</a></h2>
+<p>
+(Adapted from a post by jrandom in the old Syndie, Nov. 26, 2005)
+<br />
+The floodfill netDb is really just a simple and perhaps temporary measure, 
+using the simplest possible algorithm - send the data to a peer in the 
+floodfill netDb, wait 10 seconds, pick a random peer in the netDb and ask them 
+for the entry to be sent, verifying its proper insertion / distribution.  If the 
+verification peer doesn't reply, or they don't have the entry, the sender 
+repeats the process.  When the peer in the floodfill netDb receives a netDb 
+store from a peer not in the floodfill netDb, they send it to all of the peers 
+in the floodfill netDb.
+</p><p>
+Peers still do netDb exploration and bootstrapping as before.
+</p><p>
+At one point, the kademlia 
+search/store functionality was still in place.  The peers 
+considered the floodfill peers as always being 'closer' to every key than any 
+peer not participating in the netDb.  We fell back on the kademlia 
+netDb if the floodfill peers fail for some reason or another.
+However, kademlia has since been disabled completely (see below).
+</p><p>
+Determining who is part of the floodfill netDb is trivial - its exposed in each 
+router's published routerInfo.  If too many peers publish that flag, we may 
+have to have peers publish the list of peers they consider as being in the 
+netDb, but perhaps not, since these peers are not anonymous - if router X 
+publishes the flag and they suck, we know router X's IP and can handle them 
+accordingly.
+</p><p>
+As for efficiency, this algorithm is optimal when the netDb peers are known and 
+their quantity is appropriate for the appropriate uptime demands.  Regarding 
+scaling, we've got two peers who participate in the netDb right now, and 
+they'll be able to handle the load by themselves until we've got 10k+ eepsites 
+- at that point, we can toss on a few more or work out some more aggressive 
+load balancing among the netDb peers, but worrying about it when we have dozens 
+of eepsites may be a bit premature.  It's not as sexy as the old 
+kademlia netDb, but there are subtle anonymity attacks against non-flooded 
+netDbs.
+</p>
+
 <h2><a name="healing">Healing</a></h2>
+<i>Needs update since kademlia is disabled.</i>
 
 <p>While the kademlia algorithm is fairly efficient at maintaining the necessary
 links, we keep additional statistics regarding the netDb's activity so that we 
@@ -103,13 +158,218 @@ for a particular destination is sensitive (the fact that someone is <i>publishin
 a LeaseSet even more so!).  To address this, netDb searches and netDb store 
 messages are simply sent through the router's exploratory tunnels.</p>
 
-<h2><a name="status">Status</a></h2>
+<h2><a name="status">History and Status</a></h2>
 
+<h3>The Introduction of the Floodfill Algorithm</h3>
+<p>
+Floodfill was introduced in release 0.6.0.4, keeping Kademlia as a backup algorithm.
+</p>
+
+<p>
+(Adapted from posts by jrandom in the old Syndie, Nov. 26, 2005)
+<br />
+As I've often said, I'm not particularly bound to any specific technology - 
+what matters to me is what will get results.  While I've been working through 
+various netdb ideas over the last few years, the issues we've faced in the last 
+few weeks have brought some of them to a head.  On the live net, 
+with the netdb redundancy factor set to 4 peers (meaning we keep sending an 
+entry to new peers until 4 of them confirm that they've got it) and the 
+per-peer timeout set to 4 times that peer's average reply time, we're 
+<b>still</b> getting an average of 40-60 peers sent to before 4 ack the store.  
+That means sending 36-56 times as many messages as should go out, each using 
+tunnels and thereby crossing 2-4 links.  Even further, that value is heavily 
+skewed, as the average number of peers sent to in a 'failed' store (meaning 
+less than 4 people acked the message after 60 seconds of sending messages out) 
+was in the 130-160 peers range.
+</p><p>
+This is insane, especially for a network with only perhaps 250 peers on it.  
+</p><p>
+The simplest answer is to say "well, duh jrandom, it's broken.  fix it", but 
+that doesn't quite get to the core of the issue.  In line with another current 
+effort, it's likely that we have a substantial number of network issues due to 
+restricted routes - peers who cannot talk with some other peers, often due to 
+NAT or firewall issues.  If, say, the K peers closest to a particular netdb 
+entry are behind a 'restricted route' such that the netdb store message could 
+reach them but some other peer's netdb lookup message could not, that entry 
+would be essentially unreachable.  Following down those lines a bit further and 
+taking into consideration the fact that some restricted routes will be created 
+with hostile intent, its clear that we're going to have to look closer into a 
+long term netdb solution.
+</p><p>
+There are a few alternatives, but two worth mentioning in particular.  The 
+first is to simply run the netdb as a kademlia DHT using a subset of the full 
+network, where all of those peers are externally reachable.  Peers who are not 
+participating in the netdb still query those peers but they don't receive 
+unsolicited netdb store or lookup messages.  Participation in the netdb would 
+be both self-selecting and user-eliminating - routers would choose whether to 
+publish a flag in their routerInfo stating whether they want to participate 
+while each router chooses which peers it wants to treat as part of the netdb 
+(peers who publish that flag but who never give any useful data would be 
+ignored, essentially eliminating them from the netdb).
+</p><p>
+Another alternative is a blast from the past, going back to the DTSTTCPW 
+mentality - a floodfill netdb, but like the alternative above, using only a 
+subset of the full network.  When a user wants to publish an entry into the 
+floodfill netdb, they simply send it to one of the participating routers, wait 
+for an ACK, and then 30 seconds later, query another random participant in the 
+floodfill netdb to verify that it was properly distributed.  If it was, great, 
+and if it wasn't, just repeat the process.  When a floodfill router receives a 
+netdb store, they ACK immediately and queue off the netdb store to all of its 
+known netdb peers.  When a floodfill router receives a netdb lookup, if they 
+have the data, they reply with it, but if they don't, they reply with the 
+hashes for, say, 20 other peers in the floodfill netdb.
+</p><p>
+Looking at it from a network economics perspective, the floodfill netdb is 
+quite similar to the original broadcast netdb, except the cost for publishing 
+an entry is borne mostly by peers in the netdb, rather than by the publisher.  
+Fleshing this out a bit further and treating the netdb like a blackbox, we can 
+see the total bandwidth required by the netdb to be:<pre>
+  recvKBps = N * (L + 1) * (1 + F) * (1 + R) * S / T
+</pre>where<pre>
+  N = number of routers in the entire network
+  L = average number of client destinations on each router 
+      (+1 for the routerInfo)
+  F = tunnel failure percentage 
+  R = tunnel rebuild period, as a fraction of the tunnel lifetime
+  S = average netdb entry size
+  T = tunnel lifetime
+</pre>Plugging in a few values:<pre>
+  recvKBps = 1000 * (5 + 1) * (1 + 0.05) * (1 + 0.2) * 2KB / 10m
+           = 25.2KBps
+</pre>That, in turn, scales linearly with N (at 100,000 peers, the netdb must 
+be able to handle netdb store messages totalling 2.5MBps, or, at 300 peers, 
+7.6KBps).  
+</p><p>
+While the floodfill netdb would have each netdb participant receiving only a 
+small fraction of the client generated netdb stores directly, they would all 
+receive all entries eventually, so all of their links should be capable of 
+handling the full recvKBps.  In turn, they'll all need to send 
+<tt>(recvKBps/sizeof(netdb)) * (sizeof(netdb)-1)</tt> to keep the other 
+peers in sync.
+</p><p>
+A floodfill netdb would not require either tunnel routing for netdb operation 
+or any special selection as to which entries it can answer 'safely', as the 
+basic assumption is that they are all storing everything.  Oh, and with regards 
+to the netdb disk usage required, its still fairly trivial for any modern 
+machine, requiring around 11MB for every 1000 peers <tt>(N * (L + 1) * 
+S)</tt>.
+</p><p>
+The kademlia netdb would cut down on these numbers, ideally bringing them to K 
+over M times their value, with K = the redundancy factor and M being the number 
+of routers in the netdb (e.g. 5/100, giving a recvKBps of 126KBps and 536MB at 
+100,000 routers).  The downside of the kademlia netdb though is the increased 
+complexity of safe operation in a hostile environment.  
+</p><p>
+What I'm thinking about now is to simply implement and deploy a floodfill netdb 
+in our existing live network, letting peers who want to use it pick out other 
+peers who are flagged as members and query them instead of querying the 
+traditional kademlia netdb peers.  The bandwidth and disk requirements at this 
+stage are trivial enough  (7.6KBps and 3MB disk space) and it will remove the 
+netdb entirely from the debugging plan - issues that remain to be addressed 
+will be caused by something unrelated to the netdb.
+</p><p>
+How would peers be chosen to publish that flag saying they are a part of the 
+floodfill netdb?  At the beginning, it could be done manually as an advanced 
+config option (ignored if the router is not able to verify its external 
+reachability).  If too many peers set that flag, how do the netdb participants 
+pick which ones to eject?  Again, at the beginning it could be done manually as 
+an advanced config option (after dropping peers which are unreachable).  How do 
+we avoid netdb partitioning?  By having the routers verify that the netdb is 
+doing the flood fill properly by querying K random netdb peers.  How do routers 
+not participating in the netdb discover new routers to tunnel through?  Perhaps 
+this could be done by sending a particular netdb lookup so that the netdb 
+router would respond not with peers in the netdb, but with random peers outside 
+the netdb.  
+</p><p>
+I2P's netdb is very different from traditional load bearing DHTs - it only 
+carries network metadata, not any actual payload, which is why even a netdb 
+using a floodfill algorithm will be able to sustain an arbitrary amount of 
+eepsite/irc/bt/mail/syndie/etc data.  We can even do some optimizations as I2P 
+grows to distribute that load a bit further (perhaps passing bloom filters 
+between the netdb participants to see what they need to share), but it seems we 
+can get by with a much simpler solution for now.
+</p><p>
+One fact may be worth digging 
+into - not all leaseSets need to be published in the netdb!  In fact, most 
+don't need to be - only those for destinations which will be receiving 
+unsolicited messages (aka servers).  This is because the garlic wrapped 
+messages sent from one destination to another already bundles the sender's 
+leaseSet so that any subsequent send/recv between those two destinations 
+(within a short period of time) work without any netdb activity.
+</p><p>
+So, back at those equations, we can change L from 5 to something like 0.1 
+(assuming only 1 out of every 50 destinations is a server).  The previous 
+equations also brushed over the network load required to answer queries from 
+clients, but while that is highly variable (based on the user activity), it's 
+also very likely to be quite insignificant as compared to the publishing 
+frequency.
+</p><p>
+Anyway, still no magic, but a nice reduction of nearly 1/5th the bandwidth/disk 
+space required (perhaps more later, depending upon whether the routerInfo 
+distribution goes directly as part of the peer establishment or only through 
+the netdb).
+</p>
+
+<h3>The Disabling of the Kademlia Algorithm</h3>
+<p>
+Kademlia was completely disabled in release 0.6.1.20.
+</p><p>
+(this is adapted from an IRC conversation with jrandom 11/07)
+<br />
+Kademlia requires a minimum level of service that the baseline could not offer (bw, cpu),
+even after adding in tiers (pure kad is absurd on that point).
+Kademlia just wouldn't work.  It was a nice idea, but not for a hostile and fluid environment.
+</p>
+
+<h3>Current Status</h3>
 <p>The netDb plays a very specific role in the I2P network, and the algorithms
 have been tuned towards our needs.  This also means that it hasn't been tuned 
-to address the needs we have yet to run into.  I2P is currently (2005/02/18)
-fairly small (only 200 nodes), and we have not yet had to deal with the situations
-that kademlia really shines in - times when there are thousands or even millions
-of peers in the network.  The netDb implementation more than adequately meets our
+to address the needs we have yet to run into.  I2P is currently
+fairly small (a few hundred routers).
+There were some calculations that 3-5 floodfill routers should be able to handle
+10,000 nodes in the network.
+The netDb implementation more than adequately meets our
 needs at the moment, but there will likely be further tuning and bugfixing as 
-the network grows.</p>{% endblock %}
+the network grows.</p>
+
+<h3>The Return of the Kademlia Algorithm?</h3>
+<p>
+(this is adapted from <a href="meeting195.html">the I2P meeting Jan. 2, 2007</a>)
+<br />
+The Kademlia netdb just wasn't working properly.
+Is it dead forever or will it be coming back?
+If it comes back, the peers in the kademlia netdb would be a very limited subset
+of the routers in the network (basically an expanded number of floodfill peers, if/when the floodfill peers
+cannot handle the load).
+But until the floodfill peers cannot handle the load (and other peers cannot be added that can), it's unnecessary.
+</p>
+
+<h3>The Future of Floodfill</h3>
+<p>
+(this is adapted from an IRC conversation with jrandom 11/07)
+<br />
+Here's a proposal: Capacity class O is automatically floodfill.
+Hmm.
+Unless we're sure, we might end up with a fancy way of DDoS'ing all O class routers.
+This is quite the case: we want to make sure the number of floodfill is as small as possible while providing sufficient reachability.
+If/when netdb requests fail, then we need to increase the number of floodfill peers, but atm, I'm not aware of a netdb fetch problem.
+There are 33 "O" class peers according to my records.
+33 is a /lot/ to floodfill to.
+</p><p>
+So floodfill works best when the number of peers in that pool is firmly limited?
+And the size of the floodfill pool shouldn't grow much, even if the network itself gradually would?
+3-5 floodfill peers can handle 10K routers iirc (I posted a bunch of numbers on that explaining the details in the old syndie).
+Sounds like a difficult requirement to fill with automatic opt-in,
+especially if nodes opting in cannot trust data from others.
+e.g. "let's see if I'm among the top 5",
+and can only trust data about themselves (e.g. "I am definitely O class, and moving 150 KB/s, and up for 123 days").
+And top 5 is hostile as well.  Basically, it's the same as the tor directory servers - chosen by trusted people (aka devs).
+Yeah, right now it could be expoited by opt-in, but that'd be trivial to detect and deal with.
+Seems like in the end, we might need something more useful than kademlia, and have only reasonably capable peers join that scheme.
+N class and above should be a big enough quantity to suppress risk of an adversary causing denial of service, I'd hope.
+But it would have to be different from floodfill then, in the sense that it wouldn't cause humongous traffic.
+Large quantity?  For a DHT based netdb?
+Not necessarily DHT-based.
+</p>
+
+{% endblock %}

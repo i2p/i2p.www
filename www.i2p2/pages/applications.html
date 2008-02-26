@@ -1,7 +1,7 @@
 {% extends "_layout.html" %}
-{% block title %}Applications{% endblock %}
+{% block title %}Application Development{% endblock %}
 {% block content %}
-<h1>Application development guide</h1>
+<h1>Application Development Guide</h1>
 
 <h2>Why write I2P specific code?</h2>
 
@@ -28,7 +28,7 @@ chat, everyone needs to agree that port 10001 is Alice, port 10002 is Bob, port
 <p>Applications that are designed to work with I2P can take advantage of its 
 built in data security and optional pseudonymous authentication.  All data sent 
 over the network is transparently end to end encrypted (not even the routers
-get the cleartext), and any application using the ministreaming or datagram 
+get the cleartext), and any application using the streaming or datagram 
 functionality has all of that data authenticated by the sending destination's 
 public key.  As an aside, environments where anonymity instead of pseudonymity 
 is required are trivially accomodated by either using the I2CP directly, SAM RAW 
@@ -45,7 +45,7 @@ the traditional application base, but design the application and its communicati
 protocols with I2P's anonymity and security in mind.</p>
 
 <p>There are also efficiency considerations to review when determining how to 
-interact on top of I2P.  The ministreaming library and things built on top of it
+interact on top of I2P.  The streaming library and things built on top of it
 operate with handshakes similar to TCP, while the core I2P protocols (I2NP and I2CP)
 are strictly message based (like UDP or in some instances raw IP).  The important
 distinction is that with I2P, communication is operating over a long fat network - 
@@ -53,13 +53,26 @@ each end to end message will have nontrivial latencies, but may contain payloads
 of up to 32KB.  An application that needs a simple request and response can get rid
 of any state and drop the latency incurred by the startup and teardown handshakes
 by using (best effort) datagrams without having to worry about MTU detection or 
-fragmentation of messages under 32KB.  The ministreaming library itself uses a 
+fragmentation of messages under 32KB. 
+</p>
+
+<p>
+The ministreaming library itself uses a 
 functional but inefficient scheme for dealing with reliable and in order delivery
 by requiring the equivilant of an ACK after each message which must traverse the 
 network end to end again (though there are plans for improving this with a more 
-efficient and robust algorithm).  Given that as the current state, an application
-that uses one of the I2P message oriented protocols can in some situations get 
-substantially better performance.</p>
+efficient and robust algorithm).  With ministreaming, an application
+that uses one of the I2P message oriented protocols could in some situations get 
+substantially better performance.
+However with the full streaming library now the standard interface,
+it isn't clear if that is still the case.
+</p>
+
+<p>
+Applications written in Java and accessible/runnable
+using an HTML interface via the standard webapps/app.war
+may be considered for inclusion in the i2p distribution.
+</p>
 
 <h2>Important ideas</h2>
 
@@ -84,14 +97,16 @@ must stay on a single host.</li>
 public key for encryption, a 1024bit DSA public key for signing, and a variable size 
 certificate (currently this is the null type, but may contain proof of work, blinded
 data, or other information to increase the 'cost' of a destination in an effort to fight
-Sybil).  <br />There are existing ways to refer to these large and ugly destinations by short
+Sybil).  <p>There are existing ways to refer to these large and ugly destinations by short
 and pretty names (e.g. "irc.duck.i2p"), but at the moment those techniques do not guarantee
 globally uniqueness (since they're stored locally at each person's machine as "hosts.txt")
-and the current mechanism is neither scalable nor secure (updates to those hosts files are 
-manually managed within CVS, and as such, anyone with commit rights on the repository can
+and the current mechanism is not especially scalable nor secure (updates to one host file is
+manually managed within Monotone, and as such, anyone with commit rights on the repository can
 change the destinations).  There may be some secure, human readable, scalable, and globally 
 unique, naming system some day, but applications shouldn't depend upon it being in place,
-since there are those who don't think such a beast is possible :)</li>
+since there are those who don't think such a beast is possible.
+<a href="naming.html">Further information on the naming system</a> is available.
+</li>
 </ul>
 
 <h3>Anonymity and confidentiality</h3>
@@ -119,10 +134,20 @@ application without having to write fragmentation, resends, etc.</p>
 
 <h2>Integration techniques</h2>
 
-<p>There are four means of sending data over I2P, each with their own pros and cons.</p>
+<p>There are several means of sending data over I2P, each with their own pros and cons.
+The streaming lib is the recommended interface, used by the majority of I2P applications.
+</p>
 
-<h3>SAM</h3>
+<h3>Streaming Lib</h3>
+<p>
+The <a href="streaming.html">full streaming library</a> is now the standard
+interface. Ministreaming and SAM are not recommended.
+The streaming lib interface is similar to the ministreaming lib interface described below.
+</p>
 
+<h3>SAM and SAM V2</h3>
+
+<p><i>SAM is not recommended. SAM V2 is beta.</i></p>
 <p>SAM is the <a href="sam">Simple Anonymous Messaging</a> protocol, allowing an
 application written in any language to talk to a SAM bridge through a plain TCP socket and have
 that bridge multiplex all of its I2P traffic, transparently coordinating the encryption/decryption
@@ -134,6 +159,12 @@ and event based handling.  SAM supports three styles of operation:</p>
     and Bob doesn't care whether the data's sender is authenticated or not (e.g. the data transferred
     is self authenticating)</li>
 </ul>
+</p>
+
+<p>
+<a href="samv2.html">SAM V2</a> is a new version used by imule
+that fixes some of the problems in <a href="sam.html">SAM</a>.
+</p>
 
 <h3>I2PTunnel</h3>
 <p>The I2PTunnel application allows applications to build specific TCP-like tunnels to peers 
@@ -145,7 +176,8 @@ authenticated and secured through the same streaming library that SAM uses, but 
 nontrivial overhead involved with creating multiple unique I2PTunnel instances, since each have
 their own unique I2P destination and their own set of tunnels, keys, etc.</p>
 
-<h3>ministreaming and datagrams</h3>
+<h3>Ministreaming</h3>
+<p><i>Not recommended</i></p>
 <p>For applications written in Java, the simplest way to go is to use the libraries that the SAM
 bridge and I2PTunnel applications use.  The streaming functionality is exposed in the 'ministreaming'
 library, which is centered on the 
@@ -153,6 +185,8 @@ library, which is centered on the
 the <a href="http://www.i2p.net/javadoc/net/i2p/client/streaming/I2PSocket.html">I2PSocket</a>, and the
 <a href="http://www.i2p.net/javadoc/net/i2p/client/streaming/I2PServerSocket.html">I2PServerSocket</a>.</p>
 
+<h3>Datagrams</h3>
+<p><i>Not recommended</i></p>
 <p>For applications that want to use repliable datagrams, they can be built with the 
 <a href="http://www.i2p.net/javadoc/net/i2p/client/datagram/I2PDatagramMaker.html">I2PDatagramMaker</a>
 and parsed on the receiving side by the 
@@ -169,9 +203,45 @@ then fetching those messages by calling
 <a href="http://www.i2p.net/javadoc/net/i2p/client/I2PSession.html#receiveMessage(int)">receiveMessage(...)</a>.</p>
 
 <h3>I2CP</h3>
-
+<p><i>Not easy</i></p>
 <p><a href="i2cp">I2CP</a> itself is a language independent protocol, but to implement an I2CP library 
 in something other than Java there is a significant amount of code to be written (encryption routines, 
 object marshalling, asynchronous message handling, etc).  While someone could write an I2CP library in 
-C or something else, it would most likely be more useful to use the C SAM library instead. </p>
+C or something else, it would most likely be more useful to use the C SAM library instead.
+I2CP also <a href="i2cp">needs documentation</a>.
+</p>
+
+<h3>Web Applications</h3>
+I2P comes with the Jetty webserver, and configuring to use the Apache server instead is straightforward.
+Any standard web app technology should work.
+
+<h2>Existing Applications in Development</h2>
+Contact us if you would like to help.
+<ul>
+<li>
+<a href="http://syndie.i2p2.de/">Syndie</a>
+<li>
+<a href="http://forum.i2p/viewforum.php?f=25">I2Phex</a>
+<a href="http://forum.i2p.net/viewforum.php?f=25">(outside I2P)</a>
+<li>
+<a href="http://www.imule.i2p/">IMule</a>
+</ul>
+
+<h2>Application Ideas</h2>
+<ul>
+<li>NNTP server - there have been some in the past, none at the moment
+<li>Jabber server - there have been some in the past, none at the moment
+<li>PGP Key server and/or proxy
+<li>Download manager / eepget scheduler -
+We use eepget to fetch lots of things reliably over i2p, and there's already an
+implementation of a sequential download manager (net.i2p.util.EepGetScheduler),
+but there isn't any sort of user interface to it.  A web based UI would be
+great.
+<li>Open tracker - use as a backup to the existing trackers, add support for
+a backup tracker to i2psnark
+<li>Web-based applications - The sky is the limit for hosting web-server-based
+applications such as blogs, pastebins, storage, tracking, feeds, etc.
+Any web or cgi technology such as perl, php, python, or ruby will work.
+</ul>
+
 {% endblock %}

@@ -5,13 +5,14 @@
 <center>
 <b class="title">Introducing I2P</b><br />
 <span class="subtitle">a scalable framework for anonymous communication</span><br />
-<i style="font-size: 8">$Id: techintro.html,v 1.8.2.1 2006/02/13 07:13:35 jrandom Exp $</i>
+<!-- <i style="font-size: 8">$Id: techintro.html,v 1.8.2.1 2006/02/13 07:13:35 jrandom Exp $</i> -->
 <br />
 <br />
 
 <table border="0" width="50%">
 <tr><td valign="top" align="left">
 <pre>
+IN THIS DOCUMENT
 * <a href="#intro">Introduction</a>
 * <a href="#op">Operation</a>
   * <a href="#op.overview">Overview</a>
@@ -19,22 +20,61 @@
   * <a href="#op.netdb">Network Database</a>
   * <a href="#op.transport">Transport protocols</a>
   * <a href="#op.crypto">Cryptography</a>
+
+
+FOR MORE INFORMATION
+  * <a href="package-client.html">Client Javadoc</a>
+  * <a href="datagrams.html">Datagrams</a>
+  * <a href="package-datagram.html">Datagram Javadoc</a>
+  * <a href="i2cp.html">I2CP</a>
+  * <a href="i2ptunnel.html">I2PTunnel</a>
+  * <a href="ministreaming.html">Ministreaming Lib</a>
+  * <a href="how_networkdatabase.html">NetDb Status</a>
 </pre>
 </td>
 <td valign="top" align="left">
 <pre>
+
 * <a href="#future">Future</a>
   * <a href="#future.restricted">Restricted routes</a>
   * <a href="#future.variablelatency">Variable latency</a>
   * <a href="#future.open">Open questions</a>
+
+
+
+
+
+
+  * <a href="naming.html">Naming and Addressbook</a>
+  * <a href="package-naming.html">Naming Javadoc</a>
+  * <a href="jbigi.html">Native BigInteger Lib</a>
+  * <a href="ntcp.html">NTCP</a>
+  * <a href="performance.html">Performance</a>
+  * <a href="sam.html">SAM</a>
+  * <a href="samv2.html">SAM V2</a>
 </pre>
 </td>
 <td valign="top" align="left">
 <pre>
+
 * <a href="#similar">Similar systems</a>
   * <a href="#similar.tor">Tor</a>
   * <a href="#similar.freenet">Freenet</a>
 * <a href="#app">Appendix A: Application layer</a>
+
+
+
+
+
+
+  * <a href="udp.html">SSU</a>
+  * <a href="streaming.html">Streaming Lib</a>
+  * <a href="package-streaming.html">Streaming Javadoc</a>
+  * <a href="http://syndie.i2p2.de/">Syndie</a>
+  * <a href="package-tcp.html">Old TCP Javadoc</a>
+  * <a href="tunnel-alt.html">Tunnel Implementation</a>
+  * <a href="tunnel-alt-creation.html">Tunnel Creation</a>
+  * <a href="tunnel.html">Old Tunnel Implementation</a>
 </pre>
 </td>
 </tr></table>
@@ -101,7 +141,7 @@ an engineering effort aimed at doing whatever is necessary to provide a sufficie
 level of anonymity to those who need it.  It has been in active development since
 early 2003 with one full time developer and a dedicated group of part time contributors
 from all over the world.  All of the work done on I2P is open source and 
-freely available on the <a href="http://www.i2p.net/">website</a>, with the majority
+freely available on the <a href="/">website</a>, with the majority
 of the code released outright into the public domain, though making use of a few 
 cryptographic routines under BSD-style licenses.  The people working on I2P do not
 control what people release client applications under, and there are several GPL'ed
@@ -309,6 +349,10 @@ selection can be found in the
 <h2 id="op.netdb">Network Database</h2>
 
 <p>
+<i>Kademlia has been disabled - see <a href="how_networkdatabase.html">NetDb Status</a></i>
+</p>
+
+<p>
 As mentioned earlier, I2P's netDb works to share the network's metadata.  Two
 algorithms are used to accomplish this - primarily, a small set of routers are
 designated as "floodfill peers", while the rest of the routers participate in
@@ -407,11 +451,21 @@ Communication between routers needs to provide confidentiality and integrity
 against external adversaries while authenticating that the router contacted
 is the one who should receive a given message.  The particulars of how routers
 communicate with other routers aren't critical - three separate protocols have
-been used at different points to provide those bare necessities.  To accommodate
+been used at different points to provide those bare necessities.
+</p><p>
+
+I2P started with a
+<a href="package-tcp.html">TCP-based protocol</a> which has since been disabled.
+Then, to accommodate
 the need for high degree communication (as a number of routers will end up 
 speaking with many others), I2P moved from a TCP based transport
-to a UDP based one - "Secure Semireliable UDP", or "SSU".  As described in the
-<a href="/udp.html">SSU spec</a>:</p>
+to a 
+<a href="udp.html">UDP-based one</a>
+ - "Secure Semireliable UDP", or "SSU". 
+
+</p><p>
+As described in the
+<a href="udp.html">SSU spec</a>:</p>
 
 <blockquote>
 The goal of this protocol is to provide secure, authenticated, 
@@ -422,6 +476,33 @@ PMTU detection. It should be capable of efficiently moving bulk data at rates
 sufficient for home users. In addition, it should support techniques for 
 addressing network obstacles, like most NATs or firewalls.
 </blockquote>
+
+<p>
+Following the introduction of SSU, after issues with congestion collapse appeared,
+a new NIO-based TCP transport called
+<a href="ntcp.html">NTCP</a> was implemented.
+It is enabled by default for outbound
+connections only.  Those who configure their NAT/firewall to allow
+inbound connections and specify the external host and port
+(dyndns/etc is ok) on /config.jsp can receive inbound connections.
+As NTCP is NIO based, so it doesn't suffer from the 1 thread per connection issues of the old TCP transport.
+
+</p><p>
+I2P supports multiple transports simultaneously.
+A particular transport for an outbound connection is selected with "bids".
+Each transport bids for the connection and the relative value of these bids
+assigns the priority.
+Transports may reply with different bids, depending on whether there is
+already an established connection to the peer.
+</p><p>
+
+The current implementation ranks NTCP as the highest-priority transport for outbound connections in
+most situations. SSU is enabled for both outbound and inbound connections.
+Your firewall and your I2P router must be configured to allow inbound NTCP connections.
+For further information see the
+<a href="ntcp.html">NTCP page</a>.
+
+</p>
 
 <h2 id="op.crypto">Cryptography</h2>
 
@@ -794,6 +875,9 @@ SYN, FIN, RST, rto calculation, etc).
 </p>
 
 <h2 id="app.naming">Naming library and addressbook</h2>
+<p><i>
+For more information see the
+<a href="naming.html">Naming and Addressbook</a> page.</i></p>
 <p><i>Developed by: mihi, Ragnarok</i></p>
 
 <p>
@@ -847,6 +931,12 @@ plug into, allowing end users to drive what sort of naming tradeoffs they prefer
 </p>
 
 <h2 id="app.syndie">Syndie</h2>
+
+<p><i>
+The old Syndie bundled with I2P has been replaced by
+the new Syndie which is distributed separately.
+For more information see the
+<a href="http://syndie.i2p2.de/">Syndie</a> pages.</i></p>
 
 <p>
 Syndie is a safe, anonymous blogging / content publication / content aggregation system.

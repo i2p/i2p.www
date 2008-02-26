@@ -1,0 +1,876 @@
+{% filter escape %}
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA1
+
+1. Why transition
+==================
+
+The disappearance of dev.i2p.net taught us a lesson.
+Switching to Monotone should avoid it happening again.
+
+
+
+2. Why pick Monotone
+=====================
+
+* Syndie was already using Monotone.
+* I knew a little bit about it (not enough).
+* Zzz and Welterde experienced some issues with Bazaar.
+* Sponge advised against Git.
+
+
+
+3. What Monotone is
+====================
+
+Monotone is a distributed version control system,
+with cryptographic authentication and access control.
+It is fairly small, has few dependencies, and keeps projects
+in a compressed SQLite database.
+
+By previous work on Syndie, it had been confirmed
+that Monotone would work over I2P (it can resume syncs
+cleanly from where the previous attempt broke).
+
+
+
+4. What this document covers
+=============================
+
+5. Operating a client:
+
+5.1. Generating keys for using Monotone
+5.2. About trust, and initializing your Monotone repository
+5.3. Obtaining and deploying developers' commit keys
+5.3.1. Monotone keys for Complication
+5.3.2. Monotone keys for zzz
+5.3.3. Monotone keys for welterde
+5.3.4. Monotone keys for jrandom
+5.4. Setting up trust evaluation hooks
+5.5. About servers, and creating a client tunnel to "mtn.i2p2.i2p"
+5.6. Pulling the "i2p.i2p", "i2p.www" and "i2p.syndie" branches
+5.7. Verifying that trust evaluation works
+5.8. Verifying that I2P maintains continuity with jrandom's last tarball
+5.8.1. Obtaining jrandom's public GPG key
+5.8.2. Obtaining the 0.6.1.30 source tarball and jrandom's signature of it
+5.8.3. Verifying and extracting the source tarball
+5.8.4. Checking out 0.6.1.30 sources from Monotone
+5.8.5. Diffing source trees against each other
+5.8.6. Examining changes from 0.6.1.30 onwards
+5.9. Checking out a working copy of the latest version
+5.10. Updating your working copy to the latest version
+5.11. Why "i2p.www" cannot be verified
+5.12. Why Syndie doesn't need a signed tarball to verify
+
+6. Operating a server:
+
+6.1. Obtaining and deploying developers' transport keys
+6.2. Regulating push and pull access on a server
+6.3. Running Monotone in server mode
+6.4. Differences under Debian GNU/Linux
+
+
+
+5.1. Generating keys for using Monotone
+========================================
+
+To pull (download), push (upload) or sync (both ways)
+source code using Monotone, you need to have a transport key.
+A transport key authenticates your computer to a repository server,
+so it can grant you read or write access.
+
+To commit code into Monotone (authenticate your code
+as originating from you), you are strongly recommended
+to use a separate key: a commit key.
+
+If you don't want to generate any keys, you can get away with it.
+Public repositories generally provide read access to anyone,
+and Monotone will automatically generate temporary keys
+when you pull code from a repository without specifying a key.
+However, operating without either key will place limitations
+on your activities.
+
+Without a transport key, you cannot:
+
+* pull code from a server which doesn't allow global read access
+* push code to any server
+* run Monotone as a server
+
+Without a commit key, you cannot:
+
+* commit any code
+
+If you are certain that you will not be doing any of that,
+you can skip generating keys, and proceed to section 5.2.
+If you want to generate keys, read the following.
+
+By convention, keys are named like an e-mail addresses.
+A corresponding e-mail address does not need to exist.
+For example, your keys might be named:
+
+complication@mail.i2p
+complication-transport@mail.i2p
+
+Monotone stores keys under "/home/username/.monotone/keys",
+in text files which are named identically to the keys,
+for example:
+
+/home/complication/.monotone/keys/complication@mail.i2p
+
+To generate a tranport key, and optionally also a commit key,
+issue in any directory commands like the following:
+
+mtn genkey yourname-transport@someplace
+mtn genkey yourname@someplace
+
+While creating keys, Monotone will prompt you for a passphrase
+to protect your keys against unauthorized use by encrypting them.
+It is very strongly recommended to protect a commit key.
+You may want to skip passphrase-protecting a transport key
+if you run Monotone in server mode, and require capability
+for automatic restarts.
+
+
+
+5.2. About trust, and initializing your Monotone repository
+============================================================
+
+MONOTONE HELPS ENSURE THAT NOBODY CAN EASILY
+IMPERSONATE A DEVELOPER WITHOUT OTHERS NOTICING.
+SINCE DEVELOPERS MAKE MISTAKES AND CAN BE COMPROMISED,
+NOTHING BUT MANUAL REVIEW CAN ENSURE QUALITY OF CODE.
+AUTHENTICATION ENSURES YOU READ THE RIGHT DIFFS.
+IT DOES NOT REPLACE READING DIFFS.
+
+A Monotone repository is a single file (an SQLite database)
+which contains in compressed form, all of the project's
+source code and history.
+
+During the course of work, a Monotone repository
+may come contain code which you aren't actively working with,
+or even code which you don't entirely trust. This is normal.
+For example, you may trust a repository which gave you code,
+but not the author who committed it there.
+
+When set up correctly (meaning: DO NOT skip sections 5.3 or 5.4)
+Monotone evaluates whether it trusts the committer of code,
+and prevents code from untrusted code from being checked out.
+
+Code authentication happens not during syncs to repositories,
+but when checking out or updating a working copy
+from your local repository.
+
+Commands exist which let you clean your repository
+of untrusted code, but they are rarely needed,
+if push access on the server is well regulated.
+
+A repository can hold many branches. For example,
+our repository holds the following main branches:
+
+i2p.i2p -- the I2P router and associated programs
+i2p.www -- the I2P project website
+i2p.syndie -- Syndie, a distributed forums tool
+
+For historical reasons, you may find other branches,
+but they are not used. They originate from the import
+of the CVS repository which was used before "dev.i2p" disappeared.
+
+By convention, the I2P Monotone repository is named "i2p.mtn".
+Before you pull source code from servers, you need to initialize
+your own repository (it can become a new server if needed).
+
+To initialize your local repository, change into a directory
+where you want the "i2p.mtn" file and branch directories to appear,
+and issue the following command:
+
+mtn --db="i2p.mtn" db init
+
+
+
+5.3. Obtaining and deploying developers' keys
+==============================================
+
+Keys which developers use to commit code are essential
+for trust evaluation in Monotone. If you aren't running
+a Monotone server, you don't need their transport keys.
+
+Developers' commit keys are provided GPG-signed below.
+Keys for zzz, Complication and welterde are provided clearsigned.
+The key for jrandom must be verified differently, since he's away,
+and only left a binary detached signature for his key.
+
+To import developers' keys after verifying them,
+copy them all into a single text file. Create this file
+(e.g. "keys.txt") in the same directory where "i2p.mtn" is.
+Import it by issuing:
+
+cat keys.txt | mtn --db="i2p.mtn" read
+
+Leave "/home/username/.monotone/keys" purely for your own keys.
+Monotone doesn't like having duplicate keys in two places.
+If you deploy other people's keys into that directory,
+you will soon also have them in "i2p.mtn", and Monotone
+will start reporting an error: "extraneous data in keystore".
+
+IT WOULD BE INAPPROPRIATE TO SUPPLY ANYONE'S GPG PUBLIC KEYS
+IN THIS GUIDE. FIND THE PUBLIC KEYS FROM AN INDEPENDENT SOURCE.
+CURRENT DEVELOPERS HAVE THEIR GPG KEYS ON THEIR EEPSITES.
+JRANDOM'S SYNDIE RELEASE KEY CAN BE FOUND ON A NUMBER
+OF PUBLIC KEYSERVERS.
+
+REMEMBER, TO SUCCESSFULLY EXTRACT CLEARSIGNED MESSAGES
+AND ASCII-ARMOURED FILES FROM BELOW, YOU MUST MANUALLY REMOVE
+THE "- " ESCAPE SEQUENCES FROM PGP "BEGIN" AND "END" LINES.
+
+
+
+5.3.1. Monotone keys for Complication
+======================================
+
+Tip: to find Complication's GPG key, find from his eepsite
+the key 0x79FCCE33, with the name "complication@mail.i2p"
+and the fingerprint 73CF 2862 87A7 E7D2 19FF DB66 FA1D FC6B 79FC CE33.
+
+- -----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA1
+
+I confirm that my Monotone commit and transport keys are:
+
+[pubkey complication@mail.i2p]
+MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQCx1F6nwBUCIiCPVsogy/h/+2d8X3uMcEdn
+RIN+gxO+0pK+yrGZiFwi7TG/K3PjDfJWuxsPRKLeb9Q4NmfxrAePelGig9llalrDnRkIcRFu
+cnNUOJo9C0MjvzYR9D6bIS3+udPdl6ou94JX+ueo2jLXI1lGgtdWDWTetJx9I++EvwIDAQAB
+[end]
+[pubkey complication-transport@mail.i2p]
+MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQDP55FmBUIZjamtDinVDrLmS9uU40KoNfLd
+iB+t/iEgEWHDPQxlwugh/aBQwsXKGGJMJSNURKwwjfrcr5y3oz9jpRjtLVqoZMBVLgp28WGA
+9KbzXi4/dYhdyNmr4gHc17mDSlhCfk/L5QxifSYwSaeeFPsoAAyBBB221Z3197bmVQIDAQAB
+[end]
+
+Complication.
+- -----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.6 (GNU/Linux)
+
+iD8DBQFHpdQT+h38a3n8zjMRAtW8AJ0fmuw1hrZePDzOx61xSh5cK27ikQCeJn+U
+g8X/m/JAsedzOFJDN0tlTig=
+=LM+C
+- -----END PGP SIGNATURE-----
+
+
+
+5.3.2. Monotone keys for zzz
+=============================
+
+Tip: to find zzz's GPG key, find from his eepsite
+the key 0xA76E0BED, with the name "zzz@mail.i2p"
+and the fingerprint 4456 EBBE C805 63FE 57E6 B310 4155 76BA A76E 0BED.
+
+- -----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA1
+
+[pubkey zzz-transport@mail.i2p]
+MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQDa2uZI1BobxS4TapMqmf4Ws3nyL3GYgkfb
+MEawyWl0E1pfHJ4dLZkdxQdcLyCsN9OCY4jRNzmoYnDa2HtBLINq15BJmGJ0cfIDLXIB2GBO
+ViAPRkEKQTVoc7IpcjtPPjtSBVganD/AW78m9cgUYag86Lbm2ynUaXWpw9i4gpLdLQIDAQAB
+[end]
+[pubkey zzz@mail.i2p]
+MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQCtgaWY0Wc1c8pFGIxASZx78pHpHZKQV8z6
+IRQkgy65gQMjpLquaQpy3Xk8rkpnfA+6h3TS6bjplsEhlaQoxvpGxacRYOt+y1HC/n20O3RI
+E1A/e3sGKHGDEQW+3ItF4WSNfeQ18DzLeun32vFknq2k9im6Ts4tiYfKs8CZ5KW0/QIDAQAB
+[end]
+- -----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.6 (GNU/Linux)
+
+iD8DBQFHnN51QVV2uqduC+0RAv8NAJ9B/7pWKLvqVI6HnAifs9oedsdWSACfYS1E
+sFwJiw4A+Sr9wQrtoO4X4ow=
+=SVDV
+- -----END PGP SIGNATURE-----
+
+
+
+5.3.3. Monotone keys for welterde
+==================================
+
+Tip: to find welterde's GPG key, find on keyservers
+the key 0x62E011A1, with the name "welterde@arcor.de"
+and the fingerprint 6720 FD81 3872 6DFC 6016 64D1 EBBC 0374 62E0 11A1.
+
+- -----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA1
+
+[pubkey dev@welterde.de]
+MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQDRnJUBY0d4310UpZYGUlsWgxWHoD8bsKtT
+vGw83vwUQRtM2xPKxCHvEntg9Dgiqr5RurOKHK7Eak6WgxCXQFfC9ALr4SoC5abI4ZFvM/CA
+WRb547UIPTchSnuDUn/TSgDGqtGvMFS9t6OUp9Z/7QzIjLQhhBCqj4/hZhxUJ61XBwIDAQAB
+[end]
+[pubkey transport@welterde.de]
+MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQCujyq15a7t0Gki/sKoZQbv7CHJWbT3YB5O
+DQyU3zfqXnHNj82tz6wVsvjZmKUYZvax7wLLRErMGX3PTGxb23I5iypLmYtWt+lbkxMZdcGT
+GEXBU8JnAfhnSIdLzBJ2soe55vBQp0Tx1Ta+7/CNYwVPUxr5l6J/2gcGFJg3cAD99wIDAQAB
+[end]
+- -----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.7 (Darwin)
+
+iD8DBQFHojoC67wDdGLgEaERAsALAKCwNlkNFaTyC4pV4rsinXQ8hu7UvgCbBeeV
+Ni/uLlSdl3Kz7KfVipwnjm4=
+=oE5t
+- -----END PGP SIGNATURE-----
+
+
+
+5.3.4. Monotone keys for jrandom
+=================================
+
+Tip: to find jrandom's GPG key for Syndie releases, find on keyservers
+the key 0x393F2DF9, with the name "syndie-dist-key@i2p.net"
+and the fingerprint AE89 D080 0E85 72F0 B777 B2ED C2FA 68C0 393F 2DF9.
+
+Jrandom had to leave unexpectedly in the end of 2007.
+His commit key was deployed in the Syndie Monotone repository,
+in a file named "mtn-committers". That file also had a GPG signature,
+"mtn-committers.sig", but it was a binary detached signature.
+I am going to supply both files in GPG ASCII-armoured form below.
+
+First the file "mtn-committers" containing jrandom's MTN key.
+Save as "mtn-committers.asc" and unpack it using
+"gpg --output mtn-committers --dearmor mtn-committers.asc".
+
+
+- -----BEGIN PGP ARMORED FILE-----
+Version: GnuPG v1.4.6 (GNU/Linux)
+Comment: Use "gpg --dearmor" for unpacking
+
+W3B1YmtleSBqcmFuZG9tQGkycC5uZXRdCk1JR2ZNQTBHQ1NxR1NJYjNEUUVCQVFV
+QUE0R05BRENCaVFLQmdRRE9MdzA1a1pidXg1S0xkcHJjR0hlQ1RseXQrR2poR1ho
+NwpBdXBzK1FNRC9GRWJJVkVGUEdJQkcyanUzMDY5VEtJSHBYcjVIRWU1bWFCZ3RJ
+SkJNOU5QVnZNTkZDZ09TcmVnbW5WSXB4U2cKSGQrV2l1MUl5emhkMFN4QzVwQ0hk
+bndTanYwNTFmY3RZY3AxcnM1T2NVb2pVZHZGN3RxOTF6QUFZK2tMeHBYNnpRSURB
+UUFCCltlbmRdCg==
+=035X
+- -----END PGP ARMORED FILE-----
+
+
+Now the file "mtn-committers.sig", containing the GPG signature.
+Save as "mtn-committers.sig.asc" and unpack it using
+"gpg --output mtn-committers.sig --dearmor mtn-committers.sig.asc".
+Use it to verify the above supplied "mtn-committers" file.
+
+
+- -----BEGIN PGP ARMORED FILE-----
+Version: GnuPG v1.4.6 (GNU/Linux)
+Comment: Use "gpg --dearmor" for unpacking
+
+iD8DBQBFLssNwvpowDk/LfkRAtytAKCOiaDIveC3sri0lrdvwxt/TQciigCfXgyC
+ZY3qq910P/TX94qoJGePbuc=
+=8NHt
+- -----END PGP ARMORED FILE-----
+
+
+
+5.4. Setting up trust evaluation hooks
+=======================================
+
+The default Monotone trust policy is way too lax:
+it trusts every committer like bad old CVS. To operate in I2P,
+you definitely want to change that.
+
+Change into your "/home/username/.monotone" directory,
+and open the file "monotonerc" with a text editor.
+Copy and paste two functions into this file:
+
+function intersection(a,b)
+ local s={}
+ local t={}
+ for k,v in pairs(a) do s[v] = 1 end
+ for k,v in pairs(b) do if s[v] ~= nil then table.insert(t,v) end end
+ return t
+end
+
+function get_revision_cert_trust(signers, id, name, val)
+ local trusted_signers = {
+ "jrandom@i2p.net",
+ "complication@mail.i2p",
+ "zzz@mail.i2p",
+ "dev@welterde.de"
+ }
+ local t = intersection(signers, trusted_signers)
+ if t == nil then return false end
+ if table.getn(t) >= 1 then return true end
+ return false
+end
+
+Read the functions carefully to understand their purpose,
+and compare them with sample functions and descriptions
+provided in section 6.1.5 ("Trust evaluation hooks")
+of the following document: http://monotone.ca/docs/Hooks.html
+
+The first function determines an intersection between
+two sets, in our case a revision's signers and trusted signers.
+
+The second function determines trust in a given revision,
+by calling the first function with "signers" and "trusted" as arguments.
+If the intersection is null, the revision is not trusted.
+If the intersection is not empty, the revision is trusted.
+Otherwise, the revision is not trusted.
+
+
+
+5.5. About servers, and creating a client tunnel to "mtn.i2p2.i2p"
+===================================================================
+
+First, you need to choose a server.
+Some I2P developers run accessible Monotone servers,
+but when developers are anonymous, their servers are VERY SLOW.
+
+When you set up Monotone correctly, code will be authenticated
+by developers' commit keys, so you should be able to safely use
+a public Monotone server despite risk of someone subverting it.
+
+For this reason, you are recommended to pull sources
+and sync your code contributions using our public MTN server.
+It is named "mtn.i2p2.i2p" inside I2P, or "mtn.i2p2.de"
+on the ordinary Internet. It is operated by "welterde".
+I will only provide instructions for accessing it over I2P.
+
+First, you need the I2P destination key of the server.
+When I wrote this transition guide, its key was not yet included
+in an I2P installation (in the future it will be).
+The destination key of "mtn.i2p2.i2p" is:
+
+G6VmsrLYbdcxBq585OUcQn7wbwC7J5jfXDWWL6lPBw5iq68VxqxibraiPwwF6NM2
+aHV8BkqyCKYSL9fUuYWoeUc1zL~2l1DX2x~LfyItGJKDIUGImWQivXF1w7EGYMhj
+q4UCmPKTsnl4G86oKW8PGaaF8mzjjUKW1R7G7941my~mnbeTrhjlLgaMK-tauVod
+gTPIYkxfMJaq3zWuirztuUgDcXXIbkpzaA2Iben0VqbjbMJisj4fFh0EvqNkYAG5
+4YBc26~W6SPWyBgZilXvFlcizF90Q5NkIGMMHXTq46qEYHkpQC3CoaH6PMNVDetD
+PmFc3QXmc68cNcj~VPh4XVsn3qiKhXuRdXggEC3RoTcxqaeassfIG5xhRdnJzGSV
+hYUE3At~8wI-AuRV~AglV1Q-AZTWT~9VxBzcxfI1PpfzeA-5z5T4542bh1e-RM9t
+zXEx5ErPCt6M~zJ2~4-tz-aBsZEhBkn0iDi8pazshg6lTl1~hCnueZBxYICqPrlB
+AAAA
+
+If you want to copy it from here, you need to manually join
+the lines back together in a text editor. Sorry, I could not
+GPG-sign that very long line.
+
+To address this destination using a convenient name,
+you need to enter it into the host database of your I2P router.
+This can be done manually by editing the "hosts.txt" file,
+or more easily using the "SusiDNS" tool:
+
+* open SusiDNS ( http://localhost:7657/susidns/index.jsp )
+* open the router addressbook
+* find the "Add new destination:" part at the bottom
+* enter "mtn.i2p2.i2p" into the "Hostname" box
+* enter the key into the "Destination:" box
+* click "Add destination"
+
+Next, you need to create a client tunnel pointing at the server.
+This can be done manually by editing "i2ptunnel.config"
+or more easily using the "I2PTunnel" tool:
+
+* open I2PTunnel ( http://localhost:7657/i2ptunnel/index.jsp )
+* find the "Add new client tunnel:" part at the middle
+* pick "Standard" for the tunnel type, click "Create"
+* enter "mtn.i2p2.i2p" in the "Name:" box
+* enter "mtn.i2p2.i2p" in the "Description:" box
+* enter "8998" in the "Access Point Port:" box
+* select "Bulk connection" in the "Profile" box
+* enable the "Shared client" checkbox
+* enable the "Auto start" checkbox
+* pick your anonymity level at the bottom
+* click "Save"
+* the tunnel will start automatically
+
+
+
+5.6. Pulling the "i2p.i2p", "i2p.www" and "i2p.syndie" branches
+================================================================
+
+When you pull code as a client, the action itself implies
+that you want data from the server. You thus don't need
+to grant the server any extra permissions.
+
+Enter the directory where you initialized "i2p.mtn".
+Depending on whether you want only I2P sources, or also sources
+for the I2P website and Syndie, you can perform the "pull" operation
+in different ways.
+
+If you only want I2P sources:
+mtn --db="i2p.mtn" pull 127.0.0.1:8998 i2p.i2p
+
+If you want all branches:
+mtn --db="i2p.mtn" pull 127.0.0.1:8998 "i2p.*"
+
+Restart the process if it stops due to network errors.
+Note how pulling in the above examples is anonymous
+(doesn't use your transport key). There is a reason for this:
+when everyone pulls anonymously, it is harder for an attacker
+who gains control of the server, to selectively provide some people
+with tampered data. It is therefore advised to pull anonymously.
+
+
+
+5.7. Verifying that trust evaluation works
+===========================================
+
+To verify that trust evaluation works,
+modify your "monotonerc" file in the following way:
+
+- - local trusted_signers = {
+- - "jrandom@i2p.net",
+- - "complication@mail.i2p",
+- - "zzz@mail.i2p",
+- - "dev@welterde.de"
+- - }
+
++ local trusted_signers = {
++ }
+
+Save the file, and your Monotone stops trusting all committers.
+Change into the directory where you created "i2p.mtn",
+and attempt a checkout of the I2P branch like this:
+
+mtn --db="i2p.mtn" co --branch="i2p.i2p"
+
+A directory named "i2p.i2p" should NOT appear.
+You should encounter great numbers of error messages like:
+
+mtn: warning: trust function disliked 1 signers
+of branch cert on revision 523c15f6f50cad3bb002f830111fc189732f693b
+mtn: warning: trust function disliked 1 signers
+of branch cert on revision 8ac13edc2919dbd5bb596ed9f203aa780bf23ff0
+mtn: warning: trust function disliked 1 signers
+of branch cert on revision 8c4dd8ad4053baabb102a01cd3f91278142a2cd1
+mtn: misuse: branch 'i2p.i2p' is empty
+
+If you are satisfied with results, change your "monotonerc" back
+to match section 5.4.
+
+
+
+5.8. Verifying that I2P maintains continuity with jrandom's last tarball
+=========================================================================
+
+When jrandom had to leave, and soon after that dev.i2p went down,
+other developers and server operators (e.g. Complication, zzz, welterde)
+had to take over his job.
+
+It is important for the I2P project's trustability,
+that practical and widely known methods exist for verifying
+that code integrity was preserved. Perhaps the most important part
+in this, is ability to verify the initial import into Monotone by zzz.
+
+Fortunately the 0.6.1.30 source tarball, signed by jrandom,
+should make verification fairly simple. I will describe
+the recommended course of action below.
+
+
+
+5.8.1. Obtaining jrandom's public GPG key
+==========================================
+
+IT WOULD BE INAPPROPRIATE TO SUPPLY JRANDOM'S GPG PUBLIC KEY
+IN THIS GUIDE. FIND THE PUBLIC KEY FROM AN INDEPENDENT SOURCE.
+JRANDOM'S GPG PUBLIC KEY CAN BE FOUND IN MANY PLACES,
+INCLUDING A NUMBER OF PUBLIC KEYSERVERS.
+
+Tip: to find jrandom's GPG key for I2P releases,
+find on keyservers the key 0x065E37EE, with the name "jrandom@i2p.net"
+and the fingerprint 829E F1C6 89A5 72DC E66F D5BF 42E2 7451 065E 37EE.
+
+
+
+5.8.2. Obtaining the 0.6.1.30 source tarball and jrandom's signature of it
+===========================================================================
+
+There are multiple places where you can find the 0.6.1.30 source tarball
+and signature. I will provide two, and recommend the first one,
+since it's massively faster.
+
+http://mirror.i2p2.de/i2p-0.6.1.30.tar.bz2
+http://mirror.i2p2.de/i2p-0.6.1.30.tar.bz2.sig
+
+http://complication.i2p/i2p/0.6.1.30/i2p-0.6.1.30.tar.bz2
+http://complication.i2p/i2p/0.6.1.30/i2p-0.6.1.30.tar.bz2.sig
+
+
+
+5.8.3. Verifying and extracting the source tarball
+===================================================
+
+Deploy the tarball and signature into the directory where "i2p.mtn" is.
+Assuming you have jrandom's GPG key imported into your GPG keyring,
+verify the tarball this way:
+
+gpg --verify i2p-0.6.1.30.tar.bz2.sig i2p-0.6.1.30.tar.bz2
+
+Extract the tarball into a source tree like below,
+and a directory named "i2p_0_6_1_30" should appear.
+
+tar -xjvf i2p-0.6.1.30.tar.bz2
+
+
+
+5.8.4. Checking out 0.6.1.30 sources from Monotone
+===================================================
+
+To compare code in Monotone against the source tarball,
+we must check out the revision which corresponds to 0.6.1.30
+from Monotone.
+
+That revision is "928aadc3796083b8412829c2d18e95fdeecd8196".
+To check it out, change into the directory where "i2p.mtn"
+is located, and over there issue:
+
+mtn --db="i2p.mtn" co --revision="928aadc3796083b8412829c2d18e95fdeecd8196"
+
+A directory named "i2p.i2p" must appear in the current directory.
+You may notice that it contains a subdirectory named "_MTN",
+which the source tarball does not contain.
+
+That subdirectory is for Monotone internal use. We'll ignore it
+while diffing. To ascertain that the extra directory is safe,
+you can perform a few checks:
+
+* check Monotone docs to ascertain that it must exist
+* ascertain that nothing in I2P code uses it
+* examine its content
+
+
+
+5.8.5. Diffing source trees against each other
+===============================================
+
+To perform a recursive (-r) diff of the source tarball
+against the Monotone checkout, writing output into "result.diff",
+treating absent files and directories as empty (-N) for comparison, 
+and excluding (-x) any "_MTN" subdirectories, you should issue:
+
+diff -r -N -x "_MTN" i2p_0_6_1_30 i2p.i2p > changes.diff
+
+You should read "changes.diff" with a text editor. Your work
+will be easier if your text editor highlights diff syntax,
+but that is optional. The only kind of changes you should see are:
+
+a) changes of CVS "$Id:" tags into empty tags, like below:
+
+< $Id: readme.license.txt,v 1.1.1.1 2004-04-07 23:41:55 jrandom Exp $
+> $Id$
+
+b) changes of date format in CVS "$Id:" tags, like below:
+
+< $Id: README,v 1.1 2005-01-24 18:43:38 smeghead Exp $
+> $Id: README,v 1.1 2005/01/24 17:42:05 smeghead Exp $
+
+c) revision number hops without changes in file content, like below:
+
+<  * $Revision: 1.2 $
+>  * $Revision: 1.1 $
+
+d) changes in date tags, presumably part of the release process
+
+< <i2p.news date="$Date: 2007-10-07 22:09:35 $">
+> <i2p.news date="$Date: 2007-08-23 19:33:29 $">
+
+That should be all. The diff ought be about 300 lines long.
+There should be absolutely no changes in anything but formal tags.
+If you see consequential changes in code, please report.
+
+
+
+5.8.6. Examining changes from 0.6.1.30 onwards
+===============================================
+
+To examine what has been modified from the current moment
+back to release 0.6.1.30, use ordinary Monotone facilities.
+For example you could change into the "i2p.i2p" directory
+and there issue:
+
+mtn update
+
+mtn log --to="928aadc3796083b8412829c2d18e95fdeecd8196" > ../changes.log
+
+mtn diff --revision="928aadc3796083b8412829c2d18e95fdeecd8196" > ../changes.diff
+
+The first command would update your local copy to the "head"
+or latest version. The second one would print a concise log of changes
+going back to 0.6.1.30, into a file in the parent directory
+of the working copy, and the third command would print a full diff
+into another file.
+
+This diff will be BIG, and will get bigger with development.
+Fortunately there are compelling reasons to read it
+only during a short period after the transition.
+
+
+
+5.9. Checking out a working copy of the latest version
+=======================================================
+
+Do this only if you haven't already checked out a working copy.
+If you checked it out according to section 5.8.4, skip to 5.10
+and do an update instead.
+
+Change into the directory where "i2p.mtn" is located.
+Over there issue:
+
+mtn --db="i2p.mtn" co --branch="i2p.i2p"
+
+Checkout should complete without error messages, and a directory
+named "i2p.i2p" should appear in the current directory.
+Congratulations, you have successfully checked out
+the latest I2P sources. They should be ready to compile.
+
+
+
+5.10. Updating your working copy to the latest version
+=======================================================
+
+If you haven't done this already, pull fresh code from the server
+to your local Monotone repository. To accomplish this, change into
+the directory where "i2p.mtn" is located and issue:
+
+mtn --db="i2p.mtn" pull 127.0.0.1:8998 i2p.i2p
+
+Now change into your "i2p.i2p" directory,
+and over there issue:
+
+mtn update
+
+Congratulations, you have successfully updated to
+the latest I2P sources. They should be ready to compile.
+
+
+
+5.11. Why "i2p.www" cannot be verified
+=======================================
+
+The branch "www.i2p" cannot be properly verified,
+because jrandom did not produce signed tarballs of it.
+
+Fortunately, only a few people need the project website,
+and it's small enough to review manually in a modest period of time.
+I thus hope it's not a risk which comes to bite us back.
+
+Changes which occur in this branch since its import into Monotone,
+will be verifiable in future.
+
+
+
+5.12. Why Syndie doesn't need a signed tarball to verify
+=========================================================
+
+Because it was verified using jrandom's MTN key.
+
+If you obtained the "mtn-committers" and "mtn-committers.sig"
+files from this guide, and obtained jrandom's Syndie release key
+from an independent source, and the signature verified,
+one of the following should be true:
+
+a) the MTN key this document supplies is correct
+b) your indepedent source is colluding with me
+
+However if the signed tarball should become available,
+this document will be updated with information about it.
+
+
+
+6. Operating a server
+======================
+
+
+
+6.1. Obtaining and deploying developers' transport keys
+========================================================
+
+Since a server's purpose is being a place of exchange,
+you probably want to have developers' transport keys,
+and provide them push access.
+
+If multiple servers are operated in parallel,
+you may also want to grant other servers push access.
+Servers also have transport keys, just ask for them
+from the server operators.
+
+Importing transport keys goes identically
+to importing commit keys, described in section 5.5.
+
+
+
+6.2. Regulating push and pull access on a server
+=================================================
+
+When you just start a Monotone server, it will deny all access.
+Since that's pretty boring, you'll probably want to:
+
+* allow everyone pull access
+* allow developers push access
+
+To permit everyone pull access, open the file
+"/home/username/.monotone/read-permissions" and
+add lines like the following two:
+
+pattern "*"
+allow "*"
+
+To permit developers push access, open the file
+"/home/username/.monotone/write-permissions" and
+add lines like the following two:
+
+zzz-transport@mail.i2p
+complication-transport@mail.i2p
+
+
+
+6.3. Running Monotone in server mode
+============================================
+
+First, to run a Monotone server, don't use your development database.
+Monotone locks a database while serving it to others,
+and this will greatly inconvenience your development work.
+
+Instead make a copy of your development database,
+possibly into a different directory, possibly for a different user
+(your choice) and finally in the right directory, as the right user
+issue something like:
+
+mtn serve --bind="127.0.0.1:8998" --db="i2p.mtn" --key "myserver-transport@mail.i2p"
+
+If your key is protected with a passphrase, Monotone may request
+the passphrase not during startup, but when the first client connects.
+This is probably a bug in Monotone, and will be fixed.
+You can get around this effect by connecting as a client
+to your own server.
+
+For your server to be accessible for others over I2P,
+you will need to create a server tunnel for it.
+Use the "Standard" tunnel type and "Bulk" profile.
+
+
+
+6.4. Differences under Debian GNU/Linux
+========================================
+
+Some Linux distros have taken an extra step and integrated Monotone
+into their framework of daemons/services. Debian is among them,
+even though you can run Monotone "the ordinary way"
+under Debian too.
+
+You can find the "read-permissions", "write-permissions"
+and "hooks.lua" file under "/etc/monotone".
+
+You'll likely need to modify "/etc/default/monotone",
+since it contains settings like the interface to listen on,
+and the location of data files ("i2p.mtn").
+
+A script "/etc/init.d/monotone" is provided for running a Monotone server.
+You can register it for running automatically using "update-rc.d".
+
+When more information becomes available, it will be added here.
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.6 (GNU/Linux)
+
+iD8DBQFHr1NR+h38a3n8zjMRAvnJAJwI+r8ncrRHQyXFGlKeDLhkx43ntACeODj5
+ZqahcI319VLArNhzv2cX4P4=
+=C9uR
+-----END PGP SIGNATURE-----
+{% endfilter %}
