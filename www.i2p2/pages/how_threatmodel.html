@@ -1,0 +1,339 @@
+{% extends "_layout.html" %}
+{% block title %}I2P's Threat Model{% endblock %}
+{% block content %}<h1>What do we mean by "anonymous"?</h1>
+
+<p>Your level of anonymity can be described as how hard it is for someone
+to find out information you don't want them to know - who you are, where
+you are located, who you communicate with, or even when you communicate.  
+"Perfect" anonymity is not a useful concept here - software will not make 
+you indistinguisable from people that don't use computers or who are not on
+the internet.  Instead, I2P is working to provide sufficient anonymity to meet the
+real needs of whomever we can - from Joe Sixpack browsing porn to Tommy Trader
+sharing files to Irene Insurgent organizing an upcoming action.</p>
+  
+<p>The question of whether I2P provides sufficient anonymity for your 
+particular needs is a hard one, but this page will hopefully assist in 
+answering that question by exploring how I2P operates under various attacks
+so that you may decide whether it meets your needs.</p>
+
+<h2>Mix summary</h2>
+<p>I2P builds off the ideas of many <a href="how_networkcomparisons">other</a> 
+<a href="links">systems</a>, but a few key points should be kept in mind when 
+reviewing related literature:</p><ul>
+<li><b>I2P is a free route mixnet</b> - the message creator explicitly defines the
+    path that messages will be sent out (the outbound tunnel), and the message 
+    recipient explicitly defines the path that messages will be received on (the
+    inbound tunnel).  However, any of these hops along the path may inject an 
+    arbitrary number of hops before forwarding the message to the next peer (though
+    the current implementation does not).</li>
+<li><b>I2P is variable latency</b> - each application (destination) determines its
+    own tradeoff of latency, throughput, bandwidth, and anonymity by configuring 
+    the number of hops in their tunnels, the number of tunnels to keep in parallel,
+    and how frequently to rotate tunnels.  In addition, there are plans to implement
+    <a href="todo#stop">nontrivial delays</a> and <a href="todo#batching">batching strategies</a> 
+    whose existence is only known to the particular hop or tunnel gateway that 
+    receives the message, allowing a mostly low latency mixnet to provide cover 
+    traffic for higher latency communication (e.g. email).</li>
+<li><b>I2P has no entry and exit points</b> - all peers fully participate in the 
+    mix, and there are no network layer in- or out-proxies (however, at the 
+    application layer, a few outbound HTTP proxies exist at the moment)</li>
+<li><b>I2P is fully distributed</b> - there are no central controls or peers who
+    take on uneven responsabilities (beyond load balancing due to resource constraints).
+    One could modify some routers to operate mix cascades (building tunnels and giving
+    out the keys necessary to control the forwarding at the tunnel endpoint) or directory 
+    based profiling and selection, all without breaking compatability with the rest of 
+    the network, but doing so is of course not necessary (and may even harm one's
+    anonymity).</li>
+</ul>
+
+<h2>Attacks</h2>
+<p>Taking from the attacks and analyses put forth in the 
+<a href="http://freehaven.net/anonbib/topic.html">anonymity literature</a> (largely 
+<a href="http://citeseer.ist.psu.edu/454354.html">Traffic Analysis: Protocols, Attacks, Design 
+Issues and Open Problems</a>), the following briefly describes a wide variety 
+of attacks as well as many of I2Ps defenses.  We will update
+this list to include new attacks as they are identified.</p>
+
+<ul>
+<li><a href="#bruteforce">Brute force attacks</a></li>
+<li><a href="#timing">Timing attacks</a></li>
+<li><a href="#intersection">Intersection attacks</a></li>
+<li><a href="#dos">Denial of service attacks</a></li>
+<li><a href="#tagging">Tagging attacks</a></li>
+<li><a href="#partitioning">Partitioning attacks</a></li>
+<li><a href="#predecessor">Predecessor attacks</a></li>
+<li><a href="#harvesting">Harvesting attacks</a></li>
+<li><a href="#sybil">Sybil attacks</a></li>
+<li><a href="#crypto">Cryptographic attacks</a></li>
+<li><a href="#dev">Development attacks</a></li>
+<li><a href="#impl">Implementation attacks</a></li>
+</ul>
+
+<h3 id="bruteforce">Brute force attacks</h3>
+
+<p>A brute force attack can be mounted by a global passive or active adversary, 
+watching all the messages pass between all of the nodes and attempting to correlate
+which message follows which path.  Mounting this attack against I2P should be 
+nontrivial, as all peers in the network are frequently sending messages (both
+end to end and network maintenance messages), plus an end to end message changes
+size and data along its path.  In addition, the external adversary does not have
+access to the messages either, as inter-router communication is both encrypted
+and streamed (making two 1024 byte messages indistinguishable from one 2048 byte
+message).</p>
+
+<p>However, a powerful attacker can use brute force to detect trends - if they 
+can send 5GB to an I2P destination and monitor everyone's network connection,
+they can eliminate all peers who did not receive 5GB of data.  Techniques to 
+defeat this attack exist, but may be prohibitively expensive (see: 
+<a href="http://citeseer.ist.psu.edu/freedman02tarzan.html">Tarzan</a>'s mimics
+or constant rate traffic).  Most users are not concerned with this attack, as 
+the cost of mounting it are extreme (and often require illegal activity).  
+However, the attack is still possible, and those who want to defend against it 
+would want to make appropriate countermeasures, such as not communicating with 
+unknown destinations, not publishing one's current leaseSet in the network 
+database, actively rerouting the associated tunnels 'mid stream', throttling the
+inbound tunnels themselves, and/or using restricted routes with trusted links 
+to secure the local connection.</p>
+
+<h3 id="timing">Timing attacks</h3>
+
+<p>I2P's messages are unidirectional and do not necessarily imply that a reply
+will be sent.  However, applications on top of I2P will most likely have
+recognizable patterns within the frequency of their messages - for instance, an 
+HTTP request will be a small message with a large sequence of reply messages 
+containing the HTTP response.  Using this data as well as a broad view of the 
+network topology, an attacker may be able to disqualify some links as being too 
+slow to have passed the message along.</p>
+
+<p>This sort of attack is powerful, but its applicability to I2P is nonobvious,
+as the variation on message delays due to queueing, message processing, and 
+throttling will often meet or exceed the time of passing a message along a 
+single link - even when the attacker knows that a reply will be sent as soon as
+the message is received.  There are some scenarios which will expose fairly 
+automatic replies though - the streaming library does (with the SYN+ACK) as does the 
+message mode of guaranteed delivery (with the DataMessage+DeliveryStatusMessage).</p>
+
+<p>Without protocol scrubbing or higher latency, global active adversaries can 
+gain substantial information.  As such, people concerned with these attacks should
+increase the latency (per <a href="todo#stop">nontrivial delays</a> or 
+<a href="todo#batching">batching strategies</a>), include protocol scrubbing, or
+other advanced tunnel routing <a href="todo#batching">techniques</a>.</p>
+
+<h3 id="intersection">Intersection attacks</h3>
+
+<p>Intersection attacks against low latency systems are extremely powerful -
+periodically make contact with the target and keep track of what peers are on
+the network.  Over time, as node churn occurs the attacker will gain 
+significant information about the target by simply intersecting the sets of
+peers that are online when a message successfully goes through.  The cost of 
+this attack is significant as the network grows, but may be feasible in some
+scenarios.</p>
+  
+<p>I2P does not attempt to address this for low latency communication,
+but does for peers who can afford delays (per <a href="todo#stop">nontrivial 
+delays</a> and <a href="todo#batching">batching strategies</a>).  In addition,
+this is only relevent for destinations that other people know about - a private
+group whose destination is only known to trusted peers does not have to worry,
+as an adversary can't "ping" them to mount the attack.</p>
+
+<h3 id="dos">Denial of service attacks</h3>
+
+<p>There are a whole slew of denial of service attacks available against I2P,
+each with different costs and consequences:</p><ul>
+<li><b>Greedy user attack:</b> The most plausible attack against I2P will simply
+    be people trying to consume significantly more resources than they are 
+    willing to contribute.  The defense against this is twofold:<ul>
+    <li>First, for people who do not need very strong anonymity, simply set the tunnel length
+    to 0 hops (1 hop until <a href="todo#ordering">strict ordering</a> and 
+    <a href="todo#tunnelLength">permuted lengths</a> is implemented).  This will
+    provide optimal throughput while still providing a degree of anonymity via
+    plausible deniability.  In addition, it will not consume significant network
+    resources.</li>
+    <li>Second, for people who do need stronger anonymity, educate them so they 
+    understand that without routing other people's traffic, their own anonymity
+    is weakened, so that if they want to consume significant network resources
+    while still being anonymous, they need to provide significant network 
+    resources.</li></ul>
+<li><b>Starvation attack:</b> A hostile user may attempt to harm the network by
+    creating a significant number of peers in the network who are not identified as
+    being under control of the same entity (as with Sybil).  These nodes then 
+    decide not to provide any resources to the network, causing existing peers 
+    to search through a larger network database or request more tunnels than 
+    should be necessary.  I2P addresses that by maintaining profiles on the 
+    peers, attempting to identify underperforming ones and simply ignoring 
+    them.</li>
+<li><b>Flooding attack:</b> A hostile user may attempt to flood the network,
+    a peer, a destination, or a tunnel.  Network and peer flooding is possible,
+    and I2P does nothing to prevent standard IP layer flooding.  The flooding of
+    a destination with messages by sending a large number to the target's various
+    inbound tunnel gateways is possible, but the destination will know this both
+    by the contents of the message and because the tunnel's tests will fail.  The
+    same goes for flooding just a single tunnel.  I2P has no defenses for a network
+    flooding attack.  For a destination and tunnel flooding attack, the target
+    identifies which tunnels are unresponsive and builds new ones.  New code could
+    also be written to add even more tunnels if the client wishes to handle the
+    larger load.  If, on the other hand, the load is more than the client can
+    deal with, they can instruct the tunnels to throttle the number of messages or
+    bytes they should pass on (once the <a href="todo#batching">advanced tunnel
+    operation</a> is implemented).</li>
+<li><b>CPU load attack:</b> There are currently some methods for people to 
+    remotely request that a peer perform some cryptographically expensive 
+    operation, and a hostile attacker could use these to flood that peer with
+    a large number of them in an attempt to overload the CPU.  Both using good 
+    engineering practices and potentially requiring nontrivial certificates 
+    (e.g. HashCash) to be attached to these expensive requests should mitigate
+    the issue, though there may be room for an attacker to exploit various
+    bugs in the implementation.</p>
+</ul>
+
+<h3 id="tagging">Tagging attacks</h3>
+<p>Tagging attacks - modifying a message so that it can later be identified 
+further along the path - are by themselves impossible in I2P, as messages 
+passed through tunnels are signed.  However, if an attacker is the inbound 
+tunnel gateway as well as a participant further along in that tunnel, with
+collusion they can identify the fact that they are in the same tunnel (and 
+prior to adding <a href="todo#tunnelId">unique hop ids</a> and other updates,
+colluding peers within the same tunnel can recognize that fact without any 
+effort).  An attacker in an outbound tunnel and any part of an inbound tunnel cannot 
+collude however, as the tunnel encryption pads and modifies the data separately
+for the inbound and outbound tunnels.  External attackers cannot do anything,
+as the links are encrypted and messages signed.</p>
+
+<h3 id="partitioning">Partitioning attacks</h3>
+
+<p>Partitioning attacks - finding ways to segregate (technically or analytically)
+the peers in a network - are important to keep in mind when dealing with a 
+powerful adversary, since the size of the network plays a key role in determining
+your anonymity.  Technical partitioning by cutting links between peers to create
+fragmented networks is addressed by I2P's built in network database, which 
+maintains statistics about various peers so as to allow any existing connections
+to other fragmented sections to be exploited so as to heal the network.  However,
+if the attacker does disconnect all links to uncontrolled peers, essentially
+isolating the target, no amount of network database healing will fix it.  At
+that point, the only thing the router can hope to do is notice that a significant
+number of previously reliable peers have become unavailable and alert the client
+that it is temporarily disconnected (this detection code is not implemented at
+the moment).</p>
+
+<p>Partitioning the network analytically by looking for differences in how routers 
+and destinations behave and grouping them accordingly is also a very powerful
+attack.  For instance, an attacker <a href="#harvesting">harvesting</a> the network
+database will know when a particular destination has 5 inbound tunnels in their
+LeaseSet while others have only 2 or 3, allowing the adversary to potentially 
+partition clients by the number of tunnels selected.  Another partition is 
+possible when dealing with the <a href="todo#stop">nontrivial delays</a> and 
+<a href="todo#batching">batching strategies</a>, as the tunnel gateways and the
+particular hops with non-zero delays will likely stand out.  However, this data
+is only exposed to those specific hops, so to partition effectively on that 
+matter, the attacker would need to control a significant portion of the network
+(and still that would only be a probabalistic partition, as they wouldn't know
+which other tunnels or messages have those delays).</p>
+
+<h3 id="predecessor">Predecessor attacks</h3>
+
+<p>The predecessor attack is passively gathering statistics in an attempt to see
+what peers are 'close' to the destination by participating in their tunnels and
+keeping track of the previous or next hop (for outbound or inbound tunnels, 
+respectively).  Over time, using a perfectly random sample of peers and random
+ordering, an attacker would be able to see which peer shows up as 'closer' 
+statistically more than the rest, and that peer would in turn be where the
+target is located.  </p>
+
+<p>I2P avoids this in four ways: first, the peers selected to participate in
+tunnels are not randomly sampled throughout the network - they are derived from
+the <a href="how_peerselection">peer selection</a> algorithm which breaks them
+into tiers.  Second, with <a href="todo#ordering">strict ordering</a> of peers
+in a tunnel, the fact that a peer shows up more frequently does not mean they're
+the source.  Third, with <a href="todo#tunnelLength">permuted tunnel length</a>
+even 0 hop tunnels can provide plausible deniability as the occational 
+variation of the gateway will look like normal tunnels.  Fourth, with 
+<a href="todo#fullRestrictedRoutes">restricted routes</a>, only the peer with
+a restricted connection to the target will ever contact the target, while 
+attackers will merely run into that gateway.</p>
+
+<h3 id="harvesting">Harvesting attacks</h3>
+
+<p>The harvesting attack can be used for legal attacks and to help mounting
+other attacks by simply running a peer, seeing who it connects to, and 
+harvesting whatever references to other peers it can find.  I2P itself is 
+built to optimize this attack, since there is the distributed network database 
+containing just this information.  However, this by itself isn't a problem,
+since there are ways to track down who is participating in the network with
+essentially all public systems - I2P just makes it easier to do (and, in 
+turn, gains the ability to combat partitioning and provide well bounded 
+discovery time).  With <a href="todo#nat">basic</a> and 
+<a href="todo#fullRestrictedRoutes">comprehensive</a> restricted routes, 
+this attack loses much of its power, as the "hidden" peers do not publish their
+contact addresses in the network database - only the tunnels through which 
+they can be reached (as well as their public keys, etc).</p>
+
+<h3 id="sybil">Sybil attacks</h3>
+
+<p>Sybil describes a category of attacks where the adversary creates arbitrarily
+large numbers of colluding nodes and uses the increased numbers to help 
+mounting other attacks.  For instance, if an attacker is in a network where peers
+are selected randomly and they want an 80% chance to be one of those peers, they
+simply create five times the number of nodes that are in the network and roll 
+the dice.  When identity is free, sybil can be a very potent technique for a 
+powerful adversary.  The primary technique to address this is simply to make 
+identity 'nonfree' - <a href="http://www.pdos.lcs.mit.edu/tarzan/">Tarzan</a>
+(among others) uses the fact that IP addresses are limited, while 
+IIP used 
+<a href="http://www.hashcash.org/">HashCash</a> to 'charge' for creating a new
+identity.  We currently have not implemented any particular technique to address
+Sybil, but do include placeholder certificates in the router's and 
+destination's data structures which can contain a HashCash certificate of 
+appropriate value when necessary (or some other certificate proving scarcity).</p>
+
+<h3 id="crypto">Cryptographic attacks</h3>
+
+<p>
+We are still assuming the security of the cryptographic primitives explained 
+<a href="how_cryptography">elsewhere</a>.  That includes the immediate detection of 
+altered messages along the path, the inability to decrypt messages not addressed to you,
+and defense against man-in-the-middle attacks.  The network protocol and data structures
+support securely padding messages to arbitrary sizes, so messages could be made constant
+size or garlic messages could be modified randomly so that some cloves appear to contain
+more subcloves than they actually do.  At the moment, however, garlic, tunnel, and 
+end to end messages include simple random padding.</p>
+
+<h3 id="dev">Development attacks</h3>
+
+<p>
+These attacks aren't directly on the network, but instead go after its development team 
+by either introducing legal hurdles on anyone contributing to the development
+of the software, or by using whatever means are available to get the developers to 
+subvert the software.  Traditional technical measures cannot defeat these attacks, and
+if someone threatened the lives of a developer's loved ones (or even just issuing a 
+court order along with a gag order, under threat of prison), everyone should expect that 
+the code would be modified.  </p>
+
+<p>
+However, two techniques help defend against these attacks:
+<ul>
+<li> All components of the network must be open source to enable inspection, verification, 
+     modification, and improvement.  If a developer is compromised, once it is noticed 
+     the community should demand explanation and cease to accept that developer's work.</li>
+<li> Development over the network itself, allowing developers to stay anonymous but still 
+     secure the development process.  All I2P development can occur through I2P - the 
+     CVS server (cvs.i2p), the public web server (www.i2p), the mailing list archives 
+     (dev.i2p/pipermail/i2p), discussion forums (forum.i2p), and the software distribution 
+     area (dev.i2p/i2p) are all online.</li>
+</ul>
+</p>
+
+<h3 id="impl">Implementation attacks</h3>
+<p>
+Try as we might, most nontrivial applications include errors in the design or 
+implementation, and I2P is no exception.  There may be bugs that could be exploited to 
+attack the anonymity or security of the communication running over I2P in unexpected 
+ways.  To help withstand attacks against the design or protocols in use, we publish 
+all designs and documentation in the open and asking for any and all criticism with 
+the hope that many eyes will improve the system.  In addition, the code is being 
+treated the same way, with little aversion towards reworking or throwing out 
+something that isn't meeting the needs of the software system (including ease of 
+modification).  Documentation for the design and implementation of the network and 
+the software components are an essential part of security, as without them it is 
+unlikely that developers would be willing to spend the time to learn the software 
+enough to identify shortcomings and bugs.</p>
+{% endblock %}

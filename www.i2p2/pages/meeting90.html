@@ -1,0 +1,203 @@
+{% extends "_layout.html" %}
+{% block title %}I2P Development Meeting 90{% endblock %}
+{% block content %}<h3> Tuesday, May 18, 2004 14:00:00 PDT</h3>
+<div class="irclog">
+<p>14:07 &lt; jrandom&gt; 0) hi</p>
+<p>14:07 &lt; jrandom&gt; 1) testnet status</p>
+<p>14:07 &lt; jrandom&gt; 2) SAM</p>
+<p>14:07 &lt; jrandom&gt; 3) roadmap updates</p>
+<p>14:07 &lt; jrandom&gt; 4) MyI2P</p>
+<p>14:07 &lt; jrandom&gt; 5) ???</p>
+<p>14:07 &lt; jrandom&gt; 0) hi</p>
+<p>14:07  * jrandom waves </p>
+<p>14:08 &lt; Nightblade&gt; hi</p>
+<p>14:08  * jteitel waves back</p>
+<p>14:08 &lt; jar&gt; hi</p>
+<p>14:08 &lt; duck&gt; lo</p>
+<p>14:08 &lt; Masterboy&gt; :P</p>
+<p>14:08 &lt; jrandom&gt; weekly status notes posted up to http://dev.i2p.net/pipermail/i2p/2004-May/000239.html</p>
+<p>14:09 &lt; jrandom&gt; sorry if I'm a bit out of it today, sleep schedule is more out of wack than usual</p>
+<p>14:09 &lt; jrandom&gt; anyway, moving on to 1) testnet status</p>
+<p>14:10 &lt; duck&gt; the diversification would automatically happen with a bigger network wouldnt it?</p>
+<p>14:10 &lt; jrandom&gt; yes, and/or less skewed peer selection thresholds</p>
+<p>14:11 &lt; jrandom&gt; for instance, if the speed threshold were the median as opposed to the average, we'd get half as many fast peers as reliable peers</p>
+<p>14:11 &lt; jrandom&gt; as opposed to the situation we have today where the speeds are heavily skewed</p>
+<p>14:12 &lt; Masterboy&gt; well the network healed that's not so bad</p>
+<p>14:12 &lt; jrandom&gt; yeah, it took longer than it should though, and exposed ways that it can be improved</p>
+<p>14:13 &lt; jteitel&gt; did the network heal?  I still cannot connect to i2p irc reliably</p>
+<p>14:13 &lt; jrandom&gt; the peer profiles didn't decay fast enough, or promote new candidates efficiently</p>
+<p>14:14 &lt; jrandom&gt; it did fire off a chain of secondary events as well - overloading routers that weren't capable of holding the load (due to insufficient profiling), causing some overloaded routers to run out of memory and shut down</p>
+<p>14:15 &lt; human&gt; ayeee ayeee ayeee!</p>
+<p>14:15 &lt; jrandom&gt; its been a progression jteitel - some of the issues we've been seeing are related to the netDb failures </p>
+<p>14:15 &lt; jrandom&gt; heya human</p>
+<p>14:15 &lt; jteitel&gt; Oh, OK</p>
+<p>14:16 &lt; _cervantes_&gt; could not an troubled router offload tunnels to another peer?</p>
+<p>14:16 &lt; ugha_node&gt; Wow, Lifetime rate: 8.87KBps sent 8.35KBps received.</p>
+<p>14:16 &lt; Nightblade&gt; jteitel: I connected just now after several tries...still waiting for my /join to go through</p>
+<p>14:16  * BrianR looks around.</p>
+<p>14:16 &lt; jrandom&gt; no - a router can simply drop a tunnel though (if it shouldn't have accepted it in the first place)</p>
+<p>14:16 &lt; ugha_node&gt; (And I restarted my router half an hour ago)</p>
+<p>14:16 &lt; BrianR&gt; damn it. I'm late.</p>
+<p>14:17 &lt; BrianR&gt; jrandom: (Thanks for arranging myi2p towards the end of the agenda)</p>
+<p>14:17 &lt; jrandom&gt; ugha&gt; yeah, y'all had to pick up the slack for those three fast ones</p>
+<p>14:17 &lt; jrandom&gt; hehe :)</p>
+<p>14:18 &lt; duck&gt; a nice attack it was</p>
+<p>14:18 &lt; ugha_node&gt; jrandom: Obciously.</p>
+<p>14:18 &lt; _cervantes_&gt; so would it not be better to be more ruthless and reject tunnels at lower threshold</p>
+<p>14:19 &lt; jrandom&gt; yes cervantes - the routers right now never reject a tunnel unless they cant reach the next hop</p>
+<p>14:19 &lt; jrandom&gt; we'll want to include some sort of throttling in there, perhaps based on the size of the jobQueue / avg lag, etc</p>
+<p>14:20 &lt; jrandom&gt; in addition, we'll want to make sure we dont try to build too many tunnels at once, as happened when a large portion of them failed</p>
+<p>14:20 &lt; _cervantes_&gt; or simply allow the user to set a threshold based on the hardware/bandwith he/she knows he has availabled</p>
+<p>14:20 &lt; jrandom&gt; (due to the fast+reliable peers going offline)</p>
+<p>14:20 &lt; _cervantes_&gt; at least at this stage</p>
+<p>14:20 &lt; jrandom&gt; oh thats a good point - allowing people to explicitly set a max # participating tunnels.</p>
+<p>14:21 &lt; jrandom&gt; we'll get that into the next rev.  good call.</p>
+<p>14:21 &lt; ugha_node&gt; This sounds just like fuzzy logic.</p>
+<p>14:21 &lt; jrandom&gt; we've got to deal with overload, and simply queueing up messages in memory certainly doesnt work</p>
+<p>14:21 &lt; duck&gt; (hi fvw)</p>
+<p>14:21 &lt; _cervantes_&gt; it would be good to have some kind of coalleted stats on tunnel performance... the kind of load the might inflict on a benchmark processor(s)</p>
+<p>14:22 &lt; _cervantes_&gt; btw I took my server offline....it was getting a shed load of tunnels and I haven't yet compiled jbigi ;-)</p>
+<p>14:22 &lt; jrandom&gt; see http://localhost:7655/routerStats.html#Tunnels</p>
+<p>14:23 &lt; jrandom&gt; ah!  yeah, jbigi is something we want to encourage everyone to use </p>
+<p>14:23 &lt; BrianR&gt; Any thoughts on doing bandwidth budgeting for tunnels? </p>
+<p>14:24 &lt; jrandom&gt; currently slated for 3.0 (with overall bandwidth limiting for the router as a whole @ 0.4.1)</p>
+<p>14:24 &lt; jrandom&gt; but having per-tunnel bandwidth limits earlier wouldnt hurt</p>
+<p>14:25 &lt; fvw&gt; Is it wise to spend effort on this so early when it's much easier and more precisely done in the kernel of the OSes most of the current users/testers are running?</p>
+<p>14:25 &lt; _cervantes_&gt; something I would like to see is per-tunnel depth settings (perhaps this is already possible)</p>
+<p>14:25 &lt; _cervantes_&gt; for instance I already know I can trust my server....so I don't want to have to go through _x_ hops to get to it</p>
+<p>14:25 &lt; jrandom&gt; fvw&gt; thats a good point, especially since we currently don't devour too much bandwidth</p>
+<p>14:26 &lt; jrandom&gt; hmm cervantes - yes, each client can specify the length of their tunnels, but i'm not sure thats exactly what you want</p>
+<p>14:26 &lt; _cervantes_&gt; nope</p>
+<p>14:26 &lt; jrandom&gt; cervantes - i think what you're looking for is a QoS where you can shorten the conn for one particular peer</p>
+<p>14:26 &lt; _cervantes_&gt; for instance...</p>
+<p>14:26 &lt; _cervantes_&gt; yep</p>
+<p>14:27 &lt; jrandom&gt; (which was slated for i2p 4.0, but thats more than a year away == infinity)</p>
+<p>14:27 &lt; _cervantes_&gt; in this case also select the depth per i2p host</p>
+<p>14:27 &lt; BrianR&gt; fvw: Yes, but an i2p needs to know roughly how much bandwidth potential tunnel members have available in order to make wise tunnelbuilding decisions... </p>
+<p>14:27 &lt; _cervantes_&gt; ah ok</p>
+<p>14:27 &lt; _cervantes_&gt; :)</p>
+<p>14:27 &lt; jrandom&gt; but its a good idea, and technically feasible, but patches accepted :)</p>
+<p>14:28 &lt; _cervantes_&gt; the patch is already in the mail....along with that cheque for 5000 bars of e-gold </p>
+<p>14:28 &lt; _cervantes_&gt; ;-)</p>
+<p>14:28 &lt; jrandom&gt; BrianR: perhaps it can go halfway - keep track of how many tunnels it is participating in, as well as how much bandwidth those tunnels are using, and use that as part of the decision as to whether to accept or reject a tunnel create request?</p>
+<p>14:28 &lt; jrandom&gt; heh</p>
+<p>14:30 &lt; jrandom&gt; ok, anyone have anything else for the testnet status?</p>
+<p>14:30 &lt; Masterboy&gt; what about my paradox?</p>
+<p>14:30 &lt; Masterboy&gt; :)</p>
+<p>14:30 &lt; jrandom&gt; my plan is to get a 0.3.1.3 with the updates out by thursday or friday</p>
+<p>14:31 &lt; jrandom&gt; Masterboy: i havent had time to go through your logs, but we'll have it resolved</p>
+<p>14:31 &lt; _cervantes_&gt; friday 2005?</p>
+<p>14:31 &lt; _cervantes_&gt; cool</p>
+<p>14:31 &lt; Masterboy&gt; k</p>
+<p>14:31 &lt; jrandom&gt; ok, moving on to 2) SAM</p>
+<p>14:31 &lt; Masterboy&gt; now we know who is running the out of date router..</p>
+<p>14:32  * jrandom hands the mic to our intrepid SAM.pm dev</p>
+<p>14:33 &lt; jrandom&gt; (thats you BrianR :)</p>
+<p>14:33 &lt; BrianR&gt; Hold a second.. :)</p>
+<p>14:33  * duck cheers</p>
+<p>14:33 &lt; jrandom&gt; in the meantime, dm or firerabbit around?</p>
+<p>14:33 -!- Irssi: #i2p: Total of 26 nicks [0 ops, 0 halfops, 0 voices, 26 normal]</p>
+<p>14:33  * jrandom checks the /names, nope.  oh well</p>
+<p>14:33 &lt; jrandom&gt; (no .net/C# sam lib updates then)</p>
+<p>14:34 &lt; duck&gt; is the .py stuff still current?</p>
+<p>14:34 &lt; duck&gt; or depricated by SAM improvements</p>
+<p>14:34 &lt; jrandom&gt; not sure</p>
+<p>14:34 &lt; BrianR&gt; Ok. I'm back. </p>
+<p>14:34 &lt; Nightblade&gt; My C library appears to be working... I have not written an application to use it yet though</p>
+<p>14:34 &lt; jrandom&gt; awesome nightblade!</p>
+<p>14:35 &lt; Nightblade&gt; Has anyone here done GTK+/C programming under Windows?</p>
+<p>14:35 &lt; human&gt; duck: the client lib needs a small change for versioning support</p>
+<p>14:35 &lt; _cervantes_&gt; "hello world"?</p>
+<p>14:35 &lt; human&gt; duck: the rest should work without problems</p>
+<p>14:35  * jrandom suggests a datagram like tftp as the ideal sam test :)</p>
+<p>14:35 &lt; Nightblade&gt; well, anything really... does GTK work well under windows.....?</p>
+<p>14:35 &lt; jrandom&gt; (or even SAM streaming instead of datagram or raw)</p>
+<p>14:36 &lt; jrandom&gt; cool BrianR - how goes the .pm and the samcat?</p>
+<p>14:36 &lt; BrianR&gt; Net::SAM is in the CVS in mostly non-working form.</p>
+<p>14:36 &lt; BrianR&gt; I hope to have all of the bugs ironed and datagram and raw working before week end.</p>
+<p>14:37 &lt; BrianR&gt; A bit more work will be required to put a nice OO finish on streams.</p>
+<p>14:37 &lt; Nightblade&gt; oh yeah, i didn't bother with datagram or raw... just stream</p>
+<p>14:37 &lt; Nightblade&gt; but that is all i would use anyway</p>
+<p>14:37 &lt; fvw&gt; human: Have you considered wxWindows? It's quite useful for that kind of stuff (don't think there's a windows GTK target though)</p>
+<p>14:37 &lt; jrandom&gt; awesome BrianR </p>
+<p>14:38 &lt; BrianR&gt; Wife is bugging me to join her for dinner. I may or may not be back in time for myi2p discussion. I've posted the threat model and stuff dumb fileserver stuff on node 208 </p>
+<p>14:38 &lt; human&gt; fvw: the GTK windows client does exist (The GIMP runs on windows, too)</p>
+<p>14:38 &lt; jrandom&gt; cool nightblade, its best to implement whats needed first</p>
+<p>14:38 &lt; human&gt; fvw: s/client/port/</p>
+<p>14:38 &lt; jrandom&gt; heh 'k BrianR, thanks</p>
+<p>14:38 &lt; fvw&gt; human: I mean gtk windows target for wxWindows (which I was suggesting you use)</p>
+<p>14:38  * fvw waves to BrianR. Bon Appetite.</p>
+<p>14:38 &lt; human&gt; fvw: ah... well, i don't know about vxWidgets (vxWindows' new name :-)</p>
+<p>14:39 &lt; human&gt; fvw: but it was Nightblade speaking about GTK+, not me :-)</p>
+<p>14:40 &lt; fvw&gt; Oops, my eyes are crooked, ignore me.</p>
+<p>14:40 &lt; Nightblade&gt; I'm not as familiar with C++ as I am C</p>
+<p>14:40 &lt; Nightblade&gt; afaik GTK is the only cross-platform C GUI library</p>
+<p>14:40 &lt; Nightblade&gt; not that i am particularly fond of GTK</p>
+<p>14:40 &lt; fvw&gt; doesn't really matter, wxWindows is easily approachable from C.</p>
+<p>14:40 &lt; Nightblade&gt; hmm</p>
+<p>14:40 &lt; Nightblade&gt; well maybe i'll take a look at it too</p>
+<p>14:40 &lt; Nightblade&gt; i know C++ but I haven't written any major programs in it</p>
+<p>14:41  * fvw isn't a C++ coder either, but I set up a fairly large transaction viewer for a transport company in it a while back without troubles.</p>
+<p>14:42 &lt; Nightblade&gt; i am sure wxwindows has a more mature windows port</p>
+<p>14:42 &lt; Nightblade&gt; than gtk</p>
+<p>14:42 &lt; fvw&gt; quite probably yeah.</p>
+<p>14:43 &lt; Nightblade&gt; (ok continue meeting) heh</p>
+<p>14:43 &lt; jrandom&gt; :)</p>
+<p>14:43 &lt; jrandom&gt; ok, jumping to 3) roadmap updates</p>
+<p>14:44  * jrandom has been negligent updating http://www.i2p.net/roadmap over the last month</p>
+<p>14:44 &lt; jrandom&gt; but now its back up to current</p>
+<p>14:44 &lt; jrandom&gt; unfortunately we're obviously not getting 0.4 in next week</p>
+<p>14:44 &lt; duck&gt; (are 1.1, 2.0, 3.0 also up2date?)</p>
+<p>14:45 &lt; jrandom&gt; yessir</p>
+<p>14:45  * Masterboy read it liked it - no rush we are not on fire..</p>
+<p>14:46 &lt; duck&gt; someone should update wikipedia/infoanarchy too :)</p>
+<p>14:46 &lt; jrandom&gt; oh, i should probably remove the "SAM bridge and client libraries implemented and tested" from 0.4</p>
+<p>14:46 &lt; jrandom&gt; heh yeah, thats why i !thwapped iA a while back when they just copied the wiki page</p>
+<p>14:46 &lt; jrandom&gt; (they should just point to the /roadmap, not duplicate the content)</p>
+<p>14:47 &lt; Masterboy&gt; SAM is finished?</p>
+<p>14:47 &lt; jrandom&gt; its functional yes, though work on additional client libraries are ongoing</p>
+<p>14:47 &lt; jrandom&gt; s/are/is/</p>
+<p>14:48 &lt; jrandom&gt; ok, unless there are any more roadmap questions/concerns, moving on to 4) MyI2P</p>
+<p>14:50 &lt; jrandom&gt; while i've stopped working on myi2p myself, we've opened up the effort to a bounty - http://www.i2p.net/node/view/216</p>
+<p>14:50 &lt; jrandom&gt; part of that means we need to get the requirements right, and there has been some debate about what those should be</p>
+<p>14:51 &lt; Masterboy&gt; tried to get in it my friend he said too mutch work too little money;P well he is a capitalist;)</p>
+<p>14:51 &lt; Masterboy&gt; well i offered to code it..</p>
+<p>14:52 &lt; jrandom&gt; coding on it is always wanted :)  </p>
+<p>14:53 &lt; jrandom&gt; the current outstanding architectural question though is how to deal with people who cannot run their i2p router / myi2p node all the time</p>
+<p>14:53 &lt; Nightblade&gt; just have to have some trusted i2p isp</p>
+<p>14:53 &lt; jrandom&gt; the two proposals are either to use hosted service providers, or to split off the system to use a distributed backing store</p>
+<p>14:54 &lt; _cervantes_&gt; the later being the long term ideal solution</p>
+<p>14:54 &lt; _cervantes_&gt; *latter</p>
+<p>14:54 &lt; duck&gt; (and being another bounty)</p>
+<p>14:55 &lt; _cervantes_&gt; or a webcache proxy service...</p>
+<p>14:55 &lt; jrandom&gt; right - if we went the hosted service provider (or locally run node), when a DHT/etc were available we could push more and more of the content into the DHT</p>
+<p>14:55 &lt; jrandom&gt; _cervantes_: thats essentially the distributed backing store - untrusted data caches</p>
+<p>14:57 &lt; deer&gt; * Masterboy wonders where is bogobot</p>
+<p>14:57 &lt; jrandom&gt; the hard part is to get the access control functionality needed - with untrusted data caches / distributed backing store, ACLs are essentially encryption</p>
+<p>14:57 &lt; jrandom&gt; but a "side channel" to this discussion comes from the three points raised by an anonymous person @ http://www.i2p.net/node/view/215#comment-105</p>
+<p>14:57 &lt; _cervantes_&gt; and signed content</p>
+<p>14:58 &lt; jrandom&gt; right, both ways will need to have signed content</p>
+<p>15:00 &lt; _cervantes_&gt; this is where hypercubus' model has merit...but it's by no means "quick" solution</p>
+<p>15:00 &lt; jrandom&gt; from the discussions on irc last night, we focused on the "livejournal threat model" - what attacks LJ users care about, and what they dont</p>
+<p>15:01 &lt; wilde&gt; first things first, getting a basic MyI2P in first place</p>
+<p>15:02 &lt; jrandom&gt; right, and to get the basic myi2p implemented, we've got to know the deployment architecture</p>
+<p>15:03 &lt; jrandom&gt; with the lj threat model for users who cannot run their own nodes, i dont think we need to go the untrusted data cache route</p>
+<p>15:03 &lt; jrandom&gt; and why would someone use myi2p if they merely need lj's threat model?  because its anonymous</p>
+<p>15:04 &lt; jrandom&gt; we could go on for some idealized system, but there is the law of diminishing returns</p>
+<p>15:04 -!- Irssi: #i2p: Total of 24 nicks [0 ops, 0 halfops, 0 voices, 24 normal]</p>
+<p>15:05 &lt; jrandom&gt; which is why i'm leaning towards keeping the bounty along the current lines - we can add on alternatives later, after the basic system is out</p>
+<p>15:05 -!- duck_ is now known as duck</p>
+<p>15:06 &lt; jrandom&gt; anyway, i think thats all i've got for 4) MyI2P, unless someone has anything else they'd like to bring up</p>
+<p>15:06 &lt; jrandom&gt; if not, moving on to 5) ???</p>
+<p>15:07 &lt; _cervantes_&gt; hmm you need a large gavel :)</p>
+<p>15:07 &lt; jrandom&gt; i forgot to mention morph.i2p's new eepsite in the meeting notes, and nickster.i2p now has a public fproxy available!</p>
+<p>15:08 &lt; jrandom&gt; (and sungo.i2p has his webcam up and running :)</p>
+<p>15:08 &lt; _cervantes_&gt; heh...</p>
+<p>15:08 &lt; _cervantes_&gt; i2pr0n</p>
+<p>15:08 &lt; jrandom&gt; anyone else have anything they want to bring up?</p>
+<p>15:10 &lt; jrandom&gt; if not, that'll put us at the 70 minute mark</p>
+<p>15:10 &lt; deer&gt; &lt;Masterboy&gt; no</p>
+<p>15:10  * jrandom winds up</p>
+<p>15:10  * jrandom *baf*s the meeting closed</p>
+</div>
+{% endblock %}

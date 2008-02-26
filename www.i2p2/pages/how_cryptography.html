@@ -1,0 +1,161 @@
+{% extends "_layout.html" %}
+{% block title %}How Cryptography Works{% endblock %}
+{% block content %}<p>
+There are a handful of cryptographic algorithms in use within I2P, but we have
+reduced them to a bare minimum to deal with our needs - one symmetric algorithm
+one asymmetric algorithm, one signing algorithm, and one hashing algorithm.  However, 
+we do combine them in some particular ways to provide message integrity (rather than
+relying on a MAC).  In addition, as much as we hate doing anything new in regards to 
+cryptography, we can't seem to find a reference discussing (or even naming) the 
+technique used in <a href="how_elgamalaes">ElGamal/AES+SessionTag</a> (but we're sure others have done it).
+<p>
+<H2>ElGamal encryption</H2>
+
+<p>
+We use common primes for 2048 ElGamal encryption and decryption, and we currently only
+use ElGamal to encrypt the IV and session key in a single block, followed by the 
+AES encrypted payload using that key and IV.  Specifically, the unencrypted ElGamal 
+block is formatted (in network byte order):
+<p>
+<p>
+<PRE>
+ |_______1_______2_______3_______4_______5_______6_______7_______8
+ |nonzero|H(data)
+ |
+ |
+ |
+ |       | data     ...  |
+
+</PRE>
+<p>
+The H(data) is the SHA256 of the data that is encrypted in the ElGamal block,
+and is preceeded by a random nonzero byte.  The data encrypted in the block 
+can be up to 222 bytes long.  Specifically, see 
+<a href="http://dev.i2p.net/cgi-bin/cvsweb.cgi/i2p/core/java/src/net/i2p/crypto/ElGamalEngine.java">[the code]</a>.
+<p>
+ElGamal is never used on its own in I2P, but instead always as part of 
+<a href="how_elgamalaes">ElGamal/AES+SessionTag</a>.
+<p>
+The shared prime is the 
+
+<a href="http://www.ietf.org/proceedings/03mar/I-D/draft-ietf-ipsec-ike-modp-groups-05.txt">[Oakley prime for 2048bit keys]</a>
+<PRE>
+ 2^2048 - 2^1984 - 1 + 2^64 * { [2^1918 pi] + 124476 }
+</PRE>
+<p>
+Using 2 as the generator.
+<p>
+<H2>AES</H2>
+
+<p>
+We use 256bit AES in CBC mode with PKCS#5 padding for 16 byte blocks (aka each block is end 
+padded with the number of pad bytes).  Speficially, see 
+<a href="http://dev.i2p.net/cgi-bin/cvsweb.cgi/i2p/core/java/src/net/i2p/crypto/CryptixAESEngine.java">[the CBC code]</a> 
+and the Cryptix AES 
+
+<a href="http://dev.i2p.net/cgi-bin/cvsweb.cgi/i2p/core/java/src/net/i2p/crypto/CryptixRijndael_Algorithm.java">[implementation]</a>
+<p>
+For situations where we stream AES data, we still use the same algorithm, as implemented in
+<a href="http://dev.i2p.net/cgi-bin/cvsweb.cgi/i2p/core/java/src/net/i2p/crypto/AESOutputStream.java">[AESOutputStream]</a>
+<a href="http://dev.i2p.net/cgi-bin/cvsweb.cgi/i2p/core/java/src/net/i2p/crypto/AESInputStream.java">[AESInputStream]</a>
+<p>
+For situations where we know the size of the data to be sent, we AES encrypt the following:
+<p>
+<PRE>
+ |_______1_______2_______3_______4_______5_______6_______7_______8
+ |H(data)|      size of data (in bytes)  |  data    ...  | rand  |
+</PRE>
+<p>
+After the data comes an application specified number of randomly generated padding bytes, and
+this entire segment (from H(data) through the end of the random bytes) is AES encrypted 
+(256bit CBC w/ PKCS#5). 
+
+<p>
+This code is implemented in the safeEncrypt and safeDecrypt methods of 
+<a href="http://dev.i2p.net/cgi-bin/cvsweb.cgi/i2p/core/java/src/net/i2p/crypto/AESEngine.java">[AESEngine]</a>
+<p>
+<H2>DSA</H2>
+
+<p>
+Signatures are generated and verified with 1024bit DSA, as implemented in
+<a href="http://dev.i2p.net/cgi-bin/cvsweb.cgi/i2p/core/java/src/net/i2p/crypto/DSAEngine.java">[DSAEngine]</a> 
+<p>
+<H3>The DSA constants</H3>
+
+<p>
+
+<H4>SEED</H4>
+
+<PRE>
+ 86108236b8526e296e923a4015b4282845b572cc
+</PRE>
+<H4>Counter</H4>
+
+<PRE>
+ 33
+</PRE>
+<p>
+<H4>DSA prime</H4>
+
+<p>
+<PRE>
+ 9C05B2AA 960D9B97 B8931963 C9CC9E8C 3026E9B8 ED92FAD0
+ A69CC886 D5BF8015 FCADAE31 A0AD18FA B3F01B00 A358DE23
+ 7655C496 4AFAA2B3 37E96AD3 16B9FB1C C564B5AE C5B69A9F
+ F6C3E454 8707FEF8 503D91DD 8602E867 E6D35D22 35C1869C
+ E2479C3B 9D5401DE 04E0727F B33D6511 285D4CF2 9538D9E3
+ B6051F5B 22CC1C93
+</PRE>
+<p>
+<H4>DSA quotient</H4>
+
+<p>
+<PRE>
+ A5DFC28F EF4CA1E2 86744CD8 EED9D29D 684046B7
+</PRE>
+<p>
+<H4>DSA generator</H4>
+
+<p>
+<PRE>
+ C1F4D27D 40093B42 9E962D72 23824E0B BC47E7C8 32A39236
+ FC683AF8 48895810 75FF9082 ED32353D 4374D730 1CDA1D23
+ C431F469 8599DDA0 2451824F F3697525 93647CC3 DDC197DE
+ 985E43D1 36CDCFC6 BD5409CD 2F450821 142A5E6F 8EB1C3AB
+ 5D0484B8 129FCF17 BCE4F7F3 3321C3CB 3DBB14A9 05E7B2B3
+ E93BE470 8CBCC82
+</PRE>
+<p>
+<H2>SHA256</H2>
+
+<p>
+Hashes within I2P are plain old SHA256, as implemented in
+<a href="http://dev.i2p.net/cgi-bin/cvsweb.cgi/i2p/core/java/src/net/i2p/crypto/SHA256Generator.java">[SHA256Generator]</a>
+<p>
+<H2>TCP connections</H2>
+
+<p>
+TCP connections are currently negotiated with a 2048 Diffie-Hellman implementation,
+using the router's identity to proceed with a station to station agreement, followed by
+some encrypted protocol specific fields, with all subsequent data encrypted with AES
+(as above).  Down the line, we will want to use session tags like we do with 
+<a href="how_elgamalaes">ElGamalAES+SessionTag</a> to avoid the 2048bit DH negotiation.  
+<p>
+We would like to migrate to a more standardized implementation (TLS/SSL or even SSH), but:
+<p>
+<OL>
+<li> can we somehow reestablish sessions securely (ala session tags) or do we need to do full negotiation each time?
+<li> can we simplify/avoid the x509 or other certificate formats and use our own RouterInfo structure (which 
+     contains the ElGamal and DSA keys)?
+
+</OL>
+<p>
+The basic TCP connection algorithm is implemented in establishConnection() (which calls 
+exchangeKey() and identifyStationToStation()) in 
+<a href="http://dev.i2p.net/cgi-bin/cvsweb.cgi/i2p/router/java/src/net/i2p/router/transport/tcp/TCPConnection.java">[TCPConnection]</a>
+<p>
+However, this is extended by 
+<a href="http://dev.i2p.net/cgi-bin/cvsweb.cgi/i2p/router/java/src/net/i2p/router/transport/tcp/RestrictiveTCPConnection.java">[RestrictiveTCPConnection]</a>
+which updates the establishConnection() method to validate the protocol version, the time, and
+the peer's publicly reachable addresses (since we don't support restricted routes yet, we 
+refuse to talk to those who other people can't talk to as well).  {% endblock %}
