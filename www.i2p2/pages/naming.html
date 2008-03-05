@@ -87,10 +87,14 @@ for addressbook configuration and viewing of the local host lists.
 <h2>Router Naming Files and Lookups</h2>
 <p>
 All destinations in I2P are 516-byte keys.
+(To be more precise, it is a 256-byte public key plus a 128-byte signing key
+plus a null certificate, which in Base64 representation is 516 bytes.
+Certificates are not used now, if they are, the keys will be longer.
+One possible use of certificates is for <a href="todo.html#hashcash">proof of work</a>.)
+</p><p>
 If an application (i2ptunnel or the HTTP proxy) wishes to access
 a destination by name, the router does a very simple local lookup
 to resolve that name.
-</p><p>
 The router does a linear search through three local files, in order, to
 look up host names and convert them to a 516-byte destination key:
 <ol>
@@ -109,7 +113,7 @@ There is no facility for real-time lookups (a la DNS) over the network within th
 <h2>HTTP Proxy</h2>
 The HTTP proxy does a lookup via the router for all hostnames ending in '.i2p'.
 Otherwise, it forwards the request to a configured HTTP outproxy.
-Thus, in practice, all HTTP (eepsite) hostnames must end in '.i2p'.
+Thus, in practice, all HTTP (eepsite) hostnames must end in the pseudo-Top Level Domain '.i2p'.
 
 <p>
 If the router fails to resolve the hostname, the HTTP proxy returns
@@ -165,7 +169,10 @@ after conversion to lower case
 <li>Cannot end with '-.i2p'
 <li>67 characters maximum, including the '.i2p'
 <li>Must not contain '..'
+<li>Must not contain '--' except in 'xn--' for IDN (as of 0.6.1.32)
 <li>Keys are checked for conflict with existing keys in hosts.txt (but not privatehosts.txt).
+<li>Keys containing non-null certificates are also rejected, this will have to be fixed
+if certificates are implemented.
 </ul>
 </p><p>
 Any name received via subscription that passes all the checks is added to the local hosts.txt.		
@@ -173,17 +180,20 @@ Any name received via subscription that passes all the checks is added to the lo
 Possible future restrictions to be implemented:
 <ul>
 <li>Limit on number of 'subdomains'
-<li>Must not contain '--'
 </ul>
 </p><p>
 Note that the '.' symbols in a host name are of no significance,
-and do not denote any actual naming or trust heirarchy.
+and do not denote any actual naming or trust hierarchy.
 If the name 'host.i2p' already exists, there is nothing
 to prevent anybody from adding a name 'a.host.i2p' to their hosts.txt,
 and this name can be imported by others' addressbook.
-Methods to deny subdomains to non-domain 'owners',
-and the desirability and feasibility,
+Methods to deny subdomains to non-domain 'owners' (certificates?),
+and the desirability and feasibility of these methods,
 are topics for future discussion.
+</p><p>
+International Domain Names (IDN) should work in i2p (using 'xn--'), but have not been fully tested.
+To see IDN .i2p domain names rendered correctly in firefox's location bar,
+add 'network.IDN.whitelist.i2p (boolean) = true' in about:config.
 </p><p>
 
 As the addressbook application does not use privatehosts.txt at all, in practice
@@ -338,7 +348,7 @@ jrandom would say we trust the listed providers enough to list them but not enou
 automatically go fetch the key from them.
 <p>
 How successful this is, I'm not sure.
-But there must be some sort of heirarchy of trust for the naming system.
+But there must be some sort of hierarchy of trust for the naming system.
 To treat everyone equally may increase the risk of hijacking.
 
 <li>It isn't DNS<br>
@@ -372,8 +382,41 @@ See the reliability and trust sections.
 So, in summary, the current system is not horribly broken, inefficient, or un-scalable,
 and proposals to "just use DNS" aren't well thought-through.
 
-
-
-
-
+<h2>Alternatives</h2>
+The I2P source contains several pluggable naming systems and supports configuration options
+to enable experimentation with naming systems.
+<ul>
+<li><b>Meta (default through 0.6.1.32)</b> - calls two or more other naming systems in order.
+By default, calls PetName then HostsTxt.
+<li><b>PetName</b> - Looks up in a petnames.txt file.
+The format for this file is NOT the same as hosts.txt.
+<li><b>HostsTxt (default as of 0.6.1.33)</b> - Looks up in the following files, in order:
+<ol>
+<li>privatehosts.txt
+<li>userhosts.txt
+<li>hosts.txt
+</ol>
+<li><b>AddressDB</b> - Each host is listed in a separate file in a addressDb/ directory.
+<li>
+<b>Eepget (introduced in 0.6.1.33)</b> - does an HTTP lookup request from an external
+server - must be stacked after the HostsTxt lookup with Meta.
+This could augment or replace the jump system.
+Includes in-memory caching.
+<li>
+<b>Exec (introduced in 0.6.1.33)</b> - calls an external program for lookup, allows
+additional experimentation in lookup schemes, independent of java.
+Can be used after HostsTxt or as the sole naming system.
+Includes in-memory caching.
+<li><b>Dummy</b> - used as a fallback for Base64 names, otherwise fails.
+</ul>
+<p>
+The current naming system can be changed with the advanced config option 'i2p.naming.impl'
+(restart required).
+See core/java/src/net/i2p/client/naming for details.
+<p>
+Any new system should be stacked with HostsTxt, or should
+implement local storage and/or the addressbook subscription functions, since addressbook
+only knows about the hosts.txt files and format.
+</ul>
+</p>
 {% endblock %}
