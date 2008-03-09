@@ -21,6 +21,6 @@ for filename in get_files('pages'):
     filename = filename.split('/', 2)[1]
     t = env.get_template(filename)
     f = open(os.path.join('out', filename), 'w')
-    f.write(t.render().encode('utf-8'))
+    f.write(t.render(static=True).encode('utf-8'))
     f.close()
     print filename

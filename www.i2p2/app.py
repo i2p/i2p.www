@@ -39,6 +39,8 @@ def app(environ, start_response):
     try:
         try:
             path.index('.')
+            if path.split('.')[-1].isdigit() and not path.split('.')[-1].isalpha():
+                raise ValueError()
             tmpl = env.get_template(path)
             if path[-3:] == 'txt':
                 mime_type='text/plain'
