@@ -208,6 +208,7 @@ while each router chooses which peers it wants to treat as part of the netdb
 ignored, essentially eliminating them from the netdb).
 </p><p>
 Another alternative is a blast from the past, going back to the DTSTTCPW 
+(Do The Simplest Thing That Could Possibly Work)
 mentality - a floodfill netdb, but like the alternative above, using only a 
 subset of the full network.  When a user wants to publish an entry into the 
 floodfill netdb, they simply send it to one of the participating routers, wait 
@@ -331,6 +332,36 @@ There were some calculations that 3-5 floodfill routers should be able to handle
 The netDb implementation more than adequately meets our
 needs at the moment, but there will likely be further tuning and bugfixing as 
 the network grows.</p>
+
+<h3>Update of Calculations 03-2008</h3>
+<p>Current numbers:
+<pre>
+  recvKBps = N * (L + 1) * (1 + F) * (1 + R) * S / T
+</pre>where<pre>
+  N = number of routers in the entire network
+  L = average number of client destinations on each router 
+      (+1 for the routerInfo)
+  F = tunnel failure percentage 
+  R = tunnel rebuild period, as a fraction of the tunnel lifetime
+  S = average netdb entry size
+  T = tunnel lifetime
+</pre>
+Changes in assumptions:
+<ul>
+<li>L is now about .5, compared to .1 above, due to the popularity of i2psnark
+and other apps.
+<li>F is about .33, but bugs in tunnel testing are fixed in 0.6.1.33, so it will get much better.
+<li>Since netDb is about 2/3 5K routerInfos and 1/3 2K leaseSets, S = 4K.
+RouterInfo size is shrinking in 0.6.1.32 and 0.6.1.33 as we remove unnecessary stats.
+<li>R = tunnel build period: 0.2 was a very low - it was maybe 0.7 -
+but build algorithm improvements in 0.6.1.32 should bring it down to about 0.2
+as the network upgrades. Call it 0.5 now with half the network at .30 or earlier.
+</ul>
+<pre>  recvKBps = 700 * (0.5 + 1) * (1 + 0.33) * (1 + 0.5) * 4KB / 10m
+           ~= 28KBps
+</pre>
+This just accounts for the stores - what about the queries?
+
 
 <h3>The Return of the Kademlia Algorithm?</h3>
 <p>
