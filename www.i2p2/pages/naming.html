@@ -211,7 +211,7 @@ This step is optional and is disabled by default.
 </p>
 
 
-<h3>HTTP Transport Issues</h3>
+<h3>Hosting and HTTP Transport Issues</h3>
 <p>
 As of release 0.6.1.30,
 the addressbook application, together with eepget, saves the Etag and/or Last-Modified
@@ -222,6 +222,14 @@ return a '304 Not Modified' on the next fetch if nothing has changed.
 <p>
 However the entire hosts.txt is downloaded if it has changed.
 See below for discussion on this issue.
+</p>
+<p>
+Hosts serving a static hosts.txt or an equivalent cgi application
+are strongly encouraged to deliver
+a Content-Length header, and either an Etag or Last-Modified header.
+Also ensure that the server delivers a '304 Not Modified' when appropriate.
+This will dramatically reduce the network bandwidth, and
+reduce chances of corruption.
 </p>
 
 <h2>Host Add Services</h2>
@@ -419,4 +427,31 @@ implement local storage and/or the addressbook subscription functions, since add
 only knows about the hosts.txt files and format.
 </ul>
 </p>
+
+<h2>Certificates</h2>
+<p>
+I2P destinations contain a certificate, however at the moment that certificate
+is always null.
+With a null certificate, base64 destinations are always 516 bytes ending in "AAAA",
+and this is checked in the addressbook merge mechanism, and possibly other places.
+Also, there is no method available to generate a certificate or add it to a
+destination. So these will have to be updated to implement certificates.
+
+<p>
+One possible use of certificates is for <a href="todo.html#hashcash">proof of work</a>.)
+<p>
+Another is for "subdomains" (in quotes because there is really no such thing,
+i2p uses a flat naming system) to be signed by the 2nd level domain's keys.
+<p>
+With any certificate implementation must come the method for verifying the
+certificates.
+Presumably this would happen in the addressbook merge code.
+Is there a method for multiple types of certificates, or multiple certificates?
+
+<p>
+
+Adding on a certificate authenticating the
+responses as signed by some centralized certificate authority would address many of
+the hostile nameserver issues but would leave open replay attacks as well as 
+hostile certificate authority attacks.
 {% endblock %}

@@ -114,6 +114,12 @@ Time values are in ms.
 </p>
 
 <p>
+The streaming lib uses standard slow-start (exponential window growth) and congestion avoidance (linear window growth)
+phases. However, before the 0.6.1.33 release, window growth was substantially slower than optimal;
+these issues were fixed in release 0.6.1.33.
+</p>
+
+<p>
 The interaction of the routing algorithms with the streaming lib strongly affects performance.
 In particular, random distribtion of messages to multiple tunnels in a pool
 leads to a high degree of out-of-order delivery which results in smaller window
@@ -132,5 +138,46 @@ Another area for research is the interaction of the streaming lib with the
 NTCP and SSU transport layers.
 See <a href="ntcp.html">the NTCP page</a> for a discussion.
 </p>
+
+
+<h2>Packet Format</h2>
+<p>
+Here is the format of a single packet transferred as part of a streaming connection.  
+<ul>
+<li>sendStreamId [4 byte value]</li>
+<li>receiveStreamId [4 byte value]</li>
+<li>sequenceNum [4 byte unsigned integer]</li>
+<li>ackThrough [4 byte unsigned integer]</li>
+<li>number of NACKs [1 byte unsigned integer]</li>
+<li>that many NACKs</li>
+<li>resendDelay [1 byte integer]</li>
+<li>flags [2 byte value]</li>
+<li>option data size [2 byte integer]</li>
+<li>option data specified by those flags [0 or more bytes]</li>
+<li>payload [remaining packet size]</li>
+</ul>
+
+<p>The flags field above specifies some metadata about the packet, and in
+turn may require certain additional data to be included.  The flags are
+as follows (with any data structures specified added to the options area
+in the given order):</p><ol>
+<li>FLAG_SYNCHRONIZE: no option data</li>
+<li>FLAG_CLOSE: no option data</li>
+<li>FLAG_RESET: no option data</li>
+<li>FLAG_SIGNATURE_INCLUDED: net.i2p.data.Signature</li>
+<li>FLAG_SIGNATURE_REQUESTED: no option data</li>
+<li>FLAG_FROM_INCLUDED net.i2p.data.Destination</li>
+<li>FLAG_DELAY_REQUESTED: 1 byte integer</li>
+<li>FLAG_MAX_PACKET_SIZE_INCLUDED: 2 byte integer</li>
+<li>FLAG_PROFILE_INTERACTIVE: no option data</li>
+</ol>
+
+<p>If the signature is included, it uses the Destination's DSA key 
+to sign the entire header and payload with the space in the options 
+for the signature being set to all zeroes.</p>
+
+<p>If the sequenceNum is 0 and the SYN is not set, this is a plain ACK 
+packet that should not be ACKed</p>
+
 
 {% endblock %}
