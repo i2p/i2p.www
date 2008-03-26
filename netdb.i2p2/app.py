@@ -50,7 +50,7 @@ def app(environ, start_response):
         resp = Response(dat, mimetype='text/plain')
     else:
         # load file
-        f = open(path, 'rb')
+        f = open(os.path.join('netdb', path), 'rb')
         resp = Response(f.read(), mimetype='application/octet-stream')
         f.close()
     resp.add_etag()
