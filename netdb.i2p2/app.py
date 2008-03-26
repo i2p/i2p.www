@@ -20,7 +20,7 @@ class Response(BaseResponse, ETagResponseMixin):
 def app(environ, start_response):
     """The WSGI application that connects all together."""
     req = Request(environ)
-    path = req.path[1:].lower()
+    path = req.path[1:]
     if path == '':
         # page
         page = u'<html><head><title>NetDB</title></head><body><ul>%s</ul></body></html>'
