@@ -33,12 +33,16 @@ def app(environ, start_response):
             for i in range(100):
                 while True:
                     sel = choice(entries)
+                    if not sel.startswith('routerInfo-'):
+                        continue
                     if sel not in new:
                         new.append(sel)
                         break
             entries = new
         res = ''
         for entry in entries:
+            if not entry.startswith('routerInfo-'):
+                continue
             res += '<li><a href="%s">%s</a></li>' % (entry, entry)
         resp = Response(page % res, mimetype='text/html')
     elif path == 'robots.txt':
