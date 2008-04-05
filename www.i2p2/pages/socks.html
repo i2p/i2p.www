@@ -1,0 +1,79 @@
+{% extends "_layout.html" %}
+{% block title %}Socks{% endblock %}
+{% block content %}
+<h2>Socks and socks proxies</h2>
+<p>
+As it says on the
+<a href="faq.html#socks">FAQ</a>:
+<p>
+    While it would be technically feasible, many applications leak sensitive
+    information that could identify you on the internet. I2P only filters
+    connection data, but if the program you intend to run sends this
+    information as content, I2P has no way to protect your anonymity.  For
+    example, some mail applications will send the IP address of the machine
+    they are running on to a mail server. There is no way for I2P to filter
+    this, thus using I2P to 'socksify' existing applications is possible, but
+    extremely dangerous.
+</p><p>
+However, there is code in I2P that hasn't been used in many years, if it all.
+It apparently was written by "human".
+Nobody currently working on I2P has tested it.
+</p><p>
+And quoting from a 2005 email:
+</p><p>
+... there is a reason why human and
+others have both built and abandonded the SOCKS proxies.  Forwarding
+arbitrary traffic is just plain unsafe, and it behooves us as
+developers of anonymity and security software to have the safety of
+our end users foremost in our minds.
+
+Hoping that we can simply strap an arbitrary client on top of I2P
+without auditing both its behavior and its exposed protocols for
+security and anonymity is naive.  Pretty much *every* application
+and protocol violates anonymity, unless it was designed for it
+specifically, and even then, most of those do too.  Thats the
+reality.  End users are better served with systems designed for
+anonymity and security.  Modifying existing systems to work in
+anonymous environments is no small feat, orders of magnitude more
+work that simply using the existing I2P APIs.
+
+</p><p>
+Still Interested?
+Here's brief and vague guide to the code:
+</p>
+
+<h3>Client Side</h3>
+No GUI support in i2ptunnel - you must start it with the command line.
+Run the command line as follows - adjust the I2P variable as necessary.
+<pre>
+#!/bin/sh
+export I2P=~/i2p
+java -cp $I2P/lib/i2ptunnel.jar:$I2P/lib/mstreaming.jar:$I2P/lib/streaming.jar:$I2P/lib/i2p.jar net.i2p.i2ptunnel.I2PTunnel -cli $*
+</pre>
+Now type <tt>sockstunnel portnumber</tt> and you will have a client tunnel.
+Type <tt>close 1</tt> to close the tunnel and <tt>quit</tt> to quit.
+
+<h3>Server Side</h3>
+There is code for the server side in
+<tt>i2p/apps/i2ptunnel/java/src/net/i2p/i2ptunnel/socks</tt>.
+Or maybe that's the same as the client side. Maybe the actual proxy isn't implemented.
+In SOCKSServer.java it says:
+<pre>
+        // FIXME: here we should read our config file, select an
+        // outproxy, and instantiate the proper socket class that
+        // handles the outproxy itself (SOCKS4a, SOCKS5, HTTP CONNECT...).
+</pre>
+So maybe that's a hint.
+
+<h3>See Also</h3>
+The notes for
+<a href="meeting81.html">Meeting 81</a>
+and
+<a href="meeting82.html">Meeting 82</a>
+in March 2004.
+
+<h3>If You Do Get Something Working</h3>
+Please let us know. And please provide substantial warnings about the
+risks of socks proxies.
+
+{% endblock %}

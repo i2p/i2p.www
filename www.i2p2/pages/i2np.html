@@ -22,8 +22,7 @@ based on a quick comparison with the code, there are substantial differences
 between the implementation and the 2003 specifications.
 </p>
 
-<p>
-I2NP Definition
+<h3>I2NP Definition</h3>
 <p>
 <i>Note</i> - The following information is extracted from the current (2008) code base,
 however it may be incomplete and/or inaccurate. Check the code to be sure.
@@ -32,11 +31,19 @@ I2NP (I2P Network Protocol) messages can be used for one-hop, router-to-router, 
 By encrypting and wrapping messages in other messages, they can be sent in a secure way
 through multiple hops to the ultimate destination.
 Priority is only used locally at the origin, i.e. when queueing for outbound delivery.
-Both the NTCP and UDP transports implement priority transmission,
-but in somewhat different manners.
-
 <p>
-Message Format:
+Both the NTCP and UDP transports implement priority transmission,
+but in quite different manners.
+UDP has complex code with queues for each priority, however it treats
+messages with priorities 400-499, for example, the same.
+(The priority queues are 100, 200, 300, 400, 500, and 1000)
+These are globabl queues for all peers.
+NTCP has a trivial linear search for the highest priority within
+each buffer for a particular peer.
+This is much less effective.
+
+
+<h3>Message Format</h3>
 <p>
 
 <table border=1>
@@ -74,7 +81,9 @@ which is wrapped in a DataMessage.
 DatabaseLookupMessage
 <td align=right>2
 <td>&nbsp;
-<td align=right>400
+<td align=right>100/400
+<td>400 normally; 100 if from HarvesterJob and sent directly;
+400 for a router lookup
 <tr><td>
 DatabaseSearchReplyMessage
 <td align=right>3
@@ -108,7 +117,8 @@ DeliveryStatusMessage
 <td align=right>11
 <td>&nbsp;
 <td>&nbsp;
-<td>Generally wrapped in a DataMessage
+<td>Generally wrapped in a DataMessage -
+but when unwrapped, given a priority of 100 by the forwarding router
 <tr><td>
 <a href="tunnel-alt-creation.html#tunnelCreate.requestRecord">TunnelBuildMessage</a>
 <td align=right>21
