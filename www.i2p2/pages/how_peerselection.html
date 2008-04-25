@@ -23,10 +23,18 @@ peers that are no longer active (or when the network consists of thousands
 of peers, to get rid of peers that are performing poorly).  However, the size 
 of each profile is fairly small, and is unrelated to how much data is 
 collected about the peer, so that a router can keep a few thousand active
-peer profiles without any significant overhead.  Once it becomes necessary,
+peer profiles before the overhead becomes a serious concern.  Once it becomes necessary,
 we can simply compact the poorly performing profiles (keeping only the most
 basic data) and maintain hundreds of thousands of profiles in memory.  Beyond
 that size, we can simply eject the peers (e.g. keeping the best 100,000).</p>
+
+<p>
+The actual in-memory size of a peer profile should be analyzed,
+and unused portions should be removed.
+This is a good topic for further research and optimization.
+</p>
+
+
 
 <h2>Peer summaries</h2>
 
@@ -64,6 +72,19 @@ not used for anything though, as the detection code is not necessary for general
 well connected networks.  In any case, the calculation itself simply tracks how many
 times the peer is able to tell us about a peer we didn't know (or updated data for
 a peer we did know).</p>
+
+<p>
+In upcoming releases, the integration calculation will be used, combined with
+other measurements of a peer's connectivity and reliability, to determine
+suitablility for use as a floodfill router in the <a href="how_networkdatabase.html">network database</a>.
+By determining whether a peer is actually a useful floodfill router
+(rather than just claiming to be), intelligent decisions can be made about
+whether to send database queries and stores to that peer.
+Also, high-capacity non-floodfill routers can analyze the number of
+floodfill peers in the network and join the floodfill router pool if
+insufficient floodfill peers are present,
+thus eliminating a major weakness in today's floodfill scheme.
+</p>
 
 <h3>Failing</h3>
 
