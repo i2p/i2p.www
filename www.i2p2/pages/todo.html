@@ -127,7 +127,7 @@ of messages transferred would fit easily within a single unfragmented UDP packet
 the largest of the messages would fit within 20-30 packets.  As mule pointed out, TCP
 adds a significant overhead when dealing with so many small packets, as the ACKs are
 within an order of magnitude in size.  With UDP, we can optimize the transport for
-both efficiency and resiliance by taking into account I2P's particular needs.</p>
+both efficiency and resilience by taking into account I2P's particular needs.</p>
 
 <p>It will be a lot of work though.</p>
 
@@ -215,7 +215,7 @@ samples when dealing with longer tunnels.</p>
 
  </li>
  <li><h3 id="ordering">Strict ordering of participants within tunnels</h3>
-<b><i>Implemented in I2P 0.6.1.33</a></i></b>
+<b><i>Implemented in I2P <strike>0.6.1.33</strike> 0.6.2</a></i></b>
 
 <p>As Connelly <a href="http://dev.i2p/pipermail/i2p/2004-July/000335.html">proposed</a>
 to deal with the <a href="http://prisms.cs.umass.edu/brian/pubs/wright-tissec.pdf">predecessor attack</a>
@@ -327,6 +327,23 @@ pass it along, except at any peers where the clove exposed includes delay instru
 
 <li><h2 id="performance">Performance</h2><ul>
 
+ <li><h3 id="reply">Persistent Tunnel / Lease Selection</h3>
+<b><i>Outbound tunnel selection implemented in 0.6.1.30, inbound lease selection scheduled for release 0.6.2</i></b>
+
+<p>Selecting tunnels and leases at random for every message creates
+a large incidence of out-of-order delivery, which prevents the streaming lib from
+increasing its window size as much as it could.
+By persisting with the same selections for a given connection,
+the transfer rate is much faster.
+</p></li>
+
+ <li><h3 id="reply">Reply LeaseSet Bundling</h3>
+<b><i>Scheduled for fixing in release 0.6.2</i></b>
+
+<p>Currently, I2P bundles a reply leaseset (typically 1056 bytes) with every outbound
+client message, which is a massive overhead. A fix is in testing now.
+</p></li>
+
  <li><h3 id="sessionTag">Migrate sessionTag to synchronized PRNG</h3>
 
 <p>Right now, our <a href="how_elgamalaes">ElGamal/AES+SessinTag</a> algorithm works by tagging each
@@ -348,7 +365,9 @@ delivery).</p>
 
  </li>
  <li><h3 id="streaming">Full streaming protocol improvements</h3>
-<b><i>Several improvements implemented in I2P 0.6.1.28, but still lots here to investigate</i></b>
+<b><i>Several improvements implemented in I2P 0.6.1.28,
+and significant additional fixes in 0.6.1.33,
+but still lots here to investigate</i></b>
 
 <p>Since I2P <a href="http://dev.i2p.net/pipermail/i2p/2004-November/000491.html">0.4.2</a>,
 we have had a full sliding window streaming library, improving upon the older 
