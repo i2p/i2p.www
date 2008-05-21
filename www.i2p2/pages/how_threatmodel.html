@@ -16,6 +16,10 @@ particular needs is a hard one, but this page will hopefully assist in
 answering that question by exploring how I2P operates under various attacks
 so that you may decide whether it meets your needs.</p>
 
+<p>We welcome further research and analysis on I2P's resistance to the threats described below.
+Both review of existing literature (much of it focused on Tor) and original
+work focused on I2P is needed.</p>
+
 <h2>Mix summary</h2>
 <p>I2P builds off the ideas of many <a href="how_networkcomparisons">other</a> 
 <a href="links">systems</a>, but a few key points should be kept in mind when 
@@ -65,6 +69,8 @@ this list to include new attacks as they are identified.</p>
 <li><a href="#harvesting">Harvesting attacks</a></li>
 <li><a href="#sybil">Sybil attacks</a></li>
 <li><a href="#crypto">Cryptographic attacks</a></li>
+<li><a href="#floodfill">Floodfill attacks</a></li>
+<li><a href="#central">Attacks on centralized resources</a></li>
 <li><a href="#dev">Development attacks</a></li>
 <li><a href="#impl">Implementation attacks</a></li>
 </ul>
@@ -119,6 +125,10 @@ increase the latency (per <a href="todo#stop">nontrivial delays</a> or
 <a href="todo#batching">batching strategies</a>), include protocol scrubbing, or
 other advanced tunnel routing <a href="todo#batching">techniques</a>.</p>
 
+<p>References:
+<a href="http://www.cs.colorado.edu/department/publications/reports/docs/CU-CS-1025-07.pdf">Low-Resource Routing Attacks Against Anonymous Systems</a>
+</p>
+
 <h3 id="intersection">Intersection attacks</h3>
 
 <p>Intersection attacks against low latency systems are extremely powerful -
@@ -159,9 +169,18 @@ each with different costs and consequences:</p><ul>
     being under control of the same entity (as with Sybil).  These nodes then 
     decide not to provide any resources to the network, causing existing peers 
     to search through a larger network database or request more tunnels than 
-    should be necessary.  I2P addresses that by maintaining profiles on the 
+    should be necessary. 
+    Alternatively, the nodes may provide intermittent service by periodically
+    dropping selected traffic, or refusing connections to certain peers.
+    This behavior may be indistinguishable from that of a heavily-loaded or failing node.
+    I2P addresses these issues by maintaining <a href="how_peerselection.html">profiles</a> on the 
     peers, attempting to identify underperforming ones and simply ignoring 
-    them.</li>
+    them, or using them rarely.
+    In the process of fixing several problems and bugs with peer reachability
+    in the 0.6.1.32 and 0.6.1.33 releases, we have significantly enhanced the
+    ability to recognize and avoid troublesome peers. These efforts will
+    continue in the 0.6.2.x release cycle.
+</li>
 <li><b>Flooding attack:</b> A hostile user may attempt to flood the network,
     a peer, a destination, or a tunnel.  Network and peer flooding is possible,
     and I2P does nothing to prevent standard IP layer flooding.  The flooding of
@@ -184,6 +203,20 @@ each with different costs and consequences:</p><ul>
     (e.g. HashCash) to be attached to these expensive requests should mitigate
     the issue, though there may be room for an attacker to exploit various
     bugs in the implementation.</p>
+<li id="ffdos"><b>Floodfill DOS attack:</b> A hostile user may attempt to harm the network by
+    becoming a floodfill router. The current defenses against unreliable,
+    intermittent, or malicious floodfill routers are poor.
+    To fix problems with floodfill peer selection
+    in the 0.6.1.32 and earlier releases, significantly enhancments in the
+    ability to recognize and avoid troublesome floodfill peers
+    were included in release 0.6.1.33.
+    However, there is much more to do.
+    A floodfill router may provide bad or no response to lookups, and
+    it may also interfere with inter-floodfill communication.
+    A brief summary of the issues is
+    listed on <a href="http://zzz.i2p/#floodfill">zzz.i2p</a>.
+    These efforts will continue in the 0.6.2.x release cycle.
+</li>
 </ul>
 
 <h3 id="tagging">Tagging attacks</h3>
@@ -251,6 +284,12 @@ variation of the gateway will look like normal tunnels.  Fourth, with
 a restricted connection to the target will ever contact the target, while 
 attackers will merely run into that gateway.</p>
 
+<p>References:
+<a href="http://prisms.cs.umass.edu/brian/pubs/wright.tissec.2008.pdf">http://prisms.cs.umass.edu/brian/pubs/wright.tissec.2008.pdf</a>
+which is an update to the 2004 predecessor attack paper
+<a href="http://prisms.cs.umass.edu/brian/pubs/wright-tissec.pdf">http://prisms.cs.umass.edu/brian/pubs/wright-tissec.pdf</a>.
+</p>
+
 <h3 id="harvesting">Harvesting attacks</h3>
 
 <p>The harvesting attack can be used for legal attacks and to help mounting
@@ -297,6 +336,48 @@ size or garlic messages could be modified randomly so that some cloves appear to
 more subcloves than they actually do.  At the moment, however, garlic, tunnel, and 
 end to end messages include simple random padding.</p>
 
+<h3 id="floodfill">Floodfill Anonymity attacks</h3>
+<p>
+In addition to the floodfill DOS attacks described
+<a href="#ffdos">above</a>, floodfill routers are uniquely positioned
+to learn about network participants, due to their centralized role
+in the netDb, and the high frequency of communication with those participants.
+The specific potential threats and corresponding defenses are a topic for further research.
+</li>
+
+<h3 id="central">Central Resource Attacks</h3>
+<p>
+There are a few centralized or limited resources (some inside I2P, some not)
+that could be attacked or used as a vector for attacks.
+The absence of jrandom starting November 2007, followed by the loss of the i2p.net hosting service in January 2008,
+highlighted numerous centralized resources in the development and operation of the I2P network,
+most of which are now distributed.
+Attacks on externally-reachable resources mainly affect the ability of new users to find us,
+not the operation of the network itself.
+<ul>
+<li>The <a href="/">new website</a> is mirrored and uses DNS round-robin for external public access.
+<li>Routers now support <a href="faq.html#reseed">multiple external reseed locations</a>,
+    however more reseed hosts may be needed, and the handling of unreliable or malicious
+    reseed hosts may need improvement.
+<li>Routers now support multiple update file locations.
+    A malicious update host could feed a huge file, need to limit the size.
+<li>Routers now support multiple default trusted update signers.
+<li>Routers now better handle <a href="#ffdos">multiple unreliable floodfill peers</a>.
+    Malicious floodfills <a href="#ffdos">needs</a> <a href="#floodfill">more</a> study.
+<li>The code is now stored in a <a href="monotone.html">distributed source control system</a>.
+<li>Routers still rely on a single news host, update for this is TBD.
+    A malicious news host could feed a huge file, need to limit the size.
+<li><a href="naming.html">Naming system services</a>, including addressbook subscription providers, add-host services,
+    and jump services, could be malicious. Substantial protections for subscriptions were implemented
+    in release 0.6.1.31, with additional enhancements in subsequent releases.
+    However, all naming services require some measure of trust, see
+    <a href="naming.html">the naming page</a> for details.
+<li>We remain reliant on the DNS service for i2p2.de, losing this would cause substantial
+    disruption in our ability to attract new users,
+    and would shrink the network (in the short-to-medium term), just as the loss of i2p.net did.
+</ul>
+
+
 <h3 id="dev">Development attacks</h3>
 
 <p>
@@ -336,4 +417,59 @@ modification).  Documentation for the design and implementation of the network a
 the software components are an essential part of security, as without them it is 
 unlikely that developers would be willing to spend the time to learn the software 
 enough to identify shortcomings and bugs.</p>
+
+
+<h2>Other Defenses</h2>
+<h3>Blocklists</h3>
+<p>
+To some extent, I2P could be enhanced to avoid peers operating at IP addresses
+listed in a blocklist. Several blocklists are commonly available in standard formats,
+listing anti-P2P organizations, potential state-level adversaries, and others.
+<p>
+To the extent that active peers actually do show up in the actual blocklist,
+blocking by only a subset of peers would tend to segment the network,
+exacerbate reachability problems, and decrease overall reliability.
+Therefore we would want to agree on a particular blocklist and
+enable it by default.
+<p>
+Any blocking within i2p would have to be implemented at the following
+places in the code to be fully effective.
+Different places address the various possible malicious behaviors.
+<ol>
+<li>Outbound connections (bids)
+<li>Inbound NTCP
+<li>Inbound SSU
+<li>Peer selection for inbound and outbound tunnels
+<li>Other-end inbound gateway
+<li>Netdb stores / shitlisting
+<li>Floodfill stores
+<li>Floodfill queries
+<li>Inter-floodfill flooding
+<li>SSU peer tests
+<li>SSU address determination
+</ol>
+
+<p>
+Blocklists are only a part (perhaps a small part) of an array of defenses
+against maliciousness.
+In large part the profiling system does a good job of measuring
+router behavior so that we don't need to trust anything in netDb.
+However there is more that can be done. For each of the areas in the
+list above there are improvements we can make in detecting badness.
+<p>
+If a blocklist is hosted at a central location with automatic updates
+the network is vulnerable to a
+<a href="#central">central resource attack</a>.
+Automatic subscription to a list gives the list provider the power to shut
+the i2p network down. Completely. So we probably won't be doing that.
+Inclusion in i2pupdate files perhaps? Signed or unsigned?
+In-I2P subscription?
+<p>
+Initial test results
+show that the common splist.txt blocklist is overly broad for our use - at the least
+we don't want to block Tor users that are in splist.
+Level1 + bogon + (maybe) level2 is more reasonable?
+But we don't want to block potential anonymity researchers at .edu locations.
+
+
 {% endblock %}
