@@ -27,22 +27,34 @@ a 800% speedup in encryption performance, and the load was cut in half.  This
 was just on one user's machine, and things are nowhere near ready for packaging
 and deployment, yet.</p>
 
-<h2>Garlic wrapping a "reply" LeaseSet <b>[implemented]</b></h2>
+<h2>Garlic wrapping a "reply" LeaseSet <b>[implemented but needs tuning]</b></h2>
 <p>This algorithm tweak will only be relevant for applications that want their
 peers to reply to them (though that includes everything that uses I2PTunnel or
 mihi's ministreaming lib):</p>
-<p>Currently, when Alice sends Bob a message, when Bob replies he has to do a
+<p>Previously, when Alice sent Bob a message, when Bob replied he had to do a
 lookup in the network database - sending out a few requests to get Alice's
 current LeaseSet.  If he already has Alice's current LeaseSet, he can instead
 just send his reply immediately - this is (part of) why it typically takes a
 little longer talking to someone the first time you connect, but subsequent
-communication is faster.  What we'll do - for clients that want it - is to wrap
+communication is faster.  Currently - for all clients - we wrap
 the sender's current LeaseSet in the garlic that is delivered to the recipient,
 so that when they go to reply, they'll <i>always</i> have the LeaseSet locally
 stored - completely removing any need for a network database lookup on replies.
-Sure, this trades off a bit of the sender's bandwidth for that faster reply
-(though overall network bandwidth usage decreases, since the recipient doesn't
-have to do the network database lookup).</p>
+This trades off a large portion of the sender's bandwidth for that faster reply.
+If we didn't do this very often,
+overall network bandwidth usage would decrease, since the recipient doesn't
+have to do the network database lookup.</p>
+<p>
+For unpublished LeaseSets such as "shared clients", this is the only way to
+get the LeaseSet to Bob. Unfortunately this bundling every time adds
+almost 100% overhead to a high-bandwidth connection, and much more to
+a connection with smaller messages.
+</p><p>
+Changes scheduled for release 0.6.2 will bundle the LeaseSet only when
+necessary, at the beginning of a connection or when the LeaseSet changes.
+This will substantially reduce the total overhead of I2P messaging.
+</p>
+
 
 <h2>Better peer profiling and selection</h2>
 <p>Probably one of the most important parts of getting faster performance will
@@ -82,9 +94,15 @@ detection, we'll be able to more safely vary those durations, reducing the
 network and CPU load (due to expensive tunnel creation messages).</p>
 
 <p>
-This is an easy fix for high load on the big-bandwidth routers, but
+This appears to be an easy fix for high load on the big-bandwidth routers, but
 we should not resort to it until we've tuned the tunnel building algorithms further.
-A new tunnel build algorithm is planned for release 0.6.1.32.
+However, the 10 minute tunnel lifetime is hardcoded in a few places,
+so the code needs to be cleaned up before we could change the duration.
+</p><p>
+A new tunnel build algorithm was introduced in release 0.6.1.32 and it has greatly
+reduced the number of tunnel builds. Together with better detection of
+unreachable peers and other peer selection strategies implemented in release 0.6.1.33,
+the situation is much improved, and there are no current plans to extend tunnel lifetime.
 </p>
 
 

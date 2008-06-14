@@ -408,12 +408,105 @@ especially if nodes opting in cannot trust data from others.
 e.g. "let's see if I'm among the top 5",
 and can only trust data about themselves (e.g. "I am definitely O class, and moving 150 KB/s, and up for 123 days").
 And top 5 is hostile as well.  Basically, it's the same as the tor directory servers - chosen by trusted people (aka devs).
-Yeah, right now it could be expoited by opt-in, but that'd be trivial to detect and deal with.
+Yeah, right now it could be exploited by opt-in, but that'd be trivial to detect and deal with.
 Seems like in the end, we might need something more useful than kademlia, and have only reasonably capable peers join that scheme.
 N class and above should be a big enough quantity to suppress risk of an adversary causing denial of service, I'd hope.
 But it would have to be different from floodfill then, in the sense that it wouldn't cause humongous traffic.
 Large quantity?  For a DHT based netdb?
 Not necessarily DHT-based.
+</p>
+
+<h3 id="todo">Floodfill TODO List</h3>
+<p>
+The network was down to only one floodfill for a couple of hours on March 13, 2008
+(approx. 18:00 - 20:00 UTC),
+and it caused a lot of trouble.
+<p>
+Two changes implemented in 0.6.1.33 should reduce the disruption caused
+by floodfill peer removal or churn:
+<ol>
+<li>Randomize the floodfill peers used for search each time.
+This will get you past the failing ones eventually.
+This change also fixed a nasty bug that would sometimes drive the ff search code insane.
+<li>Prefer the floodfill peers that are up.
+The code now avoids peers that are shitlisted, failing, or not heard from in
+half an hour, if possible.
+</ol>
+<p>
+One benefit is faster first contact to an eepsite (i.e. when you had to fetch
+the leaseset first). The lookup timeout is 10s, so if you don't start out by
+asking a peer that is down, you can save 10s.
+
+<p>
+There <i>may</i> be anonymity implications in these changes.
+For example, in the floodfill <b>store</b> code, there are comments that
+shitlisted peers are not avoided, since a peer could be "shitty" and then
+see what happens.
+Searches are much less vulnerable than stores -
+they're much less frequent, and give less away.
+So mabye we don't think we need to worry about it?
+But if we want to tweak the changes, it would be easy to
+send to a peer listed as "down" or shitlisted anyway, just not
+count it as part of the 2 we are sending to
+(since we don't really expect a reply).
+
+<p>
+There are several places where a floodfill peer is selected - this fix addresses only one:
+<ol>
+<li>Who a regular peer searches from [2 at a time] (this fix - now random + qualification)
+<li>Who a regular peer stores to [1 at a time]
+(random - need to add qualification, because timeouts are long)
+<li>Who a regular peer searches to verify a store [1 at a time]
+(random - need to add qualification, because timeouts are long)
+<li>Who a ff peer sends in reply to a failed search (3 closest to the search)
+<li>Who a ff peer floods to (all other ff peers)
+</ol>
+<p>
+Lots more that could and should be done -
+<ul>
+<li>
+Use the "dbHistory" stats to better rate a floodfill peer's integration
+<li>
+Use the "dbHistory" stats to immediately react to floodfill peers that don't respond
+<li>
+Be smarter on retries - retries are handled by an upper layer, not in
+FloodOnlySearchJob, so it does another random sort and tries again,
+rather than purposefully skipping the ff peers we just tried.
+<li>
+Improve integration stats more
+<li>
+Actually use integration stats rather than just floodfill indication in netDb
+<li>
+Use latency stats too?
+<li>
+More improvement on recognizing failing floodfill peers
+<li>
+Continue to reduce netDb entry size to reduce N**2 traffic
+<li>
+Manual list of floodfill peers to exclude? (troublemakers)
+<li>
+Similar changes in StoreJob? Probably not - it is much smarter about
+retries. And the anonymity concerns in floodfill stores are much greater,
+so we have to be more careful.
+<li>
+Finally - 3 or 4 releases later - Implement automatic opt-in
+to floodfill for some percentage of class O peers, based on analysis of the network
+using the improved integration and dbHistory stats.
+</ul>
+
+<p>
+That's a long list but it will take that much work to
+have a network that's resistant to DOS from lots of peers turning the floodfill switch on and off.
+Or pretending to be a floodfill router.
+None of this was a problem when we had only two ff routers, and they were both up
+24/7. Again, jrandom's absence has pointed us to places that need improvement.
+
+</p><p>
+To assist in this effort, additional profile data for floodfill peers is
+now (as of release 0.6.1.33) displayed on the "Profiles" page in
+the router console.
+We will use this to analyze which data are appropriate for
+rating floodfill peers.
 </p>
 
 {% endblock %}

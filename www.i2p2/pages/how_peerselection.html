@@ -1,5 +1,5 @@
 {% extends "_layout.html" %}
-{% block title %}How Peer Selection Works{% endblock %}
+{% block title %}How Peer Selection and Profiling Work{% endblock %}
 {% block content %}<p>Peer selection within I2P is simply the process of choosing which routers
 on the network we want our messages to go through (which peers will we 
 ask to join our tunnels).  To accomplish this, we keep track of how each
@@ -7,6 +7,14 @@ peer performs (the peer's "profile") and use that data to estimate how
 fast they are, how often they will be able to accept our requests, and 
 whether they seem to be overloaded or otherwise unable to perform what
 they agree to reliably.</p>
+<p>
+Claimed bandwidth is untrusted and is <b>only</b> used to avoid those peers
+advertising very low bandwidth insufficient for routing tunnels.
+All peer selection is done through profiling.
+This makes
+<a href="how_threatmodel.html#timing">timing attacks</a>
+more difficult.
+</p>
 
 <h2>Peer profiles</h2>
 
@@ -23,10 +31,18 @@ peers that are no longer active (or when the network consists of thousands
 of peers, to get rid of peers that are performing poorly).  However, the size 
 of each profile is fairly small, and is unrelated to how much data is 
 collected about the peer, so that a router can keep a few thousand active
-peer profiles without any significant overhead.  Once it becomes necessary,
+peer profiles before the overhead becomes a serious concern.  Once it becomes necessary,
 we can simply compact the poorly performing profiles (keeping only the most
 basic data) and maintain hundreds of thousands of profiles in memory.  Beyond
 that size, we can simply eject the peers (e.g. keeping the best 100,000).</p>
+
+<p>
+The actual in-memory size of a peer profile should be analyzed,
+and unused portions should be removed.
+This is a good topic for further research and optimization.
+</p>
+
+
 
 <h2>Peer summaries</h2>
 
@@ -39,9 +55,21 @@ integrated into the network it is, and whether it is failing.</p>
 
 <p>The speed calculation (as implemented 
 <a href="http://dev.i2p.net/cgi-bin/cvsweb.cgi/i2p/router/java/src/net/i2p/router/peermanager/SpeedCalculator.java?rev=HEAD&content-type=text/x-cvsweb-markup">here</a>)
-simply goes through the profile and estimates how many round trip messages we can
-send through the peer in a minute.  For this estimate it just looks at past 
-performance, weighing more recent data more heavily, and extrapolates it for the future.</p>
+simply goes through the profile and estimates how much data we can
+send or receive on a single tunnel through the peer in a minute.  For this estimate it just looks at past 
+performance.
+</p><p>
+Previous algorithms used a longer time,
+weighing more recent data more heavily, and extrapolating it for the future.
+Another previous calculation used total (rather than per-tunnel) bandwidth,
+but it was decided that this method overrated slow, high-capacity peers
+(that is, slow in bandwidth but high-capacity in number of tunnels).
+Even earlier methods were much more complex.
+</p><p>
+The current speed calculation has remained unchanges since early 2006,
+and it is a topic for further study to verify its effectiveness
+on today's network.
+</p>
 
 <h3>Capacity</h3>
 
@@ -52,7 +80,20 @@ would agree to participate in over the next hour.  For this estimate it looks at
 how many the peer has agreed to lately, how many the peer rejected, and how many
 of the agreed to tunnels failed, and extrapolates the data.  In addition, it
 includes a 'growth factor' (when the peer isn't failing or rejecting requests) so
-that we will keep trying to push their limits.</p>
+that we will keep trying to push their limits.
+</p><p>
+The tunnel-failure part of the calculation was disabled for
+a long period, but it was reinstated for release 0.6.2,
+as it became apparent that recognizing and avoiding unreliable and unreachable
+peers is critically important.
+Unfortunately, as the tunnel tests require the participation of several peers,
+it is difficult to positively identify the cause of a failure.
+The recent changes assign a probability of failure to each of the
+peers, and uses that probability in the capacity calculation.
+These recent changes may require additional adjustment,
+and are a topic for further study to verify their effectiveness
+on today's network.
+</p>
 
 <h3>Integration</h3>
 
@@ -64,6 +105,19 @@ not used for anything though, as the detection code is not necessary for general
 well connected networks.  In any case, the calculation itself simply tracks how many
 times the peer is able to tell us about a peer we didn't know (or updated data for
 a peer we did know).</p>
+
+<p>
+In upcoming releases, the integration calculation will be used, combined with
+other measurements of a peer's connectivity and reliability, to determine
+suitablility for use as a floodfill router in the <a href="how_networkdatabase.html">network database</a>.
+By determining whether a peer is actually a useful floodfill router
+(rather than just claiming to be), intelligent decisions can be made about
+whether to send database queries and stores to that peer.
+Also, high-capacity non-floodfill routers can analyze the number of
+floodfill peers in the network and join the floodfill router pool if
+insufficient floodfill peers are present,
+thus eliminating a major weakness in today's floodfill scheme.
+</p>
 
 <h3>Failing</h3>
 
@@ -98,4 +152,14 @@ across peers as well as to prevent some simple attacks.</p>
 
 These groupings are implemented in the <a 
 href="http://dev.i2p.net/cgi-bin/cvsweb.cgi/i2p/router/java/src/net/i2p/router/peermanager/ProfileOrganizer.java?rev=HEAD&content-type=text/x-cvsweb-markup">ProfileOrganizer</a>'s
-reorganize() method (using the calculateThresholds() and locked_placeProfile() methods in turn).</p>{% endblock %}
+reorganize() method (using the calculateThresholds() and locked_placeProfile() methods in turn).</p>
+
+<h2>To Do</h2>
+
+<p>
+As described above, each of the calculations is critical to peer selection and
+requires review to determine the effectiveness in today's network.
+Also, the size of in-memory profiles must be studied,
+unused portions removed, and an ejection strategy implemented.
+
+{% endblock %}
