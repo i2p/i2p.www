@@ -52,6 +52,7 @@ def app(environ, start_response):
         tmpl = env.get_template('not_found.html')
     resp = Response(tmpl.render(), mimetype=mime_type)
     resp.add_etag()
+    resp.make_conditional(req)
     return resp(environ, start_response)
 
 app = SharedDataMiddleware(app, {
