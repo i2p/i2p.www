@@ -1,0 +1,164 @@
+{% extends "_layout.html" %}
+{% block title %}Einf&uuml;hrung in die Arbeitsweise von I2P{% endblock %}
+{% block content %}<i>Hinweis: Dieses "How" Dokument ist noch nicht vollst&auml;ndig aktualisiert
+und enth&auml;lt noch nicht die diversen &Auml;nderungen wie di neuen <a href="tunnel-alt.html">Tunnel 
+Routing und Verschl&uuml;sselungs </a>Algorhytmen, die <a href="todo#tunnelId">verschiedene</a>
+<a href="todo#tunnelLength">Probleme</a> (inclusive ben&ouml;tigten Grundlagen, die
+<a href="todo#ordering">andere</a>Probleme behoben) behoben haben,
+und weitere &Auml;nderungen.</i>
+
+<p>I2P ist ein Projekt, welches ein Netzwerk zum sicheren und anonymen Kommunizieren planen, aufbauen
+und betreuen wird. Nutzer von I2P haben die Kontrolle &uuml;ber die Verteilung zwischen Anonymit&auml;t,
+Verl&auml;sslichkeit, genutzter Bandbreite und Verz&ouml;gerung. Es gibt keinen zentralen Punkt im Netzwerk,
+welcher &uuml;bernommen werden kann um die Integrit&auml;t, Sicherheit oder Anonymit&auml;t des Systems zu 
+komprimieren. Das Netzwerk kann sich in einer Reaktion auf Angriffe selber rekonfiguriern und
+wurde so geplant, das es zus&auml;tzliche Ressourcen bei deren Verf&uuml;gbarkeit nutzen wird. 
+Selbstverst&auml;ndlich sind alle Aspekte des Netzwerkes offen und frei verf&uuml;gbar.</p>
+
+<p>Im Gegensatz zu vielen anderen anonymen Netzwerken versucht I2P nicht die Anonymit&auml;t durch 
+verstecken eines Teils einer Kommunikation, der Sender oder der Empf&auml;nger, herzustellen. I2P
+wurde so geplant, das Nutzer von I2P untereinander anonym kommunizieren k&ouml;nnen - Sender und
+Empf&auml;nger sind f&uuml;r den jeweils anderen anonym als auch f&uuml;r nicht beteiligte dritte. Zum Beispiel
+gibt es zur Zeit I2P interne Webseiten (die anonymes Publizieren/hosten erlauben) und einen
+HTTP Proxy in das normale Internet (der anonymes Browsing bietet). Server im I2P Netz betreiben 
+zu k&ouml;nnen ist eine essentielle Angelegenheit, da angenommen werden kann, das die Proxis ins
+normale Internet &uuml;berwacht werden, abgeschaltet werden oder gar zu schlimmeren Angriffen genutzt 
+werden.</p>
+
+<p>Das Netzwerk selber ist Nachrichten basiert - es ist essentiell eine sichere und anonyme IP Schicht,
+in der Nachrichten an kryptographische Schl&uuml;ssel (Ziele) geschickt werden;die Nachrichten selber
+k&ouml;nnen signifikant gr&ouml;sser als IP Pakete werden. Beispiele f&uuml;r die Nutzung des Netzwerkes sind
+unter anderem "Eepsites" (Webserver mit normalen Webapplikationen innerhalb von I2P), ein 
+<a href="http://bitconjurer.org/BitTorrent/">BitTorrent</a> Klient ("I2Psnark") oder ein verteilter 
+Datencontainer. Mit der Hilfe von mihis <a href="i2ptunnel">I2PTunnel</a>
+Applikation k&ouml;nnen wir die &uuml;blichen TCP/IP Anwendungen &uuml;ber I2P tunneln, z.B. SSH, IRC, ein squid 
+Proxy oder gar Audio. Viele Leute werden I2P nicht direkt nutzen oder nicht bemerken, das sie I2P
+nutzen. Stattdessen sehen sie nur eine der I2P f&auml;higen Anwendungen oder nur eine Einstellung f&uuml;r
+verschiedene Proxies, die ihnen Anonyme Verbindungen anbieten.</p>
+
+<p>Ein wichtiger Teil des Planens, Entwickelns und Testens eines anonymen Netzwerkes ist das 
+Definieren des <a href="how_threatmodel">Angriffsszenarios</a>, da es "echte" Anonymit&auml;t nicht gibt, 
+nur steigende Kosten und 
+Aufwand jemanden zu identifizieren. Kurz gesagt: I2P Absicht ist es, Personen in willk&uuml;rlichen
+feindseligen Umgebungen einen milit&auml;rischen Grad der Anonymit&auml;t zu bieten, versteckt in dem
+hinreichendem Datenstrom aus der Aktivit&auml;t anderer Leute, die weniger Anonymit&auml;t ben&ouml;tigen. 
+Dieses beinhaltet den Chat von Joe Sixpack mit seinen Freuden, den niemanden mitlesen kann,
+Jane Filesharer, die weiß das die grossen Konzerne sie beim Tauschen von Dateien nicht 
+identifizieren k&ouml;nnen, als auch Will Geheimnisverr&auml;ter, der geheime Dokumente ver&ouml;ffentlicht -
+<i>alles in dem selben Netzwerk</i>, in dem eine Nachricht nicht von einer anderen unterschieden werden
+kann.</p>
+
+<h2>Warum?</h2>
+<p>Es existieren eine unglaubliche Anzahl an fantastischen Gr&uuml;nden, weswegen wir ein System zum
+anonymen Kommunizieren ben&ouml;tigen und jeder hat seine eigenen pers&ouml;nlichen rationalen Gr&uuml;nde.
+Es gibt viele <a href="how_networkcomparisons">andere Bestrebungen</a>, die auf dem einem oder anderen Weg 
+unterschiedliche
+Arten der Anonymit&auml;t im Internet zu erreichen versuchen, aber wir fanden keine, die unsere
+Anforderungen oder unser Angriffszenario abdeckten.</p>
+
+<h2>Wie?</h2>
+
+<p>In einer &uuml;bersicht existiert das Netzwerk aus einer Gruppe von Knoten ("Router") mit einer 
+Anzahl an unidirektionalen virtueller Eingangs und Ausgangs Wege ("Tunnel", wie in der 
+<a href="how_tunnelrouting">Tunnel Routing</a>  Seite beschrieben). Jeder Router wird duch eine kryptographische RouterIdentity
+eindeutig indentifiziert, diese ist f&uuml;r gew&ouml;hnlich dauerhaft g&uuml;ltig. Diese Router kommunizieren
+&uuml;ber vorhandene Transportmechanosmen (TCP, UDP, etc.) und tauschen verschiedene Nachrichten aus.
+Klientprogramme haben ihre eigenen kryptographischen Ident ("Destination"), durch den sie 
+zum Senden und Empfangen von Nachrichten bef&auml;higt sind. Diese Klienten k&ouml;nnen zu irgendwelchen
+Routern Verbindung aufnehmen und authorisieren ihre derzeitige Belegung ("lease") von ein paar
+Tunneln, die zum Senden und Empfangen von Nachrichten durch das Netzwerk benutzt werden. I2P 
+hat eine eigene <a href="how_networkdatabase">Netzwerk Datenbank</a> ("Floodfill") zum skalierbaren sicherem Verteilen von Routing
+und Kontaktinformationen.</p>
+
+<p><img src="/_static/images/net.png" alt="Network topology example" /></p>
+
+<p>Im oberen Bild betreiben Alice, Bob, Charlie und Dave je einen Router mit einer einzigen 
+Destination auf ihren lokalen Router. Sie haben alle ein paar 2-Hop Eingangstunnel je
+Destination (mit 1,2,3,4,5 und 6 bezeichnet) und ein paar haben 2-Hop Ausgangstunnel.
+Zur Vereinfachung sind Charlies Eingangstunnel und Daves Ausgangstunnel nicht eingezeichnet,
+ebenso wie weitere Ausgangstunnel der Router (normalerweise so 5-10 Tunnel gleichzeitig).
+Sobald Alice und Bob miteiander reden, sendet Alice eine Nachricht &uuml;ber ihren (pinken)
+Ausgangstunnel in Richtung eines vons Bobs Eingangstunneln (gr&uuml;n, Tunnel 3 oder 4). Sie lernt
+den Eingangstunnel durch eine Abfrage der Netzwerk Datenbank kennen, diese Datenbank wird
+dauerhaft aktualisiert sobald neue Leases authorisiert sind und &auml;ltere auslaufen.</p>
+  
+<p>Antwortet Bob nun Alice, geschieht dieses auf der selben Art und Weise - er sendet eine Nachricht
+&uuml;ber einen seiner Ausgangstunnel in Richtung eines von Alice Eingangstunnels (Tunnel 1 oder 2).
+Um vieles einfacher zu machen, sind viele Nachrichten zwischen Bob und Alice in sogenannte
+"<a href="how_garlicrouting">Garlics</a>" eingepackt, in denen die Lease Information vom Sender enthalten ist, so das der
+Empf&auml;nger sofort antworten kann ohne in der Netzwerk Datenbank nach den ben&ouml;tigten Informationen
+suchen zu m&uuml;ssen.</p>
+
+<p>Um einigen Attacken aus dem Wege zu gehen ist I2P dezentral aufgebaut, ohne eine zentrale Instanz -
+und wie schon richtig geraten existiert kein zentraler Verzeichnisdienst, der Informationen
+zur Performance und Kontinuit&auml;t der Router im Netzwerk verwaltet. Daraus folgt, daßjeder Router
+eigene Profile verschiedener Router halten und pflegen muss. Ebenso ist jeder Router selber 
+verantwortlich f&uuml;r die Auswahl der korrekten Knoten um die Anforderungen an die Anonymit&auml;t,
+Performance und Konitnuit&auml;t des Benutzers zu erf&uuml;llen, so wie es in der "
+<a href="how_peerselection">Knoten Auswahl</a>" Seite beschrieben ist.</p>
+
+<p>Das Netzwerk selber nutzt eine signifikante Anzahl von Kryptographischen Techniken und Algorhytmen -
+die Liste umf&auml;sst 2048bit ElGamal Verschl&uuml;sselung, 256bit AES im CBC Modus mit PKCS#5 Padding,
+1024bit DSA Signaturen, SHA256 Hashes, 2048bit Diffie-Hellmann vermittelte Verbindungen mit
+Station-zu-Station Authentifizierung und <a href="how_elgamalaes">ElGamal / AES+SessionTag</a>.</p>
+
+<p>Daten die &uuml;ber I2P gesendet werden, durchlaufen 3 Verschl&uuml;sselungen: garlic Verschl&uuml;sselung (zur 
+&uuml;berpr&uuml;fung ob die Nachrichten beim Empf&auml;nger angekommen ist), Tunnel Verschl&uuml;sselung  (alle 
+Nachrichten, die durch einen Tunnel gehen, sind vom Tunnel Gateway bis zum Tunnel Endpunkt 
+verschl&uuml;sselt) und Zwischen-den-Routern-Transport-Schicht Verschl&uuml;sselung (z.B. benutzt der TCP
+Transport AES256 mit Ephemeral Schl&uuml;ssel).</p>
+<p>Ende-zu-Ende (I2CP) Verschl&uuml;sselung wurde in der I2P Version 0.6 deaktiviert; Ende-zu-Ende
+(garlic) Verschl&uuml;sselung von Alice Router "a" zu Bobs Router "h" existiert weiterhin.
+Bitte beachte nicht die "Alice" zu "Bob" Verschl&uuml;sselung im folgedem Bild.</p>
+
+<p><img src="/_static/images/endToEndEncryption.png" alt="end to end layered encryption" /></p>
+
+<p>Die genaue Anwendung dieser Algorhytmen sind <a href="how_cryptography">woanders</a> beschrieben.</p>
+
+<p>Die zwei Hauptbestandteile f&uuml;r den milit&auml;rischen Grad der Anonymit&auml;t sind explizite, verz&ouml;gerte
+garlic geroutete Nachrichten und mehr umfassende Tunnel mit Unterst&uuml;tzung von Pooling und Mixen
+von Nachrichten. Diese Funktionen sind zur Zeit f&uuml;r Version 3.0 geplant, aber garlic geroutete
+Nachrichten mit keiner Verz&ouml;gerung und FIFO Tunnels sind schon implementiert. Zus&auml;tzlich wird
+die Version 2.0 den Leuten erlauben, I2P hinter beschr&auml;nkten Routen (m&ouml;glicherweise mit vertrauten
+Knoten) aufzusetzen und zu betreiben; ebenso werden die flexiblere und anonymere Transports 
+eingebaut werden.</p>
+
+<p>Es kamen ein paar berechtigte Fragen bez&uuml;glich der Skalierbarkeit von I2P auf. Mit der Zeit werden
+sicher detailiertere Analysen kommen, aber Knoten suchen und Integration sollte mit O(log(N)) 
+Komplexit&auml;t eingehen, w&auml;hrend Ende-zu-Ende Nachrichten mit O(1) (frei skalierend) eingehen, da
+Nachrichten durch K Hops im Ausgangstunnel und durch weitere K Hops im Eingangstunnel gehen - 
+die Gr&ouml;sse des Netzwerkes (N) hat hier keinen Einfluss.</p>
+
+<h2>Wann?</h2>
+<p>I2P startete im Februar 2003 als eine vorgeschlagene Modifizierung zu <a href="http://freenetproject.org">Freenet</a>, damit dieses
+alternative Transports, wie z.B. <a href="http://java.sun.com/products/jms/index.jsp">JMS</a>, nutzen k&ouml;nne. Dann wuchs es in ein eigenes 
+'anonCommFramework' im April 2003, worauf es im July zu I2P wurde. Ersten Quelltext gab es im
+August 2003, Version 0.2 folgte im September, 0.3 in M&auml;rz 2004, 0.4 im September 2004, 0.5 
+wurde Anfang 2005 ver&ouml;ffentlicht, gefolgt von Version 0.6 Mitte 2005. I2P folgt in der 
+Entwicklung der derzeitigen <a href="roadmap">Roadmap</a>.</p>
+
+<p>Das Netzwerk selber ist noch nicht fertig zum allgemeinem Nutzen und sollte nicht von Leuten
+mit Bedarf an Anonymit&auml;t genutzt werden bevor es nicht ausf&uuml;hrlichen &uuml;berpr&uuml;fungen stand 
+gehalten halt.</p>
+
+<h2>Wer?</h2>
+<p>Wir sind ein kleines <a href="team">Team</a> aus merhren L&auml;ndern aus verschiedenen Kontinenten, das an der
+Weiterentwicklung von einzelnen Aspekten des Projektes arbeitet. Wir sind offen f&uuml;r weitere
+Entwickler, die sich einbringen wollen und auch gegen&uuml;ber jedem anderen, der etwas zum 
+Projekt beibringen kann, sei es Kritiken, Peer Review, Testen, schreiben neuer I2P
+kompatibler Anwendungen oder aber auch Dokumentationen. Das gesamte System ist Open Source -
+Der Router und ein Großeil des SDK sind zur G&auml;nze Public Domain mit ein wenig BSD und 
+Cryptix Lizensiertem Code, wohingegen einige Anwendungen wie I2PTunnel und I2PSnark
+GPL lizensiert sind.
+Fast alles ist in Java (1.3+/1.5+) geschrieben, einige externe Anwendungen sind jedoch in
+Python geschrieben. Der Code arbeitet im aktuellen Kaffee und wir hoffen ihn m&ouml;glichst bald
+auf <a href="http://gcc.gnu.org/java/">GCJ</a> lauff&auml;hig zu bekommen.</p>
+
+<h2>Wo?</h2>
+<p>Jeder mit Interesse an I2P sollte uns im #I2P IRC Raum (gehostet auf irc.freenode.net, 
+irc.postman.i2p und irc.freshcoffee.i2p) besuchen. Es gibt zur Zeit keine fest geplanten
+Entwicklertreffen, dennoch existiert ein <a href="meetings">Archiv</a> von abgehaltenen Entwickler Treffen.</p>
+
+<p>Der aktuelle Quelltext ist in <a href="monotone.html">Monotone</a> verf&uuml;gbar.</p>
+
+{% endblock %}
