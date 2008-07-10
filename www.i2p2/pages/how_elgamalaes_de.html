@@ -1,0 +1,84 @@
+{% extends "_layout_de.html" %}
+{% block title %}Wie elGgamal und AES Encrypting funktionieren{% endblock %}
+{% block content %}<p>
+In I2P sind verschiedene Nachrichten verschl&uuml;sselt, aber wir m&ouml;chten
+niemanden wissen lassen, von wem oder an wen diese gebunden ist, somit k&oouml;nnen
+wir nicht einfach eine "an" oder "von" Adresse anh&auml;ngen.
+Zus&auml;tzlich werden Nachrichten nicht in eindeutiger Reihenfolge (oder 
+verl&auml;sslich) transportiert, somit k&oennen wir nicht die erste Nachricht 
+elGamal verschl&uuml;sseln und alle weiteren mit AES. Die Alternative, alle 
+Nachrichten mit elGamal zu verschl&uuml;sseln, geht unter mit der Anzahl der
+ben&ouml;tigten Nachrichten. Stattdessen nehmen wir jede einzelne Nachricht und
+testen, ob diese in eine der drei M&ouml;glichkeiten passt:
+</p>
+
+<OL>
+
+<li> es ist ElGamal verschl&uuml;sselt f&uuml;r uns</li>
+<li> es ist AES encrypted verschl&uuml;sselt f&uuml;r uns</li>
+<li> es ist nicht verschl&uuml;sselt f&uuml;r uns</li>
+</OL>
+<p>
+Falls es f&uuml;r uns ElGamal verschl&uuml;sselt ist, wird die Nachricht als
+neue Session behandelt und wird verschl&uuml;sselt mittels encryptNewSession(....) 
+in der  
+<a href="http://dev.i2p.net/cgi-bin/cvsweb.cgi/i2p/core/java/src/net/i2p/crypto/ElGamalAESEngine.java">[ElGamalAESEngine]</a> 
+wie folgend -</p>
+
+<p>Ein initialer ElGamal Block, verschl&uuml;sselt <a href="how_cryptography">wie zuvor</a>:</p>
+
+<PRE>
+ |_______1_______2_______3_______4_______5_______6_______7_______8
+ |   32 byte Session Schl&uuml;ssel
+ |
+ |
+ |                                                               |
+ |   32 byte pre-IV (ersten 16 bytes von H(pre-IV) == IV)
+ |
+ |
+ |                                                               |
+ | (158 bytes zuf&auml;llige Daten)
+ |                              ...
+ |                                                               |
+</PRE>
+
+<p>Gefolgt von dem Nachfolgendem, AES verschl&uuml;sselt <a href="how_cryptography">wie zuvor</a>,
+den Session Schl&uuml;ssel und den IV vom Header nutzend:</p>
+
+<PRE>
+ |_______1_______2_______3_______4_______5_______6_______7_______8
+ | # Session Tags|  so viele sessionTags (32 byte Zufallszahlen)
+ |                              ...
+ |               |  Gr&ouml;sse der Nutzdaten (bytes)|H(Nutzdaten)
+ |
+ |
+ |
+ |                                               | Flag  |Nutzdaten
+ |                              ...
+ |                                                               |
+ | Zufallsbytes zum f&uuml;llen des ganzen AES Blocks (Gr&ouml;sse % 16 == 0)     |
+
+</PRE>
+
+<p>Ist das Flag 0x01, wird es vom Session Schl&uuml;ssel gefolgt, der den alten
+ersetzt.</p>
+
+<p>Die erfolgreich transportierten Sessiontags werden f&uuml;r eine sinnvolle
+Zeit (zur Zeit 30 Minuten) gespeichert bis sie gebraucht (und weggeworfen) werden.
+Sie werden f&uuml;r das Einpacken einer Nachricht ohne vorhergehnden ElGamal Block
+genutzt. Dabei wird es mit encryptExistingSession(...) in der
+<a href="http://dev.i2p.net/cgi-bin/cvsweb.cgi/i2p/core/java/src/net/i2p/crypto/ElGamalAESEngine.java">[ElGamalAESEngine]</a> 
+wie folgend verschl&uuml;sselt -</p>
+
+<PRE>
+ |_______1_______2_______3_______4_______5_______6_______7_______8
+ | Sessiontag (32 byte Zufallszahl ungenutzt und nicht zuvor 
+ |    transportiert oder verworfen). Der Sessiontag dient auch als
+ |    pre-IV (die ersten 16 Bytes von H(sessionTag) == IV)
+ |                                                               |
+</PRE>
+
+<p>Gefolgt vom AES verschl&uuml;sselten Block wie oben beschrieben
+(2 byte # Sessiontags, eine Anzahl Sessiontags, Gr&ouml;sse der Nutzdaten, 
+H(Nutzdaten), Flag, Nutzdaten, Zufallsdaten zum f&uuml;llen).</p>
+{% endblock %}
