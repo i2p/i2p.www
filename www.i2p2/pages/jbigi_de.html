@@ -1,0 +1,91 @@
+{% extends "_layout_de.html" %}
+{% block title %}jbigi{% endblock %}
+{% block content %}<p>Mit JNI (Java Native Interface), ein wenig C Quelltext (Danke ugha!), ein wenig
+manueller Arbeit und etwas Kaugummi ist es m&ouml;glich, die "public key" Kryptography
+ein ganzes St&uuml;ck schneller zu machen.</p>
+
+<h2>Anforderungen</h2>
+<p>Dieses funktioniert unter Linux, mit ein paar Anpassungen in build.sh 
+m&ouml;glicherweise auch auf anderen Plattformen. Es wurde berichtet, das
+es auch auf FreeBSD funktioniert. Mit Kaffee als JVM sind die Verbesserungen
+sehr gering, da es schon intern die BigInteger Bibliothek benutzt.
+Blackdown Java produziert komische Fehler. Da du etwas kompilieren
+wirst, brauchst Du ein JDK, ein JRE wird nicht funktionieren.</p>
+<p>Der n&ouml;tige Quelltext ist in der Monotone Datenbank und
+in dem aktuellsten Quelltext TAR Archive vorhanden.</p>
+<p>Die GNU MP Bignum Bibliothek (libgmp) muss installiert werden, wenn diese
+nicht schon in deinem System vorhanden ist. Sie kann von 
+<a href="http://gmplib.org/#DOWNLOAD">http://gmplib.org/#DOWNLOAD</a>
+geholt werden.Selbst wenn sie schon als Bin&auml;rdatei installiert hast,
+ist es noch ein Versuch wert, GMP selber zu kompilieren, damit diese
+die speziellen Instruktionen DEINES Prozessors nutzen kann. es ist auch
+m&oum;glich, die aktuelle Version 4.2.2 von GMP anstelle der 4.1.4 zu nutzen.
+Aber die Version 4.2.2 braucht noch etwas mehr Testen, damit sie als 
+Standard gesetzt werden kann zum Bauen der jbigi.jar Datei.</p>
+
+<h2>Schritt-f&uuml;r-Schritt Anleitung</h2>
+<ol>
+<li>Schaue auf dein <a href="http://localhost:7657/logs.jsp">Wrapper logs</a>,
+an den Punkt, bei dem I2P das erste mal startet. Da sollte eine von zwei Nachrichten
+stehen - entweder
+<tt>
+INFO: Locally optimized native BigInteger loaded from the library path
+</tt>
+oder
+<tt>
+INFO: Native BigInteger library jbigi not loaded - using pure java</tt>.
+Wenn die native BigInteger Bibliothek NICHT geladen wurde, musst Du diese
+definitiv selber kompilieren.
+Gewisse Plattformen, wie z.B. OS X, OpenSolaris und 64-bit Systeme, erfordern
+generell, das du die Bibliothek selber kompilierst.
+Falls die BigInteger Bibliothek geladen wurde, schaue zumindest mit dem
+letzten Schritt nach, wie deine Performance ist.
+</li>
+<li>Schaue auf <a href="http://localhost:7657/oldstats.jsp">http://localhost:7657/oldstats.jsp</a>
+um deine Durchschnittszeiten seit dem Start von I2P f&uuml;r <code>crypto.elGamal.decrypt</code> 
+und <code>crypto.elGamal.encrypt</code> abzulesen. Diese Zahlen sind Zeiten in Millisekunden.
+Notiere dir diese Werte zum sp&auml;teren Vergleich.
+Der Durchschnitt im I2P Netzwerk ist etwa 20ms.
+Wenn deine Zeiten geringer als 50ms f&uuml;r einen recht neuen Prozessor oder geringer
+als 100ms f&uuml;r einen &auml;lteren Prozessor sind, sollten diese Werte OK sein.
+</li>
+<li>Besorge dir den aktuellen Quelltext von I2P auf der
+<a href="download_de.html">Download Seite</a>, oder besorge dir den Quelltext aus der 
+Monotone Datenbank auf mtn.i2p2.de</li>
+<li>Im Quelltextbaum betrete das <code>core/c/jbigi</code> Verzeichnis</li>
+<li>Lese das README. Du musst GMP Version 4.2.2 von
+<a href="http://gmplib.org/#DOWNLOAD">http://gmplib.org/#DOWNLOAD</a> holen, speichere es
+als gmp-4.2.2.tar.bz2.
+<li>Schaue dir die <code>build.sh</code> Datei an, falls deine <code>JAVA_HOME</code>
+Umgebungsvariable gesetzt ist und du Linux nutzt, sollte es funktionieren.
+Andernfalls &auml;ndere die Einstellungen.</li>
+<li>F&uuml;hre <code>build.sh</code> aus<br/>
+M&ouml;glicherweise gibt es beim Bauen ein paar Fehler, da die jni.h and jni_md.h Dateien fehlen.
+Die einfahc L&ouml;sung ist, diese Dateien aus deiner Java Installation ins core/c/jbigi/jbigi/include
+Verzeichnis zu kopieren.</br>
+Falls Du die <code>build.sh</code> Datei aus dem <code>core/c/</code> Verzeichnis aufrufst, wird
+eine jbigi.jar mit allen m&ouml;glichen CPU Varianten gebaut.</br>
+Eine Datei mit dem Namen <code>libjbigi.so</code> sollte in deinem aktuellem Verzeichnis oder
+im lib Verzeichnis erstellt worden sein. Falls nicht, gib uns das bitte bekannt mit den
+Fehlermeldungen.</li>
+<li>Folge den Anweisungen in core/c/README um die Bibliothek zu installieren und starte den
+Test der neuen jbigi.
+Lese die letzten Zeilen der Ausgabe vom Test f&uuml;r einige zus&auml;tzlichen Infos, es ist
+etwa sowas hier:
+<pre>
+native run time:  5842ms ( 57ms each)
+java run time:   41072ms (406ms each)
+native = 14.223802103622907% of pure java time
+</pre>
+Wenn die nativen Werte etwa 5-7x (oder mehr) schneller sind, ist alles OK. Falls nicht, 
+gebe uns das bitte bekannt.</li>
+<li>Kopiere die <code>libjbigi.so</code> in dein i2p Verzeichnis</li>
+<li>Restarte deinen I2P Router.</li>
+<li>Auf
+<a href="http://localhost:7657/oldstats.jsp">http://localhost:7657/oldstats.jsp</a>
+sollten  <code>crypto.elGamal.decrypt</code> und <code>crypto.elGamal.encrypt</code>
+erheblich schneller sein.</li>
+</ol>
+
+<p>R&uuml;ckmeldungen sind sehr gerne gesehen!</p>
+{% endblock %}
