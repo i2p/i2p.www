@@ -23,8 +23,10 @@ class Response(BaseResponse, ETagResponseMixin):
 # setup jinja
 try:
     env = Environment(loader=MemcachedFileSystemLoader('pages', memcache_host=['127.0.0.1:11211']))
+    print 'cache: memcached'
 except RuntimeError:
     env = Environment(loader=FileSystemLoader('pages', use_memcache=True))
+    print 'cache: none'
 
 def app(environ, start_response):
     """The WSGI application that connects all together."""
