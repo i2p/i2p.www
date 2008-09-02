@@ -1,7 +1,7 @@
-from werkzeug import BaseRequest, BaseResponse, ETagResponseMixin, escape, run_simple, SharedDataMiddleware
+from werkzeug import BaseRequest, BaseResponse, ETagResponseMixin, escape, run_simple
 from werkzeug.exceptions import HTTPException
 from werkzeug.routing import RequestRedirect
-from jinja import Environment, FileSystemLoader
+from jinja import Environment, FileSystemLoader, MemcachedFileSystemLoader
 from jinja.exceptions import TemplateNotFound
 import os
 import sha
@@ -21,13 +21,10 @@ class Response(BaseResponse, ETagResponseMixin):
 
 
 # setup jinja
-env = Environment(loader=FileSystemLoader('pages', use_memcache=True))
-
-def read_mirrors():
-    file = open('mirrors', 'r')
-    dat = file.read()
-    file.close()
-    return dat.split('\n')
+try:
+    env = Environment(loader=MemcachedFileSystemLoader('pages', memcache_host=['127.0.0.1:11211']))
+except RuntimeError:
+    env = Environment(loader=FileSystemLoader('pages', use_memcache=True))
 
 def app(environ, start_response):
     """The WSGI application that connects all together."""
@@ -50,14 +47,10 @@ def app(environ, start_response):
             tmpl = env.get_template(path + '.html')
     except TemplateNotFound:
         tmpl = env.get_template('not_found.html')
-    resp = Response(tmpl.render(), mimetype=mime_type)
+    resp = Response(tmpl.render(static=False), mimetype=mime_type)
     resp.add_etag()
     resp.make_conditional(req)
     return resp(environ, start_response)
 
-app = SharedDataMiddleware(app, {
-    '/_static': os.path.join(os.path.dirname(__file__), 'static'),
-    '/.bzr': os.path.join(os.path.dirname(__file__), '../.bzr')
-})
 if __name__ == '__main__':
     run_simple('localhost', 5009, app)
