@@ -54,5 +54,9 @@ def app(environ, start_response):
     resp.make_conditional(req)
     return resp(environ, start_response)
 
+app = SharedDataMiddleware(app, {
+    '/_static': os.path.join(os.path.dirname(__file__), 'static')
+})
+
 if __name__ == '__main__':
     run_simple('localhost', 5009, app)
