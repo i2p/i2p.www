@@ -1,4 +1,4 @@
-from werkzeug import BaseRequest, BaseResponse, ETagResponseMixin, escape, run_simple
+from werkzeug import BaseRequest, BaseResponse, ETagResponseMixin, escape, run_simple, SharedDataMiddleware
 from werkzeug.exceptions import HTTPException
 from werkzeug.routing import RequestRedirect
 from jinja import Environment, FileSystemLoader, MemcachedFileSystemLoader
