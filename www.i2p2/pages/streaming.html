@@ -21,7 +21,6 @@ off into its own library both to keep the TCP-esque complexities separate and to
 allow alternative optimized implemenations.</p>
 
 <h2>History</h2>
-<p><i>copied from the tech intro</i></p>
 <p>
 The streaming library has grown organically for I2P - first mihi implemented the
 "mini streaming library" as part of I2PTunnel, which was limited to a window
@@ -29,8 +28,9 @@ size of 1 message (requiring an ACK before sending the next one), and then it wa
 refactored out into a generic streaming interface (mirroring TCP sockets) and the
 full streaming implementation was deployed with a sliding window protocol and 
 optimizations to take into account the high bandwidth x delay product.  Individual
-streams may adjust the maximum packet size and other options, though the default
-of 4KB compressed seems a reasonable tradeoff between the bandwidth costs of 
+streams may adjust the maximum packet size and other options. The default
+message size is selected to fit precisely in two 1K I2NP tunnel messages,
+and is a reasonable tradeoff between the bandwidth costs of 
 retransmitting lost messages and the latency of multiple messages.
 </p>
 
@@ -39,11 +39,11 @@ In addition, in consideration of the relatively high cost of subsequent messages
 the streaming library's protocol for scheduling and delivering messages has been optimized to
 allow individual messages passed to contain as much information as is available.
 For instance, a small HTTP transaction proxied through the streaming library can
-be completed in a single round trip - the first message bundles a SYN, FIN, and
-the small payload (an HTTP request typically fits) and the reply bundles the SYN,
-FIN, ACK, and the small payload (many HTTP responses fit).  While an additional
+be completed in a single round trip - the first messages bundle a SYN, FIN, and
+the small HTTP request payload, and the reply bundles the SYN,
+FIN, ACK, and the HTTP response payload.  While an additional
 ACK must be transmitted to tell the HTTP server that the SYN/FIN/ACK has been
-received, the local HTTP proxy can deliver the full response to the browser 
+received, the local HTTP proxy can often deliver the full response to the browser 
 immediately.  
 </p>
 
@@ -84,8 +84,10 @@ it contains a full windowing implementation.
 <p>
 Significant tuning of the streaming lib parameters,
 greatly increasing outbound performance, was implemented in 0.6.1.28.
-After the changes in that release, the current default values
-in the implementation are listed below.
+Subsequent releases include additional tuning and bug fixes.
+The current default values are listed below.
+Lower case values are streaming lib parameters that can changed on a
+per-connection basis.
 These values are tuned for HTTP performance over typical I2P conditions. Other applications such
 as peer-to-peer services are strongly encouraged to
 modify as necessary, by setting the options and passing them via the call to
@@ -94,22 +96,27 @@ Time values are in ms.
 <ul>
 <li>MIN_RESEND_DELAY = 2*1000
 <li>MAX_RESEND_DELAY = 45*1000
-<li>DISCONNECT_TIMEOUT = 5*60*1000
-<li>INITIAL_RECEIVE_WINDOW = 1
-<li>INITIAL_WINDOW_SIZE = 12 // i2psnark sets to 1
+<li>i2p.streaming.connectTimeout = 5*60*1000
+<li>i2p.streaming.initialReceiveWindow = 1
+<li>i2p.streaming.initialWindowSize = 12
 <li>MIN_WINDOW_SIZE = 1
-<li>MAX_WINDOW_SIZE = 64
+<li>i2p.streaming.maxWindowSize = 128 // as of release 0.6.3 (was 64)
 <li>TREND_COUNT = 3
-<li>DEFAULT_MAX_SENDS = 8
-<li>RTT_DAMPENING = 0.9
-<li>PROFILE_BULK
-<li>MAX_MESSAGE_SIZE = 960 // 960 fits inside a single tunnel message
-<li>INITIAL_RTT = 10*1000
-<li>INITIAL_RESEND_DELAY = 1000
-<li>INITIAL_ACK_DELAY = 2000
-<li>INACTIVITY_TIMEOUT = 90*1000
-<li>CONGESTION_AVOIDANCE_GROWTH_RATE_FACTOR = 1
-<li>SLOW_START_GROWTH_RATE_FACTOR = 1
+<li>i2p.streaming.maxResends = 8
+<li>RTT_DAMPENING = 0.875 // as of release 0.6.5 (was 0.9)
+<li>i2p.streaming.profile = 1 (bulk) (2=interactive not suported)
+<li>MIN_MESSAGE_SIZE = 512 // as of release 0.6.5
+<li>i2p.streaming.maxMessageSize = 1730 // as of release 0.6.5 (was 960)
+<li>INBOUND_BUFFER_SIZE = maxMessageSize * (maxWindowSize + 2)
+<li>i2p.streaming.initialRTT = 10*1000
+<li>INITIAL_TIMEOUT = 1.5 * initialRTT
+<li>i2p.streaming.initialResendDelay = 1000
+<li>i2p.streaming.initialAckDelay = 2000
+<li>i2p.streaming.inactivityTimeout = 90*1000
+<li>i2p.streaming.inactivityAction = 2 (send) (0=noop, 1=disconnect)
+<li>i2p.streaming.congestionAvoidanceGrowthRateFactor = 1
+<li>i2p.streaming.slowStartGrowthRateFactor = 1
+<li>PASSIVE_FLUSH_DELAY = 250 // as of release 0.6.5 (was 500)
 </ul>
 </p>
 
@@ -117,6 +124,20 @@ Time values are in ms.
 The streaming lib uses standard slow-start (exponential window growth) and congestion avoidance (linear window growth)
 phases. However, before the 0.6.1.33 release, window growth was substantially slower than optimal;
 these issues were fixed in release 0.6.1.33.
+</p>
+
+<p>
+The maximum message size (also called the MTU / MRU) is negotiated to the lower value supported by
+the two peers. As tunnel messages are padded to 1KB, a poor MTU selection will lead to
+a large amount of overhead.
+The MTU is chosen to fit precisely in an integral number of 1K I2NP tunnel messages,
+including overhead for the typical case.
+The first message in a connection includes a 387 byte (typical) Destination added by the streaming layer,
+and usually a 898 byte (typical) LeaseSet bundled in the Garlic message.
+Therefore, the goal of fitting a complete HTTP request in a single 1KB I2NP message is not realistic.
+However, the selection of the MTU, together with careful implementation of fragmentation
+and batching strategies in the tunnel gateway procesor, are important factors in network bandwidth,
+latency, reliability, and efficiency, especially for long-lived connections.
 </p>
 
 <p>
@@ -128,9 +149,8 @@ In release 0.6.1.30, the routing of messages to the outbound tunnels was made
 consistent, with pushback when a tunnel was backlogged.
 This had a significant positive impact on bandwidths.
 The pushback code was reverted in release 0.6.1.31 due to anonymity concerns.
-Consistent message routing to inbound tunnels is more difficult,
-as there is currently no tracking in the code of the message source.
-Perhaps to be implemented in 0.6.1.32.
+Consistent message routing to inbound tunnels
+was implemented in release 0.6.1.32.
 </p>
 
 <p>
@@ -144,8 +164,8 @@ See <a href="ntcp.html">the NTCP page</a> for a discussion.
 <p>
 Here is the format of a single packet transferred as part of a streaming connection.  
 <ul>
-<li>sendStreamId [4 byte value]</li>
-<li>receiveStreamId [4 byte value]</li>
+<li>sendStreamId [4 byte value] (random number selected by the connection recipient)</li>
+<li>receiveStreamId [4 byte value] (random number selected by the connection originator)</li>
 <li>sequenceNum [4 byte unsigned integer]</li>
 <li>ackThrough [4 byte unsigned integer]</li>
 <li>number of NACKs [1 byte unsigned integer]</li>
@@ -164,10 +184,10 @@ in the given order):</p><ol>
 <li>FLAG_SYNCHRONIZE: no option data</li>
 <li>FLAG_CLOSE: no option data</li>
 <li>FLAG_RESET: no option data</li>
-<li>FLAG_SIGNATURE_INCLUDED: net.i2p.data.Signature</li>
+<li>FLAG_SIGNATURE_INCLUDED: net.i2p.data.Signature (40 bytes)</li>
 <li>FLAG_SIGNATURE_REQUESTED: no option data</li>
-<li>FLAG_FROM_INCLUDED net.i2p.data.Destination</li>
-<li>FLAG_DELAY_REQUESTED: 1 byte integer</li>
+<li>FLAG_FROM_INCLUDED net.i2p.data.Destination (typ. 387 bytes)</li>
+<li>FLAG_DELAY_REQUESTED: 2 byte integer</li>
 <li>FLAG_MAX_PACKET_SIZE_INCLUDED: 2 byte integer</li>
 <li>FLAG_PROFILE_INTERACTIVE: no option data</li>
 </ol>
@@ -179,5 +199,12 @@ for the signature being set to all zeroes.</p>
 <p>If the sequenceNum is 0 and the SYN is not set, this is a plain ACK 
 packet that should not be ACKed</p>
 
+<h2>Future Work</h2>
+<p>
+There are proposals to replace the streaming lib with standard TCP
+(or perhaps a null layer together with raw sockets).
+This would unfortunately be incompatible with the streaming lib
+but it would be good to compare the performance of the two.
+</p>
 
 {% endblock %}
