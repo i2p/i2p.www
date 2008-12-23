@@ -22,10 +22,10 @@ class Response(BaseResponse, ETagResponseMixin):
 
 # setup jinja
 try:
-    env = Environment(loader=MemcachedFileSystemLoader('pages', memcache_host=['127.0.0.1:11211']))
+    env = Environment(loader=MemcachedFileSystemLoader('pages', memcache_host=['127.0.0.1:11211'], memcache_time=60*60))
     print 'cache: memcached'
 except RuntimeError:
-    env = Environment(loader=FileSystemLoader('pages', use_memcache=True))
+    env = Environment(loader=FileSystemLoader('pages', use_memcache=False))
     print 'cache: none'
 
 def app(environ, start_response):
