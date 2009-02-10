@@ -1,0 +1,99 @@
+{% extends "_layout.html" %}
+{% block title %}I2P Status Notes for 2004-10-19{% endblock %}
+{% block content %}<h3>I2P Status Notes for 2004-10-19</h3>
+<pre>-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA1
+
+Hi y'all, its tuesday again
+
+* Index
+1) 0.4.1.3
+2) Tunnel test time, and send processing time
+3) Streaming lib
+4) files.i2p
+5) ???
+
+* 1) 0.4.1.3
+
+The 0.4.1.3 release came out a day or two ago and it looks like most
+people have upgraded (thanks!).  The net is working fairly well, but
+still no revolutionary increase in reliability.  However, the
+watchdog bugs from 0.4.1.2 have gone away (or at least no one has
+mentioned them).  My aim is for this 0.4.1.3 release to be the last
+patch before 0.4.2, though of course if something big comes up
+needing fixing, we'll have another one.
+
+* 2) Tunnel test time, and send processing time
+
+The most significant changes in the 0.4.1.3 release were to the
+tunnel testing - rather than having a fixed (30 second!) test period,
+we have much more aggressive timeouts that are derived from measured
+performance.  This is good, as we now mark tunnels as failing when
+they are too slow to do anything useful.  However, this is bad, as
+sometimes tunnels get backed up temporarily, and if we test them
+during that period we fail a tunnel that would otherwise work.
+
+A recent plot of how long a tunnel test takes on one router:
+
+  <a  rel="nofollow" href="http://dev.i2p.net/~jrandom/10sTestTime.png">http://dev.i2p.net/~jrandom/10sTestTime.png</a>
+
+Those are generally ok tunnel test times - they pass through 4 remote
+peers (with 2 hop tunnels), giving the bulk of them ~1-200ms per hop.
+ However, thats not always the case, as you can see - sometimes it
+takes on the order of seconds per hop.
+
+Thats where this next plot comes in - the queue time from when one
+particular router wanted to send a message to when that message was
+flushed out a socket:
+
+  <a  rel="nofollow" href="http://dev.i2p.net/~jrandom/processingTime.png">http://dev.i2p.net/~jrandom/processingTime.png</a>
+
+The top 95% or so are under 50ms, but the spikes are killer.
+
+We need to get rid of those spikes, as well as work around situations
+with more failing peers.  As it stands now, when we 'learn' about a
+peer failing our tunnels, we aren't really learning anything
+particular to their router - those spikes can cause even high
+capacity peers to seem slow if we hit it right.
+
+* 3) Streaming lib
+
+The second part of getting around failing tunnels will be
+accomplished in part by the streaming lib - giving us much more
+robust end to end streaming communication.  This discussion is
+nothing new - the lib will do all the whizbang stuff we've been
+talking about for a while (and it'll have its share of bugs, of
+course).  There has been a lot of progress on this front, and the
+implementation is probably 60% there.
+
+More news when there's more news.
+
+* 4) files.i2p
+
+Ok, we've had a lot of new eepsites lately, which is kickass. I just
+want to point out this one especially as its got a pretty neat
+feature for the rest of us.  If you haven't been to files.i2p, its
+basically a google-like search engine, with a cache of the sites it
+spiders (so you can both search and browse when the eepsite is
+offline).  v.cool.
+
+* 5) ???
+
+This week's status notes are pretty brief, but there's lots going on
+- - I just don't have time to write more before the meeting. So, swing
+on by #i2p in a few minutes and we can discuss whatever I foolishly
+overlooked.
+
+=jr
+
+-----BEGIN PGP SIGNATURE-----
+Version: PGP 8.1
+
+iQA/AwUBQXWACRpxS9rYd+OGEQL4NwCfQ6NiuQWmuKyFZCNSuvnhjPlW/GgAoPYI
+azbFco6lKpQW9SM631nLXXZB
+=ki2I
+-----END PGP SIGNATURE-----
+
+
+</pre>
+{% endblock %}

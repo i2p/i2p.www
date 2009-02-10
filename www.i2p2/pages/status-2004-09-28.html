@@ -1,0 +1,91 @@
+{% extends "_layout.html" %}
+{% block title %}I2P Status Notes for 2004-09-28{% endblock %}
+{% block content %}<h3>I2P Status Notes for 2004-09-28</h3>
+<pre>-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA1
+
+Hi y'all, weekly update time
+
+* Index:
+1) New transport
+2) 0.4.1 status
+3) ???
+
+* 1) New transport
+
+The 0.4.1 release has been taking longer than expected, but the new
+transport protocol and implementation is in place with everything
+that has been planned - IP detection, low cost connection
+establishment, and an easier interface to help debug when
+connections are failing.  This is done by completely throwing out
+the old transport protocol and implementing a new one, though we've
+still got the same buzzwords (2048bit DH + STS, AES256/CBC/PKCS#5).
+If you'd like to review the protocol, its in the docs [1].  The new
+implementation is also a lot cleaner, since the old version was just
+a bunch of updates accumulated over the last year.
+
+[1]
+<a  rel="nofollow" href="http://dev.i2p.net/cgi-bin/cvsweb.cgi/i2p/router/java/src/net/i2p/rout">http://dev.i2p.net/cgi-bin/cvsweb.cgi/i2p/router/java/src/net/i2p/rout</a>
+er/transport/tcp/package.html?&amp;content-type=text/html
+
+Anyway, there are some things in the new IP detection code that are
+worth mentioning.  Most importantly, it is entirely optional - if
+you specify an IP address on the config page (or in the
+router.config itself), it will always use that address, no matter
+what.  However, if you leave that blank, your router will let the
+first peer it contacts tell it what its IP address is, which it will
+then start listening on (after adding that to its own RouterInfo and
+placing that in the network database).  Well, thats not quite true -
+if you haven't explicitly set an IP address, it will trust anyone to
+tell it what IP address it can be reached at whenever the peer has
+no connections.  So, if your internet connection restarts, perhaps
+giving you a new DHCP address, your router will trust the first peer
+it is able to reach.
+
+Yes, this means no more dyndns.  You're still of course welcome to
+keep using it, but its not necessary.
+
+However, this does not do all that you want - if you have a NAT or
+firewall, knowing your external IP address is only half of the
+battle - you still need to poke the hole for the inbound port. But,
+its a start.
+
+(as an aside, for people running their own private I2P networks or
+simulators, there is a new pair of flags to be set
+i2np.tcp.allowLocal and i2np.tcp.tagFile)
+
+* 2) 0.4.1 status
+
+Beyond the items on the roadmap for 0.4.1, I want to get a few more
+things in there - both bugfixes and network monitoring updates.  I'm
+tracking down some excessive memory churn issues at the moment, and
+I want to explore some hypotheses about the occational reliability
+issues on the net, but we'll be ready to roll out the release soon,
+perhaps thursday.  It unfortunately will not be backwards compatible,
+so it'll be a little bumpy, but with the new upgrade process and the
+more forgiving transport implementation, it shouldn't be as bad as
+the previous backwards incompatible updates.
+
+* 3) ???
+
+Yeah, we've had short updates the last two weeks, but thats because
+we're in the trenches focusing on the implementation, rather than
+various higher level designs.  I could tell you about the profiling
+data, or the 10,000 connection tag cache for the new transport, but
+thats not so interesting.  However y'all may have some additional
+things to discuss, so swing on by the meeting tonight and let 'er
+rip.
+
+=jr
+
+-----BEGIN PGP SIGNATURE-----
+Version: PGP 8.1
+
+iQA/AwUBQVmbSxpxS9rYd+OGEQLRLQCfXYW9hGbiTALFtsv7L803qAJlFocAoPPO
++PlRUSxbgmI4M7QSDte/eCnP
+=vO07
+-----END PGP SIGNATURE-----
+
+
+</pre>
+{% endblock %}

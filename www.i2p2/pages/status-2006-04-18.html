@@ -1,0 +1,81 @@
+{% extends "_layout.html" %}
+{% block title %}I2P Status Notes for 2006-04-18{% endblock %}
+{% block content %}<h3>I2P Status Notes for 2006-04-18</h3>
+<pre>-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA1
+
+Hi y'all, tuesday rolls around again for our weekly status notes
+
+* Index
+1) Net status and 0.6.1.16
+2) Tunnel creation and congestion
+3) Feedspace
+4) ???
+
+* 1) Net status and 0.6.1.16
+
+With 70% of the network upgraded to 0.6.1.16, we seem to be seeing
+an improvement over earlier releases, and with the issues fixed in
+that release out of the way, we've got a clearer view of our next
+bottleneck.  For those not yet on 0.6.1.16, please upgrade as soon
+as possible, since earlier releases will reject tunnel creation
+requests arbitrarily (even if the router has sufficient resources to
+participate in more tunnels).
+
+* 2) Tunnel creation and congestion
+
+Right now, it seems we are experiencing what is probably best
+described as congestion collapse - tunnel creation requests are
+being rejected because routers are low on bandwidth, so more tunnel
+creation requests are sent out in hopes of finding other routers
+with spare resources, only to increase the bandwidth used.  This
+issue has been around since we switched to the new tunnel creation
+crypto in 0.6.1.10 and can substantially be tied to the fact that we
+don't get per-hop join/reject feedback until (or more to the point,
+*unless*) the request and reply has traversed the length of two
+tunnels.  If any of those peers fail to pass the message along, we
+don't know which peer failed, which peers agreed, and which peers
+explicitly rejected it.
+
+We already limit the number of concurrent tunnel creation requests
+in flight (and tests are showing increasing the timeout doesn't
+help), so Nagle's traditional solution isn't sufficient.  I'm trying
+out a few tweaks to our request processing code now, to cut down on
+the frequency of silent request drops (as opposed to explicit
+rejections), and on our request generation code to cut down on the
+concurrency under load.  I'm also trying out some other improvements
+that are getting substantially increased tunnel build success rates,
+though those aren't yet ready for safe usage.
+
+There's light down the tunnel, and I appreciate your patience
+sticking with us as we move forward.  I expect we'll have another
+release later this week to push out some of the improvements, after
+which point we'll reevaluate the state of the net to see whether the
+congestion collapse is addressed.
+
+* 3) Feedspace
+
+Frosk has been churning away on Feedspace, and has updated a few
+pages up on the trac site, including a new overview doc, a set of
+outstanding tasks, some db details, and more.  Swing on by 
+<a  rel="nofollow" href="http://feedspace.i2p/">http://feedspace.i2p/</a> to catch up on the latest changes, and perhaps
+pelt Frosk with questions at your earliest convenience :)
+
+* 4) ???
+
+Thats about all I'm ready to discuss at the moment, but please swing
+on by #i2p for our meeting later this evening (8pm UTC) to chat some
+more!
+
+=jr
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.2.2 (GNU/Linux)
+
+iD8DBQFERSpfzgi8JTPcjUkRAmiFAJ97zHVXU/E2oQ5k3NMvjtundvWlzACfXAZX
+nFrLMyhEQRCexJgH5VI2T38=
+=awOK
+-----END PGP SIGNATURE-----
+
+
+</pre>
+{% endblock %}

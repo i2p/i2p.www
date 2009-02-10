@@ -1,0 +1,165 @@
+{% extends "_layout.html" %}
+{% block title %}I2P Status Notes for 2004-08-31{% endblock %}
+{% block content %}<h3>I2P Status Notes for 2004-08-31</h3>
+<pre>-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA1
+
+Well boys 'n girls, its Tuesday again!
+
+* Index:
+1) 0.3.4.3
+2) 0.3.5 and 0.4
+3) docs
+4) stasher update
+5) ???
+
+* 1) 0.3.4.3
+
+Well, as I'm you've all noticed, while the number of users on the
+network has stayed pretty steady, the performance has significantly
+degrated over the last few days.  The source of this has been a
+series of bugs in the peer selection and message delivery code,
+exposed when there was a minor DoS last week.  The result has been
+essentially everyone's tunnels have been consistently failing, which
+has a bit of a snowball effect.  So no, its not just you - the net
+has been horrid for the rest of us as well ;)
+
+But the good news is we fixed the issues pretty quickly, and they've
+been in CVS since last week, but the network will still suck for
+people until the next release is out.  On that note...
+
+* 2) 0.3.5 and 0.4
+
+While the next release will have all the goodies we've got planned
+for the 0.4 release (new installer, new web interface standard,
+new i2ptunnel interface, systray &amp; windows service, threading
+improvements, bugfixes, etc), the way the last release degraded over
+time was telling.  I want us to move more slowly on these releases,
+giving them time to deploy more fully and for kinks to show
+themselves.  While the simulator can explore the basics, it doesn't
+have any way of simulating the natural network issues we see on the
+live net (at least, not yet).
+
+As such, the next release will be 0.3.5 - hopefully the last 0.3.*
+release, but perhaps not, if other issues arise.  Looking back at
+how the network operated when I was offline in June, things started
+to degrade after about two weeks.  As such, my thoughts are to hold
+off marking us up to the next 0.4 release level until we can sustain
+a high degree of reliability for at least two weeks.  That doesn't
+mean we won't be doing work in the meantime, of course.
+
+Anyway, as mentioned last week, hypercubus is chugging away at the
+new install system, dealing with me changing things around and
+requiring support for goofball systems.  We should have things
+hammered out in the next few days to push out a 0.3.5 release in
+the next few days.
+
+* 3) docs
+
+One of the important thing we need to do during that two week
+&quot;testing window&quot; before 0.4 is to document like crazy.  What I'm
+wondering is what things you feel our documentation is missing -
+what questions do you have that we need to answer?  While I'd like
+to say &quot;ok, now, go write those documents&quot;, I'm realistic, so all
+I'm asking is if you can identify what those documents would
+discuss.
+
+For instance, one of the docs I'm working on now is a revision of
+the threat model, which I'd now describe as a series of use cases
+explaining how I2P can serve different individual's needs,
+including the functionality, the attackers that person is worried
+about, and how they defend themselves.
+
+If you don't think your question requires a full blown document to
+address, simply phrase it as a question and we can add it to the
+FAQ.
+
+* 4) stasher update
+
+Aum was by the channel earlier today with an update (while I
+peppered him with questions):
+
+  &lt; aum&gt; quick stasher update, with apologies for tomorrow's meeting:
+  &lt; aum&gt; infinite-level splitfiles working, have successfully
+         inserted and retrieved large files
+  &lt; jrandom&gt; w00t
+  &lt; aum&gt; splitfile fragmentation/reassembly transparently occuring
+         within stasher
+  &lt; aum&gt; freenet interface working
+  &lt; jrandom&gt; wow
+  &lt; jrandom&gt; so FUQID/FIW works?
+  &lt; aum&gt; use of fcp splitfile commands in freenet clients strictly
+         forbidden (at this stage)
+  &lt; aum&gt; most clients such as fuqid/fiw should allow setting
+         extremely large splitfile sizes, which should prevent them
+         trying to talk splitfiles
+  &lt; aum&gt; if not, then i can dummy up something
+  &lt; jrandom&gt; r0x0r aum, that kicks ass!
+  &lt; aum&gt; hooks are in for detailed freenet key support
+  &lt; jrandom&gt; detailed freenet key support?
+  &lt; aum&gt; yes, specific chk@, ssk@, ksk@
+  &lt; aum&gt; seriously considering datastore encryption:
+  &lt; jrandom&gt; ok great, so they're all verified @ each node, etc?
+  &lt; aum&gt; no - only verifiable by the requestor
+  &lt; aum&gt; my thinking is, given KSK@fred = 'mary',
+  &lt; aum&gt; to store as SHA1(SHA1(&quot;KSK@fred&quot;)) = E(mary), where key
+         for E is SHA1(&quot;KSK@fred&quot;)
+  &lt; aum&gt; ie, crypto key is SHA1(uri), and kademlia key is
+         SHA1(SHA1(uri))
+  &lt; jrandom&gt; hm
+  &lt; aum&gt; so a possessor of the URI can decyrpt, but owner of a
+         datastore cannot decrypt (and therefore has plausible
+         deniability)
+  &lt; jrandom&gt; well, ksks are inherently insecure, so thats no big
+             loss, but what about ssk?
+  &lt; deer&gt; &lt;detonate&gt; those keys aren't very large
+  &lt; aum&gt; SSK as for freenet
+  &lt; jrandom&gt; so the SSKs are verified at each node?
+  &lt; aum&gt; except i'm looking to use same encryption over the top
+  &lt; aum&gt; not feasible to verify SSK at the target node
+  &lt; jrandom&gt; why not?  freenet does
+  &lt; aum&gt; well maybe it is feasible,
+  &lt; aum&gt; i guess i shouldn't be so lazy
+  &lt; aum&gt; i was trying to keep the kademlia and freenet layers
+         separate
+  &lt; jrandom&gt; heh, you're not being lazy, there's a truckload of
+             work here, and you're doing a great job
+  &lt; aum&gt; verifying on target node will cause some pathological
+         couplings between the two layers, and force deviation
+         from pure kademlia
+  &lt; jrandom&gt; i dont think its possible to do SSKs or CHKs
+             securely without having the node validate the key
+             properties
+  &lt; aum&gt; not correct
+  &lt; aum&gt; fred asks mary, 'gimme SSK@madonna'
+  &lt; aum&gt; mary sends back what she thinks is 'SSK@madonna'
+  &lt; aum&gt; fred tests it, barfs, then goes on to ask the next node
+  &lt; aum&gt; anyway, i MUST go - but am open to continuing discussion
+         over email, or tomorrow
+  &lt; aum&gt; bbl guys
+  &lt; jrandom&gt; mallory floods the net with 'SSK@madonna' ==
+            'sexDrugsRockNRoll'
+  &lt; jrandom&gt; l8r aum
+
+So, as you can see, lots and lots of progress.  Even if the
+keys are validated above the DHT layer, that's wikked cool (imho).
+Go aum!
+
+* 5) ???
+
+Ok, thats all I've got to say (which is good, since the meeting
+starts in a few moments)... swing on by and say whatcha want!
+
+=jr
+
+-----BEGIN PGP SIGNATURE-----
+Version: PGP 8.1
+
+iQA/AwUBQTTlqRpxS9rYd+OGEQJd3ACfYXJRO6EFjOVgO7KNbQcdr1YevJYAnj0Q
+gEg6cYDHMxLuGop/ALQwU+bg
+=A3Um
+-----END PGP SIGNATURE-----
+
+
+</pre>
+{% endblock %}

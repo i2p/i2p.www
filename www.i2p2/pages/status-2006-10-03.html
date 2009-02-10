@@ -1,0 +1,263 @@
+{% extends "_layout.html" %}
+{% block title %}I2P Status Notes for 2006-10-03{% endblock %}
+{% block content %}<h3>I2P Status Notes for 2006-10-03</h3>
+<pre>-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA1
+
+Hi y'all, a belated status notes this week
+
+* Index
+1) Net status
+2) Router dev status
+3) Syndie rationale continued
+4) Syndie dev status
+5) Distributed version control
+6) ???
+
+* 1) Net status
+
+The past week or two have been fairly stable on irc and other
+services, though dev.i2p/squid.i2p/www.i2p/cvs.i2p had a few bumps
+(due to temporary OS-related issues).  Things seem to be at a
+steady state at the moment.
+
+* 2) Router dev status
+
+The flip side to the Syndie discussion is &quot;so, what does that mean
+for the router?&quot;, and to answer that, let me explain a bit where the
+router development stands right now.
+
+On the whole, the thing holding the router back from 1.0 is in my
+view its performance, not its anonymity properties.  Certainly, there
+are anonymity issues to improve, but while we do get pretty good
+performance for an anonymous network, our performance is not
+sufficient for wider use.  In addition, improvements to the anonymity
+of the network will not improve its performance (in most instances I
+can think of, anonymity improvements reduce throughput and increase
+latency).  We need to sort out the performance issues first, for
+if the performance is insufficient, the whole system is insufficient,
+regardless of how strong its anonymity techniques are.
+
+So, what is keeping our performance back?  Oddly enough, it seems to
+be our CPU usage.  Before we get to exactly why, a little more
+background first.
+
+ - to prevent partitioning attacks, we all need to plausibly build
+   our tunnels from the same pool of routers.
+ - to allow the tunnels to be of manageable length (and source
+   routed), the routers in that pool must be directly reachable by
+   anyone.
+ - the bandwidth costs of receiving and rejecting tunnel join
+   requests exceeds the capacity of dialup users on burst.
+
+Therefore, we need tiers of routers - some globally reachable with
+high bandwidth limits (tier A), some not (tier B).  This has already
+in effect been implemented through the capacity information in the
+netDb, and as of a day or two ago, the ratio of tier B to tier A
+has been around 3 to 1 (93 routers of cap L, M, N, or O, and 278 of
+cap K).
+
+Now, there are basically two scarce resources to be managed in
+tier A - bandwidth and CPU.  Bandwidth can be managed by the usual
+means (split load across a wide pool, have some peers handle insane
+amounts [e.g. those on T3s], and reject or throttle individual
+tunnels and connections).
+
+Managing CPU usage is harder.  The primary CPU bottleneck seen on
+tier A routers is the decryption of tunnel build requests.  Large
+routers can be (and are) entirely consumed by this activity - for
+instance, the lifetime average tunnel decrypt time on one of my
+routers is 225ms, and the lifetime *average* frequency of a tunnel
+request decryption is 254 events per 60 seconds, or 4.2 per second.
+Simply multiplying those two together and that shows that 95% of the
+CPU is consumed by tunnel request decryption alone (and that doesn't
+take into consideration the spikes in the event counts).  That router
+still somehow manages to participate in 4-6000 tunnels at a time,
+accepting approximately 80% of the decrypted requests.  
+
+Unfortunately, because the CPU on that router is so heavily loaded,
+it has to drop a significant number of tunnel build requests before
+they can even be decrypted (otherwise the requests would sit on the
+queue so long that even if they were accepted, the original
+requestor would have considered them lost or too loaded to do
+anything anyway).  In that light, the router's 80% accept rate looks
+much worse - over its lifetime, it decrypted around 250k requests
+(meaning around 200k were accepted), but it had to drop around 430k
+requests in the decrypt queue due to CPU overload (turning that 80%
+accept rate into 30%).
+
+The solutions seem to be along the lines of reducing the relevent
+CPU cost for tunnel request decryption.  If we cut the CPU time by an
+order of magnitude, that would increase the tier A router's capacity
+substantially, thereby reducing rejections (both explicit and
+implicit, due to dropped requests).  That in turn would increase the
+tunnel build success rate, thereby reducing the frequency of lease
+expirations, which would then reduce the bandwidth load on the
+network due to tunnel rebuilding.
+
+One method for doing this would be to change the tunnel build
+requests from using 2048bit Elgamal to, say, 1024bit or 768bit.
+The problem there though is that if you break the encryption on a
+tunnel build request message, you know the full path of the tunnel.
+Even if we went this route, how much would it buy us?  An improvement
+by an order of magnitude in the decryption time could be wiped out by
+an increase of an order of magnitude in the ratio of tier B to tier A
+(aka the freeriders problem), and then we'd be stuck, since there's
+no way we could move to 512 or 256bit Elgamal (and look ourselves in
+the mirror ;)
+
+One alternative would be to use weaker crypto but drop the protection
+for packet counting attacks that we added in with the new tunnel
+build process.  That would allow us to use entirely ephemeral
+negotiated keys in a Tor-like telescopic tunnel (though, again, would
+expose the tunnel creator to trivial passive packet counting attacks
+that identify a service).
+
+Another idea is to publish and use even more explicit load
+information in the netDb, allowing clients to more accurately detect
+situations like the one above where a high bandwidth router drops 60%
+of its tunnel request messages without even looking at them.  There
+are a few experiments worth doing along this avenue, and they can be
+done with full backwards compatability, so we should be seeing them
+soon.
+
+So, that's the bottleneck in the router/network as I see it today.
+Any and all suggestions for how we can deal with it would very much
+be appreciated.
+
+* 3) Syndie rationale continued
+
+There's a meaty post up on the forum regarding Syndie and where it
+fits in with things - check it out at
+<a  rel="nofollow" href="http://forum.i2p.net/viewtopic.php?t=1910">http://forum.i2p.net/viewtopic.php?t=1910</a>
+
+Also, I'd just like to highlight two snippets from the Syndie docs
+being worked on.  First, from irc (and the not-yet-out-there FAQ):
+
+ &lt;bar&gt; a question i've been pondering is, who is later going to have
+       balls big enough to host syndie production servers/archives?
+ &lt;bar&gt; aren't those going to be as easy to track down as the eepsites
+       are today?
+ &lt;jrandom&gt; public syndie archives do not have the ability to
+       *read* the content posted to forums, unless the forums publish
+       the keys to do so
+ &lt;jrandom&gt; and see the second paragraph of usecases.html
+ &lt;jrandom&gt; of course, those hosting archives given lawful
+       orders to drop a forum will probably do so
+ &lt;jrandom&gt; (but then people can move to another
+       archive, without disrupting the forum's operation)
+ &lt;void&gt; yeah, you should mention the fact that migration to a
+       different medium is going to be seamless
+ &lt;bar&gt; if my archive shuts down, i can upload my whole forum to a new
+       one, right?
+ &lt;jrandom&gt; 'zactly bar
+ &lt;void&gt; they can use two methods at the same time while migrating
+ &lt;void&gt; and anyone is able to synchronize the mediums
+ &lt;jrandom&gt; right void
+
+The relevent section of (the not yet published) Syndie usecases.html
+is:
+
+  While many different groups often want to organize discussions into
+  an online forum, the centralized nature of traditional forums
+  (websites, BBSes, etc) can be a problem. For instance, the site
+  hosting the forum can be taken offline through denial of service
+  attacks or administrative action. In addition, the single host
+  offers a simple point to monitor the group's activity, so that even
+  if a forum is pseudonymous, those pseudonyms can be tied to the IP
+  that posted or read individual messages.
+
+  In addition, not only are the forums decentralized, they are
+  organized in an ad-hoc manner yet fully compatible with other
+  organization techniques. This means that some small group of people
+  can run their forum using one technique (distributing the messages
+  by pasting them on a wiki site), another can run their forum using
+  another technique (posting their messages in a distributed
+  hashtable like OpenDHT, yet if one person is aware of both
+  techniques, they can synchronize the two forums together. This lets
+  the people who were only aware of the wiki site talk to people who
+  were only aware of the OpenDHT service without knowing anything
+  about each other. Extended further, Syndie allows individual cells
+  to control their own exposure while communicating across the whole
+  organization.
+
+* 4) Syndie dev status
+
+There's been lots of progress on Syndie lately, with 7 alpha
+releases handed out to folks on the irc channel.  Most of the major
+issues in the scriptable interface have been addressed, and I'm
+hoping we can get the Syndie 1.0 release out later this month.
+
+Did I just say &quot;1.0&quot;?  You betcha!  While Syndie 1.0 will be a text
+based application, and won't even be comparable to the usability of
+other comparable text based apps (such as mutt or tin), it will
+provide the full range of functionality, allow HTTP and file based
+syndication strategies, and hopefully demonstrate to potential
+developers Syndie's capabilities.
+
+Right now, I'm penciling in a Syndie 1.1 release (allowing people
+to organize their archives and reading habits better) and maybe a
+1.2 release to integrate some search functionality (both simple
+searches and maybe lucene's fulltext searches).  Syndie 2.0 will
+probably be the first GUI release, with the browser plugin coming
+with 3.0.  Support for additional archives and message distribution
+networks will be coming when implemented, of course (freenet,
+mixminion/mixmaster/smtp, opendht, gnutella, etc).
+
+I realize though that Syndie 1.0 won't be the earth shaker that some
+want, as text based apps are really for the geeks, but I'd like to
+try to break us of the habit of viewing &quot;1.0&quot; as a terminal release
+and instead consider it a beginning.
+
+* 5) Distributed version control
+
+So far, I've been mucking around with subversion as the vcs for
+Syndie, even though I'm only really fluent in CVS and clearcase.
+This is because I'm offline most of the time, and even when I am
+online, dialup is slow, so subversion's local diff/revert/etc
+has been quite handy.  However, yesterday void poked me with the
+suggestion that we look into one of the distributed systems
+instead.
+
+I looked at them a few years back when evaluating a vcs for I2P,
+but I dismissed them because I didn't need their offline
+functionality (I had good net access then) so learning them wasn't
+worthwhile.  Thats not the case anymore, so I'm looking at them a
+bit more now.
+
+- From what I can see, darcs, monotone, and codeville are the top
+contenders, and darcs' patch-based vcs seems particularly attractive.
+For instance, I can do all my work locally and just scp up the 
+gzip'ed &amp; gpg'ed diffs to an apache directory on dev.i2p.net, and
+people can contribute their own changes by posting their gzip'ed and
+gpg'ed diffs to locations of their choice.  When it comes time to tag
+a release, I'd make a darcs diff which specifies the set of patches
+contained within the release and push that .gz'ed/.gpg'ed diff up
+like the others (as well as push out actual tar.bz2, .exe, and .zip
+files, of course ;)
+
+And, as a particularly interesting point, these gzip'ed/gpg'ed diffs
+can be posted as attachments to Syndie messages, allowing Syndie to
+be self-hosting.
+
+Anyone have any experience with these suckers though?  Any advice?
+
+* 6) ???
+
+Only 24 screenfulls of text this time (including the forum post) ;)
+I unfortunately wasn't able to make it to the meeting, but as always,
+I'd love to hear from you if you've got any ideas or suggestions -
+just post up to the list, the forum, or swing on by IRC.
+
+=jr
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.3 (GNU/Linux)
+
+iD8DBQFFI8RHzgi8JTPcjUkRAuHoAJ0Ym4sOLHlii2eHdwyQYS0IregZzACffi4E
+H/X9NBh7t6KTc9dibqLdgow=
+=WLl9
+-----END PGP SIGNATURE-----
+
+
+</pre>
+{% endblock %}

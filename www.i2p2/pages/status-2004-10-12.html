@@ -1,0 +1,115 @@
+{% extends "_layout.html" %}
+{% block title %}I2P Status Notes for 2004-10-12{% endblock %}
+{% block content %}<h3>I2P Status Notes for 2004-10-12</h3>
+<pre>-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA1
+
+Hi gang, time for our weekly update
+
+* Index:
+1) 0.4.1.2
+2) 0.4.1.3
+3) 0.4.2
+4) mail discussions
+5) ???
+
+* 1) 0.4.1.2
+
+The new 0.4.1.2 release has been out for a few days and things have
+been going pretty much as expected - there have been a few bumps with
+the new watchdog component though, causing it to kill your router
+when things are Bad rather than to restart it.  As I mentioned
+earlier today [1], I'm looking for people to use the new stats
+logging tool to send me some data, so your help there would be
+greatly appreciated.
+
+[1] <a  rel="nofollow" href="http://dev.i2p.net/pipermail/i2p/2004-October/000465.html">http://dev.i2p.net/pipermail/i2p/2004-October/000465.html</a>
+
+* 2) 0.4.1.3
+
+There will be another release before 0.4.2 is out, as I want the
+network to be as solid as possible before moving on.  What I'm
+experimenting with at the moment is a dynamic throttle on the tunnel
+pariticpation - telling routers to probabalistically reject requests
+if they're flooded or their tunnels are slower than usual.  These
+probabilities and thresholds are calculated dynamically from the
+stats being kept - if your 10 minute tunnel test time is greater than
+your 60 minute tunnel test time, accept the tunnel request with a
+probability of 60minRate/10minRate (and if your current # of tunnels
+is greater than your 60 minute average number of tunnels, accept it
+w/ p=60mRate/curTunnels).
+
+Another potential throttle is to smooth the bandwidth along those
+lines - rejecting tunnels probabalistically when our bandwidth usage
+spikes.  Anyway, the intent of all of this is to help spread out the
+network usage and balance the tunnels across more people.  The main
+problem we've had with the load balancing has been an overwhelming
+*excess* of capacity, and as such none of our &quot;damn we're slow, lets
+reject&quot; triggers have been hit.  These new probabalistic ones should
+hopefully keep rapid change in check.
+
+I don't have any specific plan for when the 0.4.1.3 release will be
+out - maybe the weekend.  The data people send in (from above) should
+help determine whether this will be worthwhile, or if there are other
+avenues more worthwhile.
+
+* 3) 0.4.2
+
+As we discussed in last week's meeting, we've switched around the
+0.4.2 and 0.4.3 releases - 0.4.2 will be the new streaming lib, and
+0.4.3 will be the tunnel update.
+
+I've been rereviewing the literature for TCP's streaming
+functionality and there are some interesting topics of concern for
+I2P.  Specifically, our high round trip time  leans towards something
+like XCP [2], and we should probably be quite aggressive with various
+forms of explicit congestion notification, though we can't take
+advantage of something like the timestamp option, since our clocks
+can be skewed by up to a minute.
+
+In addition, we'll want to make sure we can optimize the streaming
+lib to handle short lived connections (which vanilla TCP pretty much
+sucks at) - for instance, I want to be able to be able to send small
+(&lt;32KB) HTTP GET requests and small (&lt;32KB) replies in literally
+three messages:
+    Alice--&gt;Bob: syn+data+close
+    Bob--&gt;Alice: ack+data+close (the browser gets the response now)
+    Alice--&gt;Bob: ack (so he doesn't resend the payload)
+
+Anyway, not much code has been cut on this yet, with the protocol
+side of things looking pretty much TCP-like and the packets somewhat
+like a merging of human's proposal [3] and the old proposal [4].  If
+anyone has any suggestions or ideas, or wants to help out with the
+implementation, please get in touch.
+
+[2] <a  rel="nofollow" href="http://www.ana.lcs.mit.edu/dina/XCP/">http://www.ana.lcs.mit.edu/dina/XCP/</a>
+[3] <a  rel="nofollow" href="http://dev.i2p.net/pipermail/i2p/2004-August/000418.html">http://dev.i2p.net/pipermail/i2p/2004-August/000418.html</a>
+[4] <a  rel="nofollow" href="http://dev.i2p.net/pipermail/i2p/2004-August/000421.html">http://dev.i2p.net/pipermail/i2p/2004-August/000421.html</a>
+
+* 4) mail discussion
+
+There have been some interesting discussions regarding email in (and
+out of) I2P - postman has put a set of ideas online [5] and is
+looking for suggestions.  There have also been related discussions on
+the #mail.i2p.  Perhaps we can get postman to give us an update?
+
+[5] <a  rel="nofollow" href="http://www.postman.i2p/ideas.html">http://www.postman.i2p/ideas.html</a>
+
+* 5) ???
+
+Thats about it for the moment.  Swing on by the meeting in a few
+minutes and bring your comments :)
+
+=jr
+
+-----BEGIN PGP SIGNATURE-----
+Version: PGP 8.1
+
+iQA/AwUBQWxFBBpxS9rYd+OGEQIdkACgg1DeDOblafN3X5/HqRJ3dSu64ZEAoM6i
+uGWqH5WOe6ZCObkRlxVsMj+B
+=o5TR
+-----END PGP SIGNATURE-----
+
+
+</pre>
+{% endblock %}
