@@ -87,7 +87,9 @@ But let's address your question in three parts:
 contents of a message, its source, or destination. Your only choice is to refuse to route
 any traffic, by setting your share bandwidth or maximum participating tunnels to 0 (see above).
 It would be nice if you didn't do this, you should help the network by routing traffic for others.
-<li><b>Storage</b> - I2P does not do distributed storage of content. You must be thinking of Freenet.
+Over 95% of users route traffic for others.
+<li><b>Storage</b> - I2P does not do distributed storage of content. You must be thinking of
+<a href="http://freenetproject.org">Freenet</a>.
 You are not storing anybody else's content.
 <li><b>Access</b> - If there are some eepsites you don't like, don't go there.
 Or, use a blocking proxy like Privoxy or some type of "net nanny".
@@ -165,7 +167,7 @@ The best way to stay "better-connected" to the network is to share more bandwidt
    FTP is not supported for technical reasons.
 </p><p>
    For HTTPS or FTP access to the regular internet, there are no HTTPS or FTP "outproxies".
-   HTTPS is probably possible if somebody would like to set one up. FTP is probably not.
+   HTTPS is possible if somebody would like to set one up. FTP is probably not.
    Actually, just about any other sort of outproxy might work, try setting it up with a standard
    tunnel and see.
    As explained several times above, outproxies of any type are not a core
@@ -173,6 +175,34 @@ The best way to stay "better-connected" to the network is to share more bandwidt
    be operational at any given time.
    If you would like to set up some type of outproxy, carefully research the potential risks.
    The I2P community may or may not be able to help with the technical aspects, feel free to ask.
+</p>
+
+<h3 id="proxy_safe">Is using an outproxy safe?
+<span class="permalink">(<a href="#proxy_safe">link</a>)</span></h3>
+<p>
+   You have to decide for yourself.
+   It depends on what you are doing, your
+   <a href="how_threatmodel.html">threat model</a>, and how much you trust the outproxy operator.
+</p><p>
+   Like Tor, I2P does not magically encrypt the internet.
+   You are vulnerable to snooping by the outproxy operator.
+   The <a href="https://wiki.torproject.org/noreply/TheOnionRouter/TorFAQ#ExitEavesdroppers">Tor FAQ</a>
+   does a good job of explaining this.
+   There is no HTTPS outproxy in I2P, and you cannot hide your traffic from an HTTP outproxy operator.
+</p><p>
+   In addition, you may be vulnerable to collusion between the outproxy operator
+   and operators of other I2P services, if you use the same tunnels ("shared clients").
+   There is additional discussion about this on <a href="http://zzz.i2p/topics/217">zzz.i2p</a>.
+</p>
+
+<h3 id="proxy_other">How do I access IRC, bittorrent, or other services on the regular internet?
+<span class="permalink">(<a href="#proxy_other">link</a>)</span></h3>
+<p>
+   You can't.
+   Somebody must set up an outproxy for each service.
+   There are only two types of outproxies running right now: HTTP and email.
+   There is no SOCKS outproxy.
+   If you need this you should probably try <a href="http://www.torproject.org/">Tor</a>.
 </p>
 
 <h3 id="down">Most of the eepsites within I2P are down?
@@ -259,6 +289,13 @@ Then tell your IRC client to connect to localhost port 6668.
     any LAN/WAN IP.
 </p>
 
+<h3 id="remote_i2cp">How can I use applications from my other machines?
+<span class="permalink">(<a href="#remote_i2cp">link</a>)</span></h3>
+<p>
+By default, the router I2CP interface (port 7654) binds to address 127.0.0.1. To bind to 0.0.0.0, set the
+router advanced configuration option <tt>i2cp.tcp.bindAllInterfaces=true</tt> and restart.
+</p>
+
 <h3 id="eepsite">Whats an "eepsite"?
 <span class="permalink">(<a href="#eepsite">link</a>)</span></h3>
 <p>
@@ -275,10 +312,13 @@ Then tell your IRC client to connect to localhost port 6668.
     hour or so.
 </p>
 
-<h3 id="socks">Is it possible to use I2P as a socks proxy?
+<h3 id="socks">Is it possible to use I2P as a SOCKS proxy?
 <span class="permalink">(<a href="#socks">link</a>)</span></h3>
 <p>
-    While it would be technically feasible, many applications leak sensitive
+    The SOCKS proxy is working as of release 0.7.1. SOCKS 4/4a/5 are supported.
+    There is no SOCKS outproxy so it is of limited use.
+</p><p>
+    In addition, many applications leak sensitive
     information that could identify you on the internet. I2P only filters
     connection data, but if the programme you intend to run sends this
     information as content, I2P has no way to protect your anonymity.  For
@@ -287,7 +327,7 @@ Then tell your IRC client to connect to localhost port 6668.
     this, thus using I2P to 'socksify' existing applications is possible, but
     extremely dangerous.
 </p><p>
-    If you would like more information on a socks proxy application anyway,
+    If you would like more information on the socks proxy application anyway,
     there are some helpful hints on the <a href="socks.html">socks page</a>.
 </p>
 
@@ -321,10 +361,22 @@ Then tell your IRC client to connect to localhost port 6668.
 	<ul><p>
 		<li><b>Local I2P ports</b>, listening only to local connections by default:
 		<ul>
-			<li><b>7654:</b> I2P Client Protocol port, used by client apps</li>
+			<li><b>7654:</b> I2P Client Protocol port, used by client apps.
+                            <i>May be changed with the advanced configuration option</i> <tt>i2cp.port</tt>
+                            <i>but this is not recommended.
+                            </i></li>
 			<li><b>7656:</b> SAM bridge, a higher level socket API for clients
-                            <i>May be disabled in the clients.config file</i></li>
-			<li><b>7657:</b> your router console</li>
+                            <i>Disabled by default for new installs as of release 0.6.5.
+                               May be enabled/disabled on <a href="http://localhost:7657/configclients.jsp">configclients.jsp</a>.
+                               May be changed in the clients.config file.
+                            </i></li>
+			<li><b>2827:</b> BOB bridge, a higher level socket API for clients
+                            <i>Disabled by default.
+                               May be enabled/disabled on <a href="http://localhost:7657/configclients.jsp">configclients.jsp</a>.
+                               May be changed in the bob.config file.
+                            </i></li>
+			<li><b>7657:</b> your router console
+                            <i>May be changed in the clients.config file</i></li>
 			<li><b>7658:</b> your eepsite
                             <i>May be disabled in the clients.config file</i></li>
 			<li><b>32000:</b> local control channel for the service wrapper</li>
@@ -334,7 +386,7 @@ Then tell your IRC client to connect to localhost port 6668.
 
 	<ul><p>
 		<li><b>Default I2PTunnel ports</b>, listening only to local connections by default:
-                    <i>All may be disabled on the i2ptunnel page in the router console</i>
+                    <i>All may be disabled or changed on the i2ptunnel page in the router console</i>
 		<ul>
 			<li><b>4444:</b> HTTP proxy</li>
 			<li><b>6668:</b> IRC proxy</li>
