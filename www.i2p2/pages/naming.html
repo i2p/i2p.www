@@ -72,7 +72,7 @@ in applications external to the router, but bundled with
 the I2P distribution.
 The components are:
 <ol>
-<li>The router which does local lookups in hosts.txt
+<li>The client application which does local lookups in hosts.txt
 <li>The HTTP proxy which asks the router for lookups and points
 the user to remote jump services to assist with failed lookups
 <li>HTTP host-add forms which allow others to add hosts to their local hosts.txt
@@ -84,7 +84,7 @@ for addressbook configuration and viewing of the local host lists.
 </ol>
 
 </p>
-<h2>Router Naming Files and Lookups</h2>
+<h2>Naming Files and Lookups</h2>
 <p>
 All destinations in I2P are 516-byte keys.
 (To be more precise, it is a 256-byte public key plus a 128-byte signing key
@@ -95,7 +95,8 @@ One possible use of certificates is for <a href="todo.html#hashcash">proof of wo
 If an application (i2ptunnel or the HTTP proxy) wishes to access
 a destination by name, the router does a very simple local lookup
 to resolve that name.
-The router does a linear search through three local files, in order, to
+The client application (technically, the client side of I2CP in the I2P API)
+does a linear search through three local files, in order, to
 look up host names and convert them to a 516-byte destination key:
 <ol>
 <li>privatehosts.txt
@@ -104,9 +105,9 @@ look up host names and convert them to a 516-byte destination key:
 </ol>
 The lookup is case-insensitive.
 The first match is used, and conflicts are not detected.
-There is no enforcement of naming rules in router lookups.
+There is no enforcement of naming rules in lookups.
 </p><p>
-Lookups are not cached as the files are local anyway.
+Lookups are cached for a few minutes.
 There is an experimental facility for real-time lookups (a la DNS) over the network within the router,
 although it is not enabled by default
 (see "EepGet" below under "Alternatives").
@@ -389,6 +390,24 @@ See the reliability and trust sections.
 </ul>
 So, in summary, the current system is not horribly broken, inefficient, or un-scalable,
 and proposals to "just use DNS" aren't well thought-through.
+
+<h2>Base 32 Names</h2>
+As of release 0.7, I2P supports Base32 hostnames similar to Tor's .onion addresses.
+Base32 addresses are much shorter and easier to handle than the
+full 516-character Base64 Destinations or addresshelpers.
+<p>
+In Tor, the address is 16 characters (80 bits), or half of the SHA-1 hash.
+I2P uses 52 characters (256 bits) to represent the full SHA-256 hash.
+The form is {52 chars}.b32.i2p.
+Base32 is implemented in the HostsTxt naming service, which queries the
+router over I2CP to lookup the LeaseSet to get the full Destination.
+Base32 lookups will only be successful when the Destination is up and publishing
+a LeaseSet.
+<p>
+Base32 addresses can be used in most places where hostnames or full destinations
+are used, however there are some exceptions where they may fail if the
+name does not immediately resolve. I2PTunnel will fail, for example, if
+the name does not resolve to a destination.
 
 <h2>Alternatives</h2>
 The I2P source contains several pluggable naming systems and supports configuration options
