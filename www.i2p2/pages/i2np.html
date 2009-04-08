@@ -56,11 +56,28 @@ This is a topic for further research, analysis and testing.
 <tr><td>Expiration<td>8
 <tr><td>Payload Length<td>2
 <tr><td>Checksum<td>1
-<tr><td>Payload<td>0 - 64K
+<tr><td>Payload<td>0 - 60.6KB
 </table>
 
 <p>
-Message Types:
+While the maximum payload size is nominally 64KB, the size is further constrained by the
+method of fragmenting I2NP messages into multiple 1KB tunnel messages as described in
+<a href="tunnel-alt.html">tunnel-alt.html</a>.
+The maximum number of fragments is 64, and the message may not be perfectly aligned,
+so the message must nominally fit in 63 fragments, and be padded to a 16 byte boundary.
+Therefore the maximum size is 960 + (62 * 986) - 12 = 62080 bytes, or approximately 60.6KB.
+<p>
+In addition, the transports may have additional restrictions.
+NTCP currently limits to 16KB - 6 = 16378 bytes but this will be increased in a future release.
+The SSU limit is 32KB?
+<p>
+Note that these are not the limits for datagrams that the client sees, as the
+router may bundle a reply leaseset and/or session tags together with the client message
+in a garlic message. The leaseset and tags together may add about 5.5KB.
+Therefore the current datagram limit is about 10KB. This limit will be
+increased in a future release.
+
+<h3>Message Types</h3>
 The following is taken from the code, however not all these
 messages may be used.
 Higher-numbered priority is higher priority.
@@ -108,7 +125,7 @@ as we appproach release 1.0.
 <tr><td>
 DataMessage
 <td align=right>20
-<td align=right>4 - 65540
+<td align=right>4 - 62080
 <td align=right>400
 <tr><td>
 DateMessage
