@@ -6,21 +6,37 @@
 
 <h1>Secure Semireliable UDP (SSU)</h1>
 <p>
+SSU (also called "UDP" in much of the I2P documentation and user interfaces)
+is one of two transports currently implemented in I2P.
+The other is <a href="ntcp.html">NTCP</a>.
+</p><p>
 SSU was enabled in I2P release 0.6 as the top-priority transport.
 NTCP was enabled in I2P release 0.6.1.22 as the top-priority transport,
 while leaving SSU in place as a secondary transport.
 The reader should not rely solely on the picture or document below, but should
-verify the details in the implemented code.
+verify the details in the implementation.
+</p><p>
+While NTCP is now the primary transport, SSU is still relied upon for
+firewall detection and traversal. In I2P releases through 0.7.3, inbound
+TCP was not enabled by default, leaving SSU as the only transport available
+for outbound connections to a majority of routers.
+Beginning with release 0.7.4, I2P will enable inbound NTCP if it detects
+that the router is not firewalled, or the port is forwarded.
+This should lessen the usage of SSU further.
+</p><p>
+Analysis of current SSU performance, including assessment of window size adjustment
+and other parameters, and adjustment of the protocol implementation to improve
+performance, is a topic for future work.
 </p>
 
 <h1>Implementation Diagram</h1>
-This is a draft diagram developed by jrandom. The accuracy of this picture
-with respect to the current code is unknown.
+This is a diagram developed by jrandom.
+It appears to accurately reflect the current implementation, however there may be small differences.
 <p>
 <img src="/_static/images/udp.png">
 
 
-<h1>Draft Specification</h1>
+<h1>Specification</h1>
 
 <p>
 The goal of this protocol is to provide secure, authenticated,
@@ -123,6 +139,21 @@ around briefly, to address packet loss and reordering.</p>
 </pre>
 
 <h2><a name="messages">Messages</a></h2>
+<p>
+There are 8 messages defined:
+</p><p>
+<table border="1">
+<tr><th>Type<th>Message
+<tr><td align="center">0<td>SessionRequest
+<tr><td align="center">1<td>SessionCreated
+<tr><td align="center">2<td>SessionConfirmed
+<tr><td align="center">3<td>RelayRequest
+<tr><td align="center">4<td>RelayResponse
+<tr><td align="center">5<td>RelayIntro
+<tr><td align="center">6<td>Data
+<tr><td align="center">7<td>PeerTest
+</table>
+</p>
 
 <h3><a name="sessionRequest">SessionRequest (type 0)</a></h3>
 <table border="1">
@@ -424,9 +455,9 @@ byte 1
 	  </ul></li>
         <li>If extended data included:<ul>
           <li>1 byte data size</li>
-          <li>that many bytes of extended data (currently uninterpreted)</li</ul></li>
-        <li>1 byte number of fragments</li>
-        <li>that many message fragments:<ul>
+          <li>that many bytes of extended data (currently uninterpreted)</li></ul></li>
+        <li>1 byte number of fragments (can be zero)</li>
+        <li>If nonzero, that many message fragments:<ul>
           <li>4 byte messageId</li>
           <li>3 byte fragment info:<pre>
   bits 0-6: fragment #
@@ -538,6 +569,32 @@ so long as it doesn't exceed the MTU, but this is not necessary.  Eventually,
 a set of fixed packet sizes may be appropriate to further hide the data 
 fragmentation to external adversaries, but the tunnel, garlic, and end to 
 end padding should be sufficient for most needs until then.</p>
+
+<h3><a name="mtu">MTU</a></h3>
+<p>
+The current implementation uses two MTU values: 608 and 1350.
+</p><p>
+596 gives us 588 IP byes, 568 UDP bytes, and with an SSU data message, 
+522 fragment bytes, which is enough to send a tunnel data message in 2 
+packets. A tunnel data message sent over the wire is 1044 bytes, meaning 
+we need 522 fragment bytes to fit it in 2 packets - add 46 for SSU, 20 
+for UDP, and 8 for IP, giving us 596.  Round up to mod 16, giving a total
+of 608.
+</p><p>
+Based on measurements, 1350 fits nearly all reasonably small I2NP messages
+(larger I2NP messages may be up to 1900B-4500B, which isn't going to fit
+into a live network MTU anyway).
+</p>
+
+<h3><ajname="max">Message Size Limits</a></h3>
+<p>
+While a statement above claims that the maximum message size is 32KB, the practical
+limit differs. The protocol limits the number of fragments to 7 bits, or 128.
+The current implementation, however, limits each message to a maximum of 64 fragments,
+which is sufficient for 64 * 534 = 33.3 KB.
+Due to overhead for bundled leasesets and session keys, the practical limit
+at the application level is about 6KB lower, or about 26KB.
+Further work is necessary to raise the UDP transport limit above 32KB.
 
 <h2><a name="keys">Keys</a></h2>
 
