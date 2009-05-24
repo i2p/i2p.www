@@ -61,6 +61,7 @@ There is no restriction on the number of addresses a peer may have.</p>
 </pre>
 
 <p>These introduction keys are delivered through an external channel 
+(the network database, where they are identical to the router Hash for now)
 and must be used when establishing a session key.  For the indirect
 address, the peer must first contact the relayhost and ask them for
 an introduction to the peer known at that relayhost under the given
@@ -77,13 +78,18 @@ capabilities, see <a href="#capabilities">below</a>.</p>
 
 <h2><a name="header">Header</a></h2>
 
-<p>All UDP datagrams begin with a MAC and an IV, followed by a variable
+<p>
+All UDP datagrams begin with a 16 byte MAC (Message Authentication Code)
+and a 16 byte IV (Initialization Vector
+followed by a variable
 size payload encrypted with the appropriate key.  The MAC used is 
-HMAC-MD5, truncated to 16 bytes, while the key is a full AES256 
+HMAC-MD5, truncated to 16 bytes, while the key is a full 32 byte AES256 
 key.  The specific construct of the MAC is the first 16 bytes from:</p>
 <pre>
   HMAC-MD5(payload || IV || (payloadLength ^ protocolVersion), macKey)
 </pre>
+
+<p>The protocol version is currently 0.</p>
 
 <p>The payload itself is AES256/CBC encrypted with the IV and the 
 sessionKey, with replay prevention addressed within its body, 
@@ -121,6 +127,8 @@ rekey flag set and that same keying material.  Once both sides have
 sent and received those values, the new keys should be used and the 
 previous keys discarded.  It may be useful to keep the old keys 
 around briefly, to address packet loss and reordering.</p>
+
+<p>NOTE: Rekeying is currently unimplemented.</p>
 
 <pre>
  Header: 37+ bytes
@@ -610,9 +618,9 @@ signing key used by Bob should already be known to Alice when she
 contacts him, though Alice's DSA key may not already be known by 
 Bob.</p>
 
-<p>Upon receiving a message, the receiver checks the from IP address 
-with any established sessions - if there is one or more matches,
-those session's MAC keys are tested sequentially in the HMAC.  If none
+<p>Upon receiving a message, the receiver checks the "from" IP address and port
+with all established sessions - if is a matches,
+that session's MAC keys are tested in the HMAC.  If none
 of those verify or if there are no matching IP addresses, the 
 receiver tries their introKey in the MAC.  If that does not verify,
 the packet is dropped.  If it does verify, it is interpreted 
