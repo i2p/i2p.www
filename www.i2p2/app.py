@@ -33,7 +33,7 @@ def app(environ, start_response):
         theme = req.cookies['style']
     if 'theme' in req.args.keys():
         theme = req.args['theme']
-    if not theme in ['light', 'dark']:
+    if not os.path.isfile('static/styles/%s.css' % theme):
         theme = 'light'
     if path == '':
         path = 'index'
