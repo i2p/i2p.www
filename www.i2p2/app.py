@@ -27,6 +27,14 @@ def app(environ, start_response):
     """The WSGI application that connects all together."""
     req = Request(environ)
     path = req.path[1:].lower()
+    # do theme handling
+    theme = 'light'
+    if 'style' in req.cookies:
+        theme = req.cookies['style']
+    if 'theme' in req.args.keys():
+        theme = req.args['theme']
+    if not theme in ['light', 'dark']:
+        theme = 'light'
     if path == '':
         path = 'index'
     mime_type='text/html'
@@ -44,7 +52,12 @@ def app(environ, start_response):
             tmpl = env.get_template(path + '.html')
     except TemplateNotFound:
         tmpl = env.get_template('not_found.html')
-    resp = Response(tmpl.render(static=False), mimetype=mime_type)
+    resp = Response(tmpl.render(static=False, theme=theme), mimetype=mime_type)
+    # more theme handling
+    if theme == 'light' and 'style' in req.cookies:
+        resp.delete_cookie('style')
+    elif theme != 'light':
+        resp.set_cookie('style', theme)
     resp.add_etag()
     resp.make_conditional(req)
     return resp(environ, start_response)
