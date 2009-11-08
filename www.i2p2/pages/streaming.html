@@ -168,7 +168,7 @@ See <a href="ntcp.html">the NTCP page</a> for a discussion.
 Here is the format of a single packet transferred as part of a streaming connection.  
 <table>
 <tr><th>Field<th>Length<th>Contents
-<tr><td>endStreamId <td>4 byte value<td>Random number selected by the connection recipient
+<tr><td>sendStreamId <td>4 byte value<td>Random number selected by the connection recipient
 and constant for the life of the connection.
 0 in the SYN message sent by the originator.
 <tr><td>receiveStreamId <td>4 byte value<td>Random number selected by the connection originator
@@ -192,6 +192,7 @@ EXCEPT for those listed in NACKs below.
 
 <tr><td>that many NACKs <td>n * 4 byte unsigned integers<td>
 Sequence numbers less than ackThrough that are not yet received.
+Two NACKs of a packet is a request for a 'fast retransmit' of that packet.
 
 <tr><td>resendDelay <td>1 byte unsigned integer<td>
 How long is the creator of this packet going to wait before
@@ -226,27 +227,24 @@ will contain both FLAG_SYNCHRONIZE and FLAG_CLOSE.
 <tr><td>2<td>FLAG_RESET<td>no option data<td>
 Abnormal close.
 <tr><td>3<td>FLAG_SIGNATURE_INCLUDED<td>40 bytes<td>net.i2p.data.Signature
-Typically sent only with FLAG_SYNCHRONIZE.
+Typically sent only with FLAG_SYNCHRONIZE and FLAG_CLOSE, where it is required.
 If the signature is included, it uses the Destination's DSA key 
 to sign the entire header and payload with the space in the options 
 for the signature being set to all zeroes.
-<td>
 <tr><td>4<td>FLAG_SIGNATURE_REQUESTED<td>no option data<td>
 Unused. Requests every packet in the other direction to have FLAG_SIGNATURE_INCLUDED
-<td>
 <tr><td>5<td>FLAG_FROM_INCLUDED<td>typ. 387 bytes<td>net.i2p.data.Destination
 Typically sent only with FLAG_SYNCHRONIZE.
 <tr><td>6<td>FLAG_DELAY_REQUESTED<td>2 byte integer<td>
 Optional delay.
 How many milliseconds the sender of this packet wants the recipient
-to wait before sending any more data
-<td>
+to wait before sending any more data.
+A value greater than 60000 indicates choking.
 <tr><td>7<td>FLAG_MAX_PACKET_SIZE_INCLUDED<td>2 byte integer<td>
-Apparently always included, could be optimized to only send with a SYN
-<td>
+Sent with FLAG_SYNCHRONIZE or with a retransmission,
+could be optimized to only send with a SYN.
 <tr><td>8<td>FLAG_PROFILE_INTERACTIVE<td>no option data<td>
 Apparently unused or ignored
-<td>
 <tr><td>9<td>FLAG_ECHO<td>no option data<td>
 Unused except by ping programs
 <tr><td>10<td>FLAG_NO_ACK<td>no option data<td>
