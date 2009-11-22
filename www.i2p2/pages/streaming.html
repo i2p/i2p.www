@@ -69,8 +69,8 @@ For a good example of usage, see the i2psnark code.
 </p>
 
 
-<h2>Status</h2>
-<p>The streaming lib has many advantages over the ministreaming library was written by mihi as a part of his 
+<h2>Advantages</h2>
+<p>The streaming lib has many advantages over the ministreaming library written by mihi as a part of his 
 <a href="i2ptunnel">I2PTunnel</a> application.
 The streaming library is
 a more robust streaming library
@@ -85,6 +85,8 @@ it contains a full windowing implementation.
 Significant tuning of the streaming lib parameters,
 greatly increasing outbound performance, was implemented in 0.6.1.28.
 Subsequent releases include additional tuning and bug fixes.
+
+<h2>Default Parameters</h2>
 The current default values are listed below.
 Lower case values are streaming lib parameters that can changed on a
 per-connection basis.
@@ -164,43 +166,94 @@ See <a href="ntcp.html">the NTCP page</a> for a discussion.
 <h2>Packet Format</h2>
 <p>
 Here is the format of a single packet transferred as part of a streaming connection.  
-<ul>
-<li>sendStreamId [4 byte value] (random number selected by the connection recipient)</li>
-<li>receiveStreamId [4 byte value] (random number selected by the connection originator)</li>
-<li>sequenceNum [4 byte unsigned integer]</li>
-<li>ackThrough [4 byte unsigned integer]</li>
-<li>number of NACKs [1 byte unsigned integer]</li>
-<li>that many NACKs</li>
-<li>resendDelay [1 byte integer]</li>
-<li>flags [2 byte value]</li>
-<li>option data size [2 byte integer]</li>
-<li>option data specified by those flags [0 or more bytes]</li>
-<li>payload [remaining packet size]</li>
-</ul>
+<table>
+<tr><th>Field<th>Length<th>Contents
+<tr><td>sendStreamId <td>4 byte value<td>Random number selected by the connection recipient
+and constant for the life of the connection.
+0 in the SYN message sent by the originator.
+<tr><td>receiveStreamId <td>4 byte value<td>Random number selected by the connection originator
+and constant for the life of the connection.
+
+<tr><td>sequenceNum <td>4 byte unsigned integer<td>
+The sequence for this message, starting at 0 in the SYN message,
+and incremented by 1 in each message except for plain ACKs and retransmissions.
+If the sequenceNum is 0 and the SYN is not set, this is a plain ACK 
+packet that should not be ACKed.
+
+<tr><td>ackThrough <td>4 byte unsigned integer<td>
+The highest packet sequence number that was received
+on the receiveStreamId.  This field is ignored on the initial
+connection packet (where receiveStreamId is the unknown id) or
+if FLAG_NO_ACK is set.
+All packets up to and including this sequence number are acked,
+EXCEPT for those listed in NACKs below.
+
+<tr><td>number of NACKs <td>1 byte unsigned integer<td>
+
+<tr><td>that many NACKs <td>n * 4 byte unsigned integers<td>
+Sequence numbers less than ackThrough that are not yet received.
+Two NACKs of a packet is a request for a 'fast retransmit' of that packet.
+
+<tr><td>resendDelay <td>1 byte unsigned integer<td>
+How long is the creator of this packet going to wait before
+resending this packet (if it hasn't yet been ACKed).  The 
+value is seconds since the packet was created.
+Ignored on receive. Broken on send before release 0.7.8 (the sender did not divide by 1000,
+and the default is 1000 ms, so the included value was 1000 &amp 0xff = 0xe8 = 232 seconds.
+
+<tr><td>flags <td>2 byte value<td>
+See below.
+
+<tr><td>option data size <td>2 byte unsigned integer<td>
+See below.
+
+<tr><td>option data specified by those flags <td>0 or more bytes<td>
+See below.
+
+<tr><td>payload <td>remaining packet size<td>
+</table>
 
 <p>The flags field above specifies some metadata about the packet, and in
 turn may require certain additional data to be included.  The flags are
 as follows (with any data structures specified added to the options area
-in the given order):</p><ol>
-<li>FLAG_SYNCHRONIZE: no option data</li>
-<li>FLAG_CLOSE: no option data</li>
-<li>FLAG_RESET: no option data</li>
-<li>FLAG_SIGNATURE_INCLUDED: net.i2p.data.Signature (40 bytes)</li>
-<li>FLAG_SIGNATURE_REQUESTED: no option data</li>
-<li>FLAG_FROM_INCLUDED net.i2p.data.Destination (typ. 387 bytes)</li>
-<li>FLAG_DELAY_REQUESTED: 2 byte integer</li>
-<li>FLAG_MAX_PACKET_SIZE_INCLUDED: 2 byte integer</li>
-<li>FLAG_PROFILE_INTERACTIVE: no option data</li>
-<li>FLAG_ECHO: no option data</li>
-<li>FLAG_NO_ACK: no option data</li>
-</ol>
-
-<p>If the signature is included, it uses the Destination's DSA key 
+in the given order):</p>
+<table>
+<tr><th>Bit Number<th>Flag<th>Option Data<th>Function
+<tr><td>0<td>FLAG_SYNCHRONIZE<td>no option data<td>
+Similar to TCP SYN.
+<tr><td>1<td>FLAG_CLOSE<td>no option data<td>
+Similar to TCP FIN. If the response to a SYN fits in a single message, the response
+will contain both FLAG_SYNCHRONIZE and FLAG_CLOSE.
+<tr><td>2<td>FLAG_RESET<td>no option data<td>
+Abnormal close.
+<tr><td>3<td>FLAG_SIGNATURE_INCLUDED<td>40 bytes<td>net.i2p.data.Signature
+Typically sent only with FLAG_SYNCHRONIZE and FLAG_CLOSE, where it is required.
+If the signature is included, it uses the Destination's DSA key 
 to sign the entire header and payload with the space in the options 
-for the signature being set to all zeroes.</p>
+for the signature being set to all zeroes.
+<tr><td>4<td>FLAG_SIGNATURE_REQUESTED<td>no option data<td>
+Unused. Requests every packet in the other direction to have FLAG_SIGNATURE_INCLUDED
+<tr><td>5<td>FLAG_FROM_INCLUDED<td>typ. 387 bytes<td>net.i2p.data.Destination
+Typically sent only with FLAG_SYNCHRONIZE.
+<tr><td>6<td>FLAG_DELAY_REQUESTED<td>2 byte integer<td>
+Optional delay.
+How many milliseconds the sender of this packet wants the recipient
+to wait before sending any more data.
+A value greater than 60000 indicates choking.
+<tr><td>7<td>FLAG_MAX_PACKET_SIZE_INCLUDED<td>2 byte integer<td>
+Sent with FLAG_SYNCHRONIZE or with a retransmission,
+could be optimized to only send with a SYN.
+<tr><td>8<td>FLAG_PROFILE_INTERACTIVE<td>no option data<td>
+Apparently unused or ignored
+<tr><td>9<td>FLAG_ECHO<td>no option data<td>
+Unused except by ping programs
+<tr><td>10<td>FLAG_NO_ACK<td>no option data<td>
+Apparently unused, an ack is always included.
+This flag simply tells the recipient to ignore the ackThrough field in the header.
+<tr><td>11-15<td>unused<td><td>
+</table>
 
-<p>If the sequenceNum is 0 and the SYN is not set, this is a plain ACK 
-packet that should not be ACKed</p>
+
 
 <h2>Control Block Sharing</h2>
 <p>
