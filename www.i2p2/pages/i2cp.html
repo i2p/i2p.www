@@ -150,6 +150,15 @@ SetDateMessage
 <td align=right>33
 </table>
 
+<h2>I2CP Initialization</h2>
+<p>
+When a client connects to the router, it first sends a single protocol version byte (0x2A).
+Then it sends a GetDateMessage and waits for the SetDateMessage response.
+Next, it sends a CreateSessionMessage containing the session configuration.
+It next awaits a RequestLeaseSetMessage from the router, indicating that inbound tunnels
+have been built, and responds with a CreateLeaseSetMessage containing the signed LeaseSet.
+The client may now initiate or receive connections from other I2P destinations.
+
 <h2>I2CP Options</h2>
 <p>
 The following options are traditionally passed to the router via
@@ -227,6 +236,16 @@ to work reliably in the presence of multiple channels.
 <p>
 The gzip function cannot be completely turned off, however setting i2cp.gzip=false
 turns the gzip effort setting to 0, which may save a little CPU.
+<p>
+<table border=1>
+<tr><th>Bytes<th>Content
+<tr><td>0-2<td>Gzip header 0x1F 0x8B 0x08
+<tr><td>3<td>Gzip flags
+<tr><td>4-5<td>I2P Source port (Gzip mtime)
+<tr><td>6-7<td>I2P Destination port (Gzip mtime)
+<tr><td>8<td>Gzip xflags
+<tr><td>9<td>I2P Protocol (6 = Streaming, 17 = Datagram) (Gzip OS)
+</table>
 
 
 {% endblock %}
