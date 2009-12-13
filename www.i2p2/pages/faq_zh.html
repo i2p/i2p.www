@@ -14,6 +14,26 @@
 </p>
 <p>请提供 router log及wrapper log中的相关信息。</p>
 
+
+<h3 id="difftor">Tor 与 I2P 有何不同 ?<span class="permalink">(<a href="#difftor">链接</a>)</span></h3>
+<p>Tor与I2P都是混淆式网络(MixNetwork)但实现上存在差异。</p>
+<p>同一个连接中的指令与数据在Tor中沿者通过TCP协议建立的信道(Ciruit)流动至目的节点，而在I2P中，连接被消息机制(Message)打散为数据包经由不同的TCP或UDP隧道(Tunnel)交叉传输后在接收方重组为数据流。简而言之I2P基于包切换而Tor基于信道切换。另外Tor网络由中央目录服务器管理，而I2P使用基于Kad算法的分布式数据库。</p>
+<p>这里以简单情况为例进行对比，其传输过程的异同如下图所示：
+<center><img src="i2pvstor_zh.png"></center>
+<ol>
+<li>I2P通过本地网络数据库NetDb得知其他节点的存在，NetDb通过Kad算法在连接其他节点时获悉更多节点的存在。
+<br>Tor通过连接中央目录服务器得知所有中继、进入/退出节点的存在。
+</li><li>I2P接入网络后，I2P建立2个隧道：出站隧道A-C及入站隧道A-G，分别负责数据的传出和传入，实际的隧道数更多,可能存在A-C1,A-C2,A-G1,A-G2...。
+<br>Tor接入网络后，Tor建立1一个信道：a-c-d负责数据的双向传输。
+</li><li>现在I2P用户A发出HTTP请求希望访问用户E的匿名资源。
+<br>现在Tor用户a发出http请求希望访问Internt服务器e的资源。
+</li><li>I2P将请求拆分并加密为数据包由出站隧道A-C(A-C1 A-C2...)发送至对方的入站隧道网关D(D1,D2...)通过入站隧道D-E(D1-E,D2-E...)到达E的I2P被接收并重组为HTTP请求。
+<br>Tor将请求加密送入信道a-c-d通过d转接至Internet服务器e
+</li><li>反之亦然，用户E的HTTP响应经过E=>E-F(E-F1...)=>G(G1...)=>G-A(G1-A...)返回给I2P用户A。
+<br>反之亦然，Internet服务器e的http响应经过e=>d-c-a 返回给Tor用户a
+</li></ol></p>
+<p>Tor与I2P在概念及技术细节的区别参见<a href="how_networkcomparisons">Network Comparison </a></p>
+
 <h3 id="subscriptions">我的地址簿中缺少很多匿名小站的地址。有没有什么好的地址簿订阅链接？<span class="permalink">(<a href="#subscriptions">链接</a>)</span></h3>
 <p>程序默认的订阅链接为 http://www.i2p2.i2p/hosts.txt ，这个地址簿很少更新。如果您没有订阅其他的地址簿，可能总要为必须使用链接“Jump”(跳转)而烦恼。</p><p>这里有一些公共地址簿的订阅链接。您也许愿意将其中的一两个添加到您的 <a href="http://localhost:7657/susidns/subscriptions.jsp">susiDNS 订阅列表</a>中。没有必要全部订阅，因为这些地址簿之间会周期性同步。使用 cgi-bin 程序的链接能自动缩减重复记录，它们的效率应该更高。注意：订阅 hosts.txt 服务存在“信任”风险。因为恶意地址簿的订阅会返回错误的地址。所以订阅前请想清楚您是否信任这些地址簿。出现在以下列表中并不代表认可。<div class="links">
 <ul>
