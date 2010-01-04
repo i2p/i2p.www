@@ -2,7 +2,8 @@
 {% block title %}Tunnel Implementation{% endblock %}
 {% block content %}
 
-<code>$Id: tunnel-alt.html,v 1.9 2005/07/27 14:04:07 jrandom Exp $</code>
+<b>Note: This documents the current tunnel build implementation as of release 0.6.1.10.</b>
+<br>
 <pre>
 1) <a href="#tunnel.overview">Tunnel overview</a>
 2) <a href="#tunnel.operation">Tunnel operation</a>
@@ -28,6 +29,7 @@
 3.4.2) <a href="#tunnel.building.nonexploratory">Non-exploratory tunnels for management</a>
 4) <a href="#tunnel.throttling">Tunnel throttling</a>
 5) <a href="#tunnel.mixing">Mixing/batching</a>
+See <a href="tunnel-alt-creation.html">tunnel creation</a> for additional details.
 </pre>
 
 <h2>1) <a name="tunnel.overview">Tunnel overview</a></h2>
@@ -106,6 +108,8 @@ fragments it across the necessary number of 1KB tunnel messages, and decides how
 each I2NP message should be handled by the tunnel endpoint, encoding that
 data into the raw tunnel payload:</p>
 <ul>
+<li>The 4 byte Tunnel ID</li>
+<li>The 16 byte IV</li>
 <li>the first 4 bytes of the SHA256 of (the remaining preprocessed data concatenated 
     with the IV), using the IV as will be seen on the tunnel endpoint (for
     outbound tunnels), or the IV as was seen on the tunnel gateway (for inbound
@@ -124,7 +128,7 @@ how the remainder of the header is interpreted - if it is not set, the message
 is either not fragmented or this is the first fragment in the message.  If it is
 set, this is a follow on fragment.</p>
 
-<p>With the first (leftmost or MSB) bit being 0, the instructions are:</p>
+<p>With the first (leftmost or MSB) bit being 0, this is the first or only fragment, and the instructions are:</p>
 <ul>
 <li>1 byte control byte:<pre>
       bit 0: is follow on fragment?  (1 = true, 0 = false, must be 0)
@@ -146,7 +150,7 @@ set, this is a follow on fragment.</p>
 <li>2 byte size of the I2NP message or this fragment</li>
 </ul>
 
-<p>If the first bit being 1, the instructions are:</p>
+<p>If the first bit being 1, this is a follow-on fragment, and the instructions are:</p>
 <ul>
 <li>1 byte control byte:<pre>
       bit 0: is follow on fragment?  (1 = true, 0 = false, must be 1)
@@ -157,7 +161,9 @@ set, this is a follow on fragment.</p>
 </ul>
 
 <p>The I2NP message is encoded in its standard form, and the 
-preprocessed payload must be padded to a multiple of 16 bytes.</p>
+preprocessed payload must be padded to a multiple of 16 bytes.
+The total size, including the tunnel ID and IV, is 1028 bytes.
+</p>
 
 <p>
 While the maximum payload size is nominally 64KB, the size is further constrained by the
@@ -450,7 +456,7 @@ leakage of information about what peers are in the router's partition.</p>
 
 <h4>3.4.3) <a name="tunnel.building.exploratory">Exploratory request delivery</a></h4>
 
-<p>A third alternative, used until I2P 0.6.2, garlic encrypts individual tunnel
+<p>A third alternative, used until I2P 0.6.1.10, garlic encrypts individual tunnel
 request messages and delivers them to the hops individually, transmitting them
 through exploratory tunnels with their reply coming back in a separate
 exploratory tunnel.  This strategy has been dropped in favor of the one outlined
