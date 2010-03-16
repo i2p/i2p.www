@@ -2,7 +2,8 @@
 {% block title %}Tunnel Implementation{% endblock %}
 {% block content %}
 
-<code>$Id: tunnel-alt.html,v 1.9 2005/07/27 14:04:07 jrandom Exp $</code>
+<b>Note: This documents the current tunnel build implementation as of release 0.6.1.10.</b>
+<br>
 <pre>
 1) <a href="#tunnel.overview">Tunnel overview</a>
 2) <a href="#tunnel.operation">Tunnel operation</a>
@@ -28,6 +29,7 @@
 3.4.2) <a href="#tunnel.building.nonexploratory">Non-exploratory tunnels for management</a>
 4) <a href="#tunnel.throttling">Tunnel throttling</a>
 5) <a href="#tunnel.mixing">Mixing/batching</a>
+See <a href="tunnel-alt-creation.html">tunnel creation</a> for additional details.
 </pre>
 
 <h2>1) <a name="tunnel.overview">Tunnel overview</a></h2>
@@ -106,14 +108,19 @@ fragments it across the necessary number of 1KB tunnel messages, and decides how
 each I2NP message should be handled by the tunnel endpoint, encoding that
 data into the raw tunnel payload:</p>
 <ul>
-<li>the first 4 bytes of the SHA256 of the remaining preprocessed data concatenated 
-    with the IV, using the IV as will be seen on the tunnel endpoint (for
-    outbound tunnels) or the IV as was seen on the tunnel gateway (for inbound
+<li>The 4 byte Tunnel ID</li>
+<li>The 16 byte IV</li>
+<li>the first 4 bytes of the SHA256 of (the remaining preprocessed data concatenated 
+    with the IV), using the IV as will be seen on the tunnel endpoint (for
+    outbound tunnels), or the IV as was seen on the tunnel gateway (for inbound
     tunnels) (see below for IV processing).</li>
 <li>0 or more bytes containing random nonzero integers</li>
 <li>1 byte containing 0x00</li>
 <li>a series of zero or more { instructions, message } pairs</li>
 </ul>
+
+<p>Note that the padding, if any, must be before the instruction/message pairs.
+there is no provision for padding at the end.</p>
 
 <p>The instructions are encoded with a single control byte, followed by any
 necessary additional information.  The first bit in that control byte determines
@@ -121,29 +128,29 @@ how the remainder of the header is interpreted - if it is not set, the message
 is either not fragmented or this is the first fragment in the message.  If it is
 set, this is a follow on fragment.</p>
 
-<p>With the first bit being 0, the instructions are:</p>
+<p>With the first (leftmost or MSB) bit being 0, this is the first or only fragment, and the instructions are:</p>
 <ul>
 <li>1 byte control byte:<pre>
       bit 0: is follow on fragment?  (1 = true, 0 = false, must be 0)
    bits 1-2: delivery type
              (0x0 = LOCAL, 0x01 = TUNNEL, 0x02 = ROUTER)
-      bit 3: delay included?  (1 = true, 0 = false)
+      bit 3: delay included?  (1 = true, 0 = false) (unimplemented)
       bit 4: fragmented?  (1 = true, 0 = false)
-      bit 5: extended options?  (1 = true, 0 = false)
+      bit 5: extended options?  (1 = true, 0 = false) (unimplemented)
    bits 6-7: reserved</pre></li>
 <li>if the delivery type was TUNNEL, a 4 byte tunnel ID</li>
 <li>if the delivery type was TUNNEL or ROUTER, a 32 byte router hash</li>
-<li>if the delay included flag is true, a 1 byte value:<pre>
+<li>if the delay included flag is true, a 1 byte value (unimplemented):<pre>
       bit 0: type (0 = strict, 1 = randomized)
    bits 1-7: delay exponent (2^value minutes)</pre></li>
 <li>if the fragmented flag is true, a 4 byte message ID</li>
-<li>if the extended options flag is true:<pre>
+<li>if the extended options flag is true (unimplemented):<pre>
    = a 1 byte option size (in bytes)
    = that many bytes</pre></li>
 <li>2 byte size of the I2NP message or this fragment</li>
 </ul>
 
-<p>If the first bit being 1, the instructions are:</p>
+<p>If the first bit being 1, this is a follow-on fragment, and the instructions are:</p>
 <ul>
 <li>1 byte control byte:<pre>
       bit 0: is follow on fragment?  (1 = true, 0 = false, must be 1)
@@ -154,7 +161,9 @@ set, this is a follow on fragment.</p>
 </ul>
 
 <p>The I2NP message is encoded in its standard form, and the 
-preprocessed payload must be padded to a multiple of 16 bytes.</p>
+preprocessed payload must be padded to a multiple of 16 bytes.
+The total size, including the tunnel ID and IV, is 1028 bytes.
+</p>
 
 <p>
 While the maximum payload size is nominally 64KB, the size is further constrained by the
@@ -447,7 +456,7 @@ leakage of information about what peers are in the router's partition.</p>
 
 <h4>3.4.3) <a name="tunnel.building.exploratory">Exploratory request delivery</a></h4>
 
-<p>A third alternative, used until I2P 0.6.2, garlic encrypts individual tunnel
+<p>A third alternative, used until I2P 0.6.1.10, garlic encrypts individual tunnel
 request messages and delivers them to the hops individually, transmitting them
 through exploratory tunnels with their reply coming back in a separate
 exploratory tunnel.  This strategy has been dropped in favor of the one outlined
