@@ -21,7 +21,7 @@ class Response(BaseResponse, ETagResponseMixin):
 
 
 # setup jinja
-env = Environment(loader=FileSystemLoader('pages', use_memcache=False))
+env = Environment(loader=FileSystemLoader('pages', use_memcache=False, auto_reload=True))
 
 def app(environ, start_response):
     """The WSGI application that connects all together."""
