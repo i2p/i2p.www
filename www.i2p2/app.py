@@ -1,10 +1,9 @@
 from werkzeug import BaseRequest, BaseResponse, ETagResponseMixin, escape, run_simple, SharedDataMiddleware
 from werkzeug.exceptions import HTTPException
 from werkzeug.routing import RequestRedirect
-from jinja import Environment, FileSystemLoader
+from jinja import Environment, FileSystemLoader, MemcachedFileSystemLoader
 from jinja.exceptions import TemplateNotFound
 import os
-import sha
 from time import time
 from random import randint
 
@@ -21,7 +20,10 @@ class Response(BaseResponse, ETagResponseMixin):
 
 
 # setup jinja
-env = Environment(loader=FileSystemLoader('pages', use_memcache=False, auto_reload=True))
+try:
+    env = Environment(loader=MemcachedFileSystemLoader('pages', memcache_host=['127.0.0.1:11211'], memcache_time=600))
+except RuntimeError:
+    env = Environment(loader=FileSystemLoader('pages', use_memcache=False, auto_reload=True))
 
 def app(environ, start_response):
     """The WSGI application that connects all together."""
