@@ -9,7 +9,7 @@ NTCP was introduced in I2P 0.6.1.22.
 It is a Java NIO-based transport, enabled by default for outbound
 connections only.  Those who configure their NAT/firewall to allow
 inbound connections and specify the external host and port
-(dyndns/etc is ok) on /config.jsp can receive inbound connections.
+(dyndns/etc is okay) on /config.jsp can receive inbound connections.
 NTCP is NIO based, so it doesn't suffer from the 1 thread per connection issues of the old TCP transport.
 </p><p>
 
@@ -143,8 +143,8 @@ has lower "bids" than SSU so it is preferred, except for the case where there
 is an established SSU connection but no established NTCP connection for a peer.
 </p><p>
 
-SSU is similar to NTCP in that it implements acknowledgements, timeouts, and 
-retransmisssions. However SSU is I2P code with tight constraints on the 
+SSU is similar to NTCP in that it implements acknowledgments, timeouts, and 
+retransmissions. However SSU is I2P code with tight constraints on the 
 timeouts and available statistics on round trip times, retransmissions, etc. 
 NTCP is based on Java NIO TCP, which is a black box and presumably implements 
 RFC standards, including very long maximum timeouts.
@@ -173,7 +173,7 @@ The .28 release increased the maximum streaming lib timeout from 10 sec to 45
 sec which greatly improved things. The SSU max timeout is 3 sec. The NTCP max 
 timeout is presumably at least 60 sec, which is the RFC recommendation. There 
 is no way to change NTCP parameters or monitor performance. Collapse of the 
-NTCP layer isPerhaps an external tool like tcpdump would help.
+NTCP layer is [editor: text lost]. Perhaps an external tool like tcpdump would help.
 </p><p>
 
 However, running .28, the i2psnark reported upstream does not generally stay at 
@@ -229,7 +229,7 @@ Bounding SSU even further (reducing maximum retransmissions from the current
 
 <li>
 3)
-We need further study on the benefits vs. harm of a semireliable protocol 
+We need further study on the benefits vs. harm of a semi-reliable protocol 
 underneath the streaming lib. Are retransmissions over a single hop beneficial 
 and a big win or are they worse than useless?
 We could do a new SUU (secure unreliable UDP) but probably not worth it. We 
@@ -304,21 +304,21 @@ reduced to about 3 : 1, indicating better efficiency.
 This is very interesting data, though more as a matter of router congestion 
 than bandwidth efficiency - you'd have to compare 3.5*$n*$NTCPRetransmissionPct 
 ./. 3.0*$n*$SSURetransmissionPct. This data point suggests there's something in 
-the router that leads to excess local queueing of messages already being 
+the router that leads to excess local queuing of messages already being 
 transferred.
 </p><p>
 
 <i>
 lifetime window size up from 6.3 to 7.5, RTT down from 11.5s to 10s, sends per 
-ack down from 1.11 to 1.07.
+ACK down from 1.11 to 1.07.
 </i>
 
 </p><p>
 
-Remember that the sends-per-ack is only a sample not a full count (as we don't 
-try to ack every send). Its not a random sample either, but instead samples 
-more heavily periods of inactivty or the initiation of a burst of activity - 
-sustained load won't require many acks.
+Remember that the sends-per-ACK is only a sample not a full count (as we don't 
+try to ACK every send). Its not a random sample either, but instead samples 
+more heavily periods of inactivity or the initiation of a burst of activity - 
+sustained load won't require many ACKs.
 </p><p>
 
 Window sizes in that range are still woefully low to get the real benefit of 
@@ -369,7 +369,7 @@ so that the forwarding routers also honor the SSU preference.
 </p><p>
 
 
-In practice, there are three types of traffic - tunne building/testing, netDb 
+In practice, there are three types of traffic - tunnel building/testing, netDb 
 query/response, and streaming lib traffic. The network has been designed to 
 make differentiating those three very hard.
 
@@ -399,11 +399,11 @@ starvation.
 
 <i>
 3)
-We need further study on the benefits vs. harm of a semireliable protocol 
+We need further study on the benefits vs. harm of a semi-reliable protocol 
 underneath the streaming lib. Are retransmissions over a single hop beneficial 
 and a big win or are they worse than useless?
 We could do a new SUU (secure unreliable UDP) but probably not worth it. We 
-could perhaps add a no-ack-required message type in SSU if we don't want any 
+could perhaps add a no-ACK-required message type in SSU if we don't want any 
 retransmissions at all of streaming-lib traffic. Are tightly bounded 
 retransmissions desirable?
 </i>
@@ -426,7 +426,7 @@ priorities to do any good. But more testing needed.
 There's UDPTransport.PRIORITY_LIMITS and UDPTransport.PRIORITY_WEIGHT (honored 
 by TimedWeightedPriorityMessageQueue), but currently the weights are almost all 
 equal, so there's no effect. That could be adjusted, of course (but as you 
-mention, if there's no queueing, it doesn't matter).
+mention, if there's no queuing, it doesn't matter).
 </p><p>
 
 <i>
@@ -443,7 +443,7 @@ stream timeout. TCP in practice has retransmission timeouts orders of magnitude
 less, though yes, can get to 60s on links running through exposed wires or 
 satellite transmissions ;) If we increase the streaming lib retransmission 
 timeout to e.g. 75 seconds, we could go get a beer before a web page loads 
-(especially assuming less than a 98% reliable transport). Thats one reason we 
+(especially assuming less than a 98% reliable transport). That's one reason we 
 prefer NTCP.
 </p>
 
@@ -488,20 +488,20 @@ probably lead to much higher streaming lib resend rates, but maybe not.
 
 What I don't understand, if you could elaborate, are the benefits of SSU 
 retransmissions for non-streaming-lib traffic. Do we need tunnel messages (for 
-example) to use a semireliable transport or can they use an unreliable or 
+example) to use a semi-reliable transport or can they use an unreliable or 
 kinda-sorta-reliable transport (1 or 2 retransmissions max, for example)? In 
-other words, why semireliability?
+other words, why semi-reliability?
 </p><p>
 
 <i>
-(but as you mention, if there's no queueing, it doesn't matter).
+(but as you mention, if there's no queuing, it doesn't matter).
 </i>
 </p><p>
 
 I implemented priority sending for UDP but it kicked in about 100,000 times 
 less often than the code on the NTCP side. Maybe that's a clue for further 
 investigation or a hint - I don't understand why it would back up that much 
-more often on NTCP, but maybe that's a hint on why NTCP performse worse.
+more often on NTCP, but maybe that's a hint on why NTCP performs worse.
 
 </p>
 
@@ -534,7 +534,7 @@ across multiple sessions with the same peer (and for how long), etc).
 Posted to new Syndie, 2007-03-26
 <p>
 
-If I've understood things right, the primary reason in favour of TCP (in 
+If I've understood things right, the primary reason in favor of TCP (in 
 general, both the old and new variety) was that you needn't worry about coding 
 a good TCP stack. Which ain't impossibly hard to get right... just that 
 existing TCP stacks have a 20 year lead.
@@ -661,7 +661,7 @@ The advanced transport bid control
 i2np.udp.preferred was implemented in 0.6.1.29.
 <li>
 Pushback for NTCP was implemented in 0.6.1.30, disabled in 0.6.1.31 due to anonymity concerns,
-and reenabled with improvements to address those concerns in 0.6.1.32.
+and re-enabled with improvements to address those concerns in 0.6.1.32.
 <li>
 None of zzz's proposals 1-5 have been implemented.
 </ul>

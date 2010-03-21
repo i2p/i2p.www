@@ -5,10 +5,10 @@
 and no one seems to like the answer - "it depends".  After trying out I2P, the
 next thing they ask is "will it get faster?", and the answer to that is a most
 emphatic <b>yes</b>.</p>
-<p>There are a few major techniques that can be done to improve the percieved
+<p>There are a few major techniques that can be done to improve the perceived
 performance of I2P - some of the following are CPU related, others bandwidth
 related, and others still are protocol related.  However, all of those
-dimensions affect the latency, throughput, and percieved performance of the
+dimensions affect the latency, throughput, and perceived performance of the
 network, as they reduce contention for scarce resources.  This list is of course
 not comprehensive, but it does cover the major ones that are seen.</p>
 
@@ -62,7 +62,7 @@ be improving how routers choose the peers that they build their tunnels through
 - making sure they don't use peers with slow links or ones with fast links that
 are overloaded, etc.  In addition, we've got to make sure we don't expose
 ourselves to a
-<a href="http://www.cs.rice.edu/Conferences/IPTPS02/101.pdf">sybil</a> attack
+<a href="http://www.cs.rice.edu/Conferences/IPTPS02/101.pdf">Sybil</a> attack
 from a powerful adversary with lots of fast machines. </p>
 
 <h2>Network database tuning</h2>
@@ -89,7 +89,7 @@ a trivial AES operation.</p>
 
 <h2>Longer lasting tunnels</h2>
 <p>The current default tunnel duration of 10 minutes is fairly arbitrary, though
-it "feels ok".  Once we've got tunnel healing code and more effective failure
+it "feels okay".  Once we've got tunnel healing code and more effective failure
 detection, we'll be able to more safely vary those durations, reducing the
 network and CPU load (due to expensive tunnel creation messages).</p>
 
@@ -107,7 +107,7 @@ the situation is much improved, and there are no current plans to extend tunnel 
 
 
 <h2>Adjust the timeouts</h2>
-<p>Yet another of the fairly arbitrary but "ok feeling" things we've got are the
+<p>Yet another of the fairly arbitrary but "okay feeling" things we've got are the
 current timeouts for various activities.  Why do we have a 60 second "peer
 unreachable" timeout?  Why do we try sending through a different tunnel that a
 LeaseSet advertises after 10 seconds?  Why are the network database queries
@@ -116,7 +116,7 @@ new set of tunnels every 10 minutes?  Why do we allow 60 seconds for a peer to
 reply to our request that they join a tunnel?  Why do we consider a tunnel that
 doesn't pass our test within 60 seconds "dead"?</p>
 <p>Each of those imponderables can be addressed with more adaptive code, as well
-as tuneable parameters to allow for more appropriate tradeoffs between
+as tunable parameters to allow for more appropriate tradeoffs between
 bandwidth, latency, and CPU usage.</p>
 
 <h2>More efficient TCP rejection <b>[implemented]</b></h2>
@@ -136,7 +136,7 @@ without wasting much CPU or other resources.</p>
 more context aware algorithm for testing tunnels.  e.g. if we already know its
 passing valid data correctly, there's no need to test it, while if we haven't
 seen any data through it recently, perhaps its worthwhile to throw some data its
-way.  This will reduce the tunnel contetion due to excess messages, as well as
+way.  This will reduce the tunnel contention due to excess messages, as well as
 improve the speed at which we detect - and address - failing tunnels.</p>
 
 <h2>Compress some data structures <b>[implemented]</b></h2>
@@ -145,7 +145,7 @@ compact structure, though one attribute of the RouterInfo structure is not -
 "options" is a plain ASCII name = value mapping.  Right now, we're filling it
 with those published statistics - around 3300 bytes per peer.  Trivial to
 implement GZip compression would nearly cut that to 1/3 its size, and when you
-consider how often RouterInfo structures are passed across the network, thats
+consider how often RouterInfo structures are passed across the network, that's
 significant savings - every time a router asks another router for a networkDb
 entry that the peer doesn't have, it sends back 3-10 RouterInfo of them.</p>
 
@@ -153,9 +153,9 @@ entry that the peer doesn't have, it sends back 3-10 RouterInfo of them.</p>
 <p>Currently mihi's ministreaming library has a fairly simple stream negotiation
 protocol - Alice sends Bob a SYN message, Bob replies with an ACK message, then
 Alice and Bob send each other some data, until one of them sends the other a
-CLOSE message.  For long lasting connections (to an irc server, for instance),
+CLOSE message.  For long lasting connections (to an IRC server, for instance),
 that overhead is negligible, but for simple one-off request/response situations
-(an HTTP request/reply, for instance), thats more than twice as many messages as
+(an HTTP request/reply, for instance), that's more than twice as many messages as
 necessary.  If, however, Alice piggybacked her first payload in with the SYN
 message, and Bob piggybacked his first reply with the ACK - and perhaps also
 included the CLOSE flag - transient streams such as HTTP requests could be
@@ -163,12 +163,12 @@ reduced to a pair of messages, instead of the SYN+ACK+request+response+CLOSE.</p
 
 <h2>Implement full streaming protocol</h2> [<a href="streaming.html">implemented</a>]
 <p>The ministreaming protocol takes advantage of a poor design decision in the
-I2P client procotol (I2CP) - the exposure of "mode=GUARANTEED", allowing what
+I2P client protocol (I2CP) - the exposure of "mode=GUARANTEED", allowing what
 would otherwise be an unreliable, best-effort, message based protocol to be used
 for reliable, blocking operation (under the covers, its still all unreliable and
 message based, with the router providing delivery guarantees by garlic wrapping
-an "ack" message in with the payload, so once the data gets to the target, the
-ack message is forwarded back to us [through tunnels, of course]).</p>
+an "ACK" message in with the payload, so once the data gets to the target, the
+ACK message is forwarded back to us [through tunnels, of course]).</p>
 <p>As I've
 <a href="http://dev.i2p.net/pipermail/i2p/2004-March/000167.html">said</a>, having
 I2PTunnel (and the ministreaming lib) go this route was the best thing that
