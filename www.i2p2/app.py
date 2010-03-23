@@ -7,6 +7,8 @@ import os
 from time import time
 from random import randint
 
+domain = "http://www.i2p2.de"
+
 class Request(BaseRequest):
     """Useful subclass of the default request that knows how to build urls."""
 
@@ -54,7 +56,7 @@ def app(environ, start_response):
             tmpl = env.get_template(path + '.html')
     except TemplateNotFound:
         tmpl = env.get_template('not_found.html')
-    resp = Response(tmpl.render(static=False, theme=theme), mimetype=mime_type)
+    resp = Response(tmpl.render(static=False, theme=theme, domain=domain, path=path), mimetype=mime_type)
     # more theme handling
     if theme == 'light' and 'style' in req.cookies:
         resp.delete_cookie('style')
