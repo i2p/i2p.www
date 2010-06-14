@@ -73,5 +73,4 @@ def old_get(f):
     return redirect('http://i2p.googlecode.com/files/%s' % f)
 
 if __name__ == '__main__':
-    app.debug=True
     app.run(port=port)
