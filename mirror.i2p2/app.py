@@ -1,7 +1,11 @@
 from flask import Flask, redirect, request, render_template, abort
 from random import randint
 from sys import argv
-import json
+try:
+    import json
+except ImportError:
+    import simplejson as json
+
 
 # try to create an memcache client
 if len(argv[3:]) > 0:
