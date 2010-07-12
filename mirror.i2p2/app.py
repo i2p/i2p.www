@@ -70,7 +70,7 @@ def get(protocol, f):
     if not protocol in mirrors:
         abort(404)
     mirrors=mirrors[protocol]
-    return redirect(mirrors.keys()[randint(0, len(mirrors.keys()) - 1)] % f)
+    return redirect(mirrors[randint(0, len(mirrors) - 1)] % f)
 
 @app.route('/<f>')
 def old_get(f):
