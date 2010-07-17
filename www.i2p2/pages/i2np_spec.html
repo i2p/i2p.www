@@ -55,6 +55,83 @@ data:
 {% endfilter %}
 </pre>
 
+<h3 id="struct_BuildRequestRecord">BuildRequestRecord</h3>
+<pre>
+{% filter escape %}
+Cleartext:
++----+----+----+----+----+----+----+----+
+| receive tunnelId  | local routerInfo  |
++----+----+----+----+ hash              +
+|                                       |
++                                       +
+|                                       |
++                                       +
+|                                       |
++                   +----+----+----+----+
+|                   | send tunnelId     |
++----+----+----+----+----+----+----+----+
+| nexthop routerInfo hash               |
++                                       +
+|                                       |
++                                       +
+|                                       |
++                                       +
+|                                       |
++----+----+----+----+----+----+----+----+
+| AES256 tunnel layer key               |
++                                       +
+|                                       |
++                                       +
+|                                       |
++                                       +
+|                                       |
++----+----+----+----+----+----+----+----+
+| AES256 tunnel IV key                  |
++                                       +
+|                                       |
++                                       +
+|                                       |
++                                       +
+|                                       |
++----+----+----+----+----+----+----+----+
+| AES256 reply key                      |
++                                       +
+|                                       |
++                                       +
+|                                       |
++                                       +
+|                                       |
++----+----+----+----+----+----+----+----+
+| reply IV                              |
++                                       +
+|                                       |
++----+----+----+----+----+----+----+----+
+|flag| request time      | next msg-id
++----+----+----+----+----+----+----+----+
+     | padding...
++----+----+----+--//
+{% endfilter %}
+</pre>
+
+<h4>Definition</h4>
+<pre>
+{% filter escape %}
+ *   bytes     0-3: tunnel ID to receive messages as                                                                                                                                                                
+ *   bytes    4-35: local router identity hash                                                                                                                                                                      
+ *   bytes   36-39: next tunnel ID                                                                                                                                                                                  
+ *   bytes   40-71: next router identity hash                                                                                                                                                                       
+ *   bytes  72-103: AES-256 tunnel layer key                                                                                                                                                                        
+ *   bytes 104-135: AES-256 tunnel IV key                                                                                                                                                                           
+ *   bytes 136-167: AES-256 reply key                                                                                                                                                                               
+ *   bytes 168-183: reply IV                                                                                                                                                                                        
+ *   byte      184: flags                                                                                                                                                                                           
+ *   bytes 185-188: request time (in hours since the epoch)                                                                                                                                                         
+ *   bytes 189-192: next message ID                                                                                                                                                                                 
+ *   bytes 193-222: uninterpreted / random padding
+Taken from i2p.i2p/router/java/src/net/i2p/data/i2np/BuildRequestRecord.java
+{% endfilter %}
+</pre>
+
 <h2 id="messages">Messages</h2>
 <table border=1>
   <tr>
