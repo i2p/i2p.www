@@ -82,7 +82,69 @@ data:
 
 <h3 id="msg_DatabaseLookup">DatabaseLookup</h3>
 <pre>
-...
+{% filter escape %}
+if flag==TRUE
++----+----+----+----+----+----+----+----+
+| SHA256 hash as the key to look up     |
++                                       +
+|                                       |
++                                       +
+|                                       |
++                                       +
+|                                       |
++----+----+----+----+----+----+----+----+
+| SHA256 hash of the routerInfo         |
++ who is asking                         +
+|                                       |
++                                       +
+|                                       |
++                                       +
+|                                       |
++----+----+----+----+----+----+----+----+
+|flag| reply tunnelId    |size     |    |
++----+----+----+----+----+----+----+    +
+| SHA256 of $key1 to exclude            |
++                                       +
+|                                       |
++                                       +
+|                                       |
++                                  +----+
+|                                  |    |
++----+----+----+----+----+----+----+    +
+| SHA256 of $key2 to exclude            |
+....
+{% endfilter %}
+</pre>
+
+<h4>Definition</h4>
+<pre>
+{% filter escape %}
+key:
+    32 bytes
+    SHA256 hash of the object to lookup
+
+from:
+     32 bytes
+     SHA256 hash of the routerInfo entry this request came from(and to which the reply should be sent)
+
+flag:
+     1 byte
+     mapping:
+             0  FALSE => send reply directly
+             1  TRUE  => send reply to some tunnel
+
+reply tunnelId:
+               2 bytes
+               only included if flag==TRUE
+               tunnelId of the tunnel to send the reply to
+
+size:
+     2 bytes
+     number of peers to exclude from the lookup(TODO: whatever this means)
+
+excludedPeers:
+              rest of the message are $size SHA256 hashes of 32 bytes each(total $size*32 bytes)
+{% endfilter %}
 </pre>
 
 {% endblock %}
