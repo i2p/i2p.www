@@ -23,6 +23,10 @@ common transports supported.
     <td><a href="#msg_DatabaseLookup">DatabaseLookup</a></td>
     <td align="right">2</td>
   </tr>
+  <tr>
+    <td><a href="#msg_DatabaseSearchReply">DatabaseSearchReply</a></td>
+    <td align="right">3</td>
+  </tr>
 </table>
 
 <h3 id="msg_DatabaseStore">DatabaseStore</h3>
@@ -162,4 +166,62 @@ excludedPeers:
 {% endfilter %}
 </pre>
 
+<h3 id="msg_DatabaseSearchReply">DatabaseSearchReply</h3>
+<pre>
+{% filter escape %}
++----+----+----+----+----+----+----+----+
+| SHA256 hash as query key              |
++                                       +
+|                                       |
++                                       +
+|                                       |
++                                       +
+|                                       |
++----+----+----+----+----+----+----+----+
+|num | peer hash $1                     |
++----+                                  +
+|                                       |
++                                       +
+|                                       |
++                                       +
+|                                       |
++    +----+----+----+----+----+----+----+
+|    |                                  |
++----+.... $num peer hashes
+
++    +----+----+----+----+----+----+----+
+|    | from                             |
++----+                                  +
+|                                       |
++                                       +
+|                                       |
++                                       +
+|                                       |
++    +----+----+----+----+----+----+----+
+|    |
++----+
+
+
+{% endfilter %}
+
+<h4>Definition</h4>
+<pre>
+{% filter escape %}
+key:
+    32 bytes
+    SHA256 of the object being searched
+
+num:
+    1 byte
+    number of peer hashes that follow
+
+peer hash:
+          32 bytes
+          SHA256 of the RouterInfo that the other router thinks are close to the key
+          $num entries
+
+from:
+     32 bytes
+     SHA256 of the RouterInfo of the router this reply was sent from
 {% endblock %}
+</pre>
