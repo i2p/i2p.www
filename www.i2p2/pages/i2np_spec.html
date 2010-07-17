@@ -43,6 +43,10 @@ common transports supported.
     <td><a href="#msg_TunnelGateway">TunnelGateway</a></td>
     <td align="right">19</td>
   </tr>
+  <tr>
+    <td><a href="#msg_Data">Data</a></td>
+    <td align="right">20</td>
+  </tr>
 </table>
 
 <h3 id="msg_DatabaseStore">DatabaseStore</h3>
@@ -239,7 +243,7 @@ peer hash:
 from:
      32 bytes
      SHA256 of the RouterInfo of the router this reply was sent from
-{% endblock %}
+{% endfilter %}
 </pre>
 
 <h3 id="msg_DeliveryStatus">DeliveryStatus</h3>
@@ -323,13 +327,38 @@ data:
 
 <h4>Definition</h4>
 <pre>
-{% begin escape %}
+{% filter escape %}
 tunnelId:
          4 bytes
          identifies the tunnel this message is directed at
 
 length:
        2 bytes
+       length of the payload
+
+data:
+     $length bytes
+     actual payload of this message
+{% endfilter %}
+</pre>
+
+
+{% endblock %}
+
+<h3 id="msg_Data">Data</h3>
+<pre>
+{% filter escape %}
++----+----+----+----+----+---//--+
+| length            | data...    |
++----+----+----+----+----+---//--+   
+{% endfilter %}
+</pre>
+
+<h4>Definition</h4>
+<pre>
+{% filter escape %}
+length:
+       4 bytes
        length of the payload
 
 data:
