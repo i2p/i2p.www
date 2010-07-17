@@ -1,0 +1,83 @@
+{% extends "_layout.html" %}
+{% block title %}I2NP Specification{% endblock %}
+{% block content %}
+<h1>I2P Network Protocol (I2NP) Specification</h1>
+<p>
+The I2P Network Protocol (I2NP),
+which is sandwiched between I2CP and the various I2P transport protocols, manages the
+routing and mixing of messages between routers, as well as the selection of what
+transports to use when communicating with a peer for which there are multiple
+common transports supported.
+</p>
+<h2 id="messages">Messages</h2>
+<h3 id="msg_DatabaseStore">DatabaseStore</h3>
+<raw>
+with reply token:
++----+----+----+----+----+----+----+----+
+| SHA256 Hash as key                    |
++                                       +
+|                                       |
++                                       +
+|                                       |
++                                       +
+|                                       |
++----+----+----+----+----+----+----+----+
+|type| reply token       | reply tunnel-
++----+----+----+----+----+----+----+----+
+ Id  | SHA256 of the gateway RouterInfo |
++----+                                  +
+|                                       |
++                                       +
+|                                       |
++                                       +
+|                                       |
++    +----+----+----+----+----+----+----+
+|    | data ...
++----+--------\\
+
+with reply token == 0:
++----+----+----+----+----+----+----+----+
+| SHA256 Hash as key                    |
++                                       +
+|                                       |
++                                       +
+|                                       |
++                                       +
+|                                       |
++----+----+----+----+----+----+----+----+
+|type| reply token       | data ...
++----+-------------------+---------\\
+</raw>
+<h4>Definition</h4>
+<raw>
+key:
+    32 bytes
+    SHA256 hash
+
+type:
+     1 byte
+     type identifier
+     mapping:
+             0    RouterInfo
+             1    LeaseSet
+
+reply token:
+            4 bytes
+            TODO: find out what this does
+
+reply tunnelId:
+               4 bytes
+               only included if reply token > 0
+               TODO: what this tunnel information is needed for
+
+reply gateway:
+              32 bytes
+              Hash of the routerInfo entry to reach the gateway
+              only included if reply token > 0
+              TODO: what this tunnel information is needed for
+
+data:
+     rest of the message(could be anything)
+</raw>
+
+{% endblock %}
