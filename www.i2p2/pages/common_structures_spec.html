@@ -1,5 +1,5 @@
 {% extends "_layout.html" %}
-{% block title %}Data types Specification{% endblock %}
+{% block title %}Common structure Specification{% endblock %}
 {% block content %}
 <h1>Data types Specification</h1>
 <p>
@@ -37,7 +37,7 @@
   1 or more bytes where the first byte is the number of bytes(not characters!) in the string and the remaining 0-255 bytes are the non-null terminated UTF-8 encoded character array
 </p>
 
-<h2 id="type_Boolean"</h2>
+<h2 id="type_Boolean">Boolean</h2>
 <h4>Description</h4>
 <p>
   A boolean value, supporting null/unknown representation
@@ -118,6 +118,16 @@
   32 bytes
 </p>
 
+<h2 id="type_TunnelId">TunnelId</h2>
+<h4>Description</h4>
+<p>
+  Defines an identifier that is unique within a particular set of routers for a tunnel.
+</p>
+<h4>Contents</h4>
+<p>
+  4 byte <a href="type_Integer">Integer</a>
+</p>
+
 <h2 id="type_Certificate">Certificate</h2>
 <h4>Description</h4>
 <p>
@@ -150,5 +160,262 @@ payload :: data
 {% endfilter %}
 </pre>
 
+
+
+<h1>Common structure specification</h1>
+
+<h2 id="struct_RouterIdentity">RouterIdentity</h2>
+<h4>Description</h4>
+<p>
+  Defines the way to uniquely identify a particular router
+</p>
+<h4>Contents</h4>
+<p>
+  <a href="#type_PublicKey">PublicKey</a> followed by <a href="#type_SigningPublicKey">SigningPublicKey</a> and then a <a href="#type_Certificate">Certificate</a> entangled with the <a href="#type_PublicKey">PublicKey</a>
+</p>
+<pre>
+{% filter escape %}
++----+----+----+----+----+----+----+----+
+| public_key                            |
++                                       +
+|                                       |
+~                                       ~
+
+~                                       ~
+|                                       |
++----+----+----+----+----+----+----+----+
+| signing_key                           |
++                                       +
+|                                       |
+~                                       ~
+
+~                                       ~
+|                                       |
++----+----+----+----+----+----+----+----+
+| certificate                           |
++----+----+----+--//
+
+public_key :: PublicKey
+              length -> 256 bytes
+
+signing_key :: SigningPublicKey
+               length -> 256 bytes
+
+certificate :: Certificate
+               length -> >= 3 bytes
+
+{% endfilter %}
+</pre>
+
+<h2 id="struct_Destination">Destination</h2>
+<h4>Description</h4>
+<p>
+  A Destination defines a particular endpoint to which messages can be directed for secure delivery.
+</p>
+<h4>Contents</h4>
+<p>
+  <a href="#type_PublicKey">PublicKey</a> followed by a <a href="#type_SigningPublicKey">SigningPublicKey</a> and then a <a href="#type_Certificate">Certificate</a> entangled with the <a href="#type_PublicKey">PublicKey</a>.
+</p>
+<pre>
+{% filter escape %}
++----+----+----+----+----+----+----+----+
+| public_key                            |
++                                       +
+|                                       |
+~                                       ~
+
+~                                       ~
+|                                       |
++----+----+----+----+----+----+----+----+
+| signing_public_key                    |
++                                       +
+|                                       |
+~                                       ~
+
+~                                       ~
+|                                       |
++----+----+----+----+----+----+----+----+
+| certificate                           
++---//
+
+public_key :: PublicKey
+              length -> 256 bytes
+
+signing_public_key :: SigningPublicKey
+                      length -> 256 bytes
+
+certificate :: Certificate
+               length -> >= 3 bytes
+{% endfilter %}
+</pre>
+
+<h2 id="struct_Lease">Lease</h2>
+<h4>Description</h4>
+<p>
+  Defines the authorization for a particular tunnel to receive messages targeting a <a href="#struct_Destination">Destination</a>.
+</p>
+<h4>Contents</h4>
+<p>
+  <a href="#struct_RouterIdentity">RouterIdentity</a> of the gateway router, then the <a href="#type_TunnelId">TunnelId</a>, and then a start <a href="#type_Date">Date</a> and finally an end <a href="#type_Date">Date</a>
+</p>
+<pre>
+{% filter escape %}
++----+----+----+----+----+----+----+----+
+| tunnel_gw                             |
++                                       +
+|                                       |
+~                                       ~
+
+~                                       ~
+|                                       |
++                   +----+----+----+----+
+|                   | tunnel_id         |
++----+----+----+----+----+----+----+----+
+| start_date                            |
++----+----+----+----+----+----+----+----+
+| end_date                              |
++----+----+----+----+----+----+----+----+
+
+tunnel_gw :: RouterIdentity
+             length -> >= 515 bytes
+
+tunnel_id :: TunnelId
+             length -> 4 bytes
+
+start_date :: Date
+              length -> 8 bytes
+
+end_date :: Date
+            length -> 8 bytes
+{% endfilter %}
+</pre>
+
+<h2 id="struct_LeaseSet">LeaseSet</h2>
+<h4>Description</h4>
+<p>
+  Contains all of the currently authorized <a href="#struct_Lease">Lease</a>s for a particular <a href="#struct_Destination">Destination</a>, the <a href="#type_PublicKey">PublicKey</a> to which garlic messages can be encrypted,
+  and then the the <a href="#type_SigningPublicKey">public key</a> that can be used to revoke this particular version of the structure. The <a href="#struct_LeaseSet">LeaseSet</a> is one of the two structures stored in the network database(
+  the other being <a href="#struct_RouterInfo">RouterInfo</a>), and is keyed under the SHA256 of the contained <a href="#struct_Destination">Destination</a>.
+</p>
+<h4>Contents</h4>
+<p>
+  <a href="#struct_Destination">Destination</a>, followed by a <a href="#type_PublicKey">PublicKey</a> for encryption, then a <a href="#type_SigningPublicKey">SigningPublicKey</a> which can be used to revoke this version of the <a href="#struct_LeaseSet">LeaseSet</a>,
+  then a 1 byte <a href="#type_Integer">Integer</a> specifying how many <a href="#struct_Lease">Lease</a> structures are in the set, followed by the actual <a href="#struct_Lease">Lease</a> structures and finally a <a href="#type_Signature">Signature</a>  of the previous
+  bytes signed by the <a href="#struct_Destination">Destination's</a> <a href="#type_SigningPrivateKey">SigningPrivateKey</a>
+<p/>
+<pre>
+{% filter escape %}
++----+----+----+----+----+----+----+----+
+| destination                           |
++                                       +
+|                                       |
+~                                       ~
+
+~                                       ~
+|                                       |
++----+----+----+----+----+----+----+----+
+| encryption_key                        |
++                                       +
+|                                       |
+~                                       ~
+
+~                                       ~
+|                                       |
++----+----+----+----+----+----+----+----+
+| signing_key                           |
++                                       +
+|                                       |
+~                                       ~
+
+~                                       ~
+|                                       |
++----+----+----+----+----+----+----+----+
+|num | Lease 0                          |
++----+                                  +
+|                                       |
+~                                       ~
+
+~                                       ~
+|                                       |
++----+----+----+----+----+----+----+----+
+| Lease 1                               |
++                                       +
+|                                       |
+~                                       ~
+
+~                                       ~
+~                                       ~
+
+~                                       ~
+|                                       |
++----+----+----+----+----+----+----+----+
+| Lease ($num-1)                        |
++                                       +
+|                                       |
+~                                       ~
+
+~                                       ~
+|                                       |
++----+----+----+----+----+----+----+----+
+| signature                             |
++                                       +
+|                                       |
++                                       +
+|                                       |
++                                       +
+|                                       |
++                                       +
+|                                       |
++----+----+----+----+----+----+----+----+
+
+destination :: Destination
+               length -> >= 515 bytes
+
+encryption_key :: PublicKey
+                  length -> 256 bytes
+
+signing_key :: SigningPublicKey
+               length -> 256 bytes
+
+num :: Integer
+       length -> 1 byte
+
+leases :: [Lease]
+          length -> >= $num*535 bytes
+
+signature :: Signature
+             length -> 40 bytes
+
+{% endfilter %}
+</pre>
+
+
+
+<h2 id="struct_RouterInfo">RouterInfo</h2>
+<h4>Description</h4>
+<p>
+  Defines all of the data that a router wants to publish for the network to see. The <a href="#struct_RouterInfo">RouterInfo</a> is one of two structures stored in the network database(the other being <a href="#struct_LeaseSet">LeaseSet</a>, and is keyed under the SHA256 of
+  the contained <a href="#struct_RouterIdentity">RouterIdentity</a>.
+</p>
+<h4>Contents</h4>
+<p>
+  <a href="#struct_RouterIdentity">RouterIdentity</a> followed by the <a href="#type_Date">Date</a>, when the entry was published
+</p>
+<pre>
+{% filter escape %}
++----+----+----+----+----+----+----+----+
+| router_ident                          |
++                                       +
+|                                       |
+~                                       ~
+
+~                                       ~
+|                                       |
++----+----+----+----+----+----+----+----+
+| published                             |
++----+----+----+----+----+----+----+----+
+|size| RouterAddress 
+{% endfilter %}
+</pre>
 
 {% endblock %}
