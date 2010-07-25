@@ -1,0 +1,154 @@
+{% extends "_layout.html" %}
+{% block title %}Data types Specification{% endblock %}
+{% block content %}
+<h1>Data types Specification</h1>
+<p>
+  This document describes some data types common to all I2P-protocols, like I2NP, I2CP, NTCP, etc.
+</p>
+
+<h2 id="type_Integer">Integer</h2>
+<h4>Description</h4>
+<p>
+  Represents a nonnegative integer.
+</p>
+<h4>Contents</h4>
+<p>
+  1 or more bytes in network byte order representing an unsigned integer
+</p>
+
+<h2 id="type_Date">Date</h2>
+<h4>Description</h4>
+<p>
+  The number of milliseconds since midnight on January 1, 1970 in the GMT timezone.
+  If the number is 0, the date is undefined or null.
+</p>
+<h4>Contents</h4>
+<p>
+  8 byte <a href="#type_Integer">Integer</a>
+</p>
+
+<h2 id="type_String">String</h2>
+<h4>Description</h4>
+<p>
+  Represents a UTF-8 encoded string.
+</p>
+<h4>Contents</h4>
+<p>
+  1 or more bytes where the first byte is the number of bytes(not characters!) in the string and the remaining 0-255 bytes are the non-null terminated UTF-8 encoded character array
+</p>
+
+<h2 id="type_Boolean"</h2>
+<h4>Description</h4>
+<p>
+  A boolean value, supporting null/unknown representation
+  0=false, 1=true, 2=unknown/null
+</p>
+<h4>Contents</h4>
+<p>
+  1 byte <a href="#type_Integer">Integer</a>
+</p>
+
+<h2 id="type_PublicKey">PublicKey</h2>
+<h4>Description</h4>
+<p>
+  This structure is used in ElGamal encryption, representing only the exponent, not the primes, which are constant and defined in the appropiate spec.
+</p>
+<h4>Contents</h4>
+<p>
+  256 byte <a href="#type_Integer">Integer</a>
+</p>
+
+<h2 id="type_PrivateKey">PrivateKey</h2>
+<h4>Description</h4>
+<p>
+  This structure is used in ElGama decryption, representing only the exponent, not the primes which are constant and defined in the appropiate spec.
+</p>
+<h4>Contents</h4>
+<p>
+  256 byte <a href="#type_Integer">Integer</a>
+</p>
+
+<h2 id="type_SessionKey">SessionKey</h2>
+<h4>Description</h4>
+<p>
+  This structure is used for AES256 encryption and decryption.
+</p>
+<h4>Contents</h4>
+<p>
+  32 byte <a href="#type_Integer">Integer</a>
+</p>
+
+<h2 id="type_SigningPublicKey">SigningPublicKey</h2>
+<h4>Description</h4>
+<p>
+  This structure is used for verifying DSA signatures.
+</p>
+<h4>Contents</h4>
+<p>
+  256 byte <a href="#type_Integer">Integer</a>
+</p>
+
+<h2 id="type_SigningPrivateKey">SigningPrivateKey</h2>
+<h4>Description</h4>
+<p>
+  This structure is used for creating DSA signatures.
+</p>
+<h4>Contents</h4>
+<p>
+  20 byte <a href="#type_Integer">Integer</a>
+</p>
+
+<h2 id="type_Signature">Signature</h2>
+<h4>Description</h4>
+<p>
+  This structure represents the DSA signature of some data.
+</p>
+<h4>Contents</h4>
+<p>
+  40 byte <a href="#type_Integer">Integer</a>
+</p>
+
+<h2 id="type_Hash">Hash</h2>
+<h4>Description</h4>
+<p>
+  Represents the SHA256 of some data.
+</p>
+<h4>Contents</h4>
+<p>
+  32 bytes
+</p>
+
+<h2 id="type_Certificate">Certificate</h2>
+<h4>Description</h4>
+<p>
+  A certificate is a container for various receipts or proof of works used throughout the I2P network.
+</p>
+<h4>Contents</h4>
+<p>
+  1 byte <a href="#type_Integer">Integer</a> specifying certificate type, followed by a 2 <a href="#type_Integer">Integer</a> specifying the size of the certificate payload, then that many bytes.
+</p>
+<pre>
+{% filter escape %}
++----+----+----+----+----+--//
+|type| length  | payload
++----+----+----+----+----+--//
+
+type :: Integer
+        length -> 1 byte
+
+        case 0 -> NULL
+        case 1 -> HASHCASH
+        case 2 -> HIDDEN
+        case 3 -> SIGNED
+        case 4 -> MULTIPLE
+
+length :: Integer
+          length -> 2 bytes
+
+payload :: data
+           length -> $length bytes
+{% endfilter %}
+</pre>
+
+
+{% endblock %}
