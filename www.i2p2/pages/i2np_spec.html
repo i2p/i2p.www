@@ -110,12 +110,23 @@ Cleartext:
 +----+----+----+----+----+----+----+----+
      | padding...
 +----+----+----+--//
+
+encrypted:
++----+----+----+----+----+----+----+----+
+| toPeer                                |
++                                       +
+|                                       |
++----+----+----+----+----+----+----+----+
+| encrypted data ...                    |
+
++----+----+----+----+----+----+----+----+
 {% endfilter %}
 </pre>
 
 <h4>Definition</h4>
 <pre>
 {% filter escape %}
+unencrypted:
  *   bytes     0-3: tunnel ID to receive messages as                                                                                                                                                                
  *   bytes    4-35: local router identity hash                                                                                                                                                                      
  *   bytes   36-39: next tunnel ID                                                                                                                                                                                  
@@ -129,8 +140,39 @@ Cleartext:
  *   bytes 189-192: next message ID                                                                                                                                                                                 
  *   bytes 193-222: uninterpreted / random padding
 Taken from i2p.i2p/router/java/src/net/i2p/data/i2np/BuildRequestRecord.java
+
+encrypted:
+bytes 0-15: SHA-256-128(SHA256 hash truncated to 128bit) of the current hop's identity (the toPeer parameter)
+bytes 15-527: ElGamal-2048 encrypted block
+
 {% endfilter %}
 </pre>
+
+<h3 id="struct_BuildResponseRecord">BuildResponseRecord</h3>
+<pre>
+{% filter escape %}
+unencrypted:
++----+----+----+----+----+----+----+----+
+| random data...                        |
+
+|                                       |
++                                  +----+
+|                                  |ret |
++----+----+----+----+----+----+----+----+
+{% endfilter %}
+</pre>
+<h4>Definition</h4>
+<pre>
+{% filter escape %}
+unencrypted:
+bytes 0-526: random data
+byte  527  : reply
+
+encrypted:
+bytes 0-527: AES-encrypted record(note: same size as BuildRequestRecord!)
+{% endfilter %}
+</pre>
+
 
 <h2 id="messages">Messages</h2>
 <table border=1>
