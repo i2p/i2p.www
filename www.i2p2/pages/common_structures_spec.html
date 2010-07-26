@@ -391,6 +391,47 @@ signature :: Signature
 
 
 
+<h2 id="struct_RouterAddress">RouterAddress</h2>
+<h4>Description</h4>
+<p>
+  This structure defines the means to contact a router through a transport protocol.
+</p>
+<h4>Contents</h4>
+<p>
+  1 byte <a href="#type_Integer">Integer</a> defining the relative cost of using the address, where 0 is free and 255 is expensive, followed by the expiration <a href="#type_Date">Date</a> after which the address should not be used, or if null, the address never expires.
+  After that comes a <a href="#type_String">String</a> defining the transport protocol this router address uses. Finally there is a <a href="#type_Mapping">Mapping</a> containing all of the transport specific options necessary to establish the connection, such as
+  IP address, port number, email address, URL, etc.
+</p>
+<pre>
+{% filter escape %}
++----+
+|cost|
++----+----+----+----+----+----+----+----+
+| expiration                            |
++----+----+----+----+--//+----+----+----+
+| transport_style                       |
++----+----+----+----+--//+----+----+----+
+| options                               |
++----+----+----+----+--//+----+----+----+
+
+cost :: Integer
+        length -> 1 byte
+
+        case 0 -> free
+        case 255 -> expensive
+
+expiration :: Date
+              length -> 8 bytes
+
+              case null -> never expires
+
+transport_style :: String
+                   length -> 1-256 bytes
+
+options :: Mapping
+{% endfilter %}
+</pre>
+
 <h2 id="struct_RouterInfo">RouterInfo</h2>
 <h4>Description</h4>
 <p>
@@ -414,7 +455,53 @@ signature :: Signature
 +----+----+----+----+----+----+----+----+
 | published                             |
 +----+----+----+----+----+----+----+----+
-|size| RouterAddress 
+|size| RouterAddress 0                  |
++----+                                  +
+|                                       |
+~                                       ~
+
+~                                       ~
+|                                       |
++----+----+----+----+----+----+----+----+
+| RouterAddress 1                       |
++                                       +
+|                                       |
+~                                       ~
+~                                       ~
+
+~                                       ~
+~                                       ~
+|                                       |
++----+----+----+----+----+----+----+----+
+| RouterAddress ($size-1)               |
++                                       +
+|                                       |
+~                                       ~
+
+~                                       ~
+|                                       |
++----+----+----+----+-//-+----+----+----+
+|psiz| options                          |
++----+----+----+----+-//-+----+----+----+
+
+router_ident :: RouterIdentity
+                length -> >= 515 bytes
+
+published :: Date
+             length -> 8 bytes
+
+size :: Integer
+        length -> 1 byte
+
+addresses :: [RouterAddress]
+             length -> >= $size*267 bytes
+
+peer_size :: Integer
+             length -> 1 byte
+
+             value -> 0
+
+options :: Mapping
 {% endfilter %}
 </pre>
 
