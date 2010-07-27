@@ -2,6 +2,8 @@
 {% block title %}How Cryptography Works{% endblock %}
 {% block content %}
 <p>
+Updated July 2010, current as of router version 0.8
+<p>
 This page specifies the low-level details of the cryptography in I2P.
 <p>
 There are a handful of cryptographic algorithms in use within I2P, but we have
@@ -135,7 +137,12 @@ Signatures are generated and verified with 1024bit DSA, as implemented in
 Hashes within I2P are plain old SHA256, as implemented in
 <a href="http://docs.i2p2.de/core/net/i2p/crypto/SHA256Generator.java">[SHA256Generator]</a>
 
-<H2><a name="tcp">TCP connections</a></H2>
+
+<h2>Transports</h2>
+At the lowest 
+level, inter-router communication is protected by the transport layer security.
+
+<H3><a name="tcp">TCP connections</a></H3>
 
 <p>
 TCP connections are currently negotiated with a 2048 Diffie-Hellman implementation,
@@ -154,9 +161,15 @@ In order to migrate to a more standardized implementation (TLS/SSL or even SSH),
 
 </OL>
 
-<H2><a name="udp">UDP connections</a></H2>
+<H3><a name="udp">UDP connections</a></H3>
 
-UDP uses AES (see above). See <a href="udp.html#keys">the UDP specification</a> for details.
+SSU (the UDP transport) encrypts each packet with AES256/CBC with both an explicit IV and MAC 
+(HMAC-MD5-128) after agreeing upon an ephemeral session key through a 2048bit 
+Diffie-Hellman exchange, station-to-station authentication with the other 
+router's DSA key, plus each network message has their own hash for local integrity 
+checking.
+<p>
+See <a href="udp.html#keys">the SSU specification</a> for details.
 
 
 {% endblock %}
