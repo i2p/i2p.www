@@ -7,6 +7,35 @@ See <a href="how_networkdatabase.html">the main netdb page</a> for current docum
 
 <h2><a name="status">History</a></h2>
 
+<p>
+The netDb is distributed with a simple technique called "floodfill".
+Long ago, the netDb also used the Kademlia DHT as a fallback algorithm. However,
+it did not work well in our application, and it was completely disabled
+in release 0.6.1.20.
+
+<p>
+(Adapted from a post by jrandom in the old Syndie, Nov. 26, 2005)
+<br />
+The floodfill netDb is really just a simple and perhaps temporary measure, 
+using the simplest possible algorithm - send the data to a peer in the 
+floodfill netDb, wait 10 seconds, pick a random peer in the netDb and ask them 
+for the entry to be sent, verifying its proper insertion / distribution.  If the 
+verification peer doesn't reply, or they don't have the entry, the sender 
+repeats the process.  When the peer in the floodfill netDb receives a netDb 
+store from a peer not in the floodfill netDb, they send it to all of the peers 
+in the floodfill netDb.
+</p><p>
+At one point, the Kademlia 
+search/store functionality was still in place.  The peers 
+considered the floodfill peers as always being 'closer' to every key than any 
+peer not participating in the netDb.  We fell back on the Kademlia 
+netDb if the floodfill peers fail for some reason or another.
+However, Kademlia was then disabled completely (see below).
+<p>
+More recently, Kademlia was partially reintroduced in late 2009, as a way
+to limit the size of the netdb each floodfill router must store.
+
+
 <h3>The Introduction of the Floodfill Algorithm</h3>
 <p>
 Floodfill was introduced in release 0.6.0.4, keeping Kademlia as a backup algorithm.
