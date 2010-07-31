@@ -67,22 +67,31 @@ Using 2 as the generator.
 <H2><a name="AES">AES</a></H2>
 
 <p>
-We use 256bit AES in CBC mode with PKCS#5 padding for 16 byte blocks (aka each block is end 
-padded with the number of pad bytes).  Specifically, see 
+We use 256bit AES in CBC mode.
+The padding used is specified in <a href="http://tools.ietf.org/html/rfc2313">IETF RFC-2313 (PKCS#5 1.5, section 8.1 (for block type 02))</a>.
+In this case, padding exists of pseudorandomly generated octets to match 16 byte blocks.
+Specifically, see 
 <a href="http://docs.i2p2.de/core/net/i2p/crypto/CryptixAESEngine.html">[the CBC code]</a> 
 and the Cryptix AES 
-
-<a href="http://docs.i2p2.de/core/net/i2p/crypto/CryptixRijndael_Algorithm.html">[implementation]</a>
+<a href="http://docs.i2p2.de/core/net/i2p/crypto/CryptixRijndael_Algorithm.html">[implementation]</a>,
+as well as the padding, found in the
+<a href="http://trac.i2p2.de/browser/core/java/src/net/i2p/crypto/ElGamalAESEngine.java">ElGamalAESEngine.getPadding</a> function.
 <p>
-For situations where we stream AES data, we still use the same algorithm, as implemented in
+Two situations are possible:
+<p>
+1. For situations where we stream AES data, we still use the same algorithm, as implemented in
 <a href="http://docs.i2p2.de/core/net/i2p/crypto/AESOutputStream.html">[AESOutputStream]</a>
 <a href="http://docs.i2p2.de/core/net/i2p/crypto/AESInputStream.html">[AESInputStream]</a>
 <p>
-For situations where we know the size of the data to be sent, we AES encrypt the following:
+2. For situations where we know the size of the data to be sent, we AES encrypt the following:
 <p>
 <PRE>
  |_______1_______2_______3_______4_______5_______6_______7_______8
- |H(data)|      size of data (in bytes)  |  data    ...  | rand  |
+ |H(data)
+ |
+ |
+ |                                                               |
+ |    size of data (in bytes)    |  data    ...  | rand  |
 </PRE>
 <p>
 After the data comes an application specified number of randomly generated padding bytes, and
