@@ -46,6 +46,11 @@ not necessary to any intermediary relay peer).</p>
 capabilities of that particular peer.  For a list of available
 capabilities, see <a href="#capabilities">below</a>.</p>
 
+<h3 id="ipv6">IPv6 Notes</h3>
+While the protocol specification supports 16-byte IPv6 addresses,
+IPv6 addressing is not currently supported within I2P.
+
+
 <h2 id="header">Header</h2>
 
 <p>
@@ -78,10 +83,12 @@ to the various messages - a one byte flag and a four byte sending
 timestamp (*seconds* since the unix epoch).  The flag byte contains 
 the following bitfields:</p>
 <pre>
-  bits 0-3: payload type
-     bit 4: rekey?
-     bit 5: extended options included
-  bits 6-7: reserved
+  Bit order: 76543210 (bit 7 is MSB)
+
+  bits 7-4: payload type
+     bit 3: rekey?
+     bit 2: extended options included
+  bits 1-0: reserved
 </pre>
 
 <p>If the rekey flag is set, 64 bytes of keying material follow the 
@@ -118,19 +125,19 @@ around briefly, to address packet loss and reordering.</p>
 
 <h2 id="messages">Messages</h2>
 <p>
-There are 8 messages defined:
+There are 9 messages defined:
 </p><p>
 <table border="1">
 <tr><th>Type<th>Message<th>Notes
 <tr><td align="center">0<td>SessionRequest
 <tr><td align="center">1<td>SessionCreated
 <tr><td align="center">2<td>SessionConfirmed
-<tr><td align="center">8<td>SessionDestroyed<td>Unimplemented
 <tr><td align="center">3<td>RelayRequest
 <tr><td align="center">4<td>RelayResponse
 <tr><td align="center">5<td>RelayIntro
 <tr><td align="center">6<td>Data
 <tr><td align="center">7<td>PeerTest
+<tr><td align="center">8<td>SessionDestroyed<td>Unimplemented
 </table>
 </p>
 

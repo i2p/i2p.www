@@ -73,7 +73,9 @@ data :: Data
 <h3 id="struct_BuildRequestRecord">BuildRequestRecord</h3>
 <h4>Description</h4>
 <p>
-  One Record in a set of multiple records to request the creation of one hop in the tunnel. For more details see here.
+  One Record in a set of multiple records to request the creation of one hop in the tunnel. For more details see
+  <a href="tunnel-alt.html">the tunnel overview</a> and
+  <a href="tunnel-alt-creation.html">the tunnel creation specification</a>.
 </p>
 <h4>Contents</h4>
 <p>
@@ -283,6 +285,14 @@ bytes 0-527: AES-encrypted record(note: same size as BuildRequestRecord!)
 </table>
 
 <h3 id="msg_DatabaseStore">DatabaseStore</h3>
+<h4>Description</h4>
+<p>
+  An unsolicited database store, or the response to a successful Database Lookup Message
+</p>
+<h4>Contents</h4>
+<p>
+  A LeaseSet or RouterInfo
+</p>
 <pre>
 with reply token:
 +----+----+----+----+----+----+----+----+
@@ -335,18 +345,21 @@ type:
 
 reply token:
             4 bytes
-            TODO: find out what this does
+            If greater than zero, a <a href="#msg_DeliveryStatus">Delivery Status Message</a>
+            is requested with the Message ID set to the value of the Reply Token.
+            A floodfill router is also expected to flood the data to the closest floodfill peers
+            if the token is greater than zero.
 
 reply tunnelId:
                4 bytes
-               only included if reply token > 0
-               TODO: what this tunnel information is needed for
+               only included if reply token &gt; 0
+               This is the <a href="common_structures_spec#type_TunnelID">tunnel ID</a> of the inbound gateway of the tunnel the response should be sent to
 
 reply gateway:
               32 bytes
               Hash of the routerInfo entry to reach the gateway
-              only included if reply token > 0
-              TODO: what this tunnel information is needed for
+              only included if reply token &gt; 0
+              This is the router hash of the inbound gateway of the tunnel the response should be sent to
 
 data:
      rest of the message(could be anything)
@@ -412,14 +425,27 @@ reply tunnelId:
 
 size:
      2 bytes
-     number of peers to exclude from the lookup(TODO: whatever this means)
+     number of peers to exclude from the Database Search Reply Message
 
 excludedPeers:
-              rest of the message are $size SHA256 hashes of 32 bytes each(total $size*32 bytes)
+              Rest of the message are $size SHA256 hashes of 32 bytes each (total $size*32 bytes)
+              If the lookup fails, these peers are requested to be excluded from the list in
+              the Database Search Reply Message.
+              If excludedPeers includes a hash of all zeroes, the request is exploratory, and
+              the Database Search Reply Message is requested to list non-floodfill routers only.
+
 {% endfilter %}
 </pre>
 
 <h3 id="msg_DatabaseSearchReply">DatabaseSearchReply</h3>
+<h4>Description</h4>
+<p>
+  The response to a failed Database Lookup Message
+</p>
+<h4>Contents</h4>
+<p>
+  A list of router hashes closest to the requested key
+</p>
 <pre>
 {% filter escape %}
 +----+----+----+----+----+----+----+----+
@@ -478,6 +504,11 @@ from:
      SHA256 of the RouterInfo of the router this reply was sent from
 {% endfilter %}
 </pre>
+
+<h4>Notes</h4>
+<p>
+  The 'from' hash is unauthenticated and cannot be trusted.
+</p>
 
 <h3 id="msg_DeliveryStatus">DeliveryStatus</h3>
 <pre>
@@ -656,6 +687,13 @@ same format as TunnelBuild message
 <pre>
 {% filter escape %}
 same format as TunnelBuildMessage, except for the addition of an "num" field in front and $num number of records instead of 8
+
+num:
+       1 byte
+       Valid values: 1-8
+
+Record size: 528 bytes
+Total size: 1 + $num*528
 {% endfilter %}
 </pre>
 
