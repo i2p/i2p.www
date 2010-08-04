@@ -2,20 +2,25 @@
 {% block title %}NTCP{% endblock %}
 {% block content %}
 
-<h1>NTCP (NIO-based TCP)</h1>
+Updated August 2010 for release 0.8
+
+<h2>NTCP (NIO-based TCP)</h2>
 
 <p>
-NTCP was introduced in I2P 0.6.1.22.
-It is a Java NIO-based transport, enabled by default for outbound
-connections only.  Those who configure their NAT/firewall to allow
-inbound connections and specify the external host and port
-(dyndns/etc is okay) on /config.jsp can receive inbound connections.
-NTCP is NIO based, so it doesn't suffer from the 1 thread per connection issues of the old TCP transport.
+NTCP
+is one of two <a href="transport.html">transports</a> currently implemented in I2P.
+The other is <a href="udp.html">SSU</a>.
+NTCP
+is a Java NIO-based transport
+introduced in I2P release 0.6.1.22.
+Java NIO (new I/O) does not suffer from the 1 thread per connection issues of the old TCP transport.
 </p><p>
 
-As of 0.6.1.29, NTCP uses the IP/Port
+By default,
+NTCP uses the IP/Port
 auto-detected by SSU. When enabled on config.jsp,
-SSU will notify/restart NTCP when the external address changes.
+SSU will notify/restart NTCP when the external address changes
+or when the firewall status changes.
 Now you can enable inbound TCP without a static IP or dyndns service.
 </p><p>
 
@@ -23,71 +28,47 @@ The NTCP code within I2P is relatively lightweight (1/4 the size of the SSU code
 because it uses the underlying Java TCP transport.
 </p>
 
-<h2>Transport Bids and Transport Comparison</h2>
 
+<h2>NTCP Protocol Specification</h2>
+
+
+<h3>Standard Message Format</h3>
 <p>
-I2P supports multiple transports simultaneously.
-A particular transport for an outbound connection is selected with "bids".
-Each transport bids for the connection and the relative value of these bids
-assigns the priority.
-Transports may reply with different bids, depending on whether there is
-already an established connection to the peer.
-</p><p>
-
-To compare the performance of UDP and NTCP,
-you can adjust the value of i2np.udp.preferred in configadvanced.jsp
-(introduced in I2P 0.6.1.29).
-Possible settings are
-"false" (default), "true", and "always".
-Default setting results in same behavior as before
-(NTCP is preferred unless it isn't established and UDP is established).
-</p><p>
-
-The table below shows the new bid values. A lower bid is a higher priority.
-<p>
-<table border=1>
-<tr>
-<td><td colspan=3>i2np.udp.preferred setting
-<tr>
-<td>Transport<td>false<td>true<td>always
-<tr>
-<td>NTCP Established<td>25<td>25<td>25
-<tr>
-<td>UDP Established<td>50<td>15<td>15
-<tr>
-<td>NTCP Not established<td>70<td>70<td>70
-<tr>
-<td>UDP Not established<td>1000<td>65<td>20
-</table>
-
-
-
-<h2>NTCP Transport Protocol</h2>
-
-
+  The NTCP transport sends individual I2NP messages AES/256/CBC encrypted with
+  a simple checksum.  The unencrypted message is encoded as follows:
 <pre>
- * Coordinate the connection to a single peer.
- *
- * The NTCP transport sends individual I2NP messages AES/256/CBC encrypted with
- * a simple checksum.  The unencrypted message is encoded as follows:
  *  +-------+-------+--//--+---//----+-------+-------+-------+-------+
- *  | sizeof(data)  | data | padding | adler checksum of sz+data+pad |
+ *  | sizeof(data)  | data | padding | Adler checksum of sz+data+pad |
  *  +-------+-------+--//--+---//----+-------+-------+-------+-------+
- * That message is then encrypted with the DH/2048 negotiated session key
- * (station to station authenticated per the EstablishState class) using the
- * last 16 bytes of the previous encrypted message as the IV.
- *
- * One special case is a metadata message where the sizeof(data) is 0.  In
- * that case, the unencrypted message is encoded as:
+</pre>
+  That message is then encrypted with the DH/2048 negotiated session key
+  (station to station authenticated per the EstablishState class) using the
+  last 16 bytes of the previous encrypted message as the IV.
+</p>
+
+<p>
+0-15 bytes of padding are required to bring the total message length
+(including the six size and checksum bytes) to a multiple of 16.
+The maximum message size is currently 16 KB.
+Therefore the maximum data size is currently 16 KB - 6, or 16378 bytes.
+The minimum data size is 1.
+</p>
+
+<h3>Time Sync Message Format</h3>
+<p>
+  One special case is a metadata message where the sizeof(data) is 0.  In
+  that case, the unencrypted message is encoded as:
+<pre>
  *  +-------+-------+-------+-------+-------+-------+-------+-------+
  *  |       0       |      timestamp in seconds     | uninterpreted             
  *  +-------+-------+-------+-------+-------+-------+-------+-------+
- *          uninterpreted           | adler checksum of sz+data+pad |
+ *          uninterpreted           | Adler checksum of bytes 0-11  |
  *  +-------+-------+-------+-------+-------+-------+-------+-------+
- * 
- *
 </pre>
+Total length: 16 bytes. The time sync message is sent at approximately 15 minute intervals.
 
+
+<h3>Establishment Sequence</h3>
 In the establish state, the following communication happens.
 There is a 2048-bit Diffie Hellman exchange.
 For more information see the <a href="how_cryptography.html#tcp">cryptography page</a>.
@@ -99,571 +80,33 @@ For more information see the <a href="how_cryptography.html#tcp">cryptography pa
  *  E(#+Alice.identity+tsA+padding+S(X+Y+Bob.identHash+tsA+tsB+padding), sk, hX_xor_Bob.identHash[16:31])--->
  *  <----------------------E(S(X+Y+Alice.identHash+tsA+tsB)+padding, sk, prev)
 </pre>
+
+Todo: Explain this in words.
+
+
+<h3>Check Connection Message</h3>
 Alternately, when Bob receives a connection, it could be a
 check connection (perhaps prompted by Bob asking for someone
 to verify his listener).
-It does not appear that 'check connection' is used.
-However, for the record, check connections are formatted as follows:
-<pre>
-     * a check info connection will receive 256 bytes containing:
-     * - 32 bytes of uninterpreted, ignored data
-     * - 1 byte size
-     * - that many bytes making up the local router's IP address (as reached by the remote side)
-     * - 2 byte port number that the local router was reached on
-     * - 4 byte i2p network time as known by the remote side (seconds since the epoch)
-     * - uninterpreted padding data, up to byte 223
-     * - xor of the local router's identity hash and the SHA256 of bytes 32 through bytes 223
+Check Connection is not currently used.
+However, for the record, check connections are formatted as follows.
+     A check info connection will receive 256 bytes containing:
+<ul>
+     <li> 32 bytes of uninterpreted, ignored data
+     <li> 1 byte size
+     <li> that many bytes making up the local router's IP address (as reached by the remote side)
+     <li> 2 byte port number that the local router was reached on
+     <li> 4 byte i2p network time as known by the remote side (seconds since the epoch)
+     <li> uninterpreted padding data, up to byte 223
+     <li> xor of the local router's identity hash and the SHA256 of bytes 32 through bytes 223
+</ul>
 </pre>
 
+<h2>Discussion</h2>
+Now on the <a href="ntcp_discussion.html">NTCP Discussion Page</a>.
 
-<h2>NTCP vs. SSU Discussion, March 2007</h2>
-<h3>NTCP questions</h3>
-(adapted from an IRC discussion between zzz and cervantes)
-<br />
-Why is NTCP preferred over SSU, doesn't NTCP have higher overhead and latency?
-It has better reliability.
-<br />
-Doesn't streaming lib over NTCP suffer from classic TCP-over-TCP issues?
-What if we had a really simple UDP transport for streaming-lib-originated traffic?
-I think SSU was meant to be the so-called really simple UDP transport - but it just proved too unreliable.
-
-<h3>"NTCP Considered Harmful" Analysis by zzz</h3>
-Posted to new Syndie, 2007-03-25.
-This was posted to stimulate discussion, don't take it too seriously.
-<p>
-Summary: NTCP has higher latency and overhead than SSU, and is more likely to 
-collapse when used with the streaming lib. However, traffic is routed with a 
-preference for NTCP over SSU and this is currently hardcoded.
+<h2><a name="future">Future Work</a></h2>
+<p>The maximum message size should be increased to approximately 32 KB.
 </p>
-
-<h4>Discussion</h4>
-<p>
-We currently have two transports, NTCP and SSU. As currently implemented, NTCP 
-has lower "bids" than SSU so it is preferred, except for the case where there 
-is an established SSU connection but no established NTCP connection for a peer.
-</p><p>
-
-SSU is similar to NTCP in that it implements acknowledgments, timeouts, and 
-retransmissions. However SSU is I2P code with tight constraints on the 
-timeouts and available statistics on round trip times, retransmissions, etc. 
-NTCP is based on Java NIO TCP, which is a black box and presumably implements 
-RFC standards, including very long maximum timeouts.
-</p><p>
-
-The majority of traffic within I2P is streaming-lib originated (HTTP, IRC, 
-Bittorrent) which is our implementation of TCP. As the lower-level transport is 
-generally NTCP due to the lower bids, the system is subject to the well-known 
-and dreaded problem of TCP-over-TCP 
-http://sites.inka.de/~W1011/devel/tcp-tcp.html , where both the higher and 
-lower layers of TCP are doing retransmissions at once, leading to collapse.
-</p><p>
-
-Unlike in the PPP over SSH scenario described in the link above, we have 
-several hops for the lower layer, each covered by a NTCP link. So each NTCP 
-latency is generally much less than the higher-layer streaming lib latency. 
-This lessens the chance of collapse.
-</p><p>
-
-Also, the probabilities of collapse are lessened when the lower-layer TCP is 
-tightly constrained with low timeouts and number of retransmissions compared to 
-the higher layer.
-</p><p>
-
-The .28 release increased the maximum streaming lib timeout from 10 sec to 45 
-sec which greatly improved things. The SSU max timeout is 3 sec. The NTCP max 
-timeout is presumably at least 60 sec, which is the RFC recommendation. There 
-is no way to change NTCP parameters or monitor performance. Collapse of the 
-NTCP layer is [editor: text lost]. Perhaps an external tool like tcpdump would help.
-</p><p>
-
-However, running .28, the i2psnark reported upstream does not generally stay at 
-a high level. It often goes down to 3-4 KBps before climbing back up. This is a 
-signal that there are still collapses.
-</p><p>
-
-SSU is also more efficient. NTCP has higher overhead and probably higher round 
-trip times. when using NTCP the ratio of (tunnel output) / (i2psnark data 
-output) is at least 3.5 : 1. Running an experiment where the code was modified 
-to prefer SSU (the config option i2np.udp.alwaysPreferred has no effect in the 
-current code), the ratio reduced to about 3 : 1, indicating better efficiency.
-</p><p>
-
-As reported by streaming lib stats, things were much improved - lifetime window 
-size up from 6.3 to 7.5, RTT down from 11.5s to 10s, sends per ack down from 
-1.11 to 1.07.
-</p><p>
-
-That this was quite effective was surprising, given that we were only changing 
-the transport for the first of 3 to 5 total hops the outbound messages would 
-take.
-</p><p>
-
-The effect on outbound i2psnark speeds wasn't clear due to normal variations. 
-Also for the experiment, inbound NTCP was disabled. The effect on inbound 
-speeds on i2psnark was not clear.
-</p>
-<h4>Proposals</h4>
-
-<ul>
-<li>
-1A)
-This is easy -
-We should flip the bid priorities so that SSU is preferred for all traffic, if 
-we can do this without causing all sorts of other trouble. This will fix the 
-i2np.udp.alwaysPreferred configuration option so that it works (either as true 
-or false).
-
-<li>
-1B)
-Alternative to 1A), not so easy -
-If we can mark traffic without adversely affecting our anonymity goals, we 
-should identify streaming-lib generated traffic and have SSU generate a low bid 
-for that traffic. This tag will have to go with the message through each hop
-so that the forwarding routers also honor the SSU preference.
-
-
-<li>
-2)
-Bounding SSU even further (reducing maximum retransmissions from the current 
-10) is probably wise to reduce the chance of collapse.
-
-<li>
-3)
-We need further study on the benefits vs. harm of a semi-reliable protocol 
-underneath the streaming lib. Are retransmissions over a single hop beneficial 
-and a big win or are they worse than useless?
-We could do a new SUU (secure unreliable UDP) but probably not worth it. We 
-could perhaps add a no-ack-required message type in SSU if we don't want any 
-retransmissions at all of streaming-lib traffic. Are tightly bounded 
-retransmissions desirable?
-
-<li>
-4)
-The priority sending code in .28 is only for NTCP. So far my testing hasn't 
-shown much use for SSU priority as the messages don't queue up long enough for 
-priorities to do any good. But more testing needed.
-
-<li>
-5)
-The new streaming lib max timeout of 45s is probably still too low.
-The TCP RFC says 60s. It probably shouldn't be shorter than the underlying NTCP max timeout (presumably 60s).
-</ul>
-
-<h3>Response by jrandom</h3>
-Posted to new Syndie, 2007-03-27
-<p>
-On the whole, I'm open to experimenting with this, though remember why NTCP is 
-there in the first place - SSU failed in a congestion collapse. NTCP "just 
-works", and while 2-10% retransmission rates can be handled in normal 
-single-hop networks, that gives us a 40% retransmission rate with 2 hop 
-tunnels. If you loop in some of the measured SSU retransmission rates we saw 
-back before NTCP was implemented (10-30+%), that gives us an 83% retransmission 
-rate. Perhaps those rates were caused by the low 10 second timeout, but 
-increasing that much would bite us (remember, multiply by 5 and you've got half 
-the journey).
-</p><p>
-
-Unlike TCP, we have no feedback from the tunnel to know whether the message 
-made it - there are no tunnel level acks. We do have end to end ACKs, but only 
-on a small number of messages (whenever we distribute new session tags) - out 
-of the 1,553,591 client messages my router sent, we only attempted to ACK 
-145,207 of them. The others may have failed silently or succeeded perfectly.
-</p><p>
-
-I'm not convinced by the TCP-over-TCP argument for us, especially split across 
-the various paths we transfer down. Measurements on I2P can convince me 
-otherwise, of course.
-</p><p>
-
-<i>
-The NTCP max timeout is presumably at least 60 sec, which is the RFC 
-recommendation. There is no way to change NTCP parameters or monitor 
-performance.
-</i>
-</p><p>
-
-
-True, but net connections only get up to that level when something really bad 
-is going on - the retransmission timeout on TCP is often on the order of tens 
-or hundreds of milliseconds. As foofighter points out, they've got 20+ years 
-experience and bugfixing in their TCP stacks, plus a billion dollar industry 
-optimizing hardware and software to perform well according to whatever it is 
-they do.
-</p><p>
-
-<i>
-NTCP has higher overhead and probably higher round trip times. when using NTCP 
-the ratio of (tunnel output) / (i2psnark data output) is at least 3.5 : 1. 
-Running an experiment where the code was modified to prefer SSU (the config 
-option i2np.udp.alwaysPreferred has no effect in the current code), the ratio 
-reduced to about 3 : 1, indicating better efficiency.
-</i>
-</p><p>
-
-
-This is very interesting data, though more as a matter of router congestion 
-than bandwidth efficiency - you'd have to compare 3.5*$n*$NTCPRetransmissionPct 
-./. 3.0*$n*$SSURetransmissionPct. This data point suggests there's something in 
-the router that leads to excess local queuing of messages already being 
-transferred.
-</p><p>
-
-<i>
-lifetime window size up from 6.3 to 7.5, RTT down from 11.5s to 10s, sends per 
-ACK down from 1.11 to 1.07.
-</i>
-
-</p><p>
-
-Remember that the sends-per-ACK is only a sample not a full count (as we don't 
-try to ACK every send). Its not a random sample either, but instead samples 
-more heavily periods of inactivity or the initiation of a burst of activity - 
-sustained load won't require many ACKs.
-</p><p>
-
-Window sizes in that range are still woefully low to get the real benefit of 
-AIMD, and still too low to transmit a single 32KB BT chunk (increasing the 
-floor to 10 or 12 would cover that).
-</p><p>
-
-Still, the wsize stat looks promising - over how long was that maintained?
-</p><p>
-
-Actually, for testing purposes, you may want to look at 
-StreamSinkClient/StreamSinkServer or even TestSwarm in 
-apps/ministreaming/java/src/net/i2p/client/streaming/ - StreamSinkClient is a 
-CLI app that sends a selected file to a selected destination and 
-StreamSinkServer creates a destination and writes out any data sent to it 
-(displaying size and transfer time). TestSwarm combines the two - flooding 
-random data to whomever it connects to. That should give you the tools to 
-measure sustained throughput capacity over the streaming lib, as opposed to BT 
-choke/send.
-</p><p>
-
-<i>
-1A)
-
-This is easy -
-We should flip the bid priorities so that SSU is preferred for all traffic, if 
-we can do this without causing all sorts of other trouble. This will fix the 
-i2np.udp.alwaysPreferred configuration option so that it works (either as true 
-or false).
-</i>
-</p><p>
-
-
-Honoring i2np.udp.alwaysPreferred is a good idea in any case - please feel free 
-to commit that change. Lets gather a bit more data though before switching the 
-preferences, as NTCP was added to deal with an SSU-created congestion collapse.
-</p><p>
-
-<i>
-1B)
-Alternative to 1A), not so easy -
-If we can mark traffic without adversely affecting our anonymity goals, we 
-should identify streaming-lib generated traffic
-and have SSU generate a low bid for that traffic. This tag will have to go with 
-the message through each hop
-so that the forwarding routers also honor the SSU preference.
-</i>
-</p><p>
-
-
-In practice, there are three types of traffic - tunnel building/testing, netDb 
-query/response, and streaming lib traffic. The network has been designed to 
-make differentiating those three very hard.
-
-</p><p>
-
-<i>
-2)
-Bounding SSU even further (reducing maximum retransmissions from the current 
-10) is probably wise to reduce the chance of collapse.
-</i>
-</p><p>
-
-
-At 10 retransmissions, we're up shit creek already, I agree. One, maybe two 
-retransmissions is reasonable, from a transport layer, but if the other side is 
-too congested to ACK in time (even with the implemented SACK/NACK capability), 
-there's not much we can do.
-</p><p>
-
-In my view, to really address the core issue we need to address why the router 
-gets so congested to ACK in time (which, from what I've found, is due to CPU 
-contention). Maybe we can juggle some things in the router's processing to make 
-the transmission of an already existing tunnel higher CPU priority than 
-decrypting a new tunnel request? Though we've got to be careful to avoid 
-starvation.
-</p><p>
-
-<i>
-3)
-We need further study on the benefits vs. harm of a semi-reliable protocol 
-underneath the streaming lib. Are retransmissions over a single hop beneficial 
-and a big win or are they worse than useless?
-We could do a new SUU (secure unreliable UDP) but probably not worth it. We 
-could perhaps add a no-ACK-required message type in SSU if we don't want any 
-retransmissions at all of streaming-lib traffic. Are tightly bounded 
-retransmissions desirable?
-</i>
-
-</p><p>
-
-Worth looking into - what if we just disabled SSU's retransmissions? It'd 
-probably lead to much higher streaming lib resend rates, but maybe not.
-</p><p>
-
-<i>
-4)
-The priority sending code in .28 is only for NTCP. So far my testing hasn't 
-shown much use for SSU priority as the messages don't queue up long enough for 
-priorities to do any good. But more testing needed.
-</i>
-
-</p><p>
-
-There's UDPTransport.PRIORITY_LIMITS and UDPTransport.PRIORITY_WEIGHT (honored 
-by TimedWeightedPriorityMessageQueue), but currently the weights are almost all 
-equal, so there's no effect. That could be adjusted, of course (but as you 
-mention, if there's no queuing, it doesn't matter).
-</p><p>
-
-<i>
-5)
-The new streaming lib max timeout of 45s is probably still too low. The TCP RFC 
-says 60s. It probably shouldn't be shorter than the underlying NTCP max timeout 
-(presumably 60s).
-</i>
-</p><p>
-
-
-That 45s is the max retransmission timeout of the streaming lib though, not the 
-stream timeout. TCP in practice has retransmission timeouts orders of magnitude 
-less, though yes, can get to 60s on links running through exposed wires or 
-satellite transmissions ;) If we increase the streaming lib retransmission 
-timeout to e.g. 75 seconds, we could go get a beer before a web page loads 
-(especially assuming less than a 98% reliable transport). That's one reason we 
-prefer NTCP.
-</p>
-
-
-<h3>Response by zzz</h3>
-Posted to new Syndie, 2007-03-31
-<p>
-
-<i>
-At 10 retransmissions, we're up shit creek already, I agree. One, maybe two 
-retransmissions is reasonable, from a transport layer, but if the other side is 
-too congested to ACK in time (even with the implemented SACK/NACK capability), 
-there's not much we can do.
-<br>
-In my view, to really address the core issue we need to address why the 
-router gets so congested to ACK in time (which, from what I've found, is due to 
-CPU contention). Maybe we can juggle some things in the router's processing to 
-make the transmission of an already existing tunnel higher CPU priority than 
-decrypting a new tunnel request? Though we've got to be careful to avoid 
-starvation.
-</i>
-</p><p>
-
-One of my main stats-gathering techniques is turning on 
-net.i2p.client.streaming.ConnectionPacketHandler=DEBUG and watching the RTT 
-times and window sizes as they go by. To overgeneralize for a moment, it's 
-common to see 3 types of connections: ~4s RTT, ~10s RTT, and ~30s RTT. Trying 
-to knock down the 30s RTT connections is the goal. If CPU contention is the 
-cause then maybe some juggling will do it.
-</p><p>
-
-Reducing the SSU max retrans from 10 is really just a stab in the dark as we 
-don't have good data on whether we are collapsing, having TCP-over-TCP issues, 
-or what, so more data is needed.
-</p><p>
-
-<i>
-Worth looking into - what if we just disabled SSU's retransmissions? It'd 
-probably lead to much higher streaming lib resend rates, but maybe not.
-</i>
-</p><p>
-
-What I don't understand, if you could elaborate, are the benefits of SSU 
-retransmissions for non-streaming-lib traffic. Do we need tunnel messages (for 
-example) to use a semi-reliable transport or can they use an unreliable or 
-kinda-sorta-reliable transport (1 or 2 retransmissions max, for example)? In 
-other words, why semi-reliability?
-</p><p>
-
-<i>
-(but as you mention, if there's no queuing, it doesn't matter).
-</i>
-</p><p>
-
-I implemented priority sending for UDP but it kicked in about 100,000 times 
-less often than the code on the NTCP side. Maybe that's a clue for further 
-investigation or a hint - I don't understand why it would back up that much 
-more often on NTCP, but maybe that's a hint on why NTCP performs worse.
-
-</p>
-
-<h3>Question answered by jrandom</h3>
-Posted to new Syndie, 2007-03-31
-<p>
-measured SSU retransmission rates we saw back before NTCP was implemented 
-(10-30+%)
-</p><p>
-
-Can the router itself measure this? If so, could a transport be selected based 
-on measured performance? (i.e. if an SSU connection to a peer is dropping an 
-unreasonable number of messages, prefer NTCP when sending to that peer)
-</p><p>
-
-
-
-Yeah, it currently uses that stat right now as a poor-man's MTU detection (if 
-the retransmission rate is high, it uses the small packet size, but if its low, 
-it uses the large packet size). We tried a few things when first introducing 
-NTCP (and when first moving away from the original TCP transport) that would 
-prefer SSU but fail that transport for a peer easily, causing it to fall back 
-on NTCP. However, there's certainly more that could be done in that regard, 
-though it gets complicated quickly (how/when to adjust/reset the bids, whether 
-to share these preferences across multiple peers or not, whether to share it 
-across multiple sessions with the same peer (and for how long), etc).
-
-
-<h3>Response by foofighter</h3>
-Posted to new Syndie, 2007-03-26
-<p>
-
-If I've understood things right, the primary reason in favor of TCP (in 
-general, both the old and new variety) was that you needn't worry about coding 
-a good TCP stack. Which ain't impossibly hard to get right... just that 
-existing TCP stacks have a 20 year lead.
-</p><p>
-
-AFAIK, there hasn't been much deep theory behind the preference of TCP versus 
-UDP, except the following considerations:
-
-<ul>
-<li>
- A TCP-only network is very dependent on reachable peers (those who can forward 
-incoming connections through their NAT)
-<li>
- Still even if reachable peers are rare, having them be high capacity somewhat 
-alleviates the topological scarcity issues
-<li>
- UDP allows for "NAT hole punching" which lets people be "kind of 
-pseudo-reachable" (with the help of introducers) who could otherwise only 
-connect out
-<li>
- The "old" TCP transport implementation required lots of threads, which was a 
-performance killer, while the "new" TCP transport does well with few threads
-<li>
- Routers of set A crap out when saturated with UDP. Routers of set B crap out 
-when saturated with TCP.
-<li>
- It "feels" (as in, there are some indications but no scientific data or 
-quality statistics) that A is more widely deployed than B
-<li>
- Some networks carry non-DNS UDP datagrams with an outright shitty quality, 
-while still somewhat bothering to carry TCP streams.
-</ul>
-</p><p>
-
-
-On that background, a small diversity of transports (as many as needed, but not 
-more) appears sensible in either case. Which should be the main transport, 
-depends on their performance-wise. I've seen nasty stuff on my line when I 
-tried to use its full capacity with UDP. Packet losses on the level of 35%.
-</p><p>
-
-We could definitely try playing with UDP versus TCP priorities, but I'd urge 
-caution in that. I would urge that they not be changed too radically all at 
-once, or it might break things.
-
-</p>
-
-<h3>Response by zzz</h3>
-Posted to new Syndie, 2007-03-27
-<p>
-<i>
-AFAIK, there hasn't been much deep theory behind the preference of TCP versus 
-UDP, except the following considerations:
-</i>
-
-</p><p>
-
-These are all valid issues. However you are considering the two protocols in 
-isolation, whether than thinking about what transport protocol is best for a 
-particular higher-level protocol (i.e. streaming lib or not).
-</p><p>
-
-What I'm saying is you have to take the streaming lib into consideration.
-
-So either shift the preferences for everybody or treat streaming lib traffic 
-differently.
-
-That's what my proposal 1B) is talking about - have a different preference for 
-streaming-lib traffic than for non streaming-lib traffic (for example tunnel 
-build messages).
-</p><p>
-
-<i>
-
-On that background, a small diversity of transports (as many as needed, but 
-not more) appears sensible in either case. Which should be the main transport, 
-depends on their performance-wise. I've seen nasty stuff on my line when I 
-tried to use its full capacity with UDP. Packet losses on the level of 35%.
-
-</i>
-</p><p>
-
-Agreed. The new .28 may have made things better for packet loss over UDP, or 
-maybe not.
-
-One important point - the transport code does remember failures of a transport. 
-So if UDP is the preferred transport, it will try it first, but if it fails for 
-a particular destination, the next attempt for that destination it will try 
-NTCP rather than trying UDP again.
-</p><p>
-
-<i>
-We could definitely try playing with UDP versus TCP priorities, but I'd urge 
-caution in that. I would urge that they not be changed too radically all at 
-once, or it might break things.
-</i>
-</p><p>
-
-We have four tuning knobs - the four bid values (SSU and NTCP, for 
-already-connected and not-already-connected).
-We could make SSU be preferred over NTCP only if both are connected, for 
-example, but try NTCP first if neither transport is connected.
-</p><p>
-
-The other way to do it gradually is only shifting the streaming lib traffic 
-(the 1B proposal) however that could be hard and may have anonymity 
-implications, I don't know. Or maybe shift the traffic only for the first 
-outbound hop (i.e. don't propagate the flag to the next router), which gives 
-you only partial benefit but might be more anonymous and easier.
-</p>
-
-<h3>Results of the Discussion</h3>
-... and other related changes in the same timeframe (2007):
-<ul>
-<li>
-Significant tuning of the streaming lib parameters,
-greatly increasing outbound performance, was implemented in 0.6.1.28
-<li>
-Priority sending for NTCP was implemented in 0.6.1.28
-<li>
-Priority sending for SSU was implemented by zzz but was never checked in
-<li>
-The advanced transport bid control
-i2np.udp.preferred was implemented in 0.6.1.29.
-<li>
-Pushback for NTCP was implemented in 0.6.1.30, disabled in 0.6.1.31 due to anonymity concerns,
-and re-enabled with improvements to address those concerns in 0.6.1.32.
-<li>
-None of zzz's proposals 1-5 have been implemented.
-</ul>
 
 {% endblock %}
