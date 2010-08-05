@@ -1,9 +1,10 @@
 {% extends "_layout.html" %}
 {% block title %}Common structure Specification{% endblock %}
 {% block content %}
+Updated August 2010, current as of router version 0.8
 <h1>Data types Specification</h1>
 <p>
-  This document describes some data types common to all I2P-protocols, like I2NP, I2CP, NTCP, etc.
+  This document describes some data types common to all I2P protocols, like I2NP, I2CP, NTCP, etc.
 </p>
 
 <h2 id="type_Integer">Integer</h2>
@@ -89,7 +90,7 @@ Deprecated - unused
 <h2 id="type_SigningPublicKey">SigningPublicKey</h2>
 <h4>Description</h4>
 <p>
-  This structure is used for verifying DSA signatures.
+  This structure is used for verifying <a href="how_cryptography.html#DSA">DSA</a> signatures.
 </p>
 <h4>Contents</h4>
 <p>
@@ -101,7 +102,7 @@ Deprecated - unused
 <h2 id="type_SigningPrivateKey">SigningPrivateKey</h2>
 <h4>Description</h4>
 <p>
-  This structure is used for creating DSA signatures.
+  This structure is used for creating <a href="how_cryptography.html#DSA">DSA</a> signatures.
 </p>
 <h4>Contents</h4>
 <p>
@@ -113,7 +114,7 @@ Deprecated - unused
 <h2 id="type_Signature">Signature</h2>
 <h4>Description</h4>
 <p>
-  This structure represents the DSA signature of some data.
+  This structure represents the <a href="how_cryptography.html#DSA">DSA</a> signature of some data.
 </p>
 <h4>Contents</h4>
 <p>
@@ -193,6 +194,24 @@ payload :: data
 <h4><a href="http://docs.i2p2.de/core/net/i2p/data/Certificate.html">Javadoc</a></h4>
 
 
+<h2 id="type_Mapping">Mapping</h2>
+<h4>Description</h4>
+<p>
+   FIXME
+</p>
+<h4>Contents</h4>
+<p>
+   FIXME
+</p>
+<pre>
+{% filter escape %}
+   FIXME
+{% endfilter %}
+</pre>
+
+<h4><a href="http://docs.i2p2.de/core/net/i2p/data/DataHelper.html">Javadoc</a></h4>
+
+
 
 <h1>Common structure specification</h1>
 
@@ -237,6 +256,10 @@ certificate :: Certificate
                length -> >= 3 bytes
 
 {% endfilter %}
+
+<h4>Notes</h4>
+The certificate for a RouterIdentity is currently unused and is always NULL.
+
 </pre>
 
 <h4><a href="http://docs.i2p2.de/core/net/i2p/data/RouterIdentity.html">Javadoc</a></h4>
@@ -423,6 +446,9 @@ signature :: Signature
 </pre>
 
 <h4>Notes</h4>
+<p>
+The signature may be verified using the signing public key of the destination.
+
 The signing_key is currently unused. It was intended for LeaseSet revocation, which is unimplemented.
 
 <h4><a href="http://docs.i2p2.de/core/net/i2p/data/LeaseSet.html">Javadoc</a></h4>
@@ -523,6 +549,16 @@ options :: Mapping
 +----+----+----+----+-//-+----+----+----+
 |psiz| options                          |
 +----+----+----+----+-//-+----+----+----+
+| signature                             |
++                                       +
+|                                       |
++                                       +
+|                                       |
++                                       +
+|                                       |
++                                       +
+|                                       |
++----+----+----+----+----+----+----+----+
 
 router_ident :: RouterIdentity
                 length -> >= 387 bytes
@@ -542,12 +578,18 @@ peer_size :: Integer
              value -> 0
 
 options :: Mapping
+
+signature :: Signature
+             length -> 40 bytes
+
 {% endfilter %}
 </pre>
 
 <h4>Notes</h4>
 The peer_size Integer may be followed by a list of that many router hashes.
 This is currently unused. It was intended for a form of restricted routes, which is unimplemented.
+<p>
+The signature may be verified using the signing public key of the router_ident.
 
 <h4><a href="http://docs.i2p2.de/core/net/i2p/data/RouterInfo.html">Javadoc</a></h4>
 

@@ -2,7 +2,7 @@
 {% block title %}Low-level Cryptography Details{% endblock %}
 {% block content %}
 <p>
-Updated July 2010, current as of router version 0.8
+Updated August 2010, current as of router version 0.8
 <p>
 This page specifies the low-level details of the cryptography in I2P.
 <p>
@@ -16,6 +16,8 @@ technique used in <a href="how_elgamalaes">ElGamal/AES+SessionTag</a> (but we're
 <p>
 <H2><a name="elgamal">ElGamal encryption</a></H2>
 
+<p>
+ElGamal is used for asymmetric encryption.
 <p>
 We use common primes for 2048 ElGamal encryption and decryption, as given by <a href="http://tools.ietf.org/html/rfc3526">IETF RFC-3526</a>.
 We currently only use ElGamal to encrypt the IV and session key in a single block, followed by the 
@@ -43,7 +45,7 @@ ElGamal is never used on its own in I2P, but instead always as part of
 <p>
 The shared prime is the 
 
-<a href="http://tools.ietf.org/html/rfc3526#section-3">[Oakley prime for 2048bit keys]</a>
+<a href="http://tools.ietf.org/html/rfc3526#section-3">[Oakley prime for 2048 bit keys]</a>
 <PRE>
  2^2048 - 2^1984 - 1 + 2^64 * { [2^1918 pi] + 124476 }
 </PRE>
@@ -86,12 +88,19 @@ apparently supports this, according to
 <a href="http://groups.google.com/group/sci.crypt/browse_thread/thread/1855a5efa7416677/339fa2f945cc9ba0#339fa2f945cc9ba0">this sci.crypt thread</a>.
 The remainder of the PublicKey is padded with zeroes.
 
+<H4>Obsolescence</H4>
+<p>
+The vulnerability of the network to an ElGamal attack and the impact of transitioning to a longer bit length is to be studied.
+It may be quite difficult to make any change backward-compatible.
+</p>
 
 
 <H2><a name="AES">AES</a></H2>
 
 <p>
-We use 256bit AES in CBC mode.
+AES is used for symmetric encryption.
+<p>
+We use 256 bit AES in CBC mode.
 The padding used is specified in <a href="http://tools.ietf.org/html/rfc2313">IETF RFC-2313 (PKCS#5 1.5, section 8.1 (for block type 02))</a>.
 In this case, padding exists of pseudorandomly generated octets to match 16 byte blocks.
 Specifically, see 
@@ -120,23 +129,34 @@ Two situations are possible:
 <p>
 After the data comes an application specified number of randomly generated padding bytes, and
 this entire segment (from H(data) through the end of the random bytes) is AES encrypted 
-(256bit CBC w/ PKCS#5). 
+(256 bit CBC w/ PKCS#5). 
 
 <p>
 This code is implemented in the safeEncrypt and safeDecrypt methods of 
 <a href="http://docs.i2p2.de/core/net/i2p/crypto/AESEngine.html">[AESEngine]</a>
+</p>
+
+<H4>Obsolescence</H4>
 <p>
+The vulnerability of the network to an AES attack and the impact of transitioning to a longer bit length is to be studied.
+It may be quite difficult to make any change backward-compatible.
+</p>
+
+
 <H2><a name="DSA">DSA</a></H2>
 
 <p>
-Signatures are generated and verified with 1024bit DSA, as implemented in
-<a href="http://docs.i2p2.de/core/net/i2p/crypto/DSAEngine.html">[DSAEngine]</a> 
+Signatures are generated and verified with 1024 bit DSA (L=1024, N=160), as implemented in
+<a href="http://docs.i2p2.de/core/net/i2p/crypto/DSAEngine.html">[DSAEngine]</a>.
+DSA was chosen because it is much faster for signatures than ElGamal.
 <p>
 <H3>The DSA constants</H3>
 
 <p>
 
 <H4>SEED</H4>
+
+<p>160 bit</p>
 
 <PRE>
  86108236b8526e296e923a4015b4282845b572cc
@@ -147,7 +167,9 @@ Signatures are generated and verified with 1024bit DSA, as implemented in
  33
 </PRE>
 <p>
-<H4>DSA prime</H4>
+<H4>DSA prime (p)</H4>
+
+<p>1024 bit</p>
 
 <p>
 <PRE>
@@ -159,14 +181,16 @@ Signatures are generated and verified with 1024bit DSA, as implemented in
  B6051F5B 22CC1C93
 </PRE>
 <p>
-<H4>DSA quotient</H4>
+<H4>DSA quotient (q)</H4>
 
 <p>
 <PRE>
  A5DFC28F EF4CA1E2 86744CD8 EED9D29D 684046B7
 </PRE>
 <p>
-<H4>DSA generator</H4>
+<H4>DSA generator (g)</H4>
+
+<p>1024 bit</p>
 
 <p>
 <PRE>
@@ -177,7 +201,35 @@ Signatures are generated and verified with 1024bit DSA, as implemented in
  5D0484B8 129FCF17 BCE4F7F3 3321C3CB 3DBB14A9 05E7B2B3
  E93BE470 8CBCC82
 </PRE>
+
 <p>
+The <a href="common_structures_spec.html#type_SigningPublicKey">Signing Public Key</a> is 1024 bits.
+The <a href="common_structures_spec.html#type_SigningPrivateKey">Signing Private Key</a> is 160 bits.
+</p>
+
+
+<H4>Obsolescence</H4>
+<p>
+<a href="http://csrc.nist.gov/publications/nistpubs/800-57/sp800-57-Part1-revised2_Mar08-2007.pdf">NIST 800-57</a>
+recommends a minimum of (L=2048, N=224) for usage beyond 2010.
+This may be mitigated somewhat by the "cryptoperiod", or lifespan of a given key.
+The vulnerability of the network to a DSA attack and the impact of transitioning to longer keys is to be studied.
+It may be quite difficult to make any change backward-compatible.
+</p>
+
+<H4>References</H4>
+<ul>
+<li>
+<a href="meeting51.html">Meeting 51</a>
+<li>
+<a href="meeting52.html">Meeting 52</a>
+<li>
+<a href="http://article.gmane.org/gmane.comp.security.invisiblenet.iip.devel/343">Choosing the constants</a>
+<li>
+<a href="http://en.wikipedia.org/wiki/Digital_Signature_Algorithm">DSA</a>
+</ul>
+
+
 <H2><a name="SHA256">SHA256</a></H2>
 
 <p>
@@ -185,19 +237,31 @@ Hashes within I2P are plain old SHA256, as implemented in
 <a href="http://docs.i2p2.de/core/net/i2p/crypto/SHA256Generator.html">[SHA256Generator]</a>
 
 
+<H4>Obsolescence</H4>
+<p>
+The vulnerability of the network to a SHA-256 attack and the impact of transitioning to a longer hash is to be studied.
+It may be quite difficult to make any change backward-compatible.
+</p>
+
+<H4>References</H4>
+<ul>
+<li>
+<a href="http://en.wikipedia.org/wiki/SHA-2">SHA-2</a>
+</ul>
+
 <h2>Transports</h2>
 At the lowest 
 level, inter-router communication is protected by the transport layer security.
 
-<H3><a name="tcp">TCP connections</a></H3>
+<H3><a name="tcp">NTCP connections</a></H3>
 
 <p>
-TCP connections are currently negotiated with a 2048 Diffie-Hellman implementation,
+NTCP connections are currently negotiated with a 2048 Diffie-Hellman implementation,
 using the router's identity to proceed with a station to station agreement, followed by
 some encrypted protocol specific fields, with all subsequent data encrypted with AES
 (as above).
 A possible enhancement is to use session tags like we do with 
-<a href="how_elgamalaes">ElGamalAES+SessionTag</a> to avoid the 2048bit DH negotiation.  
+<a href="how_elgamalaes">ElGamalAES+SessionTag</a> to avoid the 2048 bit DH negotiation.  
 <p>
 In order to migrate to a more standardized implementation (TLS/SSL or even SSH), the following issues must be addressed:
 <p>
@@ -207,16 +271,25 @@ In order to migrate to a more standardized implementation (TLS/SSL or even SSH),
      contains the ElGamal and DSA keys)?
 
 </OL>
+<p>
+See <a href="ntcp.html">the NTCP specification</a> for details.
 
 <H3><a name="udp">UDP connections</a></H3>
 
 SSU (the UDP transport) encrypts each packet with AES256/CBC with both an explicit IV and MAC 
-(HMAC-MD5-128) after agreeing upon an ephemeral session key through a 2048bit 
+(HMAC-MD5-128) after agreeing upon an ephemeral session key through a 2048 bit 
 Diffie-Hellman exchange, station-to-station authentication with the other 
 router's DSA key, plus each network message has their own hash for local integrity 
 checking.
 <p>
 See <a href="udp.html#keys">the SSU specification</a> for details.
+
+
+<H3>References</H3>
+<ul>
+<li>
+<a href="http://csrc.nist.gov/publications/nistpubs/800-57/sp800-57-Part1-revised2_Mar08-2007.pdf">NIST 800-57</a>
+</ul>
 
 
 {% endblock %}
