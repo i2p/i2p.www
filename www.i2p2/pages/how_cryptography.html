@@ -38,7 +38,7 @@ block is formatted (in network byte order):
 The H(data) is the SHA256 of the data that is encrypted in the ElGamal block,
 and is preceded by a random nonzero byte.  The data encrypted in the block 
 can be up to 222 bytes long. See 
-<a href="http://docs.i2p2.de/core/net/i2p/crypto/ElGamalEngine.html">the ElGamal Javadoc</a>.
+<a href="http://trac.i2p2.de/browser/core/java/src/net/i2p/crypto/ElGamalEngine.java?rev=85a542c53d910dffbf34cdcefb8a2faeee96adc4">the ElGamal code</a>.
 <p>
 ElGamal is never used on its own in I2P, but instead always as part of 
 <a href="how_elgamalaes">ElGamal/AES+SessionTag</a>.
@@ -104,17 +104,17 @@ We use 256 bit AES in CBC mode.
 The padding used is specified in <a href="http://tools.ietf.org/html/rfc2313">IETF RFC-2313 (PKCS#5 1.5, section 8.1 (for block type 02))</a>.
 In this case, padding exists of pseudorandomly generated octets to match 16 byte blocks.
 Specifically, see 
-<a href="http://docs.i2p2.de/core/net/i2p/crypto/CryptixAESEngine.html">[the CBC code]</a> 
+<a href="http://trac.i2p2.de/browser/core/java/src/net/i2p/crypto/CryptixAESEngine.java?rev=85a542c53d910dffbf34cdcefb8a2faeee96adc4">[the CBC code]</a> 
 and the Cryptix AES 
-<a href="http://docs.i2p2.de/core/net/i2p/crypto/CryptixRijndael_Algorithm.html">[implementation]</a>,
+<a href="http://trac.i2p2.de/browser/core/java/src/net/i2p/crypto/CryptixRijndael_Algorithm.java?rev=85a542c53d910dffbf34cdcefb8a2faeee96adc4">[implementation]</a>,
 as well as the padding, found in the
-<a href="http://trac.i2p2.de/browser/core/java/src/net/i2p/crypto/ElGamalAESEngine.java">ElGamalAESEngine.getPadding</a> function.
+<a href="http://trac.i2p2.de/browser/core/java/src/net/i2p/crypto/ElGamalAESEngine.java?rev=85a542c53d910dffbf34cdcefb8a2faeee96adc4">ElGamalAESEngine.getPadding</a> function.
 <p>
 Two situations are possible:
 <p>
 1. For situations where we stream AES data, we still use the same algorithm, as implemented in
-<a href="http://docs.i2p2.de/core/net/i2p/crypto/AESOutputStream.html">[AESOutputStream]</a>
-<a href="http://docs.i2p2.de/core/net/i2p/crypto/AESInputStream.html">[AESInputStream]</a>
+<a href="http://trac.i2p2.de/browser/core/java/src/net/i2p/crypto/AESOutputStream.java?rev=85a542c53d910dffbf34cdcefb8a2faeee96adc4">[AESOutputStream]</a>
+<a href="http://trac.i2p2.de/browser/core/java/src/net/i2p/crypto/AESInputStream.java?rev=85a542c53d910dffbf34cdcefb8a2faeee96adc4">[AESInputStream]</a>
 <p>
 2. For situations where we know the size of the data to be sent, we AES encrypt the following:
 <p>
@@ -124,16 +124,17 @@ Two situations are possible:
  |
  |
  |                                                               |
- |    size of data (in bytes)    |  data    ...  | rand  |
+ |    size of data (in bytes)    |  data    ...  | rand     ...  |
 </PRE>
 <p>
-After the data comes an application specified number of randomly generated padding bytes, and
-this entire segment (from H(data) through the end of the random bytes) is AES encrypted 
+After the data comes an application specified number of randomly generated padding bytes.
+This application specified number is rounded up to a multiple of 16.
+The entire segment (from H(data) through the end of the random bytes) is AES encrypted 
 (256 bit CBC w/ PKCS#5). 
 
 <p>
 This code is implemented in the safeEncrypt and safeDecrypt methods of 
-<a href="http://docs.i2p2.de/core/net/i2p/crypto/AESEngine.html">[AESEngine]</a>
+<a href="http://trac.i2p2.de/browser/core/java/src/net/i2p/crypto/AESEngine.java?rev=85a542c53d910dffbf34cdcefb8a2faeee96adc4">[AESEngine]</a>
 </p>
 
 <H4>Obsolescence</H4>
@@ -153,7 +154,7 @@ It may be quite difficult to make any change backward-compatible.
 
 <p>
 Signatures are generated and verified with 1024 bit DSA (L=1024, N=160), as implemented in
-<a href="http://docs.i2p2.de/core/net/i2p/crypto/DSAEngine.html">[DSAEngine]</a>.
+<a href="http://trac.i2p2.de/browser/core/java/src/net/i2p/crypto/DSAEngine.java?rev=85a542c53d910dffbf34cdcefb8a2faeee96adc4">[DSAEngine]</a>.
 DSA was chosen because it is much faster for signatures than ElGamal.
 <p>
 <H3>The DSA constants</H3>
@@ -219,6 +220,14 @@ The <a href="common_structures_spec.html#type_SigningPrivateKey">Signing Private
 <a href="http://csrc.nist.gov/publications/nistpubs/800-57/sp800-57-Part1-revised2_Mar08-2007.pdf">NIST 800-57</a>
 recommends a minimum of (L=2048, N=224) for usage beyond 2010.
 This may be mitigated somewhat by the "cryptoperiod", or lifespan of a given key.
+</p>
+<p>
+The prime number was chosen <a href="#choosing_constants">in 2003</a>,
+and the person that chose the number (TheCrypto) is currently no longer an I2P developer.
+As such, we do not know if the prime chosen is a 'strong prime'.
+If a larger prime is chosen for future purposes, this should be a strong prime, and we will document the construction process.
+</p>
+<p>
 The vulnerability of the network to a DSA attack and the impact of transitioning to longer keys is to be studied.
 It may be quite difficult to make any change backward-compatible.
 </p>
@@ -230,7 +239,7 @@ It may be quite difficult to make any change backward-compatible.
 <li>
 <a href="meeting52.html">Meeting 52</a>
 <li>
-<a href="http://article.gmane.org/gmane.comp.security.invisiblenet.iip.devel/343">Choosing the constants</a>
+<a name="choosing_constants" href="http://article.gmane.org/gmane.comp.security.invisiblenet.iip.devel/343">Choosing the constants</a>
 <li>
 <a href="http://en.wikipedia.org/wiki/Digital_Signature_Algorithm">DSA</a>
 </ul>
@@ -240,7 +249,7 @@ It may be quite difficult to make any change backward-compatible.
 
 <p>
 Hashes within I2P are plain old SHA256, as implemented in
-<a href="http://docs.i2p2.de/core/net/i2p/crypto/SHA256Generator.html">[SHA256Generator]</a>
+<a href="http://trac.i2p2.de/browser/core/java/src/net/i2p/crypto/SHA256Generator.java?rev=85a542c53d910dffbf34cdcefb8a2faeee96adc4">[SHA256Generator]</a>
 
 
 <H4>Obsolescence</H4>
