@@ -248,6 +248,56 @@ total length: 528
 </p>
 
 
+<h3 id="struct_GarlicClove">GarlicClove</h3>
+<pre>
+{% filter escape %}
+unencrypted:
++----+----+----+----+----+----+----+----+
+| Delivery Instructions                 |
+~                                       ~
+~                                       ~
+|                                       |
++----+----+----+----+----+----+----+----+
+| I2NP Message                          |
+~                                       ~
+~                                       ~
+|                                       |
++----+----+----+----+----+----+----+----+
+|    Clove ID       |     Expiration     
++----+----+----+----+----+----+----+----+
+                    | Certificate  |
++----+----+----+----+----+----+----+
+{% endfilter %}
+</pre>
+<h4>Definition</h4>
+<pre>
+unencrypted:
+Delivery Instructions :: <a href="tunnel_message_spec.html#delivery">as defined here</a>
+       Length varies but is typically 39, 43, or 47 bytes
+
+I2NP Message :: Any I2NP Message
+
+Clove ID :: 4 byte Integer
+
+Expiration :: Date (8 bytes)
+
+Certificate :: Always NULL in the current implementation (3 bytes total, all zeroes)
+
+</pre>
+
+<h4>Notes</h4>
+<ul>
+<li>
+  I2NP messages may not be fragmented across Garlic Cloves (the first bit of the Delivery Instructions flag must be 0)
+<li>
+  See also the <a href="how_garlicrouting.html">garlic routing specification</a>.
+<li>
+  See also <a href="tunnel_message_spec.html#delivery">Delvery Instructions definition</a>
+<li>
+  In the future, the certificate could possibly be used for a HashCash to "pay" for the routing.
+</ul>
+
+
 <h2 id="messages">Messages</h2>
 <table border=1>
   <tr>
@@ -504,6 +554,7 @@ excludedPeers:
 
 
 {% endfilter %}
+</pre>
 
 <h4>Definition</h4>
 <pre>
@@ -533,6 +584,15 @@ from:
 </p>
 
 <h3 id="msg_DeliveryStatus">DeliveryStatus</h3>
+<h4>Description</h4>
+<p>
+  A simple message acknowledgement. Generally created by the message originator, and wrapped
+  in a Garlic Message with the message itself, to be returned by the destination.
+</p>
+<h4>Contents</h4>
+<p>
+  The ID of the delivered message, and the creation or arrival time.
+</p>
 <pre>
 {% filter escape %}
 +----+----+----+----+----+----+----+----+----+----+----+----+
@@ -550,24 +610,110 @@ msg-id:
 
 arrival-time:
              8 bytes
-             time the message was successfully delivered
+             time the message was successfully created or delivered
 {% endfilter %}
 </pre>
 
 <h3 id="msg_Garlic">Garlic</h3>
+<h4>Description</h4>
+<p>
+  Used to wrap multiple encrypted I2NP Messages
+</p>
+<h4>Contents</h4>
+<p>
+  When decrypted, a series of Garlic Cloves.
+</p>
 <pre>
 {% filter escape %}
 encrypted:
 +----+----+----+----+----+----+----+----+
-|length             | tag               |
+|      length       | data              |
 +----+----+----+----+                   +
 |                                       |
-+                                       +
+~                                       ~
+~                                       ~
 |                                       |
-+                                       +
++----+----+----+----+----+----+----+----+
+
+
+unencrypted data:
++----+----+----+----+----+----+----+----+
+|num |  clove 1                         |
++----+                                  +
 |                                       |
-+                   +----+----+----+----+
-|                   
+~                                       ~
+~                                       ~
+|                                       |
++----+----+----+----+----+----+----+----+
+|         clove 2 ...                   |
+~                                       ~
+~                                       ~
+|                                       |
++----+----+----+----+----+----+----+----+
+| Certificate  |   Message ID      |     
++----+----+----+----+----+----+----+----+
+          Expiration               |
++----+----+----+----+----+----+----+
+{% endfilter %}
+</pre>
+
+<h4>Definition</h4>
+<pre>
+{% filter escape %}
+Encrypted:
+
+length:
+       4 bytes
+       number of bytes that follow 0 - 64 KB
+
+data:
+     $length bytes
+     elgamal encrypted data
+
+
+Unencrypted data:
+
+num:
+     1 byte Integer number of Garlic Cloves to follow
+
+clove:  A Garlic Clove
+
+Certificate :: Always NULL in the current implementation (3 bytes total, all zeroes)
+
+Message ID :: 4 byte Integer
+
+Expiration :: Date (8 bytes)
+
+{% endfilter %}
+</pre>
+
+<h4>Notes</h4>
+<ul>
+<li>
+  When unencrypted, data contains one or more Garlic Cloves.
+<li>
+  Actual max length is less than 64 KB; see the<a href="i2np.html">I2NP Overview</a>.
+<li>
+  See also the <a href="how_elgamalaes.html">ElGamal/AES specification</a>.
+<li>
+  See also the <a href="how_garlicrouting.html">garlic routing specification</a>.
+<li>
+  In the future, the certificate could possibly be used for a HashCash to "pay" for the routing.
+</ul>
+</p>
+
+
+<h3 id="msg_TunnelData">TunnelData</h3>
+<pre>
+{% filter escape %}
++----+----+----+----+----+----+----+----+
+|      length       | data              |
++----+----+----+----+                   |
+|                                       |
+~                                       ~
+~                                       ~
+|                                       |
++----+----+----+----+----+----+----+----+
 {% endfilter %}
 </pre>
 
@@ -575,40 +721,21 @@ encrypted:
 <pre>
 {% filter escape %}
 length:
-       4 bytes
-       number of bytes that follow
-
-data:
-     $length bytes
-     elgamal en
-{% endfilter %}
-</pre>
-
-<h3 id="msg_TunnelData">TunnelData</h3>
-<pre>
-{% filter escape %}
-+----+----+----+----+----+----+----+----+
-| tunnelId          | data              |
-+----+----+----+----+                   |
-|                                       |
-
-|                                       |
-+----+----+----+----+----+----+----+----+
-{% endfilter %}
-</pre>
-
-<h4>Definition</h4>
-<pre>
-{% filter escape %}
-tunnelId:
          4 bytes
-         identifies the tunnel this message is directed at
+         number of bytes that follow 0 - 64 KB - should always be 1024
 
 data:
      1024 bytes
      payload data.. fixed to 1024 bytes
 {% endfilter %}
 </pre>
+
+<h4>Notes</h4>
+<ul>
+<li>
+  See also the <a href="tunnel_message_spec.html">Tunnel Message Specification</a>
+</ul>
+
 
 <h3 id="msg_TunnelGateway">TunnelGateway</h3>
 <pre>
@@ -640,6 +767,15 @@ data:
 {% endblock %}
 
 <h3 id="msg_Data">Data</h3>
+<h4>Description</h4>
+<p>
+  Used as a wrapper for encrypted Garlic Messages and Garlic Cloves.
+  Also used previously for network load testing.
+</p>
+<h4>Contents</h4>
+<p>
+  A length Integer, followed by opaque data.
+</p>
 <pre>
 {% filter escape %}
 +----+----+----+----+----+---//--+
@@ -683,7 +819,7 @@ data:
 <h4>Definition</h4>
 <pre>
 {% filter escape %}
-Just 8 records attached together
+Just 8 Build Request Records attached together
 Record size: 528 bytes
 Total size: 8*528 = 4224 bytes
 {% endfilter %}
@@ -698,7 +834,7 @@ Total size: 8*528 = 4224 bytes
 <h3 id="msg_TunnelBuildReply">TunnelBuildReply</h3>
 <pre>
 {% filter escape %}
-same format as TunnelBuild message
+same format as TunnelBuild message, with Build Response Records
 {% endfilter %}
 </pre>
 
@@ -718,7 +854,7 @@ same format as TunnelBuild message
 <h4>Definition</h4>
 <pre>
 {% filter escape %}
-same format as TunnelBuildMessage, except for the addition of an "num" field in front and $num number of records instead of 8
+Same format as TunnelBuildMessage, except for the addition of an "num" field in front and $num number of Build Request Records instead of 8
 
 num:
        1 byte
@@ -730,18 +866,24 @@ Total size: 1 + $num*528
 </pre>
 
 <h4>Notes</h4>
-<p>
+<ul>
+<li>
+  This message was introduced in router version 0.7.12, and may not be sent to tunnel participants earlier than that version.
+<li>
   See also the <a href="tunnel-alt-creation.html">tunnel creation specification</a>.
-</p>
+</ul>
 
 <h3 id="msg_VariableTunnelBuildReply">VariableTunnelBuildReply</h3>
 <pre>
 {% filter escape %}
-same format as VariableTunnelBuild message
+Same format as VariableTunnelBuild message, with Build Response Records
 {% endfilter %}
 </pre>
 
 <h4>Notes</h4>
-<p>
+<ul>
+<li>
+  This message was introduced in router version 0.7.12, and may not be sent to tunnel participants earlier than that version.
+<li>
   See also the <a href="tunnel-alt-creation.html">tunnel creation specification</a>.
-</p>
+</ul>
