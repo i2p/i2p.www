@@ -1,13 +1,157 @@
 {% extends "_layout.html" %}
-{% block title %}Datagrams{% endblock %}
-{% block content %}<p>Datagrams build upon the base <a href="i2cp">I2CP</a> to provide authenticated
+{% block title %}Datagram Specification{% endblock %}
+{% block content %}
+
+Updated August 2010, current as of router version 0.8
+
+<h2>Datagram Overview</h2>
+<p>Datagrams build upon the base <a href="i2cp.html">I2CP</a> to provide authenticated
 and repliable messages in a standard format.  This lets applications reliably read
 the "from" address out of a datagram and know that the address really sent the
 message.  This is necessary for some applications since the base I2P message is
 completely raw - it has no "from" address (unlike IP packets).  In addition, the
-message and sender is authenticated by signing the payload.</p>
+message and sender are authenticated by signing the payload.</p>
+<p>
+Datagrams, like <a href="streaming.html">streaming library packets</a>,
+are an application-level construct.
+These protocols are independent of the low-level <a href="transports.html">transports</a>;
+the protocols are converted to I2NP messages by the router, and
+either protocol may be carried by either transport.
+</p>
 
-<p>Applications written in Java that want to use datagrams can access the 
-<a href="http://www.i2p.net/javadoc/net/i2p/client/datagram/package-summary.html">net.i2p.client.datagram</a>
-package (a part of the core SDK in i2p.jar), while applications in other languages 
-can use <a href="sam">SAM</a>'s datagram support.</p>{% endblock %}
+<h2>Application Guide</h2>
+<p>Applications written in Java may use the 
+<a href="http://docs.i2p2.de/net/i2p/client/datagram/package-summary.html">datagram API</a>,
+while applications in other languages 
+can use <a href="sam">SAM</a>'s datagram support.
+There is also limited support in i2ptunnel in the <a href="socks.html">SOCKS proxy</a>,
+the 'streamr' tunnel types, and udpTunnel classes.
+</p>
+
+<h3>Datagram Length</h3>
+<p>
+The application designer should carefully consider the tradeoff of repliable vs. non-repliable
+datagrams. Also, the datagram size will affect reliability, due to tunnel fragmentation into 1KB
+tunnel messages. The more message fragments, the more likely that one of them will be dropped
+by an intermediate hop. Messages larger than a few KB are not recommended.
+</p>
+<p>
+Also note that the various overheads added by lower layers, in particular asymmetric
+<a href="how_elgamalaes.html">ElGamal/AES</a>, place a large burden on intermittent messages
+such as used by a Kademlia-over-UDP application. The implementations are currently tuned
+for frequent traffic using the streaming library. There are a high number
+of session tags delivered, and a short session tag lifetime, for example.
+There are currently no configuration parameters available within I2CP to tune
+the ElGamal Session Tag parameters.
+</p>
+
+<h3>I2CP Protocol Number and Ports</h3>
+<p>
+The standard I2CP protocol number for datagrams is 17. Applications may or may not choose to set the
+protocol in the I2CP header. It is not set by default.
+It must be set to demultiplex datagram and streaming traffic received on the same Destination.
+</p>
+<p>
+As datagrams are not connection-oriented, the application may require
+port numbers to correlate datagrams with particular peers or communications sessions,
+as is traditional with UDP over IP.
+Applications may add 'from' and 'to' ports to the I2CP (gzip) header as described in
+the <a href="i2cp.html#format">I2CP page</a>.
+</p>
+<p>
+There is no method within the datagram API to specify whether it is non-repliable (raw)
+or repliable. The application should be designed to expect the appropriate type.
+The I2CP protocol number or port could also be used by the application to
+indicate datagram type.
+</p>
+<p>
+The protocols and ports may be set in I2CP's
+<a href="http://docs.i2p2.de/net/i2p/client/I2PSession.html">I2PSession API</a>,
+as implemented in
+<a href="http://docs.i2p2.de/net/i2p/client/I2PSessionMuxedImpl.html">I2PSessionMuxedImpl</a>.
+</p>
+
+<h2 id="spec">Specification</h2>
+
+<h3 id="raw">Non-Repliable Datagrams</h3>
+Non-repliable datagrams have no 'from' address and are not authenticated.
+They are also called "raw" datagrams.
+Strictly speaking, they are not "datagrams" at all, they are just raw data.
+They are not handled by the datagram API.
+However, SAM and the I2PTunnel classes support "raw datagrams".
+
+<h4>Format</h4>
+<pre>
++----+----+----+----+----//
+| payload...
++----+----+----+----+----//
+
+
+Length: 0 - unlimited (see notes)
+</pre>
+
+<h4>Notes</h4>
+The practical length is limited by lower layers of protocols - the
+<a href="tunnel_message_spec.html#notes">tunnel message spec</a>
+limits messages to about 61.2 KB and the
+<a href="transports.html">transports</a>
+currently limit messages to about 32 KB, although this may be raised in the future.
+
+
+<h3 id="repliable">Repliable Datagrams</h3>
+Repliable datagrams contain a 'from' address and a signature. These add 427 bytes of overhead.
+<h4>Format</h4>
+<pre>
++----+----+----+----+----+----+----+----+
+| from                                  |
++                                       +
+|                                       |
+~                                       ~
+~                                       ~
+|                                       |
++                                       +
+|                                       |
+|                                       |
++----+----+----+----+----+----+----+----+
+| signature                             |
++                                       +
+|                                       |
++                                       +
+|                                       |
++                                       +
+|                                       |
++                                       +
+|                                       |
++----+----+----+----+----+----+----+----+
+| payload...
++----+----+----+----//
+
+
+
+from      :: a <a href="common_structures_spec#type_Destination">Destination</a>
+               length: 387+ bytes
+               The originator and signer of the datagram
+
+signature :: a <a href="common_structures_spec#type_Signature">Signature</a>
+             length: 40 bytes
+             The <a href="how_cryptography.html#DSA">DSA</a> signature of the SHA256 hash of the payload, which may be verified by the
+             DSA signing public key of the 'from' Destination
+
+payload ::  The data
+            Length: 0 - 32 KB (see notes)
+
+Total length: Payload length + 427+
+
+
+</pre>
+
+<h4>Notes</h4>
+The practical length is limited by lower layers of protocols - the
+<a href="transports.html">transports</a>
+currently limit messages to about 32 KB, so the data length here is limited to about
+31.5 KB.
+
+
+
+
+{% endblock %}
