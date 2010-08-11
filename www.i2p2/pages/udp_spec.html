@@ -1,5 +1,5 @@
 {% extends "_layout.html" %}
-{% block title %}SSU Specification{% endblock %}
+{% block title %}SSU Protocol Specification{% endblock %}
 {% block content %}
 
 Updated July 2010 for release 0.8
@@ -8,79 +8,42 @@ Updated July 2010 for release 0.8
 
 <h1>Specification</h1>
 
+
+<h2 id="DH">DH Key Exchange</h2>
 <p>
-The goal of this protocol is to provide secure, authenticated,
-semireliable, and unordered message delivery, exposing only a minimal
-amount of data easily discernible to third parties.  It should 
-support high degree communication as well as TCP-friendly congestion
-control, and may include PMTU detection.   It should be capable of
-efficiently moving bulk data at rates sufficient for home users.
-In addition, it should support techniques for addressing network 
-obstacles, like most NATs or firewalls.</p>
-
-<h2 id="addressing">Addressing and introduction</h2>
-
-<p>To contact an SSU peer, one of two sets of information is necessary:
-a direct address, for when the peer is publicly reachable, or an 
-indirect address, for using a third party to introduce the peer.  
-There is no restriction on the number of addresses a peer may have.</p>
-
-<pre>
-    Direct: ssu://host:port/introKey[?opts=[A-Z]*]
-  Indirect: ssu://tag@relayhost:port/relayIntroKey/targetIntroKey[?opts=[A-Z]*]
-</pre>
-
-<p>These introduction keys are delivered through an external channel 
-(the network database, where they are identical to the router Hash for now)
-and must be used when establishing a session key.  For the indirect
-address, the peer must first contact the relayhost and ask them for
-an introduction to the peer known at that relayhost under the given
-tag.  If possible, the relayhost sends a message to the addressed
-peer telling them to contact the requesting peer, and also gives 
-the requesting peer the IP and port on which the addressed peer is
-located.  In addition, the peer establishing the connection must 
-already know the public keys of the peer they are connecting to (but
-not necessary to any intermediary relay peer).</p>
-
-<p>Each of the addresses may also expose a series of options - special
-capabilities of that particular peer.  For a list of available
-capabilities, see <a href="#capabilities">below</a>.</p>
-
-<h3 id="ipv6">IPv6 Notes</h3>
-While the protocol specification supports 16-byte IPv6 addresses,
-IPv6 addressing is not currently supported within I2P.
+The initial 2048-bit DH key exchange is described on the
+<a href="udp.html#keys">SSU page</a>.
+This exchange uses the same shared  prime as that used for I2P's
+<a href="how_cryptography.html#elgamal">ElGamal encryption</a>.
+</p>
 
 
-<h2 id="header">Header</h2>
+<h2 id="header">Message Header</h2>
 
 <p>
 All UDP datagrams begin with a 16 byte MAC (Message Authentication Code)
 and a 16 byte IV (Initialization Vector
-followed by a variable
-size payload encrypted with the appropriate key.  The MAC used is 
+followed by a variable-size
+payload encrypted with the appropriate key.  The MAC used is 
 HMAC-MD5, truncated to 16 bytes, while the key is a full 32 byte AES256 
 key.  The specific construct of the MAC is the first 16 bytes from:</p>
 <pre>
   HMAC-MD5(payload || IV || (payloadLength ^ protocolVersion), macKey)
 </pre>
 
-<p>The protocol version is currently 0.</p>
-
 <p>The payload itself is AES256/CBC encrypted with the IV and the 
 sessionKey, with replay prevention addressed within its body, 
 explained below.  The payloadLength in the MAC is a 2 byte unsigned 
-integer in 2s complement.</p>
+integer.</p>
   
-<p>The protocolVersion is a 2 byte unsigned integer in 2s complement,
-and currently set to 0.  Peers using a different protocol version will
+<p>The protocolVersion is a 2 byte unsigned integer
+and is currently set to 0.  Peers using a different protocol version will
 not be able to communicate with this peer, though earlier versions not
 using this flag are.</p>
 
-<h2 id="payload">Payload</h2>
-
 <p>Within the AES encrypted payload, there is a minimal common structure
 to the various messages - a one byte flag and a four byte sending 
-timestamp (*seconds* since the unix epoch).  The flag byte contains 
+timestamp (seconds since the unix epoch).  The flag byte contains 
 the following bitfields:</p>
 <pre>
   Bit order: 76543210 (bit 7 is MSB)
@@ -90,11 +53,28 @@ the following bitfields:</p>
      bit 2: extended options included
   bits 1-0: reserved
 </pre>
+<pre>
+ Header: 37+ bytes
+ +----+----+----+----+----+----+----+----+
+ |                  MAC                  |
+ +                                       +
+ |                                       |
+ +----+----+----+----+----+----+----+----+
+ |                   IV                  |
+ +                                       +
+ |                                       |
+ +----+----+----+----+----+----+----+----+
+ |flag|        time       | (optionally  |
+ +----+----+----+----+----+              |
+ | this may have 64 byte keying material |
+ | and/or a one+N byte extended options) |
+ +---------------------------------------|
+</pre>
 
+
+<h3 id="rekey">Rekeying</h3>
 <p>If the rekey flag is set, 64 bytes of keying material follow the 
-timestamp.  If the extended options flag is set, a one byte option 
-size value is appended to, followed by that many extended option 
-bytes, which are currently uninterpreted.</p>
+timestamp.
 
 <p>When rekeying, the first 32 bytes of the keying material is fed 
 into a SHA256 to produce the new MAC key, and the next 32 bytes are
@@ -107,25 +87,53 @@ around briefly, to address packet loss and reordering.</p>
 
 <p>NOTE: Rekeying is currently unimplemented.</p>
 
-<pre>
- Header: 37+ bytes
- +----+----+----+----+----+----+----+----+
- |                  MAC                  |
- |                                       |
- +----+----+----+----+----+----+----+----+
- |                   IV                  |
- |                                       |
- +----+----+----+----+----+----+----+----+
- |flag|        time       | (optionally  |
- +----+----+----+----+----+              |
- | this may have 64 byte keying material |
- | and/or a one+N byte extended options) |
- +---------------------------------------|
-</pre>
+<h3 id="extend">Extended Options</h3>
+<p>
+If the extended options flag is set, a one byte option 
+size value is appended, followed by that many extended option 
+bytes.</p>
+
+<p>NOTE: Extended options is currently unimplemented.</p>
+
+<h2 id="padding">Padding</h2>
+<p>
+All messages contain 0 or more bytes of padding.
+Each message must be padded to a 16 byte boundary, as required by the encryption layer.
+Currently, messages are not padded beyond the next 16 byte boundary.
+The fixed-size tunnel messages of 1024 bytes (at a higher layer)
+provide a significant amount of protection.
+In the future, additional padding in the transport layer up to
+a set of fixed packet sizes may be appropriate to further hide the data 
+fragmentation to external adversaries.
+</p>
+
+
+<h2 id="keys">Keys</h2>
+<p>
+Both introduction keys and session keys are 32 bytes,
+and are defined by the
+<a href="common_structures_spec.html#type_SessionKey">Common structures specification</a>.
+The key used for the MAC and encryption is specified for each message below.
+</p>
+
+
+<h2 id="notes">Notes</h2>
+
+<h3 id="ipv6">IPv6 Notes</h3>
+While the protocol specification supports 16-byte IPv6 addresses,
+IPv6 addressing is not currently supported within I2P.
+All IP addresses are currently 4 bytes.
+
+<h3 id="time">Timestamps</h3>
+While most of I2P uses 8-byte <a href="common_structures_spec.html#type_Date">Date</a> timestamps with
+millisecond resolution, SSU uses a 4-byte timestamp with one-second resolution.
+
+
+
 
 <h2 id="messages">Messages</h2>
 <p>
-There are 9 messages defined:
+There are 10 messages defined:
 </p><p>
 <table border="1">
 <tr><th>Type<th>Message<th>Notes
@@ -138,10 +146,15 @@ There are 9 messages defined:
 <tr><td align="center">6<td>Data
 <tr><td align="center">7<td>PeerTest
 <tr><td align="center">8<td>SessionDestroyed<td>Unimplemented
+<tr><td align="center">n/a<td>HolePunch<td>
 </table>
 </p>
 
 <h3 id="sessionRequest">SessionRequest (type 0)</h3>
+<p>
+This is the first message sent to establish a session.
+</p>
+
 <table border="1">
 <tr><td align="right" valign="top"><b>Peer:</b></td>
     <td>Alice to Bob</td></tr>
@@ -150,7 +163,7 @@ There are 9 messages defined:
         <li>256 byte X, to begin the DH agreement</li>
         <li>1 byte IP address size</li>
         <li>that many byte representation of Bob's IP address</li>
-        <li>N bytes, currently uninterpreted (later, for challenges)</li>
+        <li>N bytes, currently uninterpreted</li>
 	</ul></td></tr>
 <tr><td align="right" valign="top"><b>Key used:</b></td>
     <td>introKey</td></tr>
@@ -172,7 +185,27 @@ There are 9 messages defined:
  +----+----+----+----+----+----+----+----+
 </pre>
 
+<p>
+Typical size including header, in current implementation: 304 bytes
+</p>
+
+<h4>Notes</h4>
+<ul><li>
+IP address is always 4 bytes in the current implementation.
+</li><li>
+The uninterpreted data could possibly be used in the future for challenges.
+</li></ul>
+
+
+IP address is always 4 bytes in the current implementation.
+
+
+
 <h3 id="sessionCreated">SessionCreated (type 1)</h3>
+<p>
+This is the response to a Session Request.
+</p>
+
 <table border="1">
 <tr><td align="right" valign="top"><b>Peer:</b></td>
     <td>Bob to Alice</td></tr>
@@ -181,18 +214,18 @@ There are 9 messages defined:
         <li>256 byte Y, to complete the DH agreement</li>
 	<li>1 byte IP address size</li>
 	<li>that many byte representation of Alice's IP address</li>
-	<li>2 byte port number (unsigned, big endian 2s complement)</li>
-        <li>4 byte relay tag which Alice can publish (else 0x0)</li>
+	<li>2 byte Alice's port number</li>
+        <li>4 byte relay (introduction) tag which Alice can publish (else 0x00000000)</li>
         <li>4 byte timestamp (seconds from the epoch) for use in the DSA 
             signature</li>
-        <li>40 byte DSA signature of the critical exchanged data 
+        <li>40 byte <a href="common_structures_spec.html#type_Signature">DSA signature</a> of the critical exchanged data 
             (X + Y + Alice's IP + Alice's port + Bob's IP + Bob's port + Alice's
             new relay tag + Bob's signed on time), encrypted with another 
             layer of encryption using the negotiated sessionKey.  The IV 
             is reused here.</li>
         <li>8 bytes padding, encrypted with an additional layer of encryption
             using the negotiated session key as part of the DSA block</li>
-        <li>N bytes, currently uninterpreted (later, for challenges)</li>
+        <li>N bytes, currently uninterpreted</li>
 	</ul></td></tr>
 <tr><td align="right" valign="top"><b>Key used:</b></td>
     <td>introKey, with an additional layer of encryption over the 40 byte
@@ -213,10 +246,13 @@ There are 9 messages defined:
    on time |                             |
  +----+----+                             |
  |              DSA signature            |
+ +                                       +
  |                                       |
+ +                                       +
  |                                       |
+ +                                       +
  |                                       |
- |         +----+----+----+----+----+----+
+ +         +----+----+----+----+----+----+
  |         |     (8 bytes of padding) 
  +----+----+----+----+----+----+----+----+
            |                             |
@@ -228,44 +264,73 @@ There are 9 messages defined:
  +----+----+----+----+----+----+----+----+
 </pre>
 
+<p>
+Typical size including header, in current implementation: 368 bytes
+</p>
+
+<h4>Notes</h4>
+<ul><li>
+IP address is always 4 bytes in the current implementation.
+</li><li>
+If the relay tag is nonzero, Bob is offering to act as an introducer for Alice.
+Alice may subsequently publish Bob's address and the relay tag in the network database.
+</li><li>
+Signed-on time appears to be unused or unverified in the current implementation.
+</li><li>
+The uninterpreted data could possibly be used in the future for challenges.
+</li></ul>
+
+
+
 <h3 id="sessionConfirmed">SessionConfirmed (type 2)</h3>
+<p>
+This is the response to a Session Created message and the last step in establishing a session.
+There may be multiple Session Confirmed messages required if the Router Identity must be fragmented.
+</p>
+
 <table border="1">
 <tr><td align="right" valign="top"><b>Peer:</b></td>
     <td>Alice to Bob</td></tr>
 <tr><td align="right" valign="top"><b>Data:</b></td>
     <td><ul>
         <li>1 byte identity fragment info:<pre>
-bits 0-3: current identity fragment #
-bits 4-7: total identity fragments</pre></li>
+Bit order: 76543210 (bit 7 is MSB)
+bits 7-4: current identity fragment #
+bits 3-0: total identity fragments (F)</pre></li>
         <li>2 byte size of the current identity fragment</li>
-        <li>that many byte fragment of Alice's identity.</li>
-        <li>on the last identity fragment, the signed on time is
-            included after the identity fragment, and the last 40 
-            bytes contain the DSA signature of the critical exchanged 
+        <li>that many byte fragment of Alice's
+           <a href="common_structures_spec#struct_RouterIdentity">Router Identity</a>
+        </li>
+        <li>After the last identity fragment only:
+            <ul><li>4 byte signed-on time
+            </li><li>N bytes padding, currently uninterpreted
+            </li><li>The last 40 
+            bytes contain the <a href="common_structures_spec.html#type_Signature">DSA signature</a> of the critical exchanged 
             data (X + Y + Alice's IP + Alice's port + Bob's IP + Bob's port
             + Alice's new relay key + Alice's signed on time)</li>
+            </ul>
         </ul></td></tr>
 <tr><td align="right" valign="top"><b>Key used:</b></td>
     <td>sessionKey</td></tr>
 </table>
 
 <pre>
- <b>Fragment 1 through N-1</b>
+ <b>Fragment 0 through F-2</b>
  +----+----+----+----+----+----+----+----+
  |info| cursize |                        |
  +----+----+----+                        |
  |      fragment of Alice's full         |
- |            identity keys              |
+ |            Router Identity            |
                  .   .   .               
  |                                       |
  +----+----+----+----+----+----+----+----+
  
- <b>Fragment N:</b>
+ <b>Fragment F-1:</b>
  +----+----+----+----+----+----+----+----+
  |info| cursize |                        |
  +----+----+----+                        |
- |      fragment of Alice's full         |
- |            identity keys              |
+ |     last fragment of Alice's full     |
+ |            Router Identity            |
                  .   .   .               
  |                                       |
  +----+----+----+----+----+----+----+----+
@@ -277,15 +342,42 @@ bits 4-7: total identity fragments</pre></li>
  |       end of the current packet       |
  +----+----+----+----+----+----+----+----+
  | DSA signature                         |
+ +                                       +
  |                                       |
+ +                                       +
  |                                       |
+ +                                       +
  |                                       |
+ +                                       +
  |                                       |
  +----+----+----+----+----+----+----+----+
 </pre>
  
+<p>
+Typical size including header, in current implementation: 480 bytes
+</p>
+
+<h4>Notes</h4>
+<ul><li>
+In the current implementation, the maximum fragment size is 512 bytes.
+</li><li>
+The typical <a href="common_structures_spec.html#struct_RouterIdentity">Router Identity</a>
+is 387 bytes, so no fragmentation is usually necessary.
+</li><li>
+There is no mechanism for requesting or redelivering missing fragments.
+</li><li>
+Signed-on time appears to be unused or unverified in the current implementation.
+</li></ul>
+
+
+
+
 <h3 id="sessionDestroyed">SessionDestroyed (type 8)</h3>
+<p>
 Currently unimplemented, scheduled for implementation in version 0.8.1.
+Subject to change.
+</p>
+
 <table border="1">
 <tr><td align="right" valign="top"><b>Peer:</b></td>
     <td>Alice to Bob or Bob to Alice</td></tr>
@@ -303,18 +395,22 @@ Currently unimplemented, scheduled for implementation in version 0.8.1.
 </pre>
 
 <h3 id="relayRequest">RelayRequest (type 3)</h3>
+<p>
+This is the first message sent from Alice to Bob to request an introduction to Charlie.
+</p>
+
 <table border="1">
 <tr><td align="right" valign="top"><b>Peer:</b></td>
     <td>Alice to Bob</td></tr>
 <tr><td align="right" valign="top"><b>Data:</b></td>
     <td><ul>
-        <li>4 byte relay tag</li>
+        <li>4 byte relay (introduction) tag</li>
         <li>1 byte IP address size</li>
         <li>that many byte representation of Alice's IP address</li>
         <li>2 byte port number (of Alice)</li>
         <li>1 byte challenge size</li>
         <li>that many bytes to be relayed to Charlie in the intro</li>
-        <li>Alice's intro key (so Bob can reply with Charlie's info)</li>
+        <li>Alice's 32-byte introduction key (so Bob can reply with Charlie's info)</li>
         <li>4 byte nonce of Alice's relay request</li>
         <li>N bytes, currently uninterpreted</li>
 	</ul></td></tr>
@@ -324,17 +420,18 @@ Currently unimplemented, scheduled for implementation in version 0.8.1.
  
 <pre>
  +----+----+----+----+----+----+----+----+
- |      relay tag    |size| that many    |
- +----+----+----+----+----+         +----|
- | bytes for Alice's IP address     |port
- +----+----+----+----+----+----+----+----+
-  (A) |size| that many challenge bytes   |
- +----+----+                             |
- | to be delivered to Charlie            |
+ |      relay tag    |size| Alice IP addr 
+ +----+----+----+----+----+--- +----+----|
+      | Port (A)|size| challenge bytes   |
+ +----+----+----+----+                   +
+ |      to be delivered to Charlie       |
  +----+----+----+----+----+----+----+----+
  | Alice's intro key                     |
+ +                                       +
  |                                       |
+ +                                       +
  |                                       |
+ +                                       +
  |                                       |
  +----+----+----+----+----+----+----+----+
  |       nonce       |                   |
@@ -343,7 +440,23 @@ Currently unimplemented, scheduled for implementation in version 0.8.1.
  +----+----+----+----+----+----+----+----+
 </pre>
 
+<p>
+Typical size including header, in current implementation: 96 bytes
+</p>
+
+<h4>Notes</h4>
+<ul><li>
+IP address is always 4 bytes in the current implementation.
+</li><li>
+Challenge is unimplented, challenge size is always zero
+</li></ul>
+
+
 <h3 id="relayResponse">RelayResponse (type 4)</h3>
+<p>
+This is the response to a Relay Request and is sent from Bob to Alice.
+</p>
+
 <table border="1">
 <tr><td align="right" valign="top"><b>Peer:</b></td>
     <td>Bob to Alice</td></tr>
@@ -351,10 +464,10 @@ Currently unimplemented, scheduled for implementation in version 0.8.1.
     <td><ul>
         <li>1 byte IP address size</li>
         <li>that many byte representation of Charlie's IP address</li>
-        <li>2 byte port number</li>
+        <li>2 byte Charlie's port number</li>
         <li>1 byte IP address size</li>
         <li>that many byte representation of Alice's IP address</li>
-        <li>2 byte port number</li>
+        <li>2 byte Alice's port number</li>
         <li>4 byte nonce sent by Alice</li>
         <li>N bytes, currently uninterpreted</li>
 	</ul></td></tr>
@@ -364,21 +477,30 @@ Currently unimplemented, scheduled for implementation in version 0.8.1.
 
 <pre>
  +----+----+----+----+----+----+----+----+
- |size| that many bytes making up        |
- +----+                        +----+----+
- | Charlie's IP address        | Port (C)|
+ |size|    Charlie IP     | Port (C)|size|
  +----+----+----+----+----+----+----+----+
- |size| that many bytes making up        |
- +----+                        +----+----+
- | Alice's IP address          | Port (A)|
+ |    Alice IP       | Port (A)|  nonce   
  +----+----+----+----+----+----+----+----+
- |       nonce       |                   |
- +----+----+----+----+                   |
- | arbitrary amount of uninterpreted data|
+           |   arbitrary amount of       |
+ +----+----+                             |
+ |          uninterpreted data           |
  +----+----+----+----+----+----+----+----+
 </pre>
 
+<p>
+Typical size including header, in current implementation: 64 bytes
+</p>
+
+<h4>Notes</h4>
+IP address is always 4 bytes in the current implementation.
+
+
+
 <h3 id="relayIntro">RelayIntro (type 5)</h3>
+<p>
+This is the introduction for Alice, which is sent from Bob to Charlie.
+</p>
+
 <table border="1">
 <tr><td align="right" valign="top"><b>Peer:</b></td>
     <td>Bob to Charlie</td></tr>
@@ -397,33 +519,50 @@ Currently unimplemented, scheduled for implementation in version 0.8.1.
 
 <pre>
  +----+----+----+----+----+----+----+----+
- |size| that many bytes making up        |
- +----+                        +----+----+
- | Alice's IP address          | Port (A)|
+ |size|     Alice IP      | Port (A)|size|
  +----+----+----+----+----+----+----+----+
- |size| that many bytes of challenge     |
- +----+                                  |
- | data relayed from Alice               |
+ |      that many bytes of challenge     |
+ +                                       |
+ |        data relayed from Alice        |
  +----+----+----+----+----+----+----+----+
  | arbitrary amount of uninterpreted data|
  +----+----+----+----+----+----+----+----+
 </pre>
 
+<p>
+Typical size including header, in current implementation: 48 bytes
+</p>
+
+<h4>Notes</h4>
+<ul><li>
+IP address is always 4 bytes in the current implementation.
+</li><li>
+Challenge is unimplented, challenge size is always zero
+</li></ul>
+
+
+
+
 <h3 id="data">Data (type 6)</h3>
+<p>
+This message is used for data transport and acknowledgement.
+</p>
+
 <table border="1">
 <tr><td align="right" valign="top"><b>Peer:</b></td>
     <td>Any</td></tr>
 <tr><td align="right" valign="top"><b>Data:</b></td>
     <td><ul>
         <li>1 byte flags:<pre>
-   bit 0: explicit ACKs included
-   bit 1: ACK bitfields included
-   bit 2: reserved
-   bit 3: explicit congestion notification
-   bit 4: request previous ACKs
-   bit 5: want reply
-   bit 6: extended data included
-   bit 7: reserved</pre></li>
+   Bit order: 76543210 (bit 7 is MSB)
+   bit 7: explicit ACKs included
+   bit 6: ACK bitfields included
+   bit 5: reserved
+   bit 4: explicit congestion notification (ECN)
+   bit 3: request previous ACKs
+   bit 2: want reply
+   bit 1: extended data included (unused, never set)
+   bit 0: reserved</pre></li>
         <li>if explicit ACKs are included:<ul>
 	  <li>a 1 byte number of ACKs</li>
           <li>that many 4 byte MessageIds being fully ACKed</li>
@@ -439,35 +578,38 @@ Currently unimplemented, scheduled for implementation in version 0.8.1.
               clarify, assuming fragments 0, 2, 5, and 9 have been received,
               the bitfield bytes would be as follows:<pre>
 byte 0
-   bit 0: 1 (further bitfield bytes follow)
-   bit 1: 1 (fragment 0 received)
-   bit 2: 0 (fragment 1 not received)
-   bit 3: 1 (fragment 2 received)
-   bit 4: 0 (fragment 3 not received)
-   bit 5: 0 (fragment 4 not received)
-   bit 6: 1 (fragment 5 received)
-   bit 7: 0 (fragment 6 not received)
+   Bit order: 76543210 (bit 7 is MSB)
+   bit 7: 1 (further bitfield bytes follow)
+   bit 6: 1 (fragment 0 received)
+   bit 5: 0 (fragment 1 not received)
+   bit 4: 1 (fragment 2 received)
+   bit 3: 0 (fragment 3 not received)
+   bit 2: 0 (fragment 4 not received)
+   bit 1: 1 (fragment 5 received)
+   bit 0: 0 (fragment 6 not received)
 byte 1
-   bit 0: 0 (no further bitfield bytes)
-   bit 1: 0 (fragment 7 not received)
-   bit 1: 0 (fragment 8 not received)
-   bit 1: 1 (fragment 9 received)
-   bit 1: 0 (fragment 10 not received)
-   bit 1: 0 (fragment 11 not received)
+   Bit order: 76543210 (bit 7 is MSB)
+   bit 7: 0 (no further bitfield bytes)
+   bit 6: 0 (fragment 7 not received)
+   bit 5: 0 (fragment 8 not received)
+   bit 4: 1 (fragment 9 received)
+   bit 3: 0 (fragment 10 not received)
+   bit 2: 0 (fragment 11 not received)
    bit 1: 0 (fragment 12 not received)
-   bit 1: 0 (fragment 13 not received)</pre></li>
+   bit 0: 0 (fragment 13 not received)</pre></li>
 	  </ul></li>
         <li>If extended data included:<ul>
           <li>1 byte data size</li>
           <li>that many bytes of extended data (currently uninterpreted)</li></ul></li>
         <li>1 byte number of fragments (can be zero)</li>
-        <li>If nonzero, that many message fragments:<ul>
+        <li>If nonzero, that many message fragments. Each fragment contains:<ul>
           <li>4 byte messageId</li>
           <li>3 byte fragment info:<pre>
-  bits 0-6: fragment #
-     bit 7: isLast (1 = true)
-  bits 8-9: unused
-bits 10-23: fragment size</pre></li>
+   Bit order: 76543210 (bit 7 is MSB)
+   bits 23-17: fragment # 0 - 127
+   bit 16: isLast (1 = true)
+   bits 15-14: unused
+   bits 13-0: fragment size 0 - 16383</pre></li>
           <li>that many bytes</li></ul>
         <li>N bytes padding, uninterpreted</li>
 	</ul></td></tr>
@@ -504,17 +646,39 @@ bits 10-23: fragment size</pre></li>
  +----+----+----+----+----+----+----+----+
 </pre>
 
+<h4>Notes</h4>
+<ul><li>
+IP address is always 4 bytes in the current implementation.
+</li><li>
+If the number of fragments is zero, this is an ack-only or keepalive message.
+</li><li>
+The ECN feature is unimplemented, and the bit is never set.
+</li><li>
+The want reply bit is always set in the current implementation.
+</li><li>
+Extended data is unimplemented and never present.
+</li><li>
+The current implementation does not pack multiple fragments into a single packet;
+the number of fragments is always 0 or 1.
+</li></ul>
+
+
+
 <h3 id="peerTest">PeerTest (type 7)</h3>
+<p>
+See <a href="udp.html#peerTesting">the UDP overview page</a> for details.
+</p>
+
 <table border="1">
 <tr><td align="right" valign="top"><b>Peer:</b></td>
-    <td><a href="#peerTesting">Any</a></td></tr>
+    <td>Any</td></tr>
 <tr><td align="right" valign="top"><b>Data:</b></td>
     <td><ul>
         <li>4 byte nonce</li>
         <li>1 byte IP address size</li>
         <li>that many byte representation of Alice's IP address</li>
-        <li>2 byte port number</li>
-        <li>Alice's introduction key</li>
+        <li>2 byte Alice's port number</li>
+        <li>Alice's 32-byte introduction key</li>
         <li>N bytes, currently uninterpreted</li>
 	</ul></td></tr>
 <tr><td align="right" valign="top"><b>Key used:</b></td>
@@ -523,22 +687,81 @@ bits 10-23: fragment size</pre></li>
 
 <pre>
  +----+----+----+----+----+----+----+----+
- |    test nonce     |size| that many    |
- +----+----+----+----+----+              |
- |bytes making up Alice's IP address     |
- |----+----+----+----+----+----+----+----+
- | Port (A)| Alice or Charlie's          |
- +----+----+                             |
- | introduction key (Alice's is sent to  |
- | Bob and Charlie, while Charlie's is   |                                      |
- | sent to Alice)                        |
- |         +----+----+----+----+----+----+
- |         | arbitrary amount of         |
- |----+----+                             |
+ |    test nonce     |size| Alice IP addr 
+ +----+----+----+----+----+----+----+----+
+      | Port (A)|                        |
+ +----+----+----+                        +
+ | Alice or Charlie's                    |
+ + introduction key (Alice's is sent to  +
+ | Bob and Charlie, while Charlie's is   |
+ + sent to Alice)                        +
+ |                                       |
+ |              +----+----+----+----+----+
+ |              | arbitrary amount of    |
+ |----+----+----+                        |
  | uninterpreted data                    |
  +----+----+----+----+----+----+----+----+
 </pre>
 
+<p>
+Typical size including header, in current implementation: 80 bytes
+</p>
+
+<h4>Notes</h4>
+IP address is always 4 bytes in the current implementation.
+
+<h3 id="holePunch">HolePunch</h3>
+<p>
+A HolePunch is simply a UDP packet with no data.
+It is unauthenticated and unencrypted.
+It does not contain a SSU header, so it does not have a message type number.
+It is sent from Charlie to Alice as a part of the Introduction sequence.
+</p>
+
+
+<h2><a name="sampleDatagrams">Sample datagrams</a></h2>
+
+<b>Minimal data message (no fragments, no ACKs, no NACKs, etc)</b><br />
+<i>(Size: 39 bytes)</i>
+
+<pre>
+ +----+----+----+----+----+----+----+----+
+ |                  MAC                  |
+ +                                       +
+ |                                       |
+ +----+----+----+----+----+----+----+----+
+ |                   IV                  |
+ +                                       +
+ |                                       |
+ +----+----+----+----+----+----+----+----+
+ |flag|        time       |flag|#frg|    |
+ +----+----+----+----+----+----+----+    |
+ |  padding to fit a full AES256 block   |
+ +----+----+----+----+----+----+----+----+
+</pre>
+
+<b>Minimal data message with payload</b><br />
+<i>(Size: 46+fragmentSize bytes)</i>
+
+<pre>
+ +----+----+----+----+----+----+----+----+
+ |                  MAC                  |
+ +                                       +
+ |                                       |
+ +----+----+----+----+----+----+----+----+
+ |                   IV                  |
+ +                                       +
+ |                                       |
+ +----+----+----+----+----+----+----+----+
+ |flag|        time       |flag|#frg| 
+ +----+----+----+----+----+----+----+----+
+   messageId    |   frag info  |         |
+ +----+----+----+----+----+----+         |
+ | that many bytes of fragment data      |
+                  .  .  .                                       
+ |                                       |
+ +----+----+----+----+----+----+----+----+
+</pre> 
 
 
 {% endblock %}
