@@ -6,6 +6,7 @@ Since using I2P for a few years, and dealing with SAM and all it's
 problems I realized very quickly that something different was needed.
 This is what I came up with.
 Separate the commands from the data channels. To do this, Two things are needed:
+
 One, an application command channel socket to router.
 Two, the application data sockets to/from router that carry only data.
 
@@ -13,7 +14,8 @@ The command channel is only needed for making or setting the initial
 destination key, and to set the destination key to port bindings. That
 is how SAM should have been done in the first place, but was not! :-)
 
-Note that YOUR application holds the keypair values, NOT the router. This is to reduce any extra complexity in the router code.
+Note that YOUR application holds the keypair values, NOT the router. 
+This is to reduce any extra complexity in the router code.
 
 KEYS = keypair public+private, these are BASE64
 KEY = public key, BASE64
@@ -24,9 +26,14 @@ DATA lines contain information that you requested. There may be multiple DATA li
 NOTE: The help command is the ONLY command that has an exception to
 the rules... it can actually return nothing! This is intentional, since
 help is a HUMAN and not an APPLICATION command.
-For CURRENT details on the commands PLEASE use the built-in
-help command. Here are the commands we have as of this writing (Dec
-2008).
+
+PLEASE NOTE:
+For CURRENT details on the commands PLEASE use the built-in help command. 
+Just telnet to localhost 2827 and type help and you can get full documentation on each command. 
+
+Commands never get obsoleted or changed, however new commands do get added from time to time.
+
+Here are the commands we have as of this writing (Aug 2010).
 
 COMMAND     OPERAND                             RETURNS
 help        (optional command to get help on)   NOTHING or OK and description of the command
@@ -46,10 +53,13 @@ quit                                            OK and terminates the command co
 setkeys     KEYS                                ERROR or OK
 setnick     tunnel nickname                     ERROR or OK
 show                                            ERROR or OK and information
+showprops                                       ERROR or OK and information
 start                                           ERROR or OK
 status      tunnel nickname                     ERROR or OK and information
 stop                                            ERROR or OK
 verify      KEY                                 ERROR or OK
+visit                                           OK, and dumps BOB's threads to the wrapper.log
+zap                                             nothing, quits BOB
 
 Once set up, all TCP sockets can and will block as needed, and there is no need for any 
 additional messages to/from the command channel. This allows the router to pace the
