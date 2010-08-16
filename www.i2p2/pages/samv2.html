@@ -1,21 +1,34 @@
 {% extends "_layout.html" %}
-{% block title %}SAM V2{% endblock %}
+{% block title %}SAM V2 Specification{% endblock %}
 {% block content %}
+Updated August 2010 for release 0.8
 <p>Specified below is a simple client protocol for interacting with I2P.
-<p><b>V2 changes by mkvore.
-SAM V2 is available as of I2P release 0.6.1.31.
-Significant differences marked up by zzz with "***".
-Note that these are changes to the document, not necessarily
-changes to the protocol, but hopefully you get the idea.</b>
-<a href="sam.html">Here is the SAM V1 document</a>.
+</p>
+<p>
+SAM V2 was introduced in I2P release 0.6.1.31.
+Significant differences from SAM V1 are marked with "***".
+Alternatives:
+<a href="sam.html">SAM V1</a>,
+<a href="samv3.html">SAM V3</a>,
+<a href="bob.html">BOB</a>.
+</p>
+
+<p />
+<b>Version 2 Changes</b>
+Compared to version 1, SAM v2 provides a way to manage several sockets
+on the same I2P destination <i>in parallel</i>, i.e. the client does not
+have to wait for data being successfully sent on one socket before sending
+data on another socket. All data transits through the same
+client&lt;--&gt;SAM socket.
+For multiple sockets, see <a href="samv3.html">SAM V3</a>.
 </p>
 
 <pre>
 ----------------------------------------------------------------------
-Simple Anonymous Messaging (SAM version 2.0)
+Simple Anonymous Messaging (SAM version 2.0) Specification
 ----------------------------------------------------------------------
 Client application talks to SAM bridge, which deals with
-all of the I2P functionality (using the ministreaming 
+all of the I2P functionality (using the streaming 
 lib for virtual streams, or I2CP directly for async messages).
 
 All client&lt;--&gt;SAM bridge communication is unencrypted and 
@@ -33,9 +46,9 @@ the key=value pairs can change (e.g. "ONE TWO A=B C=D" or
 addition, the protocol is case-sensitive.
 
 Communication can take three distinct forms:
-* Virtual streams
-* Repliable datagrams (messages with a FROM field)
-* Anonymous datagrams (raw anonymous messages)
+* <a href="streaming.html">Virtual streams</a>
+* <a href="datagrams.html#repliable">Repliable datagrams</a> (messages with a FROM field)
+* <a href="datagrams.html#raw">Anonymous datagrams</a> (raw anonymous messages)
 
 ----------------------------------------------------------------------
 SAM connection handshake
@@ -379,38 +392,41 @@ their meaning:
  PEER_NOT_FOUND  The peer cannot be found on the network
  TIMEOUT         Timeout while waiting for an event (e.g. peer answer)
 
+
 ----------------------------------------------------------------------
-Tunnel Pool Options
+Tunnel, I2CP, and Streaming Options
 ----------------------------------------------------------------------
 
-These options can be passed in as name=value pairs at the end of a
+These options may be passed in as name=value pairs at the end of a
 SAM SESSION CREATE line.
 
- inbound.nickname            - Name shows up in I2P router console.
- inbound.quantity            - Number of tunnels, default 2.
- inbound.backupQuantity      - Number of backup tunnels, default 0.
- inbound.rebuildPeriod       - Obsolete - ignored - the router controls rebuilding
- inbound.duration            - Tunnels last X ms, default 10*60*1000.
-                               (change not recommended, will break anonymity
-                                if it works at all)
- inbound.length              - Depth of tunnels, default 2.
- inbound.lengthVariance      - If negative, randomly skews from
-                               (length - variance) to
-                               (length + variance).  If positive, from
-                               length to (length + var), inclusive.
-                               Default -1.
- inbound.allowZeroHop        - Zero hop allowed?  Default "true".
- outbound.*                  - Same properties as inbound.
- i2p.streaming.connectDelay  - If 0, connect ASAP.  If positive, wait
-                               until X ms have passed or output stream
-                               is flushed or buffer fills.  Default 0.
- i2p.streaming.maxWindowSize - Max window size, default 64.
+All sessions may include <a href="i2cp.html#options">I2CP options such as tunnel lengths</a>.
+STREAM sessions may include <a href="streaming.html#options">Streaming lib options</a>.
+See those references for option names and defaults.
+
+
+----------------------------------------------------------------------
+BASE 64 Notes
+---------------------------------------------------------------------- 
+
+Base 64 encoding must use the I2P standard Base 64 alphabet "A-Z, a-z, 0-9, -, ~".
+
 
 ----------------------------------------------------------------------
 Client library implementations:
 ---------------------------------------------------------------------- 
- C/C++:  libSAM: http://www.innographx.com/mpc/libsam/ or i2p/sam/c/
- Python: Python/I2P: http://dev.i2p.net/contrib/apps/sam/python/index.html
- Others: See apps/sam/ in I2P CVS.
+Client libraries are available for C, C++, C#, Perl, and Python.
+These are in the apps/sam/ directory in the <a href="download.html">I2P Source Package</a>.
+Some may be older and have not been updated for SAMv2 support.
+
+
+----------------------------------------------------------------------
+Default SAM Setup
+---------------------------------------------------------------------- 
+
+The default SAM port is 7656. SAM is not enabled by default in the I2P Router;
+it must be started manually, or configured to start automatically,
+on the configure clients page in the router console, or in the clients.config file.
+
 </pre>
 {% endblock %}

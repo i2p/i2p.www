@@ -98,7 +98,7 @@ bytes.</p>
 <h2 id="padding">Padding</h2>
 <p>
 All messages contain 0 or more bytes of padding.
-Each message must be padded to a 16 byte boundary, as required by the encryption layer.
+Each message must be padded to a 16 byte boundary, as required by the <a href="how_cryptography.html#AES">AES256 encryption layer</a>.
 Currently, messages are not padded beyond the next 16 byte boundary.
 The fixed-size tunnel messages of 1024 bytes (at a higher layer)
 provide a significant amount of protection.
@@ -133,7 +133,7 @@ millisecond resolution, SSU uses a 4-byte timestamp with one-second resolution.
 
 <h2 id="messages">Messages</h2>
 <p>
-There are 10 messages defined:
+There are 10 messages (payload types) defined:
 </p><p>
 <table border="1">
 <tr><th>Type<th>Message<th>Notes
@@ -295,20 +295,22 @@ There may be multiple Session Confirmed messages required if the Router Identity
     <td><ul>
         <li>1 byte identity fragment info:<pre>
 Bit order: 76543210 (bit 7 is MSB)
-bits 7-4: current identity fragment #
-bits 3-0: total identity fragments (F)</pre></li>
+bits 7-4: current identity fragment # 0-14
+bits 3-0: total identity fragments (F) 1-15</pre></li>
         <li>2 byte size of the current identity fragment</li>
         <li>that many byte fragment of Alice's
            <a href="common_structures_spec#struct_RouterIdentity">Router Identity</a>
         </li>
         <li>After the last identity fragment only:
             <ul><li>4 byte signed-on time
-            </li><li>N bytes padding, currently uninterpreted
-            </li><li>The last 40 
+            </li></ul>
+        <li>N bytes padding, currently uninterpreted
+        <li>After the last identity fragment only:
+            <ul><li>The last 40 
             bytes contain the <a href="common_structures_spec.html#type_Signature">DSA signature</a> of the critical exchanged 
             data (X + Y + Alice's IP + Alice's port + Bob's IP + Bob's port
             + Alice's new relay key + Alice's signed on time)</li>
-            </ul>
+            </li></ul>
         </ul></td></tr>
 <tr><td align="right" valign="top"><b>Key used:</b></td>
     <td>sessionKey</td></tr>
@@ -324,6 +326,9 @@ bits 3-0: total identity fragments (F)</pre></li>
                  .   .   .               
  |                                       |
  +----+----+----+----+----+----+----+----+
+ |  arbitrary amount of uninterpreted    |
+ |              data                     |
+ +----+----+----+----+----+----+----+----+
  
  <b>Fragment F-1:</b>
  +----+----+----+----+----+----+----+----+
@@ -337,8 +342,7 @@ bits 3-0: total identity fragments (F)</pre></li>
  |  signed on time   |                   |
  +----+----+----+----+                   |
  |  arbitrary amount of uninterpreted    |
- |        data, up from the end of the   |
- |  identity key to 40 bytes prior to    |
+ |      data, to 40 bytes prior to       |
  |       end of the current packet       |
  +----+----+----+----+----+----+----+----+
  | DSA signature                         |
@@ -365,6 +369,8 @@ The typical <a href="common_structures_spec.html#struct_RouterIdentity">Router I
 is 387 bytes, so no fragmentation is usually necessary.
 </li><li>
 There is no mechanism for requesting or redelivering missing fragments.
+</li><li>
+The total fragments field F must be set identically in all fragments.
 </li><li>
 Signed-on time appears to be unused or unverified in the current implementation.
 </li></ul>
