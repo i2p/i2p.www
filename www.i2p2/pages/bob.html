@@ -2,27 +2,34 @@
 {% block title %}BOB{% endblock %}
 {% block content %}
 <pre>
-Since using I2P for a few years, and dealing with SAM and all it's
-problems I realized very quickly that something different was needed.
-This is what I came up with.
-Separate the commands from the data channels. To do this, Two things are needed:
+Technical differences from SAM (for the better?)
 
-One, an application command channel socket to router.
+
+BOB has separate command and data channels. 
+One, an application command channel socket to router to configure.
 Two, the application data sockets to/from router that carry only data.
-
 The command channel is only needed for making or setting the initial
-destination key, and to set the destination key to port bindings. That
-is how SAM should have been done in the first place, but was not! :-)
+destination key, and to set the destination key to port bindings. 
+All connections run in parallel.
 
-Note that YOUR application holds the keypair values, NOT the router. 
-This is to reduce any extra complexity in the router code.
+SAM One connection that does everything, and you need to parse every packet.
+
+BOB does not hold keypair values, nore does the router.
+Your application holds the keypair values. 
+This is to reduce any extra complexity in the router code, it also adds to
+your privacy.
+
+SAM router stores every keypair you ever make.
+
+Those are the important differences.
 
 KEYS = keypair public+private, these are BASE64
-KEY = public key, BASE64
+KEY = public key, also BASE64
 
 ERROR as is implied returns the message "ERROR "+DESCRIPTION+"\n", where the DESCRIPTION is what went wrong.
 OK returns "OK", and if data is to be returned, it is on the same line. OK means the command is finished.
 DATA lines contain information that you requested. There may be multiple DATA lines per request.
+
 NOTE: The help command is the ONLY command that has an exception to
 the rules... it can actually return nothing! This is intentional, since
 help is a HUMAN and not an APPLICATION command.
@@ -77,7 +84,7 @@ when bringing the bridge up, the normal TCP application won't care, and won't no
 It will simply be fooled -- the destinations are not reachable, and that nothing is coming in.
 
 For the following example, we'll setup a very simple local loopback connection, 
-with two destinations. Destination "bitch" will be the CHARGEN service from 
+with two destinations. Destination "mouth" will be the CHARGEN service from 
 the INET superserver daemon. Destination "ear" will be a local port that you
 can telnet into, and watch the pretty ASCII test puke forth.
 
@@ -86,8 +93,8 @@ A = Application
 C = BOB's Command response.
 
 FROM 	TO	DIALOGUE
-A	C	setnick bitch
-C	A	OK Nickname set to bitch
+A	C	setnick mouth
+C	A	OK Nickname set to mouth
 A	C	newkeys
 C	A	OK ZMPz1zinTdy3~zGD~f3g9aikZTipujEvvXOEyYfq4Su-mNKerqG710hFbkR6P-xkouVyNQsqWLI8c6ngnkSwGdUfM7hGccqBYDjIubTrlr~0g2-l0vM7Y8nSqtFrSdMw~pyufXZ0Ys3NqUSb8NuZXpiH2lCCkFG21QPRVfKBGwvvyDVU~hPVfBHuR8vkd5x0teMXGGmiTzdB96DuNRWayM0y8vkP-1KJiPFxKjOXULjuXhLmINIOYn39bQprq~dAtNALoBgd-waZedYgFLvwHDCc9Gui8Cpp41EihlYGNW0cu0vhNFUN79N4DEpO7AtJyrSu5ZjFTAGjLw~lOvhyO2NwQ4RiC4UCKSuM70Fz0BFKTJquIjUNkQ8pBPBYvJRRlRG9HjAcSqAMckC3pvKKlcTJJBAE8GqexV7rdCCIsnasJXle-6DoWrDkY1s1KNbEVH6i1iUEtmFr2IHTpPeFCyWfZ581CAFNRbbUs-MmnZu1tXAYF7I2-oXTH2hXoxCGAAAA
 
@@ -101,7 +108,7 @@ C       A     OK outbound port set
 A       C     start
 C       A     OK tunnel starting
 
-At this point, there was no error, a destination with a nickname of "bitch" 
+At this point, there was no error, a destination with a nickname of "mouth" 
 is set up. When you contact the destination provided, you actually connect 
 to the CHARGEN service on 19/TCP. 
 
@@ -123,7 +130,7 @@ C       A       OK Bye!
 
 Now all we need to do is telnet into 127.0.0.1, port 37337,
 send the destination key or host address from addressbook we want to contact.
-In this case, we want to contact "bitch", all we do is paste in the
+In this case, we want to contact "mouth", all we do is paste in the
 key and it goes.
 
 NOTE: The "quit" command in the command channel does NOT disconnect the tunnels like SAM.
@@ -148,8 +155,8 @@ telnet&gt; c
 Connection closed.
 
 Here is what happened...
-telnet -&gt; ear -&gt; i2p -&gt; bitch -&gt; chargen -.
-telnet &lt;- ear &lt;- i2p &lt;- bitch &lt;-----------'
+telnet -&gt; ear -&gt; i2p -&gt; mouth -&gt; chargen -.
+telnet &lt;- ear &lt;- i2p &lt;- mouth &lt;-----------'
 
 You can connect to EEPSITES too!
 
@@ -182,7 +189,7 @@ Connection closed by foreign host.
 
 Pretty cool isn't it? Try some other well known EEPSITES if you like, nonexistant ones, 
 etc, to get a feel for what kind of output to expect in different situations. 
-For the most part, I suggest that you ignore any of the error messages. 
+For the most part, it is suggested that you ignore any of the error messages. 
 They would be meaningless to the application, and are only presented for human debugging.
 
 Let's put down our destinations now that we are all done with them.
@@ -191,15 +198,15 @@ First, lets see what destination nicknames we have.
 
 FROM 	TO	DIALOGUE
 A	C	list
-C	A	DATA NICKNAME: bitch STARTING: false RUNNING: true STOPPING: false KEYS: true QUIET: false INPORT: not_set INHOST: localhost OUTPORT: 19 OUTHOST: 127.0.0.1
+C	A	DATA NICKNAME: mouth STARTING: false RUNNING: true STOPPING: false KEYS: true QUIET: false INPORT: not_set INHOST: localhost OUTPORT: 19 OUTHOST: 127.0.0.1
 C	A	DATA NICKNAME: ear STARTING: false RUNNING: true STOPPING: false KEYS: true QUIET: false INPORT: 37337 INHOST: 127.0.0.1 OUTPORT: not_set OUTHOST: localhost
 C	A	OK Listing done
 
-Allright, there they are. First, let's remove "bitch".
+Allright, there they are. First, let's remove "mouth".
 
 FROM 	TO	DIALOGUE
-A	C	getnick bitch
-C	A	OK Nickname set to bitch
+A	C	getnick mouth
+C	A	OK Nickname set to mouth
 A	C	stop
 C	A	OK tunnel stopping
 A	C	clear
@@ -234,7 +241,7 @@ is available on the router console tunnel settings pages, so that you
 can use BOB to point a destination at a web server, for example, and
 you would not have to modify the web server at all.
 The advantage with using BOB for this is as discussed
-previously. You could schedule random uptimes, etc for the application,
+previously. You could schedule random uptimes for the application,
 redirect to a different machine, etc. One use of this may be something
 like wanting to try to goof up router-to-destination upness guessing.
 You could stop and start the destination with a totally different
@@ -243,9 +250,6 @@ would only be stopping the ability to contact such a service, and not
 have to bother shutting it down and restarting it. You could redirect
 and point to a different machine on your lan while you do updates, or
 point to a set of backup machines depending on what is running, etc,
-etc. Only your imagination limits what you could do.
-
-I realize that this really isn't looking like a full blown "API spec", however it's so simple 
-that this is really, honestly, the entire API. The "PROTOCOL" is quite tiny, and there are only Three possible replies to the commands.
+etc. Only your imagination limits what you could do with BOB.
 
 {% endblock %}
