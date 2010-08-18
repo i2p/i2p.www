@@ -96,18 +96,13 @@
     blogging and content syndication, newsgroups, as well as several other applications under development.
     <ul>
       <li>Web browsing: using any existing browser that supports using a proxy.</li>
-      <li>Chat: IRC, Jabber, <a href="#app.i2pmessenger">I2P-messenger</a></li>
-      <li>File sharing:
-        <ul>
-          <li><a href="#app.i2psnark">I2PSnark</a></li>
-          <li><a href="#app.robert">Robert</a></li>
-          <li><a href="#app.i2phex">I2Phex</a></li>
-          <li><a href="#app.pybit">PyBit</a></li>
-          <li><a href="#app.i2pbt">I2P-bt</a></li>
-        </ul>
+      <li>Chat: IRC, Jabber, <a href="#app.i2pmessenger">I2P-messenger</a>.</li>
+      <li>File sharing: <a href="#app.i2psnark">I2PSnark</a>, <a href="#app.robert">Robert</a>,
+        <a href="#app.i2phex">I2Phex</a>, <a href="#app.pybit">PyBit</a>, <a href="#app.i2pbt">I2P-bt</a>
+        and others.
       </li>
-      <li>E-mail: <a href="#app.i2pmail">susimail</a> and <a href="#app.i2pbote">I2P-Bote</a></li>
-      <li>Using any newsgroup reader that supports using a proxy.</li>
+      <li>E-mail: <a href="#app.i2pmail">susimail</a> and <a href="#app.i2pbote">I2P-Bote</a>.</li>
+      <li>Newsgroups: using any newsgroup reader that supports using a proxy.</li>
     </ul>
   <p>
     Unlike web sites hosted within content distribution networks like <a href="#similar.freenet">Freenet</a> 
@@ -132,7 +127,8 @@
     a series of APIs in various languages which can be used to make the most out 
     of the network.
   </p>
-  <p> I2P is not a research project - academic, commercial, or governmental, but 
+  <p>
+    I2P is not a research project - academic, commercial, or governmental, but 
     is instead an engineering effort aimed at doing whatever is necessary to provide 
     a sufficient level of anonymity to those who need it. It has been in active 
     development since early 2003 with one full time developer and a dedicated 
@@ -143,14 +139,15 @@
     working on I2P do not control what people release client applications under, 
     and there are several GPL'ed applications available (<a href="#app.i2ptunnel">I2PTunnel</a>, 
     <a href="#app.i2pmail">susimail</a>, <a href="#app.i2psnark">I2PSnark</a>, 
-    <a href="#app.i2phex">I2Phex</a>).
+    <a href="#app.i2phex">I2Phex</a> and others.).
     <a href="http://www.i2p.net/halloffame">Funding</a> for I2P comes entirely from donations,
     and does not receive any tax breaks in any jurisdiction at this time,
     as many of the developers are themselves anonymous.
   </p>
   <h1 id="op">Operation</h1>
   <h2 id="op.overview">Overview</h2>
-  <p> To understand I2P's operation, it is essential to understand a few key concepts. 
+  <p>
+    To understand I2P's operation, it is essential to understand a few key concepts. 
     First, I2P makes a strict separation between the software participating in 
     the network (a "router") and the anonymous endpoints ("destinations") associated 
     with individual applications. The fact that someone is running I2P is not 
@@ -159,21 +156,37 @@
     to. End users will typically have several local destinations on their router 
     - for instance, one proxying in to IRC servers, another supporting the user's 
     anonymous webserver ("eepsite"), another for an I2Phex instance, another for 
-    torrents, etc. </p>
-  <p> Another critical concept to understand is the "tunnel" - a directed path 
-    through an explicitly selected set of routers, making use of layered encryption 
-    so that the messages sent in the tunnel's "gateway" appear entirely random 
-    at each hop along the path until it reaches the tunnel's "endpoint". These 
-    unidirectional tunnels can be seen as either "inbound" tunnels or "outbound" 
-    tunnels, referring to whether they are bringing messages to the tunnel's creator 
-    or away from them, respectively. The gateway of an inbound tunnel can receive 
-    messages from any peer and will forward them down through the tunnel until 
-    it reaches the (anonymous) endpoint (the creator). On the other hand, the 
-    gateway of an outbound tunnel is the tunnel's creator, and messages sent through 
-    that tunnel are encoded so that when they reach the outbound tunnel's endpoint, 
-    that router has the instructions necessary to forward the message on to the 
-    appropriate location. </p>
-  <p> A third critical concept to understand is I2P's "network database" (or "netDb") 
+    torrents, etc.
+  </p>
+  <p>
+    Another critical concept to understand is the "tunnel".
+    A tunnel is a directed path through an explicitly selected list of routers.
+    Layered encryption is used, so each of the routers can only decrypt a single layer.
+    The decrypted information contains the IP of the next router, along with
+    the encrypted information to be forwarded.
+    Each tunnel has a starting point (the first router, also known as "gateway")
+    and an end point. Messages can be sent only in one way. To send messages back,
+    another tunnel is required.
+  </p>
+  <center><div class="box"><img src="_static/images/tunnels.png" alt="Inbound and outbound tunnel schematic" title="Inbound and outbound tunnel schematic" /></div></center><br/>
+  <p>
+    Two types of tunnels exist:
+    <b>"outbound" tunnels</b> send messages away from the tunnel creator,
+    while <b>"inbound" tunnels</b> bring messages to the tunnel creator.
+    Combining these two tunnels allows users to send messages to each other.
+    The sender ("Alice" in the above image) sets up an outbound tunnel,
+    while the receiver ("Bob" in the above image) creates an inbound tunnel.
+    The gateway of an inbound tunnel can receive messages from any other user
+    and will send them on until the endpoint ("Bob").
+    The endpoint of the outbound tunnel will need to send the message
+    on to the gateway of the inbound tunnel.
+    To do this, the sender ("Alice") adds instructions to her encrypted message.
+    Once the endpoint of the outbound tunnel decrypts the message,
+    it will have instructions to forward the message to the correct
+    inbound gateway (the gateway to "Bob").
+  </p>
+  <p>
+    A third critical concept to understand is I2P's "network database" (or "netDb") 
     - a pair of algorithms used to share network metadata. The two types of metadata 
     carried are "routerInfo" and "leaseSets" - the routerInfo gives routers the 
     data necessary for contacting a particular router (their public keys, transport 
