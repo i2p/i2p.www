@@ -255,8 +255,9 @@
     based network.
   </p>
   <h2 id="op.tunnels">Tunnels</h2>
-  <p> Both inbound and outbound tunnels work along similar principles - the tunnel 
-    gateway accumulates a number of tunnel messages, eventually preprocessing 
+  <p>
+    Both inbound and outbound tunnels work along similar principles.
+    The tunnel gateway accumulates a number of tunnel messages, eventually preprocessing 
     them into something for tunnel delivery. Next, the gateway encrypts that preprocessed 
     data and forwards it to the first hop. That peer and subsequent tunnel participants 
     add on a layer of encryption after verifying that it isn't a duplicate before 
@@ -266,18 +267,22 @@
     the creator is the endpoint and they simply decrypt all of the layers added, 
     while for outbound tunnels, the creator is the gateway and they pre-decrypt 
     all of the layers so that after all of the layers of per-hop encryption are 
-    added, the message arrives in the clear at the tunnel endpoint. </p>
-  <p> The choice of specific peers to pass on messages as well as their particular 
+    added, the message arrives in the clear at the tunnel endpoint.
+  </p>
+  <p>
+    The choice of specific peers to pass on messages as well as their particular 
     ordering is important to understanding both I2P's anonymity and performance 
     characteristics. While the network database (below) has its own criteria for 
-    picking what peers to query and store entries on, tunnels may use any peers 
+    picking what peers to query and store entries on, tunnel creators may use any peers 
     in the network in any order (and even any number of times) in a single tunnel. 
     If perfect latency and capacity data were globally known, selection and ordering 
     would be driven by the particular needs of the client in tandem with their 
     threat model. Unfortunately, latency and capacity data is not trivial to gather 
     anonymously, and depending upon untrusted peers to provide this information 
-    has its own serious anonymity implications. </p>
-  <p> From an anonymity perspective, the simplest technique would be to pick peers 
+    has its own serious anonymity implications.
+  </p>
+  <p>
+    From an anonymity perspective, the simplest technique would be to pick peers 
     randomly from the entire network, order them randomly, and use those peers 
     in that order for all eternity. From a performance perspective, the simplest 
     technique would be to pick the fastest peers with the necessary spare capacity, 
@@ -286,8 +291,10 @@
     former is both brittle and inefficient, the later requires inaccessible information 
     and offers insufficient anonymity. I2P is instead working on offering a range 
     of peer selection strategies, coupled with anonymity aware measurement code 
-    to organize the peers by their profiles. </p>
-  <p> As a base, I2P is constantly profiling the peers with which it interacts 
+    to organize the peers by their profiles.
+  </p>
+  <p>
+    As a base, I2P is constantly profiling the peers with which it interacts 
     with by measuring their indirect behavior - for instance, when a peer responds 
     to a netDb lookup in 1.3 seconds, that round trip latency is recorded in the 
     profiles for all of the routers involved in the two tunnels (inbound and outbound) 
@@ -301,19 +308,22 @@
     to be. These calculations are then compared for active peers to organize the 
     routers into four tiers - fast and high capacity, high capacity, not failing, 
     and failing. The thresholds for those tiers are determined dynamically, and 
-    while they currently use fairly simple algorithms, alternatives exist. </p>
+    while they currently use fairly simple algorithms, alternatives exist.
+  </p>
   <p> Using this profile data, the simplest reasonable peer selection strategy 
     is to pick peers randomly from the top tier (fast and high capacity), and 
     this is currently deployed for client tunnels. Exploratory tunnels (used for 
-    netDb and tunnel management) pick peers randomly from the not failing tier 
+    netDb and tunnel management) pick peers randomly from the "not failing" tier 
     (which includes routers in 'better' tiers as well), allowing the peer to sample 
     routers more widely, in effect optimizing the peer selection through randomized 
     hill climbing. These strategies alone do however leak information regarding 
     the peers in the router's top tier through predecessor and netDb harvesting 
     attacks. In turn, several alternatives exist which, while not balancing the 
     load as evenly, will address the attacks mounted by particular classes of 
-    adversaries. </p>
-  <p> By picking a random key and ordering the peers according to their XOR distance 
+    adversaries.
+  </p>
+  <p>
+    By picking a random key and ordering the peers according to their XOR distance 
     from it, the information leaked is reduced in predecessor and harvesting attacks 
     according to the peers' failure rate and the tier's churn. Another simple 
     strategy for dealing with netDb harvesting attacks is to simply fix the inbound 
@@ -329,10 +339,11 @@
     using individual peers if all of them agree to participate in the same way 
     each time. This varies from the XOR based ordering in that the predecessor 
     and successor of each peer is always the same, while the XOR only makes sure 
-    their order doesn't change. </p>
-  <p> As mentioned before, I2P currently (release 0.6.1.1) includes the tiered 
-    random strategy above. Release 0.6.1.33 will contain the XOR-based ordering 
-    strategy. Additional improvements may be included in the 0.6.2 release. A 
+    their order doesn't change.
+  </p>
+  <p>
+    As mentioned before, I2P currently (release 0.8) includes the tiered 
+    random strategy above, with XOR-based ordering. A 
     more detailed discussion of the mechanics involved in tunnel operation, management, 
     and peer selection can be found in the <a href="tunnel-alt.html">tunnel spec</a>. 
   </p>
