@@ -205,10 +205,27 @@
       <li>Time when a tunnel expires.</li>
       <li>Pair of public keys to be able to encrypt messages (to send through the tunnel and reach the destination).</li>
     </ul>
+    Routers themselves send their routerInfo to the netDb directly, while leaseSets are sent through outbound tunnels
+    (leaseSets need to be sent anonymously, to avoid correlating a router with his leaseSets).
   </p>
   <p>
     We can combine the above concepts to build successful connections in the network.
   </p>
+  <p>
+    To build up her own inbound and outbound tunnels, Alice does a lookup in the netDb to collect routerInfo.
+    This way, she gathers lists of peers she can use as hops in her tunnels.
+    She can then send a build message to the first hop, requesting the construction of a tunnel, and asking
+    that router to send the construction message onward, until the tunnel has been constructed.
+  </p>
+  <center>
+    <div class="box">
+      <img src="_static/images/netdb_get_routerinfo_1.png" alt="Request information on other routers" title="Request information on other routers" />
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+      <img src="_static/images/netdb_get_routerinfo_2.png" alt="Build tunnel using router information" title="Build tunnel using router information" />
+      <br /><br />
+      Figure 2: Router information is used to build tunnels.
+    </div>
+  </center><br/>
   <p>
     When Alice wants to send a message to Bob, she first does a lookup in the 
     netDb to find Bob's leaseSet, giving her his current inbound tunnel gateways. 
@@ -229,7 +246,7 @@
     <div class="box">
       <img src="_static/images/netdb_get_leaseset.png" alt="Connect tunnels using leaseSets" title="Connect tunnels using leaseSets" />
       <br /><br />
-      Figure 2: Leasesets are used to connect outbound and inbound tunnels.
+      Figure 3: Leasesets are used to connect outbound and inbound tunnels.
     </div>
   </center><br/>
   <p>
