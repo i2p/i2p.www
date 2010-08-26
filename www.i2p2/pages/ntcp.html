@@ -34,16 +34,18 @@ because it uses the underlying Java TCP transport for reliable delivery.
 <h3>Standard Message Format</h3>
 <p>
   After establishment,
-  the NTCP transport sends individual I2NP messages AES/256/CBC encrypted with
-  a simple checksum.  The unencrypted message is encoded as follows:
+  the NTCP transport sends individual I2NP messages, with a simple checksum.
+  The unencrypted message is encoded as follows:
 <pre>
  *  +-------+-------+--//--+---//----+-------+-------+-------+-------+
  *  | sizeof(data)  | data | padding | Adler checksum of sz+data+pad |
  *  +-------+-------+--//--+---//----+-------+-------+-------+-------+
 </pre>
-  That message is then encrypted with the DH/2048 negotiated session key
-  (station to station authenticated per the EstablishState class) using the
-  last 16 bytes of the previous encrypted message as the IV.
+  The data is then AES/256/CBC encrypted. The session key for the encryption
+  is negotiated during establishment (using Diffie-Hellman 2048 bit).
+  The establishment between two routers is implemented in the EstablishState class
+  and detailed below.
+  The IV for AES/256/CBC encryption is the last 16 bytes of the previous encrypted message.
 </p>
 
 <p>
@@ -90,7 +92,7 @@ Then, DSA signatures of the critical data are exchanged to confirm the connectio
 
 <pre>
   Legend:
-    X, Y: 256 byte DH keys
+    X, Y: 256 byte DH public keys
     H(): 32 byte SHA256 Hash
     E(data, session key, IV): AES256 Encrypt
     S(): 40 byte DSA Signature
@@ -102,10 +104,28 @@ Then, DSA signatures of the critical data are exchanged to confirm the connectio
 <h4 id="DH">DH Key Exchange</h4>
 <p>
 The initial 2048-bit DH key exchange
-uses the same shared prime and generator as that used for I2P's
+uses the same shared prime (p) and generator (g) as that used for I2P's
 <a href="how_cryptography.html#elgamal">ElGamal encryption</a>.
 </p>
 
+<p>
+The DH key exchange consists of a number of steps, displayed below.
+The mapping between these steps and the messages sent between I2P routers,
+is marked in bold.
+  <ol>
+    <li>Alice generates a secret 226-bit integer x.
+        She then calculates X = g^x mod p.
+    </li>
+    <li>Alice sends X to Bob <b>(Message 1)</b>.</li>
+    <li>Bob generates a secret 226-bit integer y.
+        He then calculates Y = g^y mod p.</li>
+    <li>Bob sends Y to Alice.<b>(Message 2)</b></li>
+    <li>Alice can now compute sessionKey = Y^x mod p.</li>
+    <li>Bob can now compute sessionKey = X^y mod p.</li>
+    <li>Both Alice and Bob now have a shared key sessionKey = g^(x*y) mod p.</li>
+  </ol>
+The sessionKey is then used to exchange identities in <b>Message 3</b> and <b>Message 4</b>.
+</p>
 
 <h4>Message 1 (Session Request)</h4>
 This is the DH request.
@@ -184,7 +204,7 @@ Unencrypted Contents:
 
   Y: 256 byte Y from Diffie Hellman
 
-  HXY:  SHA256 Hash(X concatentated with Y)
+  HXY:  SHA256 Hash(X concatenated with Y)
         (32 bytes)
 
   tsB: 4 byte timestamp (seconds since the epoch)

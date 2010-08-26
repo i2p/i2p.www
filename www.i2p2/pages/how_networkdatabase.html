@@ -1,5 +1,5 @@
 {% extends "_layout.html" %}
-{% block title %}How the Network Database (netDb) Works{% endblock %}
+{% block title %}The Network Database{% endblock %}
 {% block content %}
 
 <p>
@@ -28,8 +28,8 @@
 <p>
   When an I2P router wants to contact another router, they need to know some 
   key pieces of data - all of which are bundled up and signed by the router into
-  a structure called the "RouterInfo", which is distributed under the key derived 
-  from the SHA256 of the router's identity.  The structure itself contains:
+  a structure called the "RouterInfo", which is distributed with the SHA256 of the router's identity
+  as the key.  The structure itself contains:
 </p>
 <ul>
   <li>The router's identity (a 2048bit ElGamal encryption key, a 1024bit DSA signing key, and a certificate)</li>
@@ -106,13 +106,15 @@
   In the current implementation, there are the following general policies:
 </p>
 <ul>
-  <li>There is no expiration during the first hour of uptime, as the persistent stored data may be old.
+  <li>There is no expiration during the first hour of uptime, as the persistent stored data may be old.</li>
+  <li>There is no expiration if there are 25 or less RouterInfos.</li>
   <li>As the number of local RouterInfos grows, the expiration time shrinks, in an attempt to maintain
-    a reasonable number RouterInfos.
+    a reasonable number RouterInfos. The expiration time with less than 120 routers is 72 hours,
+    while expiration time with 300 routers is around 30 hours.</li>
   <li>RouterInfos containing <a href="udp.html">SSU</a> introducers expire in about an hour, as
-    the introducer list expires in about that time
-  <li>Floodfills use a short expiration time for all local RouterInfos, as valid RouterInfos will
-    be frequently republished to them
+    the introducer list expires in about that time.</li>
+  <li>Floodfills use a short expiration time (1 hour) for all local RouterInfos, as valid RouterInfos will
+    be frequently republished to them.</li>
 </ul>
 
 <h3>RouterInfo Persistent Storage</h3>
@@ -126,20 +128,25 @@
 
 <p>
   The second piece of data distributed in the netDb is a "LeaseSet" - documenting
-  a group of tunnel entry points (leases) for a particular client destination.  
-  Each of these leases specify the tunnel's gateway router (with the hash of its 
-  identity), the tunnel ID on that router to send messages (a 4 byte number), and
-  when that tunnel will expire.  The LeaseSet itself is stored in the netDb under
+  a group of <b>tunnel entry points (leases)</b> for a particular client destination.  
+  Each of these leases specify the following information:
+  <ul>
+    <li>The tunnel gateway router (by specifying its identity)</li>
+    <li>The tunnel ID on that router to send messages with (a 4 byte number)</li>
+    <li>When that tunnel will expire.</li>
+  </ul>
+  The LeaseSet itself is stored in the netDb under
   the key derived from the SHA256 of the destination.
 </p>
 
 <p>
-  In addition to these leases, the LeaseSet includes the destination 
-  itself (namely, the destination's 2048bit ElGamal encryption key, 1024bit DSA 
-  signing key, and certificate) and an additional signing and 
-  encryption public keys.  The additional encryption public key is used for end-to-end encryption of
-  garlic messages.
-  The additional signing public key was intended for LeaseSet revocation but is currently unused.
+  In addition to these leases, the LeaseSet includes:
+  <ul>
+    <li>The destination itself (a 2048bit ElGamal encryption key, 1024bit DSA signing key and a certificate)</li>
+    <li>Additional encryption public key: used for end-to-end encryption of garlic messages</li>
+    <li>Additional signing public key: intended for LeaseSet revocation, but is currently unused.</li>
+    <li>Signature of all the LeaseSet data, to make sure the Destination published the LeaseSet.</li>
+  </ul>
 </p>
 
 <p>
@@ -159,6 +166,8 @@
   A LeaseSet for a destination used only for outgoing connections is <i>unpublished</i>.
   It is never sent for publication to a floodfill router.
   "Client" tunnels, such as those for web browsing and IRC clients, are unpublished.
+  Servers will still be able to send messages back to those unpublished destinations,
+  because of <a href="#leaseset_storage_peers">I2NP storage messages</a>.
 </p>
 
 
@@ -210,14 +219,14 @@
 
 <h2 id="floodfill">Floodfill</h2>
 <p>
-  The floodfill netDb is simple distributed storage mechanism.
-  The storage algorithm is simple- send the data to the closest peer that has advertised itself
+  The floodfill netDb is a simple distributed storage mechanism.
+  The storage algorithm is simple: send the data to the closest peer that has advertised itself
   as a floodfill router. Then wait 10 seconds, pick another floodfill router and ask them 
   for the entry to be sent, verifying its proper insertion / distribution.  If the 
   verification peer doesn't reply, or they don't have the entry, the sender 
   repeats the process.  When the peer in the floodfill netDb receives a netDb 
-  store from a peer not in the floodfill netDb, they send it to all of the peers 
-  in the floodfill netDb.
+  store from a peer not in the floodfill netDb, they send it to a subset of the floodfill netDb-peers.
+  The peers selected are the ones closest (according to the <a href="#kademlia_closeness">XOR-metric</a>) to a specific key.
 </p>
 <p>
   Determining who is part of the floodfill netDb is trivial - it is exposed in each 
@@ -272,17 +281,18 @@
   A floodfill router's only services that are in addition to those of non-floodfill routers
   are in accepting netDb stores and responding to netDb queries.
   Since they are generally high-bandwidth, they are more likely to participate in a high number of tunnels
-  (i.e. be a "relay" for others), but this not directly related to their distributed database services.
+  (i.e. be a "relay" for others), but this is not directly related to their distributed database services.
 </p>
 
 
-<h2 id="kad">Kademlia Closeness Metric</h2>
+<a name="kademlia_closeness"><h2 id="kad">Kademlia Closeness Metric</h2></a>
 <p>
   The netDb uses a simple Kademlia-style XOR metric to determine closeness.
-  The SHA256 Hash of the key being looked up or stored is XOR-ed with
-  the hash of the router in question to determine closeness
-  (there is an additional daily keyspace rotation to increase the costs of Sybil attacks,
-  as <a href="#sybil-partial">explained below</a>).
+  The SHA256 hash of the key being looked up or stored is XOR-ed with
+  the hash of the router in question to determine closeness.
+  A modification to this algorithm is done to increase the costs of <a href="#sybil-partial">Sybil attacks</a>.
+  Instead of the SHA256 hash of the key being looked up of stored, the SHA256 hash is taken
+  of the key appended with the date: yyyyMMdd (SHA256(key + yyyyMMdd).
 </p>
 
 
@@ -300,7 +310,7 @@
 </p>
 
 
-<h3>LeaseSet Storage to Peers</h3>
+<a name="leaseset_storage_peers"><h3>LeaseSet Storage to Peers</h3></a>
 <p>
   <a href="i2np.html">I2NP</a> DatabaseStoreMessages containing the local LeaseSet are periodically exchanged with peers
   by bundling them in a garlic message along with normal traffic from the related Destination.
@@ -354,7 +364,7 @@
   valid RouterInfo or LeaseSet which is newer than that previously stored in its
   local NetDb, it "floods" it.
   To flood a NetDb entry, it looks up the 7 floodfill routers closest to the key
-  of the NetDb entry. (The key is the SHA256 Hash of the RouterIdentity or Destination)
+  of the NetDb entry. (The key is the SHA256 Hash of the RouterIdentity or Destination with the date (yyyyMMdd) appended.)
 </p>
 <p>
   It then directly connects to each of the 7 peers
@@ -373,7 +383,7 @@
   The replies are specified to return via one of the router's inbound exploratory tunnels.
 </p>
 <p>
-  Lookups are generally sent to the two "good" floodfill routers closest to the requested key, in parallel.
+  Lookups are generally sent to the two "good" (the connection doesn't fail) floodfill routers closest to the requested key, in parallel.
 </p>
 <p>
   If the key is found locally by the floodfill router, it responds with a
@@ -411,7 +421,7 @@
 </p>
 
 <p>
-  Queries are sent through<i>multiple routes simultaneously</i>
+  Queries are sent through <i>multiple routes simultaneously</i>
   to <i>reduce the chance of query failure</i>.
 </p>
 
@@ -482,7 +492,7 @@
 
 <p>
   Destinations may be hosted on multiple routers simultaneously, by using the same
-  private and public keys (traditionally named eepPriv.dat files).
+  private and public keys (traditionally stored in eepPriv.dat files).
   As both instances will periodically publish their signed LeaseSets to the floodfill peers,
   the most recently published LeaseSet will be returned to a peer requesting a database lookup.
   As LeaseSets have (at most) a 10 minute lifetime, should a particular instance go down,
@@ -566,7 +576,7 @@
   metrics described above, this is a difficult scenario to handle.
   Tor's response can be much more nimble in the relay case, as the suspicious relays
   can be manually removed from the consensus.
-  Some possible responses in the I2P case, none of them satisfactory:
+  Some possible responses for the I2P network are listed below, however none of them is completely satisfactory:
 </p>
 <ul>
   <li>Compile a list of bad router hashes or IPs, and announce the list through various means
@@ -611,11 +621,11 @@ This attack becomes more difficult as the network size grows.
 <p>
   As a partial defense against this attack,
   the algorithm used to determine Kademlia "closeness" varies over time.
-  Rather than using the Hash of the key (i.e. H(k))to determine closeness,
+  Rather than using the Hash of the key (i.e. H(k)) to determine closeness,
   we use the Hash of the key appended with the current date string, i.e. H(k + YYYYMMDD).
   A function called the "routing key generator" does this, which transforms the original key into a "routing key".
   In other words, the entire netdb keyspace "rotates" every day at UTC midnight.
-  Any partial-keyspace attack would have to be regenerated every day, as
+  Any partial-keyspace attack would have to be regenerated every day, for
   after the rotation, the attacking routers would no longer be close
   to the target key, or to each other.
 </p>
@@ -679,7 +689,7 @@ This attack becomes more difficult as the network size grows.
   In other words, the Kademlia lookup is not iterative.
   This means the query capture attack described in
   <a href="http://www-users.cs.umn.edu/~hopper/hashing_it_out.pdf">Hashing it out in Public</a>
-  much less likely, until <a href="#future">iterative lookups are implemented</a>.
+  is much less likely, until <a href="#future">iterative lookups are implemented</a>.
 </p>
 
 <h3>DHT-Based Relay Selection</h3>

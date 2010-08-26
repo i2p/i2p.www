@@ -26,12 +26,17 @@ block is formatted (in network byte order):
 <p>
 <p>
 <PRE>
- |_______1_______2_______3_______4_______5_______6_______7_______8
- |nonzero|H(data)
- |
- |
- |
- |       | data     ...  |
+   +----+----+----+----+----+----+----+----+
+   |nonz|           H(data)                |
+   +----+                                  +
+   |                                       |
+   +                                       +
+   |                                       |
+   +                                       +
+   |                                       |
+   +    +----+----+----+----+----+----+----+
+   |    |  data...
+   +----+----+----+--//                   
 
 </PRE>
 <p>
@@ -266,11 +271,12 @@ It may be quite difficult to make any change backward-compatible.
 
 <h2 id="transports">Transports</h2>
 <p>
-At the lowest 
-level, inter-router communication is protected by the transport layer security.
+At the lowest protocol layer,
+point-to-point inter-router communication is protected by the transport layer security.
 Both transports use 256 byte (2048 bit) Diffie-Hellman key exchange
 using
-<a href="#elgamal">the same shared prime and generator as specified above for ElGamal</a>.
+<a href="#elgamal">the same shared prime and generator as specified above for ElGamal</a>,
+followed by symmetric AES encryption as described above.
 </p>
 
 <H3><a name="tcp">NTCP connections</a></H3>
@@ -280,8 +286,8 @@ NTCP connections are negotiated with a 2048 Diffie-Hellman implementation,
 using the router's identity to proceed with a station to station agreement, followed by
 some encrypted protocol specific fields, with all subsequent data encrypted with AES
 (as above).
-A possible enhancement is to use session tags like we do with 
-<a href="how_elgamalaes">ElGamalAES+SessionTag</a> to avoid the 2048 bit DH negotiation.  
+The primary reason to do the DH negotiation instead of using <a href="how_elgamalaes">ElGamalAES+SessionTag</a> is that it provides '<a href="http://en.wikipedia.org/wiki/Perfect_forward_secrecy">(perfect) forward secrecy</a>', while <a href="how_elgamalaes">ElGamalAES+SessionTag</a> does not.
+</p>
 <p>
 In order to migrate to a more standardized implementation (TLS/SSL or even SSH), the following issues must be addressed:
 <p>
@@ -305,7 +311,7 @@ checking.
 See <a href="udp.html#keys">the SSU specification</a> for details.
 
 
-<H3>References</H3>
+<H2>References</H2>
 <ul>
 <li>
 <a href="http://csrc.nist.gov/publications/nistpubs/800-57/sp800-57-Part1-revised2_Mar08-2007.pdf">NIST 800-57</a>
