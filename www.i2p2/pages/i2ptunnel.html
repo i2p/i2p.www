@@ -9,13 +9,15 @@ serrver modes
 <h1>I2PTunnel</h1>
 <h2 id="overview">Overview</h2>
 <p>
-I2PTunnel a tool for interfacing with and providing services on I2P.
- By directing an I2PTunnel to a destination, via a <a href="naming.html">hostname</a>,
- <a href="naming.html#base32">Base32</a> or a full 516-byte destination key, a localhost:port
- interface to that servie is provided. Providing a service is as simple as creating a server I2PTunnel 
- to the appropriate ip:port, a 516-byte destination key will be generated for the service and it
- will be avaliable throughout I2P.
- A web interface is avaliable on <a href="http://localhost:7657/i2ptunnel/">localhost:7657/i2ptunnel/</a>.
+I2PTunnel is a tool for interfacing with and providing services on I2P.
+Destination of an I2PTunnel can be defined using a <a href="naming.html">hostname</a>,
+<a href="naming.html#base32">Base32</a>, or a full 516-byte destination key.
+An established I2PTunnel will be available on your client machine as localhost:port.
+If you wish to provide a service on I2P network, you simply create I2PTunnel to the
+appropriate ip_address:port. A corresponding 516-byte destination key will be generated
+for the service and it will become avaliable throughout I2P.
+A web interface for I2PTunnel management is avaliable on
+<a href="http://localhost:7657/i2ptunnel/">localhost:7657/i2ptunnel/</a>.
 </p>
 
 <br>
@@ -55,8 +57,9 @@ The tunnel is directed to a random host from the comma seperated (", ") list of 
 
 <br>
 <h3 id="client-mode-http">HTTP</h3>
-A HTTP-client tunnel. The tunnel connects to the destination specified by the URL
+<p>A HTTP-client tunnel. The tunnel connects to the destination specified by the URL
  in a HTTP request. Supports proxying onto internet if an outproxy is provided. Strips HTTP connections of the following headers:
+</p>
 <ul>
 <li><b>Accept, Accept-Charset, Accept-Encoding, Accept-Language
  and Accept-Ranges</b> as they vary greatly between browsers and can be used as an identifier.
@@ -65,6 +68,20 @@ A HTTP-client tunnel. The tunnel connects to the destination specified by the UR
 <li><b>Via:</b></li>
 <li><b>From:</b></li>
 </ul>
+<p>
+HTTP client/server tunnels are via I2Ptunnel force-enabling compression via the following http headers:
+<ul>
+<li><b>Accept-Encoding: </b></li>
+<li><b>X-Accept-Encoding: </b> x-i2p-gzip;q=1.0, identity;q=0.5, deflate;q=0, gzip;q=0, *;q=0</li>
+</ul>
+<p>
+Depending on if the tunnel is using an outproxy or not it will append the following User-Agent: 
+</p>
+<ul>
+<li><i>Outproxy: </i><b>User-Agent:</b> Mozilla/5.0 (Windows; U; Windows NT 5.1; en-US; rv:1.9.2.6) Gecko/20100625 Firefox/3.6.6</li>
+<li><i>Internal I2P use: </i><b>User-Agent:</b> MYOB/6.66 (AN/ON)</li>
+</ul>
+</p>
 
 <h3 id="client-mode-irc">IRC</h3>
 Creates a connection to a random IRC server specified by the comma seprated (", ") 
@@ -98,22 +115,25 @@ to build a TCP tunnel that usually is used for SSL and HTTPS.
 Creates a UDP-server attached to a Streamr client I2PTunnel. The streamr client tunnel will 
 subscribe to a streamr server tunnel.
 <br>
-<img src="../static/images/I2PTunnel-streamr.png">
+<img src="_static/images/I2PTunnel-streamr.png">
 
 
 <br>
 <h2 id="server-modes">Server Modes</h2>
-<h3 id="server-modes">Standard</h3>
+<h3 id="server-mode-standard">Standard</h3>
 Creates a destination to a local ip:port with an open TCP port.
 
-<h3 id="server-modes">HTTP</h3>
+<h3 id="server-mode-http">HTTP</h3>
 Creates a destination to a local HTTP server ip:port. Supports gzip for requests with 
-Accept-encoding: x-i2p-gzip. Replies
-<h3 id="server-modes">HTTP Bidirectional</h3>
-A HTTP proxy with no outproxying capabilities.
-<h3 id="server-modes">IRC</h3>
+Accept-encoding: x-i2p-gzip, replies with Content-encoding: x-i2p-gzip in such a request.
+
+<h3 id="server-mode-http-bidir">HTTP Bidirectional</h3>
+Functions as both a I2PTunnel HTTP Server, and a I2PTunnel HTTP client with no outproxying capabilities.
+
+<h3 id="server-mode-irc">IRC</h3>
 Creates a destination that filters the reqistration sequence of a client and passes 
-the destination hash as a hostname to the IRC-server.
-<h3 id="server-modes">Streamr</h3>
+the clients destination key as a hostname to the IRC-server.
+
+<h3 id="server-mode-streamr">Streamr</h3>
 A UDP-client that connects to a media server is created. The UDP-Client is coupled with a Streamr server I2PTunnel.
 {% endblock %}
