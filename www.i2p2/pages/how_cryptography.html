@@ -18,11 +18,15 @@ technique used in <a href="how_elgamalaes">ElGamal/AES+SessionTag</a> (but we're
 
 <p>
 ElGamal is used for asymmetric encryption.
-ElGamal is used in two places in I2P:
+ElGamal is used in several places in I2P:
 <ul><li>
-To encrypt <a href="tunnel-alt-creation.html">Tunnel Build Messages</a>
+To encrypt router-to-router <a href="tunnel-alt-creation.html">Tunnel Build Messages</a>
 </li><li>
-For end-to-end encryption as a part of <a href="how_elgamalaes">ElGamal/AES+SessionTag</a>
+For end-to-end (destination-to-destination) encryption as a part of <a href="how_elgamalaes">ElGamal/AES+SessionTag</a>
+</li><li>
+For encryption of some <a href="how_networkdatabase.html#delivery">netDb stores and queries sent to floodfill routers</a>
+as a part of <a href="how_elgamalaes">ElGamal/AES+SessionTag</a>
+(destination-to-router or router-to-router).
 </li></ul>
 </p>
 
@@ -84,9 +88,10 @@ The encrypted ElGamal contains:
 </PRE>
 Each encrypted part is prepended with zeros to a size of exactly 257 bytes.
 Total length: 514 bytes.
-In typical usage, higher layers pad the cleartext to 222 bytes,
-resulting in 257-byte encrypted parts,
-and there is no zero padding at this layer.
+In typical usage, higher layers pad the cleartext data to 222 bytes,
+resulting in an unencrypted block of 255 bytes.
+This is encoded as two 256-byte encrypted parts,
+and there is a single byte of zero padding before each part at this layer.
 </p><p>
 See 
 <a href="http://trac.i2p2.de/browser/core/java/src/net/i2p/crypto/ElGamalEngine.java?rev=85a542c53d910dffbf34cdcefb8a2faeee96adc4">the ElGamal code</a>.
@@ -146,8 +151,19 @@ It may be quite difficult to make any change backward-compatible.
 <H2><a name="AES">AES</a></H2>
 
 <p>
-AES is used for symmetric encryption.
-<p>
+AES is used for symmetric encryption, in several cases:
+<ul><li>
+For <a href="#transports">transport encryption</a> after DH key exchange
+</li><li>
+For end-to-end (destination-to-destination) encryption as a part of <a href="how_elgamalaes">ElGamal/AES+SessionTag</a>
+</li><li>
+For encryption of some <a href="how_networkdatabase.html#delivery">netDb stores and queries sent to floodfill routers</a>
+as a part of <a href="how_elgamalaes">ElGamal/AES+SessionTag</a>
+(destination-to-router or router-to-router).
+</li><li>
+For encryption of <a href="how_tunnelrouting.html#testing">periodic tunnel test messages</a> sent from the router to itself, through its own tunnels.
+</li></ul>
+</p><p>
 We use 256 bit AES in CBC mode.
 The padding used is specified in <a href="http://tools.ietf.org/html/rfc2313">IETF RFC-2313 (PKCS#5 1.5, section 8.1 (for block type 02))</a>.
 In this case, padding exists of pseudorandomly generated octets to match 16 byte blocks.

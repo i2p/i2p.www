@@ -60,7 +60,7 @@ Also specified in the
   byte      184: flags
   bytes 185-188: request time (in hours since the epoch)
   bytes 189-192: next message ID
-  bytes 193-222: uninterpreted / random padding</pre>
+  bytes 193-221: uninterpreted / random padding</pre>
 
 <p>The next tunnel ID and next router identity hash fields are used to
 specify the next hop in the tunnel, though for an outbound tunnel
@@ -86,6 +86,11 @@ Bit 6 indicates that the hop will be an outbound endpoint (OBEP).
 public encryption key and formatted into a 528 byte record:</p><pre>
   bytes   0-15: First 16 bytes of the SHA-256 of the current hop's router identity
   bytes 16-527: ElGamal-2048 encrypted request record</pre>
+
+In the 512-byte encrypted record,
+the ElGamal data contains bytes 1-256 and 258-513 of the
+<a href="how_cryptography.html#elgamal">514-byte ElGamal encrypted block</a>.
+The two padding bytes from the block (the zero bytes at locations 0 and 257) are removed.
 
 <p>Since the cleartext uses the full field, there is no need for
 additional padding beyond <code>SHA256(cleartext) + cleartext</code>.</p>

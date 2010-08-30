@@ -64,11 +64,11 @@ Each message received has one of two
 the two possible conditions:</p>
 
 <OL>
-<li> It is part of an existing session and is AES encrypted</li>
+<li> It is part of an existing session and contains a Session Tag and an AES encrypted block</li>
 <li> It is for a new session and contains both ElGamal and AES encrypted blocks</li>
 </OL>
 When a router receives a message, it will first assume it is from
-an existing session and attempt to decrypt it using AES.
+an existing session and attempt to look up the Session Tag and decrypt the following data using AES.
 If that fails, it will assume it is for a new session and attempt to
 decrypt it using ElGamal.
 </p>
@@ -104,8 +104,8 @@ The encrypted message contains:
 </p>
 <h3>ElGamal Block</h3>
 <p>
-The ElGamal Block is always 514 bytes long.
-The AES Block is variable length but is always a multiple of 16 bytes.
+The encrypted ElGamal Block is always 514 bytes long.
+The encrypted AES Block length is variable but is always a multiple of 16 bytes.
 </p><p>
 The unencrypted ElGamal data is 222 bytes long, containing:
 <PRE>
@@ -136,7 +136,9 @@ The unencrypted ElGamal data is 222 bytes long, containing:
    |                             |
    +----+----+----+----+----+----+
 </PRE>
-The 32-byte Session Key is the identifier for the session.
+The 32-byte
+<a href="common_structures_spec#type_SessionKey">Session Key</a>
+is the identifier for the session.
 The 32-byte Pre-IV will be used to generate the IV for the AES block that follows;
 the IV is the first 16 bytes of the SHA-256 Hash of the Pre-IV.
 </p><p>
@@ -203,13 +205,26 @@ New Session Key: A 32-byte <a href="common_structures_spec#type_SessionKey">Sess
 
 Payload: the data
 
-Padding: Random data to a multiple of 16 bytes for the total length
+Padding: Random data to a multiple of 16 bytes for the total length.
+         May contain more than the minimum required padding.
+
+Minimum length: 48 bytes
 
 </PRE>
 
 </p><p>
 The data is then <a href="how_cryptography">AES Encrypted</a>,
 using the session key and IV (calculated from the pre-IV) from the ElGamal section.</p>
+
+<h4>Notes</h4>
+<ul>
+<li>
+  Actual max payload length, and max block length, is less than 64 KB; see the<a href="i2np.html">I2NP Overview</a>.
+</li><li>
+New Session Key is currently unused and is never present.
+</li></ul>
+
+
 
 <h2 id="existing">Existing Session Message Specification</h2>
 
@@ -266,8 +281,13 @@ impact on overal performance.
 <ul><li>
 Delivery of too many tags at one time may impose substantial overhead for brief streaming connections
 or datagrams, and increase the chance of message loss.
+We currently deliver 40 tags at a time (1280 bytes).
+32 (1024 bytes) may be better for tunnel fragmentation.
 </li><li>
 A few tags could be delivered in each of several messages, or lots of tags all at once.
+</li><li>
+It is also important to study and tune
+the low-tag thresholds at which more tags are sent.
 </li><li>
 The number of tags delivered could depend on message size, keeping in mind
 the eventual padding to 1KB at the tunnel message layer.
@@ -283,8 +303,23 @@ there are tradeoffs for each strategy.
 For very brief messages, almost the full 222 bytes of the pre-IV and padding fields in the ElGamal block
 could be used for the entire message, instead of establishing a session.
 </li><li>
+Evaluate padding strategy; currently we pad to a minimum of 128 bytes.
+Would be better to add a few tags to small messages than pad.
+</li><li>
+Perhaps things could be more efficient if the Session Tag system was bidirectional,
+so tags delivered in the 'forward' path could be used in the 'reverse' path,
+thus avoiding ElGamal in the initial response.
+The router currently plays some tricks like this when sending
+tunnel test messages to itself.
+</li><li>
 Change from Session Tags to
 <a href="performance.html#prng">a synchronized PRNG</a>.
+</li><li>
+Several of these ideas may require a new I2NP message type, or
+set a flag in the
+<a href="tunnel_message_spec.html#delivery">Delivery Instructions</a>,
+or set a magic number in the first few bytes of the Session Key field
+and accept a small risk of the random Session Key matching the magic number.
 </li></ul>
 
 </p>
