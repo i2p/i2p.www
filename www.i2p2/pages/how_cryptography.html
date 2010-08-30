@@ -18,12 +18,21 @@ technique used in <a href="how_elgamalaes">ElGamal/AES+SessionTag</a> (but we're
 
 <p>
 ElGamal is used for asymmetric encryption.
+ElGamal is used in two places in I2P:
+<ul><li>
+To encrypt <a href="tunnel-alt-creation.html">Tunnel Build Messages</a>
+</li><li>
+For end-to-end encryption as a part of <a href="how_elgamalaes">ElGamal/AES+SessionTag</a>
+</li></ul>
+</p>
+
 <p>
 We use common primes for 2048 ElGamal encryption and decryption, as given by <a href="http://tools.ietf.org/html/rfc3526">IETF RFC-3526</a>.
 We currently only use ElGamal to encrypt the IV and session key in a single block, followed by the 
-AES encrypted payload using that key and IV.  Specifically, the unencrypted ElGamal 
-block is formatted (in network byte order):
+AES encrypted payload using that key and IV.
 <p>
+The unencrypted ElGamal contains: 
+</p>
 <p>
 <PRE>
    +----+----+----+----+----+----+----+----+
@@ -42,11 +51,45 @@ block is formatted (in network byte order):
 <p>
 The H(data) is the SHA256 of the data that is encrypted in the ElGamal block,
 and is preceded by a random nonzero byte.  The data encrypted in the block 
-can be up to 222 bytes long. See 
-<a href="http://trac.i2p2.de/browser/core/java/src/net/i2p/crypto/ElGamalEngine.java?rev=85a542c53d910dffbf34cdcefb8a2faeee96adc4">the ElGamal code</a>.
+may be up to 222 bytes long.
+As the encrypted data may contain a substantial number of zeros if the
+cleartext is smaller than 222 bytes, it is recommended that higher layers pad
+the cleartext to 222 bytes with random data.
+Total length: typically 255 bytes.
+</p><p>
+The encrypted ElGamal contains: 
+</p>
 <p>
-ElGamal is never used on its own in I2P, but instead always as part of 
-<a href="how_elgamalaes">ElGamal/AES+SessionTag</a>.
+<PRE>
+   +----+----+----+----+----+----+----+----+
+   |  zero padding...       |              |
+   +----+----+----+--// ----+              +
+   |                                       |
+   +                                       +
+   |       ElG encrypted part 1            |
+   ~                                       ~
+   |                                       |
+   +    +----+----+----+----+----+----+----+
+   |    |   zero padding...      |         |
+   +----+----+----+----+--// ----+         +
+   |                                       |
+   +                                       +
+   |       ElG encrypted part 2            |
+   ~                                       ~
+   |                                       |
+   +         +----+----+----+----+----+----+
+   |         +
+   +----+----+
+
+</PRE>
+Each encrypted part is prepended with zeros to a size of exactly 257 bytes.
+Total length: 514 bytes.
+In typical usage, higher layers pad the cleartext to 222 bytes,
+resulting in 257-byte encrypted parts,
+and there is no zero padding at this layer.
+</p><p>
+See 
+<a href="http://trac.i2p2.de/browser/core/java/src/net/i2p/crypto/ElGamalEngine.java?rev=85a542c53d910dffbf34cdcefb8a2faeee96adc4">the ElGamal code</a>.
 <p>
 The shared prime is the 
 
@@ -124,12 +167,36 @@ Two situations are possible:
 2. For situations where we know the size of the data to be sent, we AES encrypt the following:
 <p>
 <PRE>
- |_______1_______2_______3_______4_______5_______6_______7_______8
- |H(data)
- |
- |
- |                                                               |
- |    size of data (in bytes)    |  data    ...  | rand     ...  |
+   +----+----+----+----+----+----+----+----+
+   |                H(data)                |
+   +                                       +
+   |                                       |
+   +                                       +
+   |                                       |
+   +                                       +
+   |                                       |
+   +----+----+----+----+----+----+----+----+
+   |  size   |  data ...                   |
+   +----+----+                             +
+   |                                       |
+   ~                                       ~
+   |                                       |
+   +                                       +
+   |                                       |
+   +                        +----//---+----+
+   |                        |              |
+   +----+----+----//---+----+              +
+   |          Padding to 16 bytes          |
+   +----+----+----+----+----+----+----+----+
+
+H(data): 32-byte SHA-256 Hash of the data
+
+size: 2-byte Integer, number of data bytes to follow
+
+data: payload
+
+padding: random data, to a multiple of 16 bytes
+
 </PRE>
 <p>
 After the data comes an application specified number of randomly generated padding bytes.
