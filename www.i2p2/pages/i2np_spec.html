@@ -132,20 +132,36 @@ Cleartext:
 | reply_iv                              |
 +                                       +
 |                                       |
-+----+----+----+----+----+----+----+----+----+
-|flag| request_time      | send_message_id   |
-+----+----+----+----+----+----+----+----+----+
-| padding...
-+----+----+----+--//
++----+----+----+----+----+----+----+----+
+|flag| request_time      | send_msg_id
++----+----+----+----+----+----+----+----+
+     |                                  |
++----+                                  +
+|         29 bytes padding              |
++                                       +
+|                                       |
++                             +----+----+
+|                             |
++----+----+----+----+----+----+
 
-encrypted:
+
+ElGamal encrypted:
 +----+----+----+----+----+----+----+----+
 | toPeer                                |
 +                                       +
 |                                       |
 +----+----+----+----+----+----+----+----+
 | encrypted data ...                    |
+~                                       ~
+|                                       |
++----+----+----+----+----+----+----+----+
 
+
+ElGamal and AES encrypted:
++----+----+----+----+----+----+----+----+
+| encrypted data ...                    |
+~                                       ~
+|                                       |
 +----+----+----+----+----+----+----+----+
 {% endfilter %}
 </pre>
@@ -190,18 +206,26 @@ send_message_id :: Integer
 
 padding :: Data
            length -> 29 bytes
-           
            source -> random
 
 total length: 222
 
-encrypted:
+
+ElGamal encrypted:
 
 toPeer :: First 16 bytes of the SHA-256 Hash of the peer's router identity
           length -> 16 bytes
 
 encrypted_data :: ElGamal-2048 encrypted data (see notes)
                   length -> 512
+
+total length: 528
+
+
+ElGamal and AES encrypted:
+
+encrypted_data :: ElGamal and AES encrypted data
+                  length -> 528
 
 total length: 528
 
@@ -226,7 +250,7 @@ The two padding bytes from the block (the zero bytes at locations 0 and 257) are
 unencrypted:
 +----+----+----+----+----+----+----+----+
 | random data...                        |
-
+~                                       ~
 |                                       |
 +                                  +----+
 |                                  |ret |
@@ -241,7 +265,7 @@ bytes 0-526: random data
 byte  527  : reply
 
 encrypted:
-bytes 0-527: AES-encrypted record(note: same size as BuildRequestRecord!)
+bytes 0-527: AES-encrypted record(note: same size as BuildRequestRecord)
 
 total length: 528
 
