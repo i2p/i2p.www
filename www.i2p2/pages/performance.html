@@ -1,6 +1,8 @@
 {% extends "_layout.html" %}
 {% block title %}Performance{% endblock %}
 {% block content %}
+Updated August 2010, current as of router version 0.8
+
 <p>Probably one of the most frequent things people ask is "how fast is I2P?",
 and no one seems to like the answer - "it depends".  After trying out I2P, the
 next thing they ask is "will it get faster?", and the answer to that is a most
@@ -33,7 +35,7 @@ gave us a reference to someone we had never heard of).  We can also do some
 tuning on what we actually send - how many peers we bounce back (or even if we
 bounce back a reply), as well as how many concurrent searches we perform.</p>
 
-<h2>Longer SessionTag lifetime</h2>
+<h2>Session Tag Tuning and Improvements</h2>
 <p>The way the <a href="how_elgamalaes">ElGamal/AES+SessionTag</a> algorithm
 works is by managing a set of random one-time-use 32 byte arrays, and expiring
 them if they aren't used quickly enough.  If we expire them too soon, we're
@@ -44,8 +46,13 @@ tags, even more encryption failures may occur prior to detection).  With some
 more active detection and feedback driven algorithms, we can safely and more
 efficiently tune the lifetime of the tags, replacing the ElGamal encryption with
 a trivial AES operation.</p>
+<p>
+Additional ideas for improving Session Tag delivery are described on the
+<a href="how_elgamalaes.html#future">ElGamal/AES+SessionTag page</a>.
+</p>
 
-<h2>Migrate sessionTag to synchronized PRNG</h2>
+
+<h2 id="prng">Migrate sessionTag to synchronized PRNG</h2>
 <p>Right now, our <a href="how_elgamalaes.html">ElGamal/AES+SessionTag</a> 
 algorithm works by tagging each encrypted message with a unique random 
 32 byte nonce (a "session tag"), identifying that message as being encrypted 
@@ -76,13 +83,12 @@ network and CPU load (due to expensive tunnel creation messages).</p>
 <p>
 This appears to be an easy fix for high load on the big-bandwidth routers, but
 we should not resort to it until we've tuned the tunnel building algorithms further.
-However, the 10 minute tunnel lifetime is hardcoded in a few places,
-so the code needs to be cleaned up before we could change the duration.
+However, the 10 minute tunnel lifetime is hardcoded in quite a few places,
+so substantial effort would be required to change the duration.
+Also, it would be difficult to maintain backward compatibility with such a change.
 </p><p>
-A new tunnel build algorithm was introduced in release 0.6.1.32 and it has greatly
-reduced the number of tunnel builds. Together with better detection of
-unreachable peers and other peer selection strategies implemented in release 0.6.1.33,
-the situation is much improved, and there are no current plans to extend tunnel lifetime.
+Currently, since the network average tunnel build success rate is fairly high,
+there are no current plans to extend tunnel lifetime.
 </p>
 
 
@@ -111,4 +117,8 @@ bandwidth, latency, and CPU usage.</p>
 <li>Web controls and monitoring the health of the various streams, as well 
     as the ability to explicitly close or throttle them.</li>
 </ul>
+<p>
+Additional ideas for improving the streaming library are described on the
+<a href="streaming.html#future">streaming library page</a>.
+</p>
 {% endblock %}

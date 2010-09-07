@@ -18,12 +18,25 @@ technique used in <a href="how_elgamalaes">ElGamal/AES+SessionTag</a> (but we're
 
 <p>
 ElGamal is used for asymmetric encryption.
+ElGamal is used in several places in I2P:
+<ul><li>
+To encrypt router-to-router <a href="tunnel-alt-creation.html">Tunnel Build Messages</a>
+</li><li>
+For end-to-end (destination-to-destination) encryption as a part of <a href="how_elgamalaes">ElGamal/AES+SessionTag</a>
+</li><li>
+For encryption of some <a href="how_networkdatabase.html#delivery">netDb stores and queries sent to floodfill routers</a>
+as a part of <a href="how_elgamalaes">ElGamal/AES+SessionTag</a>
+(destination-to-router or router-to-router).
+</li></ul>
+</p>
+
 <p>
 We use common primes for 2048 ElGamal encryption and decryption, as given by <a href="http://tools.ietf.org/html/rfc3526">IETF RFC-3526</a>.
 We currently only use ElGamal to encrypt the IV and session key in a single block, followed by the 
-AES encrypted payload using that key and IV.  Specifically, the unencrypted ElGamal 
-block is formatted (in network byte order):
+AES encrypted payload using that key and IV.
 <p>
+The unencrypted ElGamal contains: 
+</p>
 <p>
 <PRE>
    +----+----+----+----+----+----+----+----+
@@ -42,11 +55,46 @@ block is formatted (in network byte order):
 <p>
 The H(data) is the SHA256 of the data that is encrypted in the ElGamal block,
 and is preceded by a random nonzero byte.  The data encrypted in the block 
-can be up to 222 bytes long. See 
-<a href="http://trac.i2p2.de/browser/core/java/src/net/i2p/crypto/ElGamalEngine.java?rev=85a542c53d910dffbf34cdcefb8a2faeee96adc4">the ElGamal code</a>.
+may be up to 222 bytes long.
+As the encrypted data may contain a substantial number of zeros if the
+cleartext is smaller than 222 bytes, it is recommended that higher layers pad
+the cleartext to 222 bytes with random data.
+Total length: typically 255 bytes.
+</p><p>
+The encrypted ElGamal contains: 
+</p>
 <p>
-ElGamal is never used on its own in I2P, but instead always as part of 
-<a href="how_elgamalaes">ElGamal/AES+SessionTag</a>.
+<PRE>
+   +----+----+----+----+----+----+----+----+
+   |  zero padding...       |              |
+   +----+----+----+--// ----+              +
+   |                                       |
+   +                                       +
+   |       ElG encrypted part 1            |
+   ~                                       ~
+   |                                       |
+   +    +----+----+----+----+----+----+----+
+   |    |   zero padding...      |         |
+   +----+----+----+----+--// ----+         +
+   |                                       |
+   +                                       +
+   |       ElG encrypted part 2            |
+   ~                                       ~
+   |                                       |
+   +         +----+----+----+----+----+----+
+   |         +
+   +----+----+
+
+</PRE>
+Each encrypted part is prepended with zeros to a size of exactly 257 bytes.
+Total length: 514 bytes.
+In typical usage, higher layers pad the cleartext data to 222 bytes,
+resulting in an unencrypted block of 255 bytes.
+This is encoded as two 256-byte encrypted parts,
+and there is a single byte of zero padding before each part at this layer.
+</p><p>
+See 
+<a href="http://trac.i2p2.de/browser/core/java/src/net/i2p/crypto/ElGamalEngine.java?rev=85a542c53d910dffbf34cdcefb8a2faeee96adc4">the ElGamal code</a>.
 <p>
 The shared prime is the 
 
@@ -103,8 +151,19 @@ It may be quite difficult to make any change backward-compatible.
 <H2><a name="AES">AES</a></H2>
 
 <p>
-AES is used for symmetric encryption.
-<p>
+AES is used for symmetric encryption, in several cases:
+<ul><li>
+For <a href="#transports">transport encryption</a> after DH key exchange
+</li><li>
+For end-to-end (destination-to-destination) encryption as a part of <a href="how_elgamalaes">ElGamal/AES+SessionTag</a>
+</li><li>
+For encryption of some <a href="how_networkdatabase.html#delivery">netDb stores and queries sent to floodfill routers</a>
+as a part of <a href="how_elgamalaes">ElGamal/AES+SessionTag</a>
+(destination-to-router or router-to-router).
+</li><li>
+For encryption of <a href="how_tunnelrouting.html#testing">periodic tunnel test messages</a> sent from the router to itself, through its own tunnels.
+</li></ul>
+</p><p>
 We use 256 bit AES in CBC mode.
 The padding used is specified in <a href="http://tools.ietf.org/html/rfc2313">IETF RFC-2313 (PKCS#5 1.5, section 8.1 (for block type 02))</a>.
 In this case, padding exists of pseudorandomly generated octets to match 16 byte blocks.
@@ -124,12 +183,36 @@ Two situations are possible:
 2. For situations where we know the size of the data to be sent, we AES encrypt the following:
 <p>
 <PRE>
- |_______1_______2_______3_______4_______5_______6_______7_______8
- |H(data)
- |
- |
- |                                                               |
- |    size of data (in bytes)    |  data    ...  | rand     ...  |
+   +----+----+----+----+----+----+----+----+
+   |                H(data)                |
+   +                                       +
+   |                                       |
+   +                                       +
+   |                                       |
+   +                                       +
+   |                                       |
+   +----+----+----+----+----+----+----+----+
+   |  size   |  data ...                   |
+   +----+----+                             +
+   |                                       |
+   ~                                       ~
+   |                                       |
+   +                                       +
+   |                                       |
+   +                        +----//---+----+
+   |                        |              |
+   +----+----+----//---+----+              +
+   |          Padding to 16 bytes          |
+   +----+----+----+----+----+----+----+----+
+
+H(data): 32-byte SHA-256 Hash of the data
+
+size: 2-byte Integer, number of data bytes to follow
+
+data: payload
+
+padding: random data, to a multiple of 16 bytes
+
 </PRE>
 <p>
 After the data comes an application specified number of randomly generated padding bytes.
