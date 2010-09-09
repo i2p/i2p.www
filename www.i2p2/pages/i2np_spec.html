@@ -42,12 +42,12 @@ common transports supported.
 type :: Integer
         length -> 1 byte
         
-        purpose -> identifies the message type(see table below)
+        purpose -> identifies the message type (see table below)
 
 msg-id :: Integer
           length -> 4 bytes
 
-          purpose -> uniquely identifies this message(for some time at least)
+          purpose -> uniquely identifies this message (for some time at least)
 
 expiration :: Date
            8 bytes
@@ -431,7 +431,7 @@ with reply token == 0:
 +                                       +
 |                                       |
 +----+----+----+----+----+----+----+----+
-|type| reply token       | data ...
+|type|         0         | data ...
 +----+-------------------+---------\\
 </pre>
 <h4>Definition</h4>
@@ -455,7 +455,7 @@ reply token:
             if the token is greater than zero.
 
 reply tunnelId:
-               4 bytes
+               4 byte Tunnel ID
                only included if reply token &gt; 0
                This is the <a href="common_structures_spec#type_TunnelID">tunnel ID</a> of the inbound gateway of the tunnel the response should be sent to
 
@@ -473,7 +473,6 @@ data:
 <h3 id="msg_DatabaseLookup">DatabaseLookup</h3>
 <pre>
 {% filter escape %}
-if flag==TRUE
 +----+----+----+----+----+----+----+----+
 | SHA256 hash as the key to look up     |
 +                                       +
@@ -484,8 +483,8 @@ if flag==TRUE
 |                                       |
 +----+----+----+----+----+----+----+----+
 | SHA256 hash of the routerInfo         |
-+ who is asking                         +
-|                                       |
++ who is asking, or the gateway to      +
+| send the reply to                     |
 +                                       +
 |                                       |
 +                                       +
@@ -520,17 +519,18 @@ from:
 
 flag:
      1 byte
-     mapping:
+     valid values:
              0  FALSE => send reply directly
              1  TRUE  => send reply to some tunnel
 
 reply tunnelId:
-               4 bytes
+               4 byte Tunnel ID
                only included if flag==TRUE
                tunnelId of the tunnel to send the reply to
 
 size:
-     2 bytes
+     2 byte Integer
+     valid range: 0-512
      number of peers to exclude from the Database Search Reply Message
 
 excludedPeers:
@@ -542,6 +542,15 @@ excludedPeers:
 
 {% endfilter %}
 </pre>
+
+<h4>Notes</h4>
+<p>
+ To do:
+ Use a bit of the flag field to request an AES-encrypted response.
+ Use parts of this message as the key and IV? Add a message ID also?
+ Backward compatibility?
+</p>
+
 
 <h3 id="msg_DatabaseSearchReply">DatabaseSearchReply</h3>
 <h4>Description</h4>
@@ -598,7 +607,7 @@ key:
     SHA256 of the object being searched
 
 num:
-    1 byte
+    1 byte Integer
     number of peer hashes that follow
 
 peer hash:
@@ -697,7 +706,7 @@ unencrypted data:
 Encrypted:
 
 length:
-       4 bytes
+       4 byte Integer
        number of bytes that follow 0 - 64 KB
 
 data:
@@ -754,7 +763,7 @@ Expiration :: Date (8 bytes)
 <pre>
 {% filter escape %}
 length:
-         4 bytes
+         4 byte Integer
          number of bytes that follow 0 - 64 KB - should always be 1024
 
 data:
@@ -783,11 +792,11 @@ data:
 <pre>
 {% filter escape %}
 tunnelId:
-         4 bytes
+         4 byte Tunnel ID
          identifies the tunnel this message is directed at
 
 length:
-       2 bytes
+       2 byte Integer
        length of the payload
 
 data:
@@ -796,8 +805,6 @@ data:
 {% endfilter %}
 </pre>
 
-
-{% endblock %}
 
 <h3 id="msg_Data">Data</h3>
 <h4>Description</h4>
@@ -890,7 +897,7 @@ same format as TunnelBuild message, with Build Response Records
 Same format as TunnelBuildMessage, except for the addition of an "num" field in front and $num number of Build Request Records instead of 8
 
 num:
-       1 byte
+       1 byte Integer
        Valid values: 1-8
 
 Record size: 528 bytes
@@ -920,3 +927,7 @@ Same format as VariableTunnelBuild message, with Build Response Records
 <li>
   See also the <a href="tunnel-alt-creation.html">tunnel creation specification</a>.
 </ul>
+
+
+
+{% endblock %}
