@@ -1,6 +1,8 @@
 {% extends "_layout.html" %}
 {% block title %}I2CP{% endblock %}
 {% block content %}
+Updated September 2010, current as of router version 0.8
+
 <p>The I2P Client Protocol (I2CP) exposes a strong separation of concerns between
 the router and any client that wishes to communicate over the network.  It enables
 secure and asynchronous messaging by sending and receiving messages over a 
@@ -8,24 +10,29 @@ single TCP socket, yet never exposing any private keys and authenticating itself
 to the router only through signatures.  With I2CP, a client application tells the
 router who they are (their "destination"), what anonymity, reliability, and 
 latency tradeoffs to make, and where to send messages.  In turn the router uses
-I2CP to tell the client when any messages have arrived, to request authorization
-for some tunnels to be used, and, if necessary, to notify the client that the 
-router is under attack and unable to operate safely.</p>
+I2CP to tell the client when any messages have arrived, and to request authorization
+for some tunnels to be used.
+</p>
 
-<p>As the I2CP requires all client libraries to provide an implementation of the
-end to end encryption (including <a href="how_elgamalaes">ElGamal/AES+SessionTag</a>),
-the protocol itself isn't likely to be adopted for normal client applications
-(except for those implemented in Java that can use the existing I2P 
-<a href="package-client.html">Client SDK</a>).  
+<p>
+The protocol itself has only been implemented in Java, to provide the
+<a href="package-client.html">Client SDK</a>.  
 This SDK is exposed in the i2p.jar package, which implements the client-side of I2CP.
 Clients should never need to access the router.jar package, which contains the
 router itself and the router-side of I2CP.
 </p>
 
 <p>
+While implementing the client side of I2CP in a non-Java language is certainly feasible,
+a non-Java client would also have to implement the
+<a href="streaming.html">streaming library</a> for TCP-style connections.
+Together, implementing I2CP and the streaming library would be a sizable task.
+</p>
+
+<p>
 Applications can take advantage of the base I2CP plus the 
 <a href="ministreaming">streaming</a> and <a href="datagrams">datagram</a> libraries
-by using the <a href="sam">Simple Anonymous Messaging</a> or BOB protocols,
+by using the <a href="sam">Simple Anonymous Messaging</a> or <a href="bob.html">BOB</a> protocols,
 which do not require clients to deal with any sort of cryptography.
 Also, clients may access the network by one of several proxies -
 HTTP, CONNECT, and SOCKS 4/4a/5.
@@ -33,21 +40,13 @@ Alternatively, Java clients may access those libraries in ministreaming.jar and 
 So there are several options for both Java and non-Java applications.
 </p>
 
-<p>I2CP end-to-end encryption was disabled in I2P release 0.6,
-leaving in place the end-to-end garlic encryption.
-However, client libraries must still implement public/private key signing
-for LeaseSets, and key management.
-</p>
-
-<p>While the I2CP has been quite stable since its inception in
-August of 2003, there have been several messages added.
-Here is the
-<a href="/_static/pdf/I2CP_spec.pdf">I2CP Protocol Specification Version 0.9</a>
-(PDF) dated August 28, 2003.
-That document also references the
-<a href="/_static/pdf/datastructures.pdf">Common Data Structures Specification Version 0.9</a>.
-There have been several changes to the protocol since that time,
-and many of the messages in those documents were never implemented.
+<p>Client-side end-to-end encryption (encrypting the data over the I2CP connection)
+was disabled in I2P release 0.6,
+leaving in place the <a href="how_elgamalaes.html">ElGamal/AES end-to-end encryption</a>
+which is implemented in the router.
+The only cryptography that client libraries must still implement is
+<a href="how_cryptography.html#DSA">DSA public/private key signing</a>
+for <a href="i2cp_spec.html#msg_CreateLeaseSet">LeaseSets</a> and <a href="i2cp_spec.html#type_SessionConfig">Session Configurations</a>, and management of those keys.
 </p>
 
 <p>In a standard I2P installation, port 7654 is used by java clients to communicate
@@ -56,113 +55,26 @@ By default, the router binds to address 127.0.0.1. To bind to 0.0.0.0, set the
 router advanced configuration option <tt>i2cp.tcp.bindAllInterfaces=true</tt> and restart.
 </p>
 
-<h2>I2CP Definition</h2>
+<h2>I2CP Protocol Specification</h2>
 <p>
-<i>Note</i> - The following information is extracted from the current code base,
-however it may be incomplete and/or inaccurate. Check the code to be sure.
-Rather than completely document the messages here, we refer you to the
-old protocol and data specifications linked above, together with the actual code.
-<p>
-R-&gt;C is Router to Client;
-C-&gt;R is Client to Router
-<p>
-<table border=1>
-<tr><th>Message<th>Direction<th>Type
-<tr><td>
-BandwidthLimitsMessage <i>(new in release 0.7.2)</i>
-<td align="center">R-&gt;C
-<td align=right>23
-<tr><td>
-CreateLeaseSetMessage
-<td align="center">C-&gt;R
-<td align=right>4
-<tr><td>
-CreateSessionMessage
-<td align="center">C-&gt;R
-<td align=right>1
-<tr><td>
-DestLookupMessage <i>(new in release 0.7)</i>
-<td align="center">C-&gt;R
-<td align=right>34
-<tr><td>
-DestReplyMessage <i>(new in release 0.7)</i>
-<td align="center">R-&gt;C
-<td align=right>35
-<tr><td>
-DestroySessionMessage
-<td align="center">C-&gt;R
-<td align=right>3
-<tr><td>
-DisconnectMessage
-<td align="center">R-&gt;C
-<td align=right>30
-<tr><td>
-GetBandwidthLimitsMessage <i>(new in release 0.7.2)</i>
-<td align="center">C-&gt;R
-<td align=right>8
-<tr><td>
-GetDateMessage
-<td align="center">C-&gt;R
-<td align=right>32
-<tr><td>
-MessagePayloadMessage
-<td align="center">R-&gt;C
-<td align=right>31
-<tr><td>
-MessageStatusMessage
-<td align="center">R-&gt;C
-<td align=right>22
-<tr><td>
-ReceiveMessageBeginMessage
-<td align="center">R-&gt;C
-<td align=right>6
-<tr><td>
-ReceiveMessageEndMessage
-<td align="center">C-&gt;R
-<td align=right>7
-<tr><td>
-ReconfigureSessionMessage <i>(new in release 0.7.1)</i>
-<td align="center">C-&gt;R
-<td align=right>2
-<tr><td>
-ReportAbuseMessage
-<td align="center">R-&gt;C
-<td align=right>29
-<tr><td>
-RequestLeaseSetMessage
-<td align="center">R-&gt;C
-<td align=right>21
-<tr><td>
-SendMessageExpiresMessage <i>(new in release 0.7.1)</i>
-<td align="center">C-&gt;R
-<td align=right>36
-<tr><td>
-SendMessageMessage
-<td align="center">C-&gt;R
-<td align=right>5
-<tr><td>
-SessionStatusMessage
-<td align="center">R-&gt;C
-<td align=right>20
-<tr><td>
-SetDateMessage
-<td align="center">R-&gt;C
-<td align=right>33
-</table>
+Now on the
+<a href="i2cp_spec.html">I2CP Specification page</a>.
+</p>
+
 
 <h2>I2CP Initialization</h2>
 <p>
 When a client connects to the router, it first sends a single protocol version byte (0x2A).
-Then it sends a GetDateMessage and waits for the SetDateMessage response.
-Next, it sends a CreateSessionMessage containing the session configuration.
-It next awaits a RequestLeaseSetMessage from the router, indicating that inbound tunnels
+Then it sends a <a href="i2cp_spec.html#msg_GetDate">GetDate Message</a> and waits for the <a href="i2cp_spec.html#msg_GetDate">SetDate Message</a> response.
+Next, it sends a <a href="i2cp_spec.html#msg_GetDate">CreateSession Message</a> containing the session configuration.
+It next awaits a <a href="i2cp_spec.html#msg_GetDate">RequestLeaseSet Message</a> from the router, indicating that inbound tunnels
 have been built, and responds with a CreateLeaseSetMessage containing the signed LeaseSet.
 The client may now initiate or receive connections from other I2P destinations.
 
 <h2 id="options">I2CP Options</h2>
 <p>
 The following options are traditionally passed to the router via
-a SessionConfig contained in a CreateSessionMessage or a ReconfigureSessionMessage.
+a <a href="i2cp_spec.html#type_SessionConfig">SessionConfig</a> contained in a <a href="i2cp_spec.html#msg_CreateSession">CreateSession Message</a> or a <a href="i2cp_spec.html#msg_ReconfigureSession">ReconfigureSession Message</a>.
 <p>
 <table border=1>
 <tr><th>Option <th>Recommended Arguments <th>Allowable Range<th>Default<th>Description
@@ -194,6 +106,7 @@ a SessionConfig contained in a CreateSessionMessage or a ReconfigureSessionMessa
 <tr><td>i2cp.dontPublishLeaseSet <td>true, false<td>&nbsp;<td>false<td>Should generally be set to true for clients
      and false for servers
 <tr><td>i2cp.messageReliability <td>&nbsp;<td>BestEffort, Guaranteed<td>BestEffort<td>Guaranteed is disabled
+<tr><td>explicitPeers<td>&nbsp;<td>&nbsp;<td>null<td>Comma-separated list of Base 64 Hashes of peers to build tunnels through; for debugging only
 </table>
 <p>
 Note: Large quantity, length, or variance settings may cause significant performance or reliability problems.
@@ -225,7 +138,7 @@ Note: All arguments, including numbers, are strings. True/false values are case-
 Anything other than case-insensitive "true" is interpreted as false.
 All option names are case-sensitive.
 
-<h2 id="format">I2CP Data Format and Multiplexing</h2>
+<h2 id="format">I2CP Payload Data Format and Multiplexing</h2>
 <p>
 The end-to-end messages handled by I2CP (i.e. the data sent by the client in a SendMessageMessage and
 received by the client in a MessagePayloadMessage) is gzipped with a standard 10-byte gzip
@@ -248,6 +161,54 @@ turns the gzip effort setting to 0, which may save a little CPU.
 <tr><td>8<td>Gzip xflags
 <tr><td>9<td>I2P Protocol (6 = Streaming, 17 = Datagram) (Gzip OS)
 </table>
+
+<p>
+Data integrity is verified with the standard gzip CRC-32 as
+specified by <a href="http://www.ietf.org/rfc/rfc1952.txt">RFC 1952</a>.
+</p>
+
+
+<h2 id="future">Future Work</h2>
+<ul><li>
+There is an in-JVM version of I2CP that uses a Java pipe instead of real sockets.
+However, it still does message serialization and deserialization.
+It should be refactored to pass the Message objects directly.
+</li><li>
+The protocol is highly inefficient, with three I2CP messages for every outgoing message,
+and four I2CP messages for every incoming message.
+Perhaps the acknowledgments and queueing could be eliminated, especially for the in-JVM version.
+This would eliminate a lot of data structures and memory for holding
+unacknowledged messages.
+</li><li>
+Implement i2cp.messageReliablity=none to disable the two Message Status Message responses
+to a Send Message Message.
+Make it the default? At least via the streaming lib.
+</li><li>
+The API does not support Dest Lookups or Get Bandwidth Limits Messages in a standard session,
+only in a simple session.
+This should be fixed.
+</li><li>
+The API does not support parallel Dest Lookups or Get Bandwidth Limits Messages in a session.
+This should be fixed.
+</li><li>
+Implement I2CP and the streaming library in another programming language.
+</li><li>
+Is the initial Get Date / Set Date handshake required?
+</li><li>
+There is currently no authorization mechanism.
+This would be required on the socket version only, not in the in-JVM version.
+</li><li>
+Private Keys are included in the Create Lease Set message,
+are they really required? Revocation is unimplemented.
+</li><li>
+Some improvements may be able to use messages previously defined but not implemented.
+For reference, here is the
+<a href="/_static/pdf/I2CP_spec.pdf">I2CP Protocol Specification Version 0.9</a>
+(PDF) dated August 28, 2003.
+That document also references the
+<a href="/_static/pdf/datastructures.pdf">Common Data Structures Specification Version 0.9</a>.
+</li></ul>
+
 
 
 {% endblock %}

@@ -1,53 +1,261 @@
 {% extends "_layout.html" %}
-{% block title %}How Garlic Routing Works{% endblock %}
+{% block title %}Garlic Routing{% endblock %}
 {% block content %}<p>
-As briefly explained on the <a href="how_intro">intro</a>, in addition to sending 
-messages through tunnels (via <a href="how_tunnelrouting">tunnels</a>), I2P uses a technique called
-"garlic routing" - layered encryption of messages, passing through routers 
-selected by the original sender.  This is similar to the way Mixmaster
+Updated August 2010 for release 0.8
+</p>
+
+<h2>Garlic Routing and "Garlic" Terminology</h2>
+<p>
+The terms "garlic routing" and "garlic encryption" are often used rather loosely when referring to I2P's technology.
+Here, we explain the history of the terms, the various meanings, and
+the usage of "garlic" methods in I2P.
+</p><p>
+"Garlic routing" was first coined by
+<a href="http://www.cs.princeton.edu/~mfreed/">Michael J. Freedman</a>
+in Roger Dingledine's Free Haven 
+<a href="http://www.freehaven.net/papers.html">Master's thesis</a> Section 8.1.1 (June 2000), as derived from 
+<a href="http://onion-router.net/">Onion Routing</a>.
+</p><p>
+"Garlic" may have been used originally by I2P developers because I2P implements a form of
+bundling as Freedman describes, or simply to emphasize general differences from Tor.
+The specific reasoning may be lost to history.
+Generally, when referring to I2P, the term "garlic" may mean one of three things:
+<ol><li>
+Layered Encryption
+</li><li>
+Bundling multiple messages together
+</li><li>
+ElGamal/AES Encryption
+</li></ol>
+Unfortunately, I2P's usage of "garlic" terminology over the past seven years has not always been precise; therefore the reader is
+cautioned when encountering the term.
+Hopefully, the explanation below will make things clear.
+</p>
+
+<h3>Layered Encryption</h3>
+<p>
+Onion routing is a technique for building paths, or tunnels, through a series of peers,
+and then using that tunnel.
+Messages are repeatedly encrypted by the originator, and then decrypted by each hop.
+During the building phase, only the routing instructions for the next hop are exposed to each peer.
+During the operating phase, messages are passed through the tunnel, and the
+message and its routing instructions are only exposed to the endpoint of the tunnel.
+</p><p>
+This is similar to the way Mixmaster
 (see <a href="how_networkcomparisons">network comparisons</a>) sends messages - taking a message, encrypting it
 to the recipient's public key, taking that encrypted message and encrypting
 it (along with instructions specifying the next hop), and then taking that
 resulting encrypted message and so on, until it has one layer of encryption
-per hop along the path.  The only significant difference between that technique
-and I2P's garlic routing is that at each layer, any number of messages can be
+per hop along the path.
+</p><p>
+In this sense, "garlic routing" as a general concept is identical to "onion routing".
+As implemented in I2P, of course, there are several differences from the implementation in Tor; see below.
+Even so, there are substantial similarities such that I2P benefits from a
+<a href="http://www.onion-router.net/Publications.html">large amount of academic research on onion routing</a>,
+<a href="http://freehaven.net/anonbib/topic.html">Tor, and similar mixnets</a>.
+</p>
+
+
+<h3>Bundling Multiple Messages</h3>
+<p>
+Michael Freedman defined "garlic routing" as an extension to onion routing,
+in which multiple messages are bundled together.
+He called each message a "bulb".
+All the messages, each with its own delivery instructions, are exposed at the
+endpoint.
+This allows the efficient bundling of an onion routing "reply block" with the original message.
+</p><p>
+This concept is implemented in I2P, as described below.
+Our term for garlic "bulbs" is "cloves".
+Any number of messages can be
 contained, instead of just a single message.
+This is a significant distinction from the onion routing implemented in Tor.
+However, it is only one of many major architectural differences between I2P and Tor;
+perhaps it is not, by itself, enough to justify a change in terminology.
+
+</p><p>
+Another difference
+from the method described by Freedman
+is that the path is unidirectional - there is no "turning point" as seen in onion routing
+or mixmaster reply blocks, which greatly simplifies the algorithm and allows for more flexible
+and reliable delivery.
+</p>
+
+
+<h3>ElGamal/AES Encryption</h3>
+In some cases, "garlic encryption" may simply mean
+<a href="how_elgamalaes">ElGamal/AES+SessionTag</a> encryption
+(without multiple layers).
+
+
+
+<H2>"Garlic" Methods in I2P</H2>
 
 <p>
-In addition to the cloves, each unwrapped garlic message contains a sender
-specified amount of padding data, allowing the sender to take active countermeasures 
-against traffic analysis.
-
-<H2>Uses within I2P</H2>
-
-<p>
-I2P uses garlic routing in three places:
-<UL>
-<li> For building tunnels
-<li> For determining the success or failure of end to end message delivery (by wrapping an additional 
-     DeliveryStatusMessage in with the payload, where the clove containing the DeliveryStatusMessage 
-     has instructions forwarding it back through other routers and tunnels to the original sender)
-
+Now that we've defined various "garlic" terms, we can say that
+I2P uses garlic routing, bundling and encryption in three places:
+<ol>
+<li> For building and routing through tunnels (layered encryption)
+<li> For determining the success or failure of end to end message delivery (bundling)
 <li> For publishing some network database entries (dampening the probability of a successful traffic analysis attack)
-</UL>
+     (ElGamal/AES)
+</ol>
 <p>
 There are also significant ways that this technique can be used to improve the performance of the network, 
 exploiting transport latency/throughput tradeoffs, and branching data through redundant paths to increase reliability.  
 
-<H2>Encryption</H2>
 
+<h3>Tunnel Building and Routing</h3>
 <p>
-The encryption of each layer in the garlic message uses the <a href="how_elgamalaes">ElGamal/AES+SessionTag</a> algorithm, 
-which avoids the cost of a full 2048bit ElGamal encryption for subsequent messages (using instead a random previously 
-specified SessionTag plus 256bit AES encryption).
+In I2P, tunnels are unidirectional. Each party builds two tunnels,
+one for outbound and one for inbound traffic.
+Therefore, four tunnels are required for a single round-trip message and reply.
+</p><p>
+Tunnels are built, and then used, with layered encryption.
+This is described on the
+<a href="tunnel-alt.html">tunnel implementation page</a>.
+Tunnel building details are defined on
+<a href="tunnel-alt-creation.html">this page</a>.
+We use
+<a href="how_elgamalaes">ElGamal/AES+SessionTag</a> for the encryption.
+</p><p>
+Tunnels are a general-purpose mechanism to transport all
+<a href="i2np.html">I2NP messages</a>, and
+<a href="i2np_spec.html#msg_Garlic">Garlic Messages</a> are not used to build tunnels.
+We do not bundle multiple
+<a href="i2np.html">I2NP messages</a> into a single
+<a href="i2np_spec.html#msg_Garlic">Garlic Message</a> for unwrapping at the outbound tunnel endpoint;
+the tunnel encryption is sufficient.
+</p>
+
+
+<h3>End-to-End Message Bundling</h3>
+<p>
+At the layer above tunnels, I2P delivers end-to-end messages between
+<a href="common_structures_spec#struct_Destination">Destinations</a>.
+Just as within a single tunnel, we use
+<a href="how_elgamalaes">ElGamal/AES+SessionTag</a> for the encryption.
+Each client message as delivered to the router through the
+<a href="i2cp.html">I2CP interface</a> becomes a single
+<a href="i2np.html#struct_GarlicClove">Garlic Clove</a>
+with its own
+<a href="tunnel_message_spec.html#delivery">Delivery Instructions</a>,
+inside a
+<a href="i2np.html#msg_Garlic">Garlic Message</a>.
+Delivery Instructions may specify a Destination, Router, or Tunnel.
+</p><p>
+Generally, a Garlic Message will contain only one clove.
+However, the router will periodically bundle two additional
+cloves in the Garlic Message:
+<center>
+<img src="/_static/images/garliccloves.png" alt="Garlic Message Cloves" />
+</center>
+
+<ol><li>
+A
+<a href="i2np.html#msg_DeliveryStatus">Delivery Status Message</a>,
+with
+<a href="tunnel_message_spec.html#delivery">Delivery Instructions</a>
+specifying that it be sent back to the originating router as an acknowledgment.
+This is similar to the "reply block" or "reply onion"
+described in the references.
+It is used for determining the success or failure of end to end message delivery.
+The originating router may, upon failure to receive the Delivery Status Message
+within the expected time period, modify the routing to the far-end Destination,
+or take other actions.
+
+</li><li>
+A
+<a href="i2np.html#msg_DatabaseStore">Database Store Message</a>,
+containing a
+<a href="common_structures_spec#struct_LeaseSet">LeaseSet</a>
+for the originating Destination, with
+<a href="tunnel_message_spec.html#delivery">Delivery Instructions</a>
+specifying the far-end destination's router.
+By periodically bundling a LeaseSet, the router ensures that the far-end will be able
+to maintain communications.
+Otherwise the far-end would have to query a floodfill router for the network database entry,
+and all LeaseSets would have to be published to the network database, as explained on the
+<a href="how_networkdatabase.html">network database page</a>.
+</li></ol>
+
+</p><p>
+In the current implementation, the Delivery Status and Database Store Messages
+are bundled when the local LeaseSet changes, when additional
+<a href="common_structures_spec#type_SessionTag">Session Tags</a>
+are delivered, or if the messages have not been bundled in the previous minute.
+
+</p><p>
+Obviously, the additional messages are currently bundled for specific purposes,
+and not part of a general-purpose routing scheme.
+</p>
+
+<h3> Storage to the Floodfill Network Database</h3>
+</p>
+As explained on the
+<a href="how_networkdatabase.html#delivery">network database page</a>,
+local
+<a href="common_structures_spec#struct_LeaseSet">LeaseSets</a>
+are sent to floodfill routers in a
+<a href="i2np.html#msg_DatabaseStore">Database Store Message</a>
+wrapped in a
+<a href="i2np.html#msg_Garlic">Garlic Message</a>
+so it is not visible to the tunnel's outbound gateway.
+</p>
+
+
+<H2>Future Work</H2>
+<p>
+The Garlic Message mechanism is very flexible and provides a structure for
+implementing many types of mixnet delivery methods.
+Together with the unused delay option in the
+<a href="tunnel_message_spec.html#delivery">tunnel message Delivery Instructions</a>,
+a wide spectrum of batching, delay, mixing, and routing strategies are possible.
+</p><p>
+In particular, there is potential for much more flexibility at the outbound tunnel endpoint.
+Messages could possibly be routed from there to one of several tunnels
+(thus minimizing point-to-point connections), or multicast to several tunnels
+for redundancy, or streaming audio and video.
+</p><p>
+Such experiments may conflict with the need to ensure security and anonymity, such
+as limiting certain routing paths, restricting the types of I2NP messages that may
+be forwarded along various paths, and enforcing certain message expiration times.
+</p><p>
+As a part of
+<a href="how_elgamalaes">ElGamal/AES encryption</a>,
+a garlic message contains a sender
+specified amount of padding data, allowing the sender to take active countermeasures 
+against traffic analysis.
+This is not currently used, beyond the requirement to pad to a multiple of 16 bytes.
+</p><p>
+Encryption of additional messages to and from the
+<a href="how_networkdatabase.html#delivery">floodfill routers</a>.
+</p>
+
+
+
 
 <H2>References</H2>
+<ul><li>
+The term garlic routing was first coined in Roger Dingledine's Free Haven 
+<a href="http://www.freehaven.net/papers.html">Master's thesis</a> (June 2000),
+see Section 8.1.1 authored by
+<a href="http://www.cs.princeton.edu/~mfreed/">Michael J. Freedman</a>.
+</li><li>
+<a href="http://www.onion-router.net/Publications.html">Onion router publications</a>
+</li><li>
+<a href="http://en.wikipedia.org/wiki/Onion_routing">Onion Routing on Wikipedia</a>
+</li><li>
+<a href="http://en.wikipedia.org/wiki/Garlic_routing">Garlic Routing on Wikipedia</a>
+</li><li>
+<a href="meeting58.html#delivery">I2P Meeting 58</a> (2003) discussing the implementation of garlic routing
+</li><li>
+<a href="https://www.torproject.org/">Tor</a>
+</li><li>
+<a href="http://freehaven.net/anonbib/topic.html">Free Haven publications</a>
+</li><li>
+Onion routing was first described in <a href="http://www.onion-router.net/Publications/IH-1996.pdf">Hiding Routing Information</a>
+by David M. Goldschlag, Michael G. Reed, and Paul F. Syverson in 1996.
+</li></ul>
 
-<p>
-The term garlic routing was first coined by Michael Freedman in Roger Dingledine's Free Haven 
-<a href="http://www.freehaven.net/papers.html">Master's thesis</a> (June 2000), which was derived from 
-<a href="http://onion-router.net/">Onion Routing</a>.  The main difference
-from the method described by Freedman with I2P's garlic routing
-is that the path is unidirectional - there is no "turning point" as seen in onion routing
-or mixmaster reply blocks, which greatly simplifies the algorithm and allows for more flexible
-and reliable delivery.{% endblock %}
+{% endblock %}
