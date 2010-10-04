@@ -1,10 +1,41 @@
 {% extends "_layout.html" %}
 {% block title %}jbigi{% endblock %}
-{% block content %}<p>Using JNI (Java Native Interface), a bit of C code (thanks ugha!), a little
-manual work and a piece of chewing gum it is possible to make the public key
-cryptography quite a bit faster.</p>
+{% block content %}
 
-<h2>Requirements</h2>
+Updated October 2010, current as of router version 0.8
+
+<h2>Overview</h2>
+<p>Using JNI (Java Native Interface), a bit of C code (thanks ugha!), a little
+manual work and a piece of chewing gum we have made several
+cryptography operations quite a bit faster.</p>
+
+<p>
+The speedup comes from the super-fast
+<a href="http://gmplib.org/">GNU MP Bignum library (libgmp)</a>.
+We use a single function from libgmp -
+<a href="http://gmplib.org/manual-4.3.2/Integer-Exponentiation.html#Integer-Exponentiation">mpz_powm()</a>
+as a replacement for the
+<a href="http://download.oracle.com/javase/1.5.0/docs/api/java/math/BigInteger.html#modPow%28java.math.BigInteger,%20java.math.BigInteger%29">Java Math library's BigInteger modPow()</a>.
+As modPow() is a significant computational portion of many crypto operations, this is of significant benefit.
+</p>
+
+<p>
+The standard I2P installation includes about 20 versions of the library for different platforms,
+each about 50KB, inside the jbigi.jar file.
+The initialization of the JBigI library, including CPU identification, selection, and extraction
+of the correct loadable module, is handled by the
+<a href="http://docs.i2p2.de/javadoc/net/i2p/util/NativeBigInteger.html">NativeBigInteger class</a>.
+If no module is available for the current platform, the standard
+<a href="http://download.oracle.com/javase/1.5.0/docs/api/java/math/BigInteger.html#modPow%28java.math.BigInteger,%20java.math.BigInteger%29">Java Math library's BigInteger modPow()</a>
+is used.
+</p>
+
+
+<h2>Rebuilding and Testing JBigI</h2>
+Following are the instructions to build a new jbigi library for your own platform
+and testing its performance.
+
+<h3>Requirements</h3>
 <p>This works on Linux, and with a few changes in build.sh probably also on
 other platforms. FreeBSD has also been reported to work too. On Kaffee the
 speedup is very small, because it already uses native BitInteger internally.
@@ -20,16 +51,16 @@ your processor. The latest GMP may also
 be used instead of GMP 4.2.2, but it hasn't been tested by us.
 </p>
 
-<h2>Step-by-step instructions</h2>
+<h3>Step-by-step instructions</h3>
 <ol>
-<li>Look at <a href="http://localhost:7657/logs.jsp">your wrapper logs</a>,
-at the point where I2P first starts. There should be one of two messages - either
+<li>Look at <a href="http://localhost:7657/logs.jsp">your running environment on the logs.jsp page</a>.
+There should be one of two status messages for JBigI - either
 <tt>
-INFO: Locally optimized native BigInteger loaded from the library path
+Locally optimized native BigInteger loaded from the library path
 </tt>
 or
 <tt>
-INFO: Native BigInteger library jbigi not loaded - using pure java</tt>.
+Native BigInteger library jbigi not loaded - using pure java</tt>.
 If the native BitInteger library was NOT loaded, you definitely need to
 compile your own.
 Certain platforms, such as OS X, OpenSolaris, and 64-bit systems,
@@ -37,7 +68,7 @@ may require you to compile your own library.
 If the BigInteger library was loaded, do at least the next step to see
 what your performance is.
 </li>
-<li>Look on <a href="http://localhost:7657/oldstats.jsp">http://localhost:7657/oldstats.jsp</a>
+<li>Look on <a href="http://localhost:7657/stats.jsp">http://localhost:7657/stats.jsp</a>
 to see what the lifetime average values for <code>crypto.elGamal.decrypt</code> and
 <code>crypto.elGamal.encrypt</code> are. The numbers are times in milliseconds. Copy these somewhere so you can compare
 them later on.
@@ -82,10 +113,20 @@ report.</li>
 <li>Copy <code>libjbigi.so</code> to your i2p directory</li>
 <li>Restart your I2P programs.</li>
 <li>On
-<a href="http://localhost:7657/oldstats.jsp">http://localhost:7657/oldstats.jsp</a>
+<a href="http://localhost:7657/stats.jsp">http://localhost:7657/stats.jsp</a>
 the <code>crypto.elGamal.decrypt</code> and <code>crypto.elGamal.encrypt</code>
 should be a lot faster.</li>
 </ol>
 
-<p>Feedback is appreciated</p>
+<h2>To Do</h2>
+In the official packages,
+the CPUID and JBigI code has not been updated or rebuilt in several years.
+The packages include builds for windows, freebsd, and linux x86, and OSX PPC.
+We currently have no support for Intel Macs, 64 bit, or a number of new processors.
+The bundled GMP mpz_powm() is from libgmp 4.1.4 which is several years old.
+This is primarily a compiling and testing effort.
+A detailed TODO list is on <a href="http://zzz.i2p/topics/306">zzz.i2p (internal link)</a>.
+
+
+
 {% endblock %}
