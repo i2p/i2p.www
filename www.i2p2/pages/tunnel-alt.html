@@ -3,7 +3,7 @@
 {% block content %}
 
 This page documents the current tunnel implementation.
-Updated September 2010 for release 0.8
+Updated October 2010 for release 0.8
 
 
 <h2><a name="tunnel.overview">Tunnel overview</a></h2>
@@ -351,11 +351,36 @@ Configuration options are specified on the <a href="i2cp.html">I2CP page</a>.
 
 <h3 id="strategy">Anticipatory Build Strategy and Priority</h3>
 
-TODO - Parallelism, priority, success time tracking, pool differences
+<p>
+Tunnel building is expensive, and tunnels expire a fixed time after they are built.
+However, when a pool that runs out of tunnels, the Destination is essentially dead.
+In addition, tunnel build success rate may vary greatly with both local and global
+network conditions.
+Therefore, it is important to maintain an anticipatory, adaptive build strategy
+to ensure that new tunnels are successfully built before they are needed,
+without building an excess of tunnels, building them too soon,
+or consuming too much CPU or bandwidth creating and sending the encrypted build messages.
+</p>
+<p>
+For each tuple {exploratory/client, in/out, length, length variance}
+the router maintains statistics on the time required for a successful
+tunnel build.
+Using these statistics, it calculates how long before a tunnel's expiration
+it should start attempting to build a replacement.
+As the expiration time approaches without a successful replacement,
+it starts multiple build attempts in parallel, and then
+will increase the number of parallel attempts if necessary.
+</p>
+<p>
+To cap bandwidth and CPU usage,
+the router also limits the maximum number of build attempts outstanding
+across all pools.
+Critical builds (those for exploratory tunnels, and for pools that have
+run out of tunnels) are prioritized.
+</p>
+
 
 <h2><a name="tunnel.throttling">Tunnel Message Throttling</a></h2>
-
-TODO: Document current strategies, priority, and WRED
 
 <p>Even though the tunnels within I2P bear a resemblance to a circuit switched
 network, everything within I2P is strictly message based - tunnels are merely
@@ -370,6 +395,22 @@ to accept or reject additional tunnel participation requests based on its
 capacity and utilization.  On the other hand, each router can simply drop 
 messages that are beyond its capacity, exploiting the research used on the 
 normal Internet.</p>
+
+<p>
+In the current implementation, routers implement a
+weighted random early discard (WRED) strategy.
+For all participating routers (internal participant, inbound gateway, and outbound endpoint),
+the router will start randomly dropping a portion of messages as the
+bandwidth limits are approached.
+As traffic gets closer to, or exceeds, the limits, more messages are dropped.
+For an internal participant, all messages are fragmented and padded and therefore are the same size.
+At the inbound gateway and outbound endpoint, however, the dropping decision is made
+on the full (coalesced) message, and the message size is taken into account.
+Larger messages are more likely to be dropped.
+Also, messages are more likely to be dropped at the outbound endpoint than the inbound gateway,
+as those messages are not as "far along" in their journey and thus the network cost of
+dropping those messages is lower.
+</p>
 
 
 <h2><a name="future">Future Work</a></h3>
@@ -389,6 +430,11 @@ The current fixed tunnel message size is 1024 bytes.  Within this however, the f
 messages themselves are not padded by the tunnel at all, though for end to end 
 messages, they may be padded as part of the garlic wrapping.</p>
 
-
+<h3>WRED</h3>
+<p>
+WRED strategies have a significant impact on end-to-end performance,
+and prevention of network congestion collapse.
+The current WRED strategy should be carefully evaluated and improved.
+</p>
 
 {% endblock %}
