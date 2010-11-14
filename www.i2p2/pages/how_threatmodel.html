@@ -2,7 +2,7 @@
 {% block title %}I2P's Threat Model{% endblock %}
 {% block content %}
 
-Updated August 2010, current as of router version 0.8
+Updated November 2010, current as of router version 0.8.1
 <h2>What do we mean by "anonymous"?</h2>
 
 <p>Your level of anonymity can be described as "how hard it is for someone
@@ -105,6 +105,7 @@ to review.
 <li><a href="#harvesting">Harvesting attacks</a></li>
 <li><a href="#traffic">Identification Through Traffic Analysis</a></li>
 <li><a href="#sybil">Sybil attacks</a></li>
+<li><a href="#buddy">Buddy Exhaustion attacks</a></li>
 <li><a href="#crypto">Cryptographic attacks</a></li>
 <li><a href="#floodfill">Floodfill attacks</a></li>
 <li><a href="#netdb">Other Network Database attacks</a></li>
@@ -206,6 +207,10 @@ Partial defenses implemented in I2P:
 Limits on the number of tunnels routed through a single peer
 </li><li>
 Prevention of peers from the same /16 IP range from being members of a single tunnel
+</li><li>
+For eepsites or other hosted services, we support
+simultaneous hosting on multiple routers, or
+<a href="http://www.i2p2.i2p/how_threatmodel#intersection">multihoming</a>
 </li></ul>
 
 Even in total, these defenses are not a complete solution.
@@ -503,6 +508,27 @@ See the
 for more Sybil discussion.
 </p>
 
+
+<h3 id="buddy">Buddy Exhaustion attacks</h3>
+<p>
+  (Reference:
+  <a href="https://netfiles.uiuc.edu/mittal2/www/nisan-torsk-ccs10.pdf">In Search of an Anonymouns and Secure Lookup</a> Section 5.2)
+</p>
+<p>
+By refusing to accept or forward tunnel build requests, except to a colluding peer, a router could ensure
+that a tunnel is formed wholly from its set of colluding routers.
+The chances of success are enhanced if there is a large number of colluding routers,
+i.e. a <a href="#sybil">Sybil attack</a>.
+This is somewhat mitigated by our
+<a href="how_peerselection">peer profiling</a> methods used to monitor the performance
+of peers.
+However, this is a powerful attack as the number of routers approaches
+<i>f</i> = 0.2, or 20% malicious nodes, as specifed in the paper.
+The malicous routers could also maintain connections to the target router and provide
+excellent forwarding bandwidth for traffic over those connections, in an attempt
+to manipulate the profiles managed by the target and appear attractive.
+Further research and defenses may be necessary.
+</p>
 
 
 <h3 id="crypto">Cryptographic attacks</h3>
