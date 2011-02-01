@@ -1,7 +1,7 @@
 {% extends "_layout.html" %}
 {% block title %}ElGamal/AES + SessionTag  Encryption{% endblock %}
 {% block content %}
-Updated August 2010, current as of router version 0.8
+Updated February 2011, current as of router version 0.8.3
 <h2>Overview</h2>
 <p>
 ElGamal/AES+SessionTags is used for end-to-end encryption.
@@ -77,7 +77,7 @@ decrypt it using ElGamal.
 
 <h2 id="new">New Session Message Specification</h2>
 <p>
-An ElGamal Message contains two parts, an encrypted ElGamal block
+A New Session ElGamal Message contains two parts, an encrypted ElGamal block
 and an encrypted AES block.
 </p><p>
 The encrypted message contains:
@@ -105,7 +105,6 @@ The encrypted message contains:
 <h3>ElGamal Block</h3>
 <p>
 The encrypted ElGamal Block is always 514 bytes long.
-The encrypted AES Block length is variable but is always a multiple of 16 bytes.
 </p><p>
 The unencrypted ElGamal data is 222 bytes long, containing:
 <PRE>
@@ -196,7 +195,7 @@ Session Tags: That many 32-byte <a href="common_structures_spec#type_SessionTag"
 
 payload size: 4-byte <a href="common_structures_spec#type_Integer">Integer</a>
 
-Payload Hash: The 32-byte SHA256 <a href="common_structures_spec#type_Hash">SHA256 Hash</a> of the payload
+Payload Hash: The 32-byte <a href="common_structures_spec#type_Hash">SHA256 Hash</a> of the payload
 
 flag: A one-byte value. Normally == 0. If == 0x01, a Session Key follows
 
@@ -214,12 +213,13 @@ Minimum length: 48 bytes
 
 </p><p>
 The data is then <a href="how_cryptography">AES Encrypted</a>,
-using the session key and IV (calculated from the pre-IV) from the ElGamal section.</p>
-
+using the session key and IV (calculated from the pre-IV) from the ElGamal section.
+The encrypted AES Block length is variable but is always a multiple of 16 bytes.
+</p>
 <h4>Notes</h4>
 <ul>
 <li>
-  Actual max payload length, and max block length, is less than 64 KB; see the<a href="i2np.html">I2NP Overview</a>.
+  Actual max payload length, and max block length, is less than 64 KB; see the <a href="i2np.html">I2NP Overview</a>.
 </li><li>
 New Session Key is currently unused and is never present.
 </li></ul>
@@ -277,7 +277,7 @@ If the tag is not found, the message is assumed to be a <a href="#new">New Sessi
 <p>
 There are many possible areas to tune the Session Key Manager's algorithms;
 some may interact with the streaming library behavior, or have significant
-impact on overal performance.
+impact on overall performance.
 <ul><li>
 Delivery of too many tags at one time may impose substantial overhead for brief streaming connections
 or datagrams, and increase the chance of message loss.
