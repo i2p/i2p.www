@@ -1,0 +1,207 @@
+{% extends "_layout.html" %}
+{% block title %}Bittorrent over I2P{% endblock %}
+{% block content %}
+Updated February 2011, current as of router version 0.8.4
+
+
+<p>There are several bittorrent clients and trackers on I2P.
+As I2P addressing uses a Destination instead of an IP and port, minor
+changes are required to tracker and client software for operation on I2P.
+These changes are specified below.
+Note carefully the guidelines for compatibililty with older I2P clients and trackers.
+</p>
+<p>
+This page covers protocol details common to all clients and trackers.
+Specific clients and trackers may implement other unique features or protocols.
+</p>
+<p>
+We welcome additional ports of client and tracker software to I2P.
+</p>
+
+
+
+<h2>Announces</h2>
+<p>
+Clients generally include a fake port=6881 parameter in the announce, for compatibility with older trackers.
+Trackers may ignore the port parameter, and should not require it.
+</p>
+<p>
+The ip parameter is the base 64 of the client's
+<a href="common_structures_spec.html#struct_Destination">Destination</a>,
+using the I2P Base 64 alphabet [A-Z][a-z][0-9]-~.
+<a href="common_structures_spec.html#struct_Destination">Destinations</a>
+are 387+ bytes, so the Base 64 is 516+ bytes.
+Clients generally append ".i2p" to the Base 64 Destination for compatibility with older trackers.
+Trackers should not require an appended ".i2p".
+</p>
+<p>
+Other parameters are the same as in standard bittorrent.
+</p>
+<p>
+The default response type is non-compact. Clients may request a compact response with
+the parameter compact=1. A tracker may, but is not required to, return
+a compact response when requested.
+</p>
+
+
+<h2>Non-Compact Tracker Responses</h2>
+<p>
+The non-compact response is just as in standard bittorrent, with an I2P "ip".
+</p>
+<p>
+Trackers generally include a fake port key, or use the port from the announce, for compatibility with older clients.
+Clients must ignore the port parameter, and should not require it.
+</p>
+<p>
+The value of the ip key is the base 64 of the client's
+<a href="common_structures_spec.html#struct_Destination">Destination</a>, as described above.
+Trackers generally append ".i2p" to the Base 64 Destination if it wasn't in the announce ip, for compatibility with older clients.
+Trackers should not require an appended ".i2p".
+</p>
+<p>
+Other response keys and values are the same as in standard bittorrent.
+</p>
+
+
+
+<h2>Compact Tracker Responses</h2>
+<p>
+In the compact response, the value of the "peers" dictionary key is a single byte string,
+whose length is a multiple of 32 bytes.
+This string contains the concatenated
+<a href="common_structures_spec.html#type_Hash">32-byte SHA-256 Hashes</a>
+of the binary
+<a href="common_structures_spec.html#struct_Destination">Destinations</a>
+of the peers.
+The peers key may be absent, or the peers value may be zero-length.
+</p>
+
+
+
+<h2>Destination Enforcement</h2>
+<p>
+Some, but not all, I2P bittorrent clients announce over their own tunnels.
+Trackers may choose to prevent spoofing by requiring this, and verifying the
+client's
+<a href="common_structures_spec.html#struct_Destination">Destination</a>
+using HTTP headers added by the I2PTunnel HTTP Server tunnel.
+The headers are X-I2P-DestHash, X-I2P-DestB64, and X-I2P-DestB32, which are
+different formats for the same information.
+These headers cannot be spoofed by the client.
+A tracker enforcing destinations need not require the ip announce parameter at all.
+</p>
+<p>
+As several clients use the HTTP proxy instead of their own tunnel for announces,
+destination enforcement will prevent usage by those clients.
+</p>
+
+
+
+<h2>Announce Host Names</h2>
+<p>
+Announce URL host names in torrent files generally follow the
+<a href="naming.html">I2P naming standards</a>.
+In addition to host names from address books and ".b32.i2p" Base 32 hostnames,
+the full Base 64 Destination (with [or without?] ".i2p" appended) should be supported.
+Non-open trackers should recognize their own host name in any of these formats.
+</p>
+<p>
+To preserve anonymity,
+clients should generally ignore non-I2P announce URLs in torrent files.
+</p>
+
+
+
+<h2>Cross-Network Operation</h2>
+<p>
+To preserve anonymity,
+I2P bittorrent clients generally do not support non-I2P announces or peer connections.
+I2P HTTP outproxies often block announces.
+There are no known SOCKS outproxies supporting bittorrent traffic.
+</p>
+<p>
+To prevent usage by non-I2P clients via an HTTP inproxy, I2P trackers often
+block accesses or announces that contain an X-Forwarded-For HTTP header.
+</p>
+
+
+
+<h2>PEX</h2>
+<p>
+I2P PEX is based on ut_pex.
+As there does not appear to be a formal specification of ut_pex available,
+it may be necessary to review the libtorrent source for assistance.
+It is an extension message, identified as "i2p_pex" in
+<a href="http://www.bittorrent.org/beps/bep_0010.html">the extension handshake</a>.
+It contains a bencoded dictionary with up to 3 keys, "added", "added.f", and "dropped".
+The added and dropped values are each a single byte string, whose length is a multiple of 32 bytes.
+These byte strings are the concatenated SHA-256 Hashes of the binary
+<a href="common_structures_spec.html#struct_Destination">Destinations</a>
+of the peers.
+This is the same format as the peers dictionary value in the i2p compact response format specified above.
+The added.f value, if present, is the same as in ut_pex.
+</p>
+
+
+
+<h2>DHT</h2>
+<p>
+DHT is not fully implemented in any I2P client.
+Preliminary differences from
+<a href="http://www.bittorrent.org/beps/bep_0005.html">BEP 5</a>
+are described below, subject to change.
+</p>
+<p>
+I2P DHT will probably use a different bit in the options handshake
+than standard DHT. Or maybe use an extension message instead.
+</p>
+<p>
+The UDP (datagram) port listed in the compact node info is used
+to receive repliable (signed) datagrams.
+This is used for queries, except for announces.
+We call this the "query port".
+</p>
+<p>
+In addition to that UDP port, we use a second datagram
+port equal to the signed port + 1. This is used to receive
+unsigned (raw) datagrams for replies, errors, and announce queries..
+We call this the "response port".
+</p>
+<p>
+Compact peer info is 32 bytes (32 byte SHA256 Hash)
+instead of 4 byte IP + 2 byte port. There is no peer port.
+</p>
+<p>
+Compact node info is 54 bytes (20 byte SHA1 Hash + 32 byte SHA256 Hash + 2 byte port)
+instead of 20 byte SHA1 Hash + 4 byte IP + 2 byte port.
+</p>
+<p>
+The query port is exchanged with a standard PORT message. The response port is always the query port + 1.
+</p>
+<p>
+The trackerless torrent dictionary "nodes" key is a list of
+32 byte binary strings (SHA256 Hashes) instead of a list of lists
+containing a host string and a port integer.
+Alternative: A single byte string with concatenated hashes.
+</p>
+
+
+<h2>Additional Information</h2>
+<ul>
+<li>
+I2P bittorrent standards are generally discussed on <a href="http://zzz.i2p/">zzz.i2p</a>.
+</li>
+<li>
+A chart of current tracker software capabilities is <a href="http://zzz.i2p/files/trackers.html">also available there</a>.
+</li>
+<li>
+The
+<a href="http://forum.i2p2.de/viewtopic.php?t=2068">I2P bittorrent FAQ</a>
+</li>
+<li>
+<a href="http://zzz.i2p/topics/812">DHT on I2P discussion</a>
+</li>
+</ul>
+
+
+{% endblock %}
