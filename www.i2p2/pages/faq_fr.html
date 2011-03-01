@@ -99,42 +99,47 @@ l'Internet classique (votre FAI ne vous l'a jamais dit? Comme c'est bizarre!).
 
 <p>
 	<ul><p>
-		<li><b>Ports face à face avec Internet</b>
+		<li><b>Ports en face à face avec Internet</b>
+		Note: les installations à partir de la v0.7.8 n'utilisent plus le port 8887; lorsque le programme
+                d'installation est exécuté pour la première fois, il sélectionne aléatoirement un port UDP entre 9000 et 32000.
+                Il est montré sur la  page <a href="http://127.0.0.1:7657/config.jsp">CONFIGURATION</a> dans la console du routeur.
 		<ul>
-		<li><b>Sortie UDP 8887 vers des ports UPD distants arbitraires, en permettant les réponses.</b></li>
-		<li><b>Sortie TCP depuis les ports hauts (>1023) des des ports TCP distants arbitraires.</b></li>
-		<li><b>(optionnellement, mais recommandé) Inbound UDP to port 8887 from arbitrary locations</b></li>
-		<li><b>(optionnellement, mais recommandé) Inbound TCP to port 8887 from arbitrary locations</b><br />
-			By default, I2P does not listen for inbound TCP connections.<br />
-			To start accepting them, you can either tell I2P to autodetect its address and port<br />
-			using the UDP transport, or you can manually enter an IP address (or DNS name)<br />
-			and a TCP port. You can activate this feature on the Configuration page.</li>
-		<li><b>Outbound UDP on port 123, allowing replies</b><br />
-			This is necessary for I2P's internal time sync (via SNTP - 
-			querying a random SNTP host in pool.ntp.org or another
-			server you specify)</li>
+		<li><b>Sortie UDP depuis ce port indiqué dans la <a href="http://127.0.0.1:7657/config.jsp">CONFIGURATION</a> vers des ports UPD distants indéfinis, en permettant les réponses.</b></li>
+		<li><b>Sortie TCP depuis les ports hauts (>1023) vers des ports TCP distants indéfinis.</b></li>
+		<li><b>(optionnellement, mais recommandé) entrée UDP vers le port UDP noté sur <a href="http://127.0.0.1:7657/config.jsp">CONFIGURATION</a> depuis des endroits indéfinis</b></li>
+		<li><b>(optionnellement, mais recommandé) entrée TCP vers le port TCP noté sur <a href="http://127.0.0.1:7657/config.jsp">CONFIGURATION</a> depuis des endroits indéfinis</b><br />
+			L'entrée en TCP peut être désactivée dans la <a href="http://127.0.0.1:7657/config.jsp">CONFIGURATION</a>.</li>
+		<li><b>Sortie UDP depuis le port 123, permettant les réponses.</b><br />
+			Ceci est nécessaire à la synchronisation horaire interne d'I2P (par SNTP qui interroge 
+			un serveur de temps aléatoire dans le pool.ntp.org ou un autre, spécifiable à votre discrétion).</li>
 		</ul>
 		</li>
 	</p></ul>
 
 	<ul><p>
-		<li><b>Local I2P ports</b>, listening only to local connections by default,
-                       except where noted:
+		<li><b>Ports locaux pour I2P</b>, n'écoutant par défaut que des connexions locales,
+                       sauf spécifié:
 		<ul>
-			<li><b>1900:</b> UPnP SSDP UDP multicast listener.
-                            <i>Cannot be changed. Binds to all interfaces.
-                            May be disabled on <a href="http://localhost:7657/config.jsp">config.jsp</a>.
+			<li><b>1900:</b> écouteur multicast UDP SSDP UPnP.
+                            <i>non modifiable. Il s'attache à toutes les interfaces. Désactivable dans ...
+                            <a href="http://localhost:7657/config.jsp">la conf</a>.
                             </i></li>
-			<li><b>2827:</b> BOB bridge, a higher level socket API for clients
-                            <i>Disabled by default.
-                               May be enabled/disabled on <a href="http://localhost:7657/configclients.jsp">configclients.jsp</a>.
-                               May be changed in the bob.config file.
+			<li><b>2827:</b> le pont BOB, une API de connexion de haut niveau pour programmes clients.
+                            <i>Désactivé par défaut.
+                               Peut être activé/désactivé sur la page <a href="http://localhost:7657/configclients.jsp">SERVICES I2P</a>
+                               et aussi modifié dans le fichier bob.config.
                             </i></li>
-			<li><b>4444:</b> HTTP proxy
+			<li><b>4444:</b> proxy HTTP
+                            <i>Peut être désactivé ou modifié sur la page i2ptunnel de la console. Par exemple pour être 
+                               attaché à une interface particulière ou à toutes.
+                            </i></li>
+			<li><b>4445:</b> HTTPS proxy
                             <i>May be disabled or changed on the i2ptunnel page in the router console.
+			    May also be configured to be bound to a specific interface or all interfaces.
                             </i></li>
 			<li><b>6668:</b> IRC proxy
                             <i>May be disabled or changed on the i2ptunnel page in the router console.
+			    May also be configured to be bound to a specific interface or all interfaces.
                             </i></li>
 			<li><b>7652:</b> UPnP HTTP TCP event listener.
                             <i>Binds to the LAN address.
@@ -147,8 +152,11 @@ l'Internet classique (votre FAI ne vous l'a jamais dit? Comme c'est bizarre!).
                             May be disabled on <a href="http://localhost:7657/config.jsp">config.jsp</a>.
                             </i></li>
 			<li><b>7654:</b> I2P Client Protocol port, used by client apps.
-                            <i>May be changed with the advanced configuration option</i> <tt>i2cp.port</tt>
-                            <i>but this is not recommended.
+                            <i>May be changed to a different port on
+                            <a href="http://localhost:7657/configclients.jsp">configclients.jsp</a>
+                               but this is not recommended.
+			    May be to bind to a different interface or all interfaces, or disabled, on
+                            <a href="http://localhost:7657/configclients.jsp">configclients.jsp</a>.
                             </i></li>
 			<li><b>7655:</b> UDP for SAM bridge, a higher level socket API for clients
                             <i>Only opened when a SAM V3 client requests a UDP session.
@@ -161,17 +169,24 @@ l'Internet classique (votre FAI ne vous l'a jamais dit? Comme c'est bizarre!).
                                May be changed in the clients.config file.
                             </i></li>
 			<li><b>7657:</b> Your router console
-                            <i>May be changed in the clients.config file</i></li>
+                            <i>May be disabled in the clients.config file.
+			    May also be configured to be bound to a specific interface or all interfaces in that file.
+			    </i></li>
 			<li><b>7658:</b> Your eepsite
-                            <i>May be disabled in the clients.config file</i></li>
+                            <i>May be disabled in the clients.config file.
+			    May also be configured to be bound to a specific interface or all interfaces in the jetty.xml file.
+			    </i></li>
 			<li><b>7659:</b> Outgoing mail to smtp.postman.i2p
                             <i>May be disabled or changed on the i2ptunnel page in the router console.
+			    May also be configured to be bound to a specific interface or all interfaces.
                             </i></li>
 			<li><b>7660:</b> Incoming mail from pop.postman.i2p
                             <i>May be disabled or changed on the i2ptunnel page in the router console.
+			    May also be configured to be bound to a specific interface or all interfaces.
                             </i></li>
 			<li><b>8998:</b> mtn.i2p2.i2p (Monotone - disabled by default)
                             <i>May be disabled or changed on the i2ptunnel page in the router console.
+			    May also be configured to be bound to a specific interface or all interfaces.
                             </i></li>
 			<li><b>32000:</b> local control channel for the service wrapper</li>
 		</ul>
@@ -188,12 +203,13 @@ l'Internet classique (votre FAI ne vous l'a jamais dit? Comme c'est bizarre!).
 </p>
 
 <p>
-	So, to summarize, nothing needs to be reachable by unsolicted remote peers, but
+	So, to summarize, nothing needs to be reachable by unsolicited remote peers, but
 	if you can configure your NAT/firewall to allow inbound UDP and TCP to port 8887, you'll
 	get better performance.  You will also need to be able to send outbound UDP packets
 	to arbitrary remote peers (blocking IPs randomly with something like PeerGuardian
 	only hurts you - don't do it).
 </p>
+
 
 
 
