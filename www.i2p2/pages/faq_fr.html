@@ -23,8 +23,8 @@
 </a></li><li><a href="#subscriptions">Il me manque beaucoup d'hôtes dans mon carnet d'adresses. Quels sont les bons liens d'abonnements aux mises à jour?
 </a></li><li><a href="#myeepsite">Comment dois-je faire pour créer mon propre eepsite?
 </a></li><li><a href="#snark">Questions sur les greffons I2P Bittorrent / I2PSnark / Azureus.
-</a></li><li><a href="#irc">Comment se connecter sur IRC avec I2P?
-</a></li><li><a href="#outproxy">Je ne peux plus accéder à certains sites Internet traditionnels via I2P.
+</a></li><li><a href="#irc">Comment se connecter sur IRC depuis I2P?
+</a></li><li><a href="#outproxy">Je ne peux plus accéder aux sites Internet traditionnels via I2P.
 </a></li><li><a href="#https">Je ne peux plus accéder aux sites sécurisés ou FTP (https:// ou ftp://) via I2P.
 </a></li><li><a href="#socks">Est-il possible d'utiliser I2P en tant que proxy SOCKS?
 </a></li><li><a href="#browserproxy">Comment configurer mon navigateur Internet?
@@ -333,6 +333,67 @@ Voir ici (eepsite)
 <a href="http://forum.i2p/viewtopic.php?t=2068">FAQ Bittorrent I2P</a> ou là sur le web classique: 
 <a href="http://forum.i2p2.de/viewtopic.php?t=2068">(mirroir)</a>
 
+<h3 id="irc">Comment se connecter sur IRC depuis I2P?
+<span class="permalink">(<a href="#irc">lien</a>)</span></h3>
+<p>
+Sur la page de configuration 
+<a href="http://localhost:7657/i2ptunnel/index.jsp">I2PTunnel</a>,
+démarrez le serveur proxy IRC, puis indiquez à votre client IRC de se connecter sur l'adresse locale au port 6668 (localhost:6668).
+
+<h3 id="outproxy">Je ne peux plus accéder aux sites Internet traditionnels via I2P.
+<span class="permalink">(<a href="#outproxy">lien</a>)</span></h3>
+<p>
+   Voir <a href="#exit">ici</a> pourquoi. Il y a très peu proxies HTTP sortants, ils ne font pas partie intégrante du réseau,
+   et ils sont peut-être à l'arrêt. De plus les anciens outproxies squid.i2p, true.i2p, and krabs.i2p ont disparu.
+   Le seul outproxy disponible actuellement est false.i2p.
+   Pour l'utiliser, modifiez votre réglage 
+   <a href="http://localhost:7657/i2ptunnel/edit.jsp?tunnel=0">I2Ptunnel</a> pour le proxy HTTP
+   en indiquant 'false.i2p' tout seul dans liste. Puis arrêtez et relancez le proxy HTTP.
+   Si ça ne marche pas c'est que le proxy sortant HTTP false.i2p n'est pas en fonctionnement. Ce n'est pas un problème
+   dû à I2P.
+   Si votre principale raison d'utiliser un réseau anonyme est d'accéder à des sites de l'Internet classique, 
+   vous devriez plutôt vous tourner vers <a href="http://www.torproject.org/">Tor</a>.
+</p>
+
+<h3 id="https">Je ne peux plus accéder aux sites sécurisés ou FTP (https:// ou ftp://) via I2P.
+<span class="permalink">(<a href="#https">link</a>)</span></h3>
+<p>
+   Au sein d'I2P, il n'y aucun besoin d'HTTPS vu que le trafic est crypté de bou en bout. 
+   Il n'y a pas de support FTP pour des raisons techniques.
+   </p><p>
+   Pour les accès HTTPS ou FTP vers l'Internet traditionnel, il n'y a pas de proxies sortants HTTPS or FTP.
+   Pour HTTPS ça serait possible si quelqu'un voulait bien en activer un. Pour FTP c'est sûrement impossible.
+   En fait, n'importe quel autre type d'outproxy devrait marcher. Essayez de le régler avec tunnel standard et vérifiez.
+   Comme exposé plusieur fois ici, les outproxies ne sont pas une partie indispensable du réseau, 
+   mais plutôt des services mis à disposition par des particuliers bénévoles et ils peuvent donc être 
+   opérationnels ou pas à un certain moment sans avoir à s'en justifier.
+   Si vous voulez mettre en œuvre un certain type d'outproxy, passez bien en revue les risques potentiels.
+   La communauté I2P ne saura pas forcément vous aider sur certains aspects techniques, mais n'hésitez pas à demander.
+</p><p>
+   <b><l>Mise à jour</l></b>: tous nos remerciements  à h2ik et à mer'd, qui apportent la démonstration 
+   qu'I2P est capable de fournir la fonctionnalité de proxy HTTPS. Le réglage côté client n'est vraiment pas difficile,
+   si vous suivez scrupuleusement les instructions ;) :
+<ol><li>Ouvrez le <a href="http://localhost:7657/i2ptunnel/index.jsp">gestionnaire de tunnels I2P</a>. 
+   Descendez tout en bas.
+</li><li>Choisissez <b>CONNECT</b> à partir de la liste déroulante <b>Nouveau tunnel client</b>, puis cliquez sur <b>Créer</b>.
+</li><li>Dans la nouvelle page, <b>Nom</b>mez et décrivez <b>(Description)</b> votre nouveau tunnel https comme vous le souhaitez.
+		Le port <b>Point d'accès</b> est le port local du nouveau mandataire https (<l>4445</l> recommandé).
+		Le champ <b>Outproxy</b> doit recevoir l'adresse .i2p du serveur qui fournit le support du service https: 
+		Dans ce cas <a href="http://forum.i2p/viewtopic.php?t=4416">mer.d</a> 
+		et <a href="http://forum.i2p/viewtopic.php?t=3861">h2ik</a> (voir les liens pour l'adresse). 
+		Assurez-vous que <b>Client partagé</b>, <b>Delay Connect</b>, et <b>AutoStart</b> sont cochées.
+		Les autres options restant par default, cliquez sur Enregistrer. Dans la page de gestion des tunnels, 
+                cliquez sur le bouton <b>Démarrer</b> en face du nouveau tunnel.
+</li><li>Dans Firefox, passez par <b>Outils</b>><b>Options</b>(Windows) ou <b>Édition</b>><b>Préférences</b> (Linux) ><b>Avancé</b>><b>Réseau</b>><b>Connexion - Paramètres</b>, 
+		décochez <b>Utiliser ce serveur proxy pour tous les protocoles</b>, réglez <b>Proxy SSL:</b> à localhost et <b>Port:</b> à 4445.
+</li><li>"Et voilà" comme disent les anglophones. Si vous trouvez que leur service en vaut la peine, 
+		vous pouvez les en remercier dans leur message respectif.
+		Si le service est dans les choux, vous pouvez aussi leur demander au même endroit.
+		Si vous êtes un opérateur Tor et pensez pouvoir apporter votre aide, 
+		vous pouvez demander comment vous y prendre sur l'IRC.
+</li></ol>
+</p>
+
 
 <h3 id="CPU">Mon routeur consomme trop de ressources processeur ?!
 <span class="permalink">(<a href="#CPU">lien</a>)</span></h3>
@@ -409,37 +470,6 @@ Or, use a blocking proxy like Privoxy or some type of "net nanny".
    There are very very few of these.
 </p>
 
-<h3 id="outproxy">I can't access regular internet sites through I2P.
-<span class="permalink">(<a href="#outproxy">lien</a>)</span></h3>
-<p>
-   See above. There are very few HTTP "outproxies", they are not an inherent part of the network,
-   and they may not be up.
-   In addition, the old outproxies squid.i2p, true.i2p, and krabs.i2p have vanished.
-   The only outproxy at the moment is false.i2p.
-   To use it, edit your <a href="http://localhost:7657/i2ptunnel/edit.jsp?tunnel=0">i2ptunnel settings for eepProxy</a>
-   and set your outproxy list to 'false.i2p' (only).
-   Then stop and restart the eepProxy.
-   If it doesn't work, the outproxy is not up. It is not I2P's fault.
-   If your primary reason to use an anonymous network is to anonymously access sites
-   on the regular internet, you should probably try <a href="http://www.torproject.org/">Tor</a>.
-</p>
-
-<h3 id="https">I can't access https:// or ftp:// sites through I2P.
-<span class="permalink">(<a href="#https">lien</a>)</span></h3>
-<p>
-   Within I2P, there is no need for HTTPS, as all traffic is encrypted end-to-end.
-   FTP is not supported for technical reasons.
-</p><p>
-   For HTTPS or FTP access to the regular internet, there are no HTTPS or FTP "outproxies".
-   HTTPS is possible if somebody would like to set one up. FTP is probably not.
-   Actually, just about any other sort of outproxy might work, try setting it up with a standard
-   tunnel and see.
-   As explained several times above, outproxies of any type are not a core
-   part of the network, they are services run by individuals and they may or may not
-   be operational at any given time.
-   If you would like to set up some type of outproxy, carefully research the potential risks.
-   The I2P community may or may not be able to help with the technical aspects, feel free to ask.
-</p>
 
 <h3 id="proxy_other">How do I access IRC, bittorrent, or other services on the regular internet?
 <span class="permalink">(<a href="#proxy_other">lien</a>)</span></h3>
@@ -451,14 +481,6 @@ Or, use a blocking proxy like Privoxy or some type of "net nanny".
    If you need this you should probably try <a href="http://www.torproject.org/">Tor</a>.
 </p>
 
-
-<h3 id="irc">How do I connect to IRC within I2P?
-<span class="permalink">(<a href="#irc">lien</a>)</span></h3>
-<p>
-On the
-<a href="http://localhost:7657/i2ptunnel/index.jsp">I2PTunnel configuration page</a>,
-start the ircProxy.
-Then tell your IRC client to connect to localhost port 6668.
 
 <h3 id="remote_webconsole">How can I access the web console from my other machines or password protect it?
 <span class="permalink">(<a href="#remote_webconsole">lien</a>)</span></h3>
