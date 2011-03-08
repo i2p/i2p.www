@@ -24,43 +24,46 @@ ou même piraté pour tenter des attaques encore plus pernicieuses.</p>
 
 <p>Le réseau lui-même est "orienté messages": il est principalement constitué d'une couche IP sécurisée et anonyme, 
 dans laquelle les messages sont adressés à des clés cryptographiques (Destinations) et peuvent être sensiblement
-plus gros que des paquets IP. Some example uses of the network include "eepsites" (webservers hosting normal web
-applications within I2P), a BitTorrent client ("I2PSnark"), 
-or a distributed data store.  With the help of the <a href="i2ptunnel">I2PTunnel</a> application, 
-we are able to stream traditional TCP/IP applications over I2P, such as SSH, IRC, a squid proxy, and 
-even streaming audio. Most people will not use I2P directly, or even need to know they're using it. 
-Instead their view will be of one of the I2P enabled applications, or perhaps as a little controller 
-app to turn on and off various proxies to enable the anonymizing functionality.</p>
+plus gros que des paquets IP. À titre d'exemples d'utilisation du réseau citons les "eepsites" (serveurs web hébergeant
+des applications Internet normales au sein d'I2P), un client BitTorrent ("I2PSnark"), 
+ou un système de stckage distribué.  Grâce à l'application <a href="i2ptunnel">I2PTunnel</a>, 
+nous pouvons utiliser des applications TCP/IP traditionnelles sur I2P, telles que SSH, IRC, un proxy squid, et même 
+du flux audio. La plupart des gens n'utilisent pas I2P directement, ou ne ressentent même pas le besoin de savoir
+qu'ils l'utilisent. 
+Au lieu de ça ils verront une des application compatibles avec I2P, ou peut-être une petite application  
+de contrôle qui va activer ou désactiver divers proxies pour piloter la fonctionnalité d'anonymisation.</p>
 
-<p>An essential part of designing, developing, and testing an anonymizing network is to define the 
-<a href="how_threatmodel">threat model</a>, since there is no such thing as "true" anonymity, just 
-increasingly expensive costs to identify someone. Briefly, I2P's intent is to allow people to communicate 
-in arbitrarily hostile environments by providing good anonymity, mixed in with sufficient cover 
-traffic provided by the activity of people who require less anonymity. This way, some users can avoid
-detection by a very powerful adversary, while others will try to evade a weaker entity,
-<i>all on the same network</i>, where each one's messages are essentially indistinguishable from the 
-others.</p>
+<p>Un des points clés de la conception, dus développement, et du test d'un réseau anonyme est la définition de son
+<a href="how_threatmodel">modèle de sécurité</a>, car il n'existe nulle part un "vrai" anonymat, mais uniquement 
+des moyens d'augmenter les coûts d'identification de quelqu'un. Succintement, le but d'I2P est de permettre de 
+communiquer dans des environnements hostiles en procurant un bon anonymat, mélangé à un trafic de camouflage  
+suffisant fourni par l'activité de ceux qui ont besoin de moins d'anonymat, de sorte que certains utilisateurs puissent
+se soustraire à la détection par un adversaire très puissant, quand d'autres pourront esquiver une entité plus faible,
+<i>tout ceci sur le même réseau</i> dans lequel les messages des uns sont fondamentalement indistingables de ceux des 
+autres.</p>
 
-<h2>Why?</h2>
-<p>There are a multitude of reasons why we need a system to support 
-anonymous communication, and everyone has their own personal rationale. There are many 
-<a href="how_networkcomparisons">other efforts</a> working on finding ways to provide varying degrees of 
-anonymity to people through the Internet, but we could not find any that met our needs or threat 
-model.</p>
+<h2>Pourquoi?</h2>
+<p>Il y a une multitude de raisons qui justifient que nous ayons besoin d'un système de communication anonyme,  
+et chacun a les siennes propres. Il y a de nombreux  
+<a href="how_networkcomparisons">autres efforts</a> pour trouver les moyens de fournir divers niveaux  
+d'anonymat sur Internet, mais nous n'en avons trouvé aucun qui réponde à nos besoins ou à notre modèle de sécurité.</p>
 
-<h2>How?</h2>
+<h2>Comment?</h2>
 
-<p>The network at a glance is made up of a set of nodes ("routers") with a number of unidirectional 
-inbound and outbound virtual paths ("tunnels", as outlined on the <a href="how_tunnelrouting">tunnel routing</a> page). 
-Each router is identified by a cryptographic RouterIdentity which is typically long lived. These routers 
-communicate with each other through existing transport mechanisms (TCP, UDP, etc), passing various 
-messages.  Client applications have their own cryptographic identifier ("Destination") which enables it 
-to send and receive messages. These clients can connect to any router and authorize the temporary 
-allocation ("lease") of some tunnels that will be used for sending and receiving messages through the 
-network.  I2P has its own internal <a href="how_networkdatabase">network database</a> (using a modification of 
-the Kademlia algorithm) for distributing routing and contact information securely.</p>
+<p>Au premier coup d'œil le réseau est constitué d'un tas de nœuds ("routeurs") dotés d'un certain nombre
+de chemins virtuels entrants et sortants unidirectionels
+(appelés "tunnels", expliqués sur la page <a href="how_tunnelrouting">routage en tunnel</a>). 
+Chaque routeur est identifié par l'identifiant cryptographique "RouterIdentity", 
+typiquement de longue durée de vie. Ces routeurs communiquent par des mécanismes existants 
+(TCP, UDP, etc). Les applications clientes ont leur propre identifiant cryptographique ("Destination") qui leur 
+permet d'envoyer et de recevoir des messages. Ces clients peuvent se connecter à n'importe quel routeur et 
+autoriser l'allocation temporaire ("lease") de quelques tunnels qui seront utilisés pour l'envoi et la réception
+à travers le réseau. I2P dispose de sa propre <a href="how_networkdatabase">base de donnée réseau</a> interne 
+(avec une modification de l'algorithme Kademlia) pour une distribution sécurisée 
+des informations de routage et de contacts.</p>
 
-<center><div class="box"><img src="_static/images/net.png" alt="Network topology example" title="Network topology example" /></div></center><br/>
+<center><div class="box">
+<img src="_static/images/net_fr.png" alt="Network topology example" title="Network topology example" /></div></center><br/>
 
 
 <p>In the above, Alice, Bob, Charlie, and Dave are all running routers with a single Destination on their 
@@ -84,22 +87,27 @@ routers within the network. As such, each router must keep and maintain profiles
 and is responsible for selecting appropriate peers to meet the anonymity, performance, and reliability 
 needs of the users, as described in the <a href="how_peerselection">peer selection</a> page.</p>
 
-<p>The network itself makes use of a significant number of <a href="how_cryptography">cryptographic techniques and algorithms</a> - 
+<p>The network itself makes use of a significant number of 
+<a href="how_cryptography">cryptographic techniques and algorithms</a> - 
 a full laundry list includes 2048bit ElGamal encryption, 256bit AES in CBC mode with PKCS#5 padding, 
 1024bit DSA signatures, SHA256 hashes, 2048bit Diffie-Hellman negotiated connections with station to 
 station authentication, and <a href="how_elgamalaes">ElGamal / AES+SessionTag</a>.</p>
 
-<p>Content sent over I2P is encrypted through three layers garlic encryption (used to verify the delivery of the message to 
+<p>Content sent over I2P is encrypted through three layers garlic encryption 
+(used to verify the delivery of the message to 
 the recipient), tunnel encryption (all messages passing through a tunnel is encrypted by the tunnel 
 gateway to the tunnel endpoint), and inter router transport layer encryption (e.g. the TCP transport 
 uses AES256 with ephemeral keys):</p>
 <p>End-to-end (I2CP) encryption (client application to server application) was disabled in I2P release 0.6; 
-end-to-end (garlic) encryption (I2P client router to I2P server router) from Alice's router "a" to Bob's router "h" remains.
+end-to-end (garlic) encryption (I2P client router to I2P server router) from Alice's router "a" to 
+Bob's router "h" remains.
 Notice the different use of terms! All data from a to h is end-to-end encrypted, but the I2CP connection
 between the I2P router and the applications is not end-to-end encrypted!
-A and h are the routers of Alice and Bob, while Alice and Bob in following chart are the applications running atop of I2P.</p>
+A and h are the routers of Alice and Bob, 
+while Alice and Bob in following chart are the applications running atop of I2P.</p>
 
-<center><div class="box"><img src="_static/images/endToEndEncryption.png" alt="End to end layered encryption" title="End to end layered encryption." /></div></center><br/>
+<center><div class="box"><img src="_static/images/endToEndEncryption_fr.png" 
+alt="End to end layered encryption" title="End to end layered encryption." /></div></center><br/>
 
 <p>The specific use of these algorithms are outlined <a href="how_cryptography">elsewhere</a>.</p>
 
@@ -132,12 +140,14 @@ who would like to contribute in other ways, such as critiques, peer review, test
 applications, or documentation. The entire system is open source - the router and most of the SDK are 
 outright public domain with some BSD and Cryptix licensed code, while some applications like I2PTunnel 
 and I2PSnark are GPL. Almost everything is written in Java (1.5+), though some third party applications 
-are being written in Python and other languages. The code works on <a href="http://java.com/en/">Sun Java SE</a> and other Java Virtual Machines.
+are being written in Python and other languages. The code works on 
+<a href="http://java.com/en/">Sun Java SE</a> and other Java Virtual Machines.
 </p>
 
 <h2>Where?</h2>
 <p>Anyone interested should
-join us on the IRC channel #i2p (hosted concurrently on irc.freenode.net, irc.postman.i2p, irc.freshcoffee.i2p, irc.welterde.i2p and irc.einirc.de).
+join us on the IRC channel #i2p (hosted concurrently on irc.freenode.net, irc.postman.i2p, 
+irc.freshcoffee.i2p, irc.welterde.i2p and irc.einirc.de).
 There are currently no scheduled development meetings, however
 <a href="meetings">archives are available</a>.</p>
 
