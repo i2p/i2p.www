@@ -141,21 +141,23 @@ Traduction (en cours) de mars 2011. <a href="techintro.html">Version anglaise ac
     Chacun de ces baux indique une passerelle de tunnel qui permet d'atteindre une destination particulière.
     Détail complet des informations contenues dans un bail:
     <ul>
-      <li>Inbound gateway for a tunnel that allows reaching a specific destination.</li>
-      <li>Time when a tunnel expires.</li>
-      <li>Pair of public keys to be able to encrypt messages (to send through the tunnel and reach the destination).</li>
+      <li>Passerelle entrante pour un tunnel permettant d'atteindre une certaine destination.</li>
+      <li>Moment d'expiration du tunnel.</li>
+      <li>Paire de clés publiques pour pouvoir crypter les messages (à envoyer à travers le tunnel 
+           et atteindre la destination).</li>
     </ul>
-    Routers themselves send their routerInfo to the netDb directly, while leaseSets are sent through outbound tunnels
-    (leaseSets need to be sent anonymously, to avoid correlating a router with his leaseSets).
+    Les routers envoient eux-mêmes directement leur "routerInfo" à la base de données, 
+    alors que les jeux de baux sont envoyés par des tunnels sortants (ils doivent rester anonymes, pour 
+    empêcher toute tentative de corrélation entre un routeur et ses jeux de baux).
+  </p>
+  <p>On peut combiner les trois concepts exposés ci-dessus pour établir des connexions effectives dans le réseau.
   </p>
   <p>
-    We can combine the above concepts to build successful connections in the network.
-  </p>
-  <p>
-    To build up her own inbound and outbound tunnels, Alice does a lookup in the netDb to collect routerInfo.
-    This way, she gathers lists of peers she can use as hops in her tunnels.
-    She can then send a build message to the first hop, requesting the construction of a tunnel, and asking
-    that router to send the construction message onward, until the tunnel has been constructed.
+    Pour créer ses propres tunnels entrants et sortants, Alice fait une recherche dans la "netDb" pour obtenir 
+    des "routerInfo".
+    De cette façon, elle constitue des listes de pairs qu'elle peut utiliser en tant que sauts dans ses tunnels.
+    Ensuite elle peut envoyer au premier saut un message élaboré, demandant la création d'un tunnel, et de faire passer
+    cette demande plus loin, jusqu'à ce que le tunnel soit entièrement créé.
   </p>
   <center>
     <div class="box">
@@ -170,20 +172,18 @@ Traduction (en cours) de mars 2011. <a href="techintro.html">Version anglaise ac
     </div>
   </center><br/>
   <p>
-    When Alice wants to send a message to Bob, she first does a lookup in the 
-    netDb to find Bob's leaseSet, giving her his current inbound tunnel gateways. 
-    She then picks one of her outbound tunnels and sends the message down it with 
-    instructions for the outbound tunnel's endpoint to forward the message on 
-    to one of Bob's inbound tunnel gateways. When the outbound tunnel endpoint 
-    receives those instructions, it forwards the message as requested, and when 
-    Bob's inbound tunnel gateway receives it, it is forwarded down the tunnel 
-    to Bob's router. If Alice wants Bob to be able to reply to the message, she 
-    needs to transmit her own destination explicitly as part of the message itself.
-    This can be done by introducing a higher-level layer, which is done in the
-    <a href="#app.streaming">streaming</a> library.
-    Alice may also cut down on the response time by bundling her most 
-    recent leaseSet with the message so that Bob doesn't need to do a netDb lookup 
-    for it when he wants to reply, but this is optional.
+    Quand Alice désire envoyer un message à Bob, elle recherche tout d'abord dans la netDb 
+    un jeu de baux de Bob, ce qui lui donne ses passerelles entrantes de tunnels. 
+    Elle choisit ensuite un de ses tunnels sortants et y envoie le message avec les 
+    instructions pour le point terminal afin qu'il fasse suivre le message à l'une des 
+    passerelles de tunnels entrants de Bob. Quand le point terminal reçois ces instructions,  
+    il transfère le message comme demandé, et quand la passerelle de tunnel entrant de Bob le reçoit, 
+    elle le transfère dans le tunnel vers le routeur de Bob. Si Alice veut que Bob puisse répondre, 
+    elle doit lui indiquer explicitement sa propre destination en tant qu'élément du message lui-même.
+    On y parvient en introduisant une couche de haut niveau, ce qui est fait par la bibliothèque de flux
+    <a href="#app.streaming">flux</a> (streaming).
+    Alice peut aussi raccourcir le temps de réponse en fournissant dans le message son jeu de baux le plus récent, 
+    en sorte que Bob soit dispensé d'une requête à netDb quand il voudra répondre. Mais ceci est optionnel.
   </p>
   <center>
     <div class="box">
@@ -194,121 +194,113 @@ title="Connexion de tunnels grâce au jeux de baux" />
     </div>
   </center><br/>
   <p>
-    While the tunnels themselves have layered encryption to prevent unauthorized 
-    disclosure to peers inside the network (as the transport layer itself does 
-    to prevent unauthorized disclosure to peers outside the network), it is necessary 
-    to add an additional end to end layer of encryption to hide the message from 
-    the outbound tunnel endpoint and the inbound tunnel gateway. This "<a href="#op.garlic">garlic 
-    encryption</a>" lets Alice's router wrap up multiple messages into a single 
-    "garlic message", encrypted to a particular public key so that intermediary 
-    peers cannot determine either how many messages are within the garlic, what 
-    those messages say, or where those individual cloves are destined. For typical 
-    end to end communication between Alice and Bob, the garlic will be encrypted 
-    to the public key published in Bob's leaseSet, allowing the message to be 
-    encrypted without giving out the public key to Bob's own router.
+    De même que les tunnels ont eux-mêmes un cryptage étagé pour empêcher un dévoilement non autorisé  
+    par les pairs au sein du réseau (comme la couche transport le fait elle-même pour protéger des pairs 
+    les contenus en dehors du réseau), il est nécessaire d'ajouter une couche additionnelle 
+    de cryptage de bout en bout pour cacher le message au point terminal sortant et à la passerelle entrante. 
+    Ce cryptage "<a href="#op.garlic">en tête d'ail</a>" (garlic) 
+    fait que le routeur d'Alice va "emballer" de multiples messages dans un seul message 
+    (la tête d'ail="garlic message"), crypté pour une certaine clé publique en sorte que les pairs intermédiaires 
+    ne puissent déterminer ni combien il y a de messages (des gousses ou caïeux si on veut pousser plus loin
+    l'analogie botanique) dans le bulbe, ni si ces messages sont amers ou sucrés (ce qu'ils disent), ni si ces gousses 
+    vont servir à frotter un plat à cassoulet, finir fondus dans un gigot 
+    ou hachés/grillés sur une dorade (à qui elles sont destinées). Pour une communication typique
+    de point à point entre Alice et Bob, la tête d'ail va être cryptée avec la clé publique annoncée  
+    dans le jeu de baux de Bob, ce qui permet le cryptage sans donner la clé publique du routeur de Bob.
   </p>
   <p>
-    Another important fact to keep in mind is that I2P is entirely message based 
-    and that some messages may be lost along the way. Applications using I2P can 
-    use the message oriented interfaces and take care of their own congestion 
-    control and reliability needs, but most would be best served by reusing the 
-    provided <a href="#app.streaming">streaming</a> library to view I2P as a streams 
-    based network.
+    Une autre donnée importante qu'il faut garder à l'esprit, est qu'I2P est entièrement basé sur l'échange 
+    de messages et que quelques messages pourraient se perdre en chemin. Les applications utilisant I2P peuvent 
+    utiliser les interfaces "orientées messages" et s'occuper de leur propre contrôle de congestion et besoins de 
+    fiabilité, mais elles seront mieux servies en utilisant la bibliothèque de <a href="#app.streaming">streaming</a>
+    fournie en vue de voir I2P comme un réseau "orienté flux".
   </p>
-  <h2 id="op.tunnels">Tunnels</h2>
+  <h2 id="op.tunnels">Les tunnels</h2>
   <p>
-    Both inbound and outbound tunnels work along similar principles.
-    The tunnel gateway accumulates a number of tunnel messages, eventually preprocessing 
-    them into something for tunnel delivery. Next, the gateway encrypts that preprocessed 
-    data and forwards it to the first hop. That peer and subsequent tunnel participants 
-    add on a layer of encryption after verifying that it isn't a duplicate before 
-    forward it on to the next peer. Eventually, the message arrives at the endpoint 
-    where the messages are split out again and forwarded on as requested. The 
-    difference arises in what the tunnel's creator does - for inbound tunnels, 
-    the creator is the endpoint and they simply decrypt all of the layers added, 
-    while for outbound tunnels, the creator is the gateway and they pre-decrypt 
-    all of the layers so that after all of the layers of per-hop encryption are 
-    added, the message arrives in the clear at the tunnel endpoint.
+    Les tunnels entrants et sortants partagent les mêmes principes de fonctionnement.
+    La passerelle de tunnel accumule un certain nombre de messages, en les pré-traitant éventuellement 
+    en vue d'une distribution dans le tunnel. Ensuite, elle crypte ces données préparées  
+    et les transfère vers le premier saut. Ce pair et les participants suivants du tunnel
+    y ajoutent une couche de cryptage après avoir vérifié qu'il ne s'agit pas d'un doublon et avant  
+    de le transférer au pair suivant. Le message arrive éventuellement au point terminal  
+    où les messages sont de nouveau séparés et transférés comme demandé. La différence réside  
+    dans l'action du créateur du tunnel: pour les tunnels entrants, le créateur est le point terminal,
+    et il déchiffre simplement toutes les couches ajoutées, alors que pour les tunnels sortants, 
+    le créateur est la passerelle, et il pré-déchiffre toutes les couches pour qu'une fois toutes 
+    les couches de crytpage par saut ajoutées, le message arrive en clair au point terminal.
   </p>
   <p>
-    The choice of specific peers to pass on messages as well as their particular 
-    ordering is important to understanding both I2P's anonymity and performance 
-    characteristics. While the network database (below) has its own criteria for 
-    picking what peers to query and store entries on, tunnel creators may use any peers 
-    in the network in any order (and even any number of times) in a single tunnel. 
-    If perfect latency and capacity data were globally known, selection and ordering 
-    would be driven by the particular needs of the client in tandem with their 
-    threat model. Unfortunately, latency and capacity data is not trivial to gather 
-    anonymously, and depending upon untrusted peers to provide this information 
-    has its own serious anonymity implications.
+    Le choix de pairs spécifiques pour passer les messages, ainsi que la définition de leur séquence,  
+    est important pour une bonne compréhention de l'anatomie et des performances d'I2P.
+    Alors que la base de données dispose de ses propres critères de sélection lors du choix  
+    des pairs à interroger et pour mémoriser les entrées correspondantes, les creators de tunnels utilisent
+    n'importe quels pairs du réseau et dans n'importe quel ordre (et même un nombre de fois indéfini) dans le 
+    même tunnel. Si des données précises de latence et de capacité étaient globalement connues, la sélection et 
+    le tri seraient pilotés par les besoins particuliers du client en relation avec leur modèle de sécurité. 
+    Malheureusement, la latence et les capacités ne sont pas simples à collecter anonymement, et avoir besoin 
+    besoin de pairs sans confiance établie pour fournir ces informations pose de sérieux problèmes d'anonymat.
   </p>
   <p>
-    From an anonymity perspective, the simplest technique would be to pick peers 
-    randomly from the entire network, order them randomly, and use those peers 
-    in that order for all eternity. From a performance perspective, the simplest 
-    technique would be to pick the fastest peers with the necessary spare capacity, 
-    spreading the load across different peers to handle transparent failover, 
-    and to rebuild the tunnel whenever capacity information changes. While the 
-    former is both brittle and inefficient, the later requires inaccessible information 
-    and offers insufficient anonymity. I2P is instead working on offering a range 
-    of peer selection strategies, coupled with anonymity aware measurement code 
-    to organize the peers by their profiles.
+    Du point de vue de l'anonymat, la technique la plus simple serait de sélectionner des pairs au hasard 
+    dans la totalité du réseau, de les trier aléatoirement, et de les utiliser dans cet ordre ad vitam æternam.
+    Mais pour les performances, la plus simple façon serait de ne retenir que les plus rapides disposant de la 
+    réserve de capacité suffisante, de répartir la charge sur différents pairs pour gérer les défaillances 
+    de façon transparente, et de recréer le tunnel chaque fois que l'information de capacité est modifiée.
+    alors que la première façon est à la fois fragile et inefficace, la seconde demande des informations 
+    indisponibles et n'offre qu'un anonymat insuffisant. 
+    I2P fonctionne plutôt en utilisant une gamme de stratégies de sélection des pairs, 
+    couplée à du code d'évaluation du niveau d'anonymat pour organiser ces pairs selon leur profil.
   </p>
   <p>
-    As a base, I2P is constantly profiling the peers with which it interacts 
-    with by measuring their indirect behavior - for instance, when a peer responds 
-    to a netDb lookup in 1.3 seconds, that round trip latency is recorded in the 
-    profiles for all of the routers involved in the two tunnels (inbound and outbound) 
-    through which the request and response passed, as well as the queried peer's 
-    profile. Direct measurement, such as transport layer latency or congestion, 
-    is not used as part of the profile, as it can be manipulated and associated 
-    with the measuring router, exposing them to trivial attacks. While gathering 
-    these profiles, a series of calculations are run on each to summarize its 
-    performance - its latency, capacity to handle lots of activity, whether they 
-    are currently overloaded, and how well integrated into the network they seem 
-    to be. These calculations are then compared for active peers to organize the 
-    routers into four tiers - fast and high capacity, high capacity, not failing, 
-    and failing. The thresholds for those tiers are determined dynamically, and 
-    while they currently use fairly simple algorithms, alternatives exist.
+    À la base, I2P classe en permanance les pairs avec lesquels il interagit en mesurant indirectement 
+    leur comportement: par exemple, quand un pair répond à une requête netDb en 1,3s,  
+    cette latence d'aller-retour est enregistrée dans les profils pour tous les routeurs impliqués 
+    dans les deux tunnels (entrant et sortant) au travers desquels la requête et la réponse sont passées,  
+    ainsi que le profil du pair. Les mesures directes, telles que la latence de la couche transport ou la congestion, 
+    ne sont pas utilisées en tant que données de profil car elles peuvent être manipulées au routeur mesurant,
+    l'exposant ainsi à des attaques basiques. En rassemblant ces profils, une série de calculs est lancée 
+    sur chacun pour synthétiser ses performances: sa latence, sa capacité à gérer beaucoup d'activités, s'il est 
+    actuellement surchargé, et à quel point il semble bien intégré au réseau.
+    Les résultats de ces calculs sont alors comparés pour les pairs actifs afin de 
+    répartir les routeurs en quatre groupes: les rapides à hautes capacités, ceux de hautes capacités, les non 
+    défaillants, et les défaillants. Les seuils de ces groupes sont déterminés dynamiquement, et comme ils n'utilisent
+    actuellement que des algorithmes assez simples, il y a d'autres possibilités.
   </p>
-  <p> Using this profile data, the simplest reasonable peer selection strategy 
-    is to pick peers randomly from the top tier (fast and high capacity), and 
-    this is currently deployed for client tunnels. Exploratory tunnels (used for 
-    netDb and tunnel management) pick peers randomly from the "not failing" tier 
-    (which includes routers in 'better' tiers as well), allowing the peer to sample 
-    routers more widely, in effect optimizing the peer selection through randomized 
-    hill climbing. These strategies alone do however leak information regarding 
-    the peers in the router's top tier through predecessor and netDb harvesting 
-    attacks. In turn, several alternatives exist which, while not balancing the 
-    load as evenly, will address the attacks mounted by particular classes of 
-    adversaries.
+  <p> Pour utiliser ces données de profils, la stratégie de sélection la plus simple consiste à 
+    les prendre aléatoirement dans le premier groupe (celui des plus rapides à fortes capacités), 
+    et c'est ce qui est actuellement employé pour les tunnels clients. 
+    Les tunnels exploratoires (utilisés pour les communications avec la base de données et la gestion des tunnels)
+    prennent les pairs aléatoirement dans le troisième groupe des non défaillants (qui inclut ceux du premier), 
+    ce qui permet une base de sélection plus étoffée avec pour effet l'optimisation de la sélection
+    via une progression aléatoire. Ces stratégies laissent cependant fuir des informations concernant les pairs 
+    du premier groupe utilisables par des attaques du type collecte de base de données et du type prédecessur. 
+    En retour, il y a plusieurs alternatives qui bien que n'équilibrant pas la charge aussi uniformément,  
+    bloquent les attaques lancées par certains types d'ennemis.
   </p>
   <p>
-    By picking a random key and ordering the peers according to their XOR distance 
-    from it, the information leaked is reduced in predecessor and harvesting attacks 
-    according to the peers' failure rate and the tier's churn. Another simple 
-    strategy for dealing with netDb harvesting attacks is to simply fix the inbound 
-    tunnel gateway(s) yet randomize the peers further on in the tunnels. To deal 
-    with predecessor attacks for adversaries which the client contacts, the outbound 
-    tunnel endpoints would also remain fixed. The selection of which peer to fix 
-    on the most exposed point would of course need to have a limit to the duration, 
-    as all peers fail eventually, so it could either be reactively adjusted or 
-    proactively avoided to mimic a measured mean time between failures of other 
-    routers. These two strategies can in turn be combined, using a fixed exposed 
-    peer and an XOR based ordering within the tunnels themselves. A more rigid 
-    strategy would fix the exact peers and ordering of a potential tunnel, only 
-    using individual peers if all of them agree to participate in the same way 
-    each time. This varies from the XOR based ordering in that the predecessor 
-    and successor of each peer is always the same, while the XOR only makes sure 
-    their order doesn't change.
+    En sélectionnant une clé aléatoire et en triant les pairs selon leur distance "eXORisée" à cette clé,  
+    la fuite d'information est réduite pour les attaques prédécesseur et collecte, suivant le taux de défaillance
+    des pairs et le renouvellement des seuils des groupes. Une autre stratégie simple pour parer aux 
+    attaques par collecte de la netDb consiste simplement à obliger la passerelle entrante à figer  
+    aléatoirement la position des pairs situés plus loin dans le tunnnel. Pour gérer les attaques de prédécesseur 
+    par des adversaires que le client contacte, le point terminal de tunnel devrait aussi rester statique. 
+    La sélection du pair à figer au point le plus vulnérable doit bien sûr être limitée en durée, 
+    car tous les pairs sont suceptibles de défaillance, et donc elle doit soit être ajustée en réaction, ou
+    préventivement empêchée pour simuler le MTBF (temps moyen entre défaillances) mesuré d'autres routeurs. 
+    Ces deux stratégies peuvent ensuite être combinées, en utilisant un pair vulnérable figé et un tri sur XOR 
+    dans les tunnels eux-mêmes. Une stratégie plus stricte consisterait à définir les pairs précis et leur ordre
+    dans un tunnel potentiel, en utilisant uniquement de pairs qui accepteraient tous de participer de la même 
+    façon à chaque fois. Ceci diffère du tri basé sur le résultat de l'XOR en ce que le prédécesseur 
+    et le successeur de chaque pair serait toujours les mêmes, alors que le tri sur l'XOR ne permet que de s'assurer
+    que leur ordre ne change pas.
   </p>
   <p>
-    As mentioned before, I2P currently (release 0.8) includes the tiered 
-    random strategy above, with XOR-based ordering. A 
-    more detailed discussion of the mechanics involved in tunnel operation, management, 
-    and peer selection can be found in the <a href="tunnel-alt.html">tunnel spec</a>. 
+    Comme déjà mentionné, I2P, actuellement en version 0.8 inclut la stratégie basée sur les groupes, 
+    avec le tri basé sur le XOR. Une discussion plus poussée des mécanismes impliqués dans les opérations de tunnel
+    la gestion et la sélection des pairs est disponible sur la page 
+    <a href="tunnel-alt.html">spécification des tunnels</a>. 
   </p>
-  <h2 id="op.netdb">Network Database</h2>
+  <h2 id="op.netdb">Base de donnée</h2>
   <p>
     As mentioned earlier, I2P's netDb works to share the network's metadata.
     This is detailed in <a href="how_networkdatabase.html">the networkdatabase</a> page,
