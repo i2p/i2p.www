@@ -371,78 +371,83 @@ title="Connexion de tunnels grâce au jeux de baux" />
     </ul>
   </p>
   <h2 id="op.transport">Protocoles de transport</h2>
-  <p> Communication between routers needs to provide confidentiality and integrity 
-    against external adversaries while authenticating that the router contacted 
-    is the one who should receive a given message. The particulars of how routers 
-    communicate with other routers aren't critical - three separate protocols 
-    have been used at different points to provide those bare necessities. </p>
-  <p> I2P started with a TCP-based protocol which 
-    has since been disabled. Then, to accommodate the need for high degree communication 
-    (as a number of routers will end up speaking with many others), I2P moved 
-    from a TCP based transport to a <a href="udp.html">UDP-based one</a> - "Secure 
-    Semireliable UDP", or "SSU". </p>
-  <p> As described in the <a href="udp.html">SSU spec</a>:</p>
-  <blockquote> The goal of this protocol is to provide secure, authenticated, 
-    semireliable, and unordered message delivery, exposing only a minimal amount 
-    of data easily discernible to third parties. It should support high degree 
-    communication as well as TCP-friendly congestion control, and may include 
-    PMTU detection. It should be capable of efficiently moving bulk data at rates 
-    sufficient for home users. In addition, it should support techniques for addressing 
-    network obstacles, like most NATs or firewalls. </blockquote>
-  <p> Following the introduction of SSU, after issues with congestion collapse 
-    appeared, a new NIO-based TCP transport called <a href="ntcp.html">NTCP</a> 
-    was implemented. It is enabled by default for outbound connections only. Those 
-    who configure their NAT/firewall to allow inbound connections and specify 
-    the external host and port (dyndns/etc is ok) on /config.jsp can receive inbound 
-    connections. As NTCP is NIO based, so it doesn't suffer from the 1 thread 
-    per connection issues of the old TCP transport. </p>
-  <p> I2P supports multiple transports simultaneously. A particular transport 
-    for an outbound connection is selected with "bids". Each transport bids for 
-    the connection and the relative value of these bids assigns the priority. 
-    Transports may reply with different bids, depending on whether there is already 
-    an established connection to the peer. </p>
-  <p> The current implementation ranks NTCP as the highest-priority transport 
-    for outbound connections in most situations. SSU is enabled for both outbound 
-    and inbound connections. Your firewall and your I2P router must be configured 
-    to allow inbound NTCP connections. For further information see the <a href="ntcp.html">NTCP 
-    page</a>. </p>
-  <h2 id="op.crypto">Cryptography</h2>
-  <p> A bare minimum set of cryptographic primitives are combined together to 
-    provide I2P's layered defenses against a variety of adversaries. At the lowest 
-    level, inter router communication is protected by the transport layer security 
-    - SSU encrypts each packet with AES256/CBC with both an explicit IV and MAC 
-    (HMAC-MD5-128) after agreeing upon an ephemeral session key through a 2048bit 
-    Diffie-Hellman exchange, station-to-station authentication with the other 
-    router's DSA key, plus each network message has their own hash for local integrity 
-    checking. <a href="#op.tunnels">Tunnel</a> messages passed over the transports 
-    have their own layered AES256/CBC encryption with an explicit IV and verified 
-    at the tunnel endpoint with an additional SHA256 hash. Various other messages 
-    are passed along inside "garlic messages", which are encrypted with ElGamal/AES+SessionTags 
-    (explained below). </p>
-  <h3 id="op.garlic">Garlic messages</h3>
-  <p> Garlic messages are an extension of "onion" layered encryption, allowing 
-    the contents of a single message to contain multiple "cloves" - fully formed 
-    messages alongside their own instructions for delivery. Messages are wrapped 
-    into a garlic message whenever the message would otherwise be passing in cleartext 
-    through a peer who should not have access to the information - for instance, 
-    when a router wants to ask another router to participate in a tunnel, they 
-    wrap the request inside a garlic, encrypt that garlic to the receiving router's 
-    2048bit ElGamal public key, and forward it through a tunnel. Another example 
-    is when a client wants to send a message to a destination - the sender's router 
-    will wrap up that data message (alongside some other messages) into a garlic, 
-    encrypt that garlic to the 2048bit ElGamal public key published in the recipient's 
-    leaseSet, and forward it through the appropriate tunnels. </p>
-  <p> The "instructions" attached to each clove inside the encryption layer includes 
-    the ability to request that the clove be forwarded locally, to a remote router, 
-    or to a remote tunnel on a remote router. There are fields in those instructions 
-    allowing a peer to request that the delivery be delayed until a certain time 
-    or condition has been met, though they won't be honored until the <a href="#future.variablelatency">nontrivial 
-    delays</a> are deployed. It is possible to explicitly route garlic messages 
-    any number of hops without building tunnels, or even to reroute tunnel messages 
-    by wrapping them in garlic messages and forwarding them a number of hops prior 
-    to delivering them to the next hop in the tunnel, but those techniques are 
-    not currently used in the existing implementation. </p>
-  <h3 id="op.sessiontags">Session tags</h3>
+  <p> Les communications entre routeurs doivent apporter confidentialité et intégrité 
+    contre des menaces externes tout en certifiant que le routeur contacté est bien celui  
+    qui doit recevoir un message donné. Les particularités sur la façon dont les routeurs communiquent  
+    les uns avec les autres ne sont pas critiques: trois protocoles distincts ont été retenus 
+    pour répondre à ces exigences. </p>
+  <p> I2P commença avec un protocole basé sur TCP qui depuis a été désactivé.
+    Puis, pour résoudre le problème du besoin élevé en terme de nombre de communications  
+    (vu qu'un grand nombre de routeurs peuvent cesser de parler avec plusieurs autres), I2P a migré 
+    de TCP vers un protocole <a href="udp.html">basé sur UDP</a> - "Secure 
+    Semireliable UDP", UDP Sécurisé Semi-fiable, ou "SSU". </p>
+  <p> Comme expliqué dans la <a href="udp.html">spécification de SSU</a>:</p>
+  <blockquote> Le but de ce protocole est de fournir une livraison sécurisée, authentifiée, 
+    semi-fiable, et non ordonnée, dévoilant uniquement une quantité minimale de données facilement  
+    discernables par les tierses parties. Il doit tolérer un fort taux de communications
+    tout comme le contrôle de congestion TCP, et inclure la découverte MTU 
+     <a href="http://fr.wikipedia.org/wiki/Path_MTU_discovery">PMTU</a>. 
+    Il doit pouvoir transférer efficacement des données en vrac à un débit suffisant pour l'utilisation résidentielle.
+    De plus, il doit être compatible avec les techniques de contournement d'obstacles du le réseau  
+    tels que les translateurs d'adresses (NAT) ou les pare-feux. </blockquote>
+  <p> Suite à l'introduction de SSU, après l'apparition de problèmes de congestion, un nouveau 
+    transport TCP basé sur les <a href="http://en.wikipedia.org/wiki/New_I/O">NIO Java</a> appelé 
+    <a href="ntcp.html">NTCP</a> fut implémenté.
+    Il est activé pour les connexions sortantes uniquement. Ceux qui configurent leur pare-feu/NAT 
+    pour autoriser les connexions entrantes et précisent l'hôte et le port (même en style DynDNS, etc...) 
+    dans la configuration peuvent recevoir des connexions entrantes. 
+    Comme NTCP est bati avec les NIO il n'est pas astreint au problème de "une connexion=une tâche" dont souffrait 
+    l'ancien transport TCP. </p>
+  <p> I2P permet de multiples transports simultanément. Un transport particulier pour une connexion sortante 
+    est sélectionné par des "offres". Chaque offre de transport pour la connexion et la valeur relative de l'offre 
+    définissent la priorité.  Les transports peuvent répondre avec des offres différentes, 
+    suivant s'il y a déjà une connexion établie avec le pair. </p>
+  <p> L'implémentation actuelle attribuent la  plus haute priorité de transport à NTCP pour les connexions sortantes 
+    dans la plupart des cas. SSU est activé à la fois pour les connexions sortantes et entrantes. Votre pare-feu/NAT
+    et votre routeur I2P doivent être configurés pour autoriser les connexions entrantes NTCP. 
+    Voir les détails <a href="ntcp.html">ici</a> sur la page NTCP. </p>
+  <h2 id="op.crypto">Cryptographie</h2>
+  <p> Un petit minimum d'algorithmes cryptographiques de base sont combinés pour fournir  
+    à I2P les protections étagées contre diverses menaces. Au niveau le plus bas, la communication inter routeurs 
+    est protégée par la sécurité de la couche transport: SSU crypte chaque paquet avec 
+    l'<a href="http://fr.wikipedia.org/wiki/Advanced_Encryption_Standard">AES</a>256/
+<a href="http://fr.wikipedia.org/wiki/Mode_d%27op%C3%A9ration_%28cryptographie%29#
+Encha.C3.AEnement_des_blocs_:_.C2.AB_Cipher_Block_Chaining_.C2.BB_.28CBC.29">CBC</a> 
+    conjugué à un vecteur d'initialisation explicite et un code d'authentification de message 
+    (<a href="http://fr.wikipedia.org/wiki/Keyed-Hash_Message_Authentication_Code">HMAC</a>-MD5-128) après 
+    négociation préalable d'une clé de session via un échange 
+    <a href="http://fr.wikipedia.org/wiki/Diffie-Hellman">Diffie-Hellman</a> à 2048 bits et  
+    une authentification mutuelle avec la clé <a href="http://fr.wikipedia.org/wiki/Digital_Signature_Algorithm">DSA</a>
+    de l'autre routeur, 
+    plus une vérification locale d'intégrité avec le propre hachage du message.
+
+    Les messages de <a href="#op.tunnels">tunnel</a> passés par les transports 
+    disposent de leur propre cryptage étagé en AES256/CBC à VI explicite et sont vérifiés  
+    au point terminal du tunnel à l'aide d'un hachage <a href="http://fr.wikipedia.org/wiki/SHA-256">SHA256</a>
+    supppémentaire. Divers autres messages sont passés regroupés dans des "garlic messages",
+    qui sont cryptés en 
+    <a href="http://fr.wikipedia.org/wiki/Cryptosyst%C3%A8me_de_ElGamal">ElGamal</a>/AES+SessionTags 
+    (expliqués ci-dessous).</p>
+  <h3 id="op.garlic">Messages "Garlic" : en têtes d'ail</h3>
+  <p> Ces messages sont une extension du cryptage "onion" en couches, permettant aux contenus d'un seul message  
+    de contenir plusieurs "gousses",  des messages complets juxtaposés à leurs propres instructions de livraison.
+    Les messages sont empaquetés chaque fois qu'il seraient sinon passés en clair au travers d'un pair qui n'aurait pas 
+    accès aux informations de routage: par exemple, quand un routeur veut demander à un autre de participer à un 
+    tunnel, ils ajoutent la requête dans un garlic qu'il cryptent à l'intention du routeur destinataire avec sa 
+    clé publique ElGamal 2048 bits publiée dans son jeu de baux, et le font suivre dans un tunnel. Dans un autre 
+    exemple, un client veut envoyer un message à une destination: le routeur du client va joindre ce message de 
+    données (à côté de quelques autres messages) dans un garlic qu'il crypte en ElGamal 2048 à l'endroit de la 
+    destination avec sa clé publiée dans son jeu de baux, et l'envoie aux tunnels appropriés.</p>
+  <p> Les "instructions" attachées à chaque gousse dans la couche de cryptage incluent la passibilité 
+    de demander que cette gousse soit transmise localement, à un routeur distant, ou à un tunnel distant sur un routeur
+    distant. Il y a des champs dans ces instructions permettant à un pair de demander que la livraison soit retardée
+    un certain temps ou jusqu'à ce qu'une condition soit remplie, bien qu'ils ne seront pris en compte 
+    que lorsque les <a href="#future.variablelatency">retards nontriviaux</a> soient déployés. Il est possible 
+    de router explicitement les messages en tête d'ail sur n'importe quel nombre de sauts sans construire de tunnels, 
+    ou même de rerouter les messages de tunnels en les joingnant à un garlic et en le faisant suivre à un certain 
+    nombre de saut avant de le passer au saut suivant du tunnel, mais ces techniques ne sont pas actuellement utilisées 
+    dans l'implémentation en cours. </p>
+  <h3 id="op.sessiontags">Balises de session</h3>
   <p> As an unreliable, unordered, message based system, I2P uses a simple combination 
     of asymmetric and symmetric encryption algorithms to provide data confidentiality 
     and integrity to garlic messages. As a whole, the combination is referred 
