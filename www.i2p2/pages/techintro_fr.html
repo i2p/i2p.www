@@ -436,7 +436,7 @@ Encha.C3.AEnement_des_blocs_:_.C2.AB_Cipher_Block_Chaining_.C2.BB_.28CBC.29">CBC
     tunnel, ils ajoutent la requête dans un garlic qu'il cryptent à l'intention du routeur destinataire avec sa 
     clé publique ElGamal 2048 bits publiée dans son jeu de baux, et le font suivre dans un tunnel. Dans un autre 
     exemple, un client veut envoyer un message à une destination: le routeur du client va joindre ce message de 
-    données (à côté de quelques autres messages) dans un garlic qu'il crypte en ElGamal 2048 à l'endroit de la 
+    données (à côté de quelques autres messages) dans un garlic qu'il crypte en ElGamal 2048 à l'intension de la 
     destination avec sa clé publiée dans son jeu de baux, et l'envoie aux tunnels appropriés.</p>
   <p> Les "instructions" attachées à chaque gousse dans la couche de cryptage incluent la passibilité 
     de demander que cette gousse soit transmise localement, à un routeur distant, ou à un tunnel distant sur un routeur
@@ -448,76 +448,65 @@ Encha.C3.AEnement_des_blocs_:_.C2.AB_Cipher_Block_Chaining_.C2.BB_.28CBC.29">CBC
     nombre de saut avant de le passer au saut suivant du tunnel, mais ces techniques ne sont pas actuellement utilisées 
     dans l'implémentation en cours. </p>
   <h3 id="op.sessiontags">Balises de session</h3>
-  <p> As an unreliable, unordered, message based system, I2P uses a simple combination 
-    of asymmetric and symmetric encryption algorithms to provide data confidentiality 
-    and integrity to garlic messages. As a whole, the combination is referred 
-    to as ElGamal/AES+SessionTags, but that is an excessively verbose way to describe 
-    the simple use of 2048bit ElGamal, AES256, SHA256, and 32 byte nonces. </p>
-  <p> The first time a router wants to encrypt a garlic message to another router, 
-    they encrypt the keying material for an AES256 session key with ElGamal and 
-    append the AES256/CBC encrypted payload after that encrypted ElGamal block. 
-    In addition to the encrypted payload, the AES encrypted section contains the 
-    payload length, the SHA256 hash of the unencrypted payload, as well as a number 
-    of "session tags" - random 32 byte nonces. The next time the sender wants 
-    to encrypt a garlic message to another router, rather than ElGamal encrypt 
-    a new session key they simply pick one of the previously delivered session 
-    tags and AES encrypt the payload like before, using the session key used with 
-    that session tag, prepended with the session tag itself. When a router receives 
-    a garlic encrypted message, they check the first 32 bytes to see if it matches 
-    an available session tag - if it does, they simply AES decrypt the message, 
-    but if it does not, they ElGamal decrypt the first block. </p>
-  <p> Each session tag can be used only once so as to prevent internal adversaries 
-    from unnecessarily correlating different messages as being between the same 
-    routers. The sender of an ElGamal/AES+SessionTag encrypted message chooses 
-    when and how many tags to deliver, prestocking the recipient with enough tags 
-    to cover a volley of messages. Garlic messages may detect the successful tag 
-    delivery by bundling a small additional message as a clove (a "delivery status 
-    message") - when the garlic message arrives at the intended recipient and 
-    is decrypted successfully, this small delivery status message is one of the 
-    cloves exposed and has instructions for the recipient to send the clove back 
-    to the original sender (through an inbound tunnel, of course). When the original 
-    sender receives this delivery status message, they know that the session tags 
-    bundled in the garlic message were successfully delivered. </p>
-  <p> Session tags themselves have a very short lifetime, after which they are 
-    discarded if not used. In addition, the quantity stored for each key is limited, 
-    as are the number of keys themselves - if too many arrive, either new or old 
-    messages may be dropped. The sender keeps track whether messages using session 
-    tags are getting through, and if there isn't sufficient communication it may 
-    drop the ones previously assumed to be properly delivered, reverting back 
-    to the full expensive ElGamal encryption. </p>
-  <p> One alternative is to transmit only a single session tag, and from that, 
-    seed a deterministic PRNG for determining what tags to use or expect. By keeping 
-    this PRNG roughly synchronized between the sender and recipient (the recipient 
-    precomputes a window of the next e.g. 50 tags), the overhead of periodically 
-    bundling a large number of tags is removed, allowing more options in the space/time 
-    tradeoff, and perhaps reducing the number of ElGamal encryptions necessary. 
-    However, it would depend upon the strength of the PRNG to provide the necessary 
-    cover against internal adversaries, though perhaps by limiting the amount 
-    of times each PRNG is used, any weaknesses can be minimized. At the moment, 
-    there are no immediate plans to move towards these synchronized PRNGs. </p>
-  <h1 id="future">Future</h1>
-  <p> While I2P is currently functional and sufficient for many scenarios, there 
-    are several areas which require further improvement to meet the needs of those 
-    facing more powerful adversaries as well as substantial user experience optimization. 
+  <p> En tant que système orienté messages non fiable et non ordonné, I2P utilses une simple combinaison 
+    d'algorithmes de cryptage symétriques et assymétriques pour apporter la confidentialité et l'intégrité 
+    des données aux messages garlics. Considérée comme un tout, la combinaison est appelée ElGamal/AES+SessionTags,
+    mais c'est un poil trop verbeux pour décrire une simple utilisation d'ElGamal 2048 bits, d'AES256, d'SHA256, 
+    et de vecteurs d'initialisation de 32 octets. </p>
+  <p> La première fois qu'un routeur veut crypter un message garlic à l'usage d'un autre routeur, 
+    il crypte les données de clés d'une session AES256 avec ElGamal et joint la charge utile cryptée en AES256/CBC 
+    après le block crypté avec ElGamal. En plus de la charge utile cryptée, la section encryptée en AES contient
+    la longueur de la charge utile, le hachage de la charge non cryptée, ainsi qu'un certain nombre de balises de 
+    session de 32 octets aléatoires. La fois suivante, plutôt que de crypter une nouvelle clé de session en ElGamal, 
+    il va simplement prendre une des balises précédement envoyées et crypter la charge en AES comme avant en utilisant 
+    la clé de session associée à la balise, et préfixer la charge cryptée avec la balise. Quand un routeur reçoit 
+    un message garlic, il cherche si les 32 premiers octets correspondent à une balise déjà disponible, auquel cas il 
+    décryptent l'AES. En l'absence de correspondance, il décryptent le premier block en ElGamal.</p>
+  <p> Chaque balise de session est à usage unique, tant pour empêcher une attaque interne de mettre en corrélation
+    différents messages, que venant d'un point situé entre les mêmes routeurs. L'émetteur d'un message crypté 
+    ElGamal/AES+SessionTag choisit quand et combien de balises il faut envoyer pour en fournir suffisament au 
+    destinataire afin de couvrir les besoins nécessaires au tranfert d'un bouquet de messages.
+    Les messages garlics peuvent détecter la livraison correcte de balises en joignant un petit message supplémentaire
+    en tant que gousse (un accusé de réception): quand la tête d'ail arrive au destinataire prévu et est décryptée
+    avec succès, ce petit message de réussite pré fourni est un de ceux dévoilés dans la gousse, et il contient 
+    les instructions pour le destinataire pour la renvoyer à l'émetteur (via un tunnel entrant, évidement). 
+    Quand celui-ci reçoit ce message d'état de livraison, il sait que les balises de session ont bien été reçues.</p>
+  <p>Les balises ont une très courte durée de vie, passée laquelle elles sont invalidées faute d'avoir été utilisées.
+    De plus, leur nombre pour chaque clé est limité, tout comme le nombre de clés lui-même: 
+    s'il en arrive trop, des messages récents ou plus anciens pourraient être perdus. L'émetteur fait un suivi 
+    des messages qui utilisent les balises pour s'assurer qu'ils passent, et dans le cas contraire il se replie sur 
+    l'algorithme ElGamal plus coûteux.</p>
+  <p> Une alternative consiste à ne transmettre qu'une seule balise de session, et de là, 
+    initialiser un 
+  <a href="http://fr.wikipedia.org/wiki/G%C3%A9n%C3%A9rateur_de_nombres_pseudo-al%C3%A9atoires">
+    générateur de nombres pseudo-aléatoires</a> (PRNG) déterministe pour déduire quelles balises utiliser ou attendre. 
+    En tenant ce générateur sommairement synchronisé entre l'émetteur et le destinataire (qui calcule par anticipation 
+    par exemple une cinquantaine de balises), la surcharge induite par la fourniture périodique d'un grand nombre de 
+    balises est supprimée, permettant ainsi plus d'options d'arbitrage dans l'espace et le temps, et éventuellement 
+    la réduction du nombre d'encryptages ElGamal nécessaires. Cependant, il dépend de la robustesse du générateur de 
+    fournir la protection contre les menaces internes, bien qu'on puisse minimiser toute faiblesse en limitant le 
+    nombre d'utilisations de chaque générateur. Pour l'instant, il n'a pas de plans immédiats de migration vers ce 
+    système de PRNGs synchronisés. </p>
+  <h1 id="future">L'avenir</h1>
+  <p> Bien qu'I2P soit actuellement opérationnel et suffisant dans de nombreux scenarii, il reste plusieurs zones qui 
+    demandent de profondes améliorations pour atteindre les besoins de ceux devant faire face à des adversaires  
+    puissants comme pour l'amélioration de l'utilisation quotidienne par les utilisateurs. 
   </p>
-  <h2 id="future.restricted">Restricted route operation</h2>
-  <p> I2P is an overlay network designed to be run on top of a functional packet 
-    switched network, exploiting the end to end principle to offer anonymity and 
-    security. While the Internet no longer fully embraces the end to end principle
-    (due to the usage of NAT), 
-    I2P does require a substantial portion of the network to be reachable - there 
-    may be a number of peers along the edges running using restricted routes, 
-    but I2P does not include an appropriate routing algorithm for the degenerate 
-    case where most peers are unreachable. It would, however work on top of a 
-    network employing such an algorithm. </p>
-  <p> Restricted route operation, where there are limits to what peers are reachable 
-    directly, has several different functional and anonymity implications, dependent 
-    upon how the restricted routes are handled. At the most basic level, restricted 
-    routes exist when a peer is behind a NAT or firewall which does not allow 
-    inbound connections. This was largely addressed in I2P 0.6.0.6 by integrating 
-    distributed hole punching into the transport layer, allowing people behind 
-    most NATs and firewalls to receive unsolicited connections without any configuration. 
-    However, this does not limit the exposure of the peer's IP address to routers 
+  <h2 id="future.restricted">Les routes réservées</h2>
+  <p> I2P est un "sur-couche" réseau conçue pour fonctionner sur un réseau commuté par paquets,  
+    exploitant la notion de "point à point" pour offrir l'anonymat et la sécurité. 
+    Alors qu'Internet ne respecte plus le principe du bout en bout (à cause de l'utilisation du NAT), 
+    I2P requiert qu'une portion substancielle du réseau soit joignable: il pourrait y avoir un bon nombre  
+    de pairs utilisant des routes privées, mais I2P n'inclut pas d'algorithme de routage approprié à un scenario 
+    de dégradation dans lequel la plus grande partie des pairs seraient injoignables. Il pourrait cependant fonctionner
+    sur un réseau utilisant un tel algorithme. </p>
+  <p> L'utilisation de routes réservées, où il y a des limites aux pairs joignables directement, 
+    induit plusieurs conséquences sur le fonctionnement et l'anonymat, suivant la façon selon laquelle ces routes 
+    sont gérées. Au niveau le plus basique, des routes réservées sont présentes quand un pair se trouve derrière 
+    un pare-feu ou un NAT qui ne permet pas les connexions entrantes. Ceci a été grandement pris en compte depuis la 
+    0.6.0.6 en intégrant le percement de trous distribué dans la couche transport, permettant ainsi aux gens situés 
+    derrière la plupart de pare-feux ou NATs de recevoir des connexions non solicitées sans aucune configuration.
+    Cependant, this does not limit the exposure of the peer's IP address to routers 
     inside the network, as they can simply get introduced to the peer through 
     the published introducer. </p>
   <p> Beyond the functional handling of restricted routes, there are two levels 
