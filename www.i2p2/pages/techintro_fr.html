@@ -399,8 +399,8 @@ title="Connexion de tunnels grâce au jeux de baux" />
     Comme NTCP est bati avec les NIO il n'est pas astreint au problème de "une connexion=une tâche" dont souffrait 
     l'ancien transport TCP. </p>
   <p> I2P permet de multiples transports simultanément. Un transport particulier pour une connexion sortante 
-    est sélectionné par des "offres". Chaque offre de transport pour la connexion et la valeur relative de l'offre 
-    définissent la priorité.  Les transports peuvent répondre avec des offres différentes, 
+    est sélectionné par des enchères. Chaque transport fait une offre pour obtenir la connexion, et la valeur relative 
+    de l'offre décide de la priorité.  Les transports peuvent répondre avec des offres différentes, 
     suivant s'il y a déjà une connexion établie avec le pair. </p>
   <p> L'implémentation actuelle attribuent la  plus haute priorité de transport à NTCP pour les connexions sortantes 
     dans la plupart des cas. SSU est activé à la fois pour les connexions sortantes et entrantes. Votre pare-feu/NAT
@@ -506,97 +506,80 @@ Encha.C3.AEnement_des_blocs_:_.C2.AB_Cipher_Block_Chaining_.C2.BB_.28CBC.29">CBC
     un pare-feu ou un NAT qui ne permet pas les connexions entrantes. Ceci a été grandement pris en compte depuis la 
     0.6.0.6 en intégrant le percement de trous distribué dans la couche transport, permettant ainsi aux gens situés 
     derrière la plupart de pare-feux ou NATs de recevoir des connexions non solicitées sans aucune configuration.
-    Cependant, this does not limit the exposure of the peer's IP address to routers 
-    inside the network, as they can simply get introduced to the peer through 
-    the published introducer. </p>
-  <p> Beyond the functional handling of restricted routes, there are two levels 
-    of restricted operation that can be used to limit the exposure of one's IP 
-    address - using router-specific tunnels for communication, and offering 'client 
-    routers'. For the former, routers can either build a new pool of tunnels or 
-    reuse their exploratory pool, publishing the inbound gateways to some of them 
-    as part of their routerInfo in place of their transport addresses. When a 
-    peer wants to get in touch with them, they see those tunnel gateways in the 
-    netDb and simply send the relevant message to them through one of the published 
-    tunnels. If the peer behind the restricted route wants to reply, it may do 
-    so either directly (if they are willing to expose their IP to the peer) or 
-    indirectly through their outbound tunnels. When the routers that the peer 
-    has direct connections to want to reach it (to forward tunnel messages, for 
-    instance), they simply prioritize their direct connection over the published 
-    tunnel gateway. The concept of 'client routers' simply extends the restricted 
-    route by not publishing any router addresses. Such a router would not even 
-    need to publish their routerInfo in the netDb, merely providing their self 
-    signed routerInfo to the peers that it contacts (necessary to pass the router's 
-    public keys). Both levels of restricted route operation are planned for I2P 
-    2.0. </p>
-  <p> There are tradeoffs for those behind restricted routes, as they would likely 
-    participate in other people's tunnels less frequently, and the routers which 
-    they are connected to would be able to infer traffic patterns that would not 
-    otherwise be exposed. On the other hand, if the cost of that exposure is less 
-    than the cost of an IP being made available, it may be worthwhile. This, of 
-    course, assumes that the peers that the router behind a restricted route contacts 
-    are not hostile - either the network is large enough that the probability 
-    of using a hostile peer to get connected is small enough, or trusted (and 
-    perhaps temporary) peers are used instead. </p>
-  <h2 id="future.variablelatency">Variable latency</h2>
-  <p> Even though the bulk of I2P's initial efforts have been on low latency communication, 
-    it was designed with variable latency services in mind from the beginning. 
-    At the most basic level, applications running on top of I2P can offer the 
-    anonymity of medium and high latency communication while still blending their 
-    traffic patterns in with low latency traffic. Internally though, I2P can offer 
-    its own medium and high latency communication through the garlic encryption 
-    - specifying that the message should be sent after a certain delay, at a certain 
-    time, after a certain number of messages have passed, or another mix strategy. 
-    With the layered encryption, only the router that the clove exposed the delay 
-    request would know that the message requires high latency, allowing the traffic 
-    to blend in further with the low latency traffic. Once the transmission precondition 
-    is met, the router holding on to the clove (which itself would likely be a 
-    garlic message) simply forwards it as requested - to a router, to a tunnel, 
-    or, most likely, to a remote client destination. </p>
-  <p> There are a substantial number of ways to exploit this capacity for high 
-    latency comm in I2P, but for the moment, doing so has been scheduled for the 
-    I2P 3.0 release. In the meantime, those requiring the anonymity that high 
-    latency comm can offer should look towards the application layer to provide 
-    it. </p>
-  <h2 id="future.open">Open questions</h2>
+    Cependant, ceci ne réduit pas l'exposition de l'adresse IP du pair aux routeurs du réseau,  
+    car ils peuvent être présentés au pair au travers de l'intermédiaire publié.</p>
+  <p> Au-delà de la gestion fonctionnelle des routes privées, il y a deux niveaux d'opérations privées qui peuvent être 
+    mis en œuvre pour limiter l'exposition des adresses IP: l'utilisation de tunnels dédiés à la communication et de 
+    'routeurs clients'. Pour le premier, les routeurs peuvent soit construire un nouveau groupe de tunnnels ou 
+    réutiliser leur groupe exploratoire, en publiant les passerelles entrantes vers quelques-uns d'entre eux en tant 
+    que partie de leur routerInfo au lieu de leur adresse de transport. Quand un pair veut les contacter, il voit 
+    ces passerelles de tunnel dans la base de données et leur envoient simplement le message concerné via un des tunnels
+    publiés. Si le pair situé derrière une route privée veut répondre, il peut le faire soit directement (s'il acceptent
+    de dévoiler leur adresse IP au pair) ou indirectement via leurs tunnels sortants. Quand les routeurs 
+    auxquels le pair a une connexion directe veulent le joindre (p.e. pour faire suivre des messages de tunnels), ils 
+    doivent simplement prioriser leur connexion directe par rapport à la passerelle de tunnels publiée.
+    Le concept de 'routeur client' étends simplement la route réservée en ne publiant aucune adresse de routeur.
+    Un tel routeur n'aurait même plus besoin de publier leur routerInfo dans la netDb, mais plutôt de fournir leur 
+    leur routerInfo auto-signée aux pairs qu'il contacterait (nécessaire au transfert de ses clés publiques).
+    Ces deux niveaux d'opération sur routes privées sont prévus pour la version 2.0 d'I2P. </p>
+  <p> Il y a des choix à établir pour ceux situés sur des routes privées, vu qu'ils participeraient moins souvent aux 
+    tunnels des autres utilisateurs, et que les routeurs auxquels ils sont connectés pourraient déduire des motifs 
+    de trafic qui ne sont normalement pas exposés. D'un autre côté, si le coût de cette exposition est inférieur à 
+    celui de rendre l'adresse IP disponible, cela peut être intéressant. Ceci, bien sûr, suppose que les pairs contactés
+    par celui qui est derrière une route réservée ne soient pas hostiles, ou que le réseau soit assez grand pour que la 
+    probabilité de tomber sur un pairs hostile pour se connecter soit suffisament faible. On pourrait aussi préférer 
+    utiliser des pairs de confiance (et peut-être temporaires).</p>
+  <h2 id="future.variablelatency">Latence variable</h2>
+  <p> Même si le gros des efforts initiaux d'I2P ont porté sur une communication à faible latence, 
+    il fut dès le départ conçu en gardant à l'esprit des services à latence variable. 
+    Au niveau le plus bas, les applications s'exécutant sur I2P peuvent offrir l'anonymat du médium des communications 
+    à haute latence tout en mélant leurs motifs de trafic à du trafic à faible latence. En interne cependant, 
+    I2P peut offrir son propre medium et une haute latence de communication via le cryptage garlic en tête d'ail: 
+    en spécifiant que le message doit être envoyé après un certain délai, à un certain moment, après le passage d'un 
+    certain nombre de messages, ou une autre stratégie combinant ces éléments. Avec le cryptage en couches, 
+    seul le routeur pour lequel la gousse a dévoilé la requête de retard saura que le message demande une haute 
+    latence, au trafic carrespondant d'être mélangé ultérieurement à du trafic à faible latence. Une fois la condition 
+    de transmission atteinte, le routeur retenant la gousse (qui peut aussi bien être un message garlic) le fait 
+    simplement suivre comme demandé: à un routeur, à un tunnel, ou plus probablement à une destination cliente.</p>
+  <p> Il y a un nombre conséquent de manières d'exploiter cette possibilité pour les communications à haute latence 
+    dans I2P, mais pour l'instant, son utilisation est planifiée pour la version 3.0. En attendant, ceux qui ont besoin 
+    de l'anonymat offert par les communications à latence élevée peuvent se tourner vers la couche applicative pour 
+    l'obtenir.</p>
+  <h2 id="future.open">Questions ouvertes</h2>
   <pre>
-How to get rid of the timing constraint?
-Can we deal with the sessionTags more efficiently?
-What, if any, batching/mixing strategies should be made available on the tunnels?
-What other tunnel peer selection and ordering strategies should be available?
+Comment se débarasser de la contrainte de temps?
+Y a-t-il un moyen plus effcace de gérer les balises de session?
+Quelles stratégies de regroupement/mélange devraient-elles être disponibles dans les tunnels?
+Quelles autre stratégies de sélection/tri des pairs de tunnels devrait-elles être disponibles?
 </pre>
-  <h1 id="similar">Similar systems</h1>
-  <p> I2P's architecture builds on the concepts of message oriented middleware, 
-    the topology of DHTs, the anonymity and cryptography of free route mixnets, 
-    and the adaptability of packet switched networking. The value comes not from 
-    novel concepts of algorithms though, but from careful engineering combining 
-    the research results of existing systems and papers. While there are a few 
-    similar efforts worth reviewing, both for technical and functional comparisons, 
-    two in particular are pulled out here - Tor and Freenet. </p>
-  <p> See also the <a href="how_networkcomparisons.html">Network Comparisons Page</a>. 
+  <h1 id="similar">Systèmes similaires</h1>
+  <p> L'architecture d'I2P repose sur les concepts de logiciel intermédiaire orienté messages, de topologie de table 
+    de hachage décentralisée, de l'anonymat et de la cryptographie des réseaux croisés à routes libres et de 
+    l'adaptabilité des réseaux à paquets commutés. L'apport ne vient cependant pas de nouveaux concepts d'algorithmes, 
+    mais de l'analyse attentive des résultats de recherches et documentations des systèmes existants. 
+    Bien qu'il y ait peu d'efforts similaires qui vaillent d'être analysés en détail, tant au niveau technique que 
+    fonctionnel, il en est néanmoins deux qui sortent du lot: Tor et Freenet.</p>
+  <p> Voir aussi la page de <a href="how_networkcomparisons.html">comparaisons des réseaux</a>. 
   </p>
 
   <h2 id="similar.tor">Tor</h2>
   <p><i><a href="http://www.torproject.org/">website</a></i></p>
-  <p> At first glance, Tor and I2P have many functional and anonymity related 
-    similarities. While I2P's development began before we were aware of the early 
-    stage efforts on Tor, many of the lessons of the original onion routing and 
-    ZKS efforts were integrated into I2P's design. Rather than building an essentially 
-    trusted, centralized system with directory servers, I2P has a self organizing 
-    network database with each peer taking on the responsibility of profiling 
-    other routers to determine how best to exploit available resources. Another 
-    key difference is that while both I2P and Tor use layered and ordered paths 
-    (tunnels and circuits/streams), I2P is fundamentally a packet switched network, 
-    while Tor is fundamentally a circuit switched one, allowing I2P to transparently 
-    route around congestion or other network failures, operate redundant pathways, 
-    and load balance the data across available resources. While Tor offers the 
-    useful outproxy functionality by offering integrated outproxy discovery and 
-    selection, I2P leaves such application layer decisions up to applications 
-    running on top of I2P - in fact, I2P has even externalized the TCP-like streaming 
-    library itself to the application layer, allowing developers to experiment 
-    with different strategies, exploiting their domain specific knowledge to offer 
-    better performance. </p>
-  <p> From an anonymity perspective, there is much similarity when the core networks 
-    are compared. However, there are a few key differences. When dealing with 
+  <p>Au premier coup d'œil, Tor et I2P ont plusieurs ressemblances fonctionnelles et d'anonymat. 
+    Bien que le développement d'I2P ait commencé avant que nous ne fussions au courant des premières étapes du travail 
+    sur Tor, plusieurs des leçons du travail d'origine du routage en oignon et de ZKS furent intégrées 
+    dans sa conception. Plutôt que de construire un système centralisé de confiance, avec des serveurs d'annuaires, I2P 
+    dispose d'une base de donnée réseau auto-organisée dans laquelle chaque pair assume la responsabilité du profilage
+    des autres routeurs pour déterminer la meilleure façon d'exploiter les ressources disponibles. Une autre différence 
+    majeure réside dans le fait que bien qu'utilisant tous les deux des chemins étagés et ordonnés, I2P est 
+    fondamentalement un réseau à commutation de paquets alors que Tor est un réseau à commutation de circuits, ce qui 
+    permet à I2P de contourner de façon transparente les congestions et autres défaillances du réseau, de gérer des 
+    chemins redondants, et de faire de l'équilibrage de charge sur les ressources disponibles. 
+    Si Tor offre nativement la fonctionnalité très utile de découverte et de sélection de mandataire de sortie 
+    (outproxy), I2P délègue cette décision de couche applicative aux applications: en réalité, I2P a même 
+    externalisé vers la couche applicative la bibliothèque de flux (streaming) "style TCP" permettant ansi aux 
+    développeurs d'expérimenter diverses stratégies afin d'obtenir les meilleures performances.</p>
+  <p> Du point de vue de l'anonymat, la comparaison du cœur des réseaux présente beaucoup de smilarités. 
+    However, there are a few key differences. When dealing with 
     an internal adversary or most external adversaries, I2P's simplex tunnels 
     expose half as much traffic data than would be exposed with Tor's duplex circuits 
     by simply looking at the flows themselves - an HTTP request and response would 
