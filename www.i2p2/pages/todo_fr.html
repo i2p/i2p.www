@@ -6,23 +6,28 @@ Traduction de février 2011. <a href="todo.html">Version anglaise actuelle</a>
   <p>Vous trouverez ci-dessous une exposition plus détaillée (bien que toujours incomplète) 
     des principales zones du développement du cœur du réseau I2P, embrassant les
     nouvelles versions éventuellement planifiées. Ceci n'inclut ni le transport stéganographique, 
-    ni les outils de sécurisation de la machine locale et l'adaptation  aux périphériques radio (WiFi), pas plus que les applications clientes 
+    ni les outils de sécurisation de la machine locale et l'adaptation  aux périphériques radio (WiFi), 
+pas plus que les applications clientes 
     qui sont tous essentiels pour le succès du réseau I2P. Il y a probablement d'autres choses qui 
     viendront, particulièrement quand I2P sera mieux testé, mais il s'agit là des principaux 
-    "gros morceaux". Voir aussi la <a href="roadmap_fr.html">feuille de route</a>. Vous voulez nous aider? <a href="getinvolved_fr.html">Engagez-vous!</a></p>
+    "gros morceaux". Voir aussi la <a href="roadmap_fr.html">feuille de route</a>. 
+Vous voulez nous aider? <a href="getinvolved_fr.html">Engagez-vous!</a></p>
   <br />
   <h2>Fonctionnalités centrales <font size="-1"><a href="#core">[hop]</a></font></h2>
   <ul class="targetlist">
     <li><a href="#nat">Pontage du Pare-feu/NAT via une route réservée à 1 saut.</a></li>
     <li><a href="#transport">Couche transport de haut-niveau par UDP, NBIO, ou NIO.</a></li>
-    <li><a href="#netdb">Base de donnée réseau, ajustement de profil et stratégie d'éjection pour les grands réseaux.</a></li>
+    <li><a href="#netdb">Base de donnée réseau, ajustement de profil et stratégie d'éjection 
+      pour les grands réseaux.</a></li>
   </ul>
   <h2>Sécurité / anonymat <font size="-1"><a href="#security">[zyva]</a></font></h2>
   <ul class="targetlist">
-    <li><a href="#tunnelId">ID de tunnel "par saut" &amp; nouvelle encryption permutée de la structure de vérification des tunnels.</a></li>
+    <li><a href="#tunnelId">ID de tunnel "par saut" &amp; nouvelle encryption permutée de la structure de 
+       vérification des tunnels.</a></li>
     <li><a href="#ordering">Position stricte des participants dans les tunnels.</a></li>
     <li><a href="#tunnelLength">Longueur des tunnels aléatoirement permutée.</a></li>
-    <li><a href="#fullRestrictedRoutes">Routes réservées à n-sauts évoluées avec liens de confiance optionnels.</a></li>
+    <li><a href="#fullRestrictedRoutes">Routes réservées à n-sauts évoluées avec liens de confiance optionnels.
+</a></li>
     <li><a href="#hashcash">Pénalités pour les requêtes routerIdentity, destination, et demande de tunnel.</a></li>
     <li><a href="#batching">Fonctionnement évolué des tunnels (regroupement/mélange/étranglement/remplissage)</a></li>
     <li><a href="#stop">Mélange de Stop &amp; Go pour les "garlics" et les tunnels.</a></li>
@@ -35,7 +40,8 @@ Traduction de février 2011. <a href="todo.html">Version anglaise actuelle</a>
     </li>
     <b><i>Implémenté dans I2P 0.6.0.6</i></b> 
     <p>La fonctionnalité permettant aux routeurs de participer pleinement aux réseau  
-      même lorsqu'ils se trouvent derrière un pare-feu ou un traducteur d'adresses réseau (NAT) hors de contrôle nécessite quelques 
+      même lorsqu'ils se trouvent derrière un pare-feu ou un traducteur d'adresses réseau (NAT) hors de contrôle 
+      nécessite quelques 
       opérations avec une route réservée (car ces pairs ne peuvent pas recevoir 
       de connexions entrantes). Pour y parvenir, il y a deux façons de considérer les pairs:</p>
   </ul>
@@ -68,9 +74,9 @@ Traduction de février 2011. <a href="todo.html">Version anglaise actuelle</a>
       mais plutôt pour permettre à ceux opérant derrière un pare-feu ou un NAT de participer normalement 
       au réseau. La dissimulation d'adresse IP demande plus de travail, comme  
       décrit <a href="#fullRestrictedRoutes">plus bas</a>.</p>
-    <p>Avec cette méthode, n'importe quel routeur peut participer à tout rôle dans un tunnel. 
-      Dans un but d'efficacité, opérer en pair caché est un mauvais choix pour officier en tant que passerelle d'entrée, 
-      et dans un tunnel donné, deux pairs voisins ne devraient pas être cachés. Mais ça n'est pas indispensable.</p>
+    <p>Avec cette méthode, n'importe quel routeur peut participer à tout rôle dans un tunnel. Dans un but 
+       d'efficacité, opérer en pair caché est un mauvais choix pour officier en tant que passerelle d'entrée, et 
+       dans un tunnel donné, deux pairs voisins ne devraient pas être cachés. Mais ça n'est pas indispensable.</p>
   </ul>
   <ul class="targetlist">
     <li> 
@@ -82,8 +88,8 @@ Traduction de février 2011. <a href="todo.html">Version anglaise actuelle</a>
         est implémenté de façon naïve - pour chaque pair en relation, nous avons 
         une tâche de lecture et une tâche d'écriture. Celle de lecture boucle simplement sur  
         un paquet d'appels read(), construit les messages I2NP et les ajoute à notre file d'attente 
-        interne entrante. Il y a une file d'attente de messages sortants par connexion. La tâche d'écriture en extrait les messages 
-        et passe les données à travers les appels write().</p>
+        interne entrante. Il y a une file d'attente de messages sortants par connexion. La tâche d'écriture en extrait 
+        les messages et passe les données à travers les appels write().</p>
       <p>Nous effectuons ceci assez efficacement d'un point de vue charge UC - à tout moment, 
         presque toutes ces tâches sont au repos, bloquées dans l'attente de grain à moudre. 
         Cependant, chacune d'entre elles consomme des ressources réelles (par exemple sur de très vieux  
@@ -102,8 +108,8 @@ Traduction de février 2011. <a href="todo.html">Version anglaise actuelle</a>
         on communique avec 100000 pairs, on colle simplement les paquets UDP dans une file 
         d'attente et on fait avec une seule tâche pour les extraire et les pousser dans le tuyau 
         (et pour recevoir, une seule tâche en tire les paquets UDP reçus et les ajoute dans une file d'entrée).</p>
-      <p>L'ennui, c'est que l'utilisation de UDP fait perdre les avantages de TCP (réordonnancement, gestion de la congestion, 
-        découverte du MTU, etc). Mettre ce code en œuvre demandera un travail important, 
+      <p>L'ennui, c'est que l'utilisation de UDP fait perdre les avantages de TCP (réordonnancement, gestion de la 
+        congestion, découverte du MTU, etc). Mettre ce code en œuvre demandera un travail important, 
         mais I2P n'a pas besoin d'être aussi solide que TCP. Précisément, 
         lorsque j'ai fait des mesures au simulateur et en réel sur Internet,  
         la plupart des messages transférés tenaient facilement dans un seul paquet UDP 
@@ -118,12 +124,13 @@ Traduction de février 2011. <a href="todo.html">Version anglaise actuelle</a>
       <p>Java 1.4 propose un jeu de paquetage "New I/O", permettant aux  
         développeurs de tirer avantage des possibilités d'E/S non bloquantes du système d'exploitation 
         - vous pouvez maintenir un grand nombre d'opérations d'E/S simultanées sans avoir besoin de définir une tâche 
-        dédiée pour chacune. Cette approche est très prometteuse, car nous pouvons utiliser un grand nombre de connexion 
-        simultanées et nous n'avons pas besoin d'écrire une mini-pile TCP pour UDP. Cependant, selon les développeurs
-        de Freenet les paquetages NIO n'ont passé l'épreuve du feu. De plus, le recours aux NIO impliquerait une 
-        incompatibilité avec les JVM open-sources telles que <a href="http://www.kaffe.org/">Kaffe</a>, car 
-        <a href="http://www.classpath.org/">GNU/Classpath</a> ne les supporte que partiellement. <i>(note: ça ne devrait 
-        pas durer car il y a eu quelques progrès dans les NIO de Classpath, bien qu'en quantité inconnue)</i></p>
+        dédiée pour chacune. Cette approche est très prometteuse, car nous pouvons utiliser un grand nombre de 
+        connexions simultanées et nous n'avons pas besoin d'écrire une mini-pile TCP pour UDP. Cependant, selon les
+        développeurs de Freenet les paquetages NIO n'ont passé l'épreuve du feu. De plus, le recours aux NIO 
+        impliquerait une incompatibilité avec les JVM open-sources telles que 
+        <a href="http://www.kaffe.org/">Kaffe</a>, car <a href="http://www.classpath.org/">GNU/Classpath</a> ne les 
+        prend en charge que partiellement. <i>(note: ça ne devrait pas durer car il y a eu quelques progrès dans la 
+        la Classpath des NIO, bien qu'en quantité inconnue)</i></p>
       <p>Dans la même veine, il y a l'alternative du paquetage 
         <a href="http://www.eecs.harvard.edu/~mdw/proj/java-nbio/">Non blocking IO</a> - 
         essentiellement une implémentation NIO de salle blanche (écrite avant la parution des NIO). 
@@ -138,13 +145,13 @@ Traduction de février 2011. <a href="todo.html">Version anglaise actuelle</a>
       <p>Dans l'implémentation actuelle de la base de donnée réseau et de la gestion de profil, 
         on s'est permis quelques raccourcis pratiques. Par exemple, nous n'avons pas de code pour 
         nettoyer les références aux pairs dans les K-buckets, vu que nous n'avons pas assez de pairs pour avoir ne 
-        serait-ce qu'une petite chance d'en remplir une. Alors on garde les pairs dans n'importe quelle liste appropriée. 
-        Un autre exemple avec les profils de pairs: la quantité de mémoire nécessaire pour maintenir chaque profil est suffisamment 
-        faible pour que nous puissions garder des milliers de profils bien détaillés sans aucun problème. 
-        Comme nous avons la possibilité d'utiliser des profils réduits (dont nous pouvons maintenir des centaines de 
-        milliers en mémoire), nous n'avons pas non-plus le code qui ferait la conversion de détaillé en réduit et vice-versa,
-        ni même la purge des deux. Ça ne serait pertinent d'écrire ce code maintenant car nous sommes loin d'en avoir besoin 
-        avant longtemps.</p>
+        serait-ce qu'une petite chance d'en remplir une. Alors on garde les pairs dans n'importe quelle liste 
+        appropriée. Un autre exemple avec les profils de pairs: la quantité de mémoire nécessaire pour maintenir 
+        chaque profil est suffisamment faible pour que nous puissions garder des milliers de profils bien détaillés 
+        sans aucun problème. Comme nous avons la possibilité d'utiliser des profils réduits (dont nous pouvons 
+        maintenir des centaines de milliers en mémoire), nous n'avons pas non-plus le code qui ferait la conversion de 
+        détaillé en réduit et vice-versa, ni même la purge des deux. Ça ne serait pertinent d'écrire ce code 
+        maintenant car nous ne pas sommes pas près d'en avoir besoin.</p>
       <p>Ceci dit, nous devons quand même garder ça en tête car la taille du réseau grandit. 
          Il restera du travail, mais on peut le remettre à plus tard.</p>
     </li>
@@ -152,7 +159,8 @@ Traduction de février 2011. <a href="todo.html">Version anglaise actuelle</a>
   <h2 id="security">Sécurité / anonymat</h2>
   <ul class="targetlist">
     <li> 
-      <h3 id="tunnelId">ID de tunnel "par saut" &amp; nouvelle encryption permutée de la structure de vérification des tunnels.</h3>
+      <h3 id="tunnelId">ID de tunnel "par saut" &amp; nouvelle encryption permutée de la structure de vérification des 
+          tunnels.</h3>
       <b><i>Depuis I2P v0.5 et documenté <a href="tunnel-alt.html">là</a>.</i></b> 
       <p>À l'heure actuelle, quand Alice initie un tunnel entrant à quatre sauts commençant par Elvis, 
         puis passant par Dave, puis Charlie,puis Bob, et se terminant chez elle, Alice (A&lt;--B&lt;--C&lt;--D&lt;--E), 
@@ -203,9 +211,11 @@ Traduction de février 2011. <a href="todo.html">Version anglaise actuelle</a>
         (surcharge, déconnexion, etc...), éviter de demander à Bob de participer à un tunnel tant qu'ils ne sont pas  
         de nouveau disponibles.</p>
       <p>Une analyse plus poussée est nécessaire pour repenser la création du tunnel: pour l'instant, 
-        nous piochons et ordonnons aléatoirement le premier tiers des pairs (ceux qui ont des capacités élevées et rapides).
+        nous piochons et ordonnons aléatoirement le premier tiers des pairs (ceux qui ont des capacités élevées et 
+        rapides).
       </p>
-      <p>L'ajout d'un ordre strict des pairs dans un tunnel améliore aussi l'anonymat des pairs des tunnels à zéro saut, 
+      <p>L'ajout d'un ordre strict des pairs dans un tunnel améliore aussi l'anonymat des pairs des tunnels à zéro saut,
+ 
         car sinon, le fait que la passerelle d'un pair ait toujours la même passerelle serait rédhibitoire.
         Cependant, les pairs avec un tunnel à zéro saut pourraient de temps en temps utiliser un tunnel à un saut 
         pour simuler la défaillance du pair passerelle habituellement fiable (donc toutes les 
@@ -257,7 +267,7 @@ Traduction de février 2011. <a href="todo.html">Version anglaise actuelle</a>
         (faite une seule fois pendant l'installation), créer une nouvelle destination (faite une seule fois 
         à la création d'un service), ou demander qu'un pair participe à un tunnel (faite souvent, peut-être 200 à 300 
         fois par heure). Nous ne connaissons encore pas le coût "correct" de chaque type de certificat, 
-        mais avec un peu de recherche et d'expérimentation, nous devrions pouvoir élaborer un "tarif" qui sera dissuasif 
+        mais avec un peu de recherche et d'expérimentation, nous devrions pouvoir élaborer un "tarif" dissuasif 
         tout en restant une charge abordable pour ceux dotés de peu de ressources.</p>
       <p>Il y a peu d'autres algorithmes à explorer pour enlever la gratuité des ces requêtes,  
          et des recherches plus approfondies dans ce domaine sont souhaitables.</p>
@@ -290,7 +300,8 @@ Traduction de février 2011. <a href="todo.html">Version anglaise actuelle</a>
         pour lui fournir les instructions destinées à redéfinir le saut suivant du tunnel.</p>
     </li>
     <li> 
-      <h3 id="stop">Mélange de Stop &amp; Go pour les <a href="http://www.i2p2.de/how_garlicrouting.html">"garlics"</a> et les tunnels.</h3>
+      <h3 id="stop">Mélange de Stop &amp; Go pour les 
+          <a href="http://www.i2p2.de/how_garlicrouting.html">"garlics"</a> et les tunnels.</h3>
       <p>Au-delà de la stratégie de regroupement et de mélange par tunnel, il y a d'autres moyens de se 
         protéger des attaques des attaquants puissants, comme permettre à chaque saut 
         dans un chemin routé en tête d'ail de définir un délai ou un intervalle au bout ou pendant lequel il 
