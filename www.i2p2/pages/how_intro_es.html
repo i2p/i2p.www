@@ -1,0 +1,177 @@
+{% extends "_layout_es.html" %}
+{% block title %}A Gentle Introduction{% endblock %}
+{% block content %}
+
+<h2>Una breve presentación de cómo funciona I2P</h2>
+
+<p>I2P es un proyecto para construir, desplegar y mantener una red que soporte 
+comunicación segura y anónima.  Los usuarios de I2P pueden administrar
+el balance entre el anonimato, fiabilidad, uso de ancho de banda y latencia.
+No hay un punto central en la red sobre el cual se pueda ejercer presión para
+comprometer la integridad, seguridad y anonimato del sistema. La red  soporta
+reconfiguración dinámica en respuesta a diversos ataques, y ha sido diseñada
+para hacer uso de recursos adicionales según vayan estando disponibles. Por
+supuesto, todos los aspectos de la red son abiertos y están a libre disposición.
+</p>
+
+<p>A diferencia de la mayoría de las redes anónimas, I2P no intenta suministrar
+anonimato ocultando al origen de una comunicación y no al destinatario,
+o de la forma contraria. I2P está diseñada para permitir a los pares comunicarse
+unos con otros anónimamente - ambos, quien envía y el que recibe no son
+identificables entre ellos y tampoco por terceras partes. Por ejemplo, 
+actualmente hay sitios web I2P internos (permitiendo publicación y hospedaje
+anónimo) además de proxies HTTP hacia la web normal (permitiendo 
+navegación anónima). Disponer de la posibilidad de correr servidores
+internamente en I2p es esencial,  ya que es bastante probable que cualquier
+proxy de salida hacia la Internet normal pudiera ser monitorizado, desactivado
+o comprometido con el intento de ataques más maliciosos.</p>
+
+<p>La red es en sí misma orientada a mensajes - es en esencia una capa IP segura
+y anónima donde los mensajes son direccionados hacia claves criptográficas
+(Destinos) y pueden ser considerablemente más largos que los paquetes IP.
+Algunos ejemplos del uso de la red incluyen "eepsites"  (servidores web
+hospedando aplicaciones web normales dentro de I2P), un cliente BitTorrent
+("I2PSnark"), o un sistema de almacenaje de datos distribuido. Con la ayuda
+de la aplicación <a href="i2ptunnel">I2PTunnel</a>,somos capaces de correr aplicaciones TCP/IP tradicionales sobre I2P, como SSH, IRC, un proxy Squid, e igualmente streaming de audio. Mucha gente no usará I2P directamente, o mismamente no necesitarán saber que lo están usando. En vez de eso, su percepción será la de una de las aplicaciones I2P habilitadas, o quizá la de una pequeña aplicación de control para activar y desactivar varios proxies que permitan funcionalidades de anonimato.</p>
+
+<p>Una parte esencial de diseñar, desarrollar y probar una red anónima es definir el 
+<a href="how_threatmodel">modelo de amenaza</a>, si partimos de que no existe lo que podría ser
+considerado anonimato auténtico,  solamente se puede hacer más costoso el
+identificar a alguien. Brevemente, el propósito de I2P es permitir comunicarse
+a la gente en ambientes arbitrariamente hostiles suministrando buen anonimato,
+mezclado con suficiente tráfico de cobertura proporcionado por la actividad
+de gente que requiere menos anonimato. De esta forma algunos usuarios pueden
+evitar ser detectados por poderosos adversarios, mientras otros intentarán 
+ocultar su identidad de forma más débil,
+<i>todo en la misma red</i>, donde los
+mensajes de cada uno son ensencialmente indistinguibles de los del resto.</p>
+
+<h2>¿Por qué?</h2>
+<p> Puede haber multitud de razones por las que necesitemos un sistema que soporte
+comunicación anónima, y cada cual tendrá su razonamiento personal. Hay muchos 
+<a href="how_networkcomparisons">otros proyectos</a> trabajando en encontrar formas de suministrar
+a la gente diferentes grados de anonimato a través de Internet, pero no 
+podríamos encontrar ninguno que se ajuste a nuestras necesidades o al
+modelo de amenaza.</p>
+
+<h2>¿Cómo?</h2>
+
+<p>Un vistazo a la red muestra que se compone de una instalación de nodos
+("routers") con un número de rutas virtuales unidireccionales entrantes y salientes (Tunnels, como se describen en la página <a href="how_tunnelrouting">tunnel routing</a>). 
+Cada router está identificado por una RouterIdentity cifrada que es
+permanente normalmente. Estos routers se comunican entre ellos a través
+de mecanismo de transporte existentes (TCP, UDP, etc) enviandose
+distintos mensajes. Las aplicaciones clientes tienen su propio identificador
+criptográfico ("Destino") que las habilita para enviar y recibir mensajes.
+Estos clientes pueden conectarse a cualquier router y autorizar la asignación
+temporal ("arrendamiento") de varios tuneles que serán usados para enviar y recibir mensaje a través de la red. I2P tiene su propia <a href="how_networkdatabase">base de datos de red</a> (utilizando una modificación del algoritmo Kademlia) para distribuir
+información de rutas y contactos de forma segura.</p>
+
+<center><div class="box"><img src="_static/images/net.png" alt="Network topology example" title="Network topology example" /></div></center><br/>
+
+
+<p>En la imagen, Alice, Bob, Charlie and Dave están corriendo routers con un
+simple Destino en su router local. Cada uno de ellos tiene un par de túneles
+de dos saltos entrantes por destino (etiquetados como 1, 2, 3, 4, 5 y 6), y una
+pequeña parte del grupo de los túneles de salida de esos routers se representa
+con tuneles de salida de dos saltos. Para simplificar, los túneles entrantes de
+Charlie y los de salida de Dave no se muestran, tampoco está el resto del grupo
+de túneles de salida de cada router (típicamente compuesto por varios túneles
+a la vez). Cuando Alice y Bob se comunican entre ellos, Alice envía un mensaje
+por uno de sus túneles de salida (rosa) en dirección a uno de los túneles 
+entrantes (verde) de Bob (túnel 3 o 4). Ella conoce cómo enviar a los túneles
+del router correcto mediante consultas a la base de datos de red, que está
+constantemente actualizándose tan pronto cómo son autorizados nuevos
+arrendamientos y expiran los viejos.</p>
+  
+<p>Si Bob quiere contestar a Alice, simplemente utilizará el mismo proceso
+- envía un mensaje por uno de sus túneles de salida en dirección hacia
+uno de los túneles de entrada de Alice (túnel 1 o 2). Para hacer las cosas
+más sencillas, la mayor parte de los mensajes enviados entre Alice y Bob
+usan el envoltorio <a href="how_garlicrouting">garlic</a>, incluyendo la información de arrendamiento propia
+del remitente en el paquete, de esta forma el destinatario puede contestar inmediatamente sin necesidad de buscar el dato en su base de datos de red.</p>
+
+<p>Para tratar con un ámplio rango de ataques, I2P es completamente distribuida
+sin recursos centralizados - no hay servidores de directorio manteniendo
+estadísticas sobre el rendimiento y fiabilidad de los routers dentro de la red.
+De esta forma cada router debe guardar y mantener los perfiles de varios routers
+y es responsable de seleccionar los pares apropiados para satisfacer el anonimato, rendimiento y fiabilidad requeridos por los usuarios tal y como 
+se describe en la página  <a href="how_peerselection">selección de pares</a></p>
+
+<p>La red hace uso de un significante número de <a href="how_cryptography">técnicas criptográficas y algoritmos</a> - 
+una lista completa incluye cifrado El Gamal de 2048 bits,
+AES de 256 bits en modo CBC con relleno PKCS#5, firmas DSA de
+1024 bits, hashes SHA256, negociación de conexiones Diffie-Hellman de
+2048 bits con autenticación estación a estación y <a href="how_elgamalaes">ElGamal / AES+SessionTag</a>.</p>
+
+<p>El contenido enviado sobre I2P está cifrado a través del cifrado garlic de tres
+capas (usado para verificar la entrega del mensaje a destinatario), cifrado
+de túnel (todos los mensajes cruzando a través de un túnel están cifrados desde
+el túnel gateway hasta el túnel destino final) y cifrado de la capa de transporte
+inter-router (e. g. el transporte TCP usa AES256 con claves efímeras).</p>
+
+<p>El cifrado (I2CP) punto a punto  (aplicación cliente hacia aplicación servidor)
+fué deshabilitado en la versión 0.6 de I2P; el cifrado (garlic) punto a punto 
+(router cliente I2P hacia router servidor I2P) desde el router de Alice "a"
+hasta el router de Bob "h" permanece. ¡Observa el diferente uso de términos!
+Todos los datos desde "a" hasta "h" están cifrados punto a punto, pero las
+conexiones I2CP entre el router I2P y las aplicaciones no son cifradas punto
+a punto. "A" y "h" son los routers de Alice y Bob, mientras que, y siguiendo 
+el diagrama, Alice y Bob son las aplicaciones corriendo encima de I2P.</p>
+
+<center><div class="box"><img src="_static/images/endToEndEncryption.png" alt="End to end layered encryption" title="End to end layered encryption." /></div></center><br/>
+
+<p>El uso específico de estos algoritmos está descrito en <a href="how_cryptography">otra parte</a>.</p>
+
+<p>Los dos mecanismos principales que permiten usar la red a gente que
+necesita fuerte anonimato son explicitamente mensajes enrutados garlic
+con retardo y túneles más completos que incluyan agrupamiento y mezcla
+de mensajes. Éstos están actualmente planeados para la release 3.0, pero
+los mensajes enrutados garlic sin retardo y túneles FIFO están ya 
+implementados. Adicionalmente la release 2.0 permitirá a los usuarios
+establecerse y operar detrás de routers restrictivos (puede que con pares
+de confianza), así como el despliegue de transportes más flexibles y
+anónimos.</p>
+
+<p>Han surgido algunas preguntas referentes a la escalabilidad de I2P.
+Habrá ciertamente más análisis con el tiempo, pero la busqueda e integración
+de pares debería ser limitado por
+<code>O(log(N))</code> debido al algoritmo de <a href="how_networkdatabase">base de datos de red</a>, mientras que los mensajes punto a punto serían <code>O(1)</code> (escala libre), puesto que los mensajes pasan por K saltos a través del túnel de salida y otros
+K saltos por el túnel de entrada, donde K no es mayor de 3.  El tamaño de la
+red (N) no acarrea impacto.</p>
+
+<h2>¿Cuando?</h2>
+<p>I2P comenzó inicialmente en 2003 como una propuesta de modificar
+<a href="http://freenetproject.org">Freenet</a> para permitir el uso de transportes alternativos, como puede ser 
+<a href="http://java.sun.com/products/jms/index.jsp">JMS</a>, después
+se desarrolló con identidad propia como una “anonCommFramework” en 
+Abril de 2003, convirtiendose en I2P en Julio y comenzando a escribir código
+seriamente en Agosto de 2003. I2P está actualmente bajo desarrollo siguendo la <a href="roadmap">hoja de ruta</a>.</p>
+
+<h2>¿Quienes?</h2>
+<p>Tenemos un pequeño <a href="team">equipo</a> desperdigado por varios continentes y trabajando
+en el avance de diferentes aspectos del proyecto. Estamos abiertos a otros
+desarrolladores que deseen involucrarse en el proyecto, y a cualquier otra
+persona que quiera contribuir de cualquier forma, como críticas, revisión de
+pares, pruebas, programación de aplicaciones compatibles I2P, o documentación. El sistema completo es código abierto - el router y la
+mayor parte del SDK tienen licencia de dominio público con algo de
+código licenciado con BSD y Cryptix, mientras que aplicaciones como
+I2PTunnel e I2PSnark son GPL. Casi todo está escrito en Java (1.5+),
+aunque algunas aplicaciones de terceros están siendo escritas en Python
+u otros lenguajes. El código funciona en <a href="http://java.com/en/">Sun Java SE</a> y otras máquinas virtuales Java.
+</p>
+
+<h2>¿Donde?</h2>
+<p>Cualquiera interesado puede unirse a nosotros en el canal IRC #i2p
+(hospedado concurrentemente en irc.freenode.net, irc.postman.i2p, irc.freshcoffee.i2p, irc.welterde.i2p e irc.einirc.de). Actualmente no
+hay agenda de encuentros de desarrollo, no obstante hay
+<a href="meetings">archivos disponibles</a>.</p>
+
+<p>El código actual está disponible en <a href="monotone.html">monotone</a>.</p>
+
+<h2>Información adicional</h2>
+<p>
+Ver <a href="how.html">el Índice de la Documentación Técnica</a>
+</p>
+
+{% endblock %}
