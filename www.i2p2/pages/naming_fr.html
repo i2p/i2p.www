@@ -24,12 +24,10 @@ servir de ces carnets d'adresses en tant que serveurs de noms, émulant ainsi le
 
 <p>
 NOTE : pour en savoir plus sur les raisons de ce choix de nommage pour I2P, sur les arguments courants à son encontre, 
-et sur alternatives possibles, voir la page <a href="naming_discussion.html">discussion sur le nommage</a>
-page.
+et sur alternatives possibles, voir la page <a href="naming_discussion.html">discussion sur le nommage</a>.
 </p>
 
-
-<h2 id="components">Composants du système de nammage</h2>
+<h2 id="components">Composants du système de nommage</h2>
 <p>
 Il n'y a pas d'autorité de nommage centrale dans I2P. Tous les noms d'hôtes sont locaux.
 </p>
@@ -55,69 +53,55 @@ d'affichage les listes d'hôtes locales.
 
 <h2 id="lookup">Fichiers de nommage et recherches</h2>
 <p>
-All destinations in I2P are 516-byte keys.
-(To be more precise, it is a 256-byte public key plus a 128-byte signing key
-plus a null certificate, which in Base64 representation is 516 bytes.
-<a href="naming_discussion.html#certificates">Certificates</a> are not used now,
-if they are, the keys will be longer.
-One possible use of certificates is for <a href="todo_fr.html#hashcash">proof of work</a>.)
+Dans I2P toutes les destinations sont des clés de 516 octets. (Plus précisément, c'est une clé publique de 256 octets 
+plus une clé de signature de 128 octets et un certificat blanc, ce qui fait 516 octets une fois tout ceci représenté 
+dans le code base64. Les <a href="naming_discussion.html#certificates">certificats</a> ne sont pas utilisés 
+actuellement. Les clés seront plus longues quand ils le seront. Une utilisation possible des certificats est le 
+mécanisme de vérification par <a href="todo_fr.html#hashcash">épreuve de travail</a>.)
 </p><p>
-If an application (i2ptunnel or the HTTP proxy) wishes to access
-a destination by name, the router does a very simple local lookup
-to resolve that name.
-The client application (technically, the client side of I2CP in the I2P API)
-does a linear search through three local files, in order, to
-look up host names and convert them to a 516-byte destination key:
+Si une application (i2ptunnel ou le mandataire HTTP) veut accéder à une destination par son nom, le routeur effectue 
+une recherche locale très simple pour résoudre ce nom. L'application cliente (techniquement, le côté client du 
+protocole I2CP dans l'API I2P) fait une recherche linéaire dans trois fichiers locaux, dans l'ordre suivant, pour 
+trouver un nom d'hôte et le convertir en clé de destination de 516 octets :
 <ol>
 <li>privatehosts.txt
 <li>userhosts.txt
 <li>hosts.txt
 </ol>
-<p>The lookup is case-insensitive.
-The first match is used, and conflicts are not detected.
-There is no enforcement of naming rules in lookups.
+<p>Le recherche n'est pas sensible à la casse. La première occurrence est utilisée, et les conflits ne sont pas 
+détectés. Il n'y a pas d'obligation de règles de nommage pour les recherches.
 </p><p>
-Lookups are cached for a few minutes.
-There is an experimental facility for real-time lookups (a la DNS) over the network within the router,
-although it is not enabled by default
-(see "EepGet" under <a href="naming_discussion.html#alternatives">Alternatives on the discussion page</a>).
-</p>
+Les recherches sont conservées en mémoire quelques minutes. Il y a une fonctionnalité expérimentale de recherches en 
+temps réel (à la DNS) sur le réseau intégrée au routeur, mais par défaut elle n'est pas activée (voir "EepGet" dans 
+<a href="naming_discussion.html#alternatives">Alternatives sur la page de discussion</a>).
+</p> 
 
-<h2 id="httpproxy">HTTP Proxy</h2>
-<p>The HTTP proxy does a lookup via the router for all hostnames ending in '.i2p'.
-Otherwise, it forwards the request to a configured HTTP outproxy.
-Thus, in practice, all HTTP (eepsite) hostnames must end in the pseudo-Top Level Domain '.i2p'.
+<h2 id="httpproxy">Mandataire HTTP</h2>
+<p>Le proxy HTTP fait une recherche via le routeur pour tous les noms d'hôtes en '.i2p'. Pour les autres, il transfère 
+la requête à un mandataire sortant HTTP configuré. Donc en pratique, tous les noms d'hôtes eepsites HTTP doivent se 
+terminer par le pseudo domaine de plus haut niveau '.i2p'.
 </p>
 
 <p>
-If the router fails to resolve the hostname, the HTTP proxy returns
-an error page to the user with links to several "jump" services.
-See below for details.
+Si le routeur échoue dans sa requête de résolution, le mandataire HTTP renvoie une page d'erreur indiquant des liens 
+vers plusieurs services de saut (voir détails plus bas).
 </p>
 
-<h2 id="addressbook">Addressbook</h2>
-<h3>Incoming Subscriptions and Merging</h3>
+<h2 id="addressbook">Carnet d'adresses</h2>
+<h3>Abonnements entrants et fusionnement</h3>
 <p>
-The addressbook application periodically
-retrieves other users' hosts.txt files and merges
-them with the local hosts.txt, after several checks.
-Naming conflicts are resolved on a first-come first-served
-basis.
+L'application carnet d'adresses trouve régulièrement le fichier hosts.txt d'autres utilisateurs et les fusionne au 
+fichier local après plusieurs vérifications. Les conflits sont résolus par la règle "premier entré/premier servi".
 </p><p>
-Subscribing to another user's hosts.txt file involves
-giving them a certain amount of trust.
-You do not want them, for example, 'hijacking' a new site
-by quickly entering in their own key for a new site before
-passing the new host/key entry to you.
+L'abonnement au fichier hosts.txt d'un autre utilisateur implique l'octroi d'un certain niveau de confiance. Vous ne 
+souhaitez par exemple pas qu'il détourne un nouveau site en vous indiquant une autre clé.
 </p><p>
-For this reason, the only subscription configured by
-default is <code>http://www.i2p2.i2p/hosts.txt</code>,
-which contains a copy of the hosts.txt included
-in the I2P release.
-Users must configure additional subscriptions in their
-local addressbook application (via subscriptions.txt or <a href="#susidns">SusiDNS</a>).
+Pour cette raison, le seul abonnement configuré par défaut est <code>http://www.i2p2.i2p/hosts.txt</code>,
+qui contient une copie du hosts.txt inclus dans la distribution d'I2P. Les utilisateurs doivent configurer des 
+abonnements supplémentaires dans leur application carnet d'adresses locale (via subscriptions.txt ou 
+<a href="#susidns">SusiDNS</a>).
 </p><p>
-Some other public addressbook subscription links:
+Quelques autres liens d'abonnement de carnets d'adresses publics :
 </p>
 <ul>
 <li><a href="http://i2host.i2p/cgi-bin/i2hostetag">http://i2host.i2p/cgi-bin/i2hostetag</a>
@@ -125,11 +109,11 @@ Some other public addressbook subscription links:
 <li><a href="http://tino.i2p/hosts.txt">http://tino.i2p/hosts.txt</a>
 </ul>
 <p>
-The operators of these services may have various policies for listing hosts.
-Presence on this list does not imply endorsement.
+Les opérateurs de ces services peuvent avoir diverses politiques de référencement des hôtes. Leur présence sur cette 
+page n'implique pas l'aval de l'équipe d'I2P.
 </p>
 
-<h3>Naming Rules</h3>
+<h3>Règles de nommag</h3>
 <p>
 While there are hopefully not any technical limitations within I2P on host names,
 the addressbook enforces several restrictions on host names
@@ -152,7 +136,7 @@ Naming rules:</p>
 <li>Must not contain '..'.
 <li>Must not contain '.-' or '-.' (as of 0.6.1.33).
 <li>Must not contain '--' except in 'xn--' for IDN.
-<li>Base 32 hostnames (*.b32.i2p) are not allowed.
+<li>Base32 hostnames (*.b32.i2p) are not allowed.
 <li>Certain hostnames reserved for project use are not allowed
     (proxy.i2p, router.i2p, console.i2p, *.proxy.i2p, *.router.i2p, *.proxy.i2p).
 <li>Keys are checked for base64 validity.
@@ -265,7 +249,7 @@ so you can enter hostnames locally that would be rejected by
 your own or others' addressbook subscriptions.
 </p>
 
-<h2 id="base32">Base 32 Names</h2>
+<h2 id="base32">Base32 Names</h2>
 <p>I2P supports Base32 hostnames similar to Tor's .onion addresses.
 Base32 addresses are much shorter and easier to handle than the
 full 516-character Base64 Destinations or addresshelpers.
