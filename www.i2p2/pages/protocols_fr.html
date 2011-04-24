@@ -1,0 +1,120 @@
+{% extends "_layout_fr.html" %}
+{% block title %}Protocol Stack{% endblock %}
+{% block content %}
+Traduction d'avril 2011. <a href="how_protocols.html">Version anglaise actuelle</a><br /><br />
+<p>
+Présentation de la pile de protocole d'I2P.
+Voir aussi l'<a href="how_fr.html">index de la documentation technique</a>.
+Mise à jour d'août 2010, valide pour la version 0.8 du routeur
+<p>
+
+<p>
+Chacune des couches de la pile apporte des fonctionnalités supplémentaires. 
+Celles-ci sont énumérées ci-dessous, à partir du bas de la pile.
+  <ul>
+    <li>
+        <b>Couche internet :</b>
+        <br />
+        IP : Internet Protocol, permet l'adressage des hôtes de l'Internet classique et le routage des paquets "au 
+mieux" (best effort delivery).
+    </li>
+    <li>
+        <b>Couche transport :</b>
+        <br />
+        TCP : Transmission Control Protocol, permet une livraison fiable et ordonnée des paquets sur l'internet.
+        <br />
+        UDP : User Datagram Protocol, permet la livraison non fiable et non ordonnée des paquets sur l'internet.
+    </li>
+    <li>
+        <b>Couche de transport I2P :</b> fournit les connexions cryptées entre deux routeurs I2P. Elles ne sont pas 
+encore anonymes à ce niveau, car il s'agit strictement des connexions de saut à saut. Deux protocoles sont implémentés 
+pour apporter ces possibilités. NTCP positionné sur TCP, et SSU sur UDP.
+        <br />
+        <a href="ntcp.html">NTCP</a> : TCP basé sur les NIO Java
+        <br />
+        <a href="udp.html">SSU</a>: UDP Sécurisé Semi-fiable (Secure Semi-reliable UDP)
+    </li>
+    <li>
+        <b>Couche tunnels I2P :</b> fournit les connexions de tunnels totalement cryptées.
+        <br />
+        <a href="tunnel_message_spec.html">Messages de tunnels</a> : les messages de tunnels sont de gros messages 
+contenant des messages I2NP cryptés (voir ci-dessous) et les instructions cryptées nécessaires à leur livraison. Le 
+cryptage est à plusieurs niveaux. Le premier saut décrypte le message de tunnel et en lit une partie. Une autre partie 
+peut encore être cryptée (avec une autre clé), et elle sera alors transférée.
+        <br />
+        <a href="i2np.html">Messages I2NP</a> : les messages I2P Network Protocol sont utilisés pour passer des 
+messages au travers de routeurs multiples. Ces messages sont regroupés en messages de tunnels.
+    </li>
+    <li>
+        <b>Couche I2P en tête d'ail (garlic) :</b> elle fournit la livraison des messages I2P cryptés et anonymes de 
+bout en bout.
+        <br />
+        <a href="i2np.html">Messages I2NP</a> : les messages I2P Network Protocol sont empaquetés les uns dans les 
+autres et utilisé pour assurer le cryptage entre deux tunnels. Ils sont transmis de la source à la destination en 
+préservant l'anonymat de chacune.
+    </li>
+</ul>
+</p>
+
+<p>
+Les couches suivantes ne font plus à strictement parler partie de la pile de protocoles I2P. Elle ne font pas partie du 
+cœur des fonctionnalités du routeur I2P. Cependant, chacune d'elles apporte ses fonctionnalités supplémentaires, pour 
+l'usage simple et pratique des applications.
+<ul>
+    <li>
+        <b>Couche client I2P :</b> permet à n'importe quel client d'utiliser les fonctionnalités d'I2P, sans nécessité 
+d'utilisation directe de l'API du routeur.
+        <br />
+        <a href="i2cp.html">I2CP</a> : I2P Client Protocol, permet de passer des messages sécurisés et asynchrones sur 
+I2P en communicant à travers le connecteur TCP I2CP.
+    </li>
+    <li>
+        <b>Couche de transport de bout en bout I2P :</b> permet un fonctionnement à la façon de TCP ou UDP sur I2P.
+        <br />
+        <a href="streaming.html">Bibliothèque de flux </a>: implémentation de flux "à la TCP" sur I2P. Elle permet un 
+portage plus facile d'applications existantes vers I2P.
+        <br />
+        <a href="datagrams.html">Bibliothèque de datagrammes </a>: implémentation de messages "à la UDP" sur I2P. Elle 
+permet un portage plus facile d'applications existantes vers I2P.
+    </li>
+    <li>
+        <b>Couche d'interface applicative :</b> bibliothèques supplémentaires (optionnelles) facilitant les 
+implémentations sur I2P.
+        <br />
+        <a href="i2ptunnel.html">I2PTunnel</a>
+        <br />
+        <a href="sam.html">SAM</a>/<a href="samv2.html">SAMv2</a>/<a href="samv3.html">SAMv3</a>(*),
+        <a href="bob.html">BOB</a>        
+    </li>
+    <li>
+        <b>Couche de mandataires d'applications I2P :</b> systèmes mandataires (proxy).
+        <br />
+        Client/Serveur HTTP, client IRC, <a href="socks.html">SOCKS</a>, Streamr 
+    </li>
+  </ul>
+</p>
+<p>
+Et pour terminer, ce qui pourrait être considéré comme LA <b>'couche application d'I2P'</b>, un grand nombre 
+d'applications tournant sur I2P. On peut les ordonner suivant la couche de la pile qu'elles utilisent.
+<ul>
+    <li><b>Applications de flux(Streaming)/datagrammes </b>: i2psnark, Syndie, i2phex&hellip;</li>
+    <li><b>Applications SAM/BOB </b>: iMule, i2p-bt, i2prufus, Robert&hellip;</li>
+    <li><b>Autres applications I2P  </b>: Syndie, EepGet, <a href="plugins.html">greffons&hellip;</a></li>
+    <li><b>Applications traditionnelles </b>: Jetty, Apache, Monotone, CVS, navigateurs, e-mail&hellip;</li>
+</ul>
+</p>
+
+<center>
+    <div class="box">
+        <img src="_static/images/protocol_stack_fr.png" alt="Pile réseau I2P" title="Pile réseau I2P" />
+        <br /><br />
+        Figure 1: Les couches de la pile réseau d'I2P.
+    </div>
+</center>
+<br/>
+
+<p>
+* Note: SAM/SAMv2 peuvent utiliser les bibliothèques de flux et de datagrammes.
+</p>
+
+{% endblock %}
