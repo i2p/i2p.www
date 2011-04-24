@@ -1,7 +1,7 @@
 {% extends "_layout_fr.html" %}
 {% block title %}Nommage et carnet d'adresses{% endblock %}
 {% block content %}
-Traduction (en cours) d'avril 2011. <a href="naming.html">Version anglaise actuelle</a>
+Traduction d'avril 2011. <a href="naming.html">Version anglaise actuelle</a>
 <h1>Nommage dans I2P</h1>
 <h2 id="overview">Aperçu</h2>
 
@@ -174,83 +174,66 @@ Cependant le fichier hosts.txt est entièrement téléchargé s'il a été modif
 problème.
 </p>
 <p>
-Hosts serving a static hosts.txt or an equivalent CGI application
-are strongly encouraged to deliver
-a Content-Length header, and either an Etag or Last-Modified header.
-Also ensure that the server delivers a '304 Not Modified' when appropriate.
-This will dramatically reduce the network bandwidth, and
-reduce chances of corruption.
+Les hôtes qui fournissent un fichier hosts.txt statique ou une application CGI équivalente sont vivement encouragés à 
+utiliser une en-tête de longueur de contenu, et soit une en-tête Etag, soit une en-tête de date de dernière 
+modification. Assurez-vous aussi que le serveur envoie le message '304 Not Modified' quand c'est nécessaire, eu égard à 
+la bande passante et pour diminuer les risques de corruption.
 </p>
 
-<h2 id="add-services">Host Add Services</h2>
+<h2 id="add-services">Services d'ajout d'hôtes</h2>
 <p>
-A host add service is a simple CGI application that takes a hostname and a Base64 key as parameters
-and adds that to its local hosts.txt.
-If other routers subscribe to that hosts.txt, the new hostname/key
-will be propagated through the network.
+Un service d'ajout d'hôte est une simple application CGI qui prend en paramètres un nom d'hôte et et une clé base64 
+pour les ajouter au fichier hosts.txt local. Si d'autres routeurs s'abonnent à ce fichier, l'ajout sera propagé.
 </p><p>
-It is recommended that host add services impose, at a minimum, the restrictions imposed by the 
-addressbook application listed above.
-Host add services may impose additional restrictions on hostnames and keys, for example:
-</p>
+Il est recommandé que le service impose au minimum les mêmes restrictions que celles en vigueur au niveau de 
+l'application carnet d'adresses listées plus haut. Le service peut ajouter des restriction supplémentaires, par exemple 
+: </p>
 <ul>
-<li>A limit on number of 'subdomains'.
-<li>Authorization for 'subdomains' through various methods.
-<li>Hashcash or signed certificates.
-<li>Editorial review of host names and/or content.
-<li>Categorization of hosts by content.
-<li>Reservation or rejection of certain host names.
-<li>Restrictions on the number of names registered in a given time period.
-<li>Delays between registration and publication.
-<li>Requirement that the host be up for verification.
-<li>Expiration and/or revocation.
-<li>IDN spoof rejection.
+<li>une limite au nombre de sous-domaines.
+<li>autorisations de sous-domaines via diverses méthodes.
+<li>pénalités de contrôle (Hashcash) ou certificats signés.
+<li>vérification d'éditorial et/ou de contenu du site.
+<li>catégorisation des hôtes par contenu.
+<li>réservation ou rejet de certains noms d'hôtes.
+<li>restrictions du nombre d'enregistrements par unité de temps.
+<li>délais entre enregistrement et publication.
+<li>vérification de l'état fonctionnel de l'hôte comme prérequis à l'enregistrement.
+<li>expiration et/ou révocation.
+<li>rejet d'usurpation d'IDN.
 </ul>
 
-<h2 id="jump-services">Jump Services</h2>
+<h2 id="jump-services">Services de saut</h2>
 <p>
-A jump service is a simple CGI application that takes a hostname as a parameter
-and returns a 301 redirect to the proper URL with a <code>?i2paddresshelper=key</code>
-string appended.
-The HTTP proxy will interpret the appended string and
-use that key as the actual destination.
-In addition, the proxy will cache that key so the
-address helper is not necessary until restart.
-</p>
+Un service de saut est une application CGI simple qui prend en paramètres un nom d'hôte et retourne un message '301 
+redirect' vers la bonne URL, complété d'une chaîne <code>?i2paddresshelper=clé</code>. Le mandataire HTTP interceptera 
+la chaîne et utilisera la clé en tant que destination réelle. De plus, le proxy mettra cette clé en cache de sorte que 
+l'assistant d'adresse ne soit plus nécessaire pour elle jusqu'au prochain redémarrage du routeur.</p>
 <p>
-Note that, like with subscriptions, using a jump service
-implies a certain amount of trust, as a jump service could maliciously
-redirect a user to an incorrect destination.
-</p>
+Remarquons au passage, que comme pour les abonnements, l'utilisation d'un service de saut implique un certain niveau de 
+confiance, car le service pourrait insidieusement rediriger vers une destination usurpée.</p>
 <p>
-To provide the best service, a jump service should be subscribed to
-several hosts.txt providers so that its local host list is current.
+Pour apporter le meilleur service, un service de saut devrait être abonné à plusieurs fournisseurs de fichiers 
+hosts.txt pour que sa liste d'hôtes soit récente.
 </p>
 
 <h2 id="susidns">SusiDNS</h2>
 <p>
-SusiDNS is simply a web interface front-end to configuring addressbook subscriptions
-and accessing the four addressbook files.
-All the real work is done by the 'addressbook' application.
-</p><p>
-Currently, there is no enforcement of addressbook naming rules within SusiDNS,
-so you can enter hostnames locally that would be rejected by
-your own or others' addressbook subscriptions.
-</p>
+SusiDNS est simplement une interface web destinée à configurer les abonnements de carnets d'adresses et accéder au 
+quatre fichiers de carnets d'adresses. Tout le travail réel est effectué par l'application 'carnet d'adresses'.</p>
+<p>
+Actuellement, il n'y a pas de vérification des règles de nommage du carnet d'adresses intégrée dans SusiDNS, si bien 
+que vous pouvez entrer des noms d'hôtes qui pourraient être rejetés par vos propres abonnements ou ceux des autres.</p>
 
-<h2 id="base32">Base32 Names</h2>
-<p>I2P supports Base32 hostnames similar to Tor's .onion addresses.
-Base32 addresses are much shorter and easier to handle than the
-full 516-character Base64 Destinations or addresshelpers.
-Example: <code>ukeu3k5oycgaauneqgtnvselmt4yemvoilkln7jpvamvfx7dnkdq.b32.i2p</code>
+<h2 id="base32">Noms Base32</h2>
+<p>I2P supporteles noms d'hôtes Base32 similaires aux adresses '.onion' de Tor. Les adresses base32 sont plus courtes 
+et plus faciles à manipuler que les adresses complètes des destinations base64 à 516 caractères ou les assistants 
+d'adresses. Exemple: <code>ukeu3k5oycgaauneqgtnvselmt4yemvoilkln7jpvamvfx7dnkdq.b32.i2p</code>
 </p><p>
-In Tor, the address is 16 characters (80 bits), or half of the SHA-1 hash.
-I2P uses 52 characters (256 bits) to represent the full SHA-256 hash.
-The form is {52 chars}.b32.i2p.
-Base32 is implemented in the HostsTxt naming service, which queries the
-router over I2CP to lookup the LeaseSet to get the full Destination.
-Base32 lookups will only be successful when the Destination is up and publishing
-a LeaseSet.
+Dans Tor, l'adresse fait 16 caractères (80 bits), soit la moitié de l'empreinte SHA-1. I2P utilise  52 caractères 
+(256 bits) pour représenter l'empreinte SHA-256 complète. La forme est {52 caractères}.b32.i2p. Le codage base32 est 
+implémenté dans les service de nommage HostsTxt, qui interroge le routeur sur le protocole I2CP pour chercher le jeu de 
+baux afin d'obtenir la destination complète. Les recherches base32 ne réussissent que lorsque la destination est active 
+et qu'elle publie un jeu de baux.
 </p><p>
 Les adresses Base32 peuvent être utilisées dans la plupart des situations où les noms d'hôtes ou les destinations 
 complètes sont utilisées, sauf quelques exceptions où elles peuvent échouer si le nom n'est pas résolu immédiatement. 
