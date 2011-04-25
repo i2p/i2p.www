@@ -1,0 +1,472 @@
+{% extends "_layout_fr.html" %}
+{% block title %}I2P Plugin Specification{% endblock %}
+{% block content %}
+Traduction d'avril 2011. <a href="plugin_spec.html">Version anglaise actuelle</a>
+<h2>
+Spécification Version 0.16
+2010-07-26
+</h2>
+<p> 
+Mise à jour de juillet 2010 pour le routeur version 0.8.
+<h3>Aperçu</h3>
+<p> 
+This document specifies
+a .xpi2p file format (like the Firefox .xpi), but with a simple
+plugin.config description file instead of an XML install.rdf file.
+This file format is used for both initial plugin installs and plugin updates.
+<p>
+In addition, this document provides a brief overview of how the router installs plugins,
+and policies and guidelines for plugin developers.
+<p>
+The basic .xpi2p file format is the same as a i2pupdate.sud file
+(the format used for router updates),
+but the installer will let the user install the
+addon even if it doesn't know the signer's key yet.
+
+<p>
+The standard directory structure will let users install the following types of addons:
+<ul>
+<li>
+	 console webapps
+<li>
+	 new eepsite with cgi-bin, webapps
+<li>
+	 console themes
+<li>
+	 console translations
+<li>
+	 Java programs
+<li>
+	 Java programs in a separate JVM
+<li>
+	 Any shell script or program
+</ul>
+
+<p>
+A plugin installs all its files in ~/.i2p/plugins/name/ (%APPDIR%\I2P\plugins\name\ on Windows). The installer will prevent
+installation anywhere else, although the plugin can access libraries elsewhere when running.
+
+<p>
+This should be viewed only as a way to make installation, uninstallation, and upgrading easier,
+and to lessen basic inter-plugin conflicts.
+
+<p>
+There is essentially no security model once the plugin is running, however. The plugin runs
+in the same JVM and with the same permissions as the router, and has full access to the file
+system, the router, executing external programs, etc.
+
+<h3>Details</h3>
+<p>
+foo.xpi2p is a sud file containing the following:
+<pre>
+	Standard .sud header prepended to the zip file, containing the following:
+	        40-byte <a href="how_cryptography.html#DSA">DSA signature</a>
+		16-byte plugin version in UTF-8, padded with trailing zeroes if necessary
+
+	Zip file containing the following:
+
+		(REQUIRED) plugin.config file:
+		(standard I2P config file, UTF-8 containing key=value lines, comments start with #)
+		Containing the following properties:
+
+		(* = required)
+			The first three must be identical to those in the installed plugin for an update plugin.
+
+			*name (will be installed in this directory name)
+				For native plugins, you may want separate names in different packages -
+				foo-windows and foo-linux, for example
+			*key (<a href="how_cryptography.html#DSA">DSA public key</a> as 172 B64 chars ending with '=')
+			*signer (yourname@mail.i2p recommended)
+
+			*version (must be in a format VersionComparator can parse, e.g. 1.2.3-4)
+				16 bytes max (must match sud version)
+				Valid number separators are '.', '-', and '_'
+				This must be greater than the one in the installed plugin for an update plugin.
+
+
+			The following items are displayed on configclients.jsp if present:
+
+			date (Java time - long int)
+			author (yourname@mail.i2p recommended)
+			websiteURL (http://foo.i2p/)
+			updateURL (http://foo.i2p/foo.xpi2p)
+				The update checker will check bytes 41-56 at this URL
+				to determine whether a newer version is available
+				( Should the checker fetch with ?currentVersion=1.2.3?...
+				  No. If the dev wants to have the URL contain the current version, just
+				  set it in the config file, and remember to change it every release)
+			description
+			description_xx (for language xx)
+			license
+			disableStop=true
+				Default false.
+				If true, the stop button will not be shown. Use this if there are no
+				webapps and no clients with stopargs.
+
+			The following items are used to add a link on the console summary bar:
+
+			consoleLinkName (will be added to summary bar)
+			consoleLinkName_xx (for language xx)
+			consoleLinkURL (/appname/index.jsp)
+			consoleLinkTooltip (supported as of 0.7.12-6)
+			consoleLinkTooltip_xx (lang xx as of 0.7.12-6)
+			
+
+			The following items are used by the plugin installer:
+
+			type (app/theme/locale/webapp/...) (unimplemented, probably not necessary)
+			min-i2p-version
+			max-i2p-version
+			min-java-version
+			min-jetty-version
+			max-jetty-version
+			required-platform-OS (unimplemented - perhaps will be displayed only, not verified)
+			other-requirements (unimplemented e.g. python x.y - not verified by the installer, just displayed to the user)
+			dont-start-at-install=true
+				Default false.
+			router-restart-required=true
+				Default false.
+				dont-start-at-install must be true for this to take effect.
+				This does not restart the router, it just informs the user that a restart is required.
+			update-only=true
+				Default false.
+				If true, will fail if an installation does not exist.
+			install-only=true
+				Default false.
+				If true, will fail if an installation exists.
+			min-installed-version (to update over, if an installation exists)
+			max-installed-version (to update over, if an installation exists)
+			depends=plugin1,plugin2,plugin3 (unimplemented - is this too hard? proposed by sponge)
+			depends-version=0.3.4,,5.6.7 (unimplemented)
+
+			The following item is used for translation plugins:
+			langs=xx,yy,Klingon,... (unimplemented) (yy is the country flag)
+
+		Each of the following directories or files is optional, but something must be there or it won't do anything:
+			
+		console/
+			locale/
+				Only jars containing new resource bundles (translations) for apps in the base I2P installation.
+				Bundles for this plugin should go inside console/webapp/foo.war or lib/foo.jar
+
+			themes/
+				New themes for the router console
+				Place each theme in a subdirectory.
+
+			webapps/
+				(See important notes below about webapps)
+				.wars
+				These will be run at install time unless disabled in webapps.config
+				The war name does not have to be the same as the plugin name.
+				Do not duplicate war names in the base I2P installation.
+
+			webapps.config 
+				Same format as router's webapps.config
+				Also used to specify additional jars in $PLUGIN/lib/ or $I2P/lib for the webapp classpath,
+				with webapps.warname.classpath=$PLUGIN/lib/foo.jar,$I2P/lib/bar.jar
+				NOTE: Currently, the classpath line is only loaded if the warname is
+				the same as the plugin name.
+				NOTE: Prior to router version 0.7.12-9, the router looked for plugin.warname.startOnLoad instead
+				of webapps.warname.startOnLoad. For compatibility with older router versions, a plugin
+				wishing to disable a war should include both lines.
+
+		eepsite/
+			(See important notes below about eepsites)
+			cgi-bin/
+			docroot/
+			logs/
+			webapps/
+			jetty.xml
+				The installer will have to do variable substitution in here to set the path
+				The location and name of this file doesn't really matter, as long as it is set in
+				clients.config - it may be more convenient to be up one level from here
+				(that's what the zzzot plugin does)
+
+		lib/
+			Put any jars here, and specify them in a classpath line in console/webapps.config and/or clients.config
+
+		clients.config (same format as router's clients.config)
+			These will be run when a plugin is started
+			Start at client #0, number consecutively
+			New property clientApp.0.stopargs=foo bar stop baz
+				If present, the class will be called with these args to stop the client
+				All stop tasks are called with zero delay
+				Note: The router can't tell if your clients are running or not.
+                                Each should handle stopping an app that isn't running without complaint.
+				That probably goes for starting a client that is already started too.
+			New property clientApp.0.uninstallargs=foo bar uninstall baz
+				If present, the class will be called with these args just before deleting $PLUGIN
+				All stop tasks are called with zero delay
+			New property clientApp.0.classpath=$I2P/lib/foo.bar,$PLUGIN/lib/bar.jar
+			The plugin runner will do variable substitution in the args and stopargs lines as follows:
+				$I2P => i2p base installation dir;
+				$CONFIG => i2p config dir (typically ~/.i2p)
+				$PLUGIN => this plugin's installation dir (typically ~/.i2p/plugins/appname)
+			(See important notes below about running shell scripts or external programs)
+</pre>
+
+
+<h3>Plugin installer tasks</h3>
+This lists what happens when a plugin is installed by I2P.
+<ul>
+
+    <li>The .xpi2p file is downloaded.</li>
+    <li>The .sud signature is verified against stored keys.
+        If there is no matching key, the .sud is extracted, the key is loaded from the properties, then verified and stored.</li>
+    <li>Verify the integrity of the zip file.</li>
+    <li>Extract the plugin.config file.</li>
+    <li>Verify the I2P version, to make sure the plugin will work.</li>
+    <li>Check that webapps don't duplicate the existing $I2P applications.</li>
+    <li>Stop the existing plugin (if present).</li>
+    <li>Verify that the install directory does not exist yet if update=false, or ask to overwrite.</li>
+    <li>Verify that the install directory does exist if update=false, or ask to create.</li>
+    <li>Unzip the plugin in to appDir/plugins/name/</li>
+    <li>Add the plugin to plugins.config</li>
+</ul>
+
+<h3>
+Plugin starter tasks
+</h3>
+This lists what happens when plugins are started.
+First, plugins.config is checked to see which plugins need to be started.
+For each plugin:
+<ul>
+    <li>Check clients.config, and load and start each item (add the configured jars to the classpath).</li>
+    <li>Check console/webapp and console/webapp.config. Load and start required items (add the configured jars to the classpath).</li>
+    <li>Add console/locale/foo.jar to the translation classpath if present.</li>
+    <li>Add console/theme to the theme search path if present.</li>
+    <li>Add the summary bar link.</li>
+</ul>
+
+<h3>
+Console webapp notes
+</h3>
+<p>
+Console webapps with background tasks should implement a ServletContextListener
+(see seedless or i2pbote for examples), or override destroy() in the servlet,
+so that they can be stopped.
+As of router version 0.7.12-3, console webapps will always be stopped before they
+are restarted, so you do not need to worry about multiple instances,
+as long as you do this.
+Also as of router version 0.7.12-3, console webapps will be stopped at router shutdown.
+<p>
+Don't bundle library jars in the webapp; put them in lib/ and put a classpath in webapps.config.
+Then you can make separate install and update plugins, where the update plugin does not
+contain the library jars.
+<p>
+Don't include .java or .jsp files; otherwise jetty will recompile them at installation.
+<p>
+For now, a webapp needing to add classpath files in $PLUGIN must be the same name as the plugin.
+For example, a webapp in plugin foo must be named foo.war.
+
+
+<h3>
+Eepsite notes
+</h3>
+<p>
+It isn't clear how to have a plugin install to an existing eepsite.
+The router has no hook to the eepsite, and it may or may not be running,
+and there may be more than one.
+Better is to start your own Jetty instance and I2PTunnel instance,
+for a brand new eepsite.
+<p>
+ It can instantiate a new I2PTunnel (kinda like the i2ptunnel CLI does),
+  but it won't appear in the i2ptunnel gui of course, that's a different instance.
+But that's ok. Then you can start and stop i2ptunnel and jetty together.
+<p>
+So don't count on the router to automatically merge this with some existing eepsite. It probably won't happen.
+Start a new I2PTunnel and Jetty from clients.config.
+The best examples of this are the zzzot and pebble plugins,
+available at <a href="http://stats.i2p/i2p/plugins/">zzz's plugins page</a>.
+<p>
+How to get path substitution into jetty.xml?
+See zzzot and pebble plugins for examples.
+
+
+<h3>
+Client start/stop notes
+</h3>
+<p>
+The router has no way to monitor the state of clients started via clients.config.
+The plugin author should handle multiple start or stop calls gracefully, if at all possible,
+by keeping a static state table, or using PID files, etc.
+Avoid logging or exceptions on multiple starts or stops.
+This also goes for a stop call without a previous start.
+As of router version 0.7.12-3, plugins will be stopped at router shutdown,
+which means that all clients with stopargs in clients.config will be called,
+whether or not they were previously started.
+
+
+<h3>
+Shell script and external program notes
+</h3>
+<p>
+To run shell scripts or other external programs, see <a href="http://zzz.i2p/topics/141">zzz.i2p</a>
+<p>
+To work on both Windows and Linux, write a small Java class that checks the OS type, then
+runs ShellCommand on either the .bat or a .sh file you provide.
+<p>
+External programs won't be stopped when the router stops, and a second copy will
+fire up when the router starts. To work around this, you could
+write a wrapper class or shell script that does the usual storage of the PID
+in a PID file, and check for it on start.
+
+
+
+
+<h3>
+Other plugin guidelines
+</h3>
+<ul>
+<li>
+See i2p.scripts branch or any of the sample plugins on zzz's page for a xpi2p file generator to make it easy.
+<li>
+Pack200 of jars and wars is strongly recommended for plugins, it generally shrinks plugins by 60-65%.
+See any of the sample plugins on zzz's page for an example.
+Pack200 unpacking is supported on routers 0.7.11-5 or higher, which is essentially all routers that
+support plugins at all.
+
+<li>
+ Plugins should not attempt to write anywhere in $I2P as it may be readonly, and that isn't good policy anyway.
+<li>
+ Plugins may write to $CONFIG but keeping files in $PLUGIN only is recommended.
+All files in $PLUGIN will be deleted at uninstall.
+Files elsewhere will not be deleted at uninstall unless the plugin does it explicitly
+with a client in clients.config run with uninstallargs.
+If the user may want to save data after uninstallation, the uninstallargs hook
+could ask.
+
+<li>
+ $CWD may be anywhere; do not assume it is in a particular place, do not attempt to read or write files relative to $CWD.
+<li>
+ Java programs should find out where they are with the directory getters in I2PAppContext.
+<li>
+ Plugin directory is I2PAppContext.getGlobalContext().getAppDir().getAbsolutePath() + "/plugins/" + appname,
+  or put a $PLUGIN argument in the args line in clients.config.
+There is no reliable way to find the i2p install or config or plugin directory without using the
+context API in i2p.jar.
+<li>
+ See <a href="http://zzz.i2p/topics/16">Howto</a> for info on generating signing keys and generating/verifying keys and sud files
+<li>
+ All config files must be UTF-8.
+<li>
+ To run in a separate JVM, use ShellCommand with java -cp foo:bar:baz my.main.class arg1 arg2 arg3.
+Of course, it will be a lot harder to stop the plugin then...
+But with some trickery with PID files it should be possible.
+<li>
+ As an alternative to stopargs in clients.config,
+ a Java client may register a shutdown hook with I2PAppContext.addShutdownTask().
+ But this wouldn't shut down a plugin when upgrading, so stopargs is recommended.
+  Also, set all created threads to daemon mode.
+<li>
+ Do not include classes duplicating those in the standard installation. Extend the classes if necessary.
+<li>
+ Beware of the different classpath definitions in wrapper.config between old and new installations -
+ see classpath section below.
+<li>
+ Clients will reject duplicate keys with different keynames, and duplicate keynames with different keys,
+  and different keys or keynames in upgrade packages. Safeguard your keys. Only generate them once.
+<li>
+ Do not modify the plugin.config file at runtime as it will be overwritten on upgrade.
+  Use a different config file in the directory for storing runtime configuration.
+<li>
+ In general, plugins should not require access to $I2P/lib/router.jar. Do not access router classes,
+unless you are doing something special.
+The router may in the future implement a restricted classpath for plugins that prevents
+access to router classes.
+<li>
+Since each version must be higher than the one before, you could enhance your build
+script to add a build number to the end of the version.
+This helps for testing. Most of zzz's plugins have that feature, check build.xml for an example.
+<li>
+Plugins must never call System.exit().
+<li>
+Please respect licenses by meeting license requirements for any software you bundle.
+
+</ul>
+
+<h3>
+Classpaths
+</h3>
+
+The following jars in $I2P/lib can be assumed to be in the standard classpath for all I2P installations,
+no matter how old or how new the original installation:
+<p>
+ i2p.jar, router.jar, jbigi.jar, sam.jar, mstreaming.jar, streaming.jar, i2ptunnel.jar,
+ org.mortbay.jetty.jar, javax.servlet.jar, jasper-compiler.jar, jasper-runtime.jar,
+ commons-logging.jar, commons-el.jar, wrapper.jar, systray.jar, systray4j.jar
+<p>
+
+ Anything not listed above may not be present in everybody's classpath, even if you
+ have it in the classpath in YOUR version of i2p.
+ If you need any jar not listed above, add $I2P/lib/foo.jar to the classpath specified
+ in clients.config or webapps.config in your plugin.
+<p>
+Previously, a classpath entry specified in clients.config was added to the classpath for
+the entire JVM.
+However, as of 0.7.13-3, this was fixed using class loaders, and now, as originally intended,
+the specified classpath in clients.config is only for the particular thread.
+See the section on JVM crashes below, and
+<a href="http://zzz.i2p/topics/633">this thread on zzz.i2p</a> for background.
+Therefore, specify the full required classpath for each client.
+
+
+<h3>
+Java Version Notes
+</h3>
+While most I2P users are running a 1.6 (6.0) JVM, we support 1.5 (5.0) and higher JVMs.
+Unless you require 1.6 features, you should create your plugin so it works on 1.5.
+<p>
+If your plugin <b>does not require 1.6</b>:
+<ul>
+<li>
+Ensure that all java and jsp files are compiled with source="1.5" target="1.5".
+<li>
+Ensure that all bundled library jars are also for 1.5 or lower.
+<li>
+If you are using pack200, any 1.6 classes in a jar will
+cause pack200 to create a 1.6 pack format, and
+plugin installation will fail on a 1.5 system
+with the misleading message "plugin is corrupt".
+</ul>
+
+<p>
+If your plugin <b>requires 1.6</b>:
+<ul>
+<li>
+Note that on your download page.
+<li>
+Add min-java-version=1.6 to your plugin.config
+<li>
+If you are using pack200, plugin installation will fail on a 1.5 system
+with the misleading message "plugin is corrupt".
+</ul>
+
+
+<h3>
+JVM Crashes When Updating
+</h3>
+Note - this should all be fixed now.
+<p>
+The JVM has a tendency to crash when updating jars in a plugin if that plugin was running
+since i2p was started (even if the plugin was later stopped).
+This may have been fixed with the class loader implementation in 0.7.13-3, but it may not.
+For further testing.
+<p>
+The safest is to design your plugin with the jar inside the war (for a webapp), or to require a restart
+after update, or don't update the jars in your plugin.
+<p>
+Due to the way class loaders work inside a webapp, it _may_ be safe to have external jars if
+you specify the classpath in webapps.config.
+More testing is required to verify this.
+Don't specify the classpath with a 'fake' client in clients.config if it's only
+needed for a webapp - use webapps.config instead.
+<p>
+The least safe, and apparently the source of most crashes, is clients with plugin jars specified
+in the classpath in clients.config.
+
+<p>
+None of this should be a problem on initial install - you should not ever have to require a restart
+for an initial install of a plugin.
+
+{% endblock %}
