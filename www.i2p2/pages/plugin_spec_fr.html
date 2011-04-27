@@ -56,49 +56,52 @@ dans la même JVM et avec les même privilèges que le routeur : ils ont l'accè
 <p>
 foo.xpi2p est un fichier sud contenant les données suivantes :
 <pre>
-	Standard .sud header prepended to the zip file, containing the following:
-	        40-byte <a href="how_cryptography.html#DSA">DSA signature</a>
-		16-byte plugin version in UTF-8, padded with trailing zeroes if necessary
+	En-tête standard .sud au début du fichier zip, contenant :
+	        La <a href="how_cryptography.html#DSA">signature DSA</a> à 40 octets
+		La version du greffon sur 16 octets en UTF-8, complétée par des zéros en fin si nécessaire
 
-	Zip file containing the following:
+	Le fichier Zip contenant :
 
-		(REQUIRED) plugin.config file:
-		(standard I2P config file, UTF-8 containing key=value lines, comments start with #)
-		Containing the following properties:
+		(REQUIS) un fichier plugin.config :
+		(fichier standard de configuration I2P, en UTF-8, contenant des lignes clé=valeur, les commentaires 
+		commençant par #)
+		Contenant les propriétés suivantes :
 
-		(* = required)
-			The first three must be identical to those in the installed plugin for an update plugin.
+		(* = requis)
+			Les trois premières doivent être identiques à celles du greffon installé s'il s'agit d'une mise 
+			à jour.
 
-			*name (will be installed in this directory name)
-				For native plugins, you may want separate names in different packages -
-				foo-windows and foo-linux, for example
-			*key (<a href="how_cryptography.html#DSA">DSA public key</a> as 172 B64 chars ending with '=')
-			*signer (yourname@mail.i2p recommended)
+			*name (le greffon sera installé dans ce dossier)
+				Pour les greffons spécifiques à un SE donné, vous pouvez séparer les noms pour des 
+				paquets différents, par exemple truc-windows et truc-linux.
+			*key (<a href="how_cryptography.html#DSA">clé publique DSA</a> sous forme Base64
+				de 172 caractères finissant '=')
+			*signer (votrenom@mail.i2p recommendé)
 
-			*version (must be in a format VersionComparator can parse, e.g. 1.2.3-4)
-				16 bytes max (must match sud version)
-				Valid number separators are '.', '-', and '_'
-				This must be greater than the one in the installed plugin for an update plugin.
+			*version (dans un format compatible avec VersionComparator, p.e. 1.2.3-4)
+				16 octets maximum (doit correspondre à la version du sud)
+				Les séparateurs acceptés sont '.', '-', et '_'
+				Pour une mise à jour de greffon, doit être supérieure à celle actuellement installée.
 
 
-			The following items are displayed on configclients.jsp if present:
+			configclients.jsp affichera les éléments suivants s'ils sont présents :
 
-			date (Java time - long int)
-			author (yourname@mail.i2p recommended)
-			websiteURL (http://foo.i2p/)
-			updateURL (http://foo.i2p/foo.xpi2p)
-				The update checker will check bytes 41-56 at this URL
-				to determine whether a newer version is available
-				( Should the checker fetch with ?currentVersion=1.2.3?...
-				  No. If the dev wants to have the URL contain the current version, just
-				  set it in the config file, and remember to change it every release)
+			date (temps Java - entier long)
+			author (votrenom@mail.i2p recommendé)
+			websiteURL (http://truc.i2p/)
+			updateURL (http://truc.i2p/truc.xpi2p)
+				Le vérificateur de mises à jour contrôle les octets 41 à 56 à cette URL pour déterminer 
+				si une nouvelle version est disponible
+				( Le vérificateur va-t-il télécharger avec ?currentVersion=1.2.3?...
+				  Non. Si le développeur que l'URL contienne la version actuelle, il doit le préciser 
+				  dans le fichier de configuration, et penser à le modifier à chaque nouvelle version)
 			description
-			description_xx (for language xx)
+			description_xx (pour la langue xx)
 			license
 			disableStop=true
-				Default false.
-				If true, the stop button will not be shown. Use this if there are no
-				webapps and no clients with stopargs.
+				Par défault, false.
+				À true, le bouton "Arrêt" n'est pas affiché. À utiliser s'il n'y pas de client ni de 
+				webapp avec des arguments d'arrêt.
 
 			The following items are used to add a link on the console summary bar:
 
