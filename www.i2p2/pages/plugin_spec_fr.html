@@ -233,97 +233,88 @@ Séquence d'installation.
 </ul>
 
 <h3>
-Plugin starter tasks
-</h3>
-This lists what happens when plugins are started.
-First, plugins.config is checked to see which plugins need to be started.
-For each plugin:
+Tâches du lanceur du greffon</h3>
+Séquence de lancement du greffon.
+totu d'abord, le fichier plugins.config est vérifié pour trouver quels greffons doivent être lancés.
+Pour chacun :
 <ul>
-    <li>Check clients.config, and load and start each item (add the configured jars to the classpath).</li>
-    <li>Check console/webapp and console/webapp.config. Load and start required items (add the configured jars to the classpath).</li>
-    <li>Add console/locale/foo.jar to the translation classpath if present.</li>
-    <li>Add console/theme to the theme search path if present.</li>
-    <li>Add the summary bar link.</li>
+    <li>Vérification de clients.config, chargement et lancement de chacun (ajout des jars configurés au classpath).</li>
+    <li>Vérification de console/webapp et console/webapp.config. chargement et lancement des éléments requis 
+	(ajout des jars configurés au classpath).</li>
+    <li>Ajout de console/locale/truc.muche au classpath de traduction, si présent.</li>
+    <li>Ajout de console/theme au chemin de recherche de thèmes, si présent.</li>
+    <li>Ajout du lien au panneau de contrôle.</li>
 </ul>
 
 <h3>
-Console webapp notes
-</h3>
+remarques sur les applications web de console</h3>
 <p>
-Console webapps with background tasks should implement a ServletContextListener
-(see seedless or i2pbote for examples), or override destroy() in the servlet,
-so that they can be stopped.
-As of router version 0.7.12-3, console webapps will always be stopped before they
-are restarted, so you do not need to worry about multiple instances,
-as long as you do this.
-Also as of router version 0.7.12-3, console webapps will be stopped at router shutdown.
+Ces applications avec des tâches de fond doivent mettre en œuvre un ServletContextListener
+(voir les exemples de seedless ou i2pbote), ou écraser le destroy() dans le servlet, pour qu'elles puissent être 
+arrêtées.
+À partir de la version 0.7.12-3 du routeur, les applications web de console sont toujours arrêtées avant d'être 
+redémarrées pour que le développeur n'ait pas à se soucier des instances multiples, si jamais il y en a.
+À partir de cette même version, les webapps sont arrêtées lorsque le routeur est arrêté.
 <p>
-Don't bundle library jars in the webapp; put them in lib/ and put a classpath in webapps.config.
-Then you can make separate install and update plugins, where the update plugin does not
-contain the library jars.
+Ne fournissez pas de bibliothèques jars dans les webapps ; placez-les dans lib/ avec un classpath dans webapps.config.
+Vous pourrez ainsi faire des installations et des mises à jours séparées, où ces dernières ne contiendront pas de 
+bibliothèques.
 <p>
-Don't include .java or .jsp files; otherwise jetty will recompile them at installation.
+N'incluez pas de fichiers .java ou de .jsp ; sinon, jetty les recompilera à l'installation.
 <p>
-For now, a webapp needing to add classpath files in $PLUGIN must be the same name as the plugin.
-For example, a webapp in plugin foo must be named foo.war.
+Pour l'instant, une webapp qui a besoin d'ajouter un des fichiers classpath dans $PLUGIN doivent avoir le même nom que 
+que le greffon. Par exemple, la webapp du greffon 'truc' doit s'appeler truc.war.
 
 
 <h3>
-Eepsite notes
+Remarques sur les eepsite
 </h3>
 <p>
-It isn't clear how to have a plugin install to an existing eepsite.
-The router has no hook to the eepsite, and it may or may not be running,
-and there may be more than one.
-Better is to start your own Jetty instance and I2PTunnel instance,
-for a brand new eepsite.
+La façon d'ajouter un greffon à un site eep n'est pas très claire. Le routeur n'a aucune jonction au site eep, l'état 
+démarré ou arrêté de celui-ci lui est inconnu, et il peut y en avoir plusieurs. Le mieux est de lancer vos propres 
+instances Jetty et I2PTunnel pour un nouvel eepsite.
 <p>
- It can instantiate a new I2PTunnel (kinda like the i2ptunnel CLI does),
-  but it won't appear in the i2ptunnel gui of course, that's a different instance.
-But that's ok. Then you can start and stop i2ptunnel and jetty together.
+ Il peut instancier un nouvel I2PTunnel (comme comme le fait la ligne de commande i2ptunnel), mais bien sûr il ne sera 
+pas visible dans le GUI i2ptunnel, qui est une instance différente. Ça n'est pas un problème. Vous pouvez ensuite 
+arrêter et démarrer i2ptunnel et Jetty ensemble.
 <p>
-So don't count on the router to automatically merge this with some existing eepsite. It probably won't happen.
-Start a new I2PTunnel and Jetty from clients.config.
-The best examples of this are the zzzot and pebble plugins,
-available at <a href="http://stats.i2p/i2p/plugins/">zzz's plugins page</a>.
+Ne comptez donc pas sur le routeur pour fusionner ça avec un site eep préexistant. Ça ne fonctionnera sûrement pas.
+Démarrez un nouvel I2PTunnel et un nouveau Jetty depuis le fichier clients.config. Les meilleurs exemples sont ceux des 
+greffons zzzot et pebble, disponibles sur <a href="http://stats.i2p/i2p/plugins/">page greffons de zzz</a>.
 <p>
-How to get path substitution into jetty.xml?
-See zzzot and pebble plugins for examples.
+Comment réaliser une substitution de path dans jetty.xml? Voir les exemples de zzzot et pebble.
 
 
 <h3>
-Client start/stop notes
+Remarques sur l'arrêt/démarrage du client
 </h3>
 <p>
-The router has no way to monitor the state of clients started via clients.config.
-The plugin author should handle multiple start or stop calls gracefully, if at all possible,
-by keeping a static state table, or using PID files, etc.
-Avoid logging or exceptions on multiple starts or stops.
-This also goes for a stop call without a previous start.
-As of router version 0.7.12-3, plugins will be stopped at router shutdown,
-which means that all clients with stopargs in clients.config will be called,
-whether or not they were previously started.
+Le routeur ne dispose d'aucun moyen de contrôle de l'état des clients démarrés via clients.config. L'auteur du greffon 
+doit gérer de multiples arrêts/démarrages, de façon fiable si possible, en gardant une table de trace d'état, ou avec 
+les PID, etc&hellip; Évitez de tracer et de gérer les exceptions lors des multiples arrêts/démarrages, comme pour les 
+demandes d'arrêt sans démarrage préalable. Depuis la v0.7.12-3, les greffons sont arrêtés avec le routeurs, ce qui veut 
+dire que tous les clients avec des stopargs dans clients.config seront appelés, qu'il aient ou non été préalablement 
+démarrés.
 
 
 <h3>
-Shell script and external program notes
+Remarques sur les scripts Shell et les programmes externes
 </h3>
 <p>
-To run shell scripts or other external programs, see <a href="http://zzz.i2p/topics/141">zzz.i2p</a>
+Pour exécuter des scripts shell ou d'autres programmes externes, voir <a href="http://zzz.i2p/topics/141">zzz.i2p</a>
 <p>
-To work on both Windows and Linux, write a small Java class that checks the OS type, then
-runs ShellCommand on either the .bat or a .sh file you provide.
+Pour fonctionner sur Windows et Linux, écrivez une petite classe Java qui vérifie le type de SE, puis exécutez 
+ShellCommand sur un .bat ou un .sh que vous fournissez vous-même.
 <p>
-External programs won't be stopped when the router stops, and a second copy will
-fire up when the router starts. To work around this, you could
-write a wrapper class or shell script that does the usual storage of the PID
-in a PID file, and check for it on start.
+Quand le routeur s'arrête, il n'arrête pas les programmes externes, et à contrario, une seconde copie sera lancée au 
+démarrage du routeur. Pour empêcher ça, vous pourriez écrire une classe wrapper ou un script shell qui ferait le 
+classique enregistrement du PID dans un fichier de PID, et le vérifier au démarrage.
 
 
 
 
 <h3>
-Other plugin guidelines
+Autres conseils pour les greffons
 </h3>
 <ul>
 <li>
