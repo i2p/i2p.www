@@ -103,125 +103,133 @@ foo.xpi2p est un fichier sud contenant les données suivantes :
 				À true, le bouton "Arrêt" n'est pas affiché. À utiliser s'il n'y pas de client ni de 
 				webapp avec des arguments d'arrêt.
 
-			The following items are used to add a link on the console summary bar:
+			Les éléments suivants servent à l'affichage d'un lien dans le panneau de contrôle de la console:
 
-			consoleLinkName (will be added to summary bar)
-			consoleLinkName_xx (for language xx)
+			consoleLinkName (nom affiché dans le panneau de contrôle)
+			consoleLinkName_xx (pour la langue xx)
 			consoleLinkURL (/appname/index.jsp)
-			consoleLinkTooltip (supported as of 0.7.12-6)
-			consoleLinkTooltip_xx (lang xx as of 0.7.12-6)
+			consoleLinkTooltip (supporté depuis la version 0.7.12-6)
+			consoleLinkTooltip_xx (idem, pour la langue xx)
 			
 
-			The following items are used by the plugin installer:
+			Les éléments suivants concernent l'installeur du greffon :
 
-			type (app/theme/locale/webapp/...) (unimplemented, probably not necessary)
+			type (app/theme/locale/webapp/...) (non implémenté, probablement inutile)
 			min-i2p-version
 			max-i2p-version
 			min-java-version
 			min-jetty-version
 			max-jetty-version
-			required-platform-OS (unimplemented - perhaps will be displayed only, not verified)
-			other-requirements (unimplemented e.g. python x.y - not verified by the installer, just displayed to the user)
+			required-platform-OS (non implémenté - sera peut-être seulement affiché, pas vérifié)
+			other-requirements (non implémenté p.e. python x.y - non vérifié par l'installeur, uniquement 
+			 affiché)
 			dont-start-at-install=true
-				Default false.
+				false par défaut.
 			router-restart-required=true
-				Default false.
-				dont-start-at-install must be true for this to take effect.
-				This does not restart the router, it just informs the user that a restart is required.
+				false par défaut.
+				dont-start-at-install doit être positionné à true pour être actif.
+				Ceci ne redémarre pas le routeur, indique seulement la nécessité de redémarrer.
 			update-only=true
-				Default false.
-				If true, will fail if an installation does not exist.
+				false par défaut.
+				À true, un échec se produira si le greffon n'est pas déjà installé.
 			install-only=true
-				Default false.
-				If true, will fail if an installation exists.
-			min-installed-version (to update over, if an installation exists)
-			max-installed-version (to update over, if an installation exists)
-			depends=plugin1,plugin2,plugin3 (unimplemented - is this too hard? proposed by sponge)
-			depends-version=0.3.4,,5.6.7 (unimplemented)
+				false par défaut.
+				À true, si le greffon est déjà installé, l'installation échouera.
+			min-installed-version (version minimale requise pour la mise à jour)
+			max-installed-version (version maximale requise pour la mise à jour)
+			depends=plugin1,plugin2,plugin3 (non implémenté - trop difficile? proposé par sponge)
+			depends-version=0.3.4,,5.6.7 (non implémenté)
 
-			The following item is used for translation plugins:
-			langs=xx,yy,Klingon,... (unimplemented) (yy is the country flag)
+			Les éléments suivants sont pour les greffons de traduction :
+			langs=xx,yy,Klingon,... (non implémenté) (yy est le drapeau du pays)
 
-		Each of the following directories or files is optional, but something must be there or it won't do anything:
+		Tous les dossiers et fichiers suivants sont optionnels , mais il faut mettre quelque-chose, ou il ne se 
+		passera rien :
 			
 		console/
 			locale/
-				Only jars containing new resource bundles (translations) for apps in the base I2P installation.
-				Bundles for this plugin should go inside console/webapp/foo.war or lib/foo.jar
+				Seulement des jars contenant de nouvelles ressources (traductions) pour les 
+				applications de l'install de base I2P.
+				Les paquets de ce greffon vont dans console/webapp/truc.war ou lib/truc.jar
 
 			themes/
-				New themes for the router console
-				Place each theme in a subdirectory.
+				Nouveaux thèmes pour la console
+				Copier chaque thème dans un sous dossier.
 
 			webapps/
-				(See important notes below about webapps)
+				(voir plus bas les remarques importantes sur les applications web)
 				.wars
-				These will be run at install time unless disabled in webapps.config
-				The war name does not have to be the same as the plugin name.
-				Do not duplicate war names in the base I2P installation.
+				Ils seront lancés à l'installation sauf si désactivés dans webapps.config
+				Le nom du .war ne doit pas nécessairement être le même que celui du greffon.
+				Ne pas utiliser plusieurs fois le même nom de .war dans l'installation de base.
 
 			webapps.config 
-				Same format as router's webapps.config
-				Also used to specify additional jars in $PLUGIN/lib/ or $I2P/lib for the webapp classpath,
-				with webapps.warname.classpath=$PLUGIN/lib/foo.jar,$I2P/lib/bar.jar
-				NOTE: Currently, the classpath line is only loaded if the warname is
-				the same as the plugin name.
-				NOTE: Prior to router version 0.7.12-9, the router looked for plugin.warname.startOnLoad instead
-				of webapps.warname.startOnLoad. For compatibility with older router versions, a plugin
-				wishing to disable a war should include both lines.
+				Même format que le webapps.config du routeur
+				Sert aussi à indiquer des .jars supplémentaires dans $PLUGIN/lib/ ou $I2P/lib pour le 
+				classpath de la webapp, avec 
+				webapps.warname.classpath=$PLUGIN/lib/foo.jar,$I2P/lib/bar.jar
+				NOTE : actuellement, la ligne classpath n'est chargée que si le nom du war est le même
+				que celui du greffon.
+				NOTE : avant sa version 0.7.12-9, le routeur cherchait plugin.warname.startOnLoad au 
+				lieu de webapps.warname.startOnLoad. Pour la compatibilité avec les versions
+				antérieures, si un greffon doit désactiver un war, il doit comporter les deux lignes.
 
 		eepsite/
-			(See important notes below about eepsites)
+			(Voir plus bas les remarques importantes sur les eepsites)
 			cgi-bin/
 			docroot/
 			logs/
 			webapps/
 			jetty.xml
-				The installer will have to do variable substitution in here to set the path
-				The location and name of this file doesn't really matter, as long as it is set in
-				clients.config - it may be more convenient to be up one level from here
-				(that's what the zzzot plugin does)
+				L'installeur devra y substituer la variable pour définir le chemin
+				L'emplacement et le nom de ce fichier ne sont pas vraiment importants, tant qu'ils sont 
+				définis dans clients.config - il peut être plus pratique d'être un niveau au dessus
+				dans l'arborescence (comme le fait le greffon zzzot)
 
 		lib/
-			Put any jars here, and specify them in a classpath line in console/webapps.config and/or clients.config
+			Pour tous les jars. Les indiquer dans une ligne classpath de console/webapps.config et/ou
+			clients.config
 
-		clients.config (same format as router's clients.config)
-			These will be run when a plugin is started
-			Start at client #0, number consecutively
-			New property clientApp.0.stopargs=foo bar stop baz
-				If present, the class will be called with these args to stop the client
-				All stop tasks are called with zero delay
-				Note: The router can't tell if your clients are running or not.
-                                Each should handle stopping an app that isn't running without complaint.
-				That probably goes for starting a client that is already started too.
-			New property clientApp.0.uninstallargs=foo bar uninstall baz
-				If present, the class will be called with these args just before deleting $PLUGIN
-				All stop tasks are called with zero delay
-			New property clientApp.0.classpath=$I2P/lib/foo.bar,$PLUGIN/lib/bar.jar
-			The plugin runner will do variable substitution in the args and stopargs lines as follows:
-				$I2P => i2p base installation dir;
-				$CONFIG => i2p config dir (typically ~/.i2p)
-				$PLUGIN => this plugin's installation dir (typically ~/.i2p/plugins/appname)
-			(See important notes below about running shell scripts or external programs)
+		clients.config (même format que le clients.config du routeur)
+			Lancés quand un greffon est démarré
+			Commence à client #0, en numérotation consécutive
+			New property clientApp.0.stopargs=truc machin stop bidule
+				Si présente, la classe sera appelée avec ces arguments pour arrêter le client
+				Toutes les tâches d'arrêt sont appelées avec un délais nul
+				Note: Le routeur ne peut pas dire si les clients tournent ou pas.
+                                Chacun doit pouvoir gérer une demande d'arrêt d'une application qui ne tourne pas sans 
+				faire d'histoires.
+				Idem pour le lancement d'un client déjà démarré.
+			New property clientApp.0.uninstallargs=truc machin uninstall bidule
+				Si présente, la classe sera appelée avec ces arguments juste avant la suppression de 
+				$PLUGIN
+				Toutes les tâches de désinstallation sont appelées avec un délais nul
+			New property clientApp.0.classpath=$I2P/lib/truc.muche,$PLUGIN/lib/bidule.jar
+				L'exécutable du greffon devra faire une substitution de variable dans les lignes des 
+				les arguments et les stopargs de la façon suivante :
+				$I2P => dossier d'installation de base d'I2P;
+				$CONFIG => dossier de configuration d'i2p (habituellement ~/.i2p)
+				$PLUGIN => le dossier d'installation du greffon (habituellement ~/.i2p/plugins/appname)
+			(Voir les remarques importantes sur les scripts d'exécution shell ou les programmes externes)
 </pre>
 
 
-<h3>Plugin installer tasks</h3>
-This lists what happens when a plugin is installed by I2P.
+<h3>Tâches d'installation du greffon</h3>
+Séquence d'installation.
 <ul>
 
-    <li>The .xpi2p file is downloaded.</li>
-    <li>The .sud signature is verified against stored keys.
-        If there is no matching key, the .sud is extracted, the key is loaded from the properties, then verified and stored.</li>
-    <li>Verify the integrity of the zip file.</li>
-    <li>Extract the plugin.config file.</li>
-    <li>Verify the I2P version, to make sure the plugin will work.</li>
-    <li>Check that webapps don't duplicate the existing $I2P applications.</li>
-    <li>Stop the existing plugin (if present).</li>
-    <li>Verify that the install directory does not exist yet if update=false, or ask to overwrite.</li>
-    <li>Verify that the install directory does exist if update=false, or ask to create.</li>
-    <li>Unzip the plugin in to appDir/plugins/name/</li>
-    <li>Add the plugin to plugins.config</li>
+    <li>Téléchargement du fichier .xpi2p.</li>
+    <li>Vérification de la signature du .sud par rapport au clés connues. En l'absence de correspondance, le .sud est 
+	extrait, la clé est chargée à partir des propriétés, vérifiée et enregistrée.</li>
+    <li>Vérification de l'intégrité du fichier zip.</li>
+    <li>Extraction du fichier plugin.config.</li>
+    <li>Vérification de la version d'I2P, pour assurer que le greffon peut fonctionner.</li>
+    <li>Vérification qu'il ne s'agit pas d'un doublon d'une des application $I2P.</li>
+    <li>Arrêt de l'éventuel greffon existant.</li>
+    <li>Contrôle de l'inexistence du dossier d'installation si update=false, ou demande d'écrasement.</li>
+    <li>Vérification de l'existence du dossier d'installation update=true, ou demande de création.</li>
+    <li>Décompression du greffon dans appDir/plugins/name/</li>
+    <li>Ajout d'une référence au greffon dans plugins.config</li>
 </ul>
 
 <h3>
