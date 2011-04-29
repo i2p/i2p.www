@@ -56,161 +56,150 @@ dans la même JVM et avec les même privilèges que le routeur : ils ont l'accè
 <p>
 foo.xpi2p est un fichier sud contenant les données suivantes :
 <pre>
-	En-tête standard .sud au début du fichier zip, contenant :
-	        La <a href="how_cryptography.html#DSA">signature DSA</a> à 40 octets
-		La version du greffon sur 16 octets en UTF-8, complétée par des zéros en fin si nécessaire
+En-tête standard .sud au début du fichier zip, contenant :
+        La <a href="how_cryptography.html#DSA">signature DSA</a> à 40 octets
+	La version du greffon sur 16 octets en UTF-8, complétée par des zéros en fin si nécessaire
 
-	Le fichier Zip contenant :
+Le fichier Zip contenant :
 
-		(REQUIS) un fichier plugin.config :
-		(fichier standard de configuration I2P, en UTF-8, contenant des lignes clé=valeur, les commentaires 
-		commençant par #)
-		Contenant les propriétés suivantes :
+	(REQUIS) un fichier plugin.config :
+	(fichier standard de configuration I2P, en UTF-8, contenant des lignes clé=valeur, les commentaires commençant par #)
+	Contenant les propriétés suivantes :
 
-		(* = requis)
-			Les trois premières doivent être identiques à celles du greffon installé s'il s'agit d'une mise 
-			à jour.
+	(* = requis)
+		Les trois premières doivent être identiques à celles du greffon installé s'il s'agit d'une mise à jour.
 
-			*name (le greffon sera installé dans ce dossier)
-				Pour les greffons spécifiques à un SE donné, vous pouvez séparer les noms pour des 
-				paquets différents, par exemple truc-windows et truc-linux.
-			*key (<a href="how_cryptography.html#DSA">clé publique DSA</a> sous forme Base64
-				de 172 caractères finissant '=')
-			*signer (votrenom@mail.i2p recommendé)
+		*name (le greffon sera installé dans ce dossier)
+			Pour les greffons spécifiques à un SE donné, vous pouvez séparer les noms pour des paquets différents, par exemple truc-windows et truc-linux.
+		*key (<a href="how_cryptography.html#DSA">clé publique DSA</a> sous forme Base64 de 172 caractères finissant '=')
+		*signer (votrenom@mail.i2p recommendé)
 
-			*version (dans un format compatible avec VersionComparator, p.e. 1.2.3-4)
-				16 octets maximum (doit correspondre à la version du sud)
-				Les séparateurs acceptés sont '.', '-', et '_'
-				Pour une mise à jour de greffon, doit être supérieure à celle actuellement installée.
+		*version (dans un format compatible avec VersionComparator, p.e. 1.2.3-4)
+			16 octets maximum (doit correspondre à la version du sud)
+			Les séparateurs acceptés sont '.', '-', et '_'
+			Pour une mise à jour de greffon, doit être supérieure à celle actuellement installée.
 
 
-			configclients.jsp affichera les éléments suivants s'ils sont présents :
+		configclients.jsp affichera les éléments suivants s'ils sont présents :
 
-			date (temps Java - entier long)
-			author (votrenom@mail.i2p recommendé)
-			websiteURL (http://truc.i2p/)
-			updateURL (http://truc.i2p/truc.xpi2p)
-				Le vérificateur de mises à jour contrôle les octets 41 à 56 à cette URL pour déterminer 
-				si une nouvelle version est disponible
-				( Le vérificateur va-t-il télécharger avec ?currentVersion=1.2.3?...
-				  Non. Si le développeur que l'URL contienne la version actuelle, il doit le préciser 
-				  dans le fichier de configuration, et penser à le modifier à chaque nouvelle version)
-			description
-			description_xx (pour la langue xx)
-			license
-			disableStop=true
-				Par défault, false.
-				À true, le bouton "Arrêt" n'est pas affiché. À utiliser s'il n'y pas de client ni de 
-				webapp avec des arguments d'arrêt.
+		date (temps Java - entier long)
+		author (votrenom@mail.i2p recommendé)
+		websiteURL (http://truc.i2p/)
+		updateURL (http://truc.i2p/truc.xpi2p)
+			Le vérificateur de mises à jour contrôle les octets 41 à 56 à cette URL pour déterminer si une nouvelle version est disponible
+			(Le vérificateur va-t-il télécharger avec ?currentVersion=1.2.3?&hellip; Non. Si le développeur que l'URL contienne la version actuelle, il doit le préciser dans le fichier de configuration, et penser à le modifier à chaque nouvelle version)
+		description
+		description_xx (pour la langue xx)
+		license
+		disableStop=true
+			Par défault, false.
+			À true, le bouton "Arrêt" n'est pas affiché. À utiliser s'il n'y pas de client ni de 
+			webapp avec des arguments d'arrêt.
 
-			Les éléments suivants servent à l'affichage d'un lien dans le panneau de contrôle de la console:
+		Les éléments suivants servent à l'affichage d'un lien dans le panneau de contrôle de la console:
 
-			consoleLinkName (nom affiché dans le panneau de contrôle)
-			consoleLinkName_xx (pour la langue xx)
-			consoleLinkURL (/appname/index.jsp)
-			consoleLinkTooltip (supporté depuis la version 0.7.12-6)
-			consoleLinkTooltip_xx (idem, pour la langue xx)
+		consoleLinkName (nom affiché dans le panneau de contrôle)
+		consoleLinkName_xx (pour la langue xx)
+		consoleLinkURL (/appname/index.jsp)
+		consoleLinkTooltip (supporté depuis la version 0.7.12-6)
+		consoleLinkTooltip_xx (idem, pour la langue xx)
 			
 
-			Les éléments suivants concernent l'installeur du greffon :
+		Les éléments suivants concernent l'installeur du greffon :
 
-			type (app/theme/locale/webapp/...) (non implémenté, probablement inutile)
-			min-i2p-version
-			max-i2p-version
-			min-java-version
-			min-jetty-version
-			max-jetty-version
-			required-platform-OS (non implémenté - sera peut-être seulement affiché, pas vérifié)
-			other-requirements (non implémenté p.e. python x.y - non vérifié par l'installeur, uniquement 
-			 affiché)
-			dont-start-at-install=true
-				false par défaut.
-			router-restart-required=true
-				false par défaut.
-				dont-start-at-install doit être positionné à true pour être actif.
-				Ceci ne redémarre pas le routeur, indique seulement la nécessité de redémarrer.
-			update-only=true
-				false par défaut.
-				À true, un échec se produira si le greffon n'est pas déjà installé.
-			install-only=true
-				false par défaut.
-				À true, si le greffon est déjà installé, l'installation échouera.
-			min-installed-version (version minimale requise pour la mise à jour)
-			max-installed-version (version maximale requise pour la mise à jour)
-			depends=plugin1,plugin2,plugin3 (non implémenté - trop difficile? proposé par sponge)
-			depends-version=0.3.4,,5.6.7 (non implémenté)
+		type (app/theme/locale/webapp/...) (non implémenté, probablement inutile)
+		min-i2p-version
+		max-i2p-version
+		min-java-version
+		min-jetty-version
+		max-jetty-version
+		required-platform-OS (non implémenté - sera peut-être seulement affiché, pas vérifié)
+		other-requirements (non implémenté p.e. python x.y - non vérifié par l'installeur, uniquement 
+		 affiché)
+		dont-start-at-install=true
+			false par défaut.
+		router-restart-required=true
+			false par défaut.
+			dont-start-at-install doit être positionné à true pour être actif.
+			Ceci ne redémarre pas le routeur, indique seulement la nécessité de redémarrer.
+		update-only=true
+			false par défaut.
+			À true, un échec se produira si le greffon n'est pas déjà installé.
+		install-only=true
+			false par défaut.
+			À true, si le greffon est déjà installé, l'installation échouera.
+		min-installed-version (version minimale requise pour la mise à jour)
+		max-installed-version (version maximale requise pour la mise à jour)
+		depends=plugin1,plugin2,plugin3 (non implémenté - trop difficile? proposé par sponge)
+		depends-version=0.3.4,,5.6.7 (non implémenté)
 
-			Les éléments suivants sont pour les greffons de traduction :
-			langs=xx,yy,Klingon,... (non implémenté) (yy est le drapeau du pays)
+		Les éléments suivants sont pour les greffons de traduction :
+		langs=xx,yy,Klingon,... (non implémenté) (yy est le drapeau du pays)
 
-		Tous les dossiers et fichiers suivants sont optionnels , mais il faut mettre quelque-chose, ou il ne se 
-		passera rien :
-			
-		console/
-			locale/
-				Seulement des jars contenant de nouvelles ressources (traductions) pour les 
-				applications de l'install de base I2P.
-				Les paquets de ce greffon vont dans console/webapp/truc.war ou lib/truc.jar
+	Tous les dossiers et fichiers suivants sont optionnels , mais il faut mettre quelque-chose, ou il ne se 
+	passera rien :
 
-			themes/
-				Nouveaux thèmes pour la console
-				Copier chaque thème dans un sous dossier.
+	console/
+		locale/
+			Seulement des jars contenant de nouvelles ressources (traductions) pour les 
+			applications de l'install de base I2P.
+			Les paquets de ce greffon vont dans console/webapp/truc.war ou lib/truc.jar
 
-			webapps/
-				(voir plus bas les remarques importantes sur les applications web)
-				.wars
-				Ils seront lancés à l'installation sauf si désactivés dans webapps.config
-				Le nom du .war ne doit pas nécessairement être le même que celui du greffon.
-				Ne pas utiliser plusieurs fois le même nom de .war dans l'installation de base.
+		themes/
+			Nouveaux thèmes pour la console
+			Copier chaque thème dans un sous dossier.
 
-			webapps.config 
-				Même format que le webapps.config du routeur
-				Sert aussi à indiquer des .jars supplémentaires dans $PLUGIN/lib/ ou $I2P/lib pour le 
-				classpath de la webapp, avec 
-				webapps.warname.classpath=$PLUGIN/lib/foo.jar,$I2P/lib/bar.jar
-				NOTE : actuellement, la ligne classpath n'est chargée que si le nom du war est le même
-				que celui du greffon.
-				NOTE : avant sa version 0.7.12-9, le routeur cherchait plugin.warname.startOnLoad au 
-				lieu de webapps.warname.startOnLoad. Pour la compatibilité avec les versions
-				antérieures, si un greffon doit désactiver un war, il doit comporter les deux lignes.
+		webapps/
+			(voir plus bas les remarques importantes sur les applications web)
+			.wars
+			Ils seront lancés à l'installation sauf si désactivés dans webapps.config
+			Le nom du .war ne doit pas nécessairement être le même que celui du greffon.
+			Ne pas utiliser plusieurs fois le même nom de .war dans l'installation de base.
 
-		eepsite/
-			(Voir plus bas les remarques importantes sur les eepsites)
-			cgi-bin/
-			docroot/
-			logs/
-			webapps/
-			jetty.xml
-				L'installeur devra y substituer la variable pour définir le chemin
-				L'emplacement et le nom de ce fichier ne sont pas vraiment importants, tant qu'ils sont 
-				définis dans clients.config - il peut être plus pratique d'être un niveau au dessus
-				dans l'arborescence (comme le fait le greffon zzzot)
+		webapps.config 
+			Même format que le webapps.config du routeur
+			Sert aussi à indiquer des .jars supplémentaires dans $PLUGIN/lib/ ou $I2P/lib pour le 
+			classpath de la webapp, avec 
+			webapps.warname.classpath=$PLUGIN/lib/foo.jar,$I2P/lib/bar.jar
+			NOTE : actuellement, la ligne classpath n'est chargée que si le nom du war est le même
+			que celui du greffon.
+			NOTE : avant sa version 0.7.12-9, le routeur cherchait plugin.warname.startOnLoad au 
+			lieu de webapps.warname.startOnLoad. Pour la compatibilité avec les versions
+			antérieures, si un greffon doit désactiver un war, il doit comporter les deux lignes.
 
-		lib/
-			Pour tous les jars. Les indiquer dans une ligne classpath de console/webapps.config et/ou
-			clients.config
+	eepsite/
+		(Voir plus bas les remarques importantes sur les eepsites)
+		cgi-bin/
+		docroot/
+		logs/
+		webapps/
+		jetty.xml
+			L'installeur devra y substituer la variable pour définir le chemin
+			L'emplacement et le nom de ce fichier ne sont pas vraiment importants, tant qu'ils sont 
+			définis dans clients.config - il peut être plus pratique d'être un niveau au dessus
+			dans l'arborescence (comme le fait le greffon zzzot)
 
-		clients.config (même format que le clients.config du routeur)
-			Lancés quand un greffon est démarré
-			Commence à client #0, en numérotation consécutive
-			New property clientApp.0.stopargs=truc machin stop bidule
-				Si présente, la classe sera appelée avec ces arguments pour arrêter le client
-				Toutes les tâches d'arrêt sont appelées avec un délais nul
-				Note: Le routeur ne peut pas dire si les clients tournent ou pas.
-                                Chacun doit pouvoir gérer une demande d'arrêt d'une application qui ne tourne pas sans 
-				faire d'histoires.
-				Idem pour le lancement d'un client déjà démarré.
-			New property clientApp.0.uninstallargs=truc machin uninstall bidule
-				Si présente, la classe sera appelée avec ces arguments juste avant la suppression de 
-				$PLUGIN
-				Toutes les tâches de désinstallation sont appelées avec un délais nul
-			New property clientApp.0.classpath=$I2P/lib/truc.muche,$PLUGIN/lib/bidule.jar
-				L'exécutable du greffon devra faire une substitution de variable dans les lignes des 
-				les arguments et les stopargs de la façon suivante :
-				$I2P => dossier d'installation de base d'I2P;
-				$CONFIG => dossier de configuration d'i2p (habituellement ~/.i2p)
-				$PLUGIN => le dossier d'installation du greffon (habituellement ~/.i2p/plugins/appname)
-			(Voir les remarques importantes sur les scripts d'exécution shell ou les programmes externes)
+	lib/
+		Pour tous les jars. Les indiquer dans une ligne classpath de console/webapps.config et/ou clients.config
+
+	clients.config (même format que le clients.config du routeur)
+		Éléments lancés quand un greffon est démarré
+		Commence à client #0, en numérotation consécutive
+		New property clientApp.0.stopargs=truc machin stop bidule
+			Si présente, la classe sera appelée avec ces arguments pour arrêter le client
+			Toutes les tâches d'arrêt sont appelées avec un délais nul
+			Note: Le routeur ne peut pas dire si les clients tournent ou pas. Chacun doit pouvoir gérer une demande d'arrêt d'une application qui ne tourne pas sans faire d'histoires.
+			Idem pour le lancement d'un client déjà démarré.
+		New property clientApp.0.uninstallargs=truc machin uninstall bidule
+			Si présente, la classe sera appelée avec ces arguments juste avant la suppression de $PLUGIN
+			Toutes les tâches de désinstallation sont appelées avec un délais nul
+		New property clientApp.0.classpath=$I2P/lib/truc.muche,$PLUGIN/lib/bidule.jar
+			L'exécutable du greffon devra faire une substitution de variable dans les lignes des 
+			les arguments et les stopargs de la façon suivante :
+			$I2P => dossier d'installation de base d'I2P;
+			$CONFIG => dossier de configuration d'i2p (habituellement ~/.i2p)
+			$PLUGIN => le dossier d'installation du greffon (habituellement ~/.i2p/plugins/appname)
+		(Voir les remarques importantes sur les scripts d'exécution shell ou les programmes externes)
 </pre>
 
 
@@ -318,12 +307,11 @@ Autres conseils pour les greffons
 </h3>
 <ul>
 <li>
-See i2p.scripts branch or any of the sample plugins on zzz's page for a xpi2p file generator to make it easy.
-<li>
-Pack200 of jars and wars is strongly recommended for plugins, it generally shrinks plugins by 60-65%.
-See any of the sample plugins on zzz's page for an example.
-Pack200 unpacking is supported on routers 0.7.11-5 or higher, which is essentially all routers that
-support plugins at all.
+Pour développer facilement, voir un générateur de fichier xpi2p, dans monotone à la branche i2p.scripts, ou les échantillons d'exemples de greffons sur la page de zzz<li>
+Pack200 est fortement recommandé pour les jars et les wars des greffons, cela réduit leur taille d'environ 60 à 65%.
+Voir exemple sur la page de zzz.
+La décompression Pack200 est supportée depuis le routeur version 0.7.11-5, c'est à dire quasiment tous les routeurs qui 
+supportent les greffons.
 
 <li>
  Plugins should not attempt to write anywhere in $I2P as it may be readonly, and that isn't good policy anyway.
