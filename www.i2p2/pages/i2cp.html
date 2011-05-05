@@ -1,7 +1,7 @@
 {% extends "_layout.html" %}
 {% block title %}I2CP{% endblock %}
 {% block content %}
-Updated January 2011, current as of router version 0.8.3
+Updated May 2011, current as of router version 0.8.5
 
 <p>The I2P Client Protocol (I2CP) exposes a strong separation of concerns between
 the router and any client that wishes to communicate over the network.  It enables
@@ -151,8 +151,11 @@ All option names are case-sensitive.
 
 <h2 id="format">I2CP Payload Data Format and Multiplexing</h2>
 <p>
-The end-to-end messages handled by I2CP (i.e. the data sent by the client in a SendMessageMessage and
-received by the client in a MessagePayloadMessage) are gzipped with a standard 10-byte gzip
+The end-to-end messages handled by I2CP (i.e. the data sent by the client in a
+<a href="i2cp_spec.html#msg_SendMessage">SendMessageMessage</a>
+and received by the client in a
+<a href="i2cp_spec.html#msg_MessagePayload">MessagePayloadMessage</a>)
+are gzipped with a standard 10-byte gzip
 header beginning with 0x1F 0x8B 0x08 as
 specified by <a href="http://www.ietf.org/rfc/rfc1952.txt">RFC 1952</a>.
 As of release 0.7.1, I2P uses ignored portions of the gzip header to include
@@ -181,33 +184,11 @@ specified by <a href="http://www.ietf.org/rfc/rfc1952.txt">RFC 1952</a>.
 
 <h2 id="future">Future Work</h2>
 <ul><li>
-There is an in-JVM version of I2CP that uses a Java pipe instead of real sockets.
-However, it still does message serialization and deserialization.
-It should be refactored to pass the Message objects directly.
-</li><li>
-The protocol is highly inefficient, with three I2CP messages for every outgoing message,
-and four I2CP messages for every incoming message.
-Perhaps the acknowledgments and queueing could be eliminated, especially for the in-JVM version.
-This would eliminate a lot of data structures and memory for holding
-unacknowledged messages.
-</li><li>
-Implement i2cp.messageReliablity=none to disable the two Message Status Message responses
-to a Send Message Message.
-Make it the default? At least via the streaming lib.
-</li><li>
-The API does not support Dest Lookups or Get Bandwidth Limits Messages in a standard session,
-only in a simple session.
-This should be fixed.
-</li><li>
-The API does not support parallel Dest Lookups or Get Bandwidth Limits Messages in a session.
-This should be fixed.
-</li><li>
 Implement I2CP and the streaming library in another programming language.
 </li><li>
 Is the initial Get Date / Set Date handshake required?
 </li><li>
-There is currently no authorization mechanism.
-This would be required on the socket version only, not in the in-JVM version.
+The current authorization mechanism could be modified to use hashed passwords.
 </li><li>
 Private Keys are included in the Create Lease Set message,
 are they really required? Revocation is unimplemented.
