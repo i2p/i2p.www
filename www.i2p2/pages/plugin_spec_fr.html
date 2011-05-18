@@ -328,132 +328,128 @@ n'essayez pas de lire ou écrire des fichiers dans le chemin relatif $CWD.
 <li>
  Le programmes Java doivent pouvoir déterminer où ils se trouvent avec les 'getters' de I2PAppContext.
 <li>
- Plugin directory is I2PAppContext.getGlobalContext().getAppDir().getAbsolutePath() + "/plugins/" + appname,
-  or put a $PLUGIN argument in the args line in clients.config.
-There is no reliable way to find the i2p install or config or plugin directory without using the
-context API in i2p.jar.
+ Le dossier des greffons est I2PAppContext.getGlobalContext().getAppDir().getAbsolutePath() + "/plugins/" + nom de 
+l'application, ou indiquez un argument $PLUGIN dans la ligne args du fichier clients.config. Il n'y a pas de moyen 
+fiable pour trouver les dossiers d'installation d'i2p, de configuration ou de greffons sans utiliser l'API de contexte 
+d'i2p.jar.
 <li>
- See <a href="http://zzz.i2p/topics/16">Howto</a> for info on generating signing keys and generating/verifying keys and sud files
+ Voir <a href="http://zzz.i2p/topics/16">Comment faire</a> pour générer les clés de signature et les clés de 
+génération/vérification, et les fichiers .sud.
 <li>
- All config files must be UTF-8.
+ Tous les fichiers de configuration doivent être encodés en UTF-8.
 <li>
- To run in a separate JVM, use ShellCommand with java -cp foo:bar:baz my.main.class arg1 arg2 arg3.
-Of course, it will be a lot harder to stop the plugin then...
-But with some trickery with PID files it should be possible.
+ Pour l'exécution dans une JVM séparée, utilisez ShellCommand avec java -cp truc:muche:bidule ma.pricipale.classe arg1 arg2 arg3.
+Évidement, il sera alors bien plus difficile d'arrêter le greffon&hellip;
+Mais cela reste possible en jouant avec les fichiers PID.
 <li>
- As an alternative to stopargs in clients.config,
- a Java client may register a shutdown hook with I2PAppContext.addShutdownTask().
- But this wouldn't shut down a plugin when upgrading, so stopargs is recommended.
-  Also, set all created threads to daemon mode.
+ En tant qu'alternative aux stopargs dans clients.config, un client Java peut enregistrer un lien d'arrêt avec 
+I2PAppContext.addShutdownTask(). Mais ça n'arrêtera pas le greffon lors d'une mise à jour, donc les stopargs restent 
+préférables. De plus, définissez en mode service toutes les tâches créées.
 <li>
- Do not include classes duplicating those in the standard installation. Extend the classes if necessary.
+ N'incluez pas de classes dupliquant celles de l'installation standard. Améliorez les classes si nécessaire.
 <li>
- Beware of the different classpath definitions in wrapper.config between old and new installations -
- see classpath section below.
+ Faites attention aux définitions des divers classpath dans wrapper.config entre les installations anciennes et 
+nouvelles - voir la section 'classpath' plus bas.
 <li>
- Clients will reject duplicate keys with different keynames, and duplicate keynames with different keys,
-  and different keys or keynames in upgrade packages. Safeguard your keys. Only generate them once.
+ Les clients rejetterons les clés dupliquées avec des noms de clé différents, des noms de clés dupliqués avec des clés 
+différentes, et des clés ou noms de clés différents dans les paquets de mises à jour. Sauvegardez vos clés de façon 
+maniaque et paranoïaque. Ne les générez qu'une seule fois.
 <li>
- Do not modify the plugin.config file at runtime as it will be overwritten on upgrade.
-  Use a different config file in the directory for storing runtime configuration.
+ Ne modifiez pas le fiichier plugin.config à l'exécution car il sera écrasé lors d'une mise à jour. Utilisez un fichier 
+de configuration différent dans le dossier pour enregistrer la configuration d'exécution.
 <li>
- In general, plugins should not require access to $I2P/lib/router.jar. Do not access router classes,
-unless you are doing something special.
-The router may in the future implement a restricted classpath for plugins that prevents
-access to router classes.
+ En général, les greffons n'ont pas besoin d'accéder à $I2P/lib/router.jar. N'accédez pas aux classes du routeur, à 
+moins que vous ne fassiez quelque-chose de particulier. Dans l'avenir, le routeur pourrait implémenter un classpath 
+réservé pour les greffons, qui empêcherait l'accès à ses propres classes.
 <li>
-Since each version must be higher than the one before, you could enhance your build
-script to add a build number to the end of the version.
-This helps for testing. Most of zzz's plugins have that feature, check build.xml for an example.
+Comme chaque numéro de version doit être supérieur à celui de le version précédente, vous pouvez améliorer vos scripts 
+de développement en ajoutant un numéro de développement à la fin du numéro de version. C'est pratique pour les tests. 
+La plupart des greffons de zzz utilisent cette méthode : regardez build.xml à titre d'exemple.
 <li>
-Plugins must never call System.exit().
+Les greffons ne doivent jamais invoquer System.exit().
 <li>
-Please respect licenses by meeting license requirements for any software you bundle.
-
+Merci de respecter les licences en vous conformant aux exigences de licences pour tout logiciel que vous fournissez.
 </ul>
 
 <h3>
 Classpaths
 </h3>
 
-The following jars in $I2P/lib can be assumed to be in the standard classpath for all I2P installations,
-no matter how old or how new the original installation:
+Vous pouvez considérer que les jars suivants dans $I2P/lib sont dans le classpath standard pour toutes les 
+installations dI2P, quel que soit l'âge de l'installation d'origine :
 <p>
  i2p.jar, router.jar, jbigi.jar, sam.jar, mstreaming.jar, streaming.jar, i2ptunnel.jar,
  org.mortbay.jetty.jar, javax.servlet.jar, jasper-compiler.jar, jasper-runtime.jar,
  commons-logging.jar, commons-el.jar, wrapper.jar, systray.jar, systray4j.jar
 <p>
 
- Anything not listed above may not be present in everybody's classpath, even if you
- have it in the classpath in YOUR version of i2p.
- If you need any jar not listed above, add $I2P/lib/foo.jar to the classpath specified
- in clients.config or webapps.config in your plugin.
+ Rien de non listé ci-dessus ne devrait se trouver dans le classpath de personne, même si l'avez dans le classpath de 
+VOTRE version d'i2p. Si vous avez besoin d'un jar non listé ci-dessus, ajoutez $I2P/lib/truc.jar au classpath indiqué 
+dans les fichiers clients.config ou webapps.config de votre greffon.
 <p>
-Previously, a classpath entry specified in clients.config was added to the classpath for
-the entire JVM.
-However, as of 0.7.13-3, this was fixed using class loaders, and now, as originally intended,
-the specified classpath in clients.config is only for the particular thread.
-See the section on JVM crashes below, and
-<a href="http://zzz.i2p/topics/633">this thread on zzz.i2p</a> for background.
-Therefore, specify the full required classpath for each client.
+Précédemment, une entrée classpath indiquée dans clients.config était ajoutée au classpath de la JVM. Cependant ceci à 
+été corrigé depuis la version 0.7.13-3 en utilisant les chargeurs de classes, et maintenant, conformément à ce qui 
+était prévu dès l'origine, le classpath indiqué dans clients.config ne concerne que la tâche spécifique.
+Voir la section sur le plantage de la JVM plus bas, et <a href="http://zzz.i2p/topics/633">cette page sur zzz.i2p</a> 
+pour plus de détails. En conséquence, indiquez le classpath intégral requis pour chaque client.
 
 
 <h3>
-Java Version Notes
+Notes sur les versions de Java
 </h3>
-While most I2P users are running a 1.6 (6.0) JVM, we support 1.5 (5.0) and higher JVMs.
-Unless you require 1.6 features, you should create your plugin so it works on 1.5.
+Bien que la plupart des utilisateurs d'I2P utilisent une JVM 1.6 (6.0), nous prenons en charge la version 1.5 (5.0) et 
+les plus récentes.
+À moins que vous n'ayez besoin de fonctionnalités de la v1.6, vous devriez créer vos greffons avec la v1.5 pour 
+garantir le fonctionnement à ceux qui l'utilisent.
 <p>
-If your plugin <b>does not require 1.6</b>:
+Si votre greffon <b>n'a pas besoin de la 1.6</b> :
 <ul>
 <li>
-Ensure that all java and jsp files are compiled with source="1.5" target="1.5".
+Assurez-vous que tous les fichiers java et jsp sont compilés avec source="1.5" target="1.5".
 <li>
-Ensure that all bundled library jars are also for 1.5 or lower.
+Assurez-vous aussi que toutes les bibliothèques jars fournies sont pour la v1.5 ou plus ancienne.
 <li>
-If you are using pack200, any 1.6 classes in a jar will
-cause pack200 to create a 1.6 pack format, and
-plugin installation will fail on a 1.5 system
-with the misleading message "plugin is corrupt".
+Si vous utilisez pack200, toute classe 1.6 dans un jar fera que pack200 créera un paquet au format 1.6 pack format, et 
+l'installation du greffon échouera sur un système en v1.5 en générant le message erroné suivant : "Le greffon est 
+corrompu".
 </ul>
 
 <p>
-If your plugin <b>requires 1.6</b>:
+Si votre greffon <b>nécessite la v1.6</b>:
 <ul>
 <li>
-Note that on your download page.
+Précisez-le expressément sur votre page de téléchargement.
 <li>
-Add min-java-version=1.6 to your plugin.config
+Ajoutez min-java-version=1.6 dans votre ficher plugin.config
 <li>
-If you are using pack200, plugin installation will fail on a 1.5 system
-with the misleading message "plugin is corrupt".
+Si vous utilisez pack200, l'installation du greffon sur un système en v1.5 échouera et retournera un message erroné "Le 
+greffon est corrompu".
 </ul>
 
 
 <h3>
-JVM Crashes When Updating
+La JVM se plante en mise à jour
 </h3>
-Note - this should all be fixed now.
+Note - tout devrait être résolu à l'heure actuelle.
 <p>
-The JVM has a tendency to crash when updating jars in a plugin if that plugin was running
-since i2p was started (even if the plugin was later stopped).
-This may have been fixed with the class loader implementation in 0.7.13-3, but it may not.
-For further testing.
+La JVM a tendance à planter lors de mises à jour des jars d'un greffon si celui-ci était en cours d'exécution quand i2p 
+a été lancé (même si le greffon a été arrêté après). Ça pourrait avoir été corrigé par l'utilisation du chargeur de 
+classes dans la version 0.7.13-3, mais peut-être pas.
+À tester ultérieurement.
 <p>
-The safest is to design your plugin with the jar inside the war (for a webapp), or to require a restart
-after update, or don't update the jars in your plugin.
+Le plus sûr est de concevoir votre greffon avec le jar dans le war (pour une application web), ou d'exiger un 
+redémarrage après la mise à jour, ou ne pas mettre à jour les jar de votre greffon.
 <p>
-Due to the way class loaders work inside a webapp, it _may_ be safe to have external jars if
-you specify the classpath in webapps.config.
-More testing is required to verify this.
-Don't specify the classpath with a 'fake' client in clients.config if it's only
-needed for a webapp - use webapps.config instead.
+De part le fonctionnement des class loaders dans une webapp, il _pourrait_ être sûr d'avoir des jars externes si vous 
+indiquez le classpath dans le fichier webapps.config. Plus de tests sont nécessaires pour vérifier ce point. N'indiquez 
+pas le classpath avec un client factice dans le fichier clients.config s'il n'est nécessaire que pour une webapp - 
+utilisez plutôt webapps.config.
 <p>
-The least safe, and apparently the source of most crashes, is clients with plugin jars specified
-in the classpath in clients.config.
+Le moins sûr, et apparemment source de la plupart des plantages, sont les clients avec les jars du greffon indiqués 
+dans le classpath du fichier clients.config.
 
 <p>
-None of this should be a problem on initial install - you should not ever have to require a restart
-for an initial install of a plugin.
+Rien de tout ceci ne devrait poser de problèmes sur une installation initiale - vous ne devriez même jamais avoir à 
+demander un redémarrage pour une installation initiale d'un greffon.
 
 {% endblock %}
