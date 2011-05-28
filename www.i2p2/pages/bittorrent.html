@@ -1,7 +1,7 @@
 {% extends "_layout.html" %}
 {% block title %}Bittorrent over I2P{% endblock %}
 {% block content %}
-Updated February 2011, current as of router version 0.8.4
+Updated May 2011, current as of router version 0.8.6
 
 
 <p>There are several bittorrent clients and trackers on I2P.
@@ -11,7 +11,7 @@ These changes are specified below.
 Note carefully the guidelines for compatibililty with older I2P clients and trackers.
 </p>
 <p>
-This page covers protocol details common to all clients and trackers.
+This page specifies protocol details common to all clients and trackers.
 Specific clients and trackers may implement other unique features or protocols.
 </p>
 <p>
@@ -38,9 +38,21 @@ Trackers should not require an appended ".i2p".
 Other parameters are the same as in standard bittorrent.
 </p>
 <p>
+While all current Destinations for clients are exactly 387 bytes, a tracker should not
+presume that will always be so. A reasonable maximum to assume, for now, is 475 bytes.
+As the tracker must decode the Base64 to deliver compact responses (see below),
+the tracker should probably decode and reject bad Base64 when announced.
+</p>
+<p>
 The default response type is non-compact. Clients may request a compact response with
 the parameter compact=1. A tracker may, but is not required to, return
 a compact response when requested.
+</p>
+<p>
+Developers of new I2P clients
+are strongly encouraged to implemenent announces over their own tunnel rather than
+the HTTP client proxy at port 4444. Doing so is both more efficient and it allows
+destination enforcement by the tracker (see below).
 </p>
 
 
@@ -56,7 +68,7 @@ Clients must ignore the port parameter, and should not require it.
 The value of the ip key is the base 64 of the client's
 <a href="common_structures_spec.html#struct_Destination">Destination</a>, as described above.
 Trackers generally append ".i2p" to the Base 64 Destination if it wasn't in the announce ip, for compatibility with older clients.
-Trackers should not require an appended ".i2p".
+Clients should not require an appended ".i2p" in the responses.
 </p>
 <p>
 Other response keys and values are the same as in standard bittorrent.
@@ -73,6 +85,9 @@ This string contains the concatenated
 of the binary
 <a href="common_structures_spec.html#struct_Destination">Destinations</a>
 of the peers.
+This hash must be computed by the tracker, unless destination enforcement
+(see below) is used, in which case the hash delivered in the X-I2P-DestHash
+or X-I2P-DestB32 HTTP headers may be converted to binary and stored.
 The peers key may be absent, or the peers value may be zero-length.
 </p>
 
@@ -92,7 +107,13 @@ A tracker enforcing destinations need not require the ip announce parameter at a
 </p>
 <p>
 As several clients use the HTTP proxy instead of their own tunnel for announces,
-destination enforcement will prevent usage by those clients.
+destination enforcement will prevent usage by those clients unless or until
+those clients are converted to announcing over their own tunnel.
+</p>
+<p>
+Unfortunately, as the network grows, so will the amount of maliciousness,
+so we expect that all trackers will eventually enforce destinations.
+Both tracker and client developers should anticipate it.
 </p>
 
 
@@ -112,7 +133,25 @@ clients should generally ignore non-I2P announce URLs in torrent files.
 
 
 
-<h2>Cross-Network Operation</h2>
+<h2>Outbound Connections</h2>
+<p>
+I2P uses 387+ byte
+<a href="common_structures_spec.html#struct_Destination">Destinations</a> for addresses, as explained above.
+</p>
+<p>
+If the client has only the hash of the destination (such as from a compact response or PEX), it must perform a lookup
+by encoding it with Base 32, appending ".b32.i2p", and querying the Naming Service,
+which will return the full Destination if available.
+</p>
+<p>
+If the client has a peer's full Destination it received in a non-compact response, it should use it
+directly in the connection setup.
+Do not convert a Destination back to a Base 32 hash for lookup, this is quite inefficient.
+</p>
+
+
+
+<h2>Cross-Network Prevention</h2>
 <p>
 To preserve anonymity,
 I2P bittorrent clients generally do not support non-I2P announces or peer connections.
@@ -122,6 +161,7 @@ There are no known SOCKS outproxies supporting bittorrent traffic.
 <p>
 To prevent usage by non-I2P clients via an HTTP inproxy, I2P trackers often
 block accesses or announces that contain an X-Forwarded-For HTTP header.
+Trackers should reject standard network announcesw with IPv4 or IPv6 IPs, and not deliver them in responses.
 </p>
 
 
@@ -149,7 +189,8 @@ The added.f value, if present, is the same as in ut_pex.
 DHT is not fully implemented in any I2P client.
 Preliminary differences from
 <a href="http://www.bittorrent.org/beps/bep_0005.html">BEP 5</a>
-are described below, subject to change.
+are described below, and are subject to change.
+Contact the I2P developers if you wish to develop a client supporting DHT.
 </p>
 <p>
 I2P DHT will probably use a different bit in the options handshake
