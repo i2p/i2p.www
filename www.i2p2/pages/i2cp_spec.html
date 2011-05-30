@@ -1,7 +1,7 @@
 {% extends "_layout.html" %}
 {% block title %}I2CP Specification{% endblock %}
 {% block content %}
-Updated May 2011, current as of router version 0.8.5
+Updated May 2011, current as of router version 0.8.7
 <h1>I2P Control Protocol (I2CP) Specification</h1>
 <h2>Overview</h2>
 <p>
@@ -10,6 +10,10 @@ which is the interface between clients and the router.
 Java clients will use the I2CP client API, which implements this protocol.
 Non-Java clients will most likely use a higher-layer protocol
 such as SAM or BOB.
+</p><p>
+The protocol is only serialized if the client and router are not in the same JVM;
+otherwise, I2CP message objects are passed via an internal JVM interface.
+</p><p>
 More information is on the <a href="i2cp.html">I2CP Overview page</a>.
 </p>
 
@@ -117,6 +121,16 @@ i2cp.messageReliability=none.
 </pre>
 
 
+<h2 id="notes">Version Notes</h2>
+<p>
+The initial protocol version byte (0x2a) sent by the client is not expected to change.
+Prior to release 0.8.7, the router's version information was not available to the client,
+thus preventing new clients from working with old routers.
+As of release 0.8.7, the two parties' protocol version strings are exchanged in the Get/Set Date Messages.
+Going forward, clients may use this information to communicate correctly with old routers.
+Clients and routers should not send messages that are unsupported by the other side,
+as they generally disconnect the session upon reception of an unsupported message.
+</p>
 
 
 <h2 id="structures">Common structures</h2>
@@ -570,11 +584,16 @@ Sent from Client to Router.
 The router responds with a <a href="#msg_SetDate">Set Date Message</a>.
 </p>
 <h4>Contents</h4>
-<i>None</i>
+<ol><li>
+I2CP Version <a href="common_structures_spec#struct_String">String</a>
+</li></ol>
 
 <h4>Notes</h4>
 <p>
 Generally the first message sent by the client after sending the protocol version byte.
+The version string is included as of release 0.8.7.
+This is only useful if the client and router are not in the same JVM.
+If it is not present, the client is version 0.8.6 or earlier.
 </p>
 
 
@@ -875,11 +894,16 @@ Sent from Router to Client as a part of the initial handshake.
 <h4>Contents</h4>
 <ol><li>
 <a href="common_structures_spec#type_Date">Date</a>
+</li><li>
+I2CP Version <a href="common_structures_spec#struct_String">String</a>
 </li></ol>
 
 <h4>Notes</h4>
 <p>
 This is generally the first message sent by the router.
+The version string is included as of release 0.8.7.
+This is only useful if the client and router are not in the same JVM.
+If it is not present, the router is version 0.8.6 or earlier.
 </p>
 
 
