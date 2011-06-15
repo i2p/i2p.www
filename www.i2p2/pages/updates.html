@@ -1,7 +1,7 @@
 {% extends "_layout.html" %}
 {% block title %}I2P Software Update Specification{% endblock %}
 {% block content %}
-Page last updated August 2010, current as of router version 0.8.
+Page last updated June 2011, current as of router version 0.8.7
 <h3>Overview</h3>
 <p> 
 I2P uses a simple, yet secure, system for automated software update.
@@ -55,15 +55,24 @@ which has a hardcoded default list of keys of the current project release manage
 </p><p>
 For version comparison purposes, version fields contain [0-9]*, field separators are
 '-', '_', and '.', and all other characters are ignored.
+</p><p>
+As of version 0.8.7, the version must also be specified as a zip file comment in UTF-8,
+without the trailing zeroes.
+The updating router verifes that the version in the header (not covered by the signature)
+matches the version in the zip file comment, which is covered by the signature.
+This prevents spoofing of the version number in the header.
 </p>
 
 <h3>Download and Installation</h3>
 <p>
-The router downloads the update file from one in a configurable list of I2P URLs,
-using the built-in HTTP client and proxy.
-There are several hardcoded default URLs.
+The router first downloads the header of the update file from one in a configurable list of I2P URLs,
+using the built-in HTTP client and proxy,
+and checks that the version is newer.
+This prevents the problem of update hosts that do not have the latest file.
+The router then downloads the full update file.
 The router verifies that the update file version is newer before installation.
-It also, of course, verifies the signature.
+It also, of course, verifies the signature, and
+verifes that the zip file comment matches the header version, as explained above.
 </p><p>
 The zip file is extracted in the base $I2P installation directory.
 </p><p>
@@ -77,10 +86,6 @@ Pack200 shrinks the update files by about 60%.
 
 <h3>Future Work</h3>
 <ul><li>
-The router could check the update version with a HEAD before downloading.
-This will eliminate the problem of one or more update hosts that cannot
-be notified to host the new file at update time.
-</li><li>
 When a new update file specification is defined, it should use a larger
 DSA signature, and the signature should cover the version.
 A file format version number might be a good idea too.
