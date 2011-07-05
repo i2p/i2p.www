@@ -13,9 +13,9 @@ A list of implementations of JSON-RPC for various languages can be found at <a h
 Parameters are only provided in a named way (maps).
 
 <h4>JSON-RPC 2 format</h4>
-<div class="box"><pre>
+<div class="box" style="clear: none;"><pre>
 Request:
-{"id":"id","method":"method-name","params":{"param-key-1": "param-value-1","param-key-2": "param-value-2"},"jsonrpc":"2.0"}
+{"id":"id", "method":"method-name","params":{"param-key-1":"param-value-1", "param-key-2":"param-value-2", "token":"**actual token**"}, "jsonrpc":"2.0"}
 Response:
 {"id":"id","result":{"result-key-1":"result-value-1","result-key-2":"result-value-2"},"jsonrpc":"2.0"}
 
@@ -25,6 +25,7 @@ Response:
 	<ul>Request
 		<li>param-key-1 &ndash; Description</li>
 		<li>param-key-2 &ndash; Description</li>
+		<li>token &ndash; Token used for authenticating every request (excluding the 'authenticate' request)</li>
 	</ul>
 	<ul>Response
 		<li>result-key-1 &ndash; Description</li>
@@ -33,18 +34,28 @@ Response:
 </ul>
 
 <h4>Implemented methods</h4>
-<ul>echo &ndash; Echoes the value of the echo key, used for debugging and testing.
+<ul>authenticate &ndash; Creates and returns an authentication token used for further communication.
 	<ul>Request
-		<li>echo &ndash; Value will be returned in response.</li>
+		<li>password &ndash; [String] The password used for authenticating against the remote server.</li>
 	</ul>
 	<ul>Response
-		<li>result &ndash; Value of the key 'echo' in the request.</li>
+		<li>token &ndash; [String] The token used for further communication.</li>
+	</ul>
+</ul>
+<ul>echo &ndash; Echoes the value of the echo key, used for debugging and testing.
+	<ul>Request
+		<li>echo &ndash; [String] Value will be returned in response.</li>
+		<li>token &ndash; [String]Token used for authenticating the client. Is provided by the server via the 'authenticate' request.</li>
+	</ul>
+	<ul>Response
+		<li>result &ndash; [String] Value of the key 'echo' in the request.</li>
 	</ul>
 </ul>
 <ul>getRate &ndash; Fetches rateStat from router statManager. Creates stat if not already created.
 	<ul>Request
-		<li>rateStat &ndash; Determines which rateStat to fetch, see <a href="TODO">TODO</a>.</li>
+		<li>rateStat &ndash; [String] Determines which rateStat to fetch, see <a href="TODO">TODO</a>.</li>
 		<li>period &ndash; [double] Determines which period a stat is fetched for.</li>
+		<li>token &ndash; [String] Token used for authenticating the client. Is provided by the server via the 'authenticate' request.</li>
 	</ul>
 	<ul>Response
 		<li>result &ndash; [double] Returns the average value for the reuested rateStat and period.</li>
