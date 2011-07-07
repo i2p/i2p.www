@@ -1,0 +1,228 @@
+{% extends "_layout_fr.html" %}
+{% block title %}Bittorrent sur I2P{% endblock %}
+{% block content %}
+Traduction de juillet 2011. <a href="bittorrent.html">Version anglaise actuelle</a>
+Mise à jour de mai 2011, pour la version 0.8.6 du routeur
+<p>Il existe plusieurs clients et trackers bittorrent sur I2P.
+Comme l'adressage I2P utilise une Destination plutôt qu'une adresse IP et un port, de légères modifications 
+des logiciels tracker et client sont nécessaires au fonctionnement sur I2P.
+Ces modifications sont précisées ci-dessous.
+Faites particulièrement attention aux informations concernant la compatibilité avec les anciens clients et trackers I2P.
+</p>
+<p>
+Cette page détaille les protocoles communs à tous les clients et trackers.
+Des clients et trackers particulier peuvent mettre en œuvre d'autres fonctionnalités ou protocoles uniques.
+</p>
+<p>
+Nous accueillons avec joie les nouveaux portages des clients et tracker sur I2P.
+</p>
+
+
+
+<h2>Annonces</h2>
+<p>
+Les clients disposent généralement d'un paramètre de port factice 6881 dans l'annonce, pour la compatibilité avec 
+les anciens trackers. Les trackers peuvent ignorer ce paramètre de port, et ne doivent pas en avoir besoin.
+</p>
+<p>
+Le paramètre ip est le code Base64 de la <a href="common_structures_spec.html#struct_Destination">Destination</a> du 
+client, à base de l'alphabet Base64 d'I2P [A-Z][a-z][0-9]-~.
+Les <a href="common_structures_spec.html#struct_Destination">Destinations</a>
+font plus de 387 octets, donc plus de 516 octets en Base64.
+Les clients suffixent généralement ".i2p" à la Destination Base64 pour la compatibilité avec d'anciens trackers.
+Les trackers ne doivent pas avoir besoin de ce suffixe.
+</p>
+<p>D'autres paramètre sont les mêmes que dans le standard bittorrent.
+</p>
+<p>
+Bien que toutes les Destinations actuelles de clients font exactement 387 octets, un tracker ne doit pas 
+présumer qu'il sera toujours ainsi. Un maximum raisonnable pour l'instant, serait 475 octets.
+Comme le tracker doit décoder la Base64 pour fournir des réponses compactes (voir plus bas), il devrait décoder et 
+rejeter les 
+annonces Base64 non conformes.
+</p>
+<p>
+Le type de réponse par défaut est non-compact. Les clients peuvent demander une réponse compacte par le paramètre 
+compact=1. Un tracker peut, sans y être contraint, renvoyer une réponse compacte, quand on lui demande.
+</p>
+<p>
+Nous conseillons vivement aux développeurs de nouveaux clients I2P d'implémenter les annonces par leur propre tunnel 
+plutôt que par celui du mandataire client HTTP (port 4444). C'est à la fois plus efficace et cela renforce la 
+destination au niveau du tracker (voir plus bas).
+</p>
+
+
+<h2>Réponses non-compactes du tracker </h2>
+<p>
+La réponse non-compacte n'est simplement que le standard bittorrent, avec une "ip" I2P.
+</p>
+<p>
+Les trackers disposent généralement d'un port factice ou utilisent le port reçu dans l'annonce, pour la compatibilité 
+avec les anciens clients. Les clients doivent ignorer ce port, et ne doivent pas en avoir besoin.
+</p>
+<p>
+La valeur de la clé ip est la Base64 de la 
+<a href="common_structures_spec.html#struct_Destination">Destination</a> du client, comme expliqué ci-dessus.
+Les trackers suffixent généralement ".i2p" la Destination Base64 si elle n'était pas dans l'annonce, pour la 
+compatibilité avec les anciens clients. Les ne doivent pas avoir besoin de ce suffixe dans les réponses qu'ils reçoivent.
+</p>
+<p>
+Les autres paramètres et valeurs de réponses sont les mêmes que dans le standard bittorrent.
+</p>
+
+
+
+<h2>Réponses compactes du tracker</h2>
+<p>
+Dans la réponse compacte, la valeur de clé de dictionnaire de pairs est une chaîne d'un seul octet, dont la longueur est 
+un multiple de 32 octets. Cette chaîne contient les empreintes 
+<a href="common_structures_spec.html#type_Hash">SHA-256 32 octets</a> concaténées des 
+<a href="common_structures_spec.html#struct_Destination">Destinations</a> binaires des pairs.
+Cette empreinte doit être calculée par le tracker, à moins que le renforcement de destination (voir plus bas) 
+ne soit utilisé, auquel cas l'empreinte fournie dans les en-têtes HTTP X-I2P-DestHash ou X-I2P-DestB32 peuvent être 
+converties en binaire et enregistrées. La clé des pairs peut être absente, ou la valeur des pairs peut être de longueur 
+nulle.</p>
+<p>
+Bien que la prise en charge de la réponse compacte soit optionnelle tant pour le client que pour le tracker, elle est 
+fortement recommandée car elle la taille nominale de la réponse de plus de 90%.
+</p>
+
+
+
+<h2>Renforcement de destination</h2>
+<p>
+Quelques-uns (mais malheureusement pas tous) des clients bittorrent I2P communiquent par leurs propres tunnels. Les 
+trackers peuvent décider d'empêcher l'usurpation en exigeant cette fonctionnalité et en vérifiant la 
+<a href="common_structures_spec.html#struct_Destination">Destination</a> du client en utilisant les en-têtes HTTP 
+ajoutées par le tunnel Serveur HTTP I2PTunnel. Les en-têtes sont X-I2P-DestHash, X-I2P-DestB64, et X-I2P-DestB32, 
+qui sont différents formats de la même information. Ces en-têtes ne peuvent pas être modifiées par le client à des fins 
+malhonnêtes. Un tracker qui renforce les destinations n'a absolument pas besoin du paramètre d'annonce ip.
+</p>
+<p>
+Comme plusieurs clients utilisent le proxy HTTP au lieu de leur propre tunnel pour les annonces, 
+le renforcements de destinations  empêchera l'utilisation de ces clients à moins ou jusqu'à ce qu'ils soit modifiés pour 
+faire leurs annonces sur leur propre tunnel.
+</p>
+<p>
+Malheureusement, au fur et à mesure de la croissance de la taille du réseau, la malignité en fait autant, et nous 
+espérons voir tous les trackers adopter le renforcement de destinations. Tous les clients et les trackers devraient 
+l'anticiper.</p>
+
+
+
+<h2>Annonce noms d'hôtes</h2>
+<p>
+L'annonce de l'URL de nom d'hôte dans les fichiers torrent obéit généralement aux 
+<a href="naming_fr.html">conventions de nommage I2P</a>.
+En plus des noms d'hôtes du carnet d'adresses et de ceux en Base32 (".b32.i2p"), 
+la destination Base64 complète (suffixée ou pas en ".i2p") doit être prise en charge. Les trackers non ouverts doivent 
+reconnaître leur propre nom d'hôte dans tous ces formats.</p>
+<p>
+Pour préserver l'anonymat, les clients devraient ignorer les annonces URL non-I2P des fichiers torrent.
+</p>
+
+
+
+<h2>Connexions sortantes</h2>
+<p>
+I2P utilise en tant qu'adresses des <a href="common_structures_spec.html#struct_Destination">Destinations</a> de plus 
+de 387 octets, comme expliqué plus haut.
+</p>
+<p>
+Si le client ne dispose que de l'empreinte de la destination (comme dans une réponse compacte ou PEX), il doit effectuer 
+une recherche en l'encodant en Base32 suffixé en ".b32.i2p" pour le service de nommage, et c'est celui-ci qui donnera la 
+destination complète si elle est disponible.
+</p>
+<p>
+Si le client connaît la destination complète d'un pair (qu'il a reçue dans une réponse non-compacte, il peut l'utiliser 
+directement dans le montage de la connexion. Une conversion en Base32 à fin de requête est complètement inefficace. 
+</p>
+
+
+
+<h2>Protection inter-réseaux</h2>
+<p>
+Pour préserver l'anonymat, les clients bittorrent I2P n'acceptent généralement pas les annonces non-I2P ou les 
+connexions de pairs. En général, les proxies sortant HTTP I2P bloquent les annonces. Il n'existe pas de proxy 
+SOCKS sortant qui accepterait le trafic bittorrent.
+</p>
+<p>
+Pour empêcher l'utilisation par des clients non-I2P par un proxy HTTP entrant, les trackers I2P bloquent souvent 
+les accès ou les annonces qui contiennent une en-tête HTTP X-Forwarded-For. Les trackers devraient rejeter les 
+annonces standard en IPv4/IPv6, et ne pas les fournir en tant que réponses.</p>
+
+
+
+<h2>PEX</h2>
+<p>
+I2P PEX est basé sur ut_pex.
+Comme il ne semple pas y avoir de spécification officielle disponible pour ut_pex, il pourra être nécessaire d'examiner 
+la source de libtorrent pour y trouver de l'aide. C'est une extension des messages, identifiée comme "i2p_pex" dans 
+la <a href="http://www.bittorrent.org/beps/bep_0010.html">négociation d'extension</a>. Elle contient un dictionnaire 
+<a href="http://en.wikipedia.org/wiki/Bencode">b-encodé</a> avec jusqu'à trois clés, "added", "added.f", et "dropped".
+Les valeurs added et dropped sont toutes deux une chaîne simple octet, dont la longueur est un multiple de 32 octets. 
+Ces chaînes d'octets sont les empreintes SHA-256 concaténées des 
+<a href="common_structures_spec.html#struct_Destination">Destinations</a> des pairs. C'est le même format que la valeur 
+du dictionnaire de pairs dans le format de réponse compacte I2P exposé plus haut. La valeur added.f, si présente, 
+est la même que dans ut_pex.
+</p>
+
+
+
+<h2>DHT</h2>
+<p>
+DHT n'est pas entièrement implémentée dans aucuns clients I2P. Les différences initiales par rapport à 
+<a href="http://www.bittorrent.org/beps/bep_0005.html">BEP 5</a> sont décrites ci-dessous, et sont susceptibles de 
+modifications. Contactez les développeurs d'I2P si vous voulez créer un client qui supporterait DHT.
+</p>
+<p>
+La DHT I2P utilisera probablement des options de négociation différentes de celles du standard DHT, ou bien elle 
+utilisera un message d'extension.
+</p>
+<p>
+Le port UDP (datagramme) listé dans l'information compacte de nœud sert pour recevoir des datagrammes (signés) auxquels 
+il est possible de répondre. Ceci est utilisé pour les requêtes, à part les annonces. Nous l'appelons le port de 
+requêtes ("query port").
+</p>
+<p>
+En complément de ce port UDP, nous utilisons un second port UDP, dont le n° est égal à celui du port des datagrammes 
+signés, +1. Il sert à recevoir des datagrammes bruts non signés pour les réponses, les erreurs, et les requêtes 
+d'annonces : c'est le port de réponse ("response port").
+</p>
+<p>
+L'information compacte de pair fait 32 octets (empreinte SHA256 à 32 octets) au lieu de 4 octets d'IP + 2 octets de 
+port. Il n'y a pas de port de pair.
+</p>
+<p>
+L'information compacte de nœud fait 54 octets (20 octets d'empreinte SHA1 + 32 octets d'empreinte SHA256 + 2 octets de 
+port) au lieu de 20 octets d'empreinte SHA1 + 4 octets d'IP + 2 octets de port.
+</p>
+<p>
+Le port de requête est échangé dans un message PORT standard. Le port de réponse est toujours le port de requête +1.
+</p>
+<p>
+La clé de "nœuds" de dictionnaire de torrent sans tracker est une liste de chaînes binaires de 32 octets (empreintes 
+SHA256) au lieu d'une liste de listes contenant une chaîne "hôte" et un entier "port".
+Alternative : une chaîne simple octet, avec des empreintes concaténées.
+</p>
+
+
+<h2>Information supplémentaires</h2>
+<ul>
+<li>
+Les standards bittorrent I2P sont discutés sur <a href="http://zzz.i2p/">zzz.i2p</a>.
+</li>
+<li>
+Un tableau de compatibilité actuelle des trackers est également  
+<a href="http://zzz.i2p/files/trackers.html">disponible ici</a>.
+</li>
+<li>
+La <a href="http://forum.i2p2.de/viewtopic.php?t=2068">FAQ bittorrent I2P</a>
+</li>
+<li>
+<a href="http://zzz.i2p/topics/812">Discussion de DHT sur I2P</a>
+</li>
+</ul>
+
+
+{% endblock %}
