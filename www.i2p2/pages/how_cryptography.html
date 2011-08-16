@@ -2,7 +2,7 @@
 {% block title %}Low-level Cryptography Details{% endblock %}
 {% block content %}
 <p>
-Updated January 2011, current as of router version 0.8.3
+Updated August 2011, current as of router version 0.8.7
 <p>
 This page specifies the low-level details of the cryptography in I2P.
 <p>
@@ -166,7 +166,7 @@ as a part of <a href="how_elgamalaes">ElGamal/AES+SessionTag</a>
 For encryption of <a href="how_tunnelrouting.html#testing">periodic tunnel test messages</a> sent from the router to itself, through its own tunnels.
 </li></ul>
 </p><p>
-We use 256 bit AES in CBC mode.
+We use AES with 256 bit keys and 128 bit blocks in CBC mode.
 The padding used is specified in <a href="http://tools.ietf.org/html/rfc2313">IETF RFC-2313 (PKCS#5 1.5, section 8.1 (for block type 02))</a>.
 In this case, padding exists of pseudorandomly generated octets to match 16 byte blocks.
 Specifically, see 
@@ -175,14 +175,12 @@ and the Cryptix AES
 <a href="http://trac.i2p2.de/browser/core/java/src/net/i2p/crypto/CryptixRijndael_Algorithm.java?rev=85a542c53d910dffbf34cdcefb8a2faeee96adc4">[implementation]</a>,
 as well as the padding, found in the
 <a href="http://trac.i2p2.de/browser/core/java/src/net/i2p/crypto/ElGamalAESEngine.java?rev=85a542c53d910dffbf34cdcefb8a2faeee96adc4">ElGamalAESEngine.getPadding</a> function.
+
+<!-- *********************************************************************************
+     Believe it or not, we don't do this any more. If we ever did. safeEncode() and safeDecode() are unused.
+
 <p>
-Two situations are possible:
-<p>
-1. For situations where we stream AES data, we still use the same algorithm, as implemented in
-<a href="http://trac.i2p2.de/browser/core/java/src/net/i2p/crypto/AESOutputStream.java?rev=85a542c53d910dffbf34cdcefb8a2faeee96adc4">[AESOutputStream]</a>
-<a href="http://trac.i2p2.de/browser/core/java/src/net/i2p/crypto/AESInputStream.java?rev=85a542c53d910dffbf34cdcefb8a2faeee96adc4">[AESInputStream]</a>
-<p>
-2. For situations where we know the size of the data to be sent, we AES encrypt the following:
+In all cases, we know the size of the data to be sent, and we AES encrypt the following:
 <p>
 <PRE>
    +----+----+----+----+----+----+----+----+
@@ -194,8 +192,8 @@ Two situations are possible:
    +                                       +
    |                                       |
    +----+----+----+----+----+----+----+----+
-   |  size   |  data ...                   |
-   +----+----+                             +
+   |        size       |    data ...       |
+   +----+----+----+----+                   +
    |                                       |
    ~                                       ~
    |                                       |
@@ -209,7 +207,7 @@ Two situations are possible:
 
 H(data): 32-byte SHA-256 Hash of the data
 
-size: 2-byte Integer, number of data bytes to follow
+size: 4-byte Integer, number of data bytes to follow
 
 data: payload
 
@@ -217,15 +215,18 @@ padding: random data, to a multiple of 16 bytes
 
 </PRE>
 <p>
-After the data comes an application specified number of randomly generated padding bytes.
-This application specified number is rounded up to a multiple of 16.
+After the data comes an application-specified number of randomly generated padding bytes.
+This application-specified number is rounded up to a multiple of 16.
 The entire segment (from H(data) through the end of the random bytes) is AES encrypted 
 (256 bit CBC w/ PKCS#5). 
 
 <p>
 This code is implemented in the safeEncrypt and safeDecrypt methods of 
-<a href="http://trac.i2p2.de/browser/core/java/src/net/i2p/crypto/AESEngine.java?rev=85a542c53d910dffbf34cdcefb8a2faeee96adc4">[AESEngine]</a>
+AESEngine but it is unused.
 </p>
+
+***************************************************************   -->
+
 
 <H4>Obsolescence</H4>
 <p>
@@ -397,6 +398,13 @@ router's DSA key, plus each network message has their own hash for local integri
 checking.
 <p>
 See <a href="udp.html#keys">the SSU specification</a> for details.
+<p>
+WARNING - I2P's HMAC-HD5-128 used in SSU is apparently non-standard.
+Apparently, an early version of SSU used HMAC-SHA256, and then it was switched
+to MD5-128 for performance reasons, but left the 32-byte buffer size intact.
+See HMACGenerator.java and
+<a href="status-2005-07-05.html">the 2005-07-05 status notes</a>
+for details.
 
 
 <H2>References</H2>
