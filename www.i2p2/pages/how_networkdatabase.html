@@ -3,7 +3,7 @@
 {% block content %}
 
 <p>
-  Updated November 2010, current as of router version 0.8.1
+  Updated August 2011, current as of router version 0.8.9
 </p>
 
 <h2>Overview</h2>
@@ -406,29 +406,34 @@
 
 <p>
   (Reference:
-  <a href="http://www-users.cs.umn.edu/~hopper/hashing_it_out.pdf">Hashing it out in Public</a> Section 2.3 for terms below in italics)
+  <a href="http://www-users.cs.umn.edu/~hopper/hashing_it_out.pdf">Hashing it out in Public</a> Sections 2.2-2.3 for terms below in italics)
 </p>
 <p>
-  Due to the relatively small size of the network, the flooding redundancy of 8x, and a lookup redundancy of 2x,
-  lookups are currently O(1) rather than O(log n) --
+  Due to the relatively small size of the network and the flooding redundancy of 8x,
+  lookups are usually O(1) rather than O(log n) --
   a router is highly likely to know a floodfill router close enough to the key to get the answer on the first try.
-  Neither <i>recursive</i> nor <i>iterative</i> routing for lookups is implemented.
+  In releases prior to 0.8.9, routers used a lookup redundancy of two
+  (that is, two lookups were performed in parallel to different peers), and
+  neither <i>recursive</i> nor <i>iterative</i> routing for lookups was implemented.
+  Queries were sent through <i>multiple routes simultaneously</i>
+  to <i>reduce the chance of query failure</i>.
+</p>
+<p>
+  As of release 0.8.9, <i>iterative lookups</i> are implemented with no lookup redundancy.
+  This is a more efficient and reliable lookup that will work much better
+  when not all floodfill peers are known, and it removes a serious
+  limitation to network growth. As the network grows and each router knows only a small
+  subset of the floodfill peers, lookups will become O(log n).
+  Even if the peer does not return references closer to the key, the lookup continues with
+  the next-closest peer, for added robustness, and to prevent a malicious floodfill from
+  black-holing a part of the key space. Lookups continue until a total lookup timeout is reached,
+  or the maximum number of peers is queried.
 </p>
 <p>
   <i>Node IDs</i> are <i>verifiable</i> in that we use the router hash directly as both the node ID and the Kademlia key.
-  Given the current  size of the network, a router has
+  Incorrect responses that are not closer to the search key are generally ignored.
+  Given the current size of the network, a router has
   <i>detailed knowledge of the neighborhood of the destination ID space</i>.
-</p>
-
-<p>
-  Queries are sent through <i>multiple routes simultaneously</i>
-  to <i>reduce the chance of query failure</i>.
-</p>
-
-<p>
-  After network growth of 5x - 10x, there will be a significant chance of lookup failure due
-  to the O(1) lookup strategy, and implementation of an <i>iterative</i> lookup strategy will be required.
-  See <a href="#future">below</a> for more information.
 </p>
 
 
@@ -667,7 +672,7 @@ This attack becomes more difficult as the network size grows.
 <p>
   See also <a href="#lookup">lookup</a>
   (Reference:
-  <a href="http://www-users.cs.umn.edu/~hopper/hashing_it_out.pdf">Hashing it out in Public</a> Section 2.3 for terms below in italics)
+  <a href="http://www-users.cs.umn.edu/~hopper/hashing_it_out.pdf">Hashing it out in Public</a> Sections 2.2-2.3 for terms below in italics)
 </p>
 <p>
   Similar to a bootstrap attack, an attacker using a floodfill router could attempt to "steer"
@@ -680,16 +685,21 @@ This attack becomes more difficult as the network size grows.
   and each exploration query is directed to a random floodfill router.
 </p>
 <p>
+  As of release 0.8.9, <i>iterative lookups</i> are implemented.
   For floodfill router references returned in a
   <a href="i2np.html">I2NP</a> DatabaseSearchReplyMessage
   response to a lookup,
-  these references are not immediately followed.
+  these references are followed if they are closer (or the next closest) to the lookup key.
   The requesting router does not trust that the references are
-  closer to the key (i.e. they are <i>verifiable correct</i>, and the references are not immediately queried.
-  In other words, the Kademlia lookup is not iterative.
-  This means the query capture attack described in
+  closer to the key (i.e. they are <i>verifiably correct</i>.
+  The lookup also does not stop when no closer key is found, but continues by querying the
+  next-closet node, until the timeout or maximum number of queries is reached.
+  This prevents a malicious floodfill from black-holing a part of the key space.
+  Also, the daily keyspace rotation requires an attacker to regenerate a router info
+  within the desired key space region.
+  This design ensures that the query capture attack described in
   <a href="http://www-users.cs.umn.edu/~hopper/hashing_it_out.pdf">Hashing it out in Public</a>
-  is much less likely, until <a href="#future">iterative lookups are implemented</a>.
+  is much more difficult.
 </p>
 
 <h3>DHT-Based Relay Selection</h3>
@@ -742,10 +752,6 @@ This attack becomes more difficult as the network size grows.
 </p>
 
 <h2 id="future">Future Work</h2>
-<p>
-  After network growth of 5x - 10x, there will be a significant chance of lookup failure due
-  to the O(1) lookup strategy, and implementation of an <i>iterative</i> lookup strategy will be required.
-</p>
 <p>
   End-to-end encryption of additional netDb lookups and responses.
 </p>
