@@ -2,7 +2,7 @@
 {% block title %}SSU Protocol Specification{% endblock %}
 {% block content %}
 
-Updated July 2011 for release 0.8.7
+Updated August 2011 for release 0.8.9
 
 <p>
 <a href="udp.html">See the SSU page for an overview of the SSU transport</a>.
@@ -23,7 +23,7 @@ This exchange uses the same shared  prime as that used for I2P's
 
 <p>
 All UDP datagrams begin with a 16 byte MAC (Message Authentication Code)
-and a 16 byte IV (Initialization Vector
+and a 16 byte IV (Initialization Vector)
 followed by a variable-size
 payload encrypted with the appropriate key.  The MAC used is 
 HMAC-MD5, truncated to 16 bytes, while the key is a full 32 byte AES256 
@@ -31,6 +31,9 @@ key.  The specific construct of the MAC is the first 16 bytes from:</p>
 <pre>
   HMAC-MD5(payload || IV || (payloadLength ^ protocolVersion), macKey)
 </pre>
+where '||' means append. The macKey is either the introduction key or the
+session key, as specified for each message below.
+
 
 <p>The payload itself is AES256/CBC encrypted with the IV and the 
 sessionKey, with replay prevention addressed within its body, 
@@ -116,6 +119,9 @@ and are defined by the
 <a href="common_structures_spec.html#type_SessionKey">Common structures specification</a>.
 The key used for the MAC and encryption is specified for each message below.
 </p>
+<p>Introduction keys are delivered through an external channel 
+(the network database, where they are identical to the router Hash for now).
+</p>
 
 
 <h2 id="notes">Notes</h2>
@@ -138,15 +144,15 @@ There are 10 messages (payload types) defined:
 </p><p>
 <table border="1">
 <tr><th>Type<th>Message<th>Notes
-<tr><td align="center">0<td>SessionRequest
-<tr><td align="center">1<td>SessionCreated
-<tr><td align="center">2<td>SessionConfirmed
-<tr><td align="center">3<td>RelayRequest
-<tr><td align="center">4<td>RelayResponse
-<tr><td align="center">5<td>RelayIntro
-<tr><td align="center">6<td>Data
-<tr><td align="center">7<td>PeerTest
-<tr><td align="center">8<td>SessionDestroyed<td>Unimplemented
+<tr><td align="center">0<td>SessionRequest<td>
+<tr><td align="center">1<td>SessionCreated<td>
+<tr><td align="center">2<td>SessionConfirmed<td>
+<tr><td align="center">3<td>RelayRequest<td>
+<tr><td align="center">4<td>RelayResponse<td>
+<tr><td align="center">5<td>RelayIntro<td>
+<tr><td align="center">6<td>Data<td>
+<tr><td align="center">7<td>PeerTest<td>
+<tr><td align="center">8<td>SessionDestroyed<td>Implemented as of 0.8.9
 <tr><td align="center">n/a<td>HolePunch<td>
 </table>
 </p>
@@ -382,7 +388,7 @@ Signed-on time appears to be unused or unverified in the current implementation.
 <h3 id="sessionDestroyed">SessionDestroyed (type 8)</h3>
 <p>
 The Session Destroyed message was implemented (reception only) in release 0.8.1,
-and is never sent. Transmission implementation scheduled for release 0.8.9.
+and is never sent. Transmission implemented as of release 0.8.9.
 </p>
 
 <table border="1">
@@ -401,6 +407,10 @@ and is never sent. Transmission implementation scheduled for release 0.8.9.
  +----+----+----+----+----+----+----+----+
 </pre>
 
+<p>
+Typical size including header, in current implementation: 48 bytes
+</p>
+
 <h3 id="relayRequest">RelayRequest (type 3)</h3>
 <p>
 This is the first message sent from Alice to Bob to request an introduction to Charlie.
@@ -411,7 +421,7 @@ This is the first message sent from Alice to Bob to request an introduction to C
     <td>Alice to Bob</td></tr>
 <tr><td align="right" valign="top"><b>Data:</b></td>
     <td><ul>
-        <li>4 byte relay (introduction) tag</li>
+        <li>4 byte relay (introduction) tag, nonzero</li>
         <li>1 byte IP address size</li>
         <li>that many byte representation of Alice's IP address</li>
         <li>2 byte port number (of Alice)</li>
