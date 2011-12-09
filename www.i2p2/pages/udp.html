@@ -2,7 +2,7 @@
 {% block title %}SSU Transport{% endblock %}
 {% block content %}
 
-Updated November 2011 for release 0.8.11
+Updated December 2011 for release 0.8.12
 
 <h1>Secure Semireliable UDP (SSU)</h1>
 <p>
@@ -62,24 +62,35 @@ a packet and sends it off (careful not to exceed the MTU).
 
 <h3><a name="mtu">MTU</a></h3>
 <p>
-The current implementation uses two MTU values: 608 and 1492.
+As of router version 0.8.12,
+two MTU values are used: 620 and 1488.
 The MTU value is adjusted based on the percentage of packets that are retransmitted.
 </p><p>
-596 gives us 588 IP bytes, 568 UDP bytes, and with an SSU data message, 
-522 fragment bytes, which is enough to send a tunnel data message in 2 
-packets. A tunnel data message sent over the wire is 1044 bytes, meaning 
-we need 522 fragment bytes to fit it in 2 packets - add 46 for SSU, 20 
-for UDP, and 8 for IP, giving us 596.  Round up to mod 16, giving a total
-of 608.
+For both MTU values, it is desirable that (MTU % 16) == 12, so that
+the payload portion after the 28-byte IP/UDP header is a multiple of
+16 bytes, for encryption purposes.
+This calculation is for IPv4 only. While the protocol as specified supports IPv6
+addresses, IPv6 is not yet implemented.
+</p><p>
+For the small MTU value, it is desirable to pack a 2646-byte
+Variable Tunnel Build Message efficiently into multiple packets;
+with a 620-byte MTU, it fits into 5 packets with nicely.
 </p><p>
 Based on measurements, 1492 fits nearly all reasonably small I2NP messages
 (larger I2NP messages may be up to 1900 to 4500 bytes, which isn't going to fit
 into a live network MTU anyway).
 </p><p>
+The MTU values were 608 and 1492 for releases 0.8.9 - 0.8.11.
 The large MTU was 1350 prior to release 0.8.9.
+</p><p>
+The maximum receive packet size
+is 1571 bytes as of release 0.8.12.
+For releases 0.8.9 - 0.8.11 it was 1535 bytes.
+Prior to release 0.8.9 it was 2048 bytes.
+
 </p>
 
-<h3><ajname="max">Message Size Limits</a></h3>
+<h3><a name="max">Message Size Limits</a></h3>
 <p>
 While the maximum message size is nominally 32KB, the practical
 limit differs. The protocol limits the number of fragments to 7 bits, or 128.
