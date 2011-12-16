@@ -2,7 +2,7 @@
 {% block title %}SSU Protocol Specification{% endblock %}
 {% block content %}
 
-Updated August 2011 for release 0.8.9
+Updated December 2011 for release 0.8.11
 
 <p>
 <a href="udp.html">See the SSU page for an overview of the SSU transport</a>.
@@ -669,7 +669,8 @@ byte 1
 
 <h4>Notes</h4>
 <ul><li>
-IP address is always 4 bytes in the current implementation.
+The current implementation adds a limited number of duplicate acks for
+messages previously acked, if space is available.
 </li><li>
 If the number of fragments is zero, this is an ack-only or keepalive message.
 </li><li>
@@ -681,6 +682,19 @@ Extended data is unimplemented and never present.
 </li><li>
 The current implementation does not pack multiple fragments into a single packet;
 the number of fragments is always 0 or 1.
+</li><li>
+Take care not to exceed the maximum MTU even if there is a large number of
+ACKs to send.
+</li><li>
+The protocol allows zero-length fragments but there's no reason to send them.
+</li><li>
+In SSU, the data uses a short 5-byte I2NP header followed by the payload
+of the I2NP message instead of the standard 16-byte I2NP header.
+The short I2NP header consists only of
+the one-byte I2NP type and 4-byte expiration in seconds.
+The I2NP message ID is used as the message ID for the fragment.
+The I2NP size is assembled from the fragment sizes.
+The I2NP checksum is not required as UDP message integrity is ensured by decryption.
 </li></ul>
 
 
