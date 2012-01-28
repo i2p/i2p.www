@@ -32,7 +32,12 @@ The original blockfile spec was modified to add magic numbers to each page.
 The file is structured in 1024-byte pages. Pages are numbered starting from 1.
 The "superblock" is always at page 1, i.e. starting at byte 0 in the file.
 The metaindex skiplist is always at page 2, i.e. starting at byte 1024 in the file.
-All 2- and 4-byte integer values are signed and negative values are illegal.
+</p><p>
+All 2-byte integer values are unsigned.
+All 4-byte integer values (page numbers) are signed and negative values are illegal.
+</p><p>
+The database is designed to be opened and accessed by a single thread.
+The BlockfileNamingService provides synchronization.
 </p>
 
 <p>
@@ -40,7 +45,7 @@ Superblock format:
 </p>
 <pre>
 Byte	Contents
-0-5	Magic number	0x3141de493250 "1A" 0xde "I2P"
+0-5	Magic number	0x3141de493250 ("1A" 0xde "I2P")
 6	Major version	0x01
 7	Minor version	0x01
 8-15	File length	Total length in bytes
@@ -75,7 +80,8 @@ Byte	Contents
 8-9	Max height
 10-11	Current height
 12-15	Span page
-16-	Next level pages ('height' pages, 4 bytes each)
+16-	Next level pages ('current height' entries, 4 bytes each, lowest first)
+remaining bytes unused
 </pre>
 
 
@@ -93,7 +99,7 @@ Byte	Contents
 12-15	Next span page or 0
 16-17	Max keys (16 for hostsdb)
 18-19	Size (current number of keys)
-24-1023	key/value structures
+20-1023	key/value structures
 </pre>
 
 <p>
