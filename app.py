@@ -14,9 +14,21 @@ MEETINGS_DIR = os.path.join(os.path.dirname(__file__), 'meetings')
 app = application = Flask(__name__, template_folder=TEMPLATE_DIR, static_url_path='/_static', static_folder=STATIC_DIR)
 app.debug =  bool(os.environ.get('APP_DEBUG', 'False'))
 
+@app.after_request
+def call_after_request_callbacks(response):
+    for callback in getattr(g, 'after_request_callbacks', ()):
+        response = callback(response)
+    return response
+
+def after_this_request(f):
+    if not hasattr(g, 'after_request_callbacks'):
+        g.after_request_callbacks = []
+    g.after_request_callbacks.append(f)
+    return f
+
 
 @app.template_filter('restructuredtext')
-def restructuredtext(env, value):
+def restructuredtext(value):
     try:
         from docutils.core import publish_parts
     except ImportError:
@@ -32,9 +44,24 @@ def pull_lang(endpoint, values):
         return
     g.lang=values.pop('lang', None)
 
-#@app.url_value_preprocessor
-#def fix_theme(endpoint, values):
-#   pass
+@app.before_request
+def detect_theme():
+    theme = 'light'
+    if 'style' in request.cookies:
+        theme = request.cookies['style']
+    if 'theme' in request.args.keys():
+        theme = request.args['theme']
+    if not os.path.isfile(safe_join('static/styles', '%s.css' % theme)):
+        theme = 'light'
+    g.theme = theme
+    @after_this_request
+    def remember_theme(resp):
+        if g.theme == 'light' and 'style' in request.cookies:
+            resp.delete_cookie('style')
+        elif g.theme != 'light':
+            resp.set_cookie('style', g.theme)
+        return resp
+
 
 @app.route('/')
 def main_index():
