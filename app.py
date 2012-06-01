@@ -1,8 +1,16 @@
 from jinja2 import Environment, FileSystemLoader
-from flask import Flask, request, session, g, redirect, url_for, abort, render_template, flash
+from flask import Flask, request, session, g, redirect, url_for, abort, render_template, flash, send_from_directory, safe_join
+import os.path
+import fileinput
 
-app=application=Flask(__name__, template_folder=TEMPLATE_DIR)
-app.debug=bool(os.environ.get('APP_DEBUG', 'False'))
+
+TEMPLATE_DIR = os.path.join(os.path.dirname(__file__), 'pages')
+MEETINGS_DIR = os.path.join(os.path.dirname(__file__), 'meetings')
+
+app = application = Flask(__name__, template_folder=TEMPLATE_DIR)
+app.debug =  bool(os.environ.get('APP_DEBUG', 'False'))
+
+
 
 @app.url_value_preprocessor
 def pull_lang(endpoint, values):
@@ -10,67 +18,117 @@ def pull_lang(endpoint, values):
         return
     g.lang=values.pop('lang', None)
 
-@app.view('/')
+@app.route('/')
 def main_index():
-    redirect(url_for('site_show', lang='en'))
+    return redirect(url_for('site_show', lang='en'))
 
-@app.view('/<string:lang>/site/')
-@app.view('/<string:lang>/site/<path:page>')
+@app.route('/<string:lang>/site/')
+@app.route('/<string:lang>/site/<path:page>')
 def site_show(page=''):
     # TODO: set content_type
+    pass
 
-@app.view('/<string:lang>/meetings/')
+@app.route('/<string:lang>/meetings/')
 def meetings_index():
     return render_template('meetings/index.html')
 
-@app.view('/<string:lang>/meetings/<int:id>')
-def meetings_show(id):
-    # TODO: implement
+@app.route('/<string:lang>/meetings/<int:id>')
+def meetings_show(id, raw=False):
+    """
+    Render the meeting X.
+    Either display the raw IRC .log or render as html and include .rst as header if it exists
+    """
+    # generate file name for the raw meeting file(and header)
+    lname = str(id) + '.log'
+    hname = str(id) + '.rst'
+    lfile = safe_join(MEETINGS_DIR, lname)
+    hfile = safe_join(MEETINGS_DIR, hname)
+    
+    # check if meeting file exists and throw error if it does not..
+    if not os.path.exists(lfile):
+        abort(404)
+    
+    log=''
+    header=None
 
-@app.view('/<string:lang>/meetings/<int:id>/raw')
+    # load log
+    with open(lfile, 'rb') as fd:
+        log = fd.read()
+
+    # now try to load header if that makes sense
+    if os.path.exists(hfile):
+        with open(hfile, 'rb') as fd:
+            header = fd.read()
+    
+    
+    
+    # now only rendering left to do
+    if raw:
+        # hmm... maybe replace with something non-render_template like?
+        #        return render_template('meetings/show_raw.html', log=log)
+        return send_from_directory(MEETINGS_DIR, lname, mimetype='text/plain')
+    else:
+        return render_template('meetings/show.html', log=log, header=header)
+     
+
+@app.route('/<string:lang>/meetings/<int:id>/raw')
 def meetings_show_raw(id):
-    # TODO: implement
+    return meetings_show(id, raw=True)
 
-@app.view('/<string:lang>/download')
+@app.route('/<string:lang>/download')
 def downloads_list():
     # TODO: implement
+    pass
 
-@app.view('/<string:lang>/download/<path:file>')
+@app.route('/<string:lang>/download/<path:file>')
 def downloads_select(file):
     # TODO: implement
+    pass
 
-@app.view('/download/<string:protocol>/any/<path:file>')
-@app.view('/download/<string:protocol>/<string:mirror>/<path:file>')
+@app.route('/download/<string:protocol>/any/<path:file>')
+@app.route('/download/<string:protocol>/<string:mirror>/<path:file>')
 def downloads_redirect(protocol, file, mirror=None):
     # TODO: implement
+    pass
 
-@app.view('/<string:lang>/blog/')
-@app.view('/<string:lang>/blog/page/<int:page>')
+@app.route('/<string:lang>/blog/')
+@app.route('/<string:lang>/blog/page/<int:page>')
 def blog_index(page=0):
     # TODO: implement
+    pass
 
-@app.view('/<string:lang>/blog/entry/<path:slug>')
+@app.route('/<string:lang>/blog/entry/<path:slug>')
 def blog_entry(slug):
     # TODO: implement
+    pass
 
-@app.view('/feed/blog/rss')
+@app.route('/feed/blog/rss')
 def blog_rss():
     # TODO: implement
+    pass
 
-@app.view('/feed/blog/atom')
+@app.route('/feed/blog/atom')
 def blog_atom():
     # TODO: implement
+    pass
 
-@app.view('/<string:f>'):
-def legacy_show(f):
-    # TODO: redirect to correct new url
 
-@app.view('/meeting<int:id>')
-@app.view('/meeting<int:id>.html')
+
+
+## legacy stuff:
+
+@app.route('/meeting<int:id>')
+@app.route('/meeting<int:id>.html')
 def legacy_meeting(id):
     redirect(url_for('meetings_show', id=id, lang='en'))
 
-@app.view('/status-<int:year>-<int:month>-<int:day>')
-@app.view('/status-<int:year>-<int:month>-<int:day>.html')
+@app.route('/status-<int:year>-<int:month>-<int:day>')
+@app.route('/status-<int:year>-<int:month>-<int:day>.html')
 def legacy_status(year, month, day):
     redirect(url_for('blog_entry', lang='en', slug=('%s/%s/%s/status' % (year, month, day))))
+
+
+@app.route('/<string:f>')
+def legacy_show(f):
+    # TODO: redirect to correct new url
+    pass
