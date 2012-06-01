@@ -1,7 +1,7 @@
 {% extends "_layout.html" %}
 {% block title %}Common structure Specification{% endblock %}
 {% block content %}
-Updated August 2010, current as of router version 0.8
+Updated March 2012, current as of router version 0.8.13
 <h1>Data types Specification</h1>
 <p>
   This document describes some data types common to all I2P protocols, like
@@ -39,7 +39,7 @@ Updated August 2010, current as of router version 0.8
 </p>
 <h4>Contents</h4>
 <p>
-  1 or more bytes where the first byte is the number of bytes(not characters!) in the string and the remaining 0-255 bytes are the non-null terminated UTF-8 encoded character array
+  1 or more bytes where the first byte is the number of bytes (not characters!) in the string and the remaining 0-255 bytes are the non-null terminated UTF-8 encoded character array
 </p>
 
 <h2 id="type_Boolean">Boolean</h2>
@@ -256,6 +256,9 @@ Some documentation says that the strings may not include '=' or ';' but this enc
 Strings are defined to be UTF-8 but in the current implementation, I2CP uses UTF-8 but I2NP does not.
 For example,
 UTF-8 strings in a RouterInfo options mapping in a I2NP Database Store Message will be corrupted.
+<li>
+Mappings contained in I2NP messages (i.e. in a RouterAddress or RouterInfo)
+must be sorted by key so that the signature will be invariant.
 </ul>
 
 <h4><a href="http://docs.i2p-projekt.de/javadoc/net/i2p/data/DataHelper.html">Javadoc</a></h4>
@@ -366,6 +369,7 @@ Total length: 387+ bytes
 </p>
 <h4>Contents</h4>
 <p>
+  SHA256 <a href="#type_Hash">Hash</a> of the
   <a href="#struct_RouterIdentity">RouterIdentity</a> of the gateway router, then the <a href="#type_TunnelId">TunnelId</a>, and finally an end <a href="#type_Date">Date</a>
 </p>
 <pre>
@@ -374,18 +378,18 @@ Total length: 387+ bytes
 | tunnel_gw                             |
 +                                       +
 |                                       |
-~                                       ~
-
-~                                       ~
++                                       +
 |                                       |
-+                   +----+----+----+----+
-|                   | tunnel_id         |
++                                       +
+|                                       |
 +----+----+----+----+----+----+----+----+
-| end_date                              |
+|     tunnel_id     |      end_date
 +----+----+----+----+----+----+----+----+
+                    |
++----+----+----+----+
 
-tunnel_gw :: RouterIdentity of the tunnel gateway
-             length -> >= 387 bytes
+tunnel_gw :: Hash of the RouterIdentity of the tunnel gateway
+             length -> >= 32 bytes
 
 tunnel_id :: TunnelId
              length -> 4 bytes
@@ -398,7 +402,7 @@ end_date :: Date
 <h4>Notes</h4>
 <ul>
 <li>
-Could this be optimized to include the Hash of the Router Identity instead of the full Router Identtity?
+Total size: 44 bytes
 </li></ul>
 
 
@@ -408,7 +412,7 @@ Could this be optimized to include the Hash of the Router Identity instead of th
 <h4>Description</h4>
 <p>
   Contains all of the currently authorized <a href="#struct_Lease">Lease</a>s for a particular <a href="#struct_Destination">Destination</a>, the <a href="#type_PublicKey">PublicKey</a> to which garlic messages can be encrypted,
-  and then the the <a href="#type_SigningPublicKey">public key</a> that can be used to revoke this particular version of the structure. The <a href="#struct_LeaseSet">LeaseSet</a> is one of the two structures stored in the network database(
+  and then the <a href="#type_SigningPublicKey">public key</a> that can be used to revoke this particular version of the structure. The <a href="#struct_LeaseSet">LeaseSet</a> is one of the two structures stored in the network database(
   the other being <a href="#struct_RouterInfo">RouterInfo</a>), and is keyed under the SHA256 of the contained <a href="#struct_Destination">Destination</a>.
 </p>
 <h4>Contents</h4>
@@ -495,7 +499,7 @@ num :: Integer
        value: 0 <= num <= 6
 
 leases :: [Lease]
-          length -> >= $num*399 bytes
+          length -> >= $num*44 bytes
 
 signature :: Signature
              length -> 40 bytes
@@ -504,10 +508,18 @@ signature :: Signature
 </pre>
 
 <h4>Notes</h4>
-<p>
+<ul><li>
+The public key of the destination was used for the old i2cp-to-i2cp encryption
+which was disabled in version 0.6, it is currently unused?
+</li><li>
+The encryption key is used for end-to-end <a href="how_elgamalaes.html">ElGamal/AES+SessionTag</a> encryption.
+It is currently generated anew at every router startup, it is not persistent.
+</li><li>
 The signature may be verified using the signing public key of the destination.
-
+</li><li>
 The signing_key is currently unused. It was intended for LeaseSet revocation, which is unimplemented.
+It is currently generated anew at every router startup, it is not persistent.
+</li></ul>
 
 <h4><a href="http://docs.i2p-projekt.de/javadoc/net/i2p/data/LeaseSet.html">Javadoc</a></h4>
 

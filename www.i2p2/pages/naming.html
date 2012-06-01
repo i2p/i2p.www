@@ -4,6 +4,7 @@
 <h1>Naming in I2P</h1>
 <h2 id="overview">Overview</h2>
 
+This page was last updated in March 2012 and is accurate for router version 0.8.13.
 <p>
 I2P ships with a generic naming library and a base implementation 
 designed to work off a local name to destination mapping, as well as an
@@ -58,7 +59,7 @@ for addressbook configuration and viewing of the local host lists.
 
 <h2 id="lookup">Naming Files and Lookups</h2>
 <p>
-All destinations in I2P are 516-byte keys.
+All destinations in I2P are 516-byte (or longer) keys.
 (To be more precise, it is a 256-byte public key plus a 128-byte signing key
 plus a null certificate, which in Base64 representation is 516 bytes.
 <a href="naming_discussion.html#certificates">Certificates</a> are not used now,
@@ -125,7 +126,6 @@ Some other public addressbook subscription links:
 <ul>
 <li><a href="http://i2host.i2p/cgi-bin/i2hostetag">http://i2host.i2p/cgi-bin/i2hostetag</a>
 <li><a href="http://stats.i2p/cgi-bin/newhosts.txt">http://stats.i2p/cgi-bin/newhosts.txt</a>
-<li><a href="http://tino.i2p/hosts.txt">http://tino.i2p/hosts.txt</a>
 </ul>
 <p>
 The operators of these services may have various policies for listing hosts.
@@ -157,7 +157,7 @@ Naming rules:</p>
 <li>Must not contain '--' except in 'xn--' for IDN.
 <li>Base32 hostnames (*.b32.i2p) are not allowed.
 <li>Certain hostnames reserved for project use are not allowed
-    (proxy.i2p, router.i2p, console.i2p, *.proxy.i2p, *.router.i2p, *.proxy.i2p).
+    (proxy.i2p, router.i2p, console.i2p, *.proxy.i2p, *.router.i2p, *.console.i2p, and others)
 <li>Keys are checked for base64 validity.
 <li>Keys are checked for conflict with existing keys in hosts.txt (but not privatehosts.txt).
 <li>Minimum key length 516 bytes.
@@ -262,9 +262,9 @@ SusiDNS is simply a web interface front-end to configuring addressbook subscript
 and accessing the four addressbook files.
 All the real work is done by the 'addressbook' application.
 </p><p>
-Currently, there is no enforcement of addressbook naming rules within SusiDNS,
-so you can enter hostnames locally that would be rejected by
-your own or others' addressbook subscriptions.
+Currently, there is little enforcement of addressbook naming rules within SusiDNS,
+so a user may enter hostnames locally that would be rejected by
+the addressbook subscription rules.
 </p>
 
 <h2 id="base32">Base32 Names</h2>
@@ -276,10 +276,12 @@ Example: <code>ukeu3k5oycgaauneqgtnvselmt4yemvoilkln7jpvamvfx7dnkdq.b32.i2p</cod
 In Tor, the address is 16 characters (80 bits), or half of the SHA-1 hash.
 I2P uses 52 characters (256 bits) to represent the full SHA-256 hash.
 The form is {52 chars}.b32.i2p.
-Base32 is implemented in the HostsTxt naming service, which queries the
+Base32 is implemented in the naming service, which queries the
 router over I2CP to lookup the LeaseSet to get the full Destination.
 Base32 lookups will only be successful when the Destination is up and publishing
 a LeaseSet.
+Because resolution may require a network database lookup, it may take significantly
+longer than a local address book lookup.
 </p><p>
 Base32 addresses can be used in most places where hostnames or full destinations
 are used, however there are some exceptions where they may fail if the

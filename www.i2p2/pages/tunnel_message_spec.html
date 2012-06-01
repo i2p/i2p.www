@@ -2,7 +2,7 @@
 {% block title %}Tunnel Message Specification{% endblock %}
 {% block content %}
 
-Updated July 2010 for release 0.8
+Updated October 2011 for release 0.8.10
 
 <h1>Tunnel Message Specification</h1>
 This document specifies the format of tunnel messages.
@@ -164,6 +164,16 @@ how the remainder of the header is interpreted - if it is not set, the message
 is either not fragmented or this is the first fragment in the message.  If it is
 set, this is a follow on fragment.</p>
 
+<p>
+Note that Delivery Instructions are also used inside
+<a href="i2np_spec#struct_GarlicClove">Garlic Cloves</a>,
+where the format is slightly different. In a Garlic Clove,
+messages are not fragmented, and the fragment bit in the flag byte is
+redefined. See the
+<a href="i2np_spec#struct_GarlicClove">Garlic Clove documentation</a>
+for more details.
+
+
 <h3>First Fragment Delivery Instructions</h3>
 <p>If the MSB of the first byte is 0, this is an initial I2NP message fragment,
 or a complete I2NP message, and the instructions are:</p>
@@ -192,7 +202,10 @@ flag:
        Bit order: 76543210
        bit 7: 0 to specify an initial fragment
        bits 6-5: delivery type
-                 0x0 = LOCAL, 0x01 = DESTINATION, 0x02 = ROUTER, 0x03 = TUNNEL
+                 For tunnel messages:
+                     0x0 = LOCAL, 0x01 = TUNNEL, 0x02 = ROUTER, 0x03 = unused
+                 For garlic cloves:
+                     0x0 = LOCAL, 0x01 = DESTINATION, 0x02 = ROUTER, 0x03 = TUNNEL
        bit 4: delay included?  Unimplemented, always 0
                            If 1, a delay byte is included
        bit 3: fragmented?  If 0, the message is not fragmented, what follows is the entire message
@@ -214,11 +227,12 @@ To Hash:
           If TUNNEL, the SHA256 Hash of the gateway router
 
 Delay:
-       1 bytes
+       1 byte (tunnel message) or 4 bytes (garlic clove)
        Optional, present if delay included flag is set
-       Unimplemented, never present; original specification:
+       In tunnel messages: Unimplemented, never present; original specification:
           bit 7: type (0 = strict, 1 = randomized)
           bits 6-0: delay exponent (2^value minutes)
+       In garlic cloves: Not fully implemented. A 4 byte integer specifying the delay in seconds.
 
 Message ID:
        4 bytes
@@ -235,10 +249,12 @@ Extended Options:
 size:
        2 bytes
        The length of the fragment that follows
-       Valid values: 1 to approx. 960
+       Valid values: 1 to approx. 960 in a tunnel message; 1 to 64K - 1 in a garlic clove
 
-Total length: Typical length is 39 bytes for ROUTER / DESTINATION delivery or 43 bytes for TUNNEL delivery (unfragmented);
-                                43 bytes for ROUTER / DESTINATION delivery or 47 bytes for TUNNEL delivery (first fragment)
+Total length: Typical length is:
+       3 bytes for LOCAL delivery (garlic clove);
+       35 bytes for ROUTER / DESTINATION delivery or 39 bytes for TUNNEL delivery (unfragmented or garlic clove);
+       39 bytes for ROUTER delivery or 43 bytes for TUNNEL delivery (first fragment)
 
 </pre>
 
