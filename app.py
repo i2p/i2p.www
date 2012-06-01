@@ -1,15 +1,29 @@
-from jinja2 import Environment, FileSystemLoader
+from jinja2 import Environment, FileSystemLoader, environmentfilter
 from flask import Flask, request, session, g, redirect, url_for, abort, render_template, flash, send_from_directory, safe_join
 import os.path
+import os
 import fileinput
+import codecs
 
 
 TEMPLATE_DIR = os.path.join(os.path.dirname(__file__), 'pages')
+STATIC_DIR = os.path.join(os.path.dirname(__file__), 'static')
+
 MEETINGS_DIR = os.path.join(os.path.dirname(__file__), 'meetings')
 
-app = application = Flask(__name__, template_folder=TEMPLATE_DIR)
+app = application = Flask(__name__, template_folder=TEMPLATE_DIR, static_url_path='/_static', static_folder=STATIC_DIR)
 app.debug =  bool(os.environ.get('APP_DEBUG', 'False'))
 
+
+@app.template_filter('restructuredtext')
+def restructuredtext(env, value):
+    try:
+        from docutils.core import publish_parts
+    except ImportError:
+        print u"Install docutils!!11"
+        raise
+    parts = publish_parts(source=value, writer_name="html")
+    return parts['html_body']
 
 
 @app.url_value_preprocessor
@@ -17,6 +31,10 @@ def pull_lang(endpoint, values):
     if not values:
         return
     g.lang=values.pop('lang', None)
+
+#@app.url_value_preprocessor
+#def fix_theme(endpoint, values):
+#   pass
 
 @app.route('/')
 def main_index():
@@ -33,7 +51,7 @@ def meetings_index():
     return render_template('meetings/index.html')
 
 @app.route('/<string:lang>/meetings/<int:id>')
-def meetings_show(id, raw=False):
+def meetings_show(id, log=False, rst=False):
     """
     Render the meeting X.
     Either display the raw IRC .log or render as html and include .rst as header if it exists
@@ -48,32 +66,41 @@ def meetings_show(id, raw=False):
     if not os.path.exists(lfile):
         abort(404)
     
-    log=''
-    header=None
-
-    # load log
-    with open(lfile, 'rb') as fd:
-        log = fd.read()
-
-    # now try to load header if that makes sense
-    if os.path.exists(hfile):
-        with open(hfile, 'rb') as fd:
-            header = fd.read()
-    
-    
-    
-    # now only rendering left to do
-    if raw:
+    # if the user just wanted the .log
+    if log:
         # hmm... maybe replace with something non-render_template like?
         #        return render_template('meetings/show_raw.html', log=log)
         return send_from_directory(MEETINGS_DIR, lname, mimetype='text/plain')
-    else:
-        return render_template('meetings/show.html', log=log, header=header)
+    
+    log=''
+    header=None
+    
+    # try to load header if that makes sense
+    if os.path.exists(hfile):
+        # if the user just wanted the .rst...
+        if rst:
+            return send_from_directory(MEETINGS_DIR, hname, mimetype='text/plain')
+        
+        # open the file as utf-8 file
+        with codecs.open(hfile, encoding='utf-8') as fd:
+            header = fd.read()
+    elif rst:
+        abort(404)
+    
+    # load log
+    with codecs.open(lfile, encoding='utf-8') as fd:
+        log = fd.read()
+    
+    return render_template('meetings/show.html', log=log, header=header, id=id)
      
 
-@app.route('/<string:lang>/meetings/<int:id>/raw')
-def meetings_show_raw(id):
-    return meetings_show(id, raw=True)
+@app.route('/<string:lang>/meetings/<int:id>.log')
+def meetings_show_log(id):
+    return meetings_show(id, log=True)
+
+@app.route('/<string:lang>/meetings/<int:id>.rst')
+def meetings_show_rst(id):
+    return meetings_show(id, rst=True)
 
 @app.route('/<string:lang>/download')
 def downloads_list():
@@ -120,12 +147,12 @@ def blog_atom():
 @app.route('/meeting<int:id>')
 @app.route('/meeting<int:id>.html')
 def legacy_meeting(id):
-    redirect(url_for('meetings_show', id=id, lang='en'))
+    return redirect(url_for('meetings_show', id=id, lang='en'))
 
 @app.route('/status-<int:year>-<int:month>-<int:day>')
 @app.route('/status-<int:year>-<int:month>-<int:day>.html')
 def legacy_status(year, month, day):
-    redirect(url_for('blog_entry', lang='en', slug=('%s/%s/%s/status' % (year, month, day))))
+    return redirect(url_for('blog_entry', lang='en', slug=('%s/%s/%s/status' % (year, month, day))))
 
 
 @app.route('/<string:f>')
