@@ -203,37 +203,49 @@ are described below, and are subject to change.
 Contact the I2P developers if you wish to develop a client supporting DHT.
 </p>
 <p>
-I2P DHT will probably use a different bit in the options handshake
-than standard DHT. Or maybe use an extension message instead.
+Unlike standard DHT, I2P DHT does not use a bit in the options handshake, or the PORT message.
+It is advertised with an extension message, identified as "i2p_dht" in
+<a href="http://www.bittorrent.org/beps/bep_0010.html">the extension handshake</a>.
+It contains a bencoded dictionary with two keys, "port" and "rport", both integers.
 </p>
 <p>
 The UDP (datagram) port listed in the compact node info is used
 to receive repliable (signed) datagrams.
 This is used for queries, except for announces.
 We call this the "query port".
+This is the "port" value from the extension message.
+Queries use I2CP protocol number 17.
 </p>
 <p>
 In addition to that UDP port, we use a second datagram
-port equal to the signed port + 1. This is used to receive
-unsigned (raw) datagrams for replies, errors, and announce queries..
+port equal to the query port + 1. This is used to receive
+unsigned (raw) datagrams for replies, errors, and announces.
+This port provides increased efficiency sine replies
+contain tokens sent in the query, and need not be signed.
 We call this the "response port".
+This is the "rport" value from the extension message.
+It must be 1 + the query port.
+Responses and announces use I2CP protocol number 18.
 </p>
 <p>
 Compact peer info is 32 bytes (32 byte SHA256 Hash)
 instead of 4 byte IP + 2 byte port. There is no peer port.
+In a response, the "values" key is a list of strings, each containing a single compact peer info.
 </p>
 <p>
 Compact node info is 54 bytes (20 byte SHA1 Hash + 32 byte SHA256 Hash + 2 byte port)
 instead of 20 byte SHA1 Hash + 4 byte IP + 2 byte port.
+In a response, the "nodes" key is a
+single byte string with concatenated compact node info.
 </p>
 <p>
-The query port is exchanged with a standard PORT message. The response port is always the query port + 1.
-</p>
-<p>
-The trackerless torrent dictionary "nodes" key is a list of
+In a torrent file,
+the trackerless torrent dictionary "nodes" key is TBD.
+It could be a list of
 32 byte binary strings (SHA256 Hashes) instead of a list of lists
 containing a host string and a port integer.
-Alternative: A single byte string with concatenated hashes.
+Alternatives: A single byte string with concatenated hashes,
+or a list of strings alone.
 </p>
 
 
