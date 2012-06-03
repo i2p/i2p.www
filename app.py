@@ -1,5 +1,6 @@
 from jinja2 import Environment, FileSystemLoader, environmentfilter
 from flask import Flask, request, session, g, redirect, url_for, abort, render_template, flash, send_from_directory, safe_join
+from docutils.core import publish_parts
 import os.path
 import os
 import fileinput
@@ -9,6 +10,7 @@ import codecs
 TEMPLATE_DIR = os.path.join(os.path.dirname(__file__), 'pages')
 STATIC_DIR = os.path.join(os.path.dirname(__file__), 'static')
 
+BLOG_DIR = os.path.join(os.path.dirname(__file__), 'blog')
 MEETINGS_DIR = os.path.join(os.path.dirname(__file__), 'meetings')
 
 app = application = Flask(__name__, template_folder=TEMPLATE_DIR, static_url_path='/_static', static_folder=STATIC_DIR)
@@ -29,11 +31,6 @@ def after_this_request(f):
 
 @app.template_filter('restructuredtext')
 def restructuredtext(value):
-    try:
-        from docutils.core import publish_parts
-    except ImportError:
-        print u"Install docutils!!11"
-        raise
     parts = publish_parts(source=value, writer_name="html")
     return parts['html_body']
 
@@ -43,6 +40,15 @@ def pull_lang(endpoint, values):
     if not values:
         return
     g.lang=values.pop('lang', None)
+
+@app.url_defaults
+def set_lang(endpoint, values):
+    if not values:
+        return
+    if 'lang' in values:
+        return
+    if hasattr(g, 'lang'):
+        values['lang'] = g.lang
 
 @app.before_request
 def detect_theme():
@@ -63,15 +69,30 @@ def detect_theme():
         return resp
 
 
+@app.errorhandler(404)
+def page_not_found(error):
+    return render_template('global/error_404.html'), 404
+    
 @app.route('/')
 def main_index():
     return redirect(url_for('site_show', lang='en'))
 
+
+
 @app.route('/<string:lang>/site/')
 @app.route('/<string:lang>/site/<path:page>')
-def site_show(page=''):
-    # TODO: set content_type
-    pass
+def site_show(page='index'):
+    if page.endswith('.html'):
+        return redirect(url_for('site_show', page=page[:-5]))
+    name = 'site/%s.html' % page
+    page_file = safe_join(TEMPLATE_DIR, name)
+    
+    # bah! those damn users all the time!
+    if not os.path.exists(page_file):
+        abort(404)
+    
+    # hah!
+    return render_template(name, page=page)
 
 @app.route('/<string:lang>/meetings/')
 def meetings_index():
@@ -131,8 +152,8 @@ def meetings_show_rst(id):
 
 @app.route('/<string:lang>/download')
 def downloads_list():
-    # TODO: implement
-    pass
+    # TODO: read mirror list or list of available files
+    return render_template('downloads/list.html')
 
 @app.route('/<string:lang>/download/<path:file>')
 def downloads_select(file):
@@ -145,6 +166,28 @@ def downloads_redirect(protocol, file, mirror=None):
     # TODO: implement
     pass
 
+
+
+def render_blog_entry(slug):
+    """
+    Render the blog entry
+    TODO:
+    - caching
+    - move to own file
+    """
+    # check if that file actually exists
+    path = safe_join(BLOG_DIR, slug + ".rst")
+    if not os.path.exists(path):
+        abort(404)
+
+    # read file
+    with codecs.open(path, encoding='utf-8') as fd:
+        content = fd.read()
+    
+    return publish_parts(source=content, source_path=BLOG_DIR, writer_name="html")
+
+
+
 @app.route('/<string:lang>/blog/')
 @app.route('/<string:lang>/blog/page/<int:page>')
 def blog_index(page=0):
@@ -153,8 +196,15 @@ def blog_index(page=0):
 
 @app.route('/<string:lang>/blog/entry/<path:slug>')
 def blog_entry(slug):
-    # TODO: implement
-    pass
+    # try to render that blog entry.. throws 404 if it does not exist
+    parts = render_blog_entry(slug)
+    
+    if parts:
+        # now just pass to simple template file and we are done
+        return render_template('blog/entry.html', parts=parts, title=parts['title'], body=parts['fragment'])
+    else:
+        abort(404)
+    
 
 @app.route('/feed/blog/rss')
 def blog_rss():
@@ -181,8 +231,24 @@ def legacy_meeting(id):
 def legacy_status(year, month, day):
     return redirect(url_for('blog_entry', lang='en', slug=('%s/%s/%s/status' % (year, month, day))))
 
+LEGACY_MAP={
+    'download': 'downloads_list'
+}
 
+@app.route('/<string:f>_<string:lang>')
+@app.route('/<string:f>_<string:lang>.html')
 @app.route('/<string:f>')
+@app.route('/<string:f>.html')
 def legacy_show(f):
-    # TODO: redirect to correct new url
-    pass
+    lang = 'en'
+    if hasattr(g, 'lang') and g.lang:
+        lang = g.lang
+    if f in LEGACY_MAP:
+        return redirect(url_for(LEGACY_MAP[f], lang=lang))
+    else:
+        return redirect(url_for('site_show', lang=lang, page=f))
+
+
+
+if __name__ == '__main__':
+    app.run(debug=True)
