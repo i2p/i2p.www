@@ -2,7 +2,7 @@
 {% block title %}SSU Protocol Specification{% endblock %}
 {% block content %}
 
-Updated December 2011 for release 0.8.11
+Updated August 2012 for release 0.9.1
 
 <p>
 <a href="udp.html">See the SSU page for an overview of the SSU transport</a>.
@@ -118,6 +118,14 @@ fragmentation to external adversaries.
 
 <h2 id="keys">Keys</h2>
 <p>
+DSA signatures in the SessionCreated and SessionConfirmed messages are generated using
+the
+<a href="common_structures_spec.html#type_SigningPublicKey">signing public key</a>
+from the
+<a href="common_structures_spec.html#struct_RouterIdentity">router identity</a>
+which is distributed out-of-band by publishing in the network database, and the associated
+<a href="common_structures_spec.html#type_SigningPrivateKey">signing private key</a>.
+</p><p>
 Both introduction keys and session keys are 32 bytes,
 and are defined by the
 <a href="common_structures_spec.html#type_SessionKey">Common structures specification</a>.
@@ -286,6 +294,13 @@ IP address is always 4 bytes in the current implementation.
 If the relay tag is nonzero, Bob is offering to act as an introducer for Alice.
 Alice may subsequently publish Bob's address and the relay tag in the network database.
 </li><li>
+For the signature, Bob must use his external port, as that what Alice will use to verify.
+If Bob's NAT/firewall has mapped his internal port to a different external port,
+and Bob is unaware of it, the verification by Alice will fail.
+</li><li>
+See <a href="#keys">the Keys section above</a> for details on DSA signatures.
+Alice already has Bob's public signing key, from the network database.
+</li><li>
 Signed-on time appears to be unused or unverified in the current implementation.
 </li><li>
 The uninterpreted data could possibly be used in the future for challenges.
@@ -382,6 +397,8 @@ is 387 bytes, so no fragmentation is usually necessary.
 There is no mechanism for requesting or redelivering missing fragments.
 </li><li>
 The total fragments field F must be set identically in all fragments.
+</li><li>
+See <a href="#keys">the Keys section above</a> for details on DSA signatures.
 </li><li>
 Signed-on time appears to be unused or unverified in the current implementation.
 </li></ul>
