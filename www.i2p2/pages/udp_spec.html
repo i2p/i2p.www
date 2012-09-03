@@ -2,7 +2,7 @@
 {% block title %}SSU Protocol Specification{% endblock %}
 {% block content %}
 
-Updated August 2012 for release 0.9.1
+Updated September 2012 for release 0.9.2
 
 <p>
 <a href="udp.html">See the SSU page for an overview of the SSU transport</a>.
@@ -700,6 +700,12 @@ Extended data is unimplemented and never present.
 The current implementation does not pack multiple fragments into a single packet;
 the number of fragments is always 0 or 1.
 </li><li>
+As currently implemented, maximum fragments is 64
+(maximum fragment number = 63).
+</li><li>
+As currently implemented, maximum fragment size is of course
+less than the MTU.
+</li><li>
 Take care not to exceed the maximum MTU even if there is a large number of
 ACKs to send.
 </li><li>
@@ -712,6 +718,13 @@ the one-byte I2NP type and 4-byte expiration in seconds.
 The I2NP message ID is used as the message ID for the fragment.
 The I2NP size is assembled from the fragment sizes.
 The I2NP checksum is not required as UDP message integrity is ensured by decryption.
+</li><li>
+Message IDs are not sequence numbers and are not consecutive.
+SSU does not guarantee in-order delivery.
+While we use the I2NP message ID as the SSU message ID, from the SSU
+protocol view, they are random numbers.
+In fact, since the router uses a single Bloom filter for all peers,
+the message ID must be an actual random number.
 </li></ul>
 
 
