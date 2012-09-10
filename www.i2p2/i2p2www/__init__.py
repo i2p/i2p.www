@@ -52,19 +52,19 @@ def set_lang(endpoint, values):
 # Detect and store chosen theme
 @app.before_request
 def detect_theme():
-    theme = 'light'
+    theme = 'duck'
     if 'style' in request.cookies:
         theme = request.cookies['style']
     if 'theme' in request.args.keys():
         theme = request.args['theme']
     if not os.path.isfile(safe_join('static/styles', '%s.css' % theme)):
-        theme = 'light'
+        theme = 'duck'
     g.theme = theme
     @after_this_request
     def remember_theme(resp):
-        if g.theme == 'light' and 'style' in request.cookies:
+        if g.theme == 'duck' and 'style' in request.cookies:
             resp.delete_cookie('style')
-        elif g.theme != 'light':
+        elif g.theme != 'duck':
             resp.set_cookie('style', g.theme)
         return resp
 
