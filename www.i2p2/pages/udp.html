@@ -2,7 +2,7 @@
 {% block title %}SSU Transport{% endblock %}
 {% block content %}
 
-Updated July 2010 for release 0.8
+Updated August 2012 for release 0.9.1
 
 <h1>Secure Semireliable UDP (SSU)</h1>
 <p>
@@ -13,9 +13,6 @@ The other is <a href="ntcp.html">NTCP</a>.
 SSU is the newer of the two transports,
 introduced in I2P release 0.6.
 In a standard I2P installation, the router uses both NTCP and SSU for outbound connections.
-A router
-The selection of a transport for a connection.
-
 
 <h2>SSU Services</h2>
 
@@ -39,12 +36,12 @@ and the capacity for high throughput allows a great deal of latitude in
 congestion control.  The congestion control algorithm outlined below is
 meant to be both efficient in bandwidth as well as simple to implement.</p>
 
-<p>Packets are scheduled according to the the router's policy, taking care
+<p>Packets are scheduled according to the router's policy, taking care
 not to exceed the router's outbound capacity or to exceed the measured 
-capacity of the remote peer.  The measured capacity should operate along the
+capacity of the remote peer.  The measured capacity operates along the
 lines of TCP's slow start and congestion avoidance, with additive increases
 to the sending capacity and multiplicative decreases in face of congestion.
-Veering away from TCP, however, routers may give up on some messages after
+Unlike for TCP, routers may give up on some messages after
 a given period or number of retransmissions while continuing to transmit 
 other messages.</p>
   
@@ -58,40 +55,55 @@ duplicate fragments arrive, the message should be ACKed again, or if the
 message has still not been fully received, the bitfield should be 
 retransmitted with any new updates.</p>
 
-<p>The simplest possible implementation does not need to pad the packets to
+<p>The current implementation does not pad the packets to
 any particular size, but instead just places a single message fragment into
-a packet and sends it off (careful not to exceed the MTU).  A more efficient
-strategy would be to bundle multiple message fragments into the same packet,
-so long as it doesn't exceed the MTU, but this is not necessary.  Eventually,
-a set of fixed packet sizes may be appropriate to further hide the data 
-fragmentation to external adversaries, but the tunnel, garlic, and end to 
-end padding should be sufficient for most needs until then.</p>
+a packet and sends it off (careful not to exceed the MTU).
+</p>
 
 <h3><a name="mtu">MTU</a></h3>
 <p>
-The current implementation uses two MTU values: 608 and 1350.
+As of router version 0.8.12,
+two MTU values are used: 620 and 1484.
+The MTU value is adjusted based on the percentage of packets that are retransmitted.
 </p><p>
-596 gives us 588 IP byes, 568 UDP bytes, and with an SSU data message, 
-522 fragment bytes, which is enough to send a tunnel data message in 2 
-packets. A tunnel data message sent over the wire is 1044 bytes, meaning 
-we need 522 fragment bytes to fit it in 2 packets - add 46 for SSU, 20 
-for UDP, and 8 for IP, giving us 596.  Round up to mod 16, giving a total
-of 608.
+For both MTU values, it is desirable that (MTU % 16) == 12, so that
+the payload portion after the 28-byte IP/UDP header is a multiple of
+16 bytes, for encryption purposes.
+This calculation is for IPv4 only. While the protocol as specified supports IPv6
+addresses, IPv6 is not yet implemented.
 </p><p>
-Based on measurements, 1350 fits nearly all reasonably small I2NP messages
+For the small MTU value, it is desirable to pack a 2646-byte
+Variable Tunnel Build Message efficiently into multiple packets;
+with a 620-byte MTU, it fits into 5 packets with nicely.
+</p><p>
+Based on measurements, 1492 fits nearly all reasonably small I2NP messages
 (larger I2NP messages may be up to 1900 to 4500 bytes, which isn't going to fit
 into a live network MTU anyway).
+</p><p>
+The MTU values were 608 and 1492 for releases 0.8.9 - 0.8.11.
+The large MTU was 1350 prior to release 0.8.9.
+</p><p>
+The maximum receive packet size
+is 1571 bytes as of release 0.8.12.
+For releases 0.8.9 - 0.8.11 it was 1535 bytes.
+Prior to release 0.8.9 it was 2048 bytes.
+</p><p>
+As of release 0.9.2, if a router's network interface MTU is less than 1484,
+it will publish that in the network database, and other routers should
+honor that when a connection is established.
 </p>
 
-<h3><ajname="max">Message Size Limits</a></h3>
+<h3><a name="max">Message Size Limits</a></h3>
 <p>
-While a statement above claims that the maximum message size is 32KB, the practical
+While the maximum message size is nominally 32KB, the practical
 limit differs. The protocol limits the number of fragments to 7 bits, or 128.
 The current implementation, however, limits each message to a maximum of 64 fragments,
-which is sufficient for 64 * 534 = 33.3 KB.
-Due to overhead for bundled leasesets and session keys, the practical limit
+which is sufficient for 64 * 534 = 33.3 KB when using the 608 MTU.
+Due to overhead for bundled LeaseSets and session keys, the practical limit
 at the application level is about 6KB lower, or about 26KB.
 Further work is necessary to raise the UDP transport limit above 32KB.
+For connections using the larger MTU, larger messages are possible.
+</p>
 
 <h2><a name="keys">Keys</a></h2>
 
@@ -133,8 +145,10 @@ MODP group (#14) is used:</p>
   g = 2
 </pre>
 
-<p>The DSA p, q, and g are shared according to the scope of the 
-identity which created them.</p>
+<p>
+These are the same p and g used for I2P's
+<a href="how_cryptography.html#elgamal">ElGamal encryption</a>.
+</p>
 
 <h2><a name="replay">Replay prevention</a></h2>
 
@@ -149,7 +163,60 @@ are not in any particular order - in fact, they are likely to be
 entirely random.  The SSU layer makes no attempt at messageId 
 replay prevention - higher layers should take that into account.</p>
 
+<h2 id="addressing">Addressing</h2>
+
+<p>To contact an SSU peer, one of two sets of information is necessary:
+a direct address, for when the peer is publicly reachable, or an 
+indirect address, for using a third party to introduce the peer.  
+There is no restriction on the number of addresses a peer may have.</p>
+
+<pre>
+    Direct: host, port, introKey, options
+  Indirect: tag, relayhost, port, relayIntroKey, targetIntroKey, options
+</pre>
+
+<p>Each of the addresses may also expose a series of options - special
+capabilities of that particular peer.  For a list of available
+capabilities, see <a href="#capabilities">below</a>.</p>
+
+<p>
+The addresses, options, and capabilities are published in the <a href="how_networkdatabase.html">network database</a>.
+</p>
+
+
+<h2><a name="direct">Direct Session Establishment</a></h2>
+<p>
+Direct session establishment is used when no third party is required for NAT traversal.
+The message sequence is as follows:
+</p>
+
+<h3><a name="establishDirect">Connection establishment (direct)</a></h3>
+
+Alice connects directly to Bob.
+
+<pre>
+        Alice                         Bob
+    SessionRequest---------------------&gt;
+          &lt;---------------------SessionCreated
+    SessionConfirmed-------------------&gt;
+          &lt;----------------------&gt;Data
+</pre>
+
+
+
 <h2><a name="introduction">Introduction</a></h2>
+
+<p>Introduction keys are delivered through an external channel 
+(the network database, where they are identical to the router Hash for now)
+and must be used when establishing a session key.  For the indirect
+address, the peer must first contact the relayhost and ask them for
+an introduction to the peer known at that relayhost under the given
+tag.  If possible, the relayhost sends a message to the addressed
+peer telling them to contact the requesting peer, and also gives 
+the requesting peer the IP and port on which the addressed peer is
+located.  In addition, the peer establishing the connection must 
+already know the public keys of the peer they are connecting to (but
+not necessary to any intermediary relay peer).</p>
 
 <p>Indirect session establishment by means of a third party introduction
 is necessary for efficient NAT traversal.  Charlie, a router behind a
@@ -175,6 +242,21 @@ full direction session establishment with the specified IP and port.</p>
   Perhaps Alice should send to multiple Bobs at once, hoping that at
   least one of them gets through
 -->
+
+<h3><a name="establishIndirect">Connection establishment (indirect using an introducer)</a></h3>
+
+Alice first connects to introducer Bob, who relays the request to Charlie.
+
+<pre>
+        Alice                         Bob                  Charlie
+    RelayRequest ----------------------&gt;
+         &lt;--------------RelayResponse    RelayIntro-----------&gt;
+         &lt;--------------------------------------------HolePunch (data ignored)
+    SessionRequest--------------------------------------------&gt;
+         &lt;--------------------------------------------SessionCreated
+    SessionConfirmed------------------------------------------&gt;
+         &lt;-----------------------------------------------&gt;Data
+</pre>
 
 <h2><a name="peerTesting">Peer testing</a></h2>
 
@@ -247,81 +329,6 @@ session with Bob and so that Charlie can contact her without knowing
 any additional information.  Alice may go on to establish a session
 with either Bob or Charlie, but it is not required.</p>
 
-<h2><a name="messageSequences">Message sequences</a></h2>
-
-<h3><a name="establishDirect">Connection establishment (direct)</a></h3>
-
-Alice connects directly to Bob.
-
-<pre>
-        Alice                         Bob
-    SessionRequest---------------------&gt;
-          &lt;---------------------SessionCreated
-    SessionConfirmed-------------------&gt;
-    SessionConfirmed-------------------&gt;
-    SessionConfirmed-------------------&gt;
-    SessionConfirmed-------------------&gt;
-          &lt;--------------------------Data
-</pre>
-
-<h3><a name="establishIndirect">Connection establishment (indirect using an introducer)</a></h3>
-
-Alice first connects to introducer Bob, who relays the request to Charlie.
-
-<pre>
-        Alice                         Bob                  Charlie
-    RelayRequest ----------------------&gt;
-         &lt;--------------RelayResponse    RelayIntro-----------&gt;
-         &lt;--------------------------------------------Data (ignored)
-    SessionRequest--------------------------------------------&gt;
-         &lt;--------------------------------------------SessionCreated
-    SessionConfirmed------------------------------------------&gt;
-    SessionConfirmed------------------------------------------&gt;
-    SessionConfirmed------------------------------------------&gt;
-    SessionConfirmed------------------------------------------&gt;
-         &lt;---------------------------------------------------Data
-</pre>
-
-<h2><a name="sampleDatagrams">Sample datagrams</a></h2>
-
-<b>Minimal data message (no fragments, no ACKs, no NACKs, etc)</b><br />
-<i>(Size: 39 bytes)</i>
-
-<pre>
- +----+----+----+----+----+----+----+----+
- |                  MAC                  |
- |                                       |
- +----+----+----+----+----+----+----+----+
- |                   IV                  |
- |                                       |
- +----+----+----+----+----+----+----+----+
- |flag|        time       |flag|#frg|    |
- +----+----+----+----+----+----+----+    |
- |  padding to fit a full AES256 block   |
- +----+----+----+----+----+----+----+----+
-</pre>
-
-<b>Minimal data message with payload</b><br />
-<i>(Size: 46+fragmentSize bytes)</i>
-
-<pre>
- +----+----+----+----+----+----+----+----+
- |                  MAC                  |
- |                                       |
- +----+----+----+----+----+----+----+----+
- |                   IV                  |
- |                                       |
- +----+----+----+----+----+----+----+----+
- |flag|        time       |flag|#frg| 
- +----+----+----+----+----+----+----+----+
-   messageId    |   frag info  |         |
- +----+----+----+----+----+----+         |
- | that many bytes of fragment data      |
-                  .  .  .                                       
- |                                       |
- +----+----+----+----+----+----+----+----+
-</pre> 
-
 <h2><a name="capabilities">Peer capabilities</a></h2>
 
 <dl>
@@ -336,18 +343,39 @@ Alice first connects to introducer Bob, who relays the request to Charlie.
 </dl>
 
 <h1><a name="future">Future Work</a></h1>
-<p>
+<ul><li>
 Analysis of current SSU performance, including assessment of window size adjustment
 and other parameters, and adjustment of the protocol implementation to improve
 performance, is a topic for future work.
-<p>
+</li><li>
 The current implementation repeatedly sends acknowledgments for the same packets,
 which unnecessarily increases overhead.
-<p>
-The Session Destroyed message is not currently implemented and is scheduled for release 0.8.1.
-<p>
+</li><li>
+The default small MTU value of 620 should be analyzed and possibly increased.
+The current MTU adjustment strategy should be evaluated.
+Does a streaming lib 1730-byte packet fit in 3 small SSU packets? Probably not.
+</li><li>
+The protocol should be extended to exchange MTUs during the setup.
+</li><li>
 Rekeying is currently unimplemented and may never be.
-
+</li><li>
+The potential use of the 'challenge' fields in RelayIntro and RelayResponse,
+and use of the padding field in SessionRequest and SessionCreated, is undocumented.
+</li><li>
+Instead of a single fragment per packet, a more efficient
+strategy may be to bundle multiple message fragments into the same packet,
+so long as it doesn't exceed the MTU.
+</li><li>
+A set of fixed packet sizes may be appropriate to further hide the data 
+fragmentation to external adversaries, but the tunnel, garlic, and end to 
+end padding should be sufficient for most needs until then.
+</li><li>
+Why are introduction keys the same as the router hash, should it be changed, would there be any benefit?
+</li><li>
+Capacities appear to be unused.
+</li><li>
+Signed-on times in SessionCreated and SessionConfirmed appear to be unused or unverified.
+</li></ul>
 
 <h1>Implementation Diagram</h1>
 This diagram

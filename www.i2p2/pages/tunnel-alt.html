@@ -3,18 +3,18 @@
 {% block content %}
 
 This page documents the current tunnel implementation.
-Updated July 2010 for release 0.8
+Updated October 2010 for release 0.8
 
 
-<h2>1) <a name="tunnel.overview">Tunnel overview</a></h2>
+<h2 id="tunnel.overview">Tunnel overview</h2>
 
 <p>Within I2P, messages are passed in one direction through a virtual
 tunnel of peers, using whatever means are available to pass the 
 message on to the next hop.  Messages arrive at the tunnel's 
-gateway, get bundled up and/or fragmented into fixed sizes tunnel messages, 
+</i>gateway</i>, get bundled up and/or fragmented into fixed-size tunnel messages, 
 and are forwarded on to the next hop in the tunnel, which processes and verifies
 the validity of the message and sends it on to the next hop, and so on, until
-it reaches the tunnel endpoint.  That endpoint takes the messages
+it reaches the tunnel endpoint.  That <i>endpoint</i> takes the messages
 bundled up by the gateway and forwards them as instructed - either
 to another router, to another tunnel on another router, or locally.</p>
 
@@ -27,8 +27,8 @@ out to the remote endpoint.</p>
 
 <p>The tunnel's creator selects exactly which peers will participate
 in the tunnel, and provides each with the necessary configuration
-data.  They may have any number of hops, but may be constrained with various
-proof-of-work requests to add on additional steps.  It is the intent to make
+data.  They may have any number of hops.
+It is the intent to make
 it hard for either participants or third parties to determine the length of 
 a tunnel, or even for colluding participants to determine whether they are a
 part of the same tunnel at all (barring the situation where colluding peers are
@@ -48,31 +48,93 @@ the core I2P layer, there is an optional end to end streaming library
 available for client applications, exposing TCP-esque operation,
 including message reordering, retransmission, congestion control, etc.</p>
 
-<h2>2) <a name="tunnel.operation">Tunnel operation</a></h2>
+<p>
+An overview of I2P tunnel terminology is
+<a href="how_tunnelrouting.html">on the tunnel overview page</a>.
+</p>
 
-<p>Tunnel operation has four distinct processes, taken on by various 
-peers in the tunnel.  First, the tunnel gateway accumulates a number
-of tunnel messages and preprocesses them into something for tunnel
-delivery.  Next, that gateway encrypts that preprocessed data, then
-forwards it to the first hop.  That peer, and subsequent tunnel 
+<h2 id="tunnel.operation">Tunnel Operation (Message Processing)</h2>
+<h3>Overview</h3>
+
+<p>After a tunnel is built, <a href="i2np.html">I2NP messages</a> are processed and passed through it.
+Tunnel operation has four distinct processes, taken on by various 
+peers in the tunnel.  <ol><li>First, the tunnel gateway accumulates a number
+of I2NP messages and preprocesses them into tunnel messages for
+delivery.  </li><li>Next, that gateway encrypts that preprocessed data, then
+forwards it to the first hop.  </li><li>That peer, and subsequent tunnel 
 participants, unwrap a layer of the encryption, verifying that it isn't
 a duplicate, then forward it on to the next peer.  
-Eventually, the message arrives at the endpoint where the messages
-bundled by the gateway are split out again and forwarded on as 
-requested.</p>
+</li><li>Eventually, the tunnel messages arrive at the endpoint where the I2NP messages
+originally bundled by the gateway are reassembled and forwarded on as 
+requested.</li></ol></p>
 
-<p>Tunnel IDs are 4 byte numbers used at each hop - participants know what
-tunnel ID to listen for messages with and what tunnel ID they should be forwarded
-on as to the next hop, and each hop chooses the tunnel ID which they receive messages
-on.  Tunnels themselves are short-lived (10 minutes).
-Even if subsequent tunnels are built using the same sequence of 
-peers, each hop's tunnel ID will change.</p>
+<p>
+Intermediate tunnel participants do not know whether they are in an
+inbound or an outbound tunnel; they always "encrypt" for the next hop.
+Therefore, we take advantage of symmetric AES encryption
+to "decrypt" at the outbound tunnel gateway,
+so that the plaintext is revealed at the outbound endpoint.
+</p>
+<p>
+<center>
+      <img src="/_static/images/tunnels.png" alt="Inbound and outbound tunnel schematic" title="Inbound and outbound tunnel schematic" />
+</center>
+</p>
 
-<h3>2.1) <a name="tunnel.preprocessing">Message preprocessing</a></h3>
+<table><tr>
+<th>Role</th>
+<th>Preprocessing</th>
+<th>Encryption Operation</th>
+<th>Postprocessing</th>
+</tr>
+
+<tr><td>Outbound Gateway (Creator)</td>
+<td>Fragment, Batch, and Pad</td>
+<td>Iteratively encrypt (using decryption operations)</td>
+<td>Forward to next hop</td>
+</tr>
+
+<tr><td>Participant</td>
+<td>&nbsp;</td>
+<td>Decrypt (using an encryption operation)</td>
+<td>Forward to next hop</td>
+</tr>
+
+<tr><td>Outbound Endpoint</td>
+<td>&nbsp;</td>
+<td>Decrypt (using an encryption operation) to reveal plaintext tunnel message</td>
+<td>Reassemble Fragments, Forward as instructed to Inbound Gateway or Router</td>
+</tr>
+
+<tr><td colspan="4"><hr></td></tr>
+
+<tr><td>Inbound Gateway</td>
+<td>Fragment, Batch, and Pad</td>
+<td>Encrypt</td>
+<td>Forward to next hop</td>
+</tr>
+
+<tr><td>Participant</td>
+<td>&nbsp;</td>
+<td>Encrypt</td>
+<td>Forward to next hop</td>
+</tr>
+
+<tr><td>Inbound Endpoint (Creator)</td>
+<td>&nbsp;</td>
+<td>Iteratively decrypt to reveal plaintext tunnel message</td>
+<td>Reassemble Fragments, Receive data</td>
+</tr>
+</table>
+
+
+
+<h3 id="tunnel.gateway">Gateway Processing</h3>
+<h4 id="tunnel.preprocessing">Message Preprocessing</h4>
 
 <p>A tunnel gateway's function is to fragment and pack
 <a href="i2np.html">I2NP messages</a> into fixed-size
-<a href="tunnel_message_specification.html">tunnel messages</a>
+<a href="tunnel_message_spec.html">tunnel messages</a>
 and encrypt the tunnel messages.
 Tunnel messages contain the following:
 
@@ -81,17 +143,31 @@ Tunnel messages contain the following:
 <li>A 16 byte IV (initialization vector)</li>
 <li>A checksum
 <li>Padding, if necessary</li>
-<li>One or more { delivery instruction, I2NP message fragment} pairs</li>
+<li>One or more { delivery instruction, I2NP message fragment } pairs</li>
 </ul>
+
+<p>Tunnel IDs are 4 byte numbers used at each hop - participants know what
+tunnel ID to listen for messages with and what tunnel ID they should be forwarded
+on as to the next hop, and each hop chooses the tunnel ID which they receive messages
+on.  Tunnels themselves are short-lived (10 minutes).
+Even if subsequent tunnels are built using the same sequence of 
+peers, each hop's tunnel ID will change.</p>
+
+<p>To prevent adversaries from tagging the messages along the path by adjusting
+the message size, all tunnel messages are a fixed 1024 bytes in size.  To accommodate 
+larger I2NP messages as well as to support smaller ones more efficiently, the
+gateway splits up the larger I2NP messages into fragments contained within each
+tunnel message.  The endpoint will attempt to rebuild the I2NP message from the
+fragments for a short period of time, but will discard them as necessary.</p>
 
 <p>
 
 Details are in the
-<a href="tunnel_message_specification.html">tunnel message specification</a>.
+<a href="tunnel_message_spec.html">tunnel message specification</a>.
 
 
 
-<h3>2.2) <a name="tunnel.gateway">Gateway Processing</a></h3>
+<h3>Gateway Encryption</h3>
 
 <p>After the preprocessing of messages into a padded payload, the gateway builds
 a random 16 byte IV value, iteratively encrypting it and the tunnel message as
@@ -106,7 +182,7 @@ data with the IV and layer keys for all hops in the tunnel.  The result of the o
 tunnel encryption is that when each peer encrypts it, the endpoint will recover 
 the initial preprocessed data.</p>
 
-<h3>2.3) <a name="tunnel.participant">Participant Processing</a></h3>
+<h3 id="tunnel.participant">Participant Processing</h3>
 
 <p>When a peer receives a tunnel message, it checks that the message came from
 the same previous hop as before (initialized when the first message comes through
@@ -129,7 +205,7 @@ false positive.  The unique value fed into the Bloom filter is the XOR of the IV
 and the first block so as to prevent nonsequential colluding peers in the tunnel 
 from tagging a message by resending it with the IV and first block switched.</p>
 
-<h3>2.4) <a name="tunnel.endpoint">Endpoint Processing</a></h3>
+<h3 id="tunnel.endpoint">Endpoint Processing</h3>
 
 <p>After receiving and validating a tunnel message at the last hop in the tunnel,
 how the endpoint recovers the data encoded by the gateway depends upon whether 
@@ -143,25 +219,8 @@ layer and IV keys of each step in reverse order.</p>
 which it may then parse out into the included I2NP messages and forwards them as
 requested in their delivery instructions.</p>
 
-<p>These padding strategies can be used on a variety of levels, addressing the
-exposure of message size information to different adversaries.  After gathering
-and reviewing some <a href="http://dev.i2p.net/~jrandom/messageSizes/">statistics</a>
-from the 0.4 network, as well as exploring the anonymity tradeoffs, we're starting
-with a fixed tunnel message size of 1024 bytes.  Within this however, the fragmented
-messages themselves are not padded by the tunnel at all (though for end to end 
-messages, they may be padded as part of the garlic wrapping).</p>
 
-<h3>2.6) <a name="tunnel.fragmentation">Tunnel Fragmentation</a></h3>
-
-<p>To prevent adversaries from tagging the messages along the path by adjusting
-the message size, all tunnel messages are a fixed 1024 bytes in size.  To accommodate 
-larger I2NP messages as well as to support smaller ones more efficiently, the
-gateway splits up the larger I2NP messages into fragments contained within each
-tunnel message.  The endpoint will attempt to rebuild the I2NP message from the
-fragments for a short period of time, but will discard them as necessary.</p>
-
-
-<h2><a name="tunnel.building">Tunnel Building</a></h2>
+<h2 id="tunnel.building">Tunnel Building</h2>
 
 <p>When building a tunnel, the creator must send a request with the necessary
 configuration data to each of the hops and wait for all of them to agree before
@@ -172,14 +231,14 @@ reply.  There are three important dimensions to keep in mind when producing
 the tunnels: what peers are used (and where), how the requests are sent (and 
 replies received), and how they are maintained.</p>
 
-<h3>3.1) <a name="tunnel.peerselection">Peer Selection</a></h3>
+<h3 id="tunnel.peerselection">Peer Selection</h3>
 
 <p>Beyond the two types of tunnels - inbound and outbound - there are two styles
 of peer selection used for different tunnels - exploratory and client.
 Exploratory tunnels are used for both network database maintenance and tunnel
 maintenance, while client tunnels are used for end to end client messages.  </p>
 
-<h4><a name="tunnel.selection.exploratory">Exploratory tunnel peer selection</a></h4>
+<h4 id="tunnel.selection.exploratory">Exploratory tunnel peer selection</h4>
 
 <p>Exploratory tunnels are built out of a random selection of peers from a subset
 of the network.  The particular subset varies on the local router and on what their
@@ -194,7 +253,7 @@ Exploratory peer selection is discussed further on the
 <a href="how_peerselection.html">Peer Profiling and Selection page</a>.
 
 
-<h4><a name="tunnel.selection.client">Client tunnel peer selection</a></h4>
+<h4 id="tunnel.selection.client">Client tunnel peer selection</h4>
 
 <p>Client tunnels are built with a more stringent set of requirements - the local
 router will select peers out of its "fast and high capacity" profile category so
@@ -206,7 +265,7 @@ should be adhered to, depending upon the client's anonymity needs.</p>
 Client peer selection is discussed further on the
 <a href="how_peerselection.html">Peer Profiling and Selection page</a>.
 
-<h4><a name="ordering">Peer Ordering within Tunnels</a></h4>
+<h4 id="ordering">Peer Ordering within Tunnels</h4>
 
 Peers are ordered within tunnels to
 to deal with the <a href="http://prisms.cs.umass.edu/brian/pubs/wright-tissec.pdf">predecessor 
@@ -235,7 +294,7 @@ within a single pool but not between different pools.
 New keys are generated at each router restart.
 
 
-<h3>3.2) <a name="tunnel.request">Request delivery</a></h3>
+<h3 id="tunnel.request">Request delivery</h3>
 
 <p>
 A multi-hop tunnel is built using a single build message which is repeatedly
@@ -267,7 +326,7 @@ the router in question.
 For more information on peer profiling, see the
 <a href="how_peerselection.html">Peer Profiling and Selection page</a>.
 
-<h3>3.3) <a name="tunnel.pooling">Tunnel Pools</a></h3>
+<h3 id="tunnel.pooling">Tunnel Pools</h3>
 
 <p>To allow efficient operation, the router maintains a series of tunnel pools,
 each managing a group of tunnels used for a specific purpose with their own
@@ -286,17 +345,42 @@ lengths should be randomized, as
 well as any of the other settings allowed when configuring individual tunnels.
 Configuration options are specified on the <a href="i2cp.html">I2CP page</a>.
 
-<h3 id="length">Default Tunnel Lengths</h3>
+<h3 id="length">Tunnel Lengths and Defaults</h3>
 
-TODO
+<a href="how_tunnelrouting.html#length">On the tunnel overview page</a>.
 
 <h3 id="strategy">Anticipatory Build Strategy and Priority</h3>
 
-TODO - Parallelism, priority, success time tracking, pool differences
+<p>
+Tunnel building is expensive, and tunnels expire a fixed time after they are built.
+However, when a pool that runs out of tunnels, the Destination is essentially dead.
+In addition, tunnel build success rate may vary greatly with both local and global
+network conditions.
+Therefore, it is important to maintain an anticipatory, adaptive build strategy
+to ensure that new tunnels are successfully built before they are needed,
+without building an excess of tunnels, building them too soon,
+or consuming too much CPU or bandwidth creating and sending the encrypted build messages.
+</p>
+<p>
+For each tuple {exploratory/client, in/out, length, length variance}
+the router maintains statistics on the time required for a successful
+tunnel build.
+Using these statistics, it calculates how long before a tunnel's expiration
+it should start attempting to build a replacement.
+As the expiration time approaches without a successful replacement,
+it starts multiple build attempts in parallel, and then
+will increase the number of parallel attempts if necessary.
+</p>
+<p>
+To cap bandwidth and CPU usage,
+the router also limits the maximum number of build attempts outstanding
+across all pools.
+Critical builds (those for exploratory tunnels, and for pools that have
+run out of tunnels) are prioritized.
+</p>
 
-<h2><a name="tunnel.throttling">Tunnel Message Throttling</a></h2>
 
-TODO: Document current strategies, priority, and WRED
+<h2 id="tunnel.throttling">Tunnel Message Throttling</h2>
 
 <p>Even though the tunnels within I2P bear a resemblance to a circuit switched
 network, everything within I2P is strictly message based - tunnels are merely
@@ -312,14 +396,45 @@ capacity and utilization.  On the other hand, each router can simply drop
 messages that are beyond its capacity, exploiting the research used on the 
 normal Internet.</p>
 
+<p>
+In the current implementation, routers implement a
+weighted random early discard (WRED) strategy.
+For all participating routers (internal participant, inbound gateway, and outbound endpoint),
+the router will start randomly dropping a portion of messages as the
+bandwidth limits are approached.
+As traffic gets closer to, or exceeds, the limits, more messages are dropped.
+For an internal participant, all messages are fragmented and padded and therefore are the same size.
+At the inbound gateway and outbound endpoint, however, the dropping decision is made
+on the full (coalesced) message, and the message size is taken into account.
+Larger messages are more likely to be dropped.
+Also, messages are more likely to be dropped at the outbound endpoint than the inbound gateway,
+as those messages are not as "far along" in their journey and thus the network cost of
+dropping those messages is lower.
+</p>
 
-<h2><a name="future">Future Work</a></h3>
-<h3><a name="tunnel.mixing">Mixing/batching</a></h3>
+
+<h2 id="future">Future Work</h3>
+<h3 id="tunnel.mixing">Mixing/batching</h3>
 
 <p>What strategies could be used at the gateway and at each hop for delaying,
 reordering, rerouting, or padding messages?  To what extent should this be done
 automatically, how much should be configured as a per tunnel or per hop setting,
 and how should the tunnel's creator (and in turn, user) control this operation?
 All of this is left as unknown, to be worked out for a distant future release. 
+
+
+<h3>Padding</h3>
+<p>The padding strategies can be used on a variety of levels, addressing the
+exposure of message size information to different adversaries.
+The current fixed tunnel message size is 1024 bytes.  Within this however, the fragmented
+messages themselves are not padded by the tunnel at all, though for end to end 
+messages, they may be padded as part of the garlic wrapping.</p>
+
+<h3>WRED</h3>
+<p>
+WRED strategies have a significant impact on end-to-end performance,
+and prevention of network congestion collapse.
+The current WRED strategy should be carefully evaluated and improved.
+</p>
 
 {% endblock %}

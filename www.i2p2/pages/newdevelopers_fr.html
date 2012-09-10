@@ -1,0 +1,189 @@
+{% extends "_layout_fr.html" %}
+{% block title %}Guide du nouveau développeur{% endblock %}
+{% block content %}
+Traduction de mars 2011. <a href="newdevelopers.html">Version anglaise actuelle</a>
+<p>
+  Alors comme ça vous voulez commencer à trimer sur I2P? Sympa!<br />
+  Voici donc de quoi vous mettre le pied à l'étrier, pour participer à l'élaboration du site ou du logiciel, 
+  à développer ou à faire des traductions.
+</p>
+<p>
+  Pas prêt pour coder?
+  Essayez <a href="getinvolved_fr.html">engagez-vous!</a> d'abord.  
+</p>
+
+<div id="TOC">
+  <ol>
+    <li><a href="#basic-study">Préliminaires</a></li>
+    <li><a href="#getting-the-i2p-code">Obtenir le code I2P</a></li>
+    <li><a href="#building-i2p">Compiler I2P</a></li>
+    <li><a href="#development-ideas">Idées de développement</a></li>
+    <li><a href="#making-the-results-available">Publier le travail</a></li>
+    <li><a href="#get-to-know-us">Venez nous rencontrer!</a></li>
+    <li><a href="#translations">Traductions</a></li>
+    <li><a href="#tools">Tools</a></li>
+  </ol>
+</div>
+
+<h2 id="basic-study">Préliminaires</h2>
+
+<p>
+  Le développement de base pour le routeur I2P ou les applications intégrées se fait avec Java comme langage de 
+  programmation principal. Si vous n'avez aucune expérience de Java, vous pouvez quand même parcourir 
+  <a href="http://www.mindview.net/Books/TIJ/">Thinking in Java</a> ou en français 
+    <a href="http://penserenjava.free.fr/">ici</a>.
+</p>
+<p>
+  Étudiez l'<a href="how_intro_fr.html">intro</a>,
+  les <a href="how_fr.html">autre documents "comment ceci cela"</a>,
+  l'<a href="techintro_fr.html">intro technique</a>, et les documents associés. Ceci vous donnera un bon aperçu de la 
+  structure d'I2P et de ses différentes possibilités.
+</p>
+
+<h2 id="getting-the-i2p-code">Obtenir le code I2P</h2>
+
+<p>
+  Pour le développement sur le routeur i2p ou les applications embarquées, installez le dépôt de sources monotone. 
+  En bref: </p>
+<ul>
+  <li>
+    Installez <a href="http://www.monotone.ca/">monotone</a>.
+    Monotone est un système de gestion de versions (CVS). Nous l'avons choisi car il nous permet de garder la trace de 
+    qui fait quoi dans les changements du code source (et pour beaucoup d'autres choses compliquées, mais 'garder la 
+    trace des modifs' est l'idée maîtresse).
+  </li>
+  <li>Balladez_vous dans le <a href="http://monotone.ca/docs/Tutorial.html">guide de monotone</a> pour vous assurer 
+      un minimum de compréhension des concepts.</li>
+  <li>
+    <p>
+      Si vous souhaitez rester anonyme, il vous faudra en passer par une étape supplémentaire, établir une connexion 
+      via I2P au serveur monotone:
+    </p>
+    <p>
+      Activez le tunnel client <a href="i2ptunnel.html">i2ptunnel</a> sur le port 8998 pointant vers mtn.i2p2.i2p 
+      (si vous avez des problèmes d'unicité, voyez le <a href="http://trac.i2p2.de/ticket/64">ticket #64</a> 
+      pour un contournement).
+    </p>
+  </li>
+  <li>
+    Créez un dossier pour mettre tous vos fichiers I2P, et créez y une base de données monotone: 
+    <b>mtn -d i2p.mtn db init</b>
+  </li>
+  <li>
+    Ramenez les sources I2P sur votre machine. Ça peut prendre un moment surtout si vous le faites via I2P!
+    <ul>
+      <li>Anonymement: <b>mtn -d i2p.mtn pull 127.0.0.1:8998 i2p.i2p</b></li>
+      <li>
+        <p>
+          Normalement: <b>mtn -d i2p.mtn pull mtn.i2p2.de i2p.i2p</b><br />
+          Et alternativement, au lieu de 'mtn.i2p2.de', vous pouvez aussi télécharger depuis mtn.i2p-projekt.de.
+        </p>
+    </ul>
+  </li>
+  <li>
+    <p>
+      Vous avez maintenant toutes les sources dans votre machine, dans le fichier base de données i2p.mtn. Pour 
+      travailler sur le routeur, vous devez les extraires dans un répertoire: <b>mtn -d i2p.mtn co --branch=i2p.i2p</b> 
+      (ou <b>mtn -d i2p.mtn co --branch=i2p.www</b> pour celles du site web)
+    </p>
+    <p>
+      Les commandes ci-dessus créent le dossier i2p.i2p (et/ou i2p.www), qui contient toutes les sources du code d'I2P.
+    </p>
+  </li>
+</ul>
+
+<h3>Remarques</h3>
+<p>
+  Le téléchargement initial peut prendre quelques heures en passant par le tunnel.
+  S'il échoue pendant ce temps, relancez-le tout simplement, il reprendra là où il en était.
+  Si vous êtes pressé(e), utilisez l'accès non-anonyme normal.
+</p>
+<p>
+  Une liste complète des branches, dont i2p.i2p et i2p.www est disponible sur 
+   <a href="http://stats.i2p/cgi-bin/viewmtn/">viewmtn</a>.
+</p>
+<p>
+  L'explication détaillée de l'utilisation de monotone est présentée sur la <a href="monotone.html">page monotone</a>.
+</p>
+
+<h2 id="building-i2p">Compiler I2P</h2>
+
+<p>
+  Pour compiler le code, il vous faut le kit de développement Java v6 ou ultérieur, ou un JDK équivalent
+  (<a href="http://java.sun.com/javase/downloads/index.jsp">Sun JDK 6</a> chaudement recommandé) et
+  <a href="http://ant.apache.org/">Apache ant</a> version 1.7.0 ou plus récente.
+  Si vous partez pour travailler sur le code principal d'I2P, vous pouvez allez dans le dossier i2p.i2p et lancer 
+  'ant' pour voir les options de compilation.
+</p>
+
+<p>
+  Pour compiler ou travailler sur les traductions de la console, vous avez besoin des outils xgettext, msgfmt, et 
+  msgmerge du package <a href="http://www.gnu.org/software/gettext/">GNU gettext</a>.
+</p>
+
+<p>
+  Pour le développement sur de nouvelles applications, lisez le 
+   <a href="applications">guide de développement d'applications</a>.
+</p>
+
+<h2 id="development-ideas">Idées de développement</h2>
+<p>
+  Voir les <a href="http://zzz.i2p/forums/3">zzz's TODO lists</a>, 
+  <a href="todo_fr.html">la liste des TODOs</a> de ce site, ou
+  <a href="http://trac.i2p2.de/report/1">Trac</a> pour des suggestions.
+</p>
+
+<h2 id="making-the-results-available">Publier le travail</h2>
+
+<p>
+  Voir en bas des <a href="licenses.html">licences</a> pour les autorisations nécessaires. Vous en avez besoin pour 
+   envoyer du code dans i2p.i2p (pas nécessaire pour le site web!).
+</p>
+
+<p>
+  Version courte de la génération et utilisation des clefs si vous voulez publier:
+  <ul>
+    <li>mtn genkey nom-transport@mail.i2p <i>(passphrase vide)</i>
+    <li>mtn genkey nom@mail.i2p <i>(choisissez une passphrase)</i>
+    <li>mtn pubkey nom-transport@mail.i2p <i>(<a href="mailto:mtn@welterde.de">envoyez</a> ça à l'opérateur du dépôt
+     pour obtenir le privilège push)</i>
+    <li>mtn pubkey nom@mail.i2p <i>(envoyez ça <a href="mailto:zzz@mail.i2p">au responsable de publication</a> 
+     pour avoir le privilège commit - pas requis pour le site web)</i>
+    <li>mtn ci -k nom@mail.i2p <i>(injectez votre travail dans la base locale avec cette clef)</i>
+    <li>mtn sync(ou pull) -k nom-transport@mail.i2p <i>(synchronisez (sync=pull+push) avec le serveur 
+          avec cette clef)</i>
+    <li>mtn update (ou mtn up en abrégé)<i> (met à jour les fichiers locaux dans les dossiers i2p.i2p et/ou i2p.www à 
+        partir de la base de données synchronisée)</i>
+  </ul>
+  Version longue: voir la page <a href="monotone.html">monotone</a>.
+</p>
+
+<h2 id="get-to-know-us">Venez nous rencontrer!</h2>
+<p>
+  Les développeurs trainent sur l'IRC. Ils peuvent être contactés sur le réseau Freenode, et sur les réseaux internes 
+  I2P. Leur QG est le canal #i2p-dev. Viendez et disez hi!
+</p>
+
+<h2 id="translations">Traductions</h2>
+<p>
+  Traducteurs du site et de la console, ceci est pour vous: <a href="newtranslators_fr.html">
+   Guide du traducteur débutant</a> pour les étapes suivantes.
+</p>
+<h2 id="tools">Tools</h2>
+<p>
+I2P is open source software that is mostly developed using open sourced
+toolkits.  The I2P project recently acquired a license for the YourKit Java
+Profiler. Open source projects are eligible to receive a free license provided
+that YourKit is referenced on the project web site.  Please get in touch if you
+are interested in profiling the I2P codebase.
+</p>
+
+<p>
+YourKit is kindly supporting open source projects with its full-featured Java Profiler.
+YourKit, LLC is the creator of innovative and intelligent tools for profiling
+Java and .NET applications. Take a look at YourKit's leading software products:
+<a href="http://www.yourkit.com/java/profiler/index.jsp">YourKit Java Profiler</a> and
+<a href="http://www.yourkit.com/.net/profiler/index.jsp">YourKit .NET Profiler</a>.
+</p>
+
+{% endblock %}

@@ -1,85 +1,141 @@
 {% extends "_layout.html" %}
 {% block title %}i2ptunnel{% endblock %}
-{% block content %}Below is quick copy of aum's eepsite deployment guide.
-<br />
-<br />
+{% block content %}Description of i2ptunnel and tunneling modes
 
-<ol>
-<li><strong>Deploy a local server</strong>
+default services
+client modes
+serrver modes
+
+<h1>I2PTunnel</h1>
+<h2 id="overview">Overview</h2>
+<p>
+I2PTunnel is a tool for interfacing with and providing services on I2P.
+Destination of an I2PTunnel can be defined using a <a href="naming.html">hostname</a>,
+<a href="naming.html#base32">Base32</a>, or a full 516-byte destination key.
+An established I2PTunnel will be available on your client machine as localhost:port.
+If you wish to provide a service on I2P network, you simply create I2PTunnel to the
+appropriate ip_address:port. A corresponding 516-byte destination key will be generated
+for the service and it will become avaliable throughout I2P.
+A web interface for I2PTunnel management is avaliable on
+<a href="http://localhost:7657/i2ptunnel/">localhost:7657/i2ptunnel/</a>.
+</p>
+
+<br>
+<h2 id="default-services">Default Services</h2>
+<h3 id="default-server-tunnels">Server tunnels</h3>
 <ul>
-<li>For simplicity's sake, we will walk through the setup of a web server; however, this procedure is the same regardless what protocol of servers and/or clients you are setting up.</li>
-<li>I recommend the Tiny Httpd web server , thttpd, (windows version available on site) although you can use anything that you feel comfortable with.</li>
-<li>With the web server you've chosen, configure it to listen on a port of your choice, and serve its documents from a directory of your choice. For this example, we'll assume port 10880.</li>
-<li>Make sure your firewall is set up so that you cannot receive incoming connections on this port (which would breach your anonymity).</li>
-<li>Test the webserver, by pointing your normal browser (the one with the "direct connection") at <a href="http://localhost:10880" target="_blank">http://localhost:10880</a> (changing the 10880 to the port number you have chosen).</li>
-<li>Once your webserver is working, and you can access it locally with your browser, continue to the next step.</li>
-</ul></li>
-
-<li><strong>Open a 'Tunnel' from I2P To Your Server</strong>
+<li><b>I2P Webserver</b> - A tunnel pointed to a Jetty webserver run
+ on <a href="http://localhost:7658">localhost:7658</a> for convenient and quick hosting on I2P.
+<br>The document root is:
+<br><b>Unix</b> - %APPDATA%\I2P\eepsite\docroot
+<br><b>Windows</b> - C:\Users\**username**\AppData\Roaming\I2P\eepsite\docroot
+</li>
+</ul>
+<h3 id="default-client-tunnels">Client tunnels</h3>
 <ul>
-<li>I2P does not deal in IP addresses. To protect your anonymity, it deals in unique addresses called destination keys.</li>
-<li>A destination key works a lot like a regular IP address, except that it can't be traced to your IP address or physical location. When users place a request to speak with you, your gateways are the ones that answer for you. So the requesting user can only know the IP address of your gateways. However, gateways don't know your IP address, because gateways are the last nodes on your tunnels, and you anonymously create tunnels by way of garlic routing. (So gateways are like puppets that can't see their masters, and everyone communicates through these puppets)</li>
-<li>To deploy a server on I2P, you create a destination keypair. You use the private key to authenticate your server when connecting it to I2P, and you make the public key (aka destination key) known publicly, so others can connect to your server. (indirectly, through your gateways)</li>
-<li>Each service you run on I2P requires a different keypair.</li>
-<li>The next steps will include the creation of your keypair.</li>
-<li>For clients elsewhere in I2P to be able to access your server, you must run a 'bridge' or 'tunnel', which takes connections from these clients and forwards them to your local server</li>
-<li>To activate such a tunnel, fire up your browser and open <a href="http://localhost:7657/i2ptunnel/">http://localhost:7657/i2ptunnel/</a></li>
-<li>Here you'll see a list of active and non-active tunnels already set up for you, there is the eepProxy, which all sites in I2P use, ircProxy, which is the tunnel that irc.duck.i2p uses, cvs.i2p, which is a way to view and edit (for those who have access) the cvs of i2p with a special kind of program. Under that list there is a line of buttons which do not interest us right now and under that button line there's a line with a drop down menu and a button which says: "GO".</li>
-<li>Click on the drop down menu and choose "Server tunnel", then press "GO".</li>
-<li>Now you will configure your server tunnel which will communicate your web server to the I2P network.</li>
-<li><q>Name: server 80</q><br />the name your server tunnel will be called on the tunnel list.</li>
-<li><q>Description: server 80</q><br />same as above, the description on the tunnel list.</li>
-<li><q>Type: Server tunnel</q><br />This is unchangeable because it's exactly what we want to make, a web server tunnel, so leave it as it is. ;-)</li>
-<li><q>Target host: localhost</q><br />Here is the web server's address</li>
-<li><q>Target port: 10880</q><br />This is the port your web server listens on which we've talked about before.</li>
-<li><q>Private key file: myServer.privKey</q><br />Here you'll write the name of your server's private key, after you'll create the tunnel it will tell you what's your public key.</li>
-<li><q>Tunnel depth: [0, 1 or 2]</q><br />This will tell I2P how many routers there will be connected in a line (router-1 -> router-2 ... ). The higher: slower and more anonymous; the lower: the faster and less anonymous. Read more about it in this <a href="how_tunnelrouting">tunnel routing document</a>.</li>
-<li><q>Tunnel count: [1, 2 or 3]</q><br />The higher the number, higher reliability, bigger bandwidth; the lower, lower reliability, smaller bandwidth - experiment.</li>
-<li><q>I2CP host: localhost</q>This address is where the tunnel talks to I2P server.</li>
-<li><q>I2CP port: 7654</q> The port of the address</li>
-<li><q>Other custom options: [leave blank]</q><br />Other options we don't care about.</li>
-<li><q>Start automatically? [left click to check]</q><br />Will the tunnel start automatically when I2P starts?</li>
-<li><q>Left click: Save</q> Click here when you're done to create the tunnel.</li>
-<li>Copy the destination key and save it, people who'll want to read your site will need it.</li>
-<li>If you did not check "Start automatically", you should go back to the tunnel list page and start it manually. Click "back" on the top of the page and click on "start" when you get to the tunnel list page.</li>
-<li>Within a few seconds, the 'tunnel' should now be active, and remote clients should be able to reach your server anonymously. Remember to let your router "warm up" before opening clients to it.</li>
-</ul></li>
+<li><b>I2P HTTP Proxy</b> - <i>localhost:4444</i></a> - A HTTP proxy used for browsing I2P and the regular internet anonymously through I2P. 
+Browsing internet through I2P uses a random proxy specified by the "Outproxies:" option.
+</li>
+<li><b>IRC Proxy</b> - <i>localhost:6668</i> - A IRC proxy to the default anonymous IRC-servers.</li>
+<li><b>mtn.i2p2.i2p</b> - <i>localhost:8998</i> - The anonymous <a href="http://en.wikipedia.org/wiki/Monotone_%28software%29">monotone</a>
+ sourcecode repository for I2P
+</li>
+<li><b>smtp.postman.i2p</b> - <i>localhost:7659</i> - A SMTP service provided by postman at
+ <a href="http://hq.postman.i2p/?page_id=16">hq.postman.i2p</a>
+ (<a href="http://hq.postman.i2p.to/?page_id=16">via inproxy</a>)
+</li>
+<li><b>pop3.postman.i2p</b> - <i>localhost:7660</i> - The accompanying POP sevice of postman at
+ <a href="http://hq.postman.i2p/?page_id=16">hq.postman.i2p</a>
+ (<a href="http://hq.postman.i2p.to/?page_id=16">via inproxy</a>)
+</ul>
 
-<li><strong>Update Your hosts.txt File</strong>
+<br>
+<h2 id="client-modes">Client Modes</h2>
+<h3 id="client-modes-standard">Standard</h3>
+Opens a local TCP port that connects to a service (like HTTP, FTP or SMTP) on a destination inside of I2P.
+The tunnel is directed to a random host from the comma seperated (", ") list of destinations.
+
+<br>
+<h3 id="client-mode-http">HTTP</h3>
+<p>A HTTP-client tunnel. The tunnel connects to the destination specified by the URL
+ in a HTTP request. Supports proxying onto internet if an outproxy is provided. Strips HTTP connections of the following headers:
+</p>
 <ul>
-<li>To test your own server locally, you'll need to create an entry in your hosts.txt file, so I2P can translate the simple URL you place in the browser's address bar into the full public key text needed to find your server.</li>
-<li>Edit your hosts.txt, and add the line myserver.i2p=blahblahblah, where myserver.i2p is an I2P 'domain' you want to associate with your site, and the blahblahblah is the text of the base64 public key you created earlier in the file myWebPubKey.txt</li>
-<li>With this in place, you and others can reach your server with the simple domain name myserver.i2p in the browser's address bar.</li>
-</ul></li>
-
-<li><strong>Surf Your Site Within I2P</strong><ul><li>Using your secondary browser - the one you earlier configured to use localhost:4444 as a proxy - point this browser to the address <a href="http://myserver.i2p" target="_blank">http://myserver.i2p</a></li>
-<li>You should see the main page of your webserver come up.</li>
-</ul></li>
-
-<li><strong>Create a Local Client Tunnel Connection</strong>
+<li><b>Accept, Accept-Charset, Accept-Encoding, Accept-Language
+ and Accept-Ranges</b> as they vary greatly between browsers and can be used as an identifier.
+</li>
+<li><b>Referer:</b></li>
+<li><b>Via:</b></li>
+<li><b>From:</b></li>
+</ul>
+<p>
+HTTP client/server tunnels are via I2Ptunnel force-enabling compression via the following http headers:
 <ul>
-<li>We now have to think beyond just web servers.</li>
-<li>As you grow into I2P and get more of a 'feel' for it, you will want to use all manner of servers and clients.</li>
-<li>The beauty of I2P is that it allows standard Internet clients and servers for most protocols to be transparently 'tunneled' through the anonymous network.</li>
-<li>You can run mailservers/clients, newsservers/clients - almost anything at all.</li>
-<li>Now, we'll create a client tunnel. This is like the server tunnel we created earlier, but works in reverse. It listens to a port on your local machine; your local client connects to this port; the connection gets forwarded through I2P to the service on the other end.</li>
-<li>To open your client tunnel for your server, type the command java -jar lib/i2ptunnel.jar -nogui -e "config localhost 7654" -e "client 10888 textofbase64key" (all one line).</li>
-<li>The port 10888 is arbitrary - it just needs to be something other than the physical port your server is listening on.</li>
-<li>textofbase64key is simply the contents of the public key text file myWebPubKey.txt, reproduced fully on one line (alternately, instead of textofbase64key, you can specify the name from your hosts.txt - e.g. myserver.i2p)</li>
-<li>Within a minute or two of launching this command, the client tunnel from your local machine into I2P will be open and ready for use.</li>
-<li>Point your regular web browser (ie, not the one you configured to use localhost:4444), and point it to <a href="http://localhost:10888" target="_blank">http://localhost:10888</a></li>
-<li>Verify that the mainpage of your server eventually comes up in your browser.</li>
-<li>You use the same procedure for using any local client program to access a remote I2P server - just get the base64 public key (called destination key) of the remote server, choose a local port to connect to the remote server, open the tunnel, and just connect with your client to your heart's content.</li>
-</ul></li>
-
-<li><strong>Share your server details with others</strong>
+<li><b>Accept-Encoding: </b></li>
+<li><b>X-Accept-Encoding: </b> x-i2p-gzip;q=1.0, identity;q=0.5, deflate;q=0, gzip;q=0, *;q=0</li>
+</ul>
+<p>
+Depending on if the tunnel is using an outproxy or not it will append the following User-Agent: 
+</p>
 <ul>
-<li>Using an anonymous medium (eg the one of the I2P IRC servers or ugha's wiki), post your domain name (eg <a href="http://www.mynick.i2p" target="_blank">www.mynick.i2p</a> as well as your destination key. Others will then be able to reach your server remotely, without either of you jeopardizing your anonymity.</li>
-<li>Remember, you can go to What's on I2P and find the latest public keys linked to their URL. You should also post your own public key and URL their. However, you will want to do this anonymously, of course. Drupal.i2p.net is currently, as of this writing, only accessible from the net. So, to access the outside WWW anonymously from inside of I2P, you will need to start up your script called startSquid. Do it the same way you have been doing these other scripts. Reconfigure your browser to proxy on localhost:5555, as defined in the script, and when the script has generated it's keys, you can access the squid proxy. Put any WWW URL (such as Google or this i2p site) into your browser's address bar and you will be surfing the World Wide Web anonymously. Now you can safely post your public key, and no one can detect your IP address.</li>
-<li>Aum's website <a href="http://www.freenet.org.nz/i2p/" target="_blank">http://www.freenet.org.nz/i2p/</a> has a script called setupServer.py which automates all this nonsense into one simple command line . But I respect that people's tastes in user interfaces differ, and trying to write something which satisfies everyone's needs usually results in something so complex that it turns into newbie-repellent.</li>
-<li>So please feel free to use and/or customize setupServer.py to taste, or write your own in Python or another language.</li>
-<li>Also, you may want to write a script which handles the startup of the I2P Router, the eepProxy, plus any and all tunnels you are using. I've got such a script called startEverything.sh, which gets launched at system startup. (Be sure to search this site for template scripts to automate your I2P commands. If I create a page for one, I'll try to remember to link it here.</li>
-<li>Exercise for Windows users - port setupServer.py into a MS-DOS .BAT file.</li>
-</ul></li>
-</ol>
+<li><i>Outproxy: </i><b>User-Agent:</b> Mozilla/5.0 (Windows; U; Windows NT 5.1; en-US; rv:1.9.2.6) Gecko/20100625 Firefox/3.6.6</li>
+<li><i>Internal I2P use: </i><b>User-Agent:</b> MYOB/6.66 (AN/ON)</li>
+</ul>
+</p>
+
+<h3 id="client-mode-irc">IRC</h3>
+Creates a connection to a random IRC server specified by the comma seprated (", ") 
+list of destinations. Only a whitelisted subset of IRC commands are allowed due to anonymity concerns.
+<br>Whitelist:
+<ul>
+<li>MODE</li>
+<li>JOIN</li>
+<li>NICK</li>
+<li>QUIT</li>
+<li>PART</li>
+<li>WALLOPS</li>
+<li>ERROR</li>
+<li>KICK</li>
+<li>H</li>
+<li>TOPIC</li>
+</ul>
+
+<h3 id="client-mode-socks">SOCKS 4/4a/5</h3>
+Enables using the I2P router as a SOCKS proxy.
+
+<h3 id="client-mode-socks-irc">SOCKS IRC</h3>
+Enables using the I2P router as a SOCKS proxy with the command whitelist specified by
+ <a href="#client-mode-irc">IRC</a> client mode.
+
+<h3 id="client-mode-connect">CONNECT</h3>
+Creates a HTTP tunnel and uses the HTTP request method "CONNECT" 
+to build a TCP tunnel that usually is used for SSL and HTTPS.
+
+<h3 id="client-mode-streamr">Streamr</h3>
+Creates a UDP-server attached to a Streamr client I2PTunnel. The streamr client tunnel will 
+subscribe to a streamr server tunnel.
+<br>
+<img src="_static/images/I2PTunnel-streamr.png">
+
+
+<br>
+<h2 id="server-modes">Server Modes</h2>
+<h3 id="server-mode-standard">Standard</h3>
+Creates a destination to a local ip:port with an open TCP port.
+
+<h3 id="server-mode-http">HTTP</h3>
+Creates a destination to a local HTTP server ip:port. Supports gzip for requests with 
+Accept-encoding: x-i2p-gzip, replies with Content-encoding: x-i2p-gzip in such a request.
+
+<h3 id="server-mode-http-bidir">HTTP Bidirectional</h3>
+Functions as both a I2PTunnel HTTP Server, and a I2PTunnel HTTP client with no outproxying
+ capabilities. An example application would be a web application that does client-type
+ requests, or loopback-testing an eepsite as a diagnostic tool.
+
+<h3 id="server-mode-irc">IRC</h3>
+Creates a destination that filters the reqistration sequence of a client and passes 
+the clients destination key as a hostname to the IRC-server.
+
+<h3 id="server-mode-streamr">Streamr</h3>
+A UDP-client that connects to a media server is created. The UDP-Client is coupled with a Streamr server I2PTunnel.
 {% endblock %}

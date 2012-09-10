@@ -1,6 +1,7 @@
 {% extends "_layout.html" %}
 {% block title %}I2NP{% endblock %}
 {% block content %}
+Updated August 2010, current as of router version 0.8
 <h2>I2P Network Protocol (I2NP)</h2>
 <p>
 The I2P Network Protocol (I2NP),
@@ -10,22 +11,7 @@ transports to use when communicating with a peer for which there are multiple
 common transports supported.
 </p>
 
-<p>While I2NP has been quite stable since its inception in
-August of 2003, there have been minor modifications on occasion.
-Here is the
-<a href="/_static/pdf/I2NP_spec.pdf">I2NP Protocol Specification Version 0.9</a>
-(PDF) dated August 28, 2003.
-That document also references the
-<a href="/_static/pdf/datastructures.pdf">Common Data Structures Specification Version 0.9</a>.
-Beware -
-based on a quick comparison with the code, there are substantial differences
-between the implementation and the 2003 specifications.
-</p>
-
 <h3>I2NP Definition</h3>
-<p>
-<i>Note</i> - The following information is extracted from the current code base,
-however it may be incomplete and/or inaccurate. Check the code to be sure.
 <p>
 I2NP (I2P Network Protocol) messages can be used for one-hop, router-to-router, point-to-point messages.
 By encrypting and wrapping messages in other messages, they can be sent in a secure way
@@ -41,22 +27,17 @@ These are global queues for all peers.
 NTCP has a trivial linear search for the highest priority within
 each buffer for a particular peer.
 This is much less effective.
-<p>
-It isn't clear whether the current priority scheme is generally effective,
-and whether the priorities for various messages should be adjusted further.
-This is a topic for further research, analysis and testing.
-
 
 <h3>Message Format</h3>
 <p>
 
 <table border=1>
-<tr><td>Field<td>Bytes
+<tr><th>Field<th>Bytes
 <tr><td>Unique ID<td>4
 <tr><td>Expiration<td>8
 <tr><td>Payload Length<td>2
 <tr><td>Checksum<td>1
-<tr><td>Payload<td>0 - 60.6KB
+<tr><td>Payload<td>0 - 61.2KB
 </table>
 
 <p>
@@ -64,12 +45,16 @@ While the maximum payload size is nominally 64KB, the size is further constraine
 method of fragmenting I2NP messages into multiple 1KB tunnel messages as described in
 <a href="tunnel-alt.html">tunnel-alt.html</a>.
 The maximum number of fragments is 64, and the message may not be perfectly aligned,
-so the message must nominally fit in 63 fragments, and be padded to a 16 byte boundary.
-Therefore the maximum size is 960 + (62 * 986) - 12 = 62080 bytes, or approximately 60.6KB.
+So the message must nominally fit in 63 fragments.
+<p>
+The maximum size of an initial fragment is 956 bytes (assuming TUNNEL delivery mode);
+the maximum size of a follow-on fragment is 996 bytes.
+Therefore the maximum size is approximately 956 + (62 * 996) = 62708 bytes, or 61.2 KB.
+</p>
 <p>
 In addition, the transports may have additional restrictions.
 NTCP currently limits to 16KB - 6 = 16378 bytes but this will be increased in a future release.
-The SSU limit is 32KB?
+The SSU limit is approximately 32 KB.
 <p>
 Note that these are not the limits for datagrams that the client sees, as the
 router may bundle a reply leaseset and/or session tags together with the client message
@@ -78,8 +63,6 @@ Therefore the current datagram limit is about 10KB. This limit will be
 increased in a future release.
 
 <h3>Message Types</h3>
-The following is taken from the code, however not all these
-messages may be used.
 Higher-numbered priority is higher priority.
 The majority of traffic is TunnelDataMessages (priority 400),
 so anything above 400 is essentially high priority, and
@@ -97,7 +80,7 @@ which is wrapped in a DataMessage.
 
 
 <table border=1>
-<tr><td>Message<td>Type<td>Payload Length<td>Priority<td>Comments
+<tr><th>Message<th>Type<th>Payload Length<th>Priority<th>Comments
 <tr><td>
 DatabaseLookupMessage
 <td align=right>2
@@ -127,6 +110,7 @@ DataMessage
 <td align=right>20
 <td align=right>4 - 62080
 <td align=right>400
+<td>
 <tr><td>
 DeliveryStatusMessage
 <td align=right>10
@@ -151,6 +135,7 @@ but when unwrapped, given a priority of 100 by the forwarding router
 <td align=right>22
 <td align=right>4224
 <td align=right>300
+<td>
 <tr><td>
 TunnelDataMessage
 <td align=right>18
@@ -164,6 +149,7 @@ TunnelGatewayMessage
 <td align=right>19
 <td>&nbsp;
 <td align=right>300/400
+<td>
 <tr><td>
 VariableTunnelBuildMessage
 <td align=right>23
@@ -184,5 +170,16 @@ Others listed in
 <td>&nbsp;
 <td>Obsolete, Unused
 </table>
+
+<h3>Full Protocol Specification</h3>
+<a href="i2np_spec.html">On the I2NP Specification page</a>.
+See also the
+<a href="common_structures_spec.html">Common Data Structure Specification page</a>.
+
+<h3>Future Work</h3>
+<p>
+It isn't clear whether the current priority scheme is generally effective,
+and whether the priorities for various messages should be adjusted further.
+This is a topic for further research, analysis and testing.
 
 {% endblock %}

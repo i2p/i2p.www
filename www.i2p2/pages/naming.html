@@ -1,19 +1,19 @@
 {% extends "_layout.html" %}
-{% block title %}Naming, Addressbook, and SusiDNS{% endblock %}
+{% block title %}Naming and Addressbook{% endblock %}
 {% block content %}
 <h1>Naming in I2P</h1>
-<h2>Overview</h2>
-(copied from
-<a href="techintro.html">the tech intro</a>)
+<h2 id="overview">Overview</h2>
+
+This page was last updated in March 2012 and is accurate for router version 0.8.13.
+<p>
+I2P ships with a generic naming library and a base implementation 
+designed to work off a local name to destination mapping, as well as an
+add-on application called the <a href="#addressbook">addressbook</a>. 
+I2P also supports <a href="#base32">Base32 hostnames</a> similar to Tor's .onion addresses.
+</p>
 
 <p>
-Naming within I2P has been an oft-debated topic since the very beginning with
-advocates across the spectrum of possibilities.  However, given I2P's inherent
-demand for secure communication and decentralized operation, the traditional
-DNS-style naming system is clearly out, as are "majority rules" voting systems.
-Instead, I2P ships with a generic naming library and a base implementation 
-designed to work off a local name to destination mapping, as well as an optional
-add-on application called the "addressbook".  The addressbook is a web-of-trust
+The addressbook is a web-of-trust
 driven secure, distributed, and human readable naming system, sacrificing only
 the call for all human readable names to be globally unique by mandating only
 local uniqueness.  While all messages in I2P are cryptographically addressed
@@ -27,69 +27,43 @@ traditional DNS.
 </p>
 
 <p>
-I2P does not promote the use of DNS-like services though, as the damage done
-by hijacking a site can be tremendous - and insecure destinations have no
-value.  DNSsec itself still falls back on registrars and certificate authorities,
-while with I2P, requests sent to a destination cannot be intercepted or the reply
-spoofed, as they are encrypted to the destination's public keys, and a destination
-itself is just a pair of public keys and a certificate.  DNS-style systems on the
-other hand allow any of the name servers on the lookup path to mount simple denial
-of service and spoofing attacks.  Adding on a certificate authenticating the
-responses as signed by some centralized certificate authority would address many of
-the hostile nameserver issues but would leave open replay attacks as well as 
-hostile certificate authority attacks.
+NOTE: For the reasoning behind the I2P naming system, common arguments against it
+and possible alternatives see the <a href="naming_discussion.html">naming discussion</a>
+page.
 </p>
 
-<p>
-Voting style naming is dangerous as well, especially given the effectiveness of
-Sybil attacks in anonymous systems - the attacker can simply create an arbitrarily
-high number of peers and "vote" with each to take over a given name.  Proof-of-work
-methods can be used to make identity non-free, but as the network grows the load
-required to contact everyone to conduct online voting is implausible, or if the
-full network is not queried, different sets of answers may be reachable.
-</p>
 
-<p>
-As with the Internet however, I2P is keeping the design and operation of a 
-naming system out of the (IP-like) communication layer.  The bundled naming library
-includes a simple service provider interface which alternate naming systems can
-plug into, allowing end users to drive what sort of naming tradeoffs they prefer.
-</p>
-
-<p>
-Here is
-<a href="http://forum.i2p/viewtopic.php?t=134">the often-referenced October 2004 forum post by duck on the subject</a>
-but it is dated and somewhat confusing.
-
-
-<h2>Naming System Components</h2>
+<h2 id="components">Naming System Components</h2>
 <p>
 There is no central naming authority in I2P.
 All hostnames are local.
-</p><p>
+</p>
+<p>
 The naming system is quite simple and most of it is implemented
 in applications external to the router, but bundled with
 the I2P distribution.
 The components are:
+</p>
 <ol>
-<li>The client application which does local lookups in hosts.txt
-<li>The HTTP proxy which asks the router for lookups and points
+<li>The <a href="#lookup">client application</a> which does local lookups in hosts.txt
+and also takes care of the <a href="#base32">Base32 hostnames</a>.
+<li>The <a href="#httpproxy">HTTP proxy</a> which asks the router for lookups and points
 the user to remote jump services to assist with failed lookups
-<li>HTTP host-add forms which allow others to add hosts to their local hosts.txt
-<li>HTTP jump services which provide their own lookups and redirection
-<li>The 'addressbook' application which merges external
+<li>HTTP <a href="#add-services">host-add forms</a> which allow users to add hosts to their local hosts.txt
+<li>HTTP <a href="#jump-services">jump services</a> which provide their own lookups and redirection
+<li>The <a href="#addressbook">addressbook</a> application which merges external
 host lists, retrieved via HTTP, with the local list
-<li>The 'SusiDNS' application which is a simple web front-end
+<li>The <a href="#susidns">SusiDNS</a> application which is a simple web front-end
 for addressbook configuration and viewing of the local host lists.
 </ol>
 
-</p>
-<h2>Naming Files and Lookups</h2>
+<h2 id="lookup">Naming Files and Lookups</h2>
 <p>
-All destinations in I2P are 516-byte keys.
+All destinations in I2P are 516-byte (or longer) keys.
 (To be more precise, it is a 256-byte public key plus a 128-byte signing key
 plus a null certificate, which in Base64 representation is 516 bytes.
-Certificates are not used now, if they are, the keys will be longer.
+<a href="naming_discussion.html#certificates">Certificates</a> are not used now,
+if they are, the keys will be longer.
 One possible use of certificates is for <a href="todo.html#hashcash">proof of work</a>.)
 </p><p>
 If an application (i2ptunnel or the HTTP proxy) wishes to access
@@ -103,86 +77,93 @@ look up host names and convert them to a 516-byte destination key:
 <li>userhosts.txt
 <li>hosts.txt
 </ol>
-The lookup is case-insensitive.
+<p>The lookup is case-insensitive.
 The first match is used, and conflicts are not detected.
 There is no enforcement of naming rules in lookups.
 </p><p>
 Lookups are cached for a few minutes.
 There is an experimental facility for real-time lookups (a la DNS) over the network within the router,
 although it is not enabled by default
-(see "EepGet" below under "Alternatives").
+(see "EepGet" under <a href="naming_discussion.html#alternatives">Alternatives on the discussion page</a>).
 </p>
 
-<h2>HTTP Proxy</h2>
-The HTTP proxy does a lookup via the router for all hostnames ending in '.i2p'.
+<h2 id="httpproxy">HTTP Proxy</h2>
+<p>The HTTP proxy does a lookup via the router for all hostnames ending in '.i2p'.
 Otherwise, it forwards the request to a configured HTTP outproxy.
 Thus, in practice, all HTTP (eepsite) hostnames must end in the pseudo-Top Level Domain '.i2p'.
+</p>
 
 <p>
 If the router fails to resolve the hostname, the HTTP proxy returns
 an error page to the user with links to several "jump" services.
 See below for details.
+</p>
 
-
-
-
-<h2>Addressbook</h2>
+<h2 id="addressbook">Addressbook</h2>
 <h3>Incoming Subscriptions and Merging</h3>
 <p>
 The addressbook application periodically
 retrieves other users' hosts.txt files and merges
 them with the local hosts.txt, after several checks.
+Naming conflicts are resolved on a first-come first-served
+basis.
 </p><p>
 Subscribing to another user's hosts.txt file involves
 giving them a certain amount of trust.
 You do not want them, for example, 'hijacking' a new site
 by quickly entering in their own key for a new site before
 passing the new host/key entry to you.
-
 </p><p>
 For this reason, the only subscription configured by
-default is http://www.i2p2.i2p/hosts.txt,
+default is <code>http://www.i2p2.i2p/hosts.txt</code>,
 which contains a copy of the hosts.txt included
 in the I2P release.
 Users must configure additional subscriptions in their
-local addressbook application (via subscriptions.txt or SusiDNS).
-
+local addressbook application (via subscriptions.txt or <a href="#susidns">SusiDNS</a>).
 </p><p>
+Some other public addressbook subscription links:
+</p>
+<ul>
+<li><a href="http://i2host.i2p/cgi-bin/i2hostetag">http://i2host.i2p/cgi-bin/i2hostetag</a>
+<li><a href="http://stats.i2p/cgi-bin/newhosts.txt">http://stats.i2p/cgi-bin/newhosts.txt</a>
+</ul>
+<p>
+The operators of these services may have various policies for listing hosts.
+Presence on this list does not imply endorsement.
+</p>
+
 <h3>Naming Rules</h3>
 <p>
 While there are hopefully not any technical limitations within I2P on host names,
-as of release 0.6.1.31,
 the addressbook enforces several restrictions on host names
 imported from subscriptions.
 It does this for basic typographical sanity and compatibility with browsers,
 and for security.
 The rules are essentially the same as those in RFC2396 Section 3.2.2.
-Any hostnames violating these rules may not be propagated widely
-to routers running release 0.6.1.31 or later.
+Any hostnames violating these rules may not be propagated
+to other routers.
 </p><p>
-Naming rules:
+Naming rules:</p>
 <ul>
-<li>Names are converted to lower case on import
+<li>Names are converted to lower case on import.
 <li>Names are checked for conflict with existing names in the existing userhosts.txt and hosts.txt
-(but not privatehosts.txt)
-after conversion to lower case
-<li>Must contain only [a-z] [0-9] '.' and '-' after conversion to lower case
-<li>Must not start with '.' or '-'
-<li>Must end with '.i2p'
-<li>67 characters maximum, including the '.i2p'
-<li>Must not contain '..'
-<li>Must not contain '.-' or '-.' (as of 0.6.1.33)
-<li>Must not contain '--' except in 'xn--' for IDN (as of 0.6.1.32)
-<li>Base 32 hostnames (*.b32.i2p) are not allowed.
-<li>Certain hostnames reserved for project use are not allowed.
-<li>Keys are checked for base64 validity
+(but not privatehosts.txt) after conversion to lower case.
+<li>Must contain only [a-z] [0-9] '.' and '-' after conversion to lower case.
+<li>Must not start with '.' or '-'.
+<li>Must end with '.i2p'.
+<li>67 characters maximum, including the '.i2p'.
+<li>Must not contain '..'.
+<li>Must not contain '.-' or '-.' (as of 0.6.1.33).
+<li>Must not contain '--' except in 'xn--' for IDN.
+<li>Base32 hostnames (*.b32.i2p) are not allowed.
+<li>Certain hostnames reserved for project use are not allowed
+    (proxy.i2p, router.i2p, console.i2p, *.proxy.i2p, *.router.i2p, *.console.i2p, and others)
+<li>Keys are checked for base64 validity.
 <li>Keys are checked for conflict with existing keys in hosts.txt (but not privatehosts.txt).
-<li>Keys containing non-null certificates with length greater than zero were rejected before release 0.6.5.
-    Keys containing non-null certificates with zero length were rejected before release 0.7.8.
-<li>Maximum key length 516 bytes
-<li>Maximum key length 616 bytes
+<li>Minimum key length 516 bytes.
+<li>Maximum key length 616 bytes (to account for certs up to 100 bytes).
 </ul>
-</p><p>
+<p>
 Any name received via subscription that passes all the checks is added to the local hosts.txt.		
 </p><p>
 Note that the '.' symbols in a host name are of no significance,
@@ -195,16 +176,14 @@ and the desirability and feasibility of these methods,
 are topics for future discussion.
 </p><p>
 International Domain Names (IDN) also work in i2p (using punycode 'xn--' form).
-To see IDN .i2p domain names rendered correctly in firefox's location bar,
+To see IDN .i2p domain names rendered correctly in Firefox's location bar,
 add 'network.IDN.whitelist.i2p (boolean) = true' in about:config.
 </p><p>
-
 As the addressbook application does not use privatehosts.txt at all, in practice
 this file is the only place where it is appropriate to place private aliases or
 "pet names" for sites already in hosts.txt.
-
-
 </p>
+
 <h3>Outgoing Subscriptions</h3>
 <p>
 Addressbook will publish the merged hosts.txt to a location
@@ -213,11 +192,9 @@ for their subscriptions.
 This step is optional and is disabled by default.
 </p>
 
-
 <h3>Hosting and HTTP Transport Issues</h3>
 <p>
-As of release 0.6.1.30,
-the addressbook application, together with eepget, saves the Etag and/or Last-Modified
+The addressbook application, together with eepget, saves the Etag and/or Last-Modified
 information returned by the web server of the subscription.
 This greatly reduces the bandwidth required, as the web server will
 return a '304 Not Modified' on the next fetch if nothing has changed.
@@ -235,7 +212,7 @@ This will dramatically reduce the network bandwidth, and
 reduce chances of corruption.
 </p>
 
-<h2>Host Add Services</h2>
+<h2 id="add-services">Host Add Services</h2>
 <p>
 A host add service is a simple CGI application that takes a hostname and a Base64 key as parameters
 and adds that to its local hosts.txt.
@@ -244,25 +221,25 @@ will be propagated through the network.
 </p><p>
 It is recommended that host add services impose, at a minimum, the restrictions imposed by the addressbook application listed above.
 Host add services may impose additional restrictions on hostnames and keys, for example:
-<ul>
-<li>Limit on number of 'subdomains'
-<li>Authorization for 'subdomains' through various methods
-<li>Hashcash or signed certificates
-<li>Editorial review of host names and/or content
-<li>Categorization of hosts by content
-<li>Reservation or rejection of certain host names
-<li>Restrictions on number of names registered in a given time period
-<li>Delays between registration and publication
-<li>Requirement that the host be up for verification
-<li>Expiration and/or revocation
-<li>IDN spoof rejection
-</ul>
 </p>
+<ul>
+<li>A limit on number of 'subdomains'.
+<li>Authorization for 'subdomains' through various methods.
+<li>Hashcash or signed certificates.
+<li>Editorial review of host names and/or content.
+<li>Categorization of hosts by content.
+<li>Reservation or rejection of certain host names.
+<li>Restrictions on the number of names registered in a given time period.
+<li>Delays between registration and publication.
+<li>Requirement that the host be up for verification.
+<li>Expiration and/or revocation.
+<li>IDN spoof rejection.
+</ul>
 
-<h2>Jump Services</h2>
+<h2 id="jump-services">Jump Services</h2>
 <p>
 A jump service is a simple CGI application that takes a hostname as a parameter
-and returns a 301 redirect to the proper URL with a ?i2paddresshelper=key
+and returns a 301 redirect to the proper URL with a <code>?i2paddresshelper=key</code>
 string appended.
 The HTTP proxy will interpret the appended string and
 use that key as the actual destination.
@@ -279,214 +256,36 @@ To provide the best service, a jump service should be subscribed to
 several hosts.txt providers so that its local host list is current.
 </p>
 
-<h2>SusiDNS</h2>
+<h2 id="susidns">SusiDNS</h2>
 <p>
-While the naming system within I2P is often called "SusiDNS",
 SusiDNS is simply a web interface front-end to configuring addressbook subscriptions
 and accessing the four addressbook files.
 All the real work is done by the 'addressbook' application.
 </p><p>
-Currently, there is no enforcement of addressbook naming rules within SusiDNS,
-so you can enter hostnames locally that would be rejected by
-your own or others' addressbook subscriptions.
+Currently, there is little enforcement of addressbook naming rules within SusiDNS,
+so a user may enter hostnames locally that would be rejected by
+the addressbook subscription rules.
 </p>
 
-<h2>Discussion</h2>
-See also <a href="https://zooko.com/distnames.html">Names: Decentralized, Secure, Human-Meaningful: Choose Two</a>.
-<h3>Comments by jrandom</h3>
-(adapted from a post in the old Syndie, November 26, 2005)
-<p>
-Q:
-What to do if some hosts 
-do not agree on one address and if some addresses are working, others are not? 
-Who is the right source of a name?
-<p>
-A:
-You don't. This is actually a critical difference between names on I2P and how 
-DNS works - names in I2P are human readable, secure, but <b>not globally 
-unique</b>.  This is by design, and an inherent part of our need for security.  
-<p>
-If I could somehow convince you to change the destination associated with some 
-name, I'd successfully "take over" the site, and under no circumstances is that 
-acceptable.  Instead, what we do is make names <b>locally unique</b>: they are 
-what <i>you</i> use to call a site, just as how you can call things whatever 
-you want when you add them to your browser's bookmarks, or your IM client's 
-buddy list.  Who you call "Boss" may be who someone else calls "Sally".
-<p>
-Names will not, ever, be securely human readable and globally unique.
-
-<h3>Comments by zzz</h3>
-The following from zzz is a review of several common
-complaints about I2P's naming system.
-<ul>
-<li>Inefficiency<br>
-The whole hosts.txt is downloaded (if it has changed, since eepget uses the etag and last-modified headers).
-It's about 400K right now for almost 800 hosts.
-<p>
-True, but this isn't a lot of traffic in the context of i2p, which is itself wildly inefficient
-(floodfill databases, huge encryption overhead and padding, garlic routing, etc.).
-If you downloaded a hosts.txt file from someone every 12 hours it averages out to about 10 bytes/sec.
-<p>
-As is usually the case in i2p, there is a fundamental tradeoff here between anonymity and efficiency.
-Some would say that using the etag and last-modified headers is hazardous because it exposes when you
-last requested the data.
-Others have suggested asking for specific keys only (similar to what jump services do, but
-in a more automated fashion), possibly at a further cost in anonymity.
-<p>
-Possible improvements would be a replacement or supplement to addressbook (see <a href="http://i2host.i2p/">i2host.i2p</a>),
-or something simple like subscribing to http://example.i2p/cgi-bin/recenthosts.cgi rather than http://example.i2p/hosts.txt.
-If a hypothetical recenthosts.cgi distributed all hosts from the last 24 hours, for example,
-that could be both more efficient and more anonymous than the current hosts.txt with last-modified and etag.
-<p>
-A sample implementation is on stats.i2p at
-<a href="http://stats.i2p/cgi-bin/newhosts.txt">http://stats.i2p/cgi-bin/newhosts.txt</a>.
-This script returns an Etag with a timestamp.
-When a request comes in with the If-None-Match etag,
-the script ONLY returns new hosts since that timestamp, or 304 Not Modified if there are none.
-In this way, the script efficiently returns only the hosts the subscriber
-does not know about, in an addressbook-compatible manner.
-
-
-<p>
-So the inefficiency is not a big issue and there are several ways to improve things without
-radical change.
-
-<li>Not Scalable<br>
-The 400K hosts.txt (with linear search) isn't that big at the moment and
-we can probably grow by 10x or 100x before it's a problem.
-<p>
-As far as network traffic see above.
-But unless you're going to do a slow real-time query over the network for
-a key, you need to have the whole set of keys stored locally, at a cost of about 500 bytes per key.
-<li>Requires configuration and "trust"<br>
-Out-of-the-box addressbook is only subscribed to dev.i2p, which is rarely updated,
-leading to poor new-user experience.
-<p>
-This is very much intentional. jrandom wants a user to "trust" a hosts.txt
-provider, and as he likes to say, "trust is not a boolean".
-The configuration step attempts to force users to think about issues of trust in an anonymous network.
-<p>
-As another example, the "Eepsite Unknown" error page in the HTTP Proxy
-lists some jump services, but doesn't "recommend" any one in particular,
-and it's up to the user to pick one (or not).
-jrandom would say we trust the listed providers enough to list them but not enough to
-automatically go fetch the key from them.
-<p>
-How successful this is, I'm not sure.
-But there must be some sort of hierarchy of trust for the naming system.
-To treat everyone equally may increase the risk of hijacking.
-
-<li>It isn't DNS<br>
-Unfortunately real-time lookups over i2p would significantly slow down web browsing.
-<p>
-Also, DNS is based on lookups with limited caching and time-to-live, while i2p
-keys are permanent.
-<p>
-Sure, we could make it work, but why? It's a bad fit.
-<li>Not reliable<br>
-It depends on specific servers for addressbook subscriptions.
-<p>
-Yes it depends on a few servers that you have configured.
-Within i2p, servers and services come and go.
-Any other centralized system (for example DNS root servers) would
-have the same problem. A completely decentralized system (everybody is authoritative)
-is possible by implementing an "everybody is a root DNS server" solution, or by
-something even simpler, like a script that adds everybody in your hosts.txt to your addressbook.
-<p>
-People advocating all-authoritative solutions generally haven't thought through
-the issues of conflicts and hijacking, however.
-
-<li>Awkward, not real-time<br>
-It's a patchwork of hosts.txt providers, key-add web form providers, jump service providers,
-eepsite status reporters.
-Jump servers and subscriptions are a pain, it should just work like DNS.
-<p>
-See the reliability and trust sections.
-
-</ul>
-So, in summary, the current system is not horribly broken, inefficient, or un-scalable,
-and proposals to "just use DNS" aren't well thought-through.
-
-<h2>Base 32 Names</h2>
-As of release 0.7, I2P supports Base32 hostnames similar to Tor's .onion addresses.
+<h2 id="base32">Base32 Names</h2>
+<p>I2P supports Base32 hostnames similar to Tor's .onion addresses.
 Base32 addresses are much shorter and easier to handle than the
 full 516-character Base64 Destinations or addresshelpers.
-<p>
+Example: <code>ukeu3k5oycgaauneqgtnvselmt4yemvoilkln7jpvamvfx7dnkdq.b32.i2p</code>
+</p><p>
 In Tor, the address is 16 characters (80 bits), or half of the SHA-1 hash.
 I2P uses 52 characters (256 bits) to represent the full SHA-256 hash.
 The form is {52 chars}.b32.i2p.
-Base32 is implemented in the HostsTxt naming service, which queries the
+Base32 is implemented in the naming service, which queries the
 router over I2CP to lookup the LeaseSet to get the full Destination.
 Base32 lookups will only be successful when the Destination is up and publishing
 a LeaseSet.
-<p>
+Because resolution may require a network database lookup, it may take significantly
+longer than a local address book lookup.
+</p><p>
 Base32 addresses can be used in most places where hostnames or full destinations
 are used, however there are some exceptions where they may fail if the
 name does not immediately resolve. I2PTunnel will fail, for example, if
 the name does not resolve to a destination.
-
-<h2>Alternatives</h2>
-The I2P source contains several pluggable naming systems and supports configuration options
-to enable experimentation with naming systems.
-<ul>
-<li><b>Meta (default through 0.6.1.32)</b> - calls two or more other naming systems in order.
-By default, calls PetName then HostsTxt.
-<li><b>PetName</b> - Looks up in a petnames.txt file.
-The format for this file is NOT the same as hosts.txt.
-<li><b>HostsTxt (default as of 0.6.1.33)</b> - Looks up in the following files, in order:
-<ol>
-<li>privatehosts.txt
-<li>userhosts.txt
-<li>hosts.txt
-</ol>
-<li><b>AddressDB</b> - Each host is listed in a separate file in a addressDb/ directory.
-<li>
-<b>Eepget (introduced in 0.6.1.33)</b> - does an HTTP lookup request from an external
-server - must be stacked after the HostsTxt lookup with Meta.
-This could augment or replace the jump system.
-Includes in-memory caching.
-<li>
-<b>Exec (introduced in 0.6.1.33)</b> - calls an external program for lookup, allows
-additional experimentation in lookup schemes, independent of java.
-Can be used after HostsTxt or as the sole naming system.
-Includes in-memory caching.
-<li><b>Dummy</b> - used as a fallback for Base64 names, otherwise fails.
-</ul>
-<p>
-The current naming system can be changed with the advanced config option 'i2p.naming.impl'
-(restart required).
-See core/java/src/net/i2p/client/naming for details.
-<p>
-Any new system should be stacked with HostsTxt, or should
-implement local storage and/or the addressbook subscription functions, since addressbook
-only knows about the hosts.txt files and format.
-</ul>
 </p>
-
-<h2>Certificates</h2>
-<p>
-I2P destinations contain a certificate, however at the moment that certificate
-is always null.
-With a null certificate, base64 destinations are always 516 bytes ending in "AAAA",
-and this is checked in the addressbook merge mechanism, and possibly other places.
-Also, there is no method available to generate a certificate or add it to a
-destination. So these will have to be updated to implement certificates.
-
-<p>
-One possible use of certificates is for <a href="todo.html#hashcash">proof of work</a>.
-<p>
-Another is for "subdomains" (in quotes because there is really no such thing,
-i2p uses a flat naming system) to be signed by the 2nd level domain's keys.
-<p>
-With any certificate implementation must come the method for verifying the
-certificates.
-Presumably this would happen in the addressbook merge code.
-Is there a method for multiple types of certificates, or multiple certificates?
-
-<p>
-
-Adding on a certificate authenticating the
-responses as signed by some centralized certificate authority would address many of
-the hostile nameserver issues but would leave open replay attacks as well as 
-hostile certificate authority attacks.
 {% endblock %}

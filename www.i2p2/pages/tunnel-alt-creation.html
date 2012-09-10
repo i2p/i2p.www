@@ -2,32 +2,55 @@
 {% block title %}Tunnel Creation{% endblock %}
 {% block content %}
 
-<b>Note: This documents the current tunnel build implementation as of release 0.6.1.10.</b>
-<br>
-<pre>
-1) <a href="#tunnelCreate.overview">Tunnel creation</a>
-1.1) <a href="#tunnelCreate.requestRecord">Tunnel creation request record</a>
-1.2) <a href="#tunnelCreate.hopProcessing">Hop processing</a>
-1.3) <a href="#tunnelCreate.replyRecord">Tunnel creation reply record</a>
-1.4) <a href="#tunnelCreate.requestPreparation">Request preparation</a>
-1.5) <a href="#tunnelCreate.requestDelivery">Request delivery</a>
-1.6) <a href="#tunnelCreate.endpointHandling">Endpoint handling</a>
-1.7) <a href="#tunnelCreate.replyProcessing">Reply processing</a>
-2) <a href="#tunnelCreate.notes">Notes</a>
-</pre>
+This page documents the current tunnel build implementation.
+Updated August 2010 for release 0.8
 
-<h2 id="tunnelCreate.overview">1) Tunnel creation encryption:</h2>
+<h2 id="tunnelCreate.overview">Tunnel Creation Specification</h2>
+
+<p>
+This document specifies the details of the encrypted tunnel build messages
+used to create tunnels using a "non-interactive telescoping" method.
+See <a href="tunnel-alt.html">the tunnel build document</a>
+for an overview of the process, including peer selection and ordering methods.
 
 <p>The tunnel creation is accomplished by a single message passed along
 the path of peers in the tunnel, rewritten in place, and transmitted
 back to the tunnel creator.  This single tunnel message is made up
-of a fixed number of records (8) - one for each potential peer in
-the tunnel.   Individual records are asymmetrically encrypted to be
+of a variable number of records (up to 8) - one for each potential peer in
+the tunnel.   Individual records are asymmetrically
+<a href="how_cryptography.html#elgamal">(ElGamal)</a>
+encrypted to be
 read only by a specific peer along the path, while an additional
-symmetric layer of encryption is added at each hop so as to expose
+symmetric layer of encryption
+<a href="how_cryptography.html#AES">(AES)</a>
+is added at each hop so as to expose
 the asymmetrically encrypted record only at the appropriate time.</p>
 
-<h3 id="tunnelCreate.requestRecord">1.1) Tunnel creation request record</h3>
+<h3 id="number">Number of Records</h3>
+Not all records must contain valid data.
+The build message for a 3-hop tunnel, for example, may contain more records
+to hide the actual length of the tunnel from the participants.
+There are two build message types. The original
+<a href="i2np_spec.html#msg_TunnelBuild">Tunnel Build Message</a> (TBM)
+contains 8 records, which is more than enough for any practical tunnel length.
+The recently-implemented
+<a href="i2np_spec.html#msg_VariableTunnelBuild">Variable Tunnel Build Message</a> (VTBM)
+contains 1 to 8 records. The originator may trade off the size of the message
+with the desired amount of tunnel length obfuscation.
+<p>
+In the current network, most tunnels are 2 or 3 hops long.
+The current implementation uses a 5-record VTBM to build tunnels of 4 hops or less,
+and the 8-record TBM for longer tunnels.
+The 5-record VTBM (which, when fragmented, fits in three 1KB tunnel messaages) reduces network traffic
+and increases  build sucess rate, because smaller messages are less likely to be dropped.
+<p>
+The reply message must be the same type and length as the build message.
+
+
+<h3 id="tunnelCreate.requestRecord">Request Record Specification</h3>
+
+Also specified in the
+<a href="i2np_spec.html#struct_BuildRequestRecord">I2NP Specification</a>
 
 <p>Cleartext of the record, visible only to the hop being asked:</p><pre>
   bytes     0-3: tunnel ID to receive messages as
@@ -37,11 +60,11 @@ the asymmetrically encrypted record only at the appropriate time.</p>
   bytes  72-103: AES-256 tunnel layer key
   bytes 104-135: AES-256 tunnel IV key
   bytes 136-167: AES-256 reply key
-  bytes 168-183: reply IV
+  bytes 168-183: AES-256 reply IV
   byte      184: flags
   bytes 185-188: request time (in hours since the epoch)
   bytes 189-192: next message ID
-  bytes 193-222: uninterpreted / random padding</pre>
+  bytes 193-221: uninterpreted / random padding</pre>
 
 <p>The next tunnel ID and next router identity hash fields are used to
 specify the next hop in the tunnel, though for an outbound tunnel
@@ -49,85 +72,168 @@ endpoint, they specify where the rewritten tunnel creation reply
 message should be sent.  In addition, the next message ID specifies the
 message ID that the message (or reply) should use.</p>
 
-<p>The flags field currently has two bits defined:</p><pre>
- bit 0: if set, allow messages from anyone
- bit 1: if set, allow messages to anyone, and send the reply to the
-        specified next hop in a tunnel message</pre>
+<p>The flags field contains the following:
+<pre>
+ Bit order: 76543210 (bit 7 is MSB)
+ bit 7: if set, allow messages from anyone
+ bit 6: if set, allow messages to anyone, and send the reply to the
+        specified next hop in a Tunnel Build Reply Message
+ bits 5-0: Undefined
+</pre>
 
-<p>That cleartext record is ElGamal 2048 encrypted with the hop's
+Bit 7 indicates that the hop will be an inbound gateway (IBGW).
+Bit 6 indicates that the hop will be an outbound endpoint (OBEP).
+If neither bit is set, the hop will be an intermediate participant.
+
+<h4>Request Record Creation</h4>
+<p>
+Every hop gets a random Tunnel ID.
+The current and next-hop Tunnel IDs are filled in.
+Every record gets a random tunnel IV key, and reply IV.
+The layer and reply key pairs are generated.
+</p>
+
+
+<h4 id="encryption">Request Record Encryption</h4>
+
+<p>That cleartext record is <a href="how_cryptography.html#elgamal">ElGamal 2048 encrypted</a> with the hop's
 public encryption key and formatted into a 528 byte record:</p><pre>
-  bytes   0-15: SHA-256-128 of the current hop's router identity
+  bytes   0-15: First 16 bytes of the SHA-256 of the current hop's router identity
   bytes 16-527: ElGamal-2048 encrypted request record</pre>
+
+In the 512-byte encrypted record,
+the ElGamal data contains bytes 1-256 and 258-513 of the
+<a href="how_cryptography.html#elgamal">514-byte ElGamal encrypted block</a>.
+The two padding bytes from the block (the zero bytes at locations 0 and 257) are removed.
 
 <p>Since the cleartext uses the full field, there is no need for
 additional padding beyond <code>SHA256(cleartext) + cleartext</code>.</p>
 
-<h3 id="tunnelCreate.hopProcessing">1.2) Hop processing</h3>
+<p>
+Each 528-byte record is then iteratively encrypted
+(using AES decryption, with the reply key and reply IV for each hop) so that the router identity will only be in cleartext
+for the hop in question.
+</p>
 
-<p>When a hop receives a TunnelBuildMessage, it looks through the 8
+<h3 id="tunnelCreate.hopProcessing">Hop Processing and Encryption</h3>
+
+<p>When a hop receives a TunnelBuildMessage, it looks through the
 records contained within it for one starting with their own identity
 hash (trimmed to 8 bytes).  It then decrypts the ElGamal block from
 that record and retrieves the protected cleartext.  At that point,
 they make sure the tunnel request is not a duplicate by feeding the 
-AES-256 reply key into a bloom filter and making sure the request
-time is within an hour of current.  Duplicates or invalid requests
+AES-256 reply key into a bloom filter.
+Duplicates or invalid requests
 are dropped.</p>
 
 <p>After deciding whether they will agree to participate in the tunnel
 or not, they replace the record that had contained the request with
-an encrypted reply block.  All other records are AES-256/CBC
-encrypted with the included reply key and IV (though each is
-encrypted separately, rather than chained across records).</p>
+an encrypted reply block.  All other records are <a href="how_cryptography.html#AES">AES-256
+encrypted</a> with the included reply key and IV. Each is
+encrypted separately, rather than chained across records.</p>
 
-<h3 id="tunnelCreate.replyRecord">1.3) Tunnel creation reply record</h3>
+<p>
+Each hop knows only its own response.
+If it agrees, it will maintain the tunnel until expiration,
+even if it will not be used,
+as it cannot know whether all other hops agreed.
+</p>
+
+
+<h4 id="tunnelCreate.replyRecord">Reply Record Specification</h4>
 
 <p>After the current hop reads their record, they replace it with a
 reply record stating whether or not they agree to participate in the
 tunnel, and if they do not, they classify their reason for
 rejection.  This is simply a 1 byte value, with 0x0 meaning they
 agree to participate in the tunnel, and higher values meaning higher
-levels of rejection.  The reply is encrypted with the AES session
-key delivered to it in the encrypted block, padded with random data
-until it reaches the full record size:</p><pre>
+levels of rejection.
+<p>
+The following rejection codes are defined:
+<ul>
+<li>
+TUNNEL_REJECT_PROBABALISTIC_REJECT = 10
+<li>
+TUNNEL_REJECT_TRANSIENT_OVERLOAD = 20
+<li>
+TUNNEL_REJECT_BANDWIDTH = 30
+<li>
+TUNNEL_REJECT_CRIT = 50
+</ul>
+To hide other causes, such as router shutdown, from peers, the current implementation
+uses TUNNEL_REJECT_BANDWIDTH for almost all rejections.
+
+<p>
+  The reply is encrypted with the AES session
+key delivered to it in the encrypted block, padded with 527 bytes of random data
+to reach the full record size.
+The padding is placed before the status byte:
+</p><pre>
   AES-256-CBC(SHA-256(padding+status) + padding + status, key, IV)</pre>
+This is also described in the
+<a href="i2np_spec.html#msg_TunnelBuildReply">I2NP spec</a>.
 
-<h3 id="tunnelCreate.requestPreparation">1.4) Request preparation</h3>
+<h3 id="tunnelCreate.requestPreparation">Tunnel Build Message Preparation</h3>
 
-<p>When building a new request, all of the records must first be 
-built and asymmetrically encrypted.  Each record should then be
-decrypted with the reply keys and IVs of the hops earlier in the
-path.  That decryption should be run in reverse order so that the
+<p>When building a new Tunnel Build Messaage, all of the Build Request Records must first be 
+built and asymmetrically encrypted using
+<a href="how_cryptography.html#elgamal">ElGamal</a>.
+Each record is then
+premptively decrypted with the reply keys and IVs of the hops earlier in the
+path, using
+<a href="how_cryptography.html#AES">AES</a>.
+That decryption should be run in reverse order so that the
 asymmetrically encrypted data will show up in the clear at the
 right hop after their predecessor encrypts it.</p>
 
 <p>The excess records not needed for individual requests are simply
 filled with random data by the creator.</p>
 
-<h3 id="tunnelCreate.requestDelivery">1.5) Request delivery</h3>
+<h3 id="tunnelCreate.requestDelivery">Tunnel Build Message Delivery</h3>
 
 <p>For outbound tunnels, the delivery is done directly from the tunnel
 creator to the first hop, packaging up the TunnelBuildMessage as if
 the creator was just another hop in the tunnel.  For inbound
-tunnels, the delivery is done through an existing outbound tunnel
-(and during startup, when no outbound tunnel exists yet, a fake 0
-hop outbound tunnel is used).</p>
+tunnels, the delivery is done through an existing outbound tunnel.
+The outbound tunnel is generally from the same pool as the new tunnel being built.
+If no outbound tunnel is available in that pool, an outbound exploratory tunnel is used.
+At startup, when no outbound exploratory tunnel exists yet, a fake 0-hop
+outbound tunnel is used.</p>
 
-<h3 id="tunnelCreate.endpointHandling">1.6) Endpoint handling</h3>
+<h3 id="tunnelCreate.endpointHandling">Tunnel Build Message Endpoint Handling</h3>
 
-<p>When the request reaches an outbound endpoint (as determined by the
+<p>
+For creation of an outbound tunnel,
+when the request reaches an outbound endpoint (as determined by the
 'allow messages to anyone' flag), the hop is processed as usual,
 encrypting a reply in place of the record and encrypting all of the
 other records, but since there is no 'next hop' to forward the
 TunnelBuildMessage on to, it instead places the encrypted reply
-records into a TunnelBuildReplyMessage and delivers it to the
+records into a
+<a href="i2np_spec.html#msg_TunnelBuildReply">TunnelBuildReplyMessage</a>
+or
+<a href="i2np_spec.html#msg_VariableTunnelBuildReply">VariableTunnelBuildReplyMessage</a>
+(the type of message and number of records must match that of the request)
+and delivers it to the
 reply tunnel specified within the request record.  That reply tunnel
-forwards the reply records down to the tunnel creator for
-processing, as below.</p>
+forwards the Tunnel Build Reply Message back to the tunnel creator,
+<a href="tunnel-alt.html#tunnel.operation">just as for any other message</a>.
+The tunnel creator then
+processes it, as described below.</p>
 
-<p>When the request reaches the inbound endpoint (also known as the
-tunnel creator), the router processes each of the replies, as below.</p>
+<p>The reply tunnel was selected by the creator as follows:
+Generally it is an inbound tunnel from the same pool as the new outbound tunnel being built.
+If no inbound tunnel is available in that pool, an inbound exploratory tunnel is used.
+At startup, when no inbound exploratory tunnel exists yet, a fake 0-hop
+inbound tunnel is used.</p>
 
-<h3 id="tunnelCreate.replyProcessing">1.7) Reply processing</h3>
+<p>
+For creation of an inbound tunnel,
+when the request reaches the inbound endpoint (also known as the
+tunnel creator), there is no need to generate an explicit Tunnel Build Reply Message, and
+the router processes each of the replies, as below.</p>
+
+<h3 id="tunnelCreate.replyProcessing">Tunnel Build Reply Message Processing</h3>
 
 <p>To process the reply records, the creator simply has to AES decrypt
 each record individually, using the reply key and IV of each hop in
@@ -137,18 +243,37 @@ why they refuse.  If they all agree, the tunnel is considered
 created and may be used immediately, but if anyone refuses, the
 tunnel is discarded.</p>
 
-<h2 id="tunnelCreate.notes">2) Notes</h2>
+<p>
+The agreements and rejections are noted in each peer's
+<a href="how_peerselection.html">profile</a>, to be used in future assessments
+of peer tunnel capacity.
+
+
+<h2 id="tunnelCreate.notes">History and Notes</h2>
+<p>
+This strategy came about during a discussion on the I2P mailing list
+    between Michael Rogers, Matthew Toseland (toad), and jrandom regarding
+    the predecessor attack.  See: <ul>
+    <li><a href="http://osdir.com/ml/network.i2p/2005-10/msg00138.html">Summary</a></li>
+    <li><a href="http://osdir.com/ml/network.i2p/2005-10/msg00129.html">Reasoning</a></li>
+    </ul></li>
+It was introduced in release 0.6.1.10 on 2006-02-16, which was the last time
+a non-backward-compatible change was made in I2P.
+</p>
+
+<p>
+Notes:
 <ul>
-<li>This does not prevent two hostile peers within a tunnel from
+<li>This design does not prevent two hostile peers within a tunnel from
 tagging one or more request or reply records to detect that they are
 within the same tunnel, but doing so can be detected by the tunnel
 creator when reading the reply, causing the tunnel to be marked as 
 invalid.</li>
-<li>This does not include a proof of work on the asymmetrically
+<li>This design does not include a proof of work on the asymmetrically
 encrypted section, though the 16 byte identity hash could be cut in
-half with the later replaced by a hashcash function of up to 2^64
-cost.  This will not immediately be pursued, however.</li>
-<li>This alone does not prevent two hostile peers within a tunnel from
+half with the latter replaced by a hashcash function of up to 2^64
+cost.</li>
+<li>This design alone does not prevent two hostile peers within a tunnel from
 using timing information to determine whether they are in the same
 tunnel.  The use of batched and synchronized request delivery
 could help (batching up requests and sending them off on the
@@ -159,12 +284,43 @@ window would work (though doing that would require a high degree of
 clock synchronization).  Alternately, perhaps individual hops could
 inject a random delay before forwarding on the request?</li>
 <li>Are there any nonfatal methods of tagging the request?</li>
-<li>This strategy came about during a discussion on the I2P mailing list
-    between Michael Rogers, Matthew Toseland (toad), and jrandom regarding
-    the predecessor attack.  See: <ul>
-    <li><a href="http://osdir.com/ml/network.i2p/2005-10/msg00138.html">Summary</a></li>
-    <li><a href="http://osdir.com/ml/network.i2p/2005-10/msg00129.html">Reasoning</a></li>
-    </ul></li>
 </ul>
+
+<h2 id="ref">References</h2>
+<ul>
+<li>
+<a href="http://prisms.cs.umass.edu/brian/pubs/wright-tissec.pdf">Predecessor 
+attack</a>
+<li>
+<a href="http://prisms.cs.umass.edu/brian/pubs/wright.tissec.2008.pdf">2008 
+update</a>
+<li>
+<a href="http://www-users.cs.umn.edu/~hopper/hashing_it_out.pdf">Hashing it out in Public</a>
+</ul>
+
+<h2 id="future">Future Work</h2>
+<ul>
+<li>
+In the current implementation, the originator leaves one record empty
+for itself. Thus a message of n records can only build a
+tunnel of n-1 hops.
+This appears to be necessary for inbound tunnels (where the next-to-last hop
+can see the hash prefix for the next hop), but not for outbound tunnels.
+This is to be researched and verified.
+If it is possible to use the remaining record without compromising anonymity,
+we should do so.
+<li>
+The usefulness of a timestamp with an hour resolution is questionable,
+and the constraint is not currently enforced.
+Therefore the request time field is unused.
+This should be researched and possibly changed.
+<li>
+Further analysis of possible tagging and timing attacks described in the above notes.
+</li><li>
+The Bloom filter rotation time should be evaluated.
+</li><li>
+Use only VTBM; do not select old peers that don't support it.
+</li></ul>
+
 
 {% endblock %}

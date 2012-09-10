@@ -1,6 +1,7 @@
 {% extends "_layout.html" %}
-{% block title %}Streaming Lib{% endblock %}
+{% block title %}Streaming Library{% endblock %}
 {% block content %}
+Updated June 2012, current as of router version 0.9.1
 <h2>Overview</h2>
 
 <p>
@@ -9,10 +10,12 @@ as it is not a core router function.
 In practice, however, it provides a vital function for almost all
 existing I2P applications, by providing a TCP-like
 streams over I2P, and allowing existing apps to be easily ported to I2P.
+The other end-to-end transport library for client communication is the
+<a href="datagrams.html">datagram library</a>.
 </p>
 
 <p>The streaming library is a layer on top of the core 
-<a href="i2cp">I2CP</a> that allows reliable, in order, and authenticated streams
+<a href="i2cp.html">I2CP API</a> that allows reliable, in-order, and authenticated streams
 of messages to operate across an unreliable, unordered, and unauthenticated 
 message layer.  Just like the TCP to IP relationship, this streaming 
 functionality has a whole series of tradeoffs and optimizations available, but
@@ -20,23 +23,9 @@ rather than embed that functionality into the base I2P code, it has been factore
 off into its own library both to keep the TCP-esque complexities separate and to
 allow alternative optimized implementations.</p>
 
-<h2>History</h2>
 <p>
-The streaming library has grown organically for I2P - first mihi implemented the
-"mini streaming library" as part of I2PTunnel, which was limited to a window
-size of 1 message (requiring an ACK before sending the next one), and then it was
-refactored out into a generic streaming interface (mirroring TCP sockets) and the
-full streaming implementation was deployed with a sliding window protocol and 
-optimizations to take into account the high bandwidth x delay product.  Individual
-streams may adjust the maximum packet size and other options. The default
-message size is selected to fit precisely in two 1K I2NP tunnel messages,
-and is a reasonable tradeoff between the bandwidth costs of 
-retransmitting lost messages and the latency of multiple messages.
-</p>
-
-<p>
-In addition, in consideration of the relatively high cost of subsequent messages, 
-the streaming library's protocol for scheduling and delivering messages has been optimized to
+In consideration of the relatively high cost of messages, 
+the streaming library's protocol for scheduling and delivering those messages has been optimized to
 allow individual messages passed to contain as much information as is available.
 For instance, a small HTTP transaction proxied through the streaming library can
 be completed in a single round trip - the first messages bundle a SYN, FIN, and
@@ -48,20 +37,51 @@ immediately.
 </p>
 
 <p>
-On the whole, however, the streaming library bears much resemblance to an 
+The streaming library bears much resemblance to an 
 abstraction of TCP, with its sliding windows, congestion control algorithms
 (both slow start and congestion avoidance), and general packet behavior (ACK,
 SYN, FIN, RST, rto calculation, etc).  
 </p>
 
-
-<h2>Usage</h2>
 <p>
-The standard interface to the streaming lib is for the application to set up
-a I2PSocketManagerFactory from the <a href="ministreaming.html">ministreaming lib</a>.
-Only I2PSocketManagerFactory is used here - everything else is from the full streaming lib
-(I2PSocketManagerFull, not I2PSocketManagerImpl, and I2PSocketFull, not I2PSocketImpl).
-The remainder of the ministreaming lib is not normally used - don't be confused.
+The streaming library is
+a robust library
+which is optimized for operation over I2P.
+It has a one-phase setup, and
+it contains a full windowing implementation.
+</p>
+
+
+
+
+<h2 id="api">API</h2>
+
+<p>
+The streaming library API provides a standard socket paradigm to Java applications.
+The lower-level
+<a href="i2cp.html">I2CP</a>
+API is completely hidden, except that applications may pass
+<a href="i2cp.html#options">I2CP parameters</a> through the streaming library,
+to be interpreted by I2CP.
+</p>
+
+<p>
+The standard interface to the streaming lib is for the application to use the
+<a href="http://docs.i2p-projekt.de/javadoc/net/i2p/client/streaming/I2PSocketManagerFactory.html">I2PSocketManagerFactory</a>
+to create an
+<a href="http://docs.i2p-projekt.de/javadoc/net/i2p/client/streaming/I2PSocketManager.html">I2PSocketManager</a>.
+The application then asks the socket manager for an
+<a href="http://docs.i2p-projekt.de/javadoc/net/i2p/client/streaming/I2PSession.html">I2PSession</a>,
+which will cause a connection to the router via
+<a href="i2cp.html">I2CP</a>.
+The application can then setup connections with an
+<a href="http://docs.i2p-projekt.de/javadoc/net/i2p/client/streaming/I2PSocket.html">I2PSocket</a>
+or receive connections with an
+<a href="http://docs.i2p-projekt.de/javadoc/net/i2p/client/streaming/I2PServerSocket.html">I2PServerSocket</a>.
+</p>
+<p>
+Here are the
+<a href="http://docs.i2p-projekt.de/javadoc/net/i2p/client/streaming/package-summary.html">full streaming library Javadocs</a>.
 </p>
 
 <p>
@@ -69,218 +89,398 @@ For a good example of usage, see the i2psnark code.
 </p>
 
 
-<h2>Advantages</h2>
-<p>The streaming lib has many advantages over the ministreaming library written by mihi as a part of his 
-<a href="i2ptunnel">I2PTunnel</a> application.
-The streaming library is
-a more robust streaming library
-which is further optimized for operation over I2P.  The two main issues with 
-the ministreaming library are its use of the traditional TCP two phase 
-establishment protocol and the current fixed window size of 1.
-The streaming lib fixes both of these issues - it has a one-phase setup, and
-it contains a full windowing implementation.
-</p>
-
+<h3 id="options">Options and Defaults</h3>
 <p>
-Significant tuning of the streaming lib parameters,
-greatly increasing outbound performance, was implemented in 0.6.1.28.
-Subsequent releases include additional tuning and bug fixes.
-
-<h2>Default Parameters</h2>
-The current default values are listed below.
-Lower case values are streaming lib parameters that can changed on a
+The options and current default values are listed below.
+Options are case-sensitive and may be set for the whole router, for a particular client, or for an individual socket on a
 per-connection basis.
-These values are tuned for HTTP performance over typical I2P conditions. Other applications such
+Many values are tuned for HTTP performance over typical I2P conditions. Other applications such
 as peer-to-peer services are strongly encouraged to
 modify as necessary, by setting the options and passing them via the call to
-I2PSocketManagerFactory.createManager(_i2cpHost, _i2cpPort, opts).
+<a href="http://docs.i2p-projekt.de/javadoc/net/i2p/client/streaming/I2PSocketManagerFactory.html">I2PSocketManagerFactory</a>.createManager(_i2cpHost, _i2cpPort, opts).
 Time values are in ms.
-<ul>
-<li>MIN_RESEND_DELAY = 2*1000
-<li>MAX_RESEND_DELAY = 45*1000
-<li>i2p.streaming.connectTimeout = 5*60*1000
-<li>i2p.streaming.initialReceiveWindow = 1
-<li>i2p.streaming.initialWindowSize = 12
-<li>MIN_WINDOW_SIZE = 1
-<li>i2p.streaming.maxWindowSize = 128 // as of release 0.6.3 (was 64)
-<li>TREND_COUNT = 3
-<li>i2p.streaming.maxResends = 8
-<li>RTT_DAMPENING = 0.875 // as of release 0.6.5 (was 0.9)
-<li>i2p.streaming.profile = 1 (bulk) (2=interactive not supported)
-<li>MIN_MESSAGE_SIZE = 512 // as of release 0.6.5
-<li>i2p.streaming.maxMessageSize = 1730 // as of release 0.6.5 (was 960)
-<li>INBOUND_BUFFER_SIZE = maxMessageSize * (maxWindowSize + 2)
-<li>i2p.streaming.initialRTT = 10*1000
-<li>INITIAL_TIMEOUT = 1.5 * initialRTT
-<li>i2p.streaming.initialResendDelay = 1000
-<li>i2p.streaming.initialAckDelay = 2000
-<li>i2p.streaming.inactivityTimeout = 90*1000
-<li>i2p.streaming.inactivityAction = 2 (send) (0=noop, 1=disconnect)
-<li>i2p.streaming.congestionAvoidanceGrowthRateFactor = 1
-<li>i2p.streaming.slowStartGrowthRateFactor = 1
-<li>PASSIVE_FLUSH_DELAY = 250 // as of release 0.6.5 (was 500)
-<li>i2p.streaming.answerPings = true // new option as of release 0.7.7
-<li>i2p.streaming.maxConcurrentStreams = -1 // 0 or negative value means unlimited
-<li>i2p.streaming.maxConnsPerMinute = 0 // per peer; 0 means disabled; as of release 0.7.14
-<li>i2p.streaming.maxConnsPerHour = 0 // per peer; 0 means disabled; as of release 0.7.14
-<li>i2p.streaming.maxConnsPerDay = 0 // per peer; 0 means disabled; as of release 0.7.14
-<li>i2p.streaming.maxTotalConnsPerMinute = 0 // all peers; 0 means disabled; as of release 0.7.14
-<li>i2p.streaming.maxTotalConnsPerHour = 0 // all peers; 0 means disabled; as of release 0.7.14
-<li>i2p.streaming.maxTotalConnsPerDay = 0 // all peers; 0 means disabled; as of release 0.7.14
-</ul>
 </p>
-
 <p>
-The streaming lib uses standard slow-start (exponential window growth) and congestion avoidance (linear window growth)
-phases. However, before the 0.6.1.33 release, window growth was substantially slower than optimal;
-these issues were fixed in release 0.6.1.33.
+Note that higher-layer APIs, such as
+<a href="samv3.html">SAM</a>,
+<a href="bob.html">BOB</a>, and
+<a href="i2ptunnel.html">I2PTunnel</a>,
+may override these defaults with their own defaults.
+Also note that many options only apply to servers listening for incoming connections.
 </p>
 
+
+<table>
+<tr><th>Option</th><th>Default</th><th>Notes</th>
+</tr>
+<tr><td>i2cp.accessList</td><td>null</td><td>Comma- or space-separated list of Base64 peer Hashes used for either access list or blacklist
+      As of release 0.7.13.
+</td></tr><tr><td>i2cp.enableAccessList</td><td>false
+</td><td>Use the access list as a whitelist for incoming connections
+      As of release 0.7.13.
+</td></tr><tr><td>i2cp.enableBlackList</td><td>false
+</td><td>Use the access list as a blacklist for incoming connections
+      As of release 0.7.13.
+</td></tr><tr><td>i2p.streaming.answerPings</td><td>true</td><td>Whether to respond to incoming pings
+</td></tr><tr><td>i2p.streaming.bufferSize</td><td>64K</td><td>
+      How much transmit data (in bytes) will be accepted that hasn't been written out yet.
+</td></tr><tr><td>i2p.streaming.congestionAvoidanceGrowthRateFactor</td><td>1
+</td><td>
+      When we're in congestion avoidance, we grow the window size at the rate
+      of 1/(windowSize*factor).  In standard TCP, window sizes are in bytes,
+      while in I2P, window sizes are in messages.
+      A higher number means slower growth.
+</td></tr><tr><td>i2p.streaming.connectDelay</td><td>-1
+</td><td>
+      How long to wait after instantiating a new con 
+      before actually attempting to connect.  If this is
+      &lt;= 0, connect immediately with no initial data.  If greater than 0, wait
+      until the output stream is flushed, the buffer fills, 
+      or that many milliseconds pass, and include any initial data with the SYN.
+</td></tr><tr><td>i2p.streaming.connectTimeout</td><td>5*60*1000</td><td>
+      How long to block on connect, in milliseconds. Negative means indefinitely. Default is 5 minutes.
+</td></tr><tr><td>i2p.streaming.enforceProtocol</td><td>false</td><td>Whether to listen only for the streaming protocol.
+      Setting to true will prohibit communication with Destinations earlier than release 0.7.1
+      (released March 2009). Set to true if running multiple protocols on this Destination.
+      As of release 0.9.1.
+</td></tr><tr><td>i2p.streaming.inactivityAction</td><td>2 (send) </td><td>(0=noop, 1=disconnect)
+    What to do on an inactivity timeout - do nothing, disconnect, or send a duplicate ack.
+</td></tr><tr><td>i2p.streaming.inactivityTimeout</td><td>90*1000
+</td></tr><tr><td>i2p.streaming.initialAckDelay</td><td>2000
+</td></tr><tr><td>i2p.streaming.initialResendDelay</td><td>1000
+</td><td>
+   The initial value of the resend delay field in the packet header, times 1000.
+   Not fully implemented; see below.
+</td></tr><tr><td>i2p.streaming.initialRTT</td><td>8000 </td><td>(if no <a href="#sharing">sharing data</a> available)
+</td></tr><tr><td>i2p.streaming.initialWindowSize</td><td>6</td><td>(if no <a href="#sharing">sharing data</a> available)
+   In standard TCP, window sizes are in bytes, while in I2P, window sizes are in messages.
+</td></tr><tr><td>i2p.streaming.maxConcurrentStreams</td><td>-1 </td><td>(0 or negative value means unlimited)
+   This is a total limit for incoming and outgoing combined.
+</td></tr><tr><td>i2p.streaming.maxConnsPerMinute</td><td>0 </td><td>Incoming connection limit (per peer; 0 means disabled)
+      As of release 0.7.14.
+</td></tr><tr><td>i2p.streaming.maxConnsPerHour</td><td>0 </td><td>(per peer; 0 means disabled)
+      As of release 0.7.14.
+</td></tr><tr><td>i2p.streaming.maxConnsPerDay</td><td>0 </td><td>(per peer; 0 means disabled)
+      As of release 0.7.14.
+</td></tr><tr><td>i2p.streaming.maxMessageSize</td><td>1730</td><td>The MTU in bytes.
+</td></tr><tr><td>i2p.streaming.maxResends</td><td>8
+</td><td>
+   Maximum number of retransmissions before failure.
+</td></tr><tr><td>i2p.streaming.maxTotalConnsPerMinute</td><td>0 </td><td>Incoming connection limit (all peers; 0 means disabled)
+      As of release 0.7.14.
+</td></tr><tr><td>i2p.streaming.maxTotalConnsPerHour</td><td>0 </td><td>(all peers; 0 means disabled)
+   Use with caution as exceeding this will disable a server for a long time.
+      As of release 0.7.14.
+</td></tr><tr><td>i2p.streaming.maxTotalConnsPerDay</td><td>0 </td><td>(all peers; 0 means disabled)
+   Use with caution as exceeding this will disable a server for a long time.
+      As of release 0.7.14.
+</td></tr><tr><td>i2p.streaming.maxWindowSize</td><td>128
+</td></tr><tr><td>i2p.streaming.profile</td><td>1 (bulk)</td><td>(2=interactive not supported)
+      This doesn't currently do anything, but setting it to a value other than 1 will cause an error.
+</td></tr><tr><td>i2p.streaming.readTimeout</td><td>-1
+</td><td>
+      How long to block on read, in milliseconds. Negative means indefinitely.
+</td></tr><tr><td>i2p.streaming.slowStartGrowthRateFactor</td><td>1
+</td><td>
+      When we're in slow start, we grow the window size at the rate
+      of 1/(factor).  In standard TCP, window sizes are in bytes,
+      while in I2P, window sizes are in messages.
+      A higher number means slower growth.
+</td></tr><tr><td>i2p.streaming.writeTimeout</td><td>-1
+</td><td>
+      How long to block on write/flush, in milliseconds. Negative means indefinitely.
+</td></tr>
+</table>
+
+
+
+
+<h2>Protocol Specification</h2>
+<h3>Packet Format</h3>
+<p>
+The format of a single packet in the streaming protocol is:
+<pre>
+
++----+----+----+----+----+----+----+----+
+| send Stream ID    | rcv Stream ID     |
++----+----+----+----+----+----+----+----+
+| sequence  Num     | ack Through       |
++----+----+----+----+----+----+----+----+
+| nc |   NACKs ...
++----+----+----+----+----+----+----+----+
+     | rd |  flags  | opt size| opt data
++----+----+----+----+----+----+----+----+
+   ...                                  |
++----+----+----+----+----+----+----+----+
+|   payload ...
++----+----+----+----//
+
+
+</pre>
+
+<table>
+<tr><th>Field<th>Length<th>Contents
+<tr><td>sendStreamId <td>4 byte <a href="common_structures_spec.html#type_Integer">Integer</a><td>Random number selected by the connection recipient
+and constant for the life of the connection.
+0 in the SYN message sent by the originator, and in subsequent messages, until a SYN reply is received,
+containing the peer's stream ID.
+
+<tr><td>receiveStreamId <td>4 byte <a href="common_structures_spec.html#type_Integer">Integer</a><td>Random number selected by the connection originator
+and constant for the life of the connection. May be 0 if unknown, for example in a RESET packet.
+
+<tr><td>sequenceNum <td>4 byte <a href="common_structures_spec.html#type_Integer">Integer</a><td>
+The sequence for this message, starting at 0 in the SYN message,
+and incremented by 1 in each message except for plain ACKs and retransmissions.
+If the sequenceNum is 0 and the SYN flag is not set, this is a plain ACK 
+packet that should not be ACKed.
+
+<tr><td>ackThrough <td>4 byte <a href="common_structures_spec.html#type_Integer">Integer</a><td>
+The highest packet sequence number that was received
+on the receiveStreamId.  This field is ignored on the initial
+connection packet (where receiveStreamId is the unknown id) or
+if the NO_ACK flag set.
+All packets up to and including this sequence number are ACKed,
+EXCEPT for those listed in NACKs below.
+
+<tr><td>NACK count<td>1 byte <a href="common_structures_spec.html#type_Integer">Integer</a><td>
+The number of 4-byte NACKs in the next field
+
+<tr><td>NACKs <td>n * 4 byte <a href="common_structures_spec.html#type_Integer">Integers</a><td>
+Sequence numbers less than ackThrough that are not yet received.
+Two NACKs of a packet is a request for a 'fast retransmit' of that packet.
+
+<tr><td>resendDelay<td>1 byte <a href="common_structures_spec.html#type_Integer">Integer</a><td>
+How long is the creator of this packet going to wait before
+resending this packet (if it hasn't yet been ACKed).  The 
+value is seconds since the packet was created.
+Currently ignored on receive.
+
+<tr><td>flags <td>2 byte value<td>
+See below.
+
+<tr><td>option size<td>2 byte <a href="common_structures_spec.html#type_Integer">Integer</a><td>
+The number of bytes in the next field
+
+<tr><td>option data<td>0 or more bytes<td>
+As specified by the flags. See below.
+
+<tr><td>payload <td>remaining packet size<td>
+</table>
+
+<h3>Flags and Option Data Fields</h3>
+<p>The flags field above specifies some metadata about the packet, and in
+turn may require certain additional data to be included.  The flags are
+as follows. Any data structures specified must be added to the options area
+in the given order.</p>
+<p>
+Bit order: 15....0 (15 is MSB)
+</p>
+<table>
+<tr><th>Bit<th>Flag<th>Option Data<th>Function
+<tr><td>0<td>SYNCHRONIZE<td align="center">--<td>
+Similar to TCP SYN. Set in the initial packet and in the first response.
+<tr><td>1<td>CLOSE<td align="center">--<td>
+Similar to TCP FIN. If the response to a SYNCHRONIZE fits in a single message, the response
+will contain both SYNCHRONIZE and CLOSE.
+<tr><td>2<td>RESET<td align="center">--<td>
+Abnormal close.
+<tr><td>3<td>SIGNATURE_INCLUDED<td>40 byte <a href="common_structures_spec.html#type_Signature">DSA Signature</a>
+<td>
+Currently sent only with SYNCHRONIZE and CLOSE, where it is required.
+The signature uses the Destination's <a href="common_structures_spec.html#type_SigningPublicKey">DSA signing keys</a> 
+to sign the entire header and payload with the 40-byte space in the option data field 
+for the signature being set to all zeroes.
+<tr><td>4<td>SIGNATURE_REQUESTED<td align="center">--<td>
+Unused. Requests every packet in the other direction to have SIGNATURE_INCLUDED
+<tr><td>5<td>FROM_INCLUDED<td>387+ byte <a href="common_structures_spec.html#struct_Destination">Destination</a>
+<td>
+Currently sent only with SYNCHRONIZE, where it is required.
+<tr><td>6<td>DELAY_REQUESTED<td>2 byte <a href="common_structures_spec.html#type_Integer">Integer</a><td>
+Optional delay.
+How many milliseconds the sender of this packet wants the recipient
+to wait before sending any more data.
+A value greater than 60000 indicates choking.
+<tr><td>7<td>MAX_PACKET_SIZE_INCLUDED<td>2 byte <a href="common_structures_spec.html#type_Integer">Integer</a><td>
+Currently sent with SYNCHRONIZE only.
+Was also sent in retransmitted packets until release 0.9.1.
+<tr><td>8<td>PROFILE_INTERACTIVE<td align="center">--<td>
+Unused or ignored; the interactive profile is unimplemented.
+<tr><td>9<td>ECHO<td align="center">--<td>
+Unused except by ping programs
+<tr><td>10<td>NO_ACK<td align="center">--<td>
+This flag simply tells the recipient to ignore the ackThrough field in the header.
+Currently unused, the ackThrough field is always valid.
+<tr><td>11-15<td>unused<td><td>
+</table>
+
+<h2>Implementation Details</h2>
+
+<h3>Setup</h3>
+<p>
+The initiator sends a packet with the SYNCHRONIZE flag set. This packet may contain the initial data as well.
+The peer replies with a packet with the SYNCHRONIZE flag set. This packet may contain the initial response data as well.
+</p>
+<p>
+The initiator may send additional data packets, up to the initial window size, before receiving the SYNCHRONIZE response.
+These packets will also have the send Stream ID field set to 0.
+Recipients must buffer packets received on unknown streams for a short period of time, as they may
+arrive out of order, in advance of the SYNCHRONIZE packet.
+</p>
+
+<h3>MTU Selection and Negotiation</h3>
 <p>
 The maximum message size (also called the MTU / MRU) is negotiated to the lower value supported by
 the two peers. As tunnel messages are padded to 1KB, a poor MTU selection will lead to
 a large amount of overhead.
-The MTU is chosen to fit precisely in an integral number of 1K I2NP tunnel messages,
+The MTU is specified by the option i2p.streaming.maxMessageSize.
+The current default MTU of 1730 was chosen to fit precisely into two 1K I2NP tunnel messages,
 including overhead for the typical case.
+</p>
+<p>
 The first message in a connection includes a 387 byte (typical) Destination added by the streaming layer,
-and usually a 898 byte (typical) LeaseSet bundled in the Garlic message.
-Therefore, the goal of fitting a complete HTTP request in a single 1KB I2NP message is not realistic.
+and usually a 898 byte (typical) LeaseSet, and Session keys, bundled in the Garlic message by the router.
+(The LeaseSet and Session Keys will not be bundled if an ElGamal Session was previously established).
+Therefore, the goal of fitting a complete HTTP request in a single 1KB I2NP message is not always attainable.
 However, the selection of the MTU, together with careful implementation of fragmentation
 and batching strategies in the tunnel gateway processor, are important factors in network bandwidth,
 latency, reliability, and efficiency, especially for long-lived connections.
 </p>
 
+<h3>Data Integrity</h3>
+Data integrity is assured by the gzip CRC-32 checksum implemented in
+<a href="i2cp.html#format">the I2CP layer</a>.
+There is no checksum field in the streaming protocol.
+
+
+<h3>Packet Encapsulation</h3>
+Each packet is sent through I2P as a single message (or as an individual clove in a
+<a href="how_garlicrouting.html">Garlic Message</a>).
+Message encapsulation is implemented in the underlying
+<a href="i2cp.html">I2CP</a>,
+<a href="i2np.html">I2NP</a>, and
+<a href="tunnel_message_spec.html">tunnel message</a> layers.
+There is no packet delimiter mechanism or payload length field in the streaming protocol.
+
+
+<h3>Windowing</h3>
 <p>
-The interaction of the routing algorithms with the streaming lib strongly affects performance.
-In particular, random distribution of messages to multiple tunnels in a pool
-leads to a high degree of out-of-order delivery which results in smaller window
-sizes than would otherwise be the case.
-In release 0.6.1.30, the routing of messages to the outbound tunnels was made
-consistent, with pushback when a tunnel was backlogged.
-This had a significant positive impact on bandwidths.
-The pushback code was reverted in release 0.6.1.31 due to anonymity concerns.
-Consistent message routing to inbound tunnels
-was implemented in release 0.6.1.32.
+The streaming lib uses standard slow-start (exponential window growth) and congestion avoidance (linear window growth)
+phases, with exponential backoff.
+Windowing and acknowledgments use packet count, not byte count.
 </p>
 
+
+<h3>Close</h3>
 <p>
-Another area for research is the interaction of the streaming lib with the
-NTCP and SSU transport layers.
-See <a href="ntcp.html">the NTCP page</a> for a discussion.
+Any packet, including one with the SYNCHRONIZE flag set, may have the CLOSE flag sent as well.
+The connection is not closed until the peer responds with the CLOSE flag.
+CLOSE packets may contain data as well.
 </p>
 
 
-<h2>Packet Format</h2>
+<h3 id="sharing">Control Block Sharing</h3>
 <p>
-Here is the format of a single packet transferred as part of a streaming connection.  
-<table>
-<tr><th>Field<th>Length<th>Contents
-<tr><td>sendStreamId <td>4 byte value<td>Random number selected by the connection recipient
-and constant for the life of the connection.
-0 in the SYN message sent by the originator.
-<tr><td>receiveStreamId <td>4 byte value<td>Random number selected by the connection originator
-and constant for the life of the connection.
-
-<tr><td>sequenceNum <td>4 byte unsigned integer<td>
-The sequence for this message, starting at 0 in the SYN message,
-and incremented by 1 in each message except for plain ACKs and retransmissions.
-If the sequenceNum is 0 and the SYN is not set, this is a plain ACK 
-packet that should not be ACKed.
-
-<tr><td>ackThrough <td>4 byte unsigned integer<td>
-The highest packet sequence number that was received
-on the receiveStreamId.  This field is ignored on the initial
-connection packet (where receiveStreamId is the unknown id) or
-if FLAG_NO_ACK is set.
-All packets up to and including this sequence number are ACKed,
-EXCEPT for those listed in NACKs below.
-
-<tr><td>number of NACKs <td>1 byte unsigned integer<td>
-
-<tr><td>that many NACKs <td>n * 4 byte unsigned integers<td>
-Sequence numbers less than ackThrough that are not yet received.
-Two NACKs of a packet is a request for a 'fast retransmit' of that packet.
-
-<tr><td>resendDelay <td>1 byte unsigned integer<td>
-How long is the creator of this packet going to wait before
-resending this packet (if it hasn't yet been ACKed).  The 
-value is seconds since the packet was created.
-Ignored on receive. Broken on send before release 0.7.8 (the sender did not divide by 1000,
-and the default is 1000 ms, so the included value was 1000 &amp 0xff = 0xe8 = 232 seconds.
-
-<tr><td>flags <td>2 byte value<td>
-See below.
-
-<tr><td>option data size <td>2 byte unsigned integer<td>
-See below.
-
-<tr><td>option data specified by those flags <td>0 or more bytes<td>
-See below.
-
-<tr><td>payload <td>remaining packet size<td>
-</table>
-
-<p>The flags field above specifies some metadata about the packet, and in
-turn may require certain additional data to be included.  The flags are
-as follows (with any data structures specified added to the options area
-in the given order):</p>
-<table>
-<tr><th>Bit Number<th>Flag<th>Option Data<th>Function
-<tr><td>0<td>FLAG_SYNCHRONIZE<td>no option data<td>
-Similar to TCP SYN.
-<tr><td>1<td>FLAG_CLOSE<td>no option data<td>
-Similar to TCP FIN. If the response to a SYN fits in a single message, the response
-will contain both FLAG_SYNCHRONIZE and FLAG_CLOSE.
-<tr><td>2<td>FLAG_RESET<td>no option data<td>
-Abnormal close.
-<tr><td>3<td>FLAG_SIGNATURE_INCLUDED<td>40 bytes<td>net.i2p.data.Signature
-Typically sent only with FLAG_SYNCHRONIZE and FLAG_CLOSE, where it is required.
-If the signature is included, it uses the Destination's DSA key 
-to sign the entire header and payload with the space in the options 
-for the signature being set to all zeroes.
-<tr><td>4<td>FLAG_SIGNATURE_REQUESTED<td>no option data<td>
-Unused. Requests every packet in the other direction to have FLAG_SIGNATURE_INCLUDED
-<tr><td>5<td>FLAG_FROM_INCLUDED<td>typ. 387 bytes<td>net.i2p.data.Destination
-Typically sent only with FLAG_SYNCHRONIZE.
-<tr><td>6<td>FLAG_DELAY_REQUESTED<td>2 byte integer<td>
-Optional delay.
-How many milliseconds the sender of this packet wants the recipient
-to wait before sending any more data.
-A value greater than 60000 indicates choking.
-<tr><td>7<td>FLAG_MAX_PACKET_SIZE_INCLUDED<td>2 byte integer<td>
-Sent with FLAG_SYNCHRONIZE or with a retransmission,
-could be optimized to only send with a SYN.
-<tr><td>8<td>FLAG_PROFILE_INTERACTIVE<td>no option data<td>
-Apparently unused or ignored
-<tr><td>9<td>FLAG_ECHO<td>no option data<td>
-Unused except by ping programs
-<tr><td>10<td>FLAG_NO_ACK<td>no option data<td>
-Apparently unused, an ACK is always included.
-This flag simply tells the recipient to ignore the ackThrough field in the header.
-<tr><td>11-15<td>unused<td><td>
-</table>
-
-
-
-<h2>Control Block Sharing</h2>
-<p>
-As of release 0.7.1, the streaming lib supports "TCP" Control Block sharing.
+The streaming lib supports "TCP" Control Block sharing.
 This shares two important streaming lib parameters
 (window size and round trip time)
 across connections to the same remote peer.
 This is used for "temporal" sharing at connection open/close time,
-not "ensemble" sharing during a connection (See RFC 2140).
+not "ensemble" sharing during a connection (See
+<a href="http://www.ietf.org/rfc/rfc2140.txt">RFC 2140</a>).
 There is a separate share per ConnectionManager (i.e. per local Destination)
 so that there is no information leakage to other Destinations on the
 same router.
+The share data for a given peer expires after a few minutes.
 </p>
 
-<h2>Future Work and Proposals</h2>
+<h3 id="other">Other Parameters</h3>
+The following parameters are hardcoded, but may be of interest for analysis:
+<ul>
+<li>MIN_RESEND_DELAY = 2*1000 (minimum RTO)
+<li>MAX_RESEND_DELAY = 45*1000 (maximum RTO)
+<li>MIN_WINDOW_SIZE = 1
+<li>TREND_COUNT = 3
+<li>RTT_DAMPENING = 0.875
+<li>MIN_MESSAGE_SIZE = 512 (minimum MTU)
+<li>INBOUND_BUFFER_SIZE = maxMessageSize * (maxWindowSize + 2)
+<li>INITIAL_TIMEOUT = 1.5 * initialRTT
+<li>PASSIVE_FLUSH_DELAY = 250
+<li>Maximum RTT estimate: 60*1000
+</ul>
+</p>
+
+<h3>History</h3>
 <p>
+The streaming library has grown organically for I2P - first mihi implemented the
+"mini streaming library" as part of I2PTunnel, which was limited to a window
+size of 1 message (requiring an ACK before sending the next one), and then it was
+refactored out into a generic streaming interface (mirroring TCP sockets) and the
+full streaming implementation was deployed with a sliding window protocol and 
+optimizations to take into account the high bandwidth x delay product.  Individual
+streams may adjust the maximum packet size and other options. The default
+message size is selected to fit precisely in two 1K I2NP tunnel messages,
+and is a reasonable tradeoff between the bandwidth costs of 
+retransmitting lost messages, and the latency and overhead of multiple messages.
+</p>
+
+
+
+
+
+<h2 id="future">Future Work</h2>
+The behavior of the streaming library has a profound impact on
+application-level performance, and as such, is an important
+area for further analysis.
+<ul>
+<li>
+Additional tuning of the streaming lib parameters may be necessary.
+</li>
+<li>
+Another area for research is the interaction of the streaming lib with the
+NTCP and SSU transport layers.
+See <a href="ntcp_discussion.html">the NTCP discussion page</a> for details.
+</li>
+<li>
+The interaction of the routing algorithms with the streaming lib strongly affects performance.
+In particular, random distribution of messages to multiple tunnels in a pool
+leads to a high degree of out-of-order delivery which results in smaller window
+sizes than would otherwise be the case. The router currently routes 
+messages for a single from/to destination pair through a consistent set 
+of tunnels, until tunnel expiration or delivery failure. The router's 
+failure and tunnel selection algorithms should be reviewed for possible 
+improvements.
+</li>
+<li>
+The data in the first SYN packet may exceed the receiver's MTU.
+</li>
+<li>
+The DELAY_REQUESTED field could be used more.
+</li>
+<li>
+Duplicate initial SYNCHRONIZE packets on short-lived streams may not be recognized and removed.
+</li>
+<li>
+Don't send the MTU in a retransmission.
+</li>
+<li>
+      Data is sent along unless the outbound window is full.
+      (i.e. no-Nagle or TCP_NODELAY)
+      Probably should have a configuration option for this.
+</li>
+<li>
+zzz has added debug code to the streaming library to log packets in a wireshark-compatible
+(pcap) format; Use this to further analyze performance.
+The format may require enhancement to map more streaming lib parameters to TCP fields.
+</li>
+<li>
 There are proposals to replace the streaming lib with standard TCP
 (or perhaps a null layer together with raw sockets).
 This would unfortunately be incompatible with the streaming lib
 but it would be good to compare the performance of the two.
-</p>
+</li>
+</ul>
+
+
+
 
 {% endblock %}

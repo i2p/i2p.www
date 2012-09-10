@@ -1,6 +1,8 @@
 {% extends "_layout.html" %}
 {% block title %}Performance{% endblock %}
 {% block content %}
+Updated August 2010, current as of router version 0.8
+
 <p>Probably one of the most frequent things people ask is "how fast is I2P?",
 and no one seems to like the answer - "it depends".  After trying out I2P, the
 next thing they ask is "will it get faster?", and the answer to that is a most
@@ -11,50 +13,8 @@ related, and others still are protocol related.  However, all of those
 dimensions affect the latency, throughput, and perceived performance of the
 network, as they reduce contention for scarce resources.  This list is of course
 not comprehensive, but it does cover the major ones that are seen.</p>
-
-<h2>Native math <b>[implemented]</b></h2>
-<p>When I last profiled the I2P code, the vast majority of time was spent within
-one function: java.math.BigInteger's
-<a href="http://java.sun.com/j2se/1.4.2/docs/api/java/math/BigInteger.html#modPow(java.math.BigInteger,%20java.math.BigInteger)">modPow</a>.
-Rather than try to tune this method, we'll call out to
-<a href="http://www.swox.com/gmp/">GNU MP</a> - an insanely fast math library
-(with tuned assembler for many architectures). (<i>Editor: see
-<a href="jbigi">NativeBigInteger for faster public key cryptography</a></i>)</p>
-<p>ugha and duck are working on the C/JNI glue code, and the existing java code
-is already deployed with hooks for that whenever its ready.  Preliminary results
-look fantastic - running the router with the native GMP modPow is providing over
-a 800% speedup in encryption performance, and the load was cut in half.  This
-was just on one user's machine, and things are nowhere near ready for packaging
-and deployment, yet.</p>
-
-<h2>Garlic wrapping a "reply" LeaseSet <b>[implemented but needs tuning]</b></h2>
-<p>This algorithm tweak will only be relevant for applications that want their
-peers to reply to them (though that includes everything that uses I2PTunnel or
-mihi's ministreaming lib):</p>
-<p>Previously, when Alice sent Bob a message, when Bob replied he had to do a
-lookup in the network database - sending out a few requests to get Alice's
-current LeaseSet.  If he already has Alice's current LeaseSet, he can instead
-just send his reply immediately - this is (part of) why it typically takes a
-little longer talking to someone the first time you connect, but subsequent
-communication is faster.  Currently - for all clients - we wrap
-the sender's current LeaseSet in the garlic that is delivered to the recipient,
-so that when they go to reply, they'll <i>always</i> have the LeaseSet locally
-stored - completely removing any need for a network database lookup on replies.
-This trades off a large portion of the sender's bandwidth for that faster reply.
-If we didn't do this very often,
-overall network bandwidth usage would decrease, since the recipient doesn't
-have to do the network database lookup.</p>
-<p>
-For unpublished LeaseSets such as "shared clients", this is the only way to
-get the LeaseSet to Bob. Unfortunately this bundling every time adds
-almost 100% overhead to a high-bandwidth connection, and much more to
-a connection with smaller messages.
-</p><p>
-Changes scheduled for release 0.6.2 will bundle the LeaseSet only when
-necessary, at the beginning of a connection or when the LeaseSet changes.
-This will substantially reduce the total overhead of I2P messaging.
-</p>
-
+<p>For past performance improvements see the <a href="performance-history.html">
+Performance History</a>.
 
 <h2>Better peer profiling and selection</h2>
 <p>Probably one of the most important parts of getting faster performance will
@@ -75,7 +35,7 @@ gave us a reference to someone we had never heard of).  We can also do some
 tuning on what we actually send - how many peers we bounce back (or even if we
 bounce back a reply), as well as how many concurrent searches we perform.</p>
 
-<h2>Longer SessionTag lifetime</h2>
+<h2>Session Tag Tuning and Improvements</h2>
 <p>The way the <a href="how_elgamalaes">ElGamal/AES+SessionTag</a> algorithm
 works is by managing a set of random one-time-use 32 byte arrays, and expiring
 them if they aren't used quickly enough.  If we expire them too soon, we're
@@ -86,6 +46,33 @@ tags, even more encryption failures may occur prior to detection).  With some
 more active detection and feedback driven algorithms, we can safely and more
 efficiently tune the lifetime of the tags, replacing the ElGamal encryption with
 a trivial AES operation.</p>
+<p>
+Additional ideas for improving Session Tag delivery are described on the
+<a href="how_elgamalaes.html#future">ElGamal/AES+SessionTag page</a>.
+</p>
+
+
+<h2 id="prng">Migrate sessionTag to synchronized PRNG</h2>
+<p>Right now, our <a href="how_elgamalaes.html">ElGamal/AES+SessionTag</a> 
+algorithm works by tagging each encrypted message with a unique random 
+32 byte nonce (a "session tag"), identifying that message as being encrypted 
+with the associated AES session's key. This prevents peers from distinguishing 
+messages that are part of the same session, since each message has a completely 
+new random tag. To accomplish this, every few messages bundle a whole 
+new set of session tags within the encrypted message itself, transparently 
+delivering a way to identify future messages. We then have to keep track 
+of what messages are successfully delivered so that we know what tags 
+we may use.</p>
+<p>This works fine and is fairly robust, however it is inefficient in terms 
+of bandwidth usage, as it requires the delivery of these tags ahead of 
+time (and not all tags may be necessary, or some may be wasted, due to 
+their expiration). On average though, predelivering the session tag costs 
+32 bytes per message (the size of a tag). As Taral suggested though, that 
+size can be avoided by replacing the delivery of the tags with a synchronized 
+PRNG - when a new session is established (through an ElGamal encrypted 
+block), both sides seed a PRNG for use and generate the session tags on 
+demand (with the recipient precalculating the next few possible values 
+to handle out of order delivery).</p>
 
 <h2>Longer lasting tunnels</h2>
 <p>The current default tunnel duration of 10 minutes is fairly arbitrary, though
@@ -96,13 +83,12 @@ network and CPU load (due to expensive tunnel creation messages).</p>
 <p>
 This appears to be an easy fix for high load on the big-bandwidth routers, but
 we should not resort to it until we've tuned the tunnel building algorithms further.
-However, the 10 minute tunnel lifetime is hardcoded in a few places,
-so the code needs to be cleaned up before we could change the duration.
+However, the 10 minute tunnel lifetime is hardcoded in quite a few places,
+so substantial effort would be required to change the duration.
+Also, it would be difficult to maintain backward compatibility with such a change.
 </p><p>
-A new tunnel build algorithm was introduced in release 0.6.1.32 and it has greatly
-reduced the number of tunnel builds. Together with better detection of
-unreachable peers and other peer selection strategies implemented in release 0.6.1.33,
-the situation is much improved, and there are no current plans to extend tunnel lifetime.
+Currently, since the network average tunnel build success rate is fairly high,
+there are no current plans to extend tunnel lifetime.
 </p>
 
 
@@ -119,62 +105,20 @@ doesn't pass our test within 60 seconds "dead"?</p>
 as tunable parameters to allow for more appropriate tradeoffs between
 bandwidth, latency, and CPU usage.</p>
 
-<h2>More efficient TCP rejection <b>[implemented]</b></h2>
-<p>At the moment, all TCP connections do all of their peer validation after
-going through the full (expensive) Diffie-Hellman handshaking to negotiate a
-private session key.  This means that if someone's clock is really wrong, or
-their NAT/firewall/etc is improperly configured (or they're just running an
-incompatible version of the router), they're going to consistently (though not
-constantly, thanks to the shitlist) cause a futile expensive cryptographic
-operation on all the peers they know about.  While we will want to keep some
-verification/validation within the encryption boundary, we'll want to update the
-protocol to do some of it first, so that we can reject them cleanly
-without wasting much CPU or other resources.</p>
-
-<h2>Adjust the tunnel testing <b>[implemented]</b></h2>
-<p>Rather than going with the fairly random scheme we have now, we should use a
-more context aware algorithm for testing tunnels.  e.g. if we already know its
-passing valid data correctly, there's no need to test it, while if we haven't
-seen any data through it recently, perhaps its worthwhile to throw some data its
-way.  This will reduce the tunnel contention due to excess messages, as well as
-improve the speed at which we detect - and address - failing tunnels.</p>
-
-<h2>Compress some data structures <b>[implemented]</b></h2>
-<p>The I2NP messages and the data they contain is already defined in a fairly
-compact structure, though one attribute of the RouterInfo structure is not -
-"options" is a plain ASCII name = value mapping.  Right now, we're filling it
-with those published statistics - around 3300 bytes per peer.  Trivial to
-implement GZip compression would nearly cut that to 1/3 its size, and when you
-consider how often RouterInfo structures are passed across the network, that's
-significant savings - every time a router asks another router for a networkDb
-entry that the peer doesn't have, it sends back 3-10 RouterInfo of them.</p>
-
-<h2>Update the ministreaming protocol</h2> [replaced by full streaming protocol]
-<p>Currently mihi's ministreaming library has a fairly simple stream negotiation
-protocol - Alice sends Bob a SYN message, Bob replies with an ACK message, then
-Alice and Bob send each other some data, until one of them sends the other a
-CLOSE message.  For long lasting connections (to an IRC server, for instance),
-that overhead is negligible, but for simple one-off request/response situations
-(an HTTP request/reply, for instance), that's more than twice as many messages as
-necessary.  If, however, Alice piggybacked her first payload in with the SYN
-message, and Bob piggybacked his first reply with the ACK - and perhaps also
-included the CLOSE flag - transient streams such as HTTP requests could be
-reduced to a pair of messages, instead of the SYN+ACK+request+response+CLOSE.</p>
-
-<h2>Implement full streaming protocol</h2> [<a href="streaming.html">implemented</a>]
-<p>The ministreaming protocol takes advantage of a poor design decision in the
-I2P client protocol (I2CP) - the exposure of "mode=GUARANTEED", allowing what
-would otherwise be an unreliable, best-effort, message based protocol to be used
-for reliable, blocking operation (under the covers, its still all unreliable and
-message based, with the router providing delivery guarantees by garlic wrapping
-an "ACK" message in with the payload, so once the data gets to the target, the
-ACK message is forwarded back to us [through tunnels, of course]).</p>
-<p>As I've
-<a href="http://dev.i2p.net/pipermail/i2p/2004-March/000167.html">said</a>, having
-I2PTunnel (and the ministreaming lib) go this route was the best thing that
-could be done, but more efficient mechanisms are available.  When we rip out the
-"mode=GUARANTEED" functionality, we're essentially leaving ourselves with an
-I2CP that looks like an anonymous IP layer, and as such, we'll be able to
-implement the streaming library to take advantage of the design experiences of
-the TCP layer - selective ACKs, congestion detection, nagle, etc.</p>
+<h2>Full streaming protocol improvements</h2>
+<ul>
+<li>Perhaps re-enable the interactive stream profile (the 
+    current implementation only uses the bulk stream profile).</li>
+<li>Client level bandwidth limiting (in either or both directions on a stream, 
+    or possibly shared across multiple streams). This would be in addition to 
+    the router's overall bandwidth limiting, of course.</li>
+<li>Access control lists (only allowing streams to or from certain other known 
+    destinations).</li>
+<li>Web controls and monitoring the health of the various streams, as well 
+    as the ability to explicitly close or throttle them.</li>
+</ul>
+<p>
+Additional ideas for improving the streaming library are described on the
+<a href="streaming.html#future">streaming library page</a>.
+</p>
 {% endblock %}

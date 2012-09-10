@@ -1,0 +1,83 @@
+{% extends "_layout_fr.html" %}
+{% block title %}Intro{% endblock %}
+{% block content %}
+Traduction de mars 2011. <a href="intro.html">Version anglaise actuelle</a>
+<h1>The Invisible Internet Project (I2P)</h1>      
+<p>I2P est un réseau anonyme, proposant une simple couche que les applications peuvent  
+utiliser pour s'envoyer des messages anonymement de façon sécurisée. Le réseau lui-même est  
+strictement orienté messages ("à la 
+<a href="http://en.wikipedia.org/wiki/Internet_Protocol">IP"</a>), mais une 
+bibliothèque disponible permet les communications fiables pour les flux (streaming) ("à la 
+<a href="http://en.wikipedia.org/wiki/Transmission_Control_Protocol">TCP"</a>).  
+Toute communication est cryptée de bout en bout (il y a en tout quatre niveaux de cryptage  
+utilisés lors de l'envoi d'un message, et même les partenaires ("destinations") 
+sont des identifiants cryptographiques (essentiellement une paire de 
+<a href="http://en.wikipedia.org/wiki/Public_key_encryption">clés publiques</a>).</p>
+
+<h2>Fonctionnement</h2>
+  
+<p>Pour anonymiser les messages envoyés, le routeur I2P met à disposition de chaque application cliente 
+quelques "<a href="how_tunnelrouting.html">tunnels</a>" sortants et entrants: une suite de pairs 
+qui passent les messages dans une direction, de et vers le client respectivement.
+Lorsqu'un client veut envoyer un message à un autre, le premier passe ce message 
+dans un de ses tunnels sortants en ciblant un des tunnels entrants de l'autre, et atteint éventuellement 
+sa destination. Chaque participant du réseau choisit la longueur de ces tunnels, et ce faisant, 
+arbitre entre anonymat, latence, et débit en fonction de ses besoins. 
+En conséquence, le nombre de pairs intervenant dans le relayage le message de bout en bout est le minimum absolu 
+nécessaire à l'atteinte des objectifs de sécurité à la fois de l'émetteur et du destinataire.</p>
+
+<p>La première fois qu'un client veut en contacter un autre, il émet une requête vers 
+la "<a href="how_networkdatabase.html">base de donnée du réseau</a>" entièrement décentralisée (une table de hash
+décentralisée de structure personnalisée <a href="http://en.wikipedia.org/wiki/Distributed_hash_table">(DHT)</a>)  
+basée sur <a href="http://en.wikipedia.org/wiki/Kademlia">algorithme Kademlia</a>. Ceci pour trouver efficacement 
+les tunnels entrants des autres clients, mais en faisant en sorte que les messages suivants entre les 
+partenaires incluent certaines données qui permettront la poursuite de la communication sans plus jamais 
+besoin de réinterroger la base de donnée.</p>
+  
+<p>Les explications sur le fonctionnement d'I2P sont disponibles en version 
+<a href="how_intro_fr.html">simplifiée</a> et <a href="how_fr.html">détaillée</a>.</p>
+
+<h2>Que pouvez-vous en faire?</h2>
+
+<p>Au sein du réseau I2P, les applications ne sont pas bridées dans leur façon de communiquer: 
+celles qui utilisent habituellement UDP peuvent utiliser les fonctionnalités de base d'I2P, 
+et celles qui utilisent plutôt TCP peuvent utiliser la bibliothèque d'émulation TCP. 
+Nous avons une application générique de pont TCP/I2P  
+("<a href="i2ptunnel.html">I2PTunnel</a>") qui permet aux gens tant de transférer des flux TCP 
+dans le réseau I2P que d'en recevoir en dehors du réseau et de les faire suivre 
+vers une adresse IP particulière.</p>
+
+<p>I2PTunnel est couramment utilisé pour permettre l'exécution de votre propre serveur de site web anonyme
+("eepsite") en utilisant un serveur web normal et en aiguillant un tunnel I2P "Serveur" 
+vers lui, auquel les gens accèderont anonymement sur I2P avec un navigateur normal via leur propre
+serveur mandataire HTTP de tunnel I2P ("eepproxy").  Nous utilisons la même  
+technique pour l'exécution d'un réseau IRC anonyme (sur lequel le serveur IRC est hébergé 
+anonymement, et où les clients IRC standards utilisent un tunnel I2P pour s'y connecter).  Il y a  
+d'autres efforts de développement d'applications en cours, tels qu'un pour élaborer une application de transferts 
+de fichiers optimisée ("à la 
+<a href="http://bitconjurer.org/BitTorrent/">BitTorrent</a>), un stockage décentralisé
+(façon  <a href="http://freenetproject.org/">Freenet</a> / 
+<a href="http://mnetproject.org/">MNet</a>), et un système de blog (entièrement décentralisé 
+<a href="http://www.livejournal.com/">LiveJournal</a>), mais ils ne sont pas prêts à l'usage pour l'instant.</p>
+
+<p>I2P n'est pas intrinsèquement un réseau de "proxy sortant" - le client à qui vous envoyez un message 
+est un identifiant cryptographique et non pas une quelconque adresse IP, et donc le message doit être 
+adressé à quelqu'un qui utilise I2P.  Cependant, il est possible à ce client d'être aussi 
+un mandataire sortant, vous permettant alors d'utiliser anonymement sa connexion Internet. 
+Pour le mettre en évidence, le "proxy eep" acceptera les URL non-I2P 
+(p.e. "http://www.i2p.net") et les fera suivre à une destination particulière
+qui héberge un proxy HTTP <a href="http://www.squid-cache.org/">squid</a>, permettant 
+simplement la navigation en mode anonyme sur l'Internet normal.  De simples mandataires de ce genre ne sont pas
+viables sur le long terme pour plusieurs raisons (dont le coût, et aussi 
+pour l'anonymat et les problèmes de sécurité qu'ils introduisent), mais dans certaines circonstances  
+cette technique peut s'avérer appropriée.</p>
+
+<p>L'<a href="team_fr.html">équipe</a> de développement d'I2P est un groupe ouvert, accueillant tous ceux qui
+sont intéressé pour y <a href="getinvolved_fr.html">participer</a>, et tout le code <a href="licenses.html">open source</a>.
+Le cœur de l'outil de développement d'I2P et l'implémentation actuelle du routeur  
+sont faits en Java (il fonctionne avec la version Sun/Oracle et kaffe, gcj est prévu pour plus tard), 
+et il y a une <a href="sam.html">API basée "simple socket"</a> pour accéder au réseau depuis 
+d'autres langages (avec une bibliothèque C disponible, et une pour Python et Perl en développement). 
+Le réseau est activement développé et n'a pas encore atteint la version 1.0, 
+mais la <a href="roadmap_fr.html">feuille de route</a> décrit notre planning.</p>
+{% endblock %}

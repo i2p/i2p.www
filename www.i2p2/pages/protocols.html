@@ -4,89 +4,102 @@
 
 <p>
 Here is the protocol stack for I2P.
+See also the <a href="how.html">Index to Technical Documentation</a>.
+Updated August 2010, current for router version 0.8.
 <p>
 
-<table border=1>
-<tr>
-<td>Standard Apps
-<td>Jetty, Apache, Monotone, CVS, browsers
-<td>&nbsp;
+<p>
+Each of the layers in the stack provides extra capabilities.
+The capabilities are listed below, starting at the bottom of the protocol stack.
+  <ul>
+    <li>
+        <b>Internet Layer:</b>
+        <br />
+        IP: Internet Protocol, allow addressing hosts on the regular internet and routing packets across the internet using best-effort delivery.
+    </li>
+    <li>
+        <b>Transport Layer:</b>
+        <br />
+        TCP: Transmission Control Protocol, allow reliable, in-order delivery of packets across the internet.
+        <br />
+        UDP: User Datagram Protocol, allow unreliable, out-of-order delivery of packets across the internet.
+    </li>
+    <li>
+        <b>I2P Transport Layer:</b> provide encrypted connections between 2 I2P routers. These are not anonymous yet, this is strictly a hop-to-hop connection.
+            Two protocols are implemented to provide these capabilities. NTCP builds on top of TCP, while SSU uses UDP.
+        <br />
+        <a href="ntcp.html">NTCP</a>: NIO-based TCP
+        <br />
+        <a href="udp.html">SSU</a>: Secure Semi-reliable UDP
+    </li>
+    <li>
+        <b>I2P Tunnel Layer:</b> provide full encrypted tunnel connections.
+        <br />
+        <a href="tunnel_message_spec.html">Tunnel messages</a>: tunnel messages are large messages containing encrypted I2NP (see below) messages and encrypted instructions for their delivery.
+            The encryption is layered. The first hop will decrypt the tunnel message and read a part. Another part can still be encrypted (with another key),
+            so it will be forwarded.
+        <br />
+        <a href="i2np.html">I2NP messages</a>: I2P Network Protocol messages are used to pass messages through multiple routers. These I2NP messages are combined in tunnel messages.
+    </li>
+    <li>
+        <b>I2P Garlic Layer:</b> provide encrypted and anonymous end-to-end I2P message delivery.
+        <br />
+        <a href="i2np.html">I2NP messages</a>: I2P Network Protocol messages are wrapped in each other and used to ensure encryption between two tunnels and are passed along from source to destination, keeping both anonymous.
+    </li>
+</ul>
+</p>
 
-<tr>
-<td>Other I2P Apps
-<td align="center">Syndie, EepGet
-<td>&nbsp;
+<p>
+The following layers are strictly speaking no longer part of the I2P Protocol stack, they are not part of the core 'I2P router' functionality.
+However, each of these layers adds additional functionality, to allow applications simple and convenient I2P usage.
+<ul>
+    <li>
+        <b>I2P Client Layer:</b> allow any client to use I2P functionality, without requiring the direct use of the router API.
+        <br />
+        <a href="i2cp.html">I2CP</a>: I2P Client Protocol, allows secure and asynchronous messaging over I2P by communicating messages over the I2CP TCP socket.
+    </li>
+    <li>
+        <b>I2P End-to-end Transport Layer:</b> allow TCP- or UDP-like functionality on top of I2P.
+        <br />
+        <a href="streaming.html">Streaming Library</a>: an implementation of TCP-like streams over I2P. This allows easier porting of existing applications to I2P.
+        <br />
+        <a href="datagrams.html">Datagram Library</a>: an implementation of UDP-like messages over I2P. This allows easier porting of existing applications to I2P.
+    </li>
+    <li>
+        <b>I2P Application Interface Layer:</b> additional (optional) libraries allowing easier implementations on top of I2P.
+        <br />
+        <a href="i2ptunnel.html">I2PTunnel</a>
+        <br />
+        <a href="sam.html">SAM</a>/<a href="samv2.html">SAMv2</a>/<a href="samv3.html">SAMv3</a>(*),
+        <a href="bob.html">BOB</a>        
+    </li>
+    <li>
+        <b>I2P Application Proxy Layer:</b> proxy systems.
+        <br />
+        HTTP Client/Server, IRC Client, <a href="socks.html">SOCKS</a>, Streamr 
+    </li>
+  </ul>
+</p>
+<p>
+Finally, what could be considered the <b>'I2P application layer'</b>, is a large number of applications on top of I2P.
+We can order this based on the I2P stack layer they use.
+<ul>
+    <li><b>Streaming/datagram applications</b>: i2psnark, Syndie, i2phex...</li>
+    <li><b>SAM/BOB applications</b>: IMule, i2p-bt, i2prufus, Robert...</li>
+    <li><b>Other I2P applications</b>: Syndie, EepGet, <a href="plugins.html">plugins...</a></li>
+    <li><b>Regular applications</b>: Jetty, Apache, Monotone, CVS, browsers, e-mail...</li>
+</ul>
+</p>
 
-<tr>
-<td>SAM/BOB Apps
-<td>
-<td align="center">IMule, i2p-bt, i2prufus, Robert
+    <div class="box" style="text-align:center;">
+        <img src="_static/images/protocol_stack.png" alt="I2P Network stack" title="I2P Network stack" />
+        <br /><br />
+        Figure 1: The layers in the I2P Network stack.
+    </div>
+<br/>
 
-<tr>
-<td>Proxy Apps
-<td align="center">HTTP Client/Server, IRC Client, SOCKS
-<td>Streamr
-
-<tr>
-<td>Interface Apps
-<td align="center"><a href="i2ptunnel.html">I2PTunnel</a>
-<td align="center"><a href="sam.html">SAM</a>
-/
-<a href="samv2.html">SAMv2</a>
-/
-<a href="samv3.html">SAMv3</a>
-(*), BOB
-
-<tr>
-<td>Java Apps
-<td align="center">i2psnark, Syndie, i2phex
-<td>&nbsp;
-
-<tr>
-<td>End-to-End Transport
-<td align="center"><a href="streaming.html">Streaming Lib</a>
-<td align="center"><a href="datagrams.html">Datagrams</a>
-
-<tr>
-<td>Client Protocol
-<td align="center" colspan=2><a href="i2cp.html">I2CP</a>
-
-<tr>
-<td>Network Protocol
-<td align="center" colspan=2><a href="i2np.html">I2NP</a>
-
-<tr>
-<td>Garlic Encryption
-<td align="center" colspan=2><a href="how_elgamalaes">ElGamal/AES+SessionTag</a>
-
-<tr>
-<td>Tunnel Messages
-<td align="center" colspan=2><a href="tunnel-alt.html#tunnel.preprocessing">Tunnel Messages</a>
-
-<tr>
-<td>Tunnel Message Encryption
-<td align="center" colspan=2><a href="techintro.html#op.crypto">AES256/CBC</a>
-
-<tr>
-<td>Transport
-<td align="center"><a href="ntcp.html">NTCP</a>
-<td align="center"><a href="udp.html">SSU</a>
-
-<tr>
-<td>Transport Encryption
-<td align="center" colspan=2><a href="techintro.html#op.crypto">AES256/CBC</a>
-
-<tr>
-<td>
-<td align="center">Java NIO TCP
-<td align="center" rowspan=2>UDP
-
-<tr>
-<td>OS
-<td align="center">TCP
-
-</table>
 <p>
 * Note: SAM/SAMv2 can use both the streaming lib and datagrams.
+</p>
 
 {% endblock %}

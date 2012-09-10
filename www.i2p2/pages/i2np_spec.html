@@ -1,6 +1,9 @@
 {% extends "_layout.html" %}
 {% block title %}I2NP Specification{% endblock %}
 {% block content %}
+
+Updated June 2012, current as of router version 0.9
+
 <h1>I2P Network Protocol (I2NP) Specification</h1>
 <p>
 The I2P Network Protocol (I2NP),
@@ -11,27 +14,39 @@ common transports supported.
 </p>
 
 <h2 id="structures">Common structures</h2>
-
-
+The following structures are elements of multiple I2NP messages.
+They are not complete messages.
 
 <h3 id="struct_header">I2NP message header</h3>
 <h4>Description</h4>
 <p>
-  Common header to all I2NP messages, which contains important information like an checksum, expiration date, etc.
+  Common header to all I2NP messages, which contains important information like a checksum, expiration date, etc.
 </p>
 <h4>Contents</h4>
 <p>
-  1 byte <a href="common_structures_spec#type_Integer">Integer</a> specifying the type of this message, followed by an 4 byte <a href="common_structures_spec#type_Integer">Integer</a> specifying the message-id. After that there is an expiration <a href="common_structures_spec#type_Date">Date</a>, followed by an 2 byte <a href="common_structures_spec#type_Integer">Integer</a> specifying the length of the message payload, followed by an <a href="common_structures_spec#type_Hash">Hash</a>, which is truncated to the first byte. After that the actual message data follows.
+  1 byte <a href="common_structures_spec#type_Integer">Integer</a> specifying the type of this message,
+ followed by a 4 byte <a href="common_structures_spec#type_Integer">Integer</a> specifying the message-id.
+ After that there is an expiration <a href="common_structures_spec#type_Date">Date</a>,
+ followed by a 2 byte <a href="common_structures_spec#type_Integer">Integer</a> specifying
+ the length of the message payload, followed by a <a href="common_structures_spec#type_Hash">Hash</a>,
+ which is truncated to the first byte. After that the actual message data follows.
 </p>
 <pre>
 {% filter escape %}
+Standard (16 bytes):
+
++----+----+----+----+----+----+----+----+
+|type|      msg-id       |  expiration
++----+----+----+----+----+----+----+----+
+                         |  size   |chks|
++----+----+----+----+----+----+----+----+
+
+Short (SSU, 5 bytes):
+
 +----+----+----+----+----+
-|type| msg-id            |
-+----+----+----+----+----+----+----+----+
-| expiration                            |
-+----+----+----+----+----+----+----+----+
-| size    |chks|
-+----+----+----+
+|type| short expiration  |
++----+----+----+----+----+
+
 {% endfilter %}
 </pre>
 
@@ -41,23 +56,27 @@ common transports supported.
 type :: Integer
         length -> 1 byte
         
-        purpose -> identifies the message type(see table below)
+        purpose -> identifies the message type (see table below)
 
 msg-id :: Integer
           length -> 4 bytes
 
-          purpose -> uniquely identifies this message(for some time at least)
+          purpose -> uniquely identifies this message (for some time at least)
 
 expiration :: Date
            8 bytes
            date this message will expire
+
+short expiration :: Integer
+           4 bytes
+           date this message will expire (seconds since the epoch)
 
 size :: Integer
         length -> 2 bytes
         
         purpose -> length of the payload
 
-chks :: Hash
+chks :: Integer
         length -> 1 byte
      
         purpose -> checksum of the payload
@@ -69,11 +88,31 @@ data :: Data
         purpose -> actual message contents
 {% endfilter %}
 </pre>
+<h4>Notes</h4>
+<ul><li>
+When transmitted over <a href="udp.html">SSU</a>,
+the 16-byte standard header is not used.
+Only a 1-byte type and a 4-byte expiration in seconds is included.
+The message id and size are
+incorporated into various parts of the SSU data packet format.
+The checksum is not required since errors are caught in decryption.
+</li><li>
+The standard header is also required for I2NP messages contained in other messages and structures
+(Data, TunnelData, TunnelGateway, and GarlicClove).
+As of release 0.8.12, to reduce overhead, checksum verification is disabled at
+some places in the protocol stack.
+However, for compatibility with older versions, checksum generation is still required.
+It is a topic for future research to determine points in the protocol stack
+where the far-end router's version is known and checksum generation can be disabled.
+</li></ul>
+
 
 <h3 id="struct_BuildRequestRecord">BuildRequestRecord</h3>
 <h4>Description</h4>
 <p>
-  One Record in a set of multiple records to request the creation of one hop in the tunnel. For more details see here.
+  One Record in a set of multiple records to request the creation of one hop in the tunnel. For more details see
+  <a href="tunnel-alt.html">the tunnel overview</a> and
+  <a href="tunnel-alt-creation.html">the tunnel creation specification</a>.
 </p>
 <h4>Contents</h4>
 <p>
@@ -129,20 +168,36 @@ Cleartext:
 | reply_iv                              |
 +                                       +
 |                                       |
-+----+----+----+----+----+----+----+----+----+
-|flag| request_time      | send_message_id   |
-+----+----+----+----+----+----+----+----+----+
-| padding...
-+----+----+----+--//
++----+----+----+----+----+----+----+----+
+|flag| request_time      | send_msg_id
++----+----+----+----+----+----+----+----+
+     |                                  |
++----+                                  +
+|         29 bytes padding              |
++                                       +
+|                                       |
++                             +----+----+
+|                             |
++----+----+----+----+----+----+
 
-encrypted:
+
+ElGamal encrypted:
 +----+----+----+----+----+----+----+----+
 | toPeer                                |
 +                                       +
 |                                       |
 +----+----+----+----+----+----+----+----+
 | encrypted data ...                    |
+~                                       ~
+|                                       |
++----+----+----+----+----+----+----+----+
 
+
+ElGamal and AES encrypted:
++----+----+----+----+----+----+----+----+
+| encrypted data ...                    |
+~                                       ~
+|                                       |
 +----+----+----+----+----+----+----+----+
 {% endfilter %}
 </pre>
@@ -172,7 +227,7 @@ iv_key :: SessionKey
 reply_key :: SessionKey
              length -> 32 bytes
 
-reply_iv :: Integer
+reply_iv :: data
             length -> 16 bytes
 
 flag :: Integer
@@ -180,25 +235,50 @@ flag :: Integer
 
 request_time :: Integer
                 length -> 4 bytes
+                Hours since the epoch, i.e. current time / 3600
 
 send_message_id :: Integer
                    length -> 4 bytes
 
 padding :: Data
            length -> 29 bytes
-           
            source -> random
 
-encrypted:
+total length: 222
 
-toPeer :: Hash
+
+ElGamal encrypted:
+
+toPeer :: First 16 bytes of the SHA-256 Hash of the peer's router identity
           length -> 16 bytes
 
-encrypted_data :: ElGamal-2048 encrypted data
-                  length -> 514
+encrypted_data :: ElGamal-2048 encrypted data (see notes)
+                  length -> 512
+
+total length: 528
+
+
+ElGamal and AES encrypted:
+
+encrypted_data :: ElGamal and AES encrypted data
+                  length -> 528
+
+total length: 528
 
 {% endfilter %}
 </pre>
+
+<h4>Notes</h4>
+<ul><li>
+In the 512-byte encrypted record,
+the ElGamal data contains bytes 1-256 and 258-513 of the
+<a href="how_cryptography.html#elgamal">514-byte ElGamal encrypted block</a>.
+The two padding bytes from the block (the zero bytes at locations 0 and 257) are removed.
+</li><li>
+  See the <a href="tunnel-alt-creation.html">tunnel creation specification</a> for details on field contents.
+</li></ul>
+</p>
+
 
 <h3 id="struct_BuildResponseRecord">BuildResponseRecord</h3>
 <pre>
@@ -206,7 +286,7 @@ encrypted_data :: ElGamal-2048 encrypted data
 unencrypted:
 +----+----+----+----+----+----+----+----+
 | random data...                        |
-
+~                                       ~
 |                                       |
 +                                  +----+
 |                                  |ret |
@@ -221,16 +301,94 @@ bytes 0-526: random data
 byte  527  : reply
 
 encrypted:
-bytes 0-527: AES-encrypted record(note: same size as BuildRequestRecord!)
+bytes 0-527: AES-encrypted record(note: same size as BuildRequestRecord)
+
+total length: 528
+
 {% endfilter %}
 </pre>
+
+<h4>Notes</h4>
+<ul><li>
+  The first 527 bytes could, in the future, be used to return congestion or peer connectivity information
+  back to the requestor.
+</li><li>
+  See the <a href="tunnel-alt-creation.html">tunnel creation specification</a> for details on the reply field.
+</li></ul>
+
+
+<h3 id="struct_GarlicClove">GarlicClove</h3>
+<pre>
+{% filter escape %}
+unencrypted:
++----+----+----+----+----+----+----+----+
+| Delivery Instructions                 |
+~                                       ~
+~                                       ~
+|                                       |
++----+----+----+----+----+----+----+----+
+| I2NP Message                          |
+~                                       ~
+~                                       ~
+|                                       |
++----+----+----+----+----+----+----+----+
+|    Clove ID       |     Expiration     
++----+----+----+----+----+----+----+----+
+                    | Certificate  |
++----+----+----+----+----+----+----+
+{% endfilter %}
+</pre>
+<h4>Definition</h4>
+<pre>
+unencrypted:
+Delivery Instructions :: <a href="tunnel_message_spec.html#delivery">as defined here</a>
+       Length varies but is typically 39, 43, or 47 bytes
+
+I2NP Message :: Any I2NP Message
+
+Clove ID :: 4 byte Integer
+
+Expiration :: Date (8 bytes)
+
+Certificate :: Always NULL in the current implementation (3 bytes total, all zeroes)
+
+</pre>
+
+<h4>Notes</h4>
+<ul>
+<li>
+  Cloves are never fragmented.
+  When used in a Garlic Clove, the first bit of the Delivery Instructions flag byte (the fragment bit) is redefined.
+  If this bit is 0, the clove is not encrypted.
+  If 1, the clove is encrypted, and a 32 byte Session Key immediately follows the flag byte.
+  Clove encryption is not fully implemented.
+<li>
+  See also the <a href="how_garlicrouting.html">garlic routing specification</a>.
+<li>
+  See also <a href="tunnel_message_spec.html#delivery">Delivery Instructions definition</a>
+<li>
+  Maximum length is a function of the total length of all the cloves and the
+  maximum length of the GarlicMessage.
+<li>
+  In the future, the certificate could possibly be used for a HashCash to "pay" for the routing.
+<li>
+  The message can be any I2NP message (including a GarlicMessage, although that is not used in practice).
+  The messages used in practice are DataMessage, DeliveryStatusMessage, and DatabaseStoreMessage.
+<li>
+  The Clove ID is generally set to a random number on transmit and is checked for
+  duplicates on receive (same message ID space as top-level Message IDs)
+</ul>
+
+
+<h3 id="struct_DeliveryInstructions">Delivery Instructions</h3>
+Defined in the <a href="tunnel_message_spec.html#delivery">Tunnel Message Specification</a>.
 
 
 <h2 id="messages">Messages</h2>
 <table border=1>
   <tr>
-    <td>Message</td>
-    <td>Type</td>
+    <th>Message</th>
+    <th>Type</th>
   </tr>
   <tr>
     <td><a href="#msg_DatabaseStore">DatabaseStore</a></td>
@@ -283,6 +441,14 @@ bytes 0-527: AES-encrypted record(note: same size as BuildRequestRecord!)
 </table>
 
 <h3 id="msg_DatabaseStore">DatabaseStore</h3>
+<h4>Description</h4>
+<p>
+  An unsolicited database store, or the response to a successful Database Lookup Message
+</p>
+<h4>Contents</h4>
+<p>
+  An uncompressed LeaseSet or a compressed RouterInfo
+</p>
 <pre>
 with reply token:
 +----+----+----+----+----+----+----+----+
@@ -317,7 +483,7 @@ with reply token == 0:
 +                                       +
 |                                       |
 +----+----+----+----+----+----+----+----+
-|type| reply token       | data ...
+|type|         0         | data ...
 +----+-------------------+---------\\
 </pre>
 <h4>Definition</h4>
@@ -335,27 +501,30 @@ type:
 
 reply token:
             4 bytes
-            TODO: find out what this does
+            If greater than zero, a <a href="#msg_DeliveryStatus">Delivery Status Message</a>
+            is requested with the Message ID set to the value of the Reply Token.
+            A floodfill router is also expected to flood the data to the closest floodfill peers
+            if the token is greater than zero.
 
 reply tunnelId:
-               4 bytes
-               only included if reply token > 0
-               TODO: what this tunnel information is needed for
+               4 byte Tunnel ID
+               only included if reply token &gt; 0
+               This is the <a href="common_structures_spec#type_TunnelID">tunnel ID</a> of the inbound gateway of the tunnel the response should be sent to
 
 reply gateway:
               32 bytes
               Hash of the routerInfo entry to reach the gateway
-              only included if reply token > 0
-              TODO: what this tunnel information is needed for
+              only included if reply token &gt; 0
+              This is the router hash of the inbound gateway of the tunnel the response should be sent to
 
 data:
-     rest of the message(could be anything)
+     If type == 0, data is a 2-byte integer specifying the number of bytes that follow, followed by a gzip-compressed RouterInfo.
+     If type == 1, data is an uncompressed LeaseSet.
 </pre>
 
 <h3 id="msg_DatabaseLookup">DatabaseLookup</h3>
 <pre>
 {% filter escape %}
-if flag==TRUE
 +----+----+----+----+----+----+----+----+
 | SHA256 hash as the key to look up     |
 +                                       +
@@ -366,8 +535,8 @@ if flag==TRUE
 |                                       |
 +----+----+----+----+----+----+----+----+
 | SHA256 hash of the routerInfo         |
-+ who is asking                         +
-|                                       |
++ who is asking, or the gateway to      +
+| send the reply to                     |
 +                                       +
 |                                       |
 +                                       +
@@ -397,29 +566,53 @@ key:
 
 from:
      32 bytes
-     SHA256 hash of the routerInfo entry this request came from(and to which the reply should be sent)
+     If flag == 0, the SHA256 hash of the routerInfo entry this request came from (and to which the reply should be sent)
+     If flag == 1, the SHA256 hash of the reply tunnel gateway (to which the reply should be sent)
 
 flag:
      1 byte
-     mapping:
+     valid values:
              0  FALSE => send reply directly
              1  TRUE  => send reply to some tunnel
 
 reply tunnelId:
-               2 bytes
+               4 byte Tunnel ID
                only included if flag==TRUE
                tunnelId of the tunnel to send the reply to
 
 size:
-     2 bytes
-     number of peers to exclude from the lookup(TODO: whatever this means)
+     2 byte Integer
+     valid range: 0-512
+     number of peers to exclude from the Database Search Reply Message
 
 excludedPeers:
-              rest of the message are $size SHA256 hashes of 32 bytes each(total $size*32 bytes)
+              Rest of the message are $size SHA256 hashes of 32 bytes each (total $size*32 bytes)
+              If the lookup fails, these peers are requested to be excluded from the list in
+              the Database Search Reply Message.
+              If excludedPeers includes a hash of all zeroes, the request is exploratory, and
+              the Database Search Reply Message is requested to list non-floodfill routers only.
+
 {% endfilter %}
 </pre>
 
+<h4>Notes</h4>
+<p>
+ To do:
+ Use a bit of the flag field to request an AES-encrypted response.
+ Use parts of this message as the key and IV? Add a message ID also?
+ Backward compatibility?
+</p>
+
+
 <h3 id="msg_DatabaseSearchReply">DatabaseSearchReply</h3>
+<h4>Description</h4>
+<p>
+  The response to a failed Database Lookup Message
+</p>
+<h4>Contents</h4>
+<p>
+  A list of router hashes closest to the requested key
+</p>
 <pre>
 {% filter escape %}
 +----+----+----+----+----+----+----+----+
@@ -456,6 +649,7 @@ excludedPeers:
 
 
 {% endfilter %}
+</pre>
 
 <h4>Definition</h4>
 <pre>
@@ -465,7 +659,7 @@ key:
     SHA256 of the object being searched
 
 num:
-    1 byte
+    1 byte Integer
     number of peer hashes that follow
 
 peer hash:
@@ -479,11 +673,25 @@ from:
 {% endfilter %}
 </pre>
 
+<h4>Notes</h4>
+<p>
+  The 'from' hash is unauthenticated and cannot be trusted.
+</p>
+
 <h3 id="msg_DeliveryStatus">DeliveryStatus</h3>
+<h4>Description</h4>
+<p>
+  A simple message acknowledgment. Generally created by the message originator, and wrapped
+  in a Garlic Message with the message itself, to be returned by the destination.
+</p>
+<h4>Contents</h4>
+<p>
+  The ID of the delivered message, and the creation or arrival time.
+</p>
 <pre>
 {% filter escape %}
 +----+----+----+----+----+----+----+----+----+----+----+----+
-|msg-id             | arrival-time                          |
+|msg-id             |           time stamp                  |
 +----+----+----+----+----+----+----+----+----+----+----+----+
 {% endfilter %}
 </pre>
@@ -493,54 +701,133 @@ from:
 {% filter escape %}
 msg-id:
        4 bytes
-       unique ID of the message we deliver the DeliveryStatus for(see common I2NP header for details)
+       unique ID of the message we deliver the DeliveryStatus for (see common I2NP header for details)
 
-arrival-time:
+time stamp: Date
              8 bytes
-             time the message was successfully delivered
+             time the message was successfully created or delivered
 {% endfilter %}
 </pre>
 
+<h4>Notes</h4>
+<p>
+  It appears that the time stamp is always set by the creator to the current time.
+  However there are several uses of this in the code, and more may be added in the future.
+</p>
+
 <h3 id="msg_Garlic">Garlic</h3>
+<h4>Description</h4>
+<p>
+  Used to wrap multiple encrypted I2NP Messages
+</p>
+<h4>Contents</h4>
+<p>
+  When decrypted, a series of <a href="#struct_GarlicClove">Garlic Cloves</a>.
+</p>
 <pre>
 {% filter escape %}
 encrypted:
 +----+----+----+----+----+----+----+----+
-|length             | tag               |
+|      length       | data              |
 +----+----+----+----+                   +
 |                                       |
-+                                       +
+~                                       ~
+~                                       ~
 |                                       |
-+                                       +
++----+----+----+----+----+----+----+----+
+
+
+unencrypted data:
++----+----+----+----+----+----+----+----+
+|num |  clove 1                         |
++----+                                  +
 |                                       |
-+                   +----+----+----+----+
-|                   
+~                                       ~
+~                                       ~
+|                                       |
++----+----+----+----+----+----+----+----+
+|         clove 2 ...                   |
+~                                       ~
+~                                       ~
+|                                       |
++----+----+----+----+----+----+----+----+
+| Certificate  |   Message ID      |     
++----+----+----+----+----+----+----+----+
+          Expiration               |
++----+----+----+----+----+----+----+
 {% endfilter %}
 </pre>
 
 <h4>Definition</h4>
 <pre>
 {% filter escape %}
+Encrypted:
+
 length:
-       4 bytes
-       number of bytes that follow
+       4 byte Integer
+       number of bytes that follow 0 - 64 KB
 
 data:
      $length bytes
-     elgamal en
+     ElGamal encrypted data
+
+
+Unencrypted data:
+
+num:
+     1 byte Integer number of Garlic Cloves to follow
+
+clove:  A Garlic Clove
+
+Certificate :: Always NULL in the current implementation (3 bytes total, all zeroes)
+
+Message ID :: 4 byte Integer
+
+Expiration :: Date (8 bytes)
+
 {% endfilter %}
 </pre>
+
+<h4>Notes</h4>
+<ul>
+<li>
+  When unencrypted, data contains one or more <a href="#struct_GarlicClove">Garlic Cloves</a>.
+<li>
+  The AES encrypted block is padded to a minimum of 128 bytes; with the 32-byte Session Tag
+  the minimum size of the encrypted message is 160 bytes; with the 4 length bytes
+  the minimum size of the Garlic Message is 164 bytes.
+<li>
+  Actual max length is less than 64 KB; see the <a href="i2np.html">I2NP Overview</a>.
+<li>
+  See also the <a href="how_elgamalaes.html">ElGamal/AES specification</a>.
+<li>
+  See also the <a href="how_garlicrouting.html">garlic routing specification</a>.
+<li>
+  The 128 byte minimum size of the AES encrypted block is not currently configurable,
+  however the minimum size of a DataMessage in a GarlicClove in a GarlicMessage, with
+  overhead, is 128 bytes anyway. A configurable option to increase the minimum size
+  may be added in the future.
+<li>
+  The message ID is generally set to a random number on transmit and
+  appears to be ignored on receive.
+<li>
+  In the future, the certificate could possibly be used for a HashCash to "pay" for the routing.
+</ul>
+
 
 <h3 id="msg_TunnelData">TunnelData</h3>
 <pre>
 {% filter escape %}
 +----+----+----+----+----+----+----+----+
-| tunnelId          | data              |
+|     tunnnelID     | data              |
 +----+----+----+----+                   |
 |                                       |
-
+~                                       ~
+~                                       ~
 |                                       |
-+----+----+----+----+----+----+----+----+
++                   +----+----+----+----+
+|                   |
++----+----+----+----+
 {% endfilter %}
 </pre>
 
@@ -548,7 +835,7 @@ data:
 <pre>
 {% filter escape %}
 tunnelId:
-         4 bytes
+         4 byte Tunnel ID
          identifies the tunnel this message is directed at
 
 data:
@@ -556,6 +843,13 @@ data:
      payload data.. fixed to 1024 bytes
 {% endfilter %}
 </pre>
+
+<h4>Notes</h4>
+<ul>
+<li>
+  See also the <a href="tunnel_message_spec.html">Tunnel Message Specification</a>
+</ul>
+
 
 <h3 id="msg_TunnelGateway">TunnelGateway</h3>
 <pre>
@@ -570,11 +864,11 @@ data:
 <pre>
 {% filter escape %}
 tunnelId:
-         4 bytes
+         4 byte Tunnel ID
          identifies the tunnel this message is directed at
 
 length:
-       2 bytes
+       2 byte Integer
        length of the payload
 
 data:
@@ -583,10 +877,23 @@ data:
 {% endfilter %}
 </pre>
 
+<h4>Notes</h4>
+<ul>
+<li>
+  The payload is an I2NP message with a standard 16-byte header.
+</ul>
 
-{% endblock %}
 
 <h3 id="msg_Data">Data</h3>
+<h4>Description</h4>
+<p>
+  Used as a wrapper for encrypted Garlic Messages and Garlic Cloves.
+  Also used previously for network load testing.
+</p>
+<h4>Contents</h4>
+<p>
+  A length Integer, followed by opaque data.
+</p>
 <pre>
 {% filter escape %}
 +----+----+----+----+----+---//--+
@@ -630,38 +937,82 @@ data:
 <h4>Definition</h4>
 <pre>
 {% filter escape %}
-Just 8 records attached together
+Just 8 Build Request Records attached together
 Record size: 528 bytes
 Total size: 8*528 = 4224 bytes
 {% endfilter %}
 </pre>
 
+<h4>Notes</h4>
+<p>
+  See also the <a href="tunnel-alt-creation.html">tunnel creation specification</a>.
+</p>
+
 
 <h3 id="msg_TunnelBuildReply">TunnelBuildReply</h3>
 <pre>
 {% filter escape %}
-same format as TunnelBuild message
+same format as TunnelBuild message, with Build Response Records
 {% endfilter %}
 </pre>
+
+<h4>Notes</h4>
+<p>
+  See also the <a href="tunnel-alt-creation.html">tunnel creation specification</a>.
+</p>
 
 <h3 id="msg_VariableTunnelBuild">VariableTunnelBuild</h3>
 <pre>
 {% filter escape %}
 +----+----+----+----+----+----+----+----+
-|num | ....
+|num | BuildRequestRecords...
++----+----+----+----+----+----+----+----+
 {% endfilter %}
 </pre>
 
 <h4>Definition</h4>
 <pre>
 {% filter escape %}
-same format as TunnelBuildMessage, except for the addition of an "num" field in front and $num number of records instead of 8
+Same format as TunnelBuildMessage, except for the addition of an "num" field in front and $num number of Build Request Records instead of 8
+
+num:
+       1 byte Integer
+       Valid values: 1-8
+
+Record size: 528 bytes
+Total size: 1 + $num*528
 {% endfilter %}
 </pre>
+
+<h4>Notes</h4>
+<ul>
+<li>
+  This message was introduced in router version 0.7.12, and may not be sent to tunnel participants earlier than that version.
+<li>
+  See also the <a href="tunnel-alt-creation.html">tunnel creation specification</a>.
+</ul>
 
 <h3 id="msg_VariableTunnelBuildReply">VariableTunnelBuildReply</h3>
 <pre>
 {% filter escape %}
-same format as VariableTunnelBuild message
++----+----+----+----+----+----+----+----+
+|num | BuildResponseRecords...
++----+----+----+----+----+----+----+----+
 {% endfilter %}
 </pre>
+
+<h4>Definition</h4>
+Same format as VariableTunnelBuild message, with Build Response Records.
+
+
+<h4>Notes</h4>
+<ul>
+<li>
+  This message was introduced in router version 0.7.12, and may not be sent to tunnel participants earlier than that version.
+<li>
+  See also the <a href="tunnel-alt-creation.html">tunnel creation specification</a>.
+</ul>
+
+
+
+{% endblock %}
