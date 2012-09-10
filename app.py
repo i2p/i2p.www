@@ -72,7 +72,7 @@ def detect_theme():
 @app.errorhandler(404)
 def page_not_found(error):
     return render_template('global/error_404.html'), 404
-    
+
 @app.route('/')
 def main_index():
     return redirect(url_for('site_show', lang='en'))
@@ -86,11 +86,11 @@ def site_show(page='index'):
         return redirect(url_for('site_show', page=page[:-5]))
     name = 'site/%s.html' % page
     page_file = safe_join(TEMPLATE_DIR, name)
-    
+
     # bah! those damn users all the time!
     if not os.path.exists(page_file):
         abort(404)
-    
+
     # hah!
     return render_template(name, page=page)
 
@@ -109,38 +109,38 @@ def meetings_show(id, log=False, rst=False):
     hname = str(id) + '.rst'
     lfile = safe_join(MEETINGS_DIR, lname)
     hfile = safe_join(MEETINGS_DIR, hname)
-    
+
     # check if meeting file exists and throw error if it does not..
     if not os.path.exists(lfile):
         abort(404)
-    
+
     # if the user just wanted the .log
     if log:
         # hmm... maybe replace with something non-render_template like?
         #        return render_template('meetings/show_raw.html', log=log)
         return send_from_directory(MEETINGS_DIR, lname, mimetype='text/plain')
-    
+
     log=''
     header=None
-    
+
     # try to load header if that makes sense
     if os.path.exists(hfile):
         # if the user just wanted the .rst...
         if rst:
             return send_from_directory(MEETINGS_DIR, hname, mimetype='text/plain')
-        
+
         # open the file as utf-8 file
         with codecs.open(hfile, encoding='utf-8') as fd:
             header = fd.read()
     elif rst:
         abort(404)
-    
+
     # load log
     with codecs.open(lfile, encoding='utf-8') as fd:
         log = fd.read()
-    
+
     return render_template('meetings/show.html', log=log, header=header, id=id)
-     
+
 
 @app.route('/<string:lang>/meetings/<int:id>.log')
 def meetings_show_log(id):
@@ -173,7 +173,7 @@ def get_blog_index():
     Returns list of valid slugs sorted by date
     """
     ret=[]
-    
+
     # list of slugs(not sorted in any way)
     entries=[]
     # walk over all directories/files
@@ -183,7 +183,6 @@ def get_blog_index():
             # ignore all non-.rst files
             if not f.endswith('.rst'):
                 continue
-            
 
 
 def render_blog_entry(slug):
@@ -201,7 +200,7 @@ def render_blog_entry(slug):
     # read file
     with codecs.open(path, encoding='utf-8') as fd:
         content = fd.read()
-    
+
     return publish_parts(source=content, source_path=BLOG_DIR, writer_name="html")
 
 
@@ -216,13 +215,13 @@ def blog_index(page=0):
 def blog_entry(slug):
     # try to render that blog entry.. throws 404 if it does not exist
     parts = render_blog_entry(slug)
-    
+
     if parts:
         # now just pass to simple template file and we are done
         return render_template('blog/entry.html', parts=parts, title=parts['title'], body=parts['fragment'])
     else:
         abort(404)
-    
+
 
 @app.route('/feed/blog/rss')
 def blog_rss():
