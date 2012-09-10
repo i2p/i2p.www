@@ -168,6 +168,24 @@ def downloads_redirect(protocol, file, mirror=None):
 
 
 
+def get_blog_index():
+    """
+    Returns list of valid slugs sorted by date
+    """
+    ret=[]
+    
+    # list of slugs(not sorted in any way)
+    entries=[]
+    # walk over all directories/files
+    for v in os.walk(BLOG_DIR):
+        # iterate over all files
+        for f in v[2]:
+            # ignore all non-.rst files
+            if not f.endswith('.rst'):
+                continue
+            
+
+
 def render_blog_entry(slug):
     """
     Render the blog entry
