@@ -16,11 +16,9 @@ MEETINGS_DIR = os.path.join(os.path.dirname(__file__), 'meetings')
 app = application = Flask(__name__, template_folder=TEMPLATE_DIR, static_url_path='/_static', static_folder=STATIC_DIR)
 app.debug =  bool(os.environ.get('APP_DEBUG', 'False'))
 
-@app.after_request
-def call_after_request_callbacks(response):
-    for callback in getattr(g, 'after_request_callbacks', ()):
-        response = callback(response)
-    return response
+
+##########################
+# Hooks - helper functions
 
 def after_this_request(f):
     if not hasattr(g, 'after_request_callbacks'):
@@ -29,11 +27,8 @@ def after_this_request(f):
     return f
 
 
-@app.template_filter('restructuredtext')
-def restructuredtext(value):
-    parts = publish_parts(source=value, writer_name="html")
-    return parts['html_body']
-
+###########################
+# Hooks - url preprocessing
 
 @app.url_value_preprocessor
 def pull_lang(endpoint, values):
@@ -50,6 +45,11 @@ def set_lang(endpoint, values):
     if hasattr(g, 'lang'):
         values['lang'] = g.lang
 
+
+########################
+# Hooks - before request
+
+# Detect and store chosen theme
 @app.before_request
 def detect_theme():
     theme = 'light'
@@ -67,6 +67,25 @@ def detect_theme():
         elif g.theme != 'light':
             resp.set_cookie('style', g.theme)
         return resp
+
+
+############################
+# Hooks - request processing
+
+@app.template_filter('restructuredtext')
+def restructuredtext(value):
+    parts = publish_parts(source=value, writer_name="html")
+    return parts['html_body']
+
+
+#######################
+# Hooks - after request
+
+@app.after_request
+def call_after_request_callbacks(response):
+    for callback in getattr(g, 'after_request_callbacks', ()):
+        response = callback(response)
+    return response
 
 
 ###############
