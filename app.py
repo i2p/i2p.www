@@ -69,16 +69,23 @@ def detect_theme():
         return resp
 
 
+###############
+# Error handlers
+
 @app.errorhandler(404)
 def page_not_found(error):
     return render_template('global/error_404.html'), 404
 
+
+#######################
+# General page handlers
+
+# Index - redirects to en homepage
 @app.route('/')
 def main_index():
     return redirect(url_for('site_show', lang='en'))
 
-
-
+# Site pages
 @app.route('/<string:lang>/site/')
 @app.route('/<string:lang>/site/<path:page>')
 def site_show(page='index'):
@@ -94,10 +101,16 @@ def site_show(page='index'):
     # hah!
     return render_template(name, page=page)
 
+
+##################
+# Meeting handlers
+
+# Meeting index
 @app.route('/<string:lang>/meetings/')
 def meetings_index():
     return render_template('meetings/index.html')
 
+# Renderer for specific meetings
 @app.route('/<string:lang>/meetings/<int:id>')
 def meetings_show(id, log=False, rst=False):
     """
@@ -141,20 +154,27 @@ def meetings_show(id, log=False, rst=False):
 
     return render_template('meetings/show.html', log=log, header=header, id=id)
 
-
+# Just return the raw .log for the meeting
 @app.route('/<string:lang>/meetings/<int:id>.log')
 def meetings_show_log(id):
     return meetings_show(id, log=True)
 
+# Just return the raw .rst for the meeting
 @app.route('/<string:lang>/meetings/<int:id>.rst')
 def meetings_show_rst(id):
     return meetings_show(id, rst=True)
 
+
+###################
+# Download handlers
+
+# List of downloads
 @app.route('/<string:lang>/download')
 def downloads_list():
     # TODO: read mirror list or list of available files
     return render_template('downloads/list.html')
 
+# Specific file downloader
 @app.route('/<string:lang>/download/<path:file>')
 def downloads_select(file):
     # TODO: implement
@@ -167,6 +187,8 @@ def downloads_redirect(protocol, file, mirror=None):
     pass
 
 
+#####################
+# Blog helper methods
 
 def get_blog_index():
     """
@@ -204,6 +226,8 @@ def render_blog_entry(slug):
     return publish_parts(source=content, source_path=BLOG_DIR, writer_name="html")
 
 
+###############
+# Blog handlers
 
 @app.route('/<string:lang>/blog/')
 @app.route('/<string:lang>/blog/page/<int:page>')
@@ -234,9 +258,8 @@ def blog_atom():
     pass
 
 
-
-
-## legacy stuff:
+##############
+# Legacy paths
 
 @app.route('/meeting<int:id>')
 @app.route('/meeting<int:id>.html')
