@@ -1,4 +1,4 @@
-{% extends "_layout.html" %}
+{% extends "global/layout.html" %}
 {% block title %}A Gentle Introduction{% endblock %}
 {% block content %}
 
@@ -32,7 +32,7 @@ Instead their view will be of one of the I2P enabled applications, or perhaps as
 app to turn on and off various proxies to enable the anonymizing functionality.</p>
 
 <p>An essential part of designing, developing, and testing an anonymizing network is to define the 
-<a href="how_threatmodel">threat model</a>, since there is no such thing as "true" anonymity, just 
+<a href="{{ url_for('site_show', lang=g.lang, page='docs/how/threatmodel') }}">threat model</a>, since there is no such thing as "true" anonymity, just 
 increasingly expensive costs to identify someone. Briefly, I2P's intent is to allow people to communicate 
 in arbitrarily hostile environments by providing good anonymity, mixed in with sufficient cover 
 traffic provided by the activity of people who require less anonymity. This way, some users can avoid
@@ -43,23 +43,23 @@ others.</p>
 <h2>Why?</h2>
 <p>There are a multitude of reasons why we need a system to support 
 anonymous communication, and everyone has their own personal rationale. There are many 
-<a href="how_networkcomparisons">other efforts</a> working on finding ways to provide varying degrees of 
+<a href="{{ url_for('site_show', lang=g.lang, page='docs/how/networkcomparisons') }}">other efforts</a> working on finding ways to provide varying degrees of 
 anonymity to people through the Internet, but we could not find any that met our needs or threat 
 model.</p>
 
 <h2>How?</h2>
 
 <p>The network at a glance is made up of a set of nodes ("routers") with a number of unidirectional 
-inbound and outbound virtual paths ("tunnels", as outlined on the <a href="how_tunnelrouting">tunnel routing</a> page). 
+inbound and outbound virtual paths ("tunnels", as outlined on the <a href="{{ url_for('site_show', lang=g.lang, page='docs/how/tunnelrouting') }}">tunnel routing</a> page). 
 Each router is identified by a cryptographic RouterIdentity which is typically long lived. These routers 
 communicate with each other through existing transport mechanisms (TCP, UDP, etc), passing various 
 messages.  Client applications have their own cryptographic identifier ("Destination") which enables it 
 to send and receive messages. These clients can connect to any router and authorize the temporary 
 allocation ("lease") of some tunnels that will be used for sending and receiving messages through the 
-network.  I2P has its own internal <a href="how_networkdatabase">network database</a> (using a modification of 
+network.  I2P has its own internal <a href="{{ url_for('site_show', lang=g.lang, page='docs/how/networkdatabase') }}">network database</a> (using a modification of 
 the Kademlia algorithm) for distributing routing and contact information securely.</p>
 
-<div class="box" style="text-align:center;"><img src="_static/images/net.png" alt="Network topology example" title="Network topology example" /></div>
+<div class="box" style="text-align:center;"><img src="{{ url_for('static', filename='images/net.png') }}" alt="Network topology example" title="Network topology example" /></div>
 
 
 <p>In the above, Alice, Bob, Charlie, and Dave are all running routers with a single Destination on their 
@@ -73,7 +73,7 @@ network database, which is constantly updated as new leases are authorized and o
   
 <p>If Bob wants to reply to Alice, he simply goes through the same process - send a message out one of his
 outbound tunnels targeting one of Alice's inbound tunnels (tunnel 1 or 2).  To make things easier, most 
-messages sent between Alice and Bob are <a href="how_garlicrouting">garlic</a> wrapped, bundling the 
+messages sent between Alice and Bob are <a href="{{ url_for('site_show', lang=g.lang, page='docs/how/garlicrouting') }}">garlic</a> wrapped, bundling the 
 sender's own current lease information so that the recipient can reply immediately without having to look 
 in the network database for the current data.</p>
 
@@ -81,12 +81,12 @@ in the network database for the current data.</p>
 hence there are no directory servers keeping statistics regarding the performance and reliability of 
 routers within the network. As such, each router must keep and maintain profiles of various routers 
 and is responsible for selecting appropriate peers to meet the anonymity, performance, and reliability 
-needs of the users, as described in the <a href="how_peerselection">peer selection</a> page.</p>
+needs of the users, as described in the <a href="{{ url_for('site_show', lang=g.lang, page='docs/how/peerselection') }}">peer selection</a> page.</p>
 
-<p>The network itself makes use of a significant number of <a href="how_cryptography">cryptographic techniques and algorithms</a> - 
+<p>The network itself makes use of a significant number of <a href="{{ url_for('site_show', lang=g.lang, page='docs/how/cryptography') }}">cryptographic techniques and algorithms</a> - 
 a full laundry list includes 2048bit ElGamal encryption, 256bit AES in CBC mode with PKCS#5 padding, 
 1024bit DSA signatures, SHA256 hashes, 2048bit Diffie-Hellman negotiated connections with station to 
-station authentication, and <a href="how_elgamalaes">ElGamal / AES+SessionTag</a>.</p>
+station authentication, and <a href="{{ url_for('site_show', lang=g.lang, page='docs/how/elgamalaes') }}">ElGamal / AES+SessionTag</a>.</p>
 
 <p>Content sent over I2P is encrypted through three layers garlic encryption (used to verify the delivery of the message to 
 the recipient), tunnel encryption (all messages passing through a tunnel is encrypted by the tunnel 
@@ -98,9 +98,9 @@ Notice the different use of terms! All data from a to h is end-to-end encrypted,
 between the I2P router and the applications is not end-to-end encrypted!
 A and h are the routers of Alice and Bob, while Alice and Bob in following chart are the applications running atop of I2P.</p>
 
-<div class="box" style="text-align:center;"><img src="_static/images/endToEndEncryption.png" alt="End to end layered encryption" title="End to end layered encryption." /></div>
+<div class="box" style="text-align:center;"><img src="{{ url_for('static', filename='images/endToEndEncryption.png') }}" alt="End to end layered encryption" title="End to end layered encryption." /></div>
 
-<p>The specific use of these algorithms are outlined <a href="how_cryptography">elsewhere</a>.</p>
+<p>The specific use of these algorithms are outlined <a href="{{ url_for('site_show', lang=g.lang, page='docs/how/cryptography') }}">elsewhere</a>.</p>
 
 <p>The two main mechanisms for allowing people who need strong anonymity to use the network are 
 explicitly delayed garlic routed messages and more comprehensive tunnels to include support for pooling 
@@ -111,7 +111,7 @@ flexible and anonymous transports.</p>
 
 <p>Some questions have been raised with regards to the scalability of I2P, and reasonably so. There 
 will certainly be more analysis over time, but peer lookup and integration should be bounded by 
-<code>O(log(N))</code> due to the <a href="how_networkdatabase">network database</a>'s algorithm, while end to end 
+<code>O(log(N))</code> due to the <a href="{{ url_for('site_show', lang=g.lang, page='docs/how/networkdatabase') }}">network database</a>'s algorithm, while end to end 
 messages should be <code>O(1)</code> (scale free), since messages go out K hops through the outbound 
 tunnel and another K hops through the inbound tunnel, with K no longer than 3.
 The size of the network (N) bears no impact.</p>
@@ -138,13 +138,13 @@ are being written in Python and other languages. The code works on <a href="http
 <p>Anyone interested should
 join us on the IRC channel #i2p (hosted concurrently on irc.freenode.net, irc.postman.i2p, irc.freshcoffee.i2p, irc.welterde.i2p and irc.einirc.de).
 There are currently no scheduled development meetings, however
-<a href="meetings">archives are available</a>.</p>
+<a href="{{ url_for('meetings_index', lang=g.lang) }}">archives are available</a>.</p>
 
 <p>The current source is available in <a href="monotone.html">monotone</a>.</p>
 
 <h2>Additional Information</h2>
 <p>
-See <a href="how.html">the Index to Technical Documentation</a>
+See <a href="{{ url_for('site_show', lang=g.lang, page='docs/how') }}">the Index to Technical Documentation</a>
 </p>
 
 {% endblock %}
