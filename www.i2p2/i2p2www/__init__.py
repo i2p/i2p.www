@@ -117,9 +117,13 @@ def site_show(page='index'):
     name = 'site/%s.html' % page
     page_file = safe_join(TEMPLATE_DIR, name)
 
-    # bah! those damn users all the time!
     if not os.path.exists(page_file):
-        abort(404)
+        # Could be a directory, so try index.html
+        name = 'site/%s/index.html' % page
+        page_file = safe_join(TEMPLATE_DIR, name)
+        if not os.path.exists(page_file):
+            # bah! those damn users all the time!
+            abort(404)
 
     # hah!
     return render_template(name, page=page)
