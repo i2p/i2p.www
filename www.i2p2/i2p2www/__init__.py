@@ -95,6 +95,10 @@ def call_after_request_callbacks(response):
 def page_not_found(error):
     return render_template('global/error_404.html'), 404
 
+@app.errorhandler(500)
+def server_error(error):
+    return render_template('global/error_500.html'), 500
+
 
 #######################
 # General page handlers
