@@ -235,6 +235,10 @@ def get_blog_index():
     entries.sort()
     return entries
 
+def get_date_from_slug(slug):
+    parts = slug.split('/')
+    return "%s-%s-%s" % (parts[0], parts[1], parts[2])
+
 def render_blog_entry(slug):
     """
     Render the blog entry
@@ -260,8 +264,12 @@ def render_blog_entry(slug):
 @app.route('/<string:lang>/blog/')
 @app.route('/<string:lang>/blog/page/<int:page>')
 def blog_index(page=0):
-    # TODO: implement
-    entries = get_blog_index()
+    slugs = get_blog_index()
+    entries= []
+    for slug in slugs:
+        date = get_date_from_slug(slug)
+        title = slug.rsplit('/', 1)[1]
+        entries.append((slug, date, title))
 
     return render_template('blog/index.html', entries=entries)
 
