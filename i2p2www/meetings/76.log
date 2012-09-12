@@ -1,0 +1,520 @@
+{% extends "_layout.html" %}
+{% block title %}I2P Development Meeting 76{% endblock %}
+{% block content %}<h3>Tuesday, Feb 3, 2004 22:00:00 CET</h3>
+<div class="irclog">
+[22:01] <jrand0m> 0) hi</p>
+[22:01] <jrand0m> 1) testnet</p>
+[22:01] <jrand0m> 2) updated roadmap</p>
+[22:01] <jrand0m> 3) updated application list</p>
+[22:01] <jrand0m> 4) volunteers needed</p>
+[22:01] <jrand0m> 5) ???</p>
+[22:01] <jrand0m> 0) hi</p>
+[22:01] * jrand0m waves</p>
+[22:01] * mihi waves back</p>
+[22:02] * jrand0m has to warn that i've been up for too long, so may be a little out of it</p>
+[22:02] <jrand0m> but anyway, as we proceed, everyone should read (or have read) http://i2p.dnsalias.net/pipermail/i2p/2004-February/000132.html</p>
+[22:02] <jrand0m> lets jump right into 1) testnet</p>
+[22:03] <mihi> you should change the subject for each mail... they all get sorted into one thread here</p>
+[22:03] <jrand0m> hah nice</p>
+[22:03] * jrand0m tried for consistency (for ease of filtering)</p>
+[22:03] <jrand0m> would you like me to add the date to it?</p>
+[22:03] <madman2003> how is the testent really doing?(pessimistic opnion please)</p>
+[22:03] <jrand0m> madman2003&gt; poorly, but better than before</p>
+[22:04] <mihi> jrand0m: date (or meeting number) would be great</p>
+[22:04] <jrand0m> 'k mihi, consider it done</p>
+[22:04] <jrand0m> (anyone other than me want to give some feedback to madman2003's question?)</p>
+[22:04] <duck> madman2004: baffled and me have been connected for 4h now</p>
+[22:04] <baffled> Really that long?</p>
+[22:04] <duck> before test3 the maximum time was 10 min</p>
+[22:05] <jrand0m> w00t</p>
+[22:05] <duck> baffled: since 18:15:07 CET</p>
+[22:05] <jrand0m> yeah i had a 90m session the other day too</p>
+[22:05] <duck> but maybe we are directly hopped</p>
+[22:05] <madman2003> and you're sure the link is intact?</p>
+[22:05] <jrand0m> duck&gt; all tunnels are 2 hop (unless your router is failing, in which case your tunnels will break at least once)</p>
+[22:06] <jrand0m> madman2003&gt; when the tunnels fail, they fail hard</p>
+[22:06] <madman2003> how's general latency on the testnet?</p>
+[22:06] * Ophite1 has joined #i2p</p>
+[22:06] * jrand0m usually gets 2-10s latency through the squid</p>
+[22:06] * lucky has joined #i2p</p>
+[22:06] <jrand0m> 5-20s latency through irc</p>
+[22:07] <madman2003> is the 30 secs delay on local sites fixed yet?</p>
+[22:07] <jrand0m> duck&gt; can you /ping duck on your ircd?  how long does it take to reply with a CTCP refused error?</p>
+[22:07] <jrand0m> (or baffled&gt;)</p>
+[22:08] <jrand0m> madman2003&gt; there have been significant bugfixes that would account for 30s+ delays locally</p>
+[22:08] <jrand0m> (jobs got locked up causing insane delays)</p>
+[22:08] <duck> response to admin request to baffleds ircd is ~8s</p>
+[22:08] <jrand0m> duck&gt; to local?</p>
+[22:09] <duck> fido ping/pong is 3 seconds, which is local</p>
+[22:09] <jrand0m> coo'</p>
+[22:09] <duck> for local eepsites it also seems to be ~3s</p>
+[22:09] <jrand0m> (still much higher than i'd like, but &lt;&lt;30s)</p>
+[22:09] <duck> initial request longer, might be ~30s</p>
+[22:10] <jrand0m> interesting</p>
+[22:10] <duck> ,</p>
+[22:10] <jrand0m> ok, so there's definitely still work to be done on the testnet, but there's been progress</p>
+[22:10] <madman2003> is the testnet going to run until poor performance becomes perfect, what is the exact requirement of succes?</p>
+[22:11] <madman2003> (i know about 3 days of working good)</p>
+[22:11] <jrand0m> success == 3 consecutive days of things that should succeed succeeding.</p>
+[22:11] <jrand0m> human has volunteered to help out and implement something along the lines of what I posted in the email</p>
+[22:11] * mihi floods the testnet with pings ;)</p>
+[22:11] * leenookx has quit IRC (Ping timeout)</p>
+[22:11] <jrand0m> basically a way we can just leave a pair of bots connected to the two ircds and measure our progress and failures</p>
+[22:12] <jrand0m> (yay human!)</p>
+[22:12] <mihi> hmm, if there is no netsplit, i2p is working, but you cannot make the other way conclusion...</p>
+[22:13] <jrand0m> the i2p roadmap [http://wiki.invisiblenet.net/iip-wiki?I2PRoadmap] has the 0.2.4 release (~= testnet completion) in a week and a half</p>
+[22:13] <madman2003> why don't you focus on making local delay &lt;1s?</p>
+[22:13] <jrand0m> that i will.</p>
+[22:13] <madman2003> good chance that will solve some other problems too</p>
+[22:13] <jrand0m> the cause of &gt;1s delay is likely the load</p>
+[22:14] <jrand0m> for routers with no peers, local only requests are near instantaneous</p>
+[22:14] <jrand0m> (but as the testnet is actually showing some load, we're stressing different things)</p>
+[22:15] <duck> baffled and me also had a little chat about making statsbots, but if human wants to do it; cool for me</p>
+[22:15] <madman2003> maybe delays have to do with requests being send to other routers</p>
+[22:15] <madman2003> before it see that it's local</p>
+[22:15] <jrand0m> oh word duck</p>
+[22:15] <jrand0m> naw, doesn't work that way madman2003</p>
+[22:16] <jrand0m> (it gets pumped to the client manager first, which checks if its local, and only if it isn't does it get placed in the router's net pool)</p>
+[22:16] * madman2003 wonders where all that load is coming from</p>
+[22:16] <jrand0m> france.</p>
+[22:16] <jrand0m> er, germany.</p>
+[22:16] <jrand0m> (since *someone* is pinging everyone ;)</p>
+[22:17] <duck> kuala lumpur</p>
+[22:17] * duck hopes nobody gets that joke</p>
+[22:17] * jrand0m is pleased to meet duck's hopes</p>
+[22:17] <mihi> all that pings made my local box thrashing as well... (with no router!)</p>
+[22:18] <jrand0m> mihi&gt; the i2cp lib does the crypto ;)</p>
+[22:18] * wiht has joined #i2p</p>
+[22:18] <madman2003> doesn't i2p protect from ping floods?</p>
+[22:19] <jrand0m> madman2003&gt; the load isn't that significant, its just the code currently has very course grain synchronization (and during the testnet thats being adjusted to more fine grained sync)</p>
+[22:19] <madman2003> grain sync?</p>
+[22:19] <mihi> jrand0m: congrats: seems that ping -ns does not only produce - - - now</p>
+[22:20] <jrand0m> lol mihi :)</p>
+[22:20] <mihi> why lol? ping -ns never worked for me. (only the synchronized one)</p>
+[22:20] <duck> synchronized one never worked for me...</p>
+[22:20] <jrand0m> oh really?  word, -ns has been working well for me</p>
+[22:21] <jrand0m> madman2003&gt; its a tradeoff of memory and CPU vs concurrency</p>
+[22:22] <jrand0m> (course grained synchronization minimizes CPU and memory usage, while fine grained synchronization uses more CPU and memory in exchange for higher concurrency)</p>
+[22:22] * TrueSeeker has quit IRC (Leaving)</p>
+[22:22] * mihi will post ping stats in #flood in a few secs</p>
+[22:22] * ion has quit IRC (Ping timeout)</p>
+[22:23] <lucky> bah.</p>
+[22:23] <jrand0m> but yeah, the plan is to have the testnet wrap up once it passes the 3 day test.  my current estimate is the 14th, but we'll see.</p>
+[22:23] <lucky> miserably day.</p>
+[22:23] <lucky> stupid capitalist pigs</p>
+[22:23] <lucky> taking all my money..</p>
+[22:24] <baffled> looks like there a are new goodies in cvs, how long before test4?</p>
+[22:24] <jrand0m> not today, hopefully tomorrow</p>
+[22:24] * jrand0m is going to bed after the meeting :)</p>
+[22:25] <baffled> cool.</p>
+[22:26] <madman2003> bye everyone</p>
+[22:26] <jrand0m> later madman2003</p>
+[22:26] <madman2003> don't forget the other points of the meeting :)</p>
+[22:26] <jrand0m> ok, so thats testnet.  anything else on that, or shall we move to 2) updated roadmap?</p>
+[22:26] <jrand0m> hehe</p>
+[22:26] <baffled> Are there other stressers we need on the test net?</p>
+[22:26] * madman2003 has quit IRC (12( www.nnscript.de 12:: NoNameScript 3.8 12:: www.XLhost.de 12))</p>
+[22:26] <duck> what date is it?</p>
+[22:27] <jrand0m> Feb 3</p>
+[22:27] <baffled> 3rd here.</p>
+[22:27] <mihi> 2004-02-03</p>
+[22:27] * leenookx has joined #i2p</p>
+[22:27] <duck> ah, thanks</p>
+[22:27] <jrand0m> baffled&gt; actually, has anyone tried out i2psnark on testnet?</p>
+[22:27] <wiht> baffled: What do you mean by stressers?</p>
+[22:28] <mihi> wiht: i guess people stressing the testnet</p>
+[22:28] <baffled> Well, the other day you asked aum and I to siess and desist on nntp I was kinda thinking about setting up a 128kbps ogg stream.</p>
+[22:28] * mihi 'd like a public echo service set up by anyone - would allow good latency checks</p>
+[22:28] <baffled> so those two items I guess.</p>
+[22:28] <jrand0m> we've had a good crew hitting the squid</p>
+[22:28] <jrand0m> oh, nntp would rule, as would an ogg stream!</p>
+[22:29] * jrand0m doesn't recall asking y'all to stop (except maybe temporarily during an update?)</p>
+[22:29] <jrand0m> agreed mihi</p>
+[22:29] * jrand0m checks what port 'echo' is</p>
+[22:29] <jrand0m> 7</p>
+[22:29] <mihi> afaik 9</p>
+[22:29] <mihi> oops ;)</p>
+[22:29] <baffled> You may been frazelled about something else at the time.</p>
+[22:30] <wiht> Port 7.</p>
+[22:30] <duck> 4</p>
+[22:30] * ion has joined #i2p</p>
+[22:30] <jrand0m> prolly baffled ;)</p>
+[22:30] <duck> echo            4/ddp                           # AppleTalk Echo Protocol</p>
+[22:30] <jrand0m> echo            7/tcp</p>
+[22:30] <jrand0m> echo            7/udp</p>
+[22:30] <jrand0m> echo            4/ddp                           # AppleTalk Echo Protocol</p>
+[22:30] <wiht> Port 7 for TCP and UDP.</p>
+[22:30] <mihi> duck: we want [0-9]*/tcp</p>
+[22:30] * duck ducks</p>
+[22:31] * Synonymous has joined #i2p</p>
+[22:31] <jrand0m> so, anyone want to wrap up human's test app (the echo server and client)?</p>
+[22:32] <jrand0m> (though running twisted does seem a bit much for that ;)</p>
+[22:32] <duck> the non-twisted one would work</p>
+[22:33] <duck> .</p>
+[22:33] * jrand0m didn't realize his i2p code could work w/out twisted</p>
+[22:33] <jrand0m> but anyway, anyone wnat to volunteer to run point on getting an echo service up?</p>
+[22:33] * duck sits on his hands</p>
+[22:33] <wiht> Reachable through I2P, or reachable through regular Internet?</p>
+[22:34] <jrand0m> through i2p</p>
+[22:34] <baffled> I can look into it with some specific specs.</p>
+[22:34] <mihi> duck: do ducks have hands? i thougt wings ;)</p>
+[22:34] <jrand0m> spec: receive a line of text and echo it back :)</p>
+[22:34] <baffled> oh, okay no prob.</p>
+[22:34] <lucky> bah... i have to start filing taxes next year!</p>
+[22:34] <mihi> jrand0m: s/line/byte chunk/</p>
+[22:34] <lucky> Stupid, damn government...</p>
+[22:35] <jrand0m> mihi&gt; line is so much easier to parse ;)</p>
+[22:35] <duck> lucky: hush</p>
+[22:35] <jrand0m> baffled++</p>
+[22:35] <jrand0m> ok, moving on to 2) updated roadmap</p>
+[22:35] * jrand0m directs people's attention to http://wiki.invisiblenet.net/iip-wiki?I2PRoadmap</p>
+[22:36] <mihi> jrand0m: why? while (len=in.read(b) != -1) {o.write(b,0,len);}</p>
+[22:36] <jrand0m> (which, of course, y'all have already read)</p>
+[22:36] * MrEcho has joined #i2p</p>
+[22:36] <jrand0m> mihi&gt; single byte messages vs nagle, etc</p>
+[22:37] <jrand0m> but anyway, whatever baffled implements to do echoing to support testing is Good </p>
+[22:37] <jrand0m> (or you and he can work out what works best for you)</p>
+[22:37] * wiht has quit IRC (Ping timeout)</p>
+[22:37] <baffled> If you have requirements write them down and let me know later mihi and I'll try.</p>
+[22:38] * ion has quit IRC (Ping timeout)</p>
+[22:38] <mihi_backup> baffled: not really. if needed adding a newline after a timestamp is no problem at all.</p>
+[22:38] * jar_ has quit IRC (Ping timeout)</p>
+[22:38] <duck> (netsplit after 4:20)</p>
+[22:38] <jrand0m> heh</p>
+[22:39] <jrand0m> not good :/</p>
+[22:39] <jrand0m> well, iterative and incremental.</p>
+[22:39] <mihi> 22:38:09.430 ERROR [WrC1-&gt;Pz83  ] .i2p.i2ptunnel.I2PTunnelRunner: Error sending</p>
+[22:39] <mihi> message to peer.  Killing tunnel runner</p>
+[22:39] <jrand0m> are all 9/10 routers up atm?</p>
+[22:39] <jrand0m> (or did one go down?)</p>
+[22:40] <jrand0m> i only see 8</p>
+[22:40] <jrand0m> 22:41:02.758 ERROR [TCP Read [9]] er.transport.tcp.TCPConnection: Error reading from stream to [RouterIdentity:</p>
+[22:40] <jrand0m>         Hash: 4Sb3aJoFusrhpHgYA2xCZCkn0P5jBo822qu9C0wsE1w=</p>
+[22:40] * duck did just update</p>
+[22:40] <duck> where goes the i2cp admin stuff fit in the roadmap?</p>
+[22:41] <duck> afaik that isnt implemented, but 0.2.5 talks about finalizing the spec</p>
+[22:41] <jrand0m> current plan is to make I2CP the plain client protocol, leaving admin functionality seperate</p>
+[22:41] <jrand0m> (e.g. through the :7655 admin web port)</p>
+[22:41] <duck> ok</p>
+[22:42] <jrand0m> (and rip out all that other crap)</p>
+[22:42] * jar_ has joined #i2p</p>
+[22:42] * ion has joined #i2p</p>
+[22:42] <jrand0m> ((shrinkingCodebase)++)</p>
+[22:43] <jrand0m> does anyone have any thoughts on the two Big Issues?</p>
+[22:43] <jrand0m> = aborting the current PHTTP transport (until 2.0)</p>
+[22:43] <jrand0m> = keeping support for a restricted route topology at 2.0</p>
+[22:43] <baffled> Well gang, gotta boogie so I'll have to read the logs later.</p>
+[22:43] <jrand0m> cool, glad you could make it, l8r</p>
+[22:43] * baffled has quit IRC (Leaving)</p>
+[22:44] <duck> secure i2cp would lower the direct need for restricted route topology a bit</p>
+[22:44] <duck> so thats fine</p>
+[22:45] <jrand0m> agreed, though the 'secured' in this sense won't be ideal (all i2cp payloads will of course be encrypted, but sniffers can detect that $client is sending a $n byte message to $destination)</p>
+[22:46] <jrand0m> the only difference from the current i2cp is a little update to the authentication protocol / structure</p>
+[22:46] <jrand0m> ((well, the $client can't detect $n, since messages are padded randomly.  nm)</p>
+[22:46] <jrand0m> er, $sniffer, not $client</p>
+[22:47] * wiht has joined #i2p</p>
+[22:47] <jrand0m> (of course that doesn't defeat a global passive adversary)</p>
+[22:48] <jrand0m> anyone have any other concerns / suggestions / ideas / comments?</p>
+[22:48] <jrand0m> (on the roadmap)</p>
+[22:49] <duck> no</p>
+[22:49] <jrand0m> nor do i</p>
+[22:49] * jrand0m hops on to 3) updated application list</p>
+[22:49] <jrand0m> [insert "mihi rules" rant here]</p>
+[22:50] <duck> help jrand0m to say no!</p>
+[22:50] <jrand0m> mihi&gt; any thoughts on the muffin thing?  http://wiki.invisiblenet.net/iip-wiki?I2PApplications</p>
+[22:50] <jrand0m> heh</p>
+[22:51] <mihi> jrand0m: you know what i think about that...</p>
+[22:51] <jrand0m> (i'm not specifically asking you to integrate it, i'm just seeing what your thoughts are as to whether it would be good)</p>
+[22:52] <mihi> httpclient has to get out of i2ptunnel, since i2ptunnel is for stream forwarding and httpclient does content forwarding</p>
+[22:52] <mihi> hacking that into i2ptunnel would be just more hackish.</p>
+[22:52] <jrand0m> word, so the app down below [Scalable web proxies]</p>
+[22:52] <jrand0m> that makes sense</p>
+[22:53] <jrand0m> (apps that do One Thing and One Thing Well)++</p>
+[22:53] <mihi> jrand0m: you misunderstood me...</p>
+[22:53] <jrand0m> whaddimiss?</p>
+[22:54] <mihi> i don't have anything against an app that reads a http request, parses it, sends it over i2p, reads the answer, parses it, sends it back (maybe with filtering) - just not do it as httptunnel does.</p>
+[22:54] <mihi> httptunnel forwards everything except the first few lines.</p>
+[22:54] <jrand0m> ah you're right</p>
+[22:55] * jrand0m doesn't quite have head screwed on correctly</p>
+[22:55] <mihi> it would be hard to build effective filtering into it (if it should filter html and not text or sth like that)</p>
+[22:55] <jrand0m> right - perhaps just have MUFFIN as a standalone </p>
+[22:55] <jrand0m> (filtering whatever comes out of the httpclient)</p>
+[22:55] <mihi> so i'd say, an extra app for that. but that would require streaming lib... (or sth like that)</p>
+[22:56] * duck likes how you can do proxies xmlrpc/soap with httpclient though</p>
+[22:56] <wiht> jrand0m: I did not see an entry for "muffin" on the list of applications.</p>
+[22:56] <jrand0m> wiht&gt; http://muffin.doit.org/</p>
+[22:56] <mihi> muffin is a http content filter</p>
+[22:57] <mihi> if we have a content filter, we could drop that shitty "proxy" thingy.</p>
+[22:57] <jrand0m> duck&gt; hopefully the muffin filter would be set to pass through xmlrpc/soap, only filtering things like VBScript / etc</p>
+[22:57] <wiht> I see.</p>
+[22:57] <jrand0m> hm, mihi?</p>
+[22:57] <duck> ah wait, xmlrpc/soap would be content type xml</p>
+[22:57] <jrand0m> mihi&gt; wouldn't it still need to do the name translation, at the least?</p>
+[22:58] <mihi> sure, but not as a proxy. http://localhost:12345/duck.i2p/ would work much better.</p>
+[22:58] <Synonymous> muffin is gpl, u have to be careful in a public domain project to use gpl code, its still copyrighted ;)</p>
+[22:58] <mihi> since you can link to that from the regular web</p>
+[22:58] <jrand0m> hrm mihi.</p>
+[22:58] <mihi> Synonymous: i2ptunnel is gpl anyway</p>
+[22:58] <jrand0m> Synonymous&gt; I2PTunnel is GPL</p>
+[22:58] <Synonymous> ya</p>
+[22:59] * jrand0m is well aware of the fact that some people consider copyrights valid, and tries to accomodate them.</p>
+[22:59] <Synonymous> make sure to put that up where it is visible (if you use muffin) it already says that iptunnel is gpl</p>
+[22:59] <jrand0m> of course, if we use muffin it'd get attributed and marked as gpl.</p>
+[22:59] <Synonymous> ya thats what i said, becareful about it</p>
+[23:00] <jrand0m> (we're not going to get into the copyright discussion here)</p>
+[23:00] <jrand0m> ok, any other thoughts on the apps listed?</p>
+[23:00] <Synonymous> then don't, and my comment was not intended to start one</p>
+[23:00] * duck laughts at http://muffin.doit.org/demo/evil/</p>
+[23:01] <jrand0m> what do y'all think will be necessary app functionality for 1.0?</p>
+[23:01] <jrand0m> heh duck</p>
+[23:01] <jrand0m> (or are we already there, and 1.0 app functionality == things proxied through i2ptunnel :)</p>
+[23:02] <Synonymous> ppl would want functional chat, and maybe a freenet like ap for 1.0 if thats what you are asking, maybe a set of tools so ppl can easily set up their own services on it</p>
+[23:02] <mihi> an IM and a naming service are still missing</p>
+[23:02] <jrand0m> mihi&gt; irc over i2p?</p>
+[23:02] <wiht> Yes, naming service should be in place by 1.0 version of I2P.</p>
+[23:03] <duck> eep</p>
+[23:03] <mihi> jrand0m: irc over i2p would be okay as well, but a naming service ;)</p>
+[23:03] <jrand0m> wiht&gt; do you have any thoughts on whether a naming service will be implemented and ready to go live by April?</p>
+[23:03] * jrand0m really doesn't think a naming service is necessary. useful, yes</p>
+[23:04] <jrand0m> (all we *need* is a way to easily update a hosts.txt file)</p>
+[23:04] <kaji> or a distributed vpn layer</p>
+[23:04] <jrand0m> heh</p>
+[23:04] <mihi> jrand0m: for me even that (if automated) is a naming service</p>
+[23:04] <wiht> jrand0m: Probably by the middle of April.</p>
+[23:05] <jrand0m> kaji&gt; a distributed vpn layer is a solid month of 1-2 devs ;)</p>
+[23:05] <wiht> I want to make it scalable for accomodating many more entries than we have in hosts.txt now.</p>
+[23:05] <jrand0m> 1.0--&gt;3.0 wont have millions of entries</p>
+[23:05] <wiht> MrEcho: Do you have any thoughts on this?</p>
+[23:05] <jrand0m> thousands, yeah</p>
+[23:06] <jrand0m> Synonymous&gt; freenet like app would be cool, but then we need to recruit someone to implement :)</p>
+[23:07] <jrand0m> Synonymous&gt; tools to set up services - definitely.  hopefully i2pmanager or i2pmole will do</p>
+[23:07] <Synonymous> that might be hard, esp since freenet doesnt work hehe</p>
+[23:07] <wiht> Speaking of which, what is the progress of I2PManager?</p>
+[23:07] <jrand0m> aparently its coming along, the console / cli mode is making progress (aum now uses it to manage his services via init scripts)</p>
+[23:08] <jrand0m> i've used the gui, and aum's logged a few bugs on the tunnelmanager that are still outstanding</p>
+[23:08] <jrand0m> (due to large #s of tunnels being created, not due to a small #)</p>
+[23:08] <wiht> I think I2PManager should be an application for 1.0.</p>
+[23:09] <jrand0m> i hope so too</p>
+[23:09] <jrand0m> (especially since that would mean we can throw out the kludged installer, since i2pmanager has that built in)</p>
+[23:09] <jrand0m> so, people with python experience should get in touch with aum to see how they can help :)</p>
+[23:09] <human> re</p>
+[23:09] <jrand0m> wb human</p>
+[23:10] * human read about the muffin proxy</p>
+[23:10] <human> i know about another privacy-oriented personal proxy called privoxy</p>
+[23:11] <jrand0m> yeah, privoxy was another one i had been looking at.  good potential as well</p>
+[23:11] <jrand0m> (reason i leaned towards muffin was the ease of integration, since its java)</p>
+[23:12] * jrand0m won't be the one who implements / integrates it, so my view is only a suggestion</p>
+[23:12] <@Nightblade> i think a group chat (or irc) would be a good program because if you can get chat to work reliably then you know i2p's latency and stability are good</p>
+[23:13] <jrand0m> agreed</p>
+[23:13] <Synonymous> how would trent work on such a system though, is it possible to do it with a system of public and private keys (like frost)</p>
+[23:13] <Synonymous> the channel would be the 'board' ?</p>
+[23:13] <jrand0m> Synonymous&gt; duck has actually done some neat stuff</p>
+[23:13] <Synonymous> kool</p>
+[23:14] <duck> which is: users login with a secret password to the ircd, the ircd publishes the sha1 of the password</p>
+[23:14] <jrand0m> Synonymous&gt; in his modified ircd, you can provide a password that has its hash shown in the ident </p>
+[23:14] <Synonymous> it would also be like waste i guess, even though I didnt usei t</p>
+[23:14] <jrand0m> duck&gt; though if anyone else creates their own ircd, they can spoof that :/</p>
+[23:14] <duck> so others can check the sha1 against a local list, without requiring a centralized database</p>
+[23:15] <duck> sure</p>
+[23:15] <jrand0m> but people could just remember what ircd someone usually connects from, i suppose</p>
+[23:15] <jrand0m> would it be possible to have a nickserv?</p>
+[23:15] * jrand0m doesn't know much about how irc nets work</p>
+[23:16] <duck> yes, but I didnt want that</p>
+[23:16] <duck> because Trent was made as a temporary hack</p>
+[23:16] <jrand0m> right, it'd be Good if we could do without</p>
+[23:16] <jrand0m> hehe</p>
+[23:16] <jrand0m> until iip 2.0, right?  ;)</p>
+[23:16] <duck> now it is the longest running joke in the world</p>
+[23:17] <duck> .</p>
+[23:18] <jrand0m> ok, so if we go 1.0 with: irc, eepsites (and a way to set up your own), squid, and cvs, thats reasonable?</p>
+[23:18] <@Nightblade> yeah</p>
+[23:18] <jrand0m> (obviously it'd be fantastic if we could include i2psnark, naming, I2PIM, and the other apps)</p>
+[23:19] <duck> with irc you mean native i2pirc?</p>
+[23:19] <duck> or if not, why not nntp etc too</p>
+[23:19] <jrand0m> oh, right</p>
+[23:19] <jrand0m> of course</p>
+[23:20] * jrand0m !thwaps self.</p>
+[23:20] <duck> not too much ofcourse</p>
+[23:20] * duck thinks that the pgp keyserver is silly</p>
+[23:20] <jrand0m> i just meant that its easy to overwhelm people with options</p>
+[23:20] <duck> ah, sure</p>
+[23:20] <duck> as in officially bundeled stuff</p>
+[23:20] <jrand0m> "why should I use I2P" "well you can [.............]"</p>
+[23:20] <jrand0m> right</p>
+[23:20] * duck agrees</p>
+[23:21] <jrand0m> with i2ptunnel, we can support all that we've seen (and more :)</p>
+[23:21] <jrand0m> ok, in that case, I don't think we need to worry too much about the i2papps</p>
+[23:21] <mihi> btw: we should deprecate the -nogui option of I2PTunnel...</p>
+[23:22] <jrand0m> to default to -nogui?</p>
+[23:22] <jrand0m> (or you trying to get us all to use awt?  ;)</p>
+[23:22] <mihi> no. not to use -nogui at all. -cli and -nocli are more "transparent"</p>
+[23:22] <Synonymous> you should also package all these options in 1 distro if you can</p>
+[23:22] <jrand0m> ah ok mihi</p>
+[23:22] <Synonymous> unlike freenet, which mentions no otehr utilities and its up to you to go find them out</p>
+[23:22] <jrand0m> Synonymous&gt; definitely</p>
+[23:22] <jrand0m> Synonymous&gt; have you used i2pmgr yet?</p>
+[23:23] <mihi> -nogui acts differently whether you use -e "run configfile" or use "configfile"</p>
+[23:23] <Synonymous> no, i couldnt get it working :)</p>
+[23:23] <jrand0m> (its still pre-alpha, but functional)</p>
+[23:23] <jrand0m> ah ok</p>
+[23:23] <Synonymous> from before but it didnt try the gui</p>
+[23:23] <Synonymous> i might try now that it has one</p>
+[23:23] <Synonymous> :)</p>
+[23:23] <jrand0m> word, its been makin progress</p>
+[23:23] * duck suppresses a yawn</p>
+[23:24] <jrand0m> yeah yeah yeah duck, ok ;)</p>
+[23:24] <jrand0m> i think thats it for apps - unless someone else has something?</p>
+[23:24] <jrand0m> moving on to 4) Volunteers needed</p>
+[23:25] <jrand0m> we're making good progress, and the pace is fine and imho sustainable</p>
+[23:25] <jrand0m> but we've all been talking about some really neat things that we'd like added on</p>
+[23:25] <jrand0m> if there were another N hours in the day, yadda yadda yadda</p>
+[23:26] <duck> what do you mean with 'development bandwidth'?</p>
+[23:26] <jrand0m> more hours of developer activity</p>
+[23:26] <duck> aye</p>
+[23:27] <jrand0m> (e.g. 2 developers == 16/20 hours/day)</p>
+[23:27] <jrand0m> my gut feeling is of the 'if you build it, they will come' variety</p>
+[23:28] <jrand0m> (but i've also worked at companies that thought they had a kickass product, made it more kickass, released it, and didn't see much market activity)</p>
+[23:28] * duck doesnt think that hiring cheap indians will work</p>
+[23:28] <jrand0m> heh</p>
+[23:29] <duck> product marketing != developer marketing</p>
+[23:29] <jrand0m> right, i agree</p>
+[23:29] <jrand0m> i just meant as an analogy</p>
+[23:30] <jrand0m> we'll see how things progress.  i just wanted to throw that stuff out there</p>
+[23:30] <@Nightblade> it is a complex program which makes it harder to find people who can figure it out</p>
+[23:31] <jrand0m> agreed Nightblade</p>
+[23:31] * greasyaxelsex__ has joined #I2P</p>
+[23:31] <jrand0m> Nightblade&gt; thats what 1.0 release criteria #3 on the roadmap is for: " Javadoc and code walkthrough / guidebook updated"</p>
+[23:32] * dm has joined #i2p</p>
+[23:32] * wiht has quit IRC (EOF From client)</p>
+[23:32] <jrand0m> we currently have a generally up to date wiki providing an overview of the java impl</p>
+[23:32] <mihi> hi dm</p>
+[23:32] <jrand0m> but i will definintely need help with the documentation</p>
+[23:32] <dm> hello mihi.</p>
+[23:33] <jrand0m> (since what makes sense to me != what makes sense to people learning the code)</p>
+[23:33] * dm accuses jrand0m of using terms he's invented when explaining things.</p>
+[23:34] <jrand0m> occationally ;)</p>
+[23:34] <Synonymous> i will help wtih the webpage if u want</p>
+[23:34] <jrand0m> (though the only thing i knowingly have coined wrt i2p is 'militant grade anonymity' ;)</p>
+[23:34] <Synonymous> i already have a template</p>
+[23:34] <dm> How far are we from a bugless 0.2.x? I get my broadband in less than a week's time.</p>
+[23:34] * wiht has joined #i2p</p>
+[23:34] <Synonymous> the website needs major owkr</p>
+[23:34] <Synonymous> im working on my own anonymous p2p website, but you can borrow mine :)</p>
+[23:35] <jrand0m> hehe</p>
+[23:35] <Synonymous> its modeled after freenet's</p>
+[23:35] <Synonymous> but better</p>
+[23:35] <Synonymous> :P</p>
+[23:35] <jrand0m> actually, yeah, perhaps we can start a thread on the i2p list describing goals of the website and seeing how it fits together?</p>
+[23:35] <dm> Synonymous: are you building a p2p app, or just the website?</p>
+[23:35] <Synonymous> just the website</p>
+[23:35] <jrand0m> (and if that traffic grows, we'll move to something like i2p-www@)</p>
+[23:36] <duck> ROFL at anonymous p2p website boilerplates</p>
+[23:36] <jrand0m> dm&gt; roadmap updated at http://wiki.invisiblenet.net/iip-wiki?I2PRoadmap with 0.2.4 slated for February 14</p>
+[23:36] <Synonymous> explaing anonymous p2p, the different topologies of networks, the philosophy of it, cypherpunkdom, digital imprimature, links to projects, a mailing list for ppl to discuss it</p>
+[23:36] <mihi> dm&gt; bugless sw does not exist</p>
+[23:36] <jrand0m> duck&gt; gotta keep the anonymity set large ;)</p>
+[23:36] <Synonymous> also links to the other website that does that</p>
+[23:37] <dm> mihi: does too!</p>
+[23:37] <jrand0m> mihi&gt; i worked on one project a few years ago that actually shipped with 0 bugs.  no p1 or even p5s</p>
+[23:37] <dm> func addints(int a, int b) { return a + b; }</p>
+[23:37] <mihi> jrand0m: they just did not find them...</p>
+[23:37] <mihi> dm: which language?</p>
+[23:37] <jrand0m> mihi&gt; then its not a bug ;)</p>
+[23:37] * greasyaxelsex__ has left #I2P (greasyaxelsex__)</p>
+[23:37] <dm> pseudo-language</p>
+[23:38] <mihi> and how does this pseudo-language react on an overflow?</p>
+[23:38] <wiht> dm: In a project with thousands of lines of code, having no bugs is much less likely.</p>
+[23:38] <duck> .</p>
+[23:38] <Synonymous> so April is the deadline for something for public release?  Why not try to recruit some devls, or would it take to long for you to explain to them how it works etc.</p>
+[23:39] <dm> input is never over max_value /2</p>
+[23:39] <jrand0m> (we're currently ~20KLOC, using the "grep \; | wc -l" algorithm)</p>
+[23:39] <jrand0m> Synonymous&gt; I don't think we want to just go around posting on lists "hey, we're doing a kickass thing, come code on it" (thats essentially a 1.0 announcement)</p>
+[23:40] <dm> that's a lotta lines.</p>
+[23:40] <dm> Java bloat!</p>
+[23:40] <jrand0m> but if there are people who are interested in helping out, i'll most definitely go out of my way to find out how i can get them involved</p>
+[23:40] * jrand0m kicks dm</p>
+[23:40] <jrand0m> java bloat is when the jvm uses ram.  you're suggesting OO bloat</p>
+[23:40] <dm> What a project leader jrand0m is.</p>
+[23:40] <Synonymous> well, how will u know if ppl are interested if there is no knowledge of it, thats a contradiction</p>
+[23:41] <Synonymous> and by 'recruit' i mean email them, not pubically anounce on say, zeropaid, about i2p</p>
+[23:41] <Synonymous> like someone did ;)</p>
+[23:41] <jrand0m> Synonymous&gt; what are your thoughts on the explanation of that issue from the email?</p>
+[23:41] <dm> Right OO bloat.</p>
+[23:41] <jrand0m> yeah, I was pissed when someone told me about that zp article</p>
+[23:41] <Synonymous> ya your the one that did the interview</p>
+[23:41] <jrand0m> (you can read the august iip-dev messages)</p>
+[23:41] <Synonymous> they just quoted you?</p>
+[23:41] <jrand0m> "interview"?  more like some random person on iip asking me questions</p>
+[23:42] <dm> mihi: are you working on the streaming lib?</p>
+[23:42] <Synonymous> ah :)</p>
+[23:42] <mihi> dm:no</p>
+[23:42] <mihi> Standard@laptop /cygdrive/c/eigenes/notback/cvsprojects/i2p/i2p/code</p>
+[23:42] <mihi> $ grep \; `find . -name "*.java"` | wc -l</p>
+[23:42] <mihi>   30593</p>
+[23:42] <jrand0m> ah.</p>
+[23:42] <Synonymous> well, make get a list of project leaders for anonymous p2p and say "here is a project you might be interested in looking at, if you have any ideas on code or projects that might help it please let me know"</p>
+[23:42] <mihi> 30kLOC ;)</p>
+[23:42] <jrand0m> grep -v \^import</p>
+[23:43] <jrand0m> Synonymous&gt; stealing project leads == bad form ;)</p>
+[23:43] <jrand0m> (there are many good projects, and while I obviously think i2p is important, others are too)</p>
+[23:44] <Synonymous> not stealing, and i dont think the 'leader' can be stolen, he would just desolve the project</p>
+[23:44] * jrand0m cant believe we're at 30kloc</p>
+[23:44] <jrand0m> heh</p>
+[23:46] <jrand0m> ok, moving on to 5) ???</p>
+[23:46] <duck> 2 eepsite proposals, for those who dont know what to do: 1) meshmx FE tunnel (with stunnel) 2) pastebin.de site</p>
+[23:46] <jrand0m> anyone have anything else to discuss / bring up?</p>
+[23:46] <jrand0m> oh word duck</p>
+[23:46] <jrand0m> whats pastebin.de?</p>
+[23:46] <jrand0m> (similar?)</p>
+[23:47] <duck> site where you can paste code/logs/stuff publically</p>
+[23:47] <duck> for irc debugging</p>
+[23:47] <duck> http://pastebin.de/</p>
+[23:47] <jrand0m> interesting</p>
+[23:47] * @Nightblade just prefers flooding channels with code</p>
+[23:48] <jrand0m> wow that is one hell of an innovative idea</p>
+[23:48] <jrand0m> insanely simple.</p>
+[23:48] <jrand0m> focused.</p>
+[23:48] <jrand0m> practical.</p>
+[23:48] <dm> Only python though?</p>
+[23:48] <jrand0m> oh reall?</p>
+[23:48] <jrand0m> :/</p>
+[23:48] <duck> I think this one has python highlighting</p>
+[23:48] * jrand0m takes back 'practical' ;)</p>
+[23:48] <duck> but I have also seen php ones etc</p>
+[23:48] <duck> and you might have a general approach</p>
+[23:48] <dm> I think I've seen one which accepts any language.</p>
+[23:49] <dm> Good idea, mind you.</p>
+[23:49] <duck> anyway, just something simple</p>
+[23:49] <duck> you dont need highlighting at all</p>
+[23:49] <duck> online linenrs would be useful</p>
+[23:49] * dm looks at python code.</p>
+[23:49] <dm> What's so special about this again?</p>
+[23:50] <jrand0m> its got a y</p>
+[23:50] * Nightblade sets mode: +o jrand0m</p>
+[23:50] <@jrand0m> w00t</p>
+[23:50] * Trent@anon.iip sets mode: +o mihi</p>
+[23:50] <duck> there is nothing special about it,</p>
+[23:51] <dm> A lot of people really like it, I think.</p>
+[23:51] <duck> oh, you mean about python</p>
+[23:51] <dm> yes, sorry.</p>
+[23:52] * duck moves that to 6) offtopic</p>
+[23:52] <duck> :)</p>
+[23:52] <@jrand0m> heh</p>
+[23:52] <@jrand0m> [beuler, beuler]</p>
+[23:52] <dm> Sorry, didn't realize you guys were having a meeting.</p>
+[23:52] <@jrand0m> every tuesday 9p gmt :)</p>
+[23:53] <duck> ok, php stuff: http://pastebin.com/pastebin.php?showsource=php</p>
+[23:53] <@jrand0m> anyone have anything else they want to bring up wrt i2p, etc?</p>
+[23:54] <@mihi> i2p rocks!</p>
+[23:54] <@jrand0m> (if only it were more reliable..)</p>
+[23:55] <@mihi> it is more reliable than freenet for me ;)</p>
+[23:55] <@jrand0m> heh :)</p>
+[23:55] <@jrand0m> if i just hadn't fucked with your i2ptunnel to set the retry count to 0 we'd be fine ;)</p>
+[23:56] <@jrand0m> (corrupt a lil data here and there, but that never hurt no one...er......)</p>
+[23:56] <@jrand0m> ok</p>
+[23:56] <dm> don't baf</p>
+[23:56] * @jrand0m isn't going to try to drag it out 4 more minutes to reach 2 hours</p>
+[23:57] <dm> do not baf</p>
+[23:57] * @jrand0m denies dm and *baf*'s the meeting closed</p>
+</div>
+{% endblock %}

@@ -1,0 +1,180 @@
+{% extends "_layout.html" %}
+{% block title %}I2P Development Meeting 176{% endblock %}
+{% block content %}<h3>I2P dev meeting, April 18, 2005</h3>
+<div class="irclog">
+16:09 < jrandom> 0) hi</p>
+16:09 < jrandom> 1) Net status and 0.6.1.16</p>
+16:09 < jrandom> 2) Tunnel creation and congestion</p>
+16:10 < jrandom> 3) Feedspace</p>
+16:10 < jrandom> 4) ???</p>
+16:10 < jrandom> 0) hi</p>
+16:10  * jrandom waves</p>
+16:10 < jrandom> weekly status notes posted up at http://dev.i2p.net/pipermail/i2p/2006-April/001281.html</p>
+16:10  * frosk too</p>
+16:10 < jrandom> (almost two hours *before* the meeting, too :)</p>
+16:11 < jrandom> ok, since i'm sure y'all've already poured over the notes, lets jump into 1) Net status</p>
+16:12 <+Complication> Hi :)</p>
+16:12  * Complication quickly grabs the notes</p>
+16:12 < jrandom> the 0.6.1.16 release fixed a very long standing but in our prng, which had caused a substantial number of arbitrary tunnel rejections</p>
+16:13 < jrandom> (the root cause was injected last october, but is fixed now)</p>
+16:13 <+Complication> Status over here: works tolerably with 1 + 0..1 hop tunnels, won't behave with 2 + 0..1 or 2 +/- 0..1</p>
+16:14 < jrandom> aye, thats understandable too, especially under slower links</p>
+16:14 < jrandom> (unfortunately, "slower" isn't all that slow, either)</p>
+16:15 < jrandom> there is still much work to do, and 0.6.1.16 isn't where we need to be, but its progress</p>
+16:17 <+Complication> Something I've been thinking of,  with regard to what you called "congestion collapse"</p>
+16:18 <+Complication> One way to limit its impact might be to actually *require* a router to accept a certain quota of participation requests</p>
+16:19 <+Complication> (something specified by the user either directly or indirectly?)</p>
+16:19 < jrandom> specified by which user?</p>
+16:19 <+Complication> (e.g. some part of share percentage or an additional parameter)</p>
+16:19 < jrandom> the local user, or by us as remote users?</p>
+16:19 <+Complication> Specified by everyone for themselves</p>
+16:19 <@frosk> should we move over to 2) then? :)</p>
+16:20 < jrandom> aye, might as well consider us on 2) :)</p>
+16:20 <+Complication> So that I could, for example, tell my router "even if you're congested, keep routing a minimum of 4 KB/s"</p>
+16:21 < jrandom> Complication: thats not really possible - if a router is too congested, other people will (hopefully ;) stop asking them to participate in tunnels.</p>
+16:21 <+Complication> (this would, of course, mean that some local destination could be offline a while longer)</p>
+16:21 < jrandom> and if they aren't asked, they /cant/ push other people's data</p>
+16:22 <+Complication> Ah, perhaps I should have phrased it significantly clearer</p>
+16:24 <+Complication> I imagined it could, under a certain quota of participating traffic, throttle its own tunnel creation messages instead of participating tunnels</p>
+16:24 <+Complication> e.g. "I'll never throttle my participating tunnels to less than 4 KB/s. If that would be needed, I'll instead throttle my own traffic."</p>
+16:26 < jrandom> hmm, there are anonymity risks in that (though still along the same lines of selective DoS, which we don't defend against anyway)</p>
+16:27 < jrandom> but throttling our own local tunnel builds in face of congestion is something i've got in testing now - adding support tooptionally ignore the 4KBps floor should be simple enough</p>
+16:28 < spinky> Currently, you get no cover traffic at all when transferring lots of data.</p>
+16:29 < spinky> Having a floor for participation bw sounds good.</p>
+16:30 < jrandom> well, we do have a floor (both as the share percentage and an internal 4KBps reserved after all bw is assigned)</p>
+16:30 <+Complication> Bah, disconnects... I hope much wasn't lost of what I said, but any replies I'll have to read from the log :)</p>
+16:32 <@frosk> is there anything significant about 4KBps?</p>
+16:33 < jrandom> a few things - 4KB ~= sizeof(tunnel create message), and heuristically, i've never heard of a router running uccessfully on less</p>
+16:33 < spinky> Maybe it's the bugs that keep the share percentage from working then?</p>
+16:34 < jrandom> what makes you say the share percentage doesn't work?</p>
+16:34 <@frosk> i see</p>
+16:34 <+Complication> frosk: nah, it's just a number in the current code, and I referred to it while trying to explain what I imagined too</p>
+16:35 <+Complication> (not because of meaningful reasons, just because what I imagined was, in a certain sense, its equal opposite)</p>
+16:35 < spinky> It's set to 80% and participation goes to 0 when locally generating data. Perhaps I'm misunderstanding things.</p>
+16:36 < jrandom> ah, yes, thats not what the share percentage does</p>
+16:36 <+Complication> spinky: it's a maximum limit of what may be shared, subject to bandwidth actually available for sharing</p>
+16:37 <+Complication> If local traffic takes up 70%, you've only got 10% left for sharing</p>
+16:37 <+Complication> If local traffic is heavy, you'll have 0% left, and the top limit of 80% will never be touched</p>
+16:37 < spinky> Ok. I see it says 'up to'...</p>
+16:38 <+Complication> And also, there's the 4 KB/s reserve</p>
+16:38 < jrandom> ah, its share percentage of what you have available</p>
+16:38 < spinky> Maybe another setting for the floor participation bw, under which the router will accept more tunnels?</p>
+16:38 < jrandom> if you are using 95% of your bw, it will share up to 80% of the remaining 5%</p>
+16:39 <+Complication> Oh, then I've partly misunderstood it too</p>
+16:40 < fox> &lt;zorglu1&gt; how i2p measure the amount of bw used by other local applications ?</p>
+16:40 < spinky> (Just saying, if you consider cover traffic a good thing maybe having it configurable even under heavy local bw usage is a good thing)</p>
+16:40 <+Complication> I thought it was applied against the sustained limit</p>
+16:40 < jrandom> zorglu1: it measures i2p's bw usage, and knows i2p's bw limits</p>
+16:41 < jrandom> oh, hmm, looking back at the code, int availBps = (int)(((maxKBps*1024)*share) - used);</p>
+16:41 < jrandom> so you're right Complication </p>
+16:42 < jrandom> spinky: cover traffic is only so useful on a low latency mixnet</p>
+16:42 < jrandom> it does add some incentive for higher bw routers, but those w/out bw to spare have little recourse</p>
+16:49 < jrandom> anyway, the tunnel congestion issue has been around for a while, but only recently exacerbated by the insane tunnel rejection rates</p>
+16:49 < jrandom> hopefully the next rev will clear it up for us</p>
+16:49 < jrandom> ok, anyone have anything else on 2) tunnel creation and congestion?</p>
+16:50 <@frosk> sounds like it would take some changes to the tunnel-building scheme</p>
+16:50 <+Complication> I hope it will help improve things :)</p>
+16:51 <+Complication> Oh, by the way...</p>
+16:52 < jrandom> well, we've got some cheap fixes, such as reducing the max concurrency, throttling our build attempts when congested, reducing the drop frequency (as opposed to explicit rejection), and adjusting the profiling to incentivize explicit rejections as opposed to drops</p>
+16:52 <+Complication> ...did you perchance find anything which could explain the big disparity between raw bandwidth indicators and tunnel payload indicators?</p>
+16:52 <+Complication> (e.g. total banwidth 1 GB, tunnel payload summed up 300 MB)</p>
+16:52 < jrandom> but its true, those only affect the magnitude</p>
+16:52 <+Complication> (since I haven't been around IRC lately, I'm not sure if you've been looking at that one recently)</p>
+16:54 < jrandom> havent dug into that much, but remember, tunnel build requests for outbound tunnels aren't tunnel messages (and there are lots of them if only .1% are successful.  and at 4KB each...)</p>
+16:54  * Complication isn't certain if it's the indicators, or a real effect</p>
+16:55 <+Complication> Oh... outbound build requests... indeed</p>
+16:55 < jrandom> the upcoming -1 build adds a slew of stats for monitoring per-message-type packet monitoring</p>
+16:55 <+Complication> That could be precisely it</p>
+16:55 < jrandom> (also included in those outbound build requests are build participationg requests - forwarding a reply)</p>
+16:56 < jrandom> ((so its not just local stuff))</p>
+17:00 <+Complication> &gt; Thanks, that explains it a whole lot :)</p>
+17:00 <+Complication> &gt; It ain't voodoo then, but quite real traffic, which I just forgot, since it wasn't specifically counted in the places I checked</p>
+17:00 <+Complication> It would indeed have to occur, and would indeed cost a lot of bytes</p>
+17:00 <+Complication> Especially with low success rates</p>
+17:01 < jrandom> aye, though i shouldn't cost as much as it does, since we should have higher success rates than we do :)</p>
+17:01 < jrandom> ok, anything else on 2)?</p>
+17:02 < jrandom> if not, lets swing on over to 3) Feedspace</p>
+17:02 < jrandom> frosk: wanna give us an update?</p>
+17:03 < jrandom> (or tell us to fsck off and read the eepsite?  ;)</p>
+17:04 <@frosk> well, for those who haven't paid attention to frosk.i2p or feedspace.i2p, feedspace is now basically working (for my own defintion of "basically)</p>
+17:04 < jrandom> (w00t)</p>
+17:05 <@frosk> there's been some nice additions lately, like infrastructural support for transports other than i2p (tor and non-anonymous tcp/ip comes to mind)</p>
+17:06 <@frosk> so in time, we plan to allow syndie (in an upcoming and probably very nice rewrite) to use feedspace as one of its syndication methods</p>
+17:06 <@frosk> for now, there aren't any client apps to actually *use* feedspace for anything :) i've been testing with an extremely crude servlet app</p>
+17:07 < jrandom> (crude + functional)++</p>
+17:07 <@frosk> so there is of course a job opening for a client hacker ;)</p>
+17:08 <@frosk> there are still some necessary stuff that feedspace needs before any public testing, but it shouldn't be long now :)</p>
+17:08 < jrandom> nice1</p>
+17:08 < jrandom> anything we can do to help?</p>
+17:08 <@frosk> also i've been working a bit on documentation, which has been lacking</p>
+17:09 < spinky> Do you see feedspace being usable for large files?</p>
+17:10 <@frosk> 1) client apps using the (still undocumented) xmlrpc api, 2) http://feedspace.i2p/wiki/Tasks, 3) participate in testing when that time comes</p>
+17:10 <@frosk> large files support is not a priority for now, but perhaps later</p>
+17:10 <@frosk> focus for "1.0" is smaller messages such as blog and discussion entries, and events of any sort</p>
+17:11 < jrandom> though feeding .torrent files into an rss/feedspace-enabled bt client wouldn't be a problem</p>
+17:11 <@frosk> large files may or may not work :)</p>
+17:11 <@frosk> that would be a superneat thing</p>
+17:12 < jrandom> feed2snark ;)</p>
+17:12 <@frosk> i hope we'll see all sorts of such "adapter" apps :)</p>
+17:12 <+Complication> Well, I'm sure people will find ways to move large files using bit... umm, side channels :)</p>
+17:15 <@frosk> i feel a bit guilty about the feedspace code using all sorts of java1.5 features. it would probably be hard to compile/use on free java right now, but it will catch up i'm sure :)</p>
+17:15 < jrandom> yikes</p>
+17:16 < jrandom> well, there are rumors of gcj adopting ecj for 1.5-isms</p>
+17:16 < spinky> Complication: Ponies with saddle bags full of hdds?</p>
+17:16 <@frosk> yep</p>
+17:17 <+Complication> spinky: drones, in my preferred case :P</p>
+17:17  * jrandom is still barely moving up to 1.4-isms</p>
+17:17 <+Complication> But I guess ponies work too :P</p>
+17:17 < jrandom> though 1.6 sure is nice ;)</p>
+17:17 <@frosk> to stay gcj-compatible?</p>
+17:18 <@frosk> well 1.6 doesn't have a lot of "isms" for most things anyway i think :)</p>
+17:18 <+Complication> (or flying hedgehogs airdropping memory cards)</p>
+17:18 < jrandom> gcj/classpath/etc, but also for performance (i've found 1.5 a bit heftier than 1.4)</p>
+17:19 < jrandom> true, 1.6's improvements are largely vm/bytecode specific</p>
+17:19 <@frosk> hm ok</p>
+17:20  * jrandom isn't trying to pursuade you not to use 1.5isms.  i'm sure you've got your reasons, and e.g. azureus already requires 1.5</p>
+17:21 <@frosk> well there's no going back :) hopefully it won't be too bumpy</p>
+17:24 < jrandom> aye, i'm ure it'll work out fine :)</p>
+17:25 < jrandom> ok cool, anyone have anything else on 3) feedspace?</p>
+17:25  * frosk hugs his generics and java.util.concurrent ;)</p>
+17:25 < jrandom> heheh</p>
+17:27 < jrandom> ok, if there's nothing else on 3, lets move on over to 4) ???</p>
+17:27 < jrandom> anyone have anything else for the meeting?</p>
+17:27 <+Complication> A little question which I should have asked under 2)</p>
+17:28 <+Complication> Do you know, how do idle participating tunnels typically form?</p>
+17:28 <+Complication> Are they mostly a sign of failed tunnel builds, where only the creator really knows it failed?</p>
+17:28 <+Complication> Or do they have additional reasons?</p>
+17:28 <+Complication> (besides, of course, the obvious - namely an app sitting idle)</p>
+17:29 < jrandom> an idle app wouldn't have idle tunnels (they'd be tested)</p>
+17:29 < jrandom> idle tunnels are failed for some reason or another</p>
+17:29 < jrandom> (either failed to be creted fully, or failed during operation)</p>
+17:30 <+Complication> Right, so all tunnels are tested anyway, and tunnel testing should cause traffic... indeed</p>
+17:30 <+Complication> That actually brings me to the second part of my question: would it offer any benefit to notice that a tunnel is idle, and scrap it early?</p>
+17:31 <+Complication> Are there any precious resources to be saved there?</p>
+17:32 < jrandom> none - a tunnel that isn't pushing data isn't using up resources</p>
+17:32 < jrandom> (ok, its using up some ram, perhaps 32 bytes)</p>
+17:32 <+Complication> Or perhaps, could it help a router to keep a better picture of its load and similar parameters...</p>
+17:33 < jrandom> predictions on bw usage bsed on the tunnel history is certainly an open question</p>
+17:33 <+Complication> Or would it just be pointless work, and it's best to wait until it expires naturally?</p>
+17:33 <+Complication> (like it does now)</p>
+17:34 < jrandom> we used to do some predictions, but it didn't give us clear benefits, so we're using a simpler algorithm now</p>
+17:34 <+Complication> Aha, so no gain...</p>
+17:34 <+Complication> Thanks, that was basically all I wanted to ask about it :)</p>
+17:34 < jrandom> np, understandable concern</p>
+17:34 < jrandom> ok, anyone have anything else for the meeting?</p>
+17:35 <+Complication> Yeah, if one did predictions, the percentage of idling tunnels might tilt estimates</p>
+17:35 <+Complication> (if it varied significantly)</p>
+17:36 < jrandom> aye, we'd want to keep idle % as part of the estimate</p>
+17:36 < jrandom> (we used to - see the RouterThrottleImpl.allowTunnel method)</p>
+17:37 <+Complication> Oh, didn't know that :)</p>
+17:37 < jrandom> and note the new comment:</p>
+17:38 < jrandom>  // ok, ignore any predictions of 'bytesAllocated', since that makes poorly</p>
+17:38 < jrandom>  // grounded conclusions about future use (or even the bursty use).  Instead,</p>
+17:38 < jrandom>  // simply say "do we have the bw to handle a new request"?</p>
+17:39  * Complication is still browsing towards the file, but thanks :)</p>
+17:39 < jrandom> w3rd</p>
+17:40 < jrandom> ok, if there's nothing else for the meeting...</p>
+17:40  * jrandom winds up</p>
+17:41  * jrandom *baf*s the meeting closed</p>
+</div>
+{% endblock %}

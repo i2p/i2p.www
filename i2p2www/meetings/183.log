@@ -1,0 +1,191 @@
+{% extends "_layout.html" %}
+{% block title %}I2P Development Meeting 183{% endblock %}
+{% block content %}<h3>I2P dev meeting, August 1, 2006</h3>
+<div class="irclog">
+16:02 < jrandom> ok, might as well get this rolling</p>
+16:03 < jrandom> hi, pre-meeting notes posted up at http://dev.i2p.net/pipermail/i2p/2006-August/001304.html</p>
+16:03 < jrandom> rather than have me essentially reread that message to y'all here, lets just skip to our standard ??? section -</p>
+16:04 < jrandom> anyone have anything they want to bring up and discuss?</p>
+16:04 <@cervantes> eerm</p>
+16:04  * cervantes scurries to read the post</p>
+16:05 <+Complication> With regard to network status, all fine over here...</p>
+16:05 <+Complication> But one question (actually relaying from forum) about the NTCP transport,</p>
+16:06 <+Complication> namely, does it sound likely that activating it could cause someone CPU load issues (they were on XP)?</p>
+16:06 <@cervantes> I have to say I've actually been seeing lower CPU usage since switching over :)</p>
+16:07 < jrandom> well, you can't *deactivate* it (unless you've been reading the source code and know the magic incantation ;)</p>
+16:07 <+Complication> The person who spoke of this problem (can't easily repeat it, and no big CPU use here) mentioned that their experience of high CPU usage seemed to correlate with NTCP</p>
+16:07 < jrandom> so, i assume they mean not accepting inbound ntcp connections</p>
+16:07 <+polecat> NTCP causes my router to instantly clock the CPU, and I repeated it twice before manually having to alter the config file to get a working router again.</p>
+16:07 < jrandom> (while still using outbound ntcp connections)</p>
+16:07 <+Complication> (over here it's only a tiny bit up from usual levels, and that's likely because of pumping *way* more data)</p>
+16:08 <+Complication> ( http://forum.i2p/viewtopic.php?t=1815 )</p>
+16:08 < jrandom> when you establish an ntcp connection, you do a heavyweight crypto calculation (or three)</p>
+16:08 < jrandom> if you are accepting inbound ntcp connections, you may get lots of inbound attempts at once, since there are hundreds of i2p routers out there</p>
+16:09 < jrandom> polecat: that wasn't ntcp's fault, it was the fault of a bad ntp server in the ntp pool</p>
+16:09 <+polecat> Yes.  So I can't handle that myself, apparantly.</p>
+16:09 < jrandom> (thanks to cervantes for tracking down that ntp server and getting the pool folks to !thwap 'em :)</p>
+16:10 < jrandom> ((and Complication for making it so we avoid those crazy bastards in the future :))</p>
+16:10 <@cervantes> heh I think their server watchdogs only work on weekdays ;-)</p>
+16:10 <+Complication> Well, the current avoidance is pretty limited</p>
+16:10 <@cervantes> http://www.pool.ntp.org/scores/216.52.237.153</p>
+16:11 <+Complication> I hope to get something more paranoid coded eventually</p>
+16:11 <+polecat> Oh, so enabling NTCP won't clock the CPU anymore?</p>
+16:11 < jrandom> (it never did polecat, 'twas a coincidence ;)</p>
+16:12 <+Complication> "clock" in which particular sense?</p>
+16:12 < jrandom> (see cervantes' link)</p>
+16:12  * polecat clocks Complication upside the head.</p>
+16:12 <@cervantes> whatcha smoking polecat</p>
+16:12 <+Complication> :P</p>
+16:12 <+polecat> Er, I mean, stole all clock cycles.  :)</p>
+16:13 <+Complication> If it jumped 30 seconds forward or backward, it could have lost many, many sessions, and resorted to all kinds of heavy, heavy crypto</p>
+16:13 <+Complication> That could steal plenty of CPU cycles, I think</p>
+16:13 <+Complication> Indeed, perhaps the person in the forum actually saw the same, and mis-correlated it? Have to ask...</p>
+16:13 < jrandom> ah.. well, bursts of valid inbound ntcp connections will cause bursts of cpu, while outbound-only ntcp will only try to talk to so many new ntcp peers at a time</p>
+16:14 < jrandom> there is nothing wrong with not enabling inbound ntcp.  </p>
+16:15 <@cervantes> Complication: the server was corrected mid-monday, so it might be worth seeing if they've had issues since then</p>
+16:15 < jrandom> ok, anyone else have something they want to discuss?</p>
+16:16 <+Complication> cervantes: indeed, could be worth a try</p>
+16:16 <@cervantes> I've had reports of some folk still losing leases periodically... is that a known problem?</p>
+16:16 <+void> how much does the ntcp implementation differ from ssu?</p>
+16:17 <+polecat> How do we tell if we lose leases?</p>
+16:18 < jrandom> void: there's a slightly higher per-message andwidth overhead in ntcp (though perhaps offset by the OS's likely-more-efficient reliable transmission implementation)</p>
+16:18 <+Complication> polecat: tunnels.jsp will show no tunnels for a particular tunnel pool (e.g. "shared clients")</p>
+16:18 < jrandom> cervantes: aye, our tunnel build success rates still aren't where they need to be</p>
+16:18 <+void> polecat: the router console says so</p>
+16:18 <+Complication> And like void says, the left sidebar of the console will tell so</p>
+16:19 <+polecat> I get those "No leases" messages a lot... that's what you mean, right?</p>
+16:19 <@cervantes> yup</p>
+16:20 <+polecat> That's usually what kills my IRC connection.  Thought it was normal!</p>
+16:21  * jrandom cringes</p>
+16:24 <+tethra> lol ;)</p>
+16:25 < jrandom> ok, anyone have anything else for the meeting?</p>
+16:25 <@cervantes> jrandom: have you made any progress on syndie lately or have you had your hands full with ntcp/bug fixing/ISP hunting/bicycling ?</p>
+16:27 <+tethra> any news on feedspace, or should i just go to their eepsite?</p>
+16:28 < jrandom> when the live net hit the shitter i pushed syndie to the side.  but with the net moving back on track again, syndie has been reclaiming my time, and I hope to have a small cli system out shortly (with focused guis coming after that, based on user feedback)</p>
+16:28 < jrandom> (the implemented swt gui is in pretty good shape, but its probably best to start off with the cli to adjust expectations)</p>
+16:29  * jrandom hasn't heard any news on feedspace</p>
+16:29 <@cervantes> cool</p>
+16:29 < jrandom> frosk: any word?  :)</p>
+16:29 <+polecat> I'm glad you're working on syndie again.  The new one does sound pretty promising. Any thoughts on ACL for stuff such as deleting blogs from a node, or doing administrative account-independant tasks?</p>
+16:30 <@cervantes> &lt;jrandom&gt; DELETE FROM messages WHERE postedOn &lt; NOW()-14*24*60*60;</p>
+16:31 < jrandom> local archives will likely remain essentially trusted (since if you can access the local archive db, you can change the file however you want)</p>
+16:32 < jrandom> however, for shared blogs, yeah there's a whole set of crypto structures in place for authenticating and / or authorizing posts and changes</p>
+16:33 < jrandom> (but there'll be a way for people to view 'unauthorized' posts as well, but they'll be very much off to the side)</p>
+16:33 <+polecat> I'm sure once someone floods syndicates with thousands of giant blog posts, the technique to physically delete posts will be perfected.</p>
+16:34 <+tethra> heheh</p>
+16:35 < jrandom> physical deletion is trivial, its the question of what posts to accept in the first place ;)</p>
+16:36 < jrandom> (i have no interest in making syndie into a movie distriution platform, etc)</p>
+16:36 <+polecat> One cannot be sure of what one is accepting, until a sample has been accepted.  I envision something like allowing only a whitelist of blogs, and allowing new IDs on a trial basis before adding them, insta-deleting on spam betrayal.</p>
+16:36 < jrandom> aye</p>
+16:37 <+polecat> I'm more interested in its application for colluding streams of conversation together: we could make a BBS that had no central server, just a tag in common!</p>
+16:37 < jrandom> (manually allowing new ids, manually kickbanning ids that flood, etc)</p>
+16:37 < jrandom> there's even inherent support for that in the crypto polecat :)</p>
+16:37 <+polecat> Possibly a moderator signing approved messages for the BBS, and people collecting those approval lists from the moderator's blog.</p>
+16:38 <+polecat> Ooh excellent.</p>
+16:38 <@frosk> jrandom: been working on gui stuff lately, but it's been hard to combine with starting a new job :(</p>
+16:39  * cervantes contacts Human Resources to get frosk fired</p>
+16:40 < jrandom> ah cool, hopefully once syndie is out there pushing kludged http syndication we'll tempt you on it again ;)</p>
+16:40 <@frosk> at least my boss follows i2p development now :)</p>
+16:40  * jrandom waves to frosk's boss</p>
+16:40 <@frosk> oh yes, i'm still determined (damn it!) :)</p>
+16:40 < jrandom> (gives frosk more time off, we need 'im!)</p>
+16:41 <@cervantes> hopefully he won't read about how you've been posting classified company information onto your syndie blog</p>
+16:41 < bar> gui is good, we like gui. you're forgiven.</p>
+16:41 <+Complication> Hehe :)</p>
+16:41 <@frosk> it's weird to walk into his office and catch him reading syndie :)</p>
+16:41 < jrandom> hah awesome</p>
+16:42 <+polecat> Congratulations frosk, even if you get fired in shame and infamy, at least you showed one more person how cool syndie can be.</p>
+16:43 <@frosk> hehe yeah</p>
+16:43 <+tethra> haha</p>
+16:44 <@frosk> the gui (in swt) is/will be a testbed for all things feedspace, to kickstart it</p>
+16:44 < jrandom> r0x0r</p>
+16:45 <+void> jrandom: perhaps you should cross-post everything that goes onto the mailing lists to syndie as well?</p>
+16:45 < jrandom> we should totally merge it in with the syndie swt gui (basic paradigm is a browser, though not displaying html pages in the tabs)</p>
+16:46 <+polecat> That'd be nice.  I can't seem to get the mailing list anymore.</p>
+16:46 < jrandom> void: it'd be pretty easy for someone to write up a small shell script to pipe procmail into the syndie CLI</p>
+16:46 <@cervantes> are these fancy swt gui's tied into the applications? or are they tops for cli executables or use tcp etc etc </p>
+16:46 <@frosk> that makes sense</p>
+16:46 < jrandom> (iirc there's a post in my blog a while back explaining how to use the syndie cli to insert posts)</p>
+16:47 <+polecat> Currently one can make RSS feeds to feed into syndie, though it's kind of cludgy still.</p>
+16:47 < jrandom> cervantes: jdbc in event handlers, inline with jni and msvc callouts, of course ;)</p>
+16:47  * jrandom ducks</p>
+16:48 <+polecat> Microsoft Visual Classes?</p>
+16:49 <@cervantes> jrandom: so anything that can talk SQL can administer syndie then</p>
+16:49 < jrandom> (from syndie's perspective, all of the functionality is basically implemented in lots of tiny cli apps which just update the jdbc database, and there's an swt ui to browse around the db)</p>
+16:51 <+polecat> And since the database has two interfaces, JDBC, and SQL, a client communicating in either protocol can screw with syndie.</p>
+16:51 < jrandom> cervantes: well, yes and no - there's a good portion of the database thats encrypted, so not all fields are readable</p>
+16:51 <+void> will the current web interface still be there?</p>
+16:51 < jrandom> (jdbc == sql)</p>
+16:51 < jrandom> void: no</p>
+16:51 <+polecat> I thought you said that JDBC wasn't a stupid human readable protocol?</p>
+16:51 <+Complication> jdbc == java database interface, perhaps a bit similar to odbc</p>
+16:51 < jrandom> ((jdbc ~= sql))</p>
+16:51 <+Complication> Something you talk SQL over</p>
+16:52 <+void> jrandom: what will happen to syndie.i2p/syndiemedia.i2p.net?</p>
+16:52 <+polecat> Oh.  Well I never liked SQL anyway, for the record.</p>
+16:52 <@cervantes> jrandom: so it's best to create a top for syndieTools (tm) than to try and leech the data yourself</p>
+16:53 < jrandom> void: time will tell.  likely they'll 1) serve as syndie's website/eepsite, 2) serve as a public archive of posts to syndicate with, and eventually, when a web interface is written, 3) serve up a web interface</p>
+16:53 <+polecat> Why not submit bytecode as database queries, instead of archaic COBOL statements?</p>
+16:53 < jrandom> aye cervantes</p>
+16:53 < jrandom> !lart polecat</p>
+16:54 <+void> hehehe</p>
+16:54 <+polecat> Ah, my secret weakness.</p>
+16:54 <@cervantes> * you have 6 larts left in your inventory, there is a door to the north and an unconsious polecat on the floor</p>
+16:54 < jrandom> cervantes: thats actually cli app #3 (extracting individual posts, which comes after app #2, listing individual posts (after #1, creating individual posts, and after #0, managing nyms)))</p>
+16:54 < jrandom> lol</p>
+16:54 <+tethra> haha</p>
+16:55 <+Complication> feature proposal: instead of bytecode, why not submit live $agency agents as database queries? ;P</p>
+16:56 <+Complication> Would be far easier to validate for safety :P</p>
+16:56 <@cervantes> jrandom: gotcha</p>
+16:56 <+tethra> do they act like carrier pigeons under the right climate, Complication? </p>
+16:56 <+Complication> tethra: only if you manage to push them through the TCP stack intact :P</p>
+16:56 <+polecat> Yes, database queries over CPP!</p>
+16:57 <+Complication> I imagine that getting wrinkled in TCP might corrupt them</p>
+16:58 <+Complication> (sorry, should really keep jokes to #i2p-chat, but sometimes can't help)</p>
+16:58  * cervantes senses a baff is soon approaching</p>
+16:58 <+Complication> database queries as shellcode?</p>
+16:59 < jrandom> ok, anyone have anything else for the meeting?</p>
+16:59 <+polecat> http://www.blug.linux.no/rfc1149/ &lt;- we could tunnel i2p over this, really.</p>
+16:59  * Complication would rather stick with SQL</p>
+17:00 <+void> jrandom: do other langauges than java have libraries for hsqldb databases?</p>
+17:01 <+Complication> Oo would seem likely to, since they seem to use it</p>
+17:01 <+void> looks like a "no" to me</p>
+17:01 <+void> oh, hmm</p>
+17:01 <@cervantes> openoffice uses it so I would guess so</p>
+17:01 <+Complication> But I'm not sure what OpenOffice is written in</p>
+17:01 < jrandom> not that i know of.  but someone could run syndie against another jdbc database (mysql, oracle, etc)</p>
+17:01 < jrandom> oo uses java</p>
+17:02 <+void> what exactly does openoffice use this database for?</p>
+17:02 <+Complication> But seems to only partially use it</p>
+17:02 < jrandom> void: for pdf generation and for their access-like database app</p>
+17:02 < jrandom> (among other things)</p>
+17:02 <+Complication> Given that it recommends an external JRE</p>
+17:02 <+void> okay</p>
+17:03 <+void> it's a pain in the ass to write portable sql though</p>
+17:03 <+Complication> if one doesn't do triggers or stored procedures, shouldn't be a big pain, though</p>
+17:04 < jrandom> eh, its not that bad, and easy to externalize</p>
+17:04 <+void> especially when aiming oracle ;)</p>
+17:05 < jrandom> actually, hsqldb supports pl/sql ;)</p>
+17:06 < bar> are there any other plans for this database, such as for stats, peer profiles, netdb..?</p>
+17:06 < jrandom> no, this is syndie only</p>
+17:06 < bar> ok</p>
+17:07 < jrandom> (though when we ship the hsqldb code, we can use it in i2p 'for free')</p>
+17:07 <@cervantes> since syndie is not an I2P application, just an application that can run over I2P correct?</p>
+17:07 < jrandom> aye cervantes, there is no dependency upon i2p</p>
+17:07 <+Complication> Good to keep Syndie portable, since it might have other transports besides I2P</p>
+17:07 < bar> right</p>
+17:08 <+Complication> However, I take it wouldn't be difficult to run many hsqldb instances on the same machine</p>
+17:08 <+Complication> So if other apps would need it, it seems they could just use it</p>
+17:08 < jrandom> trivial, and 0-cost if you just use the in-jvm dataase</p>
+17:08 <+Complication> (use their own instance, preferably)</p>
+17:10 <+void> there's no jdbc driver for sqlite?</p>
+17:11 < jrandom> dunno, never used it</p>
+17:11 <+void> ah, looks like there is *something*</p>
+17:13 < jrandom> ok, anything else for the meeting?</p>
+17:13 < jrandom> if not...</p>
+17:13  * jrandom dinws up</p>
+17:13  * jrandom steps back</p>
+17:13  * jrandom winds up</p>
+17:13  * jrandom *baf*s the meeting closed</p>
+</div>
+{% endblock %}

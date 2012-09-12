@@ -1,0 +1,288 @@
+{% extends "_layout.html" %}
+{% block title %}I2P Development Meeting 130{% endblock %}
+{% block content %}<h3>I2P dev meeting, February 22, 2005</h3>
+<div class="irclog">
+13:04 < jrandom> 0) hi</p>
+13:04 < jrandom> 1) 0.5</p>
+13:04 < jrandom> 2) Next steps</p>
+13:04 < jrandom> 3) azneti2p</p>
+13:04 < jrandom> 4) ???</p>
+13:04 < jrandom> 0) hi</p>
+13:04  * jrandom waves</p>
+13:05 < jrandom> weekly status notes up @ http://dev.i2p.net/pipermail/i2p/2005-February/000595.html</p>
+13:05 < jrandom> (yeah, only a minute or two before the meeting, so lets test your speed reading)</p>
+13:05 <+detonate> i think i'll wait until it's a bit less buggy before i put boondock saints up, in that case</p>
+13:06 < jrandom> why... thats... thats... thats a copyright violation!</p>
+13:06 <+detonate> weird new additions to the azureus beta</p>
+13:06 <+detonate> categories</p>
+13:06 <+detonate> haha</p>
+13:06 <+detonate> a dht tracker</p>
+13:06 <+detonate> sweet</p>
+13:07 < jrandom> aye, it looks v.cool, but lets hit items 1 and 2 before 3, 'eh? ;)</p>
+13:07 <+detonate> hi</p>
+13:07 <+detonate> indeed</p>
+13:07 < jrandom> jumpin into 1) 0.5</p>
+13:07 < jrandom> its, like, out, and stuff</p>
+13:08 < cervantes> yay!</p>
+13:08 < jrandom> there'll be a new rev later this evening with a bunch of updates (current CVS head is 0.5-5, with a -6 in testing on some routers)</p>
+13:09 < jrandom> its gone pretty well, but we've hit a few funky bugs along the way.  but c'est la vie</p>
+13:09 < frosk> i can report that 0.5-5 behaves a _lot_ more friendly than -4 (which often gave me participating tunnel counts in the thousands)</p>
+13:09 < bla> jrandom: Will the 0.5.0.1 version correct the problem of nor being able to find destinations?</p>
+13:09 < jrandom> ah, well, thats really just a function of other people though, the -0 build actually does build hundreds of tunnels</p>
+13:09 < bla> s/nor/not</p>
+13:10 < jrandom> bla: yes, thats a bug in the netDb</p>
+13:10 < bla> jrandom: Great!</p>
+13:10 < jrandom> (in the leaseSet publishing, specifically)</p>
+13:11 < jrandom> and yes, the 0.5.0.1 rev will get rid of that occational disapearing proxy bug </p>
+13:12 < jrandom> there is still a funky memory leak I haven't tracked down affecting some users</p>
+13:12 < bla> Then, in all, it seems that part from these bugs, the 0.5 net is doing very well. Yay!</p>
+13:12 < jrandom> to my knowledge, its only really hitting two or three I2PTunnel instances though</p>
+13:12 < Meomia> is it a sign of progress when you have gone from 0 to 130 participating tunnels since 0.5 ?</p>
+13:13 < jrandom> w3wt</p>
+13:13 < jrandom> Meomia: bah, I've had over 5000 tunnels ;)</p>
+13:13 < jrandom> but dm actually has helped find a bug in the exploratory pool code, so we will be building tunnels more often on 'random' peers</p>
+13:14 < jrandom> (yay)</p>
+13:14 < Meomia> ok</p>
+13:14 < bla> jrandom: Does that also mean that now, in contrast to 0.4, every peers can at one time become your inbound gateway?</p>
+13:14 < jrandom> yes, for exploratory tunnels</p>
+13:15 < jrandom> client tunnels will only use peers in the 'fast' tier</p>
+13:15 < bla> bla: Ok. The fact that client tunnels use only the fast peers is good: otherwise, we get the anon issue we discussed before</p>
+13:16 < jrandom> and performance would suck otherwise ;)</p>
+13:17 < jrandom> actually, that brings us in to 2) Next steps</p>
+13:18 < jrandom> the big thing left for the 0.5 series is a bunch of strategies for ordering and/or filtering the peers used in tunnels</p>
+13:18 < godmode0> jrandom can use nntp w i2p ?</p>
+13:18 < jrandom> godmode0: there are two NNTP servers on i2p, yes.  see the forum</p>
+13:19 < godmode0> jrandom ok i;m testing</p>
+13:19 < godmode0> i can build my server too ?</p>
+13:20 < jrandom> godmode0: we're in a meeting right now, but yes, you can run a server</p>
+13:20 < godmode0> jrandom ok sorry</p>
+13:20 < jrandom> np</p>
+13:20 < jrandom> the posted strategies are basically aimed at improving anonymity, but there are a few other goals that we can balance in there</p>
+13:21 < jrandom> perhaps we can find a way to integrate some of the AS paths into the selection, as bla suggested</p>
+13:22 < jrandom> that can both improve (jurisdictional) anonymity, or if we try to stay within an AS (or two), that can improve performance</p>
+13:22 < bla> jrandom: This basically is related to a paper by the Tor creators: http://theland.i2p/files/routing-zones.pdf</p>
+13:22 < jrandom> aye</p>
+13:23 < jrandom> there are a whole slew of different strategies people can use, and trying out new ones should be pretty easy</p>
+13:24 < jrandom> we aren't going to spend months implementing everything we can think of, but merely provide the basics for what most people will need.  anyone who wants to add new ones are very much encouraged to help plug 'em in</p>
+13:25 < jrandom> anyway, once the basics are in place, we'll be moving on to focus on the UDP transport for 0.6</p>
+13:26 < jrandom> thats about all I have for 2) next steps, anyone have any comments/questions/concerns?</p>
+13:26 < bla> Who where the ppl that started looking into I2P, again?</p>
+13:26 < bla> It seems we haven't heard much from them, lately.</p>
+13:27 < bla> s/into I2P/into UDP/</p>
+13:27 < bla> sorry</p>
+13:27 < jrandom> ah, mule has been sick, thogh I think detonate is making progress</p>
+13:28 < jrandom> detonate: any news?</p>
+13:29 < jrandom> or perhaps not ;)  </p>
+13:30 < jrandom> ok, moving on to 3) azneti2p</p>
+13:30 <+detonate> sorry</p>
+13:30 <+detonate> i'm making progress</p>
+13:30 <+detonate> i still need to finish the re-assembly side of things</p>
+13:31 <+detonate> as far as splitting data into packets and sending it across in an orderly fashion, that works</p>
+13:31 <+detonate> on to 3)</p>
+13:31 < jrandom> wikked</p>
+13:31 < godmode0> sorry step 2) i2p  has any problem with attacks ?</p>
+13:31 < bla> detonate: Cool! Can you keep all of us posted on the forum?</p>
+13:32 <+detonate> bla: sure</p>
+13:32 < tracker> About azneti2p, look here: http://sourceforge.net/forum/forum.php?thread_id=1233727&forum_id=377614 seems like downloading works, seeding not.</p>
+13:32 < jrandom> godmode0: the different ordering strategies should let the user choose the impact of predecessor attacks</p>
+13:33 < microsoft> whoever runs i2p.net should add more Enterprise Class Solutions buzzwords to the page.</p>
+13:33 <+detonate> someone needs to make sure that new dht tracker isn't misbehaving as well, with respect to the azureus plugin</p>
+13:33 < tracker> My local tests seem to prove this, I can download with azureus but not seed.</p>
+13:34 < jrandom> hmm ok cool tracker, thanks - i know they updated a few things and pushed out b34 last night, but there may be more left to do, it seems</p>
+13:34 < jrandom> detonate: good point</p>
+13:35 < tracker> Good point detonate, I have DHT disabled as azureus dies after some hours whit 100% CPU usage when it's active.</p>
+13:35  * jrandom would like to reiterate that the azneti2p plugin is still fairly early beta, and azureus' anonymity implications have not fully been audited</p>
+13:36 < jrandom> while I'm sure they love having people test it out, those who need anonymity may want to be cautious </p>
+13:36 < tracker> On the other hand, i2p-bt works really well. Except that it doesn't close the tunnels, but that's not too bad IMHO.</p>
+13:37 < jrandom> oh, thats still happening with you tracker?  i havent been able to reproduce that</p>
+13:37 < jrandom> you're on the 0.1.7 rev, right?</p>
+13:37 < tracker> Yes, I'm.</p>
+13:38 < jrandom> ok cool, if it happens all the time for you I'd love to pick your brains after the meeting to help track down the cause</p>
+13:39 < tracker> Maybe it's related to running it on XP instead of linux or unix. Closing the tunnel works with azureus, so I gues it is I2P-BT related.</p>
+13:39 < jrandom> hmm right, i2p-bt uses SAM, while azureus uses the i2p SDK directly</p>
+13:40 < tracker> Btw. I send you a bug-report on the forum. The timestamper is dies on the latest cvs-builds of I2P.</p>
+13:40 < jrandom> ah cool, thanks, havent checked my PMs over there today</p>
+13:41 < jrandom> on -5 or -4?  or earlier?</p>
+13:42 < jrandom> ah, -4.  ok cool</p>
+13:42 < jrandom> thanks, I'll get that fixed for 0.5.0.1</p>
+13:42 < jrandom> ok, anyone have anything else for 3) azneti2p?</p>
+13:43 < tracker> It's also happening on -5</p>
+13:43 < jrandom> you have sntp server defined explicitly, right?</p>
+13:44 < tracker> Yes. The 2 ones from our country.</p>
+13:44 < jrandom> i just checked the source and the exception occurs if the # concurring servers (default = 3) is greater than the # of servers specified (new default has 3)</p>
+13:44 < jrandom> ok cool, its a trivial fix to % # servers</p>
+13:45 < jrandom> ok, if there's nothing else for azneti2p, moving on to good ol' fashioned 4) ???</p>
+13:46 < jrandom> anyone else have something to bring up for the meeting?</p>
+13:46 < tracker> Nice. I've just send you the log errors from the router when closing i2p-bt on the forum.</p>
+13:47 < jrandom> 'k cool, thanks</p>
+13:47 < cervantes> nothing to mention other than: nice work with the 0.5 rollout, looks like it'll kick ass once the bugs are ironed out</p>
+13:48 < tracker> Yep, the latest CVS builds are really performin good over here.</p>
+13:48 < jrandom> thanks, with your help as well as the rest of the 0.5-pre testers we were able to clean up a bunch of issues</p>
+13:49 < jrandom> the performance has been better than i had expected, though still not as high throughput as before.  lots left to optimize though</p>
+13:49 < cervantes> strangely the pre version were more stable...for me, but then, I was running them on a different machine ;-)</p>
+13:49 < jrandom> (and these damn bugs to get reliability where it should be)</p>
+13:50 < jrandom> heh well, yeah, but the -pre network was 5-7 routers, all insanely reliable on really really fast connections</p>
+13:50 < cervantes> :)</p>
+13:51 < cervantes> sign me up for the 0.6 pre test then :)</p>
+13:51 < jrandom> heh</p>
+13:51 < tracker> Maybe I should take part in the next pre network then. Providing a very unreliable and slow connection ;).</p>
+13:51 < jrandom> the 0.6 migration will probably be even easier, I hope, as we'll just be able to add new router addresses to the routerInfo (UDP addresses)</p>
+13:51 < jrandom> heh word</p>
+13:51 < cervantes> I can put my 1TB file share online...</p>
+13:52 < jrandom> we'll definitely need lots of help with the 0.6 testing, pulling in a whole variety of network setups</p>
+13:52 < hobbs> ssh '~C' command is nifty</p>
+13:52 < laberhorst> will this e another non comnpatible step?</p>
+13:53 < Myo9> Anyone knows what nntp servers are up?</p>
+13:53 < jrandom> laberhorst: no, 0.6 will be backwards compatible</p>
+13:53 < jrandom> Myo9: dunno, they might be up and just be bitten by the 0.5-0 bugs</p>
+13:54 < jrandom> the 0.5.0.1 rev should fix a lot of issues, and once its out, upgrading will be highly recommended</p>
+13:54 < laberhorst> so just built a test 0.6 and put it to testers</p>
+13:54 < cervantes> we can make BT traffic use only outdated routers...that will encourage people to upgrade ;-)</p>
+13:54 < laberhorst> so big upgrade party tomorrow</p>
+13:54 < jrandom> there'll be an announcement on the forum and the list when its ready</p>
+13:54 < jrandom> right laberhorst </p>
+13:54 < jrandom> heh cervantes ;)</p>
+13:55 < laberhorst> *being keen on testing for you*</p>
+13:55 < jrandom> BT performance has been pretty good on 0.5, I've seen lots of successful large file transfers on the trackers</p>
+13:55 < laberhorst> pload rate:    8.85 kB/s</p>
+13:55 < jrandom> (and irc hasn't been affected as it was before, beyond the problems we've been having with duck's tunnel)</p>
+13:55 < tracker> Depends on what you call large ;)</p>
+13:56 < jrandom> tracker: i'm thinking of a particular 874MB file that has a bunch of successful downloads ;)</p>
+13:56 < jrandom> but its true, thats small to some </p>
+13:56 < laberhorst> just good old porn</p>
+13:56 < laberhorst> i assume ;-)</p>
+13:57 < laberhorst> lets hope from tomorrow on, my router won't participate in &gt;3000 tunnels</p>
+13:57 < tracker> Ok, that's large.</p>
+13:57 < laberhorst> or, if so, the network IS large</p>
+13:57 < jrandom> heh laberhorst </p>
+13:58 < jrandom> ok, anyone have anything else for the meeting?</p>
+13:58 < laberhorst> btw, if participate in &gt;3000 a synonym for a good reliable router in i2p with fast connection?</p>
+13:58 <+detonate> i'm putting boondock saints up after i grab house tonight :)</p>
+13:59 <+detonate> that'll be a good 4.1gb :)</p>
+13:59  * laberhorst just wants to thank the developers for fast bug squashing</p>
+13:59 <+detonate> there seems to be lots of demand</p>
+13:59 < laberhorst> oh, some DVD images are here, to</p>
+13:59 < hobbs> detonate: ooh, right. House. :)</p>
+13:59 < tracker> cervantes, did you already upgrade to phpBB 2.0.12</p>
+13:59 < laberhorst> but wait till 0.5.0.1 is out</p>
+13:59 <+detonate> should give 0.5.0.1 a good shakedown too</p>
+14:00 <+detonate> yeah</p>
+14:00 <+detonate> i intend to</p>
+14:00 < jrandom> only people who already own legal copies of those files should download them, of course.  thats just for testing</p>
+14:00 < jrandom> *cough*</p>
+14:00 < tracker> rofl</p>
+14:01  * jrandom notes mpaa.i2p</p>
+14:01 <+detonate> heh</p>
+14:01 < laberhorst> oh, i can built iso images from debian, fedora, suse, pictures I made,...</p>
+14:01 < laberhorst> so a lot of legal material</p>
+14:01 < laberhorst> if you just want to test, /dev/random is VERY large</p>
+14:01 < Ragnarok> not always</p>
+14:02 < laberhorst> btw, for lonely weekends: cat /dev/random | grep linux :-)</p>
+14:02 < jrandom> heh</p>
+14:02 < frosk> /dev/random runs empty all the time, i prefer /dev/urandom :)</p>
+14:02 < frosk> or the new, improved /dev/jrandom</p>
+14:02 < jrandom> nah, that dumps core all the time</p>
+14:03 < jrandom> and needs its nightly rest</p>
+14:03 < Ragnarok> what's the best way to generate entropy for /dev/random?</p>
+14:03 < laberhorst> we should really built the "get jrandom a few beers" fund</p>
+14:03 < frosk> call it rest or entropy gathering :)</p>
+14:03 < hobbs> Ragnarok: Depends on what you really mean. Getting a hardware RNG would be more or less the "best" way :)</p>
+14:03 < jrandom> Ragnarok: depends on your OS (and whether you have hardware ;)</p>
+14:04 < tracker> dd if=/dev/urandom of=/dev/hda bs=1M count=4 Allways nice ;)</p>
+14:04 < jrandom> we'll actually be bundling in a fortuna implementation one of these builds, and will need to dig around for various entropy sources</p>
+14:04 < Ragnarok> without hardware :P</p>
+14:04 < susi23> . o O ( I thought somebody using i2p knows why he should not use /dev/urandom )</p>
+14:05 < cervantes> tracker: the security exploits covered in 2.0.12 my mod_rocinante inadvertantly fixes, so I haven't bothered to upgrade yet</p>
+14:05 < hobbs> susi23: when it's just for mischief, I think it's alright ;)</p>
+14:05 < ant> &lt;Nolar&gt; who here does the python BT port?</p>
+14:05 < jrandom> Nolar: that'd be duck</p>
+14:06  * duck whistles</p>
+14:06 < ant> &lt;Nolar&gt; duck:  why did you guys change the request block size to 128k ?</p>
+14:06 < susi23> . o O ( next one suggests: while true; do echo $RANDOM &gt;&gt; largefile; done )</p>
+14:06 < ant> &lt;Nolar&gt; that's why az cant seed to you</p>
+14:06 < tracker> cervantes: Ok</p>
+14:06 < ant> &lt;Nolar&gt; we block requests &gt; 64k</p>
+14:06 < laberhorst> hell, i need more mp3</p>
+14:06 < frosk> susi23: for grepping for linux on an idle evening, /dev/urandom is just fine :)</p>
+14:07 < jrandom> ah, did you always?  iirc i2p-bt has used 128k for a while</p>
+14:08 < ant> &lt;Nolar&gt; yup, been there since the beginning :)</p>
+14:08 < ant> &lt;Nolar&gt; any reason 128 is used?</p>
+14:08 < ant> * duck looks through cvs log</p>
+14:08 < jrandom> keeps the pipeline filled, i2p has some lag ;)</p>
+14:08 < jrandom> with 32KB, thats essentially a fixed window size of 1</p>
+14:09 < jrandom> so each message blocks for an ACK, while 128KB allows 4 messages to fly in the rtt</p>
+14:09 <@duck> right, maximum allowed slice size according to the BT specs</p>
+14:09 < ant> &lt;Nolar&gt; well, there are two ways do deal with this:  1) we raise the limit to 128k on our side, or 2) you simply pipeline more requests</p>
+14:09 < cervantes> i2pbt is a little snappier than it used to be...perhaps you can afford to reduce it...</p>
+14:10 <@duck> schni, schna, schnappi</p>
+14:10 < ant> &lt;Nolar&gt; so, instread of making a single 128k request, send out two 64k ones for example</p>
+14:10 < hobbs> duck: haha... that thing has gotten around the world.</p>
+14:10 <@duck> why do you block 128k?</p>
+14:11 < cervantes> *shudder* europop</p>
+14:11 < laberhorst> duck: pls. be quiet OR i shoot you down!</p>
+14:11 < tracker> Sometimes I regret that I learned german some years ago...</p>
+14:11 < laberhorst> no europop, really not POP</p>
+14:11  * cervantes orders the UK to repel borders before a song like that enters the charts</p>
+14:11 < laberhorst> tracker: don't care, its ok</p>
+14:12 < ant> &lt;duck&gt; its now (2^17)-13</p>
+14:12 < ant> &lt;Nolar&gt; duck: well, the limit has been there for a while, but one good reason is that 128K blocks take a while to upload.....16KB (our default) allows for finer request control</p>
+14:12 < ant> &lt;duck&gt; 13 bytes being the bittorrent command length</p>
+14:12 < ant> &lt;duck&gt; would have no problem to (2^16)-13</p>
+14:12 < laberhorst> some music is really ridiculous, but real industrial music, boh, no</p>
+14:13 < ant> &lt;duck&gt; or go back to the default?</p>
+14:13 < jrandom> reducing it to 64KB seems the simplest (is that a cli param atm?)</p>
+14:13 < ant> &lt;duck&gt; --download_slice_size</p>
+14:14 < ant> &lt;Nolar&gt; well, my question is, do you have a compelling reason for sticking to 128K blocks, which seems a bit large to me, especially for i2p</p>
+14:14 < ant> &lt;Nolar&gt; rather than just pipelining multiplpe smaller requests?</p>
+14:14 < ant> &lt;duck&gt; I have no reason.</p>
+14:14 < tracker> laberhorst: Sometimes I catch some of the german channels via satellite. Especially viva and that "Theater Kanal" are really gruesome...</p>
+14:15 < ant> &lt;Nolar&gt; one problem with large blocks is that once i choke you, i still have to finish sending that 128k chunk</p>
+14:15 < jrandom> I don't recall whether the vanilla bt knows how to pipeline, but it should be simple enough (especially since i'm not doing it ;)</p>
+14:15 < ant> &lt;Nolar&gt; which can take a while</p>
+14:15 < laberhorst> tracker: viva is only interesting while "hard rock" time, all other times "please ignore", and theater, i don't know</p>
+14:15 < jrandom> with i2p, 128KB isn't really that large, since there's an inherent lag on the order of seconds</p>
+14:15 < ant> &lt;Nolar&gt; which can mess with the chunk/unchoke </p>
+14:16 <@duck> jrandom: does it still make sense to subtract the bittorrent 13 byte overhead so it fits in a sam message?</p>
+14:16 < jrandom> duck: nah, since the streaming lib already reduces it further into 16KB messages, so just have it be 64KB</p>
+14:17 <@duck> ok, 2**16 it is</p>
+14:17 < jrandom> (and then the tunnels break those 16KB messages into 996 byte fragments..)</p>
+14:17 < ant> &lt;Nolar&gt; the problem with 128k, is that if i'm uploading at say 12 k/s, then it'll take me 10+ seconds to finish that block</p>
+14:18 < cervantes> wow that's almost as long as the lag on irc...</p>
+14:18 < jrandom> which is 1-10 RTTs (while on the normal net, 10-500)</p>
+14:18 <+detonate> i was all set to use 512K blocks</p>
+14:18 < ant> &lt;Nolar&gt; you might also experiment with pipelinng 16kb blocks</p>
+14:18 < jrandom> heh</p>
+14:18 <+detonate> so 64 is preferred?</p>
+14:19 < ant> &lt;Nolar&gt; all bt clients afiak use 16KB blocks</p>
+14:19 < ant> &lt;duck&gt; fixed in CVS;</p>
+14:19 < jrandom> wikked, thanks duck!  (and Nolar!)</p>
+14:19 < ant> &lt;duck&gt; expect it to appear in the 0.1.8 release together with some sam i2cp tuning</p>
+14:19 < tracker> laberhorst: It's complete name is "ZDF Theater" or so. And well they say they send a high level cultural program. I really hope that what they send isn't the best the german culture can offer ;)</p>
+14:19 < jrandom> ok, heh, I just remembered we're still in a meeting</p>
+14:19 < jrandom> anyone else have anything for the meeting?</p>
+14:20 < ant> &lt;Nolar&gt; so if we want a 128k chunk, we just make 8 simult requests</p>
+14:20 < susi23> . o O ( and discard the 448 left bytes? )</p>
+14:20 < jrandom> right right</p>
+14:20 < laberhorst> tracker: oh, that is small side channel... arte or 3sat is really more interesting</p>
+14:20 < laberhorst> and arte is german/french :-)</p>
+14:20 < ant> &lt;Nolar&gt; if the uploader can fill such a request, all 128k should be pushed into the i2p pipe stream</p>
+14:20 < jrandom> cool</p>
+14:21 < cervantes> . o O ( wonders why he can hear everything susi is thinking )</p>
+14:21 < ant> &lt;Nolar&gt; so, it might be worth experimenting with 16KB vs 32KB vs 64KB blocks sizes</p>
+14:21 < jrandom> aye</p>
+14:21 < jrandom> as long as its pipelined, i2p doesnt care</p>
+14:21 < ant> &lt;Nolar&gt; great</p>
+14:22 < jrandom> the speed at 16KB without pipelines is pretty bad though, or at least it used to be</p>
+14:22 < tracker> laberhorst: Ok, I'll try if I can catch arte in the next days...</p>
+14:22 < ant> &lt;duck&gt; I suggest leaving this tweaking for 0.2</p>
+14:22 < ant> &lt;duck&gt; since it will include the bittorrent 3.9.1 improvements</p>
+14:22 < jrandom> yeah, DTSTTCPW</p>
+14:22 < susi23> . o O ( oh thats easy... people are so predictable... )</p>
+14:23 < ant> &lt;duck&gt; which might completely restructure the network code</p>
+14:23 < cervantes> http://www.gavelstore.com</p>
+14:24 < jrandom> ok, I think thats it for the moment, people should check the list and the site in a few hours as the 0.5.0.1 rev will be coming out soon</p>
+14:24 < ant> &lt;Nolar&gt; ya, i can see how single 16kb requests would be slow</p>
+14:24  * jrandom downloads a gavel</p>
+14:24  * jrandom *baf*s the meeting closed</p>
+</div>
+{% endblock %}

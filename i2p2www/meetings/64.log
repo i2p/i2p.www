@@ -1,0 +1,196 @@
+{% extends "_layout.html" %}
+{% block title %}I2P Development Meeting 64{% endblock %}
+{% block content %}(meeting log edited to cover up the fact that iip crashed midway through the meeting and there were lots of ping timeouts, so don't try to read this as a plain narrative)</p>
+<h3>Tuesday, November 11, 2003 21:02:50 UTC</h3>
+<div class="irclog">
+[22:02] <jrand0m> agenda </p>
+[22:02] <jrand0m> 0) welcome </p>
+[22:02] <jrand0m> 1) i2p router  </p>
+[22:02] <jrand0m> 1.1) status </p>
+[22:02] <jrand0m> 1.2) roadmap changes </p>
+[22:02] <jrand0m> 1.3) open subprojects </p>
+[22:02] <jrand0m> 2) native modPow </p>
+[22:03] <jrand0m> 2) gui installer </p>
+[22:03] <jrand0m> 3) IM </p>
+[22:03] <jrand0m> 4) naming service </p>
+[22:03] <MrEcho> i saw that .c code</p>
+[22:03] <jrand0m> 5) licensing </p>
+[22:03] <jrand0m> 6) other? </p>
+[22:03] <jrand0m> 0) welcome </p>
+[22:03] <jrand0m> hi. </p>
+[22:03] <nop> hi</p>
+[22:03] <jrand0m> meeting 2^6 </p>
+[22:04] <jrand0m> got any agenda items to add to there nop? </p>
+[22:04] <jrand0m> ok, 1.1) router status </p>
+[22:04] <jrand0m> we're 0.2.0.3 and last I heard, its functional </p>
+[22:04] <MrEcho> &gt; 0.2.0.3</p>
+[22:04] <MrEcho> right?</p>
+[22:05] <MrEcho> im running it .. seems fine</p>
+[22:05] <nop> no</p>
+[22:05] <jrand0m> there have been minor commits after the 0.2.0.3 release, nothing release worthy </p>
+[22:05] <nop> I am jus trying to catch up</p>
+[22:05] <jrand0m> coo' </p>
+[22:06] <jrand0m> given the experiences and feedback of 0.2.0.x, the roadmap has been updated to get things less resource intensive to run </p>
+[22:06] <jrand0m> (aka so people can run webservers / etc and it won't eat up their CPU) </p>
+[22:06] <jrand0m> specifically (moving to agenda 1.2): http://wiki.invisiblenet.net/iip-wiki?I2PRoadmap </p>
+[22:06] <MrEcho> what ive noticed is that most routers use: TransportStyle: PHTTP   </p>
+[22:07] <MrEcho> does it auto go to phttp or does it even try tcp first</p>
+[22:07] <jrand0m> hmm, most routers should support PHTTP, and if they can accept incomming connections, should support TCP as well </p>
+[22:07] <jrand0m> if at all possible it uses TCP </p>
+[22:07] <jrand0m> PHTTP is weighted about 1000 times more expensive than TCP </p>
+[22:08] <jrand0m> (see GetBidsJob, which asks each transport how much it thinks it'd cost to send a message to a peer) </p>
+[22:08] <jrand0m> (and see TCPTransport.getBid and PHTTPTransport.getBid for the values used) </p>
+[22:08] <MrEcho> ok</p>
+[22:08] <jrand0m> are you using PHTTP often to send and receive messages? </p>
+[22:09] <jrand0m> (that might be a sign that your TCP listener isn't reachable) </p>
+[22:09] <MrEcho> i didnt put in the urls on my side</p>
+[22:09] <jrand0m> ah 'k.  </p>
+[22:09] <MrEcho> ohh it is</p>
+[22:10] <jrand0m> ok, yeah, my routers have open TCP connections to you </p>
+[22:10] <dm> how hospitable of them.</p>
+[22:10] * jrand0m is glad y'all made me implement routerConsole.html so we don't have to dig through the logs for this crap</p>
+[22:11] <MrEcho> is there a timeout thing if it doesnt connect to the tcp it goes phttp? and whatz the timing on it</p>
+[22:11] <jrand0m> but anyway, the big change to the roadmap is that 0.2.1 will implement the AES+SessionTag stuff </p>
+[22:11] <MrEcho> or could we have that in a setting?</p>
+[22:11] <jrand0m> if it gets a TCP connection refused / host not found /etc, it fails that attempt immediately, and tries the next available bid </p>
+[22:12] <MrEcho> so no retrys</p>
+[22:12] <jrand0m> phttp has a 30 sec timeout iirc </p>
+[22:12] <jrand0m> no need to retry.  you either have an open TCP connection and can send the data or you don't :) </p>
+[22:12] <MrEcho> lol ok</p>
+[22:13] <MrEcho> will it try tcp everytime after that or skip that and just go phttp for the next connection?</p>
+[22:13] <jrand0m> it'll try tcp each time at the moment. </p>
+[22:13] <jrand0m> the transports don't keep histories yet </p>
+[22:13] <MrEcho> ok cool</p>
+[22:14] <jrand0m> (but if a peer fails 4 times they get shitlisted for 8 minutes) </p>
+[22:14] <MrEcho> well once the otherside gets the phttp msg it should connect to the router that sent the msg via tcp right?</p>
+[22:14] <jrand0m> correct.  once any tcp connection is established, it can use it. </p>
+[22:14] <jrand0m> (but if both peers only have phttp, they'll obviously only use phttp) </p>
+[22:15] <MrEcho> that would mean that it couldnt est. a tcp connection to anything</p>
+[22:15] <MrEcho> .. but ya</p>
+[22:16] <MrEcho> i wish there was a way around that</p>
+[22:16] <jrand0m> no, one of my routers doesn't have a TCP address - only PHTTP.  but I establish TCP connections with peers who have TCP addresses. </p>
+[22:16] <jrand0m> (and then they can send back messages along that TCP connection instead of sending me slower PHTTP messages) </p>
+[22:17] <jrand0m> or is that not what you mean? </p>
+[22:17] <MrEcho> ya i got mixed up</p>
+[22:17] <jrand0m> word, np </p>
+[22:18] <jrand0m> so, see the updated roadmap for updated schedule information ((Link: http://wiki.invisiblenet.net/iip-wiki?I2PRoadmap)http://wiki.invisiblenet.net/iip-wiki?I2PRoadmap) </p>
+[22:18] <jrand0m> ok, 1.3) open subprojects </p>
+[22:19] <jrand0m> I finally put a bunch of my palmpilot's todo list into the wiki at (Link: http://wiki.invisiblenet.net/iip-wiki?OpenSubprojects)http://wiki.invisiblenet.net/iip-wiki?OpenSubprojects </p>
+[22:19] <jrand0m> so if you're bored and looking for code projects... :) </p>
+[22:19] <MrEcho> gezz</p>
+[22:20] <MrEcho> already got 2</p>
+[22:20] <dish> You have a palmpilot this is elite</p>
+[22:20] <MrEcho> mine died</p>
+[22:20] <jrand0m> mihi&gt; there's a line item in there wrt the I2PTunnel describing a thought I had a lil while ago </p>
+[22:20] <MrEcho> dont know whatz up wit hit</p>
+[22:21] <jrand0m> yeah, I used to have palms but just recently had this one donated to the cause ;) </p>
+[22:21] <dish> Could there be an agenda item at the meeting to discuss when the last time userX typed something was</p>
+[22:21] <MrEcho> damm thing doesnt even turn on anymore</p>
+[22:21] <MrEcho> lol</p>
+[22:22] <jrand0m> I don't think UserX has said anything in 4 or 5 months ;) </p>
+[22:22] <MrEcho> is that a bot or something?</p>
+[22:22] <dish> What did they say 5 months ago?</p>
+[22:22] <MrEcho> i bet its a bitchx running on some box he use to have access to .. and forgot about it</p>
+[22:22] <jrand0m> that they'd get back with comments about the anonCommFramework (i2p's old name) next week ;) </p>
+[22:23] <dish> haha</p>
+[22:23] <jrand0m> but I suppose he's busy.  so is life </p>
+[22:23] <jrand0m> ok, 2) native modPow </p>
+[22:23] <MrEcho> i saw that c code</p>
+[22:24] <jrand0m> i put together a stub .c and java class to show how something like GMP or another MPI library could be integrated, but it obviously doesn't work </p>
+[22:25] <jrand0m> what would be good would be if we had a small package of C classes and that trivial associated Java wrapper class that we could build for windows, osx, *bsd, linux, and package up under GPL  </p>
+
+(insert major iip breakage here)</p>
+
+[22:38] <MrEcho> last thing i saw was: [13:25] &lt;jrand0m&gt; ok, 2) native modPow</p>
+[22:38] <jrand0m> hi MrEcho </p>
+[22:38] <jrand0m> yeah, looks like a main proxy crashed </p>
+[22:39] <jrand0m> I'm giving it another 2 mins before restarting </p>
+[22:39] <MrEcho> k</p>
+[22:39] <MrEcho> for $25 1 time i can get full on java on thenidus.net ... one of my sites</p>
+[22:40] <jrand0m> $25?  they charge you to install software? </p>
+[22:40] <MrEcho> no idea really .. its a package</p>
+[22:40] <MrEcho> talking to my friend right now</p>
+[22:40] <jrand0m> I'm not sure the code is quite stable enough to go out and rent a bunch of colo spots to put up routers though.  yet :) </p>
+[22:41] <dm> package of what?</p>
+[22:41] <MrEcho> java - jsp</p>
+[22:41] <jrand0m> ok, resending what I sent before: </p>
+[22:41] <jrand0m> i put together a stub .c and java class to show how something like GMP or another MPI library could be integrated, but it obviously doesn't work  </p>
+[22:41] <jrand0m> what would be good would be if we had a small package of C classes and that trivial associated Java wrapper class that we could build for windows, osx, *bsd, linux, and package up under GPL (or less restrictive license) </p>
+[22:41] <jrand0m> however with the new roadmap placing AES+SessionTag as my current action item, this isn't quite as critical as it was. </p>
+[22:42] <jrand0m> if anyone wants to run with this though, that'd be great (and I'm sure another project we're all familiar with would be interested in such a packaging) </p>
+[22:43] <dm> frazaa?</p>
+[22:43] <jrand0m> heh, in a way ;) </p>
+[22:44] <jrand0m> ok, 3) gui installer </p>
+[22:44] <jrand0m> MrEcho&gt; hi </p>
+[22:44] <MrEcho> :)</p>
+[22:44] <MrEcho> hehe</p>
+[22:44] <MrEcho> its comming alog</p>
+[22:44] <jrand0m> cool </p>
+[22:44] <MrEcho> nothing fancy</p>
+[22:45] <MrEcho> ive got some really cool ideas to make it really fancy .. but thatz a way off</p>
+[22:45] <jrand0m> I was wondering if the installer should add 1) an option to auto-get the seeds from http://.../i2pdb/ 2) auto-get the http://.../i2p/squid.dest and create a runSquid.bat/runSquid.sh too? </p>
+[22:45] <jrand0m> word </p>
+[22:46] <jrand0m> yeah, we want the installer to be as simple as possible - what fancy stuff were you thinking of? </p>
+[22:46] <MrEcho> question is .. when you do java -jar installer   it goes to the non gui by default because of the way u have things</p>
+[22:46] <MrEcho> how are we going to make it to were you dbl click the jar file and it loads the gui</p>
+[22:47] <jrand0m> install.jar &lt;-- nongui,  installgui.jar &lt;-- gui </p>
+[22:47] <jrand0m> seperate code, seperate packages </p>
+[22:47] <MrEcho> fancy as in things you might not notice .. but its goingto be nice and clean</p>
+[22:47] <jrand0m> cool </p>
+[22:47] <MrEcho> aww ok</p>
+[22:48] <jrand0m> (or install &lt;-- gui installcli &lt;-- cli.  we'll see how things progress) </p>
+[22:49] <jrand0m> anything else on the gui, or do we jump off to item 4)? </p>
+[22:49] <jrand0m> (any time frame you're thinking?  no pressure, just wondering) </p>
+[22:51] <MrEcho> no idea right now</p>
+[22:51] <jrand0m> coo' </p>
+[22:51] <jrand0m> ok, 4) IM </p>
+[22:51] <jrand0m> thecrypto aint here, so..... </p>
+[22:51] <jrand0m> 5) naming service </p>
+[22:51] <jrand0m> wiht isn't here either... </p>
+[22:51] <jrand0m> ping </p>
+[22:52] <dish> you're off on the number agenda count</p>
+[22:52] <dish> 3) IM</p>
+[22:52] <jrand0m> yeah, I used to have 2 agenda item 2's </p>
+[22:52] <dish> 4) Naming</p>
+[22:52] <dish> ;)</p>
+[22:52] <jrand0m> (native modPow and gui installer) </p>
+[22:52] <jrand0m> see, we're dynamic and stuff </p>
+[22:59] <jrand0m> ok, for the logs I suppose I'll continue </p>
+[22:59] <jrand0m> 6) licensing </p>
+[23:00] <jrand0m> I'm thinking about going less restrictive than GPL.  we are using some MIT code, plus one other file is GPL (but thats just the base64 encoding and can be replaced trivially).  other than that, all of the code is either copyright by either myself or thecrypto. </p>
+[23:00] * dish look at mihi i2p tunnel part of code</p>
+[23:01] <jrand0m> oh right, mihi has released that as gpl but he may want to release it as something else if he wants, as well </p>
+[23:01] <jrand0m> (but i2ptunnel is essentially a third party app and can license how it wants) </p>
+[23:02] <jrand0m> (though since the i2p sdk is gpl, he's been forced to be gpl) </p>
+[23:02] <MrEcho> damm about time</p>
+[23:02] <jrand0m> I don't know.  licensing is not my forte, but I'm inclined at least to move to lgpl </p>
+[23:02] * dish release the 10-20 line of change to I2P HTTP Client mihi code as whatever mihi license is</p>
+[23:03] <jrand0m> hehe :) </p>
+[23:06] <jrand0m> anyway, 7) other?   </p>
+[23:07] <jrand0m> anyone have any questions / concerns / ideas wrt i2p? </p>
+[23:07] <dish> Let me ask</p>
+[23:07] <dish> Does the I2P have any group name feature?</p>
+[23:07] <jrand0m> group name feature? </p>
+[23:07] <dm> team discovery channel!</p>
+[23:07] <MrEcho> lol</p>
+[23:08] <dish> So that if you want to have private or seperate network, but some router get intermixed somehow without group name the two network would merge</p>
+[23:08] <MrEcho> hes thinking of waste</p>
+[23:08] <jrand0m> ah </p>
+[23:08] <dish> I don't know why you would want that, but I am just ask in case</p>
+[23:08] <jrand0m> yes, early on in the network design I was playing with that </p>
+[23:09] <jrand0m> its more advanced than we need for now (or for the relatively near future [6-12 months]) but may be integrated later  </p>
+[23:09] <dish> Or is that a bad idea because it is better to keep it one large network</p>
+[23:09] <dm> i2pisdead</p>
+[23:09] <jrand0m> heh dm </p>
+[23:10] <nop> shad up</p>
+[23:10] <jrand0m> no dish, its a good idea </p>
+[23:10] <dm> nop: tough guy?</p>
+[23:10] <jrand0m> its essentially what release 0.2.3 is -- restricted routes </p>
+[23:10] <jrand0m> (aka you've got a small private (trusted) set of peers and you don't want everyone to know who they are, but you still want to be able to communicate with them) </p>
+[23:15] <jrand0m> ok, anything else? </p>
+[23:15] <nop> nah, I'm just being funny</p>
+[23:18] <dm> funny guy?</p>
+[23:20] <jrand0m> ok, well, /interesting/ meeting, with a few iip crashes in the middle ;) </p>
+[23:21] * jrand0m *baf*s the meeting to a close</p>
+</div>
+{% endblock %}

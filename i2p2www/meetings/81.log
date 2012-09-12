@@ -1,0 +1,405 @@
+{% extends "_layout.html" %}
+{% block title %}I2P Development Meeting 81{% endblock %}
+{% block content %}<h3>Tuesday, Mar 16, 2004 13:00:00 PST</h3>
+<div class="irclog">
+13:12 < jrandom> agenda:</p>
+13:12 < jrandom> 0) hi</p>
+13:12 < jrandom> 1) administravia</p>
+13:13 < jrandom> 2) 0.3 status</p>
+13:13 < jrandom> 3) peer profiling / selection</p>
+13:13 < jrandom> 4) web architecture</p>
+13:13 < jrandom> 5) ???</p>
+13:13 < jrandom> 0) hi</p>
+13:13  * jrandom waves to the gang</p>
+13:14 < deer> * jrandom_ waves from i2p</p>
+13:14 < deer> * wilde hi5s</p>
+13:15 < deer> &lt;ughabugha&gt; Hi!</p>
+13:15 < deer> * duck is reading</p>
+13:15 < deer> &lt;human&gt; yo!</p>
+13:16 < jrandom> w0rd, sorry for the delay getting those status notes up at (http://i2p.net/pipermail/i2p/2004-March/000165.html)</p>
+13:18 < jrandom> 1) administravia</p>
+13:19 < jrandom> for simplicity, and to avoid the trouble we had last week w/ the various networks being bitchy, some magic has been worked out and this meeting is being run off three irc networks</p>
+13:19 < deer> &lt;duck&gt; (amazing!)</p>
+13:19 < jrandom> iip's #i2p, the duck/baffled i2p irc network's  #i2p, and freenode's #i2p</p>
+13:19 < jrandom> :)</p>
+13:19 < deer> &lt;baffled&gt; who's paranoid?</p>
+13:20 < deer> &lt;ughabugha&gt; Ok, done reading the status notes.</p>
+13:20 < deer> &lt;ughabugha&gt; jrandom: What about it?</p>
+13:20 < deer> &lt;ughabugha&gt; Or them?</p>
+13:21 < jrandom> just mentioning it, so people who have trouble with one can use another</p>
+13:21 < deer> &lt;mihi&gt; fine. done with status notes as well</p>
+13:21 < jrandom> also, the drupal box should be back online this weekend (crossing fingers)</p>
+13:22 < deer> &lt;ughabugha&gt; Oh, ok. Is there anything to discuss on 1)?</p>
+13:22 < deer> &lt;ughabugha&gt; Or are we waiting for people to finish reading?</p>
+13:22 < deer> &lt;ughabugha&gt; jrandom: Good. :)</p>
+13:22 < jrandom> nope, unless anyone has any administravia they'd like to bring up?</p>
+13:23 < deer> * mihi wants to set a flag at point 3</p>
+13:23 < jrandom> flag set ;)</p>
+13:23 < deer> * duck at point 2</p>
+13:23 < deer> &lt;duck&gt; err, what index do we use?</p>
+13:24  * jrandom supposes we can move on to agenda item 2) 0.3 status</p>
+13:25 < jrandom> i ended up typing a lot more than usual for the 0.3 status notes, so rather than repeat them here, does anyone have any questions / concerns they'd like to bring up?</p>
+13:25 < deer> &lt;ughabugha&gt; Go on.</p>
+13:26 < deer> &lt;duck&gt; why do the ElGamal/AES+SessionTag decryptions fail too often?</p>
+13:26 < jrandom> duck&gt; due to overload and lag.  if a garlic routed message is delayed beyond that sessionTag's lifetime, the decryption will fail</p>
+13:27 < deer> &lt;duck&gt; k</p>
+13:27 < jrandom> in addition, if the garlic routed message is decrypted fine, but the content was delayed so much that the cloves expire, its a wasted decryption, as well</p>
+13:28 < deer> &lt;duck&gt; somehow that sentence made me believe that there was a cause besided the overload/lag</p>
+13:28 < deer> &lt;tro|l&gt; ce zi e azi?</p>
+13:28 < jrandom> well, there have been some troubles with source routed reply blocks failing decryption, though since they're going away in 0.3.1, its not really worth debugging them too much</p>
+13:29 < deer> &lt;kaji&gt; wow it works!</p>
+13:29 < jrandom> (and a failed ElG is probably the most CPU intensive thing i2p does)</p>
+13:30 < deer> &lt;jrandom_&gt; heh welcome to i2p #i2p :)</p>
+13:30 < deer> * kaji praises 0.2.5.1</p>
+13:30 < deer> &lt;jrandom_&gt; 0.2.5.1?  sheeit, get thee 0.2.5.4 :)</p>
+13:30 < jrandom> ok, anything else for 0.3 status?</p>
+13:31 < deer> &lt;kaji&gt; ..</p>
+13:31 < deer> &lt;duck&gt; .</p>
+13:31 < deer> &lt;kaji&gt; ping?</p>
+13:31 < jrandom> p0ng</p>
+13:31 < mihi> pung</p>
+13:31 < deer> &lt;mihi_backup&gt; pung2</p>
+13:32 < deer> &lt;Pellinore&gt; prawn</p>
+13:32 < jrandom> ok, moving on to 3) peer profiling / selection</p>
+13:32  * mihi moves the flag to the other number 3 ;)</p>
+13:32 < jrandom> (man, its kind of funny that there isn't any vegetarian seafood substitutes...)</p>
+13:32 < deer> * kaji praises 0.2.5.4.1</p>
+13:32 < deer> &lt;duck&gt; the whole peer profiling thing looks at magic, how do you plan to debug that?</p>
+13:32 < deer> &lt;Pellinore&gt; There is vegetarian crabmeat.</p>
+13:32 < jrandom> ah, true pellinore.</p>
+13:32 < deer> &lt;wilde&gt; jrandom: and veg sushi</p>
+13:33 < jrandom> duck&gt; what part of it looks like magic?</p>
+13:33 < deer> &lt;duck&gt; the whole classification etc</p>
+13:33 < deer> &lt;Pellinore&gt; And I could have sworn that I had seen some chik-type fish fillet substitute, but I could be wrong.</p>
+13:33 < deer> &lt;duck&gt; I mean, how do you know that you are doing optimal things?</p>
+13:33 < jrandom> the peer organizer (which moves profiles into the different groups) is a very simple and seperable component</p>
+13:33 < jrandom> oh, thats a good point.</p>
+13:34 < jrandom> i was doing some benchmarking the other day, running the organizer with 10,000 profiles, and it was organizing them all un ~50ms</p>
+13:34 < jrandom> (organizing == runningthe calculators and moving them between groups)</p>
+13:34 < jrandom> profiles also consume only ~3-4KB for a full profile, and a minimal profile takes ~200 bytes</p>
+13:35 < deer> &lt;duck&gt; yeah, but how do you know that you are right with '0.597s reply' for group 1</p>
+13:35 < deer> &lt;duck&gt; and that it shouldnt be 0.603s</p>
+13:35 < jrandom> (so we'll keep a full profile of the best 1000 peers, and minimal of the next 10,000)</p>
+13:35 < jrandom> ah, ok, good question.</p>
+13:36 < jrandom> thats the Rate component</p>
+13:36 < jrandom> there will obviously be some flutter, and we won't be very exact.  the goal ois to get ballpark and organize them accordingly</p>
+13:37 < deer> &lt;duck&gt; I did see it using averages</p>
+13:37 < jrandom> e.g. find the routers on T3s with quad procs, and keep them seperate from routers on 386s with 2400 bps modems</p>
+13:37 < deer> &lt;duck&gt; so if you throw in 100 shitty nodes, you heavily influence the average</p>
+13:37 < jrandom> agreed - there are two different aspects of that that we can tune</p>
+13:38 < jrandom> first, we can make the threshold use the top 10% to determine the "fast" vs "not fast"</p>
+13:38 < jrandom> (or top 90%, whichever)</p>
+13:38 < jrandom> second, we can adjust the Rate component to keep various statistics - rather than a simple average, it can ignore skew, find stddev, etc</p>
+13:39 < jrandom> the rate component currently is quite remedial, and I'd love if someone good with stats could take a look at it and fix it up</p>
+13:39 < jrandom> (one of the key goals of it however is to keep it scale free - so if we get 100,000 events, it doesnt have to keep all those data points in memory, etc)</p>
+13:40 < deer> &lt;duck&gt; ok, so what prevents another NGRouting disaster from happening?</p>
+13:40 < jrandom> but you're absolutely right - the calculators and the peer selection algorithms are going to be a major focus of future network improvements</p>
+13:40 < jrandom> ngrouting tried to do two different things - find particular data, and find available peers.</p>
+13:40 < jrandom> we only need to find available peers</p>
+13:41 < deer> &lt;duck&gt; good</p>
+13:41 < jrandom> (and place our tunnels there)</p>
+13:41 < deer> * duck removes breakpoint</p>
+13:41 < jrandom> :)</p>
+13:41 < mihi> but we have to find tunnels as well.</p>
+13:41 < jrandom> right mihi - the netDb is an important point</p>
+13:42 < deer> &lt;Pellinore&gt; I'm good with the math of statistics, but terrible with the tech aspects of translating the data into computer-useful data.</p>
+13:42 < deer> &lt;Pellinore&gt; But I would happily partner up with someone and contribute if I can.</p>
+13:42 < jrandom> awesome pellinore!</p>
+13:43 < jrandom> the main rate class is up at http://i2p.net/cgi-bin/cvsweb.cgi/i2p/code/core/java/src/net/invisiblenet/i2p/stat/Rate.java?rev=1.3&amp;content-type=text/x-cvsweb-markup and we can talk later to discuss it :)</p>
+13:43 < deer> &lt;Pellinore&gt; k</p>
+13:43 < jrandom> (i know, i don't expect you to read the code, just mentioning it)</p>
+13:44 < deer> &lt;Pellinore&gt; I'll read it, but it will be about like my dog reading Kierkegaard.</p>
+13:44 < jrandom> hehe</p>
+13:45 < deer> &lt;Pellinore&gt; But I am learning.</p>
+13:45 < deer> &lt;Pellinore&gt; Anyway, please proceed -- I don't mean to bog things down.</p>
+13:45 < jrandom> (volunteering to help isn't bogging things down ;)</p>
+13:46 < jrandom> one point i forgot to mention about the peer profiling / selection code is that the 'integration' rank is only used in the network database for 'exploration', not for search/store</p>
+13:46 < jrandom> we still do (fairly) traditional kademlia search/store with all non-failing peers</p>
+13:46 < jrandom> also, within each peer group, we always choose *randomly*</p>
+13:46 < jrandom> (aka we don't always choose the fastest of the fast group, etc)</p>
+13:47 < jrandom> thats for both security and load balancing reasons</p>
+13:48 < jrandom> (security, so that an attacker can't just create a really fast router and watch everyone make use of them - they have to create a large number of really fast routers, skew the entire distribution in their favor, etc)</p>
+13:49 < jrandom> ok, do we have anything else for 3) peer profiling / selection?</p>
+13:49 < deer> &lt;duck&gt; .</p>
+13:50 < deer> &lt;ughabugha&gt; Doesn't look like it.</p>
+13:50 < jrandom> ok, moving on to 4) web architecture</p>
+13:52 < jrandom> mihi's new streaming lib gives us a lot of flexibility, plus he's mentioned a few times the desire to factor out the httpclient code into something more robust.  in addition, human has started updating things to allow transparent squid(or tor-www) proxying and eepsite proxying within the same client</p>
+13:52 < jrandom> given all of these different factors, and the likelyhood that web like functionality will be important for i2p's user base, i think we should take a step back and try to envision how it should all fit together</p>
+13:53  * mihi has some code flying around on my hd for that httptunnel code. but it's far from being finished</p>
+13:53 < mihi> for me httptunnel == httpclient + some filters</p>
+13:53 < mihi> of course using my naming and streaming api.</p>
+13:54 < mihi> the code atm only allows different "anonymity profiles".</p>
+13:54 < jrandom> any thoughts on human's style of failing over to outproxies like squid/etc?</p>
+13:54 < mihi> i.e. send all requests over one destination, mux them up to 10, mux them up to one dest per hostname, etc.</p>
+13:54 < jrandom> ah, interesting</p>
+13:55 < mihi> but these dests are not used yet ;)</p>
+13:55 < jrandom> w3rd.  yeah, there *is* the big caveat that having lots of destinations on one router does increase CPU load nontrivially</p>
+13:55 < jrandom> (since any garlic fail will need to fail once per dest before failing completely)</p>
+13:56 < jrandom> there is some magic left that can be used to minimize that though, i think</p>
+13:56 < deer> &lt;ughabugha&gt; Are you sure the transparent squid proxying is a good idea in the performance point of view? I mean, people might get too lazy and not take their eepproxy off after browsing I2P sites or using I2P squid, therefore wasting I2P bandwidth for things that don't require anonymity.</p>
+13:56 < jrandom> ughabugha&gt; all things require anonymity :)</p>
+13:57 < jrandom> (and if they can't tell the difference, well, sheeit...)</p>
+13:57 < mihi> my intention for httptunnel is that http links will be rewritten (similarly to fproxy) so that you don't need a proxy but only a servlet.</p>
+13:57 < deer> &lt;ughabugha&gt; jrandom: Heh. That way, I2P was born dead. There isn't going to be enough available bandwidth on the network, that all the endnodes would likely consume.</p>
+13:58 < mihi> on that info page one might add a feature to browse the site throufh e.g. squid.</p>
+13:58 < jrandom> not quite sure i follow.  i do understand and agree with the DNS issues involved (though i think we can get around them a few ways)</p>
+13:58 < jrandom> ah, ok mihi</p>
+13:58 < deer> &lt;aum&gt; morning all</p>
+13:58 < jrandom> mihi&gt; so like a much much more advanced "Unable to reach peer" page?</p>
+13:59 < mihi> more like a "anonymity warning" page like in freenet ;)</p>
+13:59 < jrandom> ughabugha&gt; if we cant handle web browsing, how are we going to handle BT/filesharing?</p>
+13:59 < jrandom> hmm mihi, but do we want that, for people who want to browse the web anonymously?  or would httpclient not be the app they'd use?</p>
+14:00 < jrandom> 'mornin aum, just in time for the dev meeting :)</p>
+14:00 < mihi> jrandom: if someone just wants to browse the web anonymously, he</p>
+14:00 < deer> &lt;ughabugha&gt; jrandom: Hmm... Good point. Are we going to at all? ;)</p>
+14:00 < deer> &lt;aum&gt; jrandom: you're not on iip, you're not on irc.duck.i2p ?!?</p>
+14:00 < jrandom> ughabugha&gt; we must.</p>
+14:01 < mihi> might configure httptunnel to so so (httptunnel will still work as a proxy, so it's quite trivial to add that)</p>
+14:01 < mihi> and most likely someone browsing the web "anonymously" will like some content filters, i guess ;)</p>
+14:01 < jrandom> mihi&gt; i think human already did :)</p>
+14:01 < jrandom> agreed mihih</p>
+14:01 < jrandom> /hih/hi/</p>
+14:02 < mihi> when i say httptunnel, i don't mean httpclient ;)</p>
+14:02 < jrandom> ah ok</p>
+14:02 < deer> &lt;jrandom_&gt; i'm here aum ;)</p>
+14:02 < mihi> but we *really* should move i2ptunnel to use the streaming api ASAP, which will reduce the number of files we must maintain</p>
+14:03 < jrandom> agreed</p>
+14:03 < mihi> human only patched the old version, i patched the new version myself</p>
+14:03 < jrandom> we ran into some bugs this afternoon, not sure if human bounced you logs yet</p>
+14:03 < deer> &lt;wilde&gt; another thing for the list: outproxy was taken, but more like i2p2i</p>
+14:04 < mihi> i did not get logs yet from anyone...</p>
+14:04 < jrandom> mihi&gt; we'll get on to the streaming code asap, we can talk about it after the meeting if you've got a moment, or over email?</p>
+14:04 < deer> * aum spent part of yesterday looking at p2p apps with a view to running them on i2p</p>
+14:04 < jrandom> wilde&gt; hmm?</p>
+14:04 < jrandom> wikked aum, anything promising?</p>
+14:04 < deer> * aum is presently inclined to favour 'push'-type filesharing, eg konspire2b</p>
+14:05 < jrandom> i2psnark could be modified to use the new i2ptunnel streaming api fairly easily too</p>
+14:05 < deer> &lt;human&gt; mihi: sending the logs (mihi@i2p.net, right?)</p>
+14:06 < mihi> dunno if mihi made a redirect for me</p>
+14:06 < deer> &lt;mihi&gt; s/mihi/jrandom</p>
+14:06 < jrandom> hmm aum, do you think that freenet/insert model really would work most effectively?</p>
+14:06 < deer> &lt;wilde&gt; jrandom: i was thinking of using a i2p webserver -&gt; proxy -&gt; internet, so people can browse a i2p site, but maybe an ordinary tunnel can manage the traffic</p>
+14:06 < jrandom> mihi&gt; want me to set that to for ward to you?</p>
+14:06 < mihi> jrandom: nothing against it ;)</p>
+14:07 < deer> &lt;ughabugha&gt; aum: 'Push'-type? What's that?</p>
+14:07 < deer> &lt;aum&gt; what i like about konspire2b is it takes away the expectation for instant/prompt delivery, and reduces bandwidth requirement, by only broadcasting content announcements, then letting people 'subscribe' to 'content feeds'</p>
+14:07 < jrandom> mihi&gt; done.</p>
+14:08 < deer> &lt;aum&gt; so instead of requesting a file, sitting and twiddling your thumbs, getting pissed off waiting for it to come in, you just 'subscribe' to the source's 'channel', then get on with other stuff</p>
+14:08 < deer> &lt;aum&gt; konspire2b.sf.net</p>
+14:08 < jrandom> aum&gt; but isn't that incredibly innefficient, since you've got to manage an overlay network (broadcast) for list of things available, then you've got to relay them?</p>
+14:09 < jrandom> wouldn't a direct swarming system be much more useful / efficient?</p>
+14:09 < deer> &lt;ughabugha&gt; Heh. That sounds promising for I2P.</p>
+14:09 < deer> &lt;aum&gt; jrandom: any examples of direct swarming?</p>
+14:09 < jrandom> wilde&gt; oh, so like the cgiproxy on duck and janonymous's site?</p>
+14:09 < jrandom> aum&gt; bittorrent</p>
+14:10 < deer> &lt;ughabugha&gt; aum: Did you mean http://konspire.sourceforge.net/?</p>
+14:10 < jrandom> where you get the torrent somewhere, and get content blocks directly from peers who have it</p>
+14:10 < deer> &lt;aum&gt; ughabugha: guess so :)</p>
+14:10 < mihi> argl... $me-&gt;brother removed the port forward for i2p...</p>
+14:10 < jrandom> d'oh</p>
+14:10 < deer> &lt;aum&gt; jrandom: is anyone currently trying bt/i2p?</p>
+14:11 < deer> &lt;baffled&gt; aum, have you had a close look at mnet?</p>
+14:11 < jrandom> aum&gt; eco made some headway with i2psnark</p>
+14:11 < deer> &lt;aum&gt; i've had a look, but not a close look</p>
+14:11 < jrandom> (though he's mia at the moment)</p>
+14:12 < jrandom> hmm, mnet with eepsite metatrackers and human's i2p/twisted transport might work</p>
+14:12 < deer> &lt;duck&gt; heavy testing by janonymous and me seem to show that the current i2psnark problems are 50% caused by i2p and 50% by snark</p>
+14:12 < jrandom> duck&gt; how recently were those tests?</p>
+14:12 < deer> &lt;duck&gt; last week</p>
+14:12 < jrandom> though i've got no qualms with potentially exploring other bt implementations</p>
+14:12 < jrandom> ah ok</p>
+14:13 < deer> &lt;duck&gt; about mnet, I _think_ that you'd first to fix mnet itself before you could make that working</p>
+14:13 < deer> &lt;duck&gt; so you might as wel fix freenet and use that</p>
+14:13 < jrandom> heh</p>
+14:13 < deer> &lt;aum&gt; fix freenet, ok! right after we bring in world peace ;p</p>
+14:13 < deer> &lt;duck&gt; but ask in #mnet @ freenode</p>
+14:13 < deer> &lt;Pellinore&gt; mnet=?</p>
+14:13 < deer> &lt;Pellinore&gt; Mute?</p>
+14:14 < jrandom> in that sense, perhaps an azureus mod for i2p might work?</p>
+14:14 < deer> &lt;wilde&gt; no, a market based p2p approach</p>
+14:14 < jrandom> pellinore - mnet.sf.net, a distributed data store without anonymity</p>
+14:14 < deer> &lt;baffled&gt; Actually, I'm using mnet quite reliably on about five machines.</p>
+14:14 < jrandom> right, the mojonation followon</p>
+14:14 < deer> &lt;baffled&gt; I can't use freenet reliably on one machine.</p>
+14:14 < deer> &lt;duck&gt; baffled: 0.6 or 0.7?</p>
+14:14 < deer> &lt;duck&gt; (0.7 is with twisted iirc)</p>
+14:16 < deer> &lt;Pellinore&gt; jrandom -- thanks.</p>
+14:16 < deer> &lt;Pellinore&gt; You can't use Freenet reliably on any machine.</p>
+14:17 < deer> &lt;baffled&gt; 0.6.[23].</p>
+14:17 < deer> &lt;Pellinore&gt; That is, among other reasons, why we are here. :)</p>
+14:17 < deer> &lt;aum&gt; i find that entropy works well... eventually!</p>
+14:17 < jrandom> i don't know, i still think freenet might be a good base to work from for the i2p DHT (when we can cut out most of the code and keep the data store / SSK/CHK stuff)</p>
+14:18 < jrandom> for file sharing, we should learn from the filesharing crowd what works best</p>
+14:18 < deer> &lt;aum&gt; but since my linuxworld article on entropy, there's gazillions of entropy nodes now, and the net has taken on some freenet performance characteristics</p>
+14:18 < deer> &lt;Pellinore&gt; I like the basic layout and features of Freenet, it's just that the fucker doesn't work, especially if one is using a dialup connection.</p>
+14:18 < jrandom> e.g. DC clones, BT, [or what else do those crazy filesharing people use?]</p>
+14:19 < jrandom> heh aum, damn you ;)</p>
+14:19 < deer> &lt;duck&gt; plus there are the things that Newsbyte did identify about entropy...</p>
+14:19 < deer> &lt;aum&gt; it's weaker anonymity, for example?</p>
+14:19 < deer> &lt;baffled&gt; Right but there are instability issues with 0.7.</p>
+14:19 < deer> &lt;baffled&gt; I think this connection has gotten flakey again.</p>
+14:19 < jrandom> and security issues.  i think we can unfortunately pass on using entropy</p>
+14:21 < jrandom> but, erm, we're on discussion point 4, *web* architecture so for the moment lets jump back to that ;)</p>
+14:21 < deer> &lt;aum&gt; another mad-assed file-sharing idea - what about using nntp, with n people running linked nntpds, and just use one of those libs that breaks down files into b64 chunks and posts them, and libs to retrieve them?</p>
+14:22 < jrandom> NNTP would be really interesting - its reliable as fuck and time tested</p>
+14:22 < deer> &lt;duck&gt; linking the servers?</p>
+14:22  * jrandom would love to have an innd running with i2p ;)</p>
+14:23 < deer> &lt;aum&gt; and since i2p does the anonymity, there's no need for nntp to have it</p>
+14:23 < jrandom> right, the innd feed line could point at a local i2ptunnel proxy</p>
+14:23 < deer> &lt;aum&gt; and people with different servers can config the servers to cache their own choice of groups</p>
+14:23 < mihi> depending on how often they peer it would be possible to censor articles by creating message id collisions</p>
+14:23 < deer> &lt;duck&gt; (ever tried configuring innd?)</p>
+14:24 < jrandom> many times duck, but a loooong time ago</p>
+14:24 < deer> &lt;aum&gt; is innd hard to setup?</p>
+14:24 < deer> &lt;duck&gt; oh well, you are god</p>
+14:24 < jrandom> mihi&gt; agreed - thats not a censorship proof distribution medium</p>
+14:24 < jrandom> aum&gt; its a bitch</p>
+14:25 < jrandom> just like squid - its good at what it does, but we likely need something dirt simple (one click, hopefully) to bundle</p>
+14:25  * jrandom drags us back on topic</p>
+14:26 < deer> &lt;aum&gt; and yet another p2p/filesharing approach - i seem to recall seeing a p2p app that works via http, chaining http servers</p>
+14:26  * mihi guesses most users don't know how to set up a proxy in their brwoser...</p>
+14:26 < deer> &lt;aum&gt; sorry, what's the topic?</p>
+14:26 < jrandom> agenda item 4) web architecture ;)</p>
+14:26 < aum> as in, web servers within i2p?</p>
+14:26 < mihi> aum: yep</p>
+14:26 < jrandom> thats a good point mihi - a web system will want the basics (.bat, .sh scripts) for startup/shutdown</p>
+14:27 < jrandom> hmm, doesn't mozilla include a javascript url you can do to set the proxy?</p>
+14:27 < jrandom> e.g. could we have a config page on httptunnel to click "on"/"off"?</p>
+14:28 < jrandom> i realize we're not going to come to any decisions today about how the web functionality should work, but we should get some directions down</p>
+14:28 < aum> what's the problem with the current eepproxy setup?</p>
+14:29 < jrandom> e.g. filtering, inbound proxies (eeproxies), outbound servers (normal i2ptunnel server), outbound proxies (outproxies ala squid or tor-www)</p>
+14:29 < mihi> aum: it requires quite some skill both to provide and to request eepsites</p>
+14:29 < jrandom> also, the existing outproxy system sucks.</p>
+14:29 < jrandom> its wholely unscalable</p>
+14:29 < jrandom> we need something to allow/force distributing the outbound web request load across multiple outproxies</p>
+14:30 < mihi> how can users get these outproxies. config file (like in hosts.txt?)</p>
+14:30 < jrandom> and one reason why normal people would want to run outproxies is for plausible deniability - even if THEY are requesting "bad stuff", they can say "i2p did it"</p>
+14:31 < jrandom> thats one option mihhi</p>
+14:31 < mihi> jrandom: hehe</p>
+14:31 < jrandom> s/hh/h/</p>
+14:31 < aum> but doesn't eepproxy make 'direct' http connection to the requested server, ie as 'direct' as i2p connections are?</p>
+14:31 < deer> &lt;wilde&gt; . /castvote DHT ala Freenet</p>
+14:31 < mihi> aum: the problem are "normal" web urls.</p>
+14:31 < jrandom> ./castvote 3 developers x 1 month x 12h / day</p>
+14:32 < deer> * human added httptunnel support to the TunnelManager, btw</p>
+14:32 < deer> &lt;human&gt; s/httptunnel/httpclient/</p>
+14:32 < deer> &lt;aum&gt; what's that?</p>
+14:32 < deer> &lt;aum&gt; oh, http client support?</p>
+14:32 < deer> &lt;human&gt; aum: yes</p>
+14:32 < jrandom> right, we need to find a way to let people browse slashdot.org via i2p</p>
+14:32 < deer> &lt;aum&gt; so tunnelmgr now talks http?</p>
+14:32 < jrandom> nice1 human!</p>
+14:32 < jrandom> aum&gt; remember the squid proxy?</p>
+14:33 < deer> &lt;aum&gt; yep</p>
+14:33 < deer> &lt;wilde&gt; jrandom: so 4 man-months roughly for a DHT?</p>
+14:33 < deer> &lt;human&gt; aum: yup: openhttpclient &lt;port&gt; [&lt;outbound WWW proxy&gt;]</p>
+14:33 < jrandom> wilde&gt; i think thats reasonable, yes.</p>
+14:34 < deer> &lt;aum&gt; human: have you written it up anywhere?</p>
+14:35 < jrandom> aum&gt; all it does is say "if !eepsite { send through $outboundWWWproxy } else {send to eepsite}"</p>
+14:35 < deer> &lt;human&gt; aum: i was going to commit, then i got stuck with a StreamingI2PTunnelServer bug...</p>
+14:36 < jrandom> a good short term solution would be a "outproxies.txt", ala hosts.txt</p>
+14:36 < deer> &lt;aum&gt; human: and what exactly does 'openhttpclient &lt;port&gt; [&lt;outbound WWW proxy&gt;]' do?</p>
+14:36 < jrandom> though we should start thinking about medium and long term solutions</p>
+14:37 < deer> &lt;human&gt; human: will open a proxy listening for connections, that will redirect to WWW-proxy all the stuff that goes to URLS not ending with .i2p</p>
+14:38 < deer> &lt;Pellinore&gt; Now that's interesting.</p>
+14:38 < deer> &lt;aum&gt; human: ahh, nice, so you split off a thread within tunnelmgr?</p>
+14:38 < deer> &lt;human&gt; human: i.e. you can use it to browse both eepsite and the normal web</p>
+14:38 < deer> &lt;human&gt; human: yes</p>
+14:38 < deer> &lt;human&gt; s/human/aum/ :-)</p>
+14:39 < deer> &lt;aum&gt; slightly outside the 'brief' of tunnelmgr, but hey, there's no other place more appropriate in the i2p code - good job d00d</p>
+14:39 < deer> &lt;aum&gt; human: so you talk python *and* java? is that damaging your brain?</p>
+14:39 < deer> &lt;human&gt; aum: i did it to avoid launching yet another JVM for the EepProxy</p>
+14:40 < jrandom> (well, the code is implement in i2ptunnel's httpclient, human just recently exposed it through tunnelmanager as well)</p>
+14:40 < deer> &lt;aum&gt; yes, always good to keep the jvm instances down to a minimum</p>
+14:40 < jrandom> ((and imho httpclient is exactly where it should go ;)</p>
+14:40 < jrandom> (((until mihi's NextGen httpclient [httptunnel] is out)))</p>
+14:41 < deer> &lt;aum&gt; is httpclient in cvs, such that it'll build for me as part of i2p update/build?</p>
+14:41 < jrandom> yes, eepProxy uses httpclient</p>
+14:42 < deer> &lt;aum&gt; *man this is so schizophrenic - i've got 3 xchat sessions open (irc.duck.i2p,iip,freenode)) </p>
+14:42 < jrandom> :)</p>
+14:42 < deer> &lt;aum&gt; wicked latency on irc.duck.i2p</p>
+14:42 < jrandom> ok, so no closure on the web architecture today, obviously, but worthwhile discussion</p>
+14:43 < jrandom> yeah aum, 15s or so for me</p>
+14:43 < jrandom> anything else on the web architecture for now, or should we move on to the 5) ??? open discussion section?</p>
+14:43 < deer> * human is thinking about an I2PSocksTunnel</p>
+14:44 < jrandom> yikes, now that'd be cool</p>
+14:44 < deer> &lt;human&gt; (well, maybe it belongs to 5)</p>
+14:44 < deer> &lt;aum&gt; socks? is there a way to 'shim' non-socks-enabled clients through to a socks interface?</p>
+14:44 < deer> &lt;human&gt; aum: apt-get install tsocks :-)</p>
+14:45 < aum> web discussion - one last thing - what about possibly forking /patching an existing web client</p>
+14:45 < mihi> aum: sockscap for windwos</p>
+14:45 < jrandom> aum&gt; scary.  very powerful, but scary.</p>
+14:45 < jrandom> [i'd hate to have to maintain that]</p>
+14:45 < aum> even for now, a brain-dead browser like dillo</p>
+14:46 < jrandom> [[though it could be made 'uber secure', etc.  but still, very, very scary]]</p>
+14:46 < aum> or better, the browser control in wxwindows, it's multiplatform</p>
+14:46  * jrandom reminices about the orignial flinks, when it had a built in freesite browser</p>
+14:47 < aum> but then again, n00bs will whinge if they can't surf their usual m$-specific-javascript-infested sites</p>
+14:47 < jrandom> right aum, and so will hackers if it doesnt support the latest standards compliant code</p>
+14:47 < aum> hey, we should ask Microsoft for the source to IE6, then patch it ;p</p>
+14:47 < jrandom> building a browser == good way to waste thousands of man-hours</p>
+14:47 < jrandom> heh</p>
+14:47 < deer> * human is quite happy using privoxy</p>
+14:48 < aum> maybe they might toos in ie6 source as part of the European punitive settlement</p>
+14:48 < deer> &lt;human&gt; (http://www.privoxy.org/)</p>
+14:48 < aum> s/toos/toss/</p>
+14:48 < jrandom> human&gt; how would that fly for both sides of the proxy?</p>
+14:48 < jrandom> e.g. we'll want the content filtered locally, not at the outbound endpoint</p>
+14:49 < deer> &lt;human&gt; jrandom: users could be encouraged to install it</p>
+14:49 < jrandom> (but the outbound endpoint will want to filter some content to avoid abuse, etc)</p>
+14:49 < deer> &lt;human&gt; jrandom: or it may be part of the default I2P installation</p>
+14:49 < aum> what if a DWP (distrib web proxy) was using a DHT for its cache?</p>
+14:49 < jrandom> encourage == only geeks.  bundle :)</p>
+14:49 < jrandom> that'd be Good aum</p>
+14:49 < deer> &lt;human&gt; jrandom: eheheh, agreed :-)</p>
+14:49 < deer> &lt;human&gt; jrandom: privoxy also runs on windogs, btw</p>
+14:50 < jrandom> word.  yeah, we need some sort of content filtering - privoxy, muffin, whatever.</p>
+14:50 < deer> &lt;wilde&gt; long meeting...</p>
+14:50  * jrandom takes the hint..</p>
+14:51 < deer> &lt;Pellinore&gt; wilde: Much to be said.</p>
+14:51 < jrandom> anyone else have anything they want to bring up?  we always have the mailing list for further things</p>
+14:51 < deer> &lt;Pellinore&gt; And much to be done of course.</p>
+14:51 < deer> &lt;Pellinore&gt; I have a couple of small questions.</p>
+14:51 < aum> could we fork privoxy and 1) make it work over i2p, 2) make it use DHT for caching?</p>
+14:51 < deer> &lt;Pellinore&gt; But they are as easily taken up privately.</p>
+14:51 < jrandom> pellinore&gt; whats up?</p>
+14:51 < deer> &lt;Pellinore&gt; Nada, sorry I said anything.</p>
+14:51 < jrandom> aum&gt; most likely we wouldnt need to fork</p>
+14:52 < deer> &lt;Pellinore&gt; I'll talk to you about it privately, or duck, at another time.</p>
+14:52 < deer> &lt;Pellinore&gt; Not really dev-specific stuff.</p>
+14:52 < deer> &lt;duck&gt; 10+16+7=33 manhours wasted on this one-hour overtime :)</p>
+14:52 < jrandom> but building a DHT is a lot of effort.  wholely incredibly worthwhile</p>
+14:52 -!- Irssi: #i2p: Total of 10 nicks [0 ops, 0 halfops, 0 voices, 10 normal]</p>
+14:52  * aum goes again to visit infoanarchy.org wiki pages on DHTs</p>
+14:52 < jrandom> there are 16 people on iip?</p>
+14:53 < deer> &lt;human&gt; aum: no need to fork, just: web browser &lt;-&gt; privoxy &lt;-&gt; httpclient &lt;-&gt; i2p &lt;-&gt; outbound proxy &lt;-&gt; www.pr0n.com</p>
+14:53 < deer> &lt;wilde&gt; a generic DHT that would work outside I2P too, and that allows other binding than http</p>
+14:53 < jrandom> aum&gt; check out the link duck added to the i2p wiki, listing various ones</p>
+14:54 < deer> &lt;human&gt; aum: you can configure privoxy to make it connect to another HTTP/socks proxy (that's how my I2P-to-tor privoxy works)</p>
+14:54 < deer> &lt;duck&gt; (http://www.bamboo-dht.org/)</p>
+14:54 < aum> not sure i like the idea of a dht working outside i2p - the best dht is one without anonymity (and the anonymity overhead) that can work most optimally within i2p</p>
+14:54 < jrandom> hrm duck, what happened to that list of 'em?</p>
+14:54 < deer> &lt;duck&gt; aum: easier to test</p>
+14:55 < deer> &lt;duck&gt; jrandom: some commie did remove it I guess</p>
+14:55 < jrandom> heh</p>
+14:56 < jrandom> google++ : http://www.etse.urv.es/~cpairot/dhts.html</p>
+14:56 < jrandom> (not the same page, but interesting)</p>
+14:56 < jrandom> oh, here's the page - http://himalia.it.jyu.fi/ffdoc/storm/pegboard/available_overlays--hemppah/peg.gen.html</p>
+14:57 < jrandom> but yes, a DHT that doesnt try to implement anonymity, plus a DHT that supports both CHK-style and SSK style content would be best</p>
+14:58 < jrandom> (SSK style not being strictly necessary, but damn it would be really useful)</p>
+14:58 < jrandom> but, anyway</p>
+14:58 < jrandom> anyone got anything else they want to bring up?</p>
+14:59 < deer> &lt;duck&gt; tomorrow is St. Patrick's Day</p>
+14:59 < deer> &lt;wilde&gt; topic 5) ?</p>
+14:59 < deer> &lt;duck&gt; so all drink irish beer</p>
+14:59 < jrandom> good point</p>
+14:59 < deer> &lt;Pellinore&gt; TOmorrow is both the anniversary of my current relationship, and of my second marriage.</p>
+14:59  * jrandom takes note to avoid irish pubs tomorrow</p>
+15:00 < jrandom> oh, congrats pellinore :)</p>
+15:00 < jrandom> wilde&gt; we're on 5) ???</p>
+15:01 < jrandom> (and about to be on 6) [baf])</p>
+15:01  * jrandom will be coming to iip momentarily [if i can]</p>
+15:01  * jrandom winds up</p>
+15:01  * jrandom *baf*s the meeting closed</p>
+</div>
+{% endblock %}

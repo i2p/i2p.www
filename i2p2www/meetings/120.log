@@ -1,0 +1,490 @@
+{% extends "_layout.html" %}
+{% block title %}I2P Development Meeting 120{% endblock %}
+{% block content %}<h3>I2P dev meeting, December 14, 2004</h3>
+<div class="irclog">
+13:08 < jrandom> 0) hi</p>
+13:08 < jrandom> 1) Net status</p>
+13:08 < jrandom> 2) mail.i2p</p>
+13:08 < jrandom> 3) roadmap</p>
+13:08 <+polecat> It's almost as if the nodes are using the time they got 5 min ago, and setting it to the current time instead of the real time.</p>
+13:09 < jrandom> 4) i2pcontent</p>
+13:09 < jrandom> 5) i2p-bt</p>
+13:09 < jrandom> 6) ???</p>
+13:09 < jrandom> 0) hi</p>
+13:09 < jrandom> weekly status notes posted a few minutes back to http://dev.i2p.net/pipermail/i2p/2004-December/000522.html</p>
+13:09  * Pseudonym waves</p>
+13:10 < cervantes> thanks for waiting.... just got back from work ;-)</p>
+13:10 < jrandom> polecat: it isnt exactly 5m (but we can discuss further after the meeting or in it)</p>
+13:10  * polecat nod</p>
+13:10 < jrandom> w3rd, well, i'll give you a moment to jump into the status notes then :)</p>
+13:11 < jrandom> in the meantime, 1) Net status</p>
+13:11  * postman waves</p>
+13:11 < jrandom> the other day, as mentioned on the list, it was pretty turbulent on irc</p>
+13:12 < jrandom> we've made some adjustments though and the bugfixes have gone pretty well</p>
+13:12  * dm waves</p>
+13:12 < jrandom> in addition to the time sync issue mentioned in the mail, there's also a "leases expiring" problem that some have been reporting</p>
+13:13 < Pseudonym> are they related?</p>
+13:13 <+protokol> (for months)</p>
+13:13 < Pseudonym> (the issues, not the people)</p>
+13:13 < jrandom> thats due in part to a variety of issues, some of which may be addressed by the patches in CVS, some of which may be time sync related, but most of which are due to issues we're working on for the 0.5 release</p>
+13:14 < jrandom> the essence of the problem is that the peer is sometimes unable to build tunnels for the client, which means it won't ask the client for a new lease</p>
+13:14 < jrandom> the solution is to make sure we can build new tunnels that meet the client's needs</p>
+13:15 < Pseudonym> and if we can't?</p>
+13:15 < jrandom> if we can't, the leases will stay expired until we can</p>
+13:16 < Pseudonym> so, how is that different?</p>
+13:16 < jrandom> it isn't :)  </p>
+13:16 < jrandom> we need to be able to build tunnels, period.</p>
+13:16 < jrandom> to assure that we can, we must both improve our profiling (see: cvs fixes for a long standing profiling bug) and improve our pooling strategy (see: 0.5)</p>
+13:17 < jrandom> the only legitimate cause for not being able to build tunnels is if the entire net is completely saturated</p>
+13:17 <+polecat> or you're cut off from it</p>
+13:17 < jrandom> right</p>
+13:17 < bla> jrandom: Can this be because the net has grown to ~110 peers?</p>
+13:18 < dm> or its cut off from you</p>
+13:18 < jrandom> nah, we've seen this before too bla</p>
+13:18 < Pseudonym> are the "cvs fixes for a long standing profiling bug" in 0.4.2.3 or just CVS?</p>
+13:18 < jrandom> though in a way, i suppose it is, since we now have a lot more peers that we have no profiling data on</p>
+13:18 < jrandom> Pseudonym: CVS</p>
+13:19 <+polecat> By profiling you mean ranking peers according to how helpful they are?</p>
+13:19 < jrandom> yeah</p>
+13:19  * Pseudonym wants 0.4.2.4 ;-)</p>
+13:19 <+polecat> Phew.</p>
+13:19 <+polecat> Thought it was some weird kinda function tracing like gprof or something.</p>
+13:20  * orion wants 2.0 :)</p>
+13:20 < jrandom> hehe naw, the profiling bug was in part due to some stupid code that was ignoring daily stats</p>
+13:20  * jrandom too</p>
+13:20  * polecat wants the larval form of a large dog.</p>
+13:20 < jrandom> ok, well, thats about all i've got to bring up for 1) net status - anyone else have anything to add?</p>
+13:21 < jrandom> if not, moving on to 2) mail.i2p</p>
+13:21 < jrandom> postman: you've got the floor</p>
+13:22 <+postman> ok</p>
+13:22 <+postman> sorry</p>
+13:22 <+postman> :)</p>
+13:23 <+postman> there's a description for a complete handling of virtual maildomains on www.postman.i2p/user/virtual</p>
+13:23 <+postman> there's a description for a complete handling of virtual maildomains on www.postman.i2p/user/virtual.html</p>
+13:23 <+postman> (too much red wine)</p>
+13:23 < dm> this is a very unprofessional presentation!</p>
+13:23 <+postman> it tries to explain a system how to handle maildomains other than @mail.i2p addresses</p>
+13:23 < frosk> :D</p>
+13:24  * orion smacks dm in the head with the chalkboard eraser.</p>
+13:24 < frosk> does that i can have frosk@frosk.i2p?</p>
+13:24 <+postman> frosk: indeed</p>
+13:24 < jrandom> v.cool</p>
+13:24 <+polecat> The question is, why?  :3</p>
+13:24 <+postman> it's quite complex, still i ask for comments and ideas for this one</p>
+13:24 < cervantes> s/eraser/</p>
+13:24 < frosk> froody cool</p>
+13:25 <+postman> it might not be a needed feature for a few ppl but the future is bright and shiny</p>
+13:25 < jrandom> there are lots of reasons why - e.g. giving each user @ forum.i2p a mail address, etc</p>
+13:25 < susi23> its a central system bound to postman.i2p</p>
+13:25 <+polecat> Yes, that much seems clear.</p>
+13:25 < susi23> if that machine fails, we're all upset :)</p>
+13:25 <+polecat> jrandom: But if it all has to go through mail.i2p in the first place...</p>
+13:25  * postman is VERY aware of this problem </p>
+13:26 <+postman> :/</p>
+13:26 < jrandom> polecat: perhaps, but perhaps not</p>
+13:26 <+polecat> susi23: exactly!</p>
+13:26 <+postman> the recent implementation is indeed quite single point of failure </p>
+13:26 <+postman> but this applys to the internet bridge as well</p>
+13:27 < jrandom> oh, the second gateway isn't in place yet?</p>
+13:27 <+polecat> One solution is to put multiple destinations in the client SMTP/POP3 tunnels, and have all these destinations relay only with each other.</p>
+13:27 <+postman> jrandom: no baffled has not setup yet</p>
+13:27 < jrandom> ah ok</p>
+13:27 <+postman> polecat: and on WHAT pop3 server should YOUR mailbox reside</p>
+13:27 < orion> shiny is good, but how tould that virtual address relate to an internet address?  I like the fact that orion@mail.i2p and orion@i2pmail.org are both usable.</p>
+13:27 < orion> s/usable/identical/</p>
+13:28 <+postman> polecat: who wants to transfer 100MBs of mailbox data every day in 1 year for all 10000 users?</p>
+13:28 <+postman> orion: they will be usable</p>
+13:28 <+polecat> instead of going mail.i2p -&gt; polecat.i2p -&gt; frosk@baffled.i2p, it could go to either of the 3, and from there straight to baffled.</p>
+13:29 <+postman> i ask all ppl interested to contribute some ideas</p>
+13:29 <+postman> still the virtual domains is a feature that appears useful and can be implemented regardless of the state of the network</p>
+13:29 <+polecat> So if mail.i2p ever dies, the other two will have their server tunnels available as alternatives into the mail relay system.</p>
+13:30 <+postman> polecat: still there is the question of your mailbox </p>
+13:30 <+postman> polecat: your mailbox data must be moved as well and kept synchronized between ALL possible location</p>
+13:30 <+polecat> Ugh... yeah that's true...</p>
+13:30 <+postman> polecat: just consider this for 1000 users in the future</p>
+13:30 < susi23> everybody could set up a destination on their nodes where mails are delivered to... now we have to problem to connect destinations to mail addresses</p>
+13:30 <+postman> it's not THAT easy</p>
+13:30 <+polecat> Oh!  But this would work though...</p>
+13:30 <+postman> indeed</p>
+13:31 <+postman> otoh the problem of relaying from and to the internet is still there</p>
+13:31 < dm> jrandom: you're enjoying this, aren't you?</p>
+13:31 <+polecat> Yes!  A user chooses which server to have their POP3 mailbox on, and that is the server they choose as destination for the POP3 tunnel.</p>
+13:31 <+postman> polecat: what if THIS server fails?</p>
+13:32 <+polecat> So mail.i2p and polecat.i2p never even have to see baffled's POP3 mailbox, since all of baffled's POP3 users download straight from baffled.</p>
+13:32 <+postman> a real redundant system will require a mailbox sync</p>
+13:32 < susi23> yeah, but with such a system everybody could deliver mails within i2p, even if postman.i2p would not be there</p>
+13:32 <+polecat> postman: Then they have to change servers.  -.-</p>
+13:32 < dm> Students having an intelligent conversation between each other. A professor's dream :)</p>
+13:32 <+postman> well, the meeting is hardly the place to DISCUSS all those things</p>
+13:33 <+postman> i am just here to trigger the discussion</p>
+13:33 <+postman> read the document first please and AFTER THAT i am ready to hear your comments</p>
+13:33 <+postman> 2.</p>
+13:33 <+polecat> Alright, so mail.i2p is in the works, and attempting to become less centralized and single point failurey.</p>
+13:33 <+postman> we officially crossed the 100 users with 110 registered accounts</p>
+13:33 <+postman> just FYI</p>
+13:33 < jrandom> w00t</p>
+13:34 <+postman> thats all for today :)</p>
+13:34 <+postman> thanks </p>
+13:34  * dm applauds</p>
+13:34 < jrandom> kickass, thanks postman.  it all looks promising</p>
+13:34 <+postman> :)</p>
+13:35 < mule2> i'd like to bring up a topic on mail, but after the meeting</p>
+13:35 < jrandom> perhaps some mail-decentralization discussions could go on over the list or on the forum?  but for now what you've got set up more than meets our needs</p>
+13:35 <+postman> there's even a channel for it</p>
+13:35 <+postman> :)</p>
+13:35 < jrandom> heh good point </p>
+13:35 < frosk> which one?</p>
+13:36 < jrandom> #mail.i2p</p>
+13:36 <+postman> frosk: #mail.i2p</p>
+13:36 <+polecat> Oh, one quick note I just surprised myself by getting a little perl caching SMTP server going, so emacs doesn't hang waiting for postman's SMTP server to respond over i2p.</p>
+13:36 < frosk> ok</p>
+13:36 <+polecat> I might post some code later, if it works like, really well.</p>
+13:36 < jrandom> oh, kickass polecat </p>
+13:36 < cervantes> postman: you're welcome to have a dedicated section on the forum</p>
+13:37 <+postman> cervantes: ohh thanks</p>
+13:37  * postman feels honoured :)</p>
+13:37 < dm> You deserve it</p>
+13:38  * postman hands the mike back to hr</p>
+13:38  * postman hands the mike back to jr</p>
+13:38 <+postman> damn</p>
+13:38 <+postman> :)</p>
+13:38 < jrandom> ok, if there's nothing else on 2) mail.i2p, lets jump on over to 3) roadmap</p>
+13:38 <+polecat> vroom vroom!</p>
+13:38 < jrandom> the old roadmap was looking a little... out of date</p>
+13:39 < jrandom> the new one reflects the current view of things</p>
+13:39 < jrandom> hopefully the schedule listed has enough padding, though if more people jump on board perhaps we can beat those estimates :)</p>
+13:40 < jrandom> once we've hit 0.6, we'll be able to scale to large numbers of nodes, as we wont have the thread-imposed ceiling</p>
+13:41 < frosk> what do you think is a realistic node limit for &lt; 0.6?</p>
+13:41 < jrandom> prior to 0.6 though, we'll probably need to stay under 200 active nodes, though we can probably stop being so lazy and actively kill some connections</p>
+13:41 < jrandom> with some care, i think we'll be able to get up to 3-500</p>
+13:42 < mule2> so no slashdotting please</p>
+13:42 < jrandom> we'd have connection churn at that point, but our low-cost tcp transport shouldn't hurt too much</p>
+13:42 < Pseudonym> the roadmap for 0.6 doesn't mention that. just udp and content dist</p>
+13:42 < Pseudonym> or is it the udp that fixes it?</p>
+13:42  * orion votes for no slashdotting ever</p>
+13:43 < jrandom> Pseudonym: udp fixes it (http://www.i2p.net/todo#transport )</p>
+13:43 < cervantes> postman: http://forum.i2p/viewforum.php?f=22</p>
+13:44 < Pseudonym> orion: I disagree. to get real anonymity we're going to need LOTS of nodes eventually</p>
+13:44 < Pseudonym> at some point we have to tell people about it</p>
+13:44 < jrandom> agreed.  when we need 'em, we'll definitely want to do all sorts of PR</p>
+13:44 < jrandom> the geek crowd will likely be a large part of the userbase</p>
+13:44 < Pseudonym> when do we announce to the geek community? not as a finished product but as a beta for tire-kicking</p>
+13:44 < Frooze> Ask JRandom</p>
+13:45 <+polecat> I think we should be very careful about making this network too popular.</p>
+13:45 < jrandom> Pseudonym: when we've done the best tire kicking we can without them</p>
+13:45 <+polecat> Because one of these days someone is going to use it to do something horrible and illegal.</p>
+13:45 <+polecat> And if we can be tracked down at that point, we will be persecuted right along with the criminal.</p>
+13:46 < jrandom> basically, once the network works great consistently and we're not able to do tihngs to b0rk it up, /then/ we'll need to get more users to help break/test it</p>
+13:47 < mule2> you have to kick me off before :9</p>
+13:47 < Pseudonym> just don't fall into the same trend as Toad with freenet</p>
+13:47 <+polecat> Because we gave them the freedom to post the source code for Windows XPQXR, and Halo 7, so we'd better as all heck have good anonymity protection.</p>
+13:47 < orion> speaking of b0rking... was that time-skew bug ever identified?</p>
+13:47 < jrandom> Pseudonym: i believe our roadmap is realistic</p>
+13:48 < jrandom> polecat: agreed, people shouldn't use i2p for things that are 'dangerous' yet</p>
+13:48 < jrandom> orion: no</p>
+13:48 < Pseudonym> jr: I'm not complaining about the roadmap. but it doesn't address announcements</p>
+13:48 < jrandom> true</p>
+13:49 < dm> well, with 2 years of development/testing under its belt, it should be one of the most polished offerings of this type when it launches :)</p>
+13:49 < Pseudonym> perhaps add slashdotting to 0.6? :-)</p>
+13:49 <+polecat> jrandom: More importantly, people who would use i2p for things that dangerous would do us a lot of good if they didn't know about i2p just yet.</p>
+13:49 < jrandom> i was thinking about that the other day.  perhaps some announcements for other activities (e.g. I2PContent) would make sense, to draw more people in to work on them</p>
+13:49 < dm> as opposed the usual level of maturity when things go big</p>
+13:50 < ant> &lt;jnymo&gt; i think jrandom should write the slashdot article.. he's best at describing i2p, i think</p>
+13:50  * Pseudonym agrees</p>
+13:51 < dm> I'm sure something will go on there before jrandom is comfortable to do it himself ;)</p>
+13:51 < Pseudonym> I'm just trying to nudge him a bit</p>
+13:51 < jrandom> heh</p>
+13:51 < jrandom> well, with 0.6 we'll want to attract a larger user base in any case</p>
+13:51 < Pseudonym> I figure if I can't code, I can at least pester the people who can</p>
+13:51  * jrandom flings mud</p>
+13:52 <+polecat> dm: I'm sure the Second Coming will pass before jrandom is comfortable enough to /. i2p  ;3</p>
+13:52  * Pseudonym ducks. quack</p>
+13:52 < jrandom> ok, in any case, anyone have anything else to discuss wrt the roadmap?</p>
+13:52 < jrandom> or shall we move on to 4) I2PContent ?</p>
+13:53 -!- Irssi: #i2p: Total of 36 nicks [1 ops, 0 halfops, 3 voices, 32 normal]</p>
+13:53 < jrandom> frosk: ping</p>
+13:53  * frosk grabs the wireless mic</p>
+13:54 < cervantes> *zzzzzZzzzzttt*</p>
+13:54  * orion plugs in his RF jammer. ;)</p>
+13:54 <+polecat> I have been trying to get ahold of frosk, without luck as such yet.  Frankly I think I might never see em on IRC, and eir email is a sightless void.</p>
+13:54 < frosk> well, jrandom put this "distributed content infrastructure" on the new roadmap for 0.6, and after hearing some thoughts about it here, it sounded really interesting, and i figure i should do whatever my skills allow to beat the schedule ;)</p>
+13:54  * dm looks at polecat</p>
+13:54 <+polecat> *shakes head*  Just no luck whatsoever.  No where to be FOUND.  Maybe frosk is invisible!</p>
+13:55 < frosk> "i2pcontent" is so far a document at frosk.i2p</p>
+13:55 < Pseudonym> how is I2PContent different from i2p-bt?</p>
+13:55  * polecat is on 4.4 atm.</p>
+13:55 < frosk> it merges the ideas i've heard with my own, and it has gone through some revisions with helpful comments and suggestsions from jrandom and others, and i think it's starting to look very cool :)</p>
+13:55 < ant> * jnymo tries to find a postscript viewer to see these ideas.. :/</p>
+13:56 < dm> what is it, I can't get to frosk.i2p. Executive summary?</p>
+13:56 <+polecat> Pseudonym: i2p-bt only applies to 1 file at a time, and is a swarming download.</p>
+13:56 < frosk> Pseudonym: i2pcontent is a lot like Usenet</p>
+13:56 < frosk> it merges concepts from usenet and freenet. i shall refrain from calling it "frusenet".</p>
+13:56 < jrandom> lol</p>
+13:56 <+polecat> Did you get my suggestion on i2pcontent?</p>
+13:56 < jrandom> frusenet has a ring to it...</p>
+13:56 < frosk> i2pcontent lets you post messages to your blog or to public forums, and publish your address book for others to import</p>
+13:56  * dm did not refrain from calling it frazaa</p>
+13:56 <+polecat> It merges usenet, freenet and livejournal.  So.... Fusejournal?</p>
+13:56 < jrandom> rofl</p>
+13:57 < frosk> hm, yeah, LJ too ;)</p>
+13:57 <+polecat> Lj is the closest parallel I've found.</p>
+13:57 <+polecat> But here's one thing I didn't read in your i2pcontent document.</p>
+13:57 < frosk> anyway, at this point i really want it well designed, so i urge anyone who's interested to read the document and make suggestions</p>
+13:57 < orion> LiveFuseNet.</p>
+13:58 <+polecat> What about making it so only a few people can /read/ a group?  Not so much encrypting it, but preventing its existence from even being known.</p>
+13:58 < dm> How about: Contnet? ContNet</p>
+13:58 < dm> Content, Contnet... get it? eh???</p>
+13:58 < susi23> jnymo: regarding postscript, I kindly asked frosk to supply us with pdf *blush*</p>
+13:58 < frosk> polecat: that may be interesting, yeah. it's hard to fit into the current design, though</p>
+13:58 < jrandom> i'm not sure, it sounds pretty doable</p>
+13:59 <+polecat> I want HTML or plain text myself.  -.-  Don't like bitmap ps readers. -.-</p>
+13:59 < jrandom> rather than offering a group for syndication, only trusted/known users can get the group</p>
+13:59 < jrandom> (off trusted/known syndication nodes)</p>
+13:59 < frosk> polecat: http://frosk.i2p/i2pcontent-3.pdf if you can handle pdf's :)</p>
+13:59 < jrandom> kind of like usenet's "Distribution:" header</p>
+13:59 < susi23> polecat: ps is not bitmap :P</p>
+13:59 <+polecat> frosk: It's important though, if you want to have things like private mailboxes, or secret groups, or livejournal's ability to block text to all but certain friends.  Also moderated forums will probably be important to have that.</p>
+13:59 < frosk> hm, yeah</p>
+14:00 < frosk> polecat: blocking to all but friends can be handled with encryption</p>
+14:00 <+polecat> frosk: My PDF reader is this: $ pdf2ps file.pdf &gt; file.ps; gs file.ps</p>
+14:00 < jrandom> polecat: you had a good suggestion for moderated forums the other day - an unmoderated submission queue, with moderators posting to the "real" group</p>
+14:01 <+polecat> frosk: Encryption is good, and hopefully somewhat transparent.  Otherwise users will have to type text in an xterm running gpg, copy it and paste it to the journal window.  &gt;.&lt;</p>
+14:01 <+polecat> jrandom: Yes, but ideally the submission queue should be invisible to all but the moderators.</p>
+14:01 < frosk> polecat: oh, transparency is an important keyword in the whole thing :)</p>
+14:01 < jrandom> polecat: you'd lose 99% of the target audience if you say "xterm"</p>
+14:02 <+polecat> jrandom: Heathens!  A grep on them!</p>
+14:02 < ant> &lt;jnymo&gt; mmmmm.. what's usenet?</p>
+14:02 < ant> &lt;jnymo&gt; I mean i've heard of it.. but</p>
+14:02 < susi23> jnymo: news, nntp, google -&gt; groups</p>
+14:02 < frosk> http://en.wikipedia.org/Usenet :)</p>
+14:03 <+polecat> jnymo: newsgroups, eh?</p>
+14:03 < dm> It's good for random porn downloads.</p>
+14:03 < frosk> it's basically the world's oldest and most proven p2p net, as jrandom wrote today</p>
+14:03 < ant> &lt;jnymo&gt; so you can post files up? or links to files?</p>
+14:03 < jrandom> and its bloody resiliant</p>
+14:03 < susi23> dm: its 'use'ful for random porn downloads :P</p>
+14:03 <+polecat> dm: I suppose, if you can find the porn around all the spam.</p>
+14:04 < frosk> it's first and foremost for discussion groups, but it's widely used for files too</p>
+14:04 <+polecat> There's another issue actually.  Spam and all..</p>
+14:04  * dm used to run a 'porn downloader'. It worked well.</p>
+14:04 < ant> &lt;jnymo&gt; so its like the forum format of irc?</p>
+14:04 < frosk> i have thought about spam on i2pcontent, and i don't look forward to it ;)</p>
+14:04  * susi23 points back to topic *blush*</p>
+14:04 <+polecat> We can't have open forums, or at least we can't only have forums with 1 author, and forums without restriction.  We need some kind of happy medium where multiple people can post, but not unauthorized people.</p>
+14:04 <+dinoman> i have just 1 thing to ask would i have to run this ie is it going to be part of i2p?</p>
+14:05 < frosk> polecat: i2pcontent has that (groups of users editing one blog)</p>
+14:05 < dm> It's amazing usenet is so big considering how few people actually use it.</p>
+14:05 < dm> Average Joe doesn't know what usenet is.</p>
+14:05 < jrandom> dinoman: its an application, definitely not required</p>
+14:06 <+dinoman> :)</p>
+14:06 < ant> &lt;jnymo&gt; yea.. i'm average joe</p>
+14:06 < frosk> but hopefully distributed with i2p ;)</p>
+14:06 <+polecat> So pretty much you have a list of sha4 in meta.group.*, one list for approved syndicators/readers, one for writers, one for owners, etc...</p>
+14:06 < jrandom> (but i can see no reason why not use it, as 1) installing it doesn't add *any* overhead to your machine 2) lots of good features :)</p>
+14:07 < jrandom> frosk: definitely </p>
+14:07 < dm> Google seems to be giving it some exposure. It should be presented as "the biggest message board in the world", and have a similar UI to the usual forums.</p>
+14:07 <+polecat> jrandom: Why would you say *no* overhead?  c.c</p>
+14:07 <+polecat> Just because you have to select syndicates and blogs to read, before you will download them?</p>
+14:07 < jrandom> jnymo: a usenet-like itnerface to the i2p mailing list: http://news.gmane.org/gmane.network.i2p</p>
+14:08 < jrandom> polecat: no, 0 overhead if you don't use it</p>
+14:08 < frosk> polecat: groups have one owner who can add users. as for "secret" message namespaces, i haven't thought about that till now :)</p>
+14:08 < jrandom> (as in, just having it installed doesnt make your machine a public data store, etc)</p>
+14:08 -!- ]Replica[ is now known as ]Replica|zZz[</p>
+14:08 < jrandom> and there will probably be i2p announcements done over secure blogs in i2p, worth reading, etc</p>
+14:08 <+polecat> frosk: No reason it can't have multiple owners, though only one could go in the sha for the name.  :3  Just allow multiple people to modify the meta.* stuff for that group.</p>
+14:09 < frosk> so in closing, if you're interested in helping out, read the document at frosk.i2p and let's talk :) anything else on i2pcontent?</p>
+14:09 <+dinoman> oh so it is not freenet over i2p!</p>
+14:09 < frosk> (i have quite a lag here right now)</p>
+14:09 < jrandom> right dinoman, definitely not</p>
+14:09 < susi23> data organized in "newsgroups" would be great...simply delete/unsubscribe i2p.childporn.* ...</p>
+14:09 <+polecat> dinoman: En. Oh.</p>
+14:10 < ant> &lt;jnymo&gt; jrandom: ah.. that's cool</p>
+14:10 < jrandom> word frosk.  this is definitely some cool shit, and people should throw tons of email at you, and read your blog :)</p>
+14:10 < ant> &lt;jnymo&gt; useful ;)</p>
+14:10 <+polecat> susi23: Right, and if nobody wants to syndicate it, then nobody has to help move it around.</p>
+14:10 < frosk> polecat: yeah, though it adds a bit of complexity, and i'm a simplicity freak ;)</p>
+14:10 < jrandom> jnymo: aye.  but we can do some really cool shit beyond that, making things look like http://www.livejournal.com/ or blogger or whatever</p>
+14:11 < jrandom> yeah, its best not to aim too high at the start (&lt;/lesson learned&gt;).  go for the simplest thing that could possible work, with hooks for later improvement</p>
+14:11 < frosk> the rendering is of course 100% up to the user client (web interface that looks like LJ? ok. slashdot-like? fine! etc :)</p>
+14:12 <+polecat> frosk: I just think permissions should be generalized, and not "only one" for owner, "just a few" for writer, "everybody and their mother" for reader, unless the forum itself specifies those permissions.  Otherwise you're hardcoding many types of authorization.</p>
+14:12 < frosk> jrandom: yes, extensionability is king</p>
+14:12 < frosk> which is why a sound design from the start is important</p>
+14:13 <+dinoman> so let me see if i get this to me (end user) this is going to work like newsgroups.</p>
+14:13 < frosk> polecat: agree</p>
+14:13 <+polecat> dinoman: More like Livejournal, but yes.</p>
+14:14 <+dinoman> well i could learn to like this idea!</p>
+14:14 < frosk> technically it's like newsgroups (on speed), but on the surface it can be like livejournal</p>
+14:14 <+polecat> frosk: Also not like LIvejournal, in that it's decentralized Usenet style.  So the user has to pick syndicates, instead of the one syndicate LJ.</p>
+14:15 < frosk> polecat: yes. the user software does the syndicate picking in most cases though, so most users won't have to know about many technicalities</p>
+14:16 <+polecat> Hmm... perhaps.  You'd have to have a way for the software to find the syndicates though.  Aside from the user copying the hash from IRC into the i2pcontent add syndicate box.</p>
+14:17 < jrandom> polecat: syndicate(s) used are included in the meta.* post</p>
+14:17 < frosk> polecat: yes, i2pcontent comes with a few "seed syndicates", and the user asks them for more</p>
+14:17 < ant> &lt;Asciiwhite&gt; frost, livejournal?, sounds brillient...</p>
+14:17 <+polecat> jrandom: You need a syndicate to get a meta.* post.  8)  frosk: yeah something like that, cool.</p>
+14:17 < frosk> ah yes, frost people will love i2pcontent ;)</p>
+14:18 < jrandom> heh true</p>
+14:18 < frosk> jrandom: that wasn't my plan, but it sounds very smart, actually :)</p>
+14:18 < frosk> the current syndicate database is a sore point in some ways</p>
+14:18 < jrandom> i thought i saw it in one of your .ps files, perhaps it was just in a conversation though</p>
+14:19 <+polecat> Make it a kademelia DHT!  X3</p>
+14:19  * jrandom groans</p>
+14:19 < jrandom> but yeah, there are lots of optimizations on the syndicate database that can be done</p>
+14:19 < frosk> perhaps you're just thinking smart thoughts and exchange what you read with that ;)</p>
+14:19 < jrandom> lol</p>
+14:19 < ant> &lt;jnymo&gt; so can you embed html?</p>
+14:19 <+polecat> *chants*  DHT DHT DHT USA US--</p>
+14:19 < jrandom> jnym: any content</p>
+14:20 <+polecat> jnymo: Either that or some sort of bbcode type thing.</p>
+14:20 < jrandom> yeah, rendering would be safest with a bbcode-like syntax</p>
+14:20 < dm> frosk: would you like a dedicated section on cervantes' forum?</p>
+14:20 < frosk> blogs and forums will expect text with some markup like bbcode</p>
+14:20 < frosk> dm: i think it's kind of early yet :)</p>
+14:21 < dm> frosk: consider it done!</p>
+14:21 < cervantes> dm: would you like a private sound proof section on my forum?</p>
+14:21 < dm> cervantes: make it so.</p>
+14:21 < frosk> while i'm still on, please not that "i2pcontent" is just a dummy name since i didn't want to insult jrandom by calling it MyI2P ;) we need a more catchy name</p>
+14:21 < dm> how about... contnet?</p>
+14:22 < jrandom> frusejournalrent</p>
+14:22 < frosk> i like!</p>
+14:22  * dm rubs his hands in excitement</p>
+14:22 < jrandom> &lt;/fark&gt;</p>
+14:22 < dm> &lt;/stupid jrandom tag&gt;</p>
+14:22 <+polecat> usejournalforrent?</p>
+14:22 < ant> &lt;jnymo&gt; fusenet sounded pretty cool</p>
+14:22 <+protokol> eepnet</p>
+14:22 <+postman> uupnet :)</p>
+14:22 < lurk> froops</p>
+14:23 <+postman> LOL</p>
+14:23 < dm> nnnnnnnnnnnntp</p>
+14:23 <+postman> silly persons</p>
+14:23 <+polecat> "frosk's catchy name for a content distribution syndicate network." We could say "Fcnfacdsn was inspired by Usenet..."</p>
+14:23 < ant> &lt;Asciiwhite&gt; yeah i thought frusenet was good.</p>
+14:23 < frosk> :D</p>
+14:23 < jrandom> ok, please direct all silly names to frosk@mail.i2p :)</p>
+14:23 <+polecat> frootloops!</p>
+14:23 < frosk> i tried frusenet on a friend, he said "... or not."</p>
+14:23 < jrandom> (along with any comments/concerns/etc)</p>
+14:24 < frosk> although fusenet has a cool ring to it :)</p>
+14:24 < dm> How about just 'Content' ?</p>
+14:24 <+polecat> I like fusenet, it sounds... volatile.</p>
+14:24 <+polecat> So yes.  Quieting down now.</p>
+14:24 < Pseudonym> nn2p</p>
+14:24 < dm> Nice and dinstinguished</p>
+14:24 < jrandom> ooOOo</p>
+14:24 < frosk> anyway, i'm not last on the agenda, we might want to move on ;)</p>
+14:24 <+postman> NN2P is COOL</p>
+14:24 < ant> &lt;jnymo&gt; if you had html.. you could have what looks like the net... inside froozlednet</p>
+14:24 < jrandom> ok, moving on to 5) i2p-bt</p>
+14:24 < jrandom> duck: you 'round?</p>
+14:24 <@duck> meep</p>
+14:24 < frosk> dm: "Content" is probably trademarked by Apple or whatever ;)</p>
+14:25 < ant> &lt;Asciiwhite&gt; owww, is this a minutes ?</p>
+14:25 <@duck> i2p-bt events this week:</p>
+14:25 < dm> speeddating!@</p>
+14:26 <@duck> - rss available on the trackers</p>
+14:26 <@duck> - silly attempts to make a metatracker in #eeprnova</p>
+14:26 < ant> &lt;jnymo&gt; noice</p>
+14:26 < ant> &lt;Asciiwhite&gt; yeah, great idea.</p>
+14:26 <+polecat> I still wish we could find a better codebase than that blasted bittorrent python source...</p>
+14:26 < ant> &lt;Asciiwhite&gt; What about support for say samplers(i.e video/pics)</p>
+14:26 <@duck> - some detailed code review leading to not finding bugs</p>
+14:26 <@duck> most of the scary looking errors are pretty harmless</p>
+14:27 <@duck> - I forgot</p>
+14:27 <@duck> .</p>
+14:27 < jrandom> word</p>
+14:27 < jrandom> i've been watching the streaming lib activity while swarming, and there have been some improvements in cvs</p>
+14:28 <+polecat> A metatracker lets you find trackers for files...?</p>
+14:28 < ant> &lt;Asciiwhite&gt; so people can upload a small sample of video quality, or a thumbnail etc.</p>
+14:28 < jrandom> (to keep up with the bt setup)</p>
+14:28 <+polecat> jrandom: Improvements as of what date, this morning?  :3</p>
+14:28 <@duck> polecat: yeah, well this one just announces new files into a channel; but it could be enhanced</p>
+14:28 < jrandom> a day or two ago</p>
+14:29 <+polecat> Just checking, because last time I got CVS Head, you updated to 0.4.3 a few hours later.</p>
+14:29 < ant> &lt;jnymo&gt; yea.. is there some idea for i2ptorrent search some where down the eschelons?</p>
+14:29 < jrandom> one of the neat things though is that i believe the main remaining i2p-bt bumps we're seeing are actually just i2p/streaming lib/sam problems</p>
+14:30 <+polecat> Someone'd have to write a searching server, maybe by keyword and such.</p>
+14:30 <@duck> or an irc bot</p>
+14:30 < jrandom> jnymo: http://brittneyworld.i2p/bittorrent/</p>
+14:30 < jrandom> polecat: files.i2p/</p>
+14:30 < ant> &lt;jnymo&gt; hmm</p>
+14:30 < ant> &lt;jnymo&gt; mmhmm.. yea. mk</p>
+14:30 <+polecat> duck: Well a server to search, whether a bot or a eepsite like files.i2p...</p>
+14:31 <@duck> if someone needs rss etc enhancements on the tracker for their bots etc, let me know</p>
+14:31 < ant> &lt;jnymo&gt; hmm.. seems brittanyworld.i2p is down at the moment</p>
+14:32 < jrandom> since it seems the remaining problems are i2p related, not i2p-bt related, we've marked the swarming file transfer bounty as completed</p>
+14:32 < jrandom> (yay!)</p>
+14:32 < ant> &lt;jnymo&gt; anyhoo</p>
+14:32 < ant> * jnymo tips his hat</p>
+14:32 < frosk> congrats to all involved, you rock</p>
+14:33 < jrandom> aye, thanks to all the hard work of duck, ragnarok, dinoman, connelly, and drwoo</p>
+14:33 <+polecat> ragnaroks! dinoman's da man!  Um...</p>
+14:33 < ant> &lt;Asciiwhite&gt; nice work duck.</p>
+14:33 <+polecat> I still want to get ctorrent ported to i2p.  It's a wicked efficient bittorrent thingy, if a little flaky on the UI.</p>
+14:34 < dm> good work</p>
+14:35 <+polecat> Anyone know where the info about SAM proxies is?</p>
+14:36 < jrandom> about half of our general fund went towards that bounty, so our current balance is around $400USD [after some new donations today [yay!]]</p>
+14:36 < jrandom> polecat: http://www.i2p.net/sam</p>
+14:37 <+polecat> jrandom: Doing a swarming file transfer cost like, money?  o.O</p>
+14:37 <+polecat> Ohh right the reward.</p>
+14:37 < Pseudonym> it'd be kinda cool to have the general fund balance on the website</p>
+14:37 < jrandom> right polecat :)</p>
+14:37 < jrandom> thats a good idea Pseudonym </p>
+14:38 < Pseudonym> doesn't have to be updated daily, just occasionally</p>
+14:38 < jrandom> i'll add it on to /bounties (sound good?)</p>
+14:38 < Pseudonym> sure</p>
+14:38 <+protokol> dont tell me they are keeping the hello chat room</p>
+14:38 < cervantes> if he did that we'd all see how much it goes down whenever jrandom goes out for a pie and a pint lunch </p>
+14:39 < jrandom> heh cervantes </p>
+14:39 < Pseudonym> didn't somebody donate money for jrandom's beer?</p>
+14:40 < cervantes> enough for half a pint at todays rates :)</p>
+14:40 < jrandom> yeah we've had a few beer donations :)</p>
+14:40 < jrandom> (list of donations up @ http://www.i2p.net/halloffame )</p>
+14:40 < Pseudonym> are you spending them?</p>
+14:41 < cervantes> nice...someone has money to burn I see ;-)</p>
+14:41 < ant> &lt;Asciiwhite&gt; anonymous</p>
+14:41 < ant> &lt;Asciiwhite&gt; $5.00 USD</p>
+14:41 < ant> &lt;Asciiwhite&gt; buy jrandom a beer fund</p>
+14:41 < ant> &lt;Asciiwhite&gt; lol</p>
+14:42 < jrandom> it would be nice if we can grow the bounties on the CDN, as thats a truckload of work</p>
+14:42 < jrandom> but we'll see how it goes over time</p>
+14:42 < jrandom> ok, i think we're pretty off track for 5) i2p-bt</p>
+14:42 < jrandom> so i suppose we should move to 6) ???</p>
+14:42 <@duck> nothing to add here.</p>
+14:43 < jrandom> is there anything else people would like to bring up?</p>
+14:43 <@duck> - why do so many ppl have problems when they specify a hostname?</p>
+14:43 < jrandom> not sure</p>
+14:43 < jrandom> both of my routers use an explicit hostname</p>
+14:43 <@duck> mine too, np</p>
+14:44 <@duck> maybe the warning text should be more negative</p>
+14:44 < jdot_> do we have a way to change keys on hostnames in hosts.txt?</p>
+14:44 < jrandom> sounds good duck </p>
+14:44 <+polecat> Regarding addressbook...</p>
+14:44 < jrandom> jdot_: no, not really, especially in light of the addressbook</p>
+14:44 < jdot_> like, if I lost my previous eepsite key.  :(</p>
+14:44 < mule2> same here - but i have problems :)</p>
+14:44 <+polecat> Addressbook is going to be fused with i2pcontent, right?</p>
+14:45 < mule2> but don't think these result from the hostname</p>
+14:45 < Pseudonym> do we have a working addressbook?</p>
+14:45 <+polecat> You subscribe to an addressbook just like you subscribe to a blog... except it overwrites userhosts.txt and such.</p>
+14:45 < jrandom> polecat: distributing addressbooks through i2pcontent makes sense, yeah</p>
+14:45 < jrandom> Pseudonym: http://ragnarok.i2p/</p>
+14:45 <+polecat> Pseudonym: http://polecat.i2p/addressbook.pl.zip</p>
+14:45 < jrandom> and http://pole...er, what he said</p>
+14:45 < Pseudonym> thanks</p>
+14:46 < jrandom> i think there's also another one at http://orion.i2p too</p>
+14:46 < frosk> polecat: "overwrite" sounds dramatic. it "merges" ;)</p>
+14:47 <+polecat> Yeah... I saw orion's too.</p>
+14:47 < jdot_> dang</p>
+14:47 < jrandom> jdot_: so it looks like you're outa luck :/</p>
+14:47 < jrandom> ok, anyone else have anything for the meeting?</p>
+14:48 < dm> merry xmas</p>
+14:48 <+polecat> jdot: Thankfully when we've got fusenet working, you can update your i2p key with that eventually.</p>
+14:49 < ant> &lt;Asciiwhite&gt; dm, 15th of december here :)</p>
+14:49 < jrandom> and a happy Chanukah</p>
+14:49 <+polecat> Christ was born in September, what's everyone all celebrating about?</p>
+14:49 <+polecat> I'll stick with Yule thanks muchly.</p>
+14:49 < jrandom> ok if thats it...</p>
+14:49  * jrandom winds up</p>
+14:50  * jrandom *baf*s the meeting closed</p>
+</div>
+{% endblock %}

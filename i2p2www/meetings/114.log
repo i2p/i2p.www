@@ -1,0 +1,404 @@
+{% extends "_layout.html" %}
+{% block title %}I2P Development Meeting 114{% endblock %}
+{% block content %}<h3>I2P dev meeting, November 2, 2004</h3>
+<div class="irclog">
+13:37 < jrandom> 0) hi</p>
+13:37 < jrandom> 1) Net status</p>
+13:37 < jrandom> 2) Core updates</p>
+13:37 < jrandom> 3) Streaming lib</p>
+13:37 < jrandom> 4) mail.i2p progress</p>
+13:38 < jrandom> 5) BT progress</p>
+13:38 < jrandom> 6) ???</p>
+13:38 < jrandom> 0) hi</p>
+13:38 < jrandom> sorry for the delay, weekly status notes posted @ http://dev.i2p.net/pipermail/i2p/2004-November/000477.html</p>
+13:38 < dm> meeting in 24 or 84?</p>
+13:38 < jrandom> 0</p>
+13:38 < dm> oh.. -36?</p>
+13:39 < jrandom> yup, 9p GMT</p>
+13:39 < jrandom> but i forgot that, so we're starting... now ;)</p>
+13:39 < jrandom> 1) net status</p>
+13:39 < dm> good timing</p>
+13:39 < jrandom> well, no real change in the net status from my end - does anyone have anything they'd like to bring up about it?</p>
+13:41 < jrandom> if not, might as well move on to 2) core updates</p>
+13:41 < jrandom> i dont really have anything to add beyond whats in the email, so i'll give people a min to digest</p>
+13:42 < deer> &lt;postman&gt; arg</p>
+13:42 < jrandom> there've been 8 patches since the release, with another one or two pending.  we'll probably just tag those all up into a 0.4.1.4, as the streaming lib itself isn't ready</p>
+13:43 < deer> &lt;jrandom&gt; wb, its looking a bit bumpy over here</p>
+13:43 < deer> &lt;postman&gt; np, i am back :)</p>
+13:43 < protok0l> any word on aum's disappearance? i want stasher!</p>
+13:44  * dm likes knowing that stuff is being done under the hood to optimize I2P</p>
+13:44 < jrandom> as gott quoted, diy, do or die</p>
+13:45 < jrandom> yeah, the memory churn was getting to be a substantial portion of the CPU time</p>
+13:45 < jrandom> so it was finally worth the effort to optimize</p>
+13:45 < deer> &lt;baffled&gt; Sorry, have to catch a bus I'll read the logs later night.</p>
+13:45 < deer> &lt;peer&gt; hi just a bug report</p>
+13:45 < jrandom> (as its cut down streaming lib test time by a factor of 5)</p>
+13:45 < jrandom> cool baffled, ttyl</p>
+13:46 < deer> &lt;peer&gt; when your net connection goes down, i2p dies</p>
+13:46 < dm> These are the kind of things that creep up on you, good to get them out of the way while the project is still lean.</p>
+13:46 < deer> * postman noticed this too a few days ago</p>
+13:46 < deer> &lt;postman&gt; one of my servers lost its link</p>
+13:46 < deer> &lt;postman&gt; for a few mins - after that i2p was good for a complete restart</p>
+13:46 < jrandom> dies, as in, the JVM stops, or the router stops talking to peers?</p>
+13:47 < jrandom> (it obviously stops talking to peers, i mean, after the net is back up, does it recover?)</p>
+13:47 < deer> &lt;postman&gt; jrandom: in my case jvm was still running - but no connection lead to success for about 15 minutes</p>
+13:47 < deer> &lt;postman&gt; jrandom: after that i restarted</p>
+13:47 < jrandom> hmm, ok, cool</p>
+13:48 < jrandom> thanks peer, postman.  i'll do some debugging down there</p>
+13:48 < jrandom> what OSes, btw?</p>
+13:48 < deer> &lt;postman&gt; jrandom: np - wanted to write you a mail  but forgeot</p>
+13:49 < deer> &lt;postman&gt; jrandom: Linux 2.4.recent - glibc2.3.recent jvm 1.4.05</p>
+13:49  * jrandom suspects that this week will be the week of "break shit and make i2p handle it better"</p>
+13:49 < jrandom> word</p>
+13:50 < deer> &lt;peer&gt; jrandom: in my case the jvm went completely</p>
+13:50 < jrandom> did it say OutOfMemory or have any CRIT messages?  or did it create a hs_* file inyour i2p install dir?</p>
+13:52 < jrandom> perhaps we could dig through the details later, after the meeting</p>
+13:52 < jrandom> does anyone have anything else on 2) core updates?</p>
+13:52 < jrandom> if not, on to 3) streaming lib</p>
+13:53 < dm> yeah</p>
+13:53 < dm> this increased latency</p>
+13:53 < dm> do you have an estimated % increase per hop?</p>
+13:53 < dm> we talking a couple % points or 30-40%?</p>
+13:53 < jrandom> none, its just some situations it didn't send through an outbound tunnel</p>
+13:54 < dm> so negligeable... 'kay</p>
+13:54 < dm> (on average)</p>
+13:54 < dm> 3)</p>
+13:54 < jrandom> 0% per hop, but its as if the peer you talk to has tunnels 1 hop longer than before (on average)</p>
+13:55 < jrandom> not many real visible updates for the streaming lib so far</p>
+13:55 < jrandom> things work pretty well, and i've been doing a bunch of benchmarks to track the progress during the recent memory updating</p>
+13:55 < dm> oh throughput numbers!!!</p>
+13:57 < dm> ping</p>
+13:57 < deer> &lt;Natalia&gt; .</p>
+13:57 < jrandom> well, it varied on the message size and per-hop latency injected, but preliminary throughput has been 2-5x faster</p>
+13:57 < jrandom> it has been CPU bound though</p>
+13:57 < dm> hmmm, not bad.</p>
+13:58 < dm> cpu at which end?</p>
+13:58 < jrandom> the big benefit is in the reduction of data retransmission and the virtual elimination of failure ;)</p>
+13:59 < jrandom> dm: these tests were done with the sim, injecting random delays per hop</p>
+13:59 < jrandom> (e.g. 400ms each time, or 1000ms, or 2000ms)</p>
+13:59 < dm> Is there some kind of priority scheme so that forwarding of messages of tunnels won't be too affected by people trying to download at 30k/s and maxing out their CPU?</p>
+13:59 < jrandom> (well, the *big* benefit is the sliding window and reordering, but reduction of retransmit is good)</p>
+14:00 < jrandom> not sure i understand</p>
+14:00 < dm> Like if I'm downloading porn, will I inject a 3s lag to anyone who's going through me in their tunnels.</p>
+14:00 < jrandom> (and the transfer rates were much higher than 30KBps, but again, this was local-only with random injected delays)</p>
+14:01 < dm> I'm just wondering what happens in general if someone is maxing out their CPU, as far as their contribution to the network is concerned.</p>
+14:01 < dm> I guess it's not specific to abusing the streaming lib.</p>
+14:02 < jrandom> you're not going to be maxing your CPU doing streaming, the CPU load was something i run into when using the local sim running a ton of routers on a single box</p>
+14:02 < dm> ah alright, I thought the cpu was maxed with one router trying to encrypt all the bits going down the pipe.</p>
+14:02 < jrandom> nah, encryption is ReallyReallyFast</p>
+14:03 < dm> coo'</p>
+14:03 < jrandom> ok, anyone else have any questions wrt the streaming lib progress?</p>
+14:03 < jrandom> if not, 4) mail.i2p progress</p>
+14:04 < deer> &lt;jrandom&gt; postman, you 'round?</p>
+14:04 < deer> &lt;postman&gt; yo :)</p>
+14:04 < deer> &lt;postman&gt; ok</p>
+14:04 < deer> * postman waves</p>
+14:05 < deer> &lt;postman&gt; well, gentlemen. Some of you may have noticed that we have finally implemented in/out services</p>
+14:05 < jrandom> [w00t!]</p>
+14:05 < deer> &lt;postman&gt; please reas www.postman.i2p/inout.html</p>
+14:05 < deer> &lt;postman&gt; please test the system out</p>
+14:06 < deer> &lt;postman&gt; baffled will deliver the 2nd official mx</p>
+14:06 < jrandom> word</p>
+14:06 < deer> &lt;postman&gt; right now i am working on IMAP implementation</p>
+14:07 < deer> &lt;postman&gt; this means a switch to maildir format soon</p>
+14:07 < jrandom> we'll need to recheck various clients for that though, right?</p>
+14:07 < deer> &lt;postman&gt; right now i am evaluating/testing</p>
+14:07 < jrandom> cool</p>
+14:07 < deer> &lt;Natalia&gt; why IMAP and not pop3 ?</p>
+14:07 < deer> &lt;postman&gt; yeah, and the serverside as well</p>
+14:08 < deer> &lt;postman&gt; Natalia: we have pop3 already</p>
+14:08 < deer> &lt;postman&gt; pop3 can be used of course </p>
+14:08 < deer> &lt;postman&gt; IMAP4 will make us more flexible for webmail systems (hopefully)</p>
+14:10 < deer> &lt;postman&gt; this is still open issue</p>
+14:10 < deer> &lt;Natalia&gt; okay.</p>
+14:10 < deer> &lt;Natalia&gt; you sounded like you were going to switch from pop3 to IMAP</p>
+14:11 < deer> &lt;postman&gt; no, of course not</p>
+14:11 < deer> &lt;postman&gt; jrandom: are there any news concerning locally run webmail?</p>
+14:12 < jrandom> not to my knowledge.  i havent had time to look into it at all</p>
+14:12 < deer> * postman neither</p>
+14:12 < jrandom> there were those discussions of atmail, but they're closed source</p>
+14:12 < deer> &lt;postman&gt; mmh, yes</p>
+14:13 < deer> &lt;postman&gt; but something jspish ?</p>
+14:13 < jrandom> 'twould be a really great way for a volunteer to jump in and do some legword :)</p>
+14:13 < deer> &lt;Natalia&gt; well, I've added this description to gott.i2p/sites.html</p>
+14:13 < deer> * postman is completely unable to do research on that matter</p>
+14:13 < deer> &lt;Natalia&gt; for www.postman.i2p</p>
+14:13 < deer> &lt;Natalia&gt; postman runs i2p's first mail-service, providing free and anonymous pop3 and SMTP </p>
+14:13 < deer> &lt;Natalia&gt; accounts over i2p. Recently implemented is the ability to send and receive e-mails to and </p>
+14:13 < deer> &lt;Natalia&gt; from outside of the i2p network, marking the services of www.postman.i2p as a nifty </p>
+14:13 < deer> &lt;Natalia&gt; destination for any concerned e-mailer and soon a must-have, as mail.i2p e-mail accounts </p>
+14:13 < deer> &lt;Natalia&gt; become the norm for eepsite-authors.</p>
+14:14 < deer> &lt;Natalia&gt; sound good ?</p>
+14:14 < deer> &lt;postman&gt; thanks Natalia :)</p>
+14:14 < deer> &lt;postman&gt; jrandom: i think it's not a urgent issue</p>
+14:14 < deer> * Natalia curtsies :)</p>
+14:15 < deer> &lt;postman&gt; jrandom: maybe we pick up the webmail issue later again :)</p>
+14:15 < jrandom> agreed postman</p>
+14:15 < deer> &lt;postman&gt; that's all from my side , thanks :)</p>
+14:15 < jrandom> word, thanks postman</p>
+14:15 < deer> * postman curtsie too and sits down again</p>
+14:15 < jrandom> ok, anything else on that, or shall we move on to 5) BT progress?</p>
+14:16 < deer> &lt;jrandom&gt; dinoman: you 'round?</p>
+14:16 < dm> Yeah, I'm still waiting for BT to reactivate my ADSL</p>
+14:16 < jrandom> !thwap</p>
+14:17 < deer> &lt;duck&gt; dino has done some good work</p>
+14:17 < deer> &lt;duck&gt; with Ragnarok to fix some ends</p>
+14:17 < deer> &lt;duck&gt; so far it looks like the current problems are:</p>
+14:17 < deer> &lt;duck&gt; - SAM unreliability</p>
+14:17 < deer> &lt;duck&gt; - Python SAM library issues</p>
+14:17 < deer> &lt;duck&gt; - Incorrect usage of the Python SAM lib</p>
+14:18 < deer> &lt;duck&gt; - Correct handleing of destination instead of host/ip/port</p>
+14:18 < deer> &lt;duck&gt; once those are fixed it should work</p>
+14:18 < jrandom> cool</p>
+14:19 < deer> &lt;duck&gt; I think it is needed to take a little step back though</p>
+14:19 < deer> &lt;duck&gt; and agree on how to modify the protocol to properly handle destinations</p>
+14:19 < deer> &lt;duck&gt; it will be incompatible anyway, so better break it good</p>
+14:19 < jrandom> i concur</p>
+14:20 < jrandom> perhaps someone can mock up an overall plan of what needs to be done to various apps/components to get it working</p>
+14:20 < deer> &lt;duck&gt; each peer has an unique peer_id of 20 bytes</p>
+14:20 < deer> &lt;duck&gt; it is normally derived from the host/ip</p>
+14:21 < deer> &lt;duck&gt; I think that using the full destination is a bit much</p>
+14:21 < deer> &lt;duck&gt; what globally unique thing should we use?</p>
+14:21 < jrandom> SHA1(destination)[0:19]</p>
+14:21 < jrandom> perhaps?</p>
+14:21 < deer> &lt;Ragnarok&gt; first twenty bytes of the dest? :)</p>
+14:22 < deer> &lt;duck&gt; a sha1 hash is 20 bytes</p>
+14:22 < jrandom> first 20 bytes of the dest should be pretty random too, enough to deal with random clashes, but not to deal with hostile colisions</p>
+14:22 < jrandom> even better </p>
+14:22 < deer> &lt;dinoman&gt; if you lose the key how do peers find one another</p>
+14:22 < jrandom> a peer *is* a key</p>
+14:23 < jrandom> oh</p>
+14:23  * jrandom misinterpreted</p>
+14:23 < jrandom> the tracker must give peers the full destination, not the SHA1(destination)</p>
+14:24 < jrandom> is that the same peer_id in question?</p>
+14:24 < deer> &lt;dinoman&gt; i have fixed the php tracker to send the full key as the ip</p>
+14:24 < deer> &lt;duck&gt; actually the client generates the peer_id</p>
+14:24 < deer> &lt;duck&gt; (what do you mean with 'key'?)</p>
+14:25 < deer> &lt;dinoman&gt; destination</p>
+14:25 < dm> Sounds like a who's on first skit.</p>
+14:25 < dm> Use full sentences people!</p>
+14:26 < deer> &lt;dinoman&gt; ok fine :/ the tracker sends the Full destination as the ip</p>
+14:27 < jrandom> heh dont mind dm.  sounds great</p>
+14:27 < deer> &lt;dinoman&gt; peer id is just for the trackers</p>
+14:27 < deer> &lt;duck&gt; maybe we could use #i2p-bt</p>
+14:28 < jrandom> what i think would be useful though is if you (or someone else) could perhaps draft up a list of modifications that'll need to be made</p>
+14:28 < deer> &lt;duck&gt; so no religious wars start each time the name of the snake is dropped</p>
+14:29 < deer> &lt;dinoman&gt; works for me</p>
+14:29 < deer> &lt;dinoman&gt; i don't war if it works it works</p>
+14:29 < jrandom> (e.g. "tracker sends e full destination as the IP", "client interprets the IP as the full destination", "torrent contains the tracker's destination in the field 'trackerDest'", etc)</p>
+14:29 < deer> &lt;duck&gt; definitly</p>
+14:30 < deer> &lt;dinoman&gt; jrandom you got it</p>
+14:31 < deer> &lt;dinoman&gt; this is the sample output of the tracker 8:intervali300e12:min intervali30e5:peersld2:ip50:klkjlkfsdjfkljkfdhjkddfsjkldsfjlkjfdlkjsfdl;kj;sdf7:peer</p>
+14:31 < dm> copy/pastes jrandom's sentence into notepad and saves as "draft.txt"</p>
+14:31 < cat-a-puss> will bt over i2p be intercompatible with other clients that are not over i2p?</p>
+14:31 < jrandom> cool dinoman</p>
+14:31 < deer> &lt;dinoman&gt; at ip50 you will see a junk key</p>
+14:32 < jrandom> cat-a-puss: yes</p>
+14:32 < deer> &lt;dinoman&gt; yes</p>
+14:32 < cat-a-puss> then we should talk</p>
+14:32 < jrandom> welcome to the weekly meeting!  :)</p>
+14:32 < deer> &lt;dinoman&gt; it will need to be something like .i2ptorrent to make it live togeter</p>
+14:32 < deer> &lt;dinoman&gt; for filenames and links and what not</p>
+14:33 < jrandom> are you working on something similar cat-a-puss, or have some ideas for improvements?</p>
+14:33 < cat-a-puss> working on something similar</p>
+14:33 < cat-a-puss> in java</p>
+14:33 < jrandom> cool</p>
+14:34 < jrandom> is it necessarily java specific, or can some peers be in other langs?</p>
+14:34 < cat-a-puss> good question, I don't know how to work that sort of thing in java, I'll have to look into it</p>
+14:35 < deer> &lt;duck&gt; right</p>
+14:35 < deer> &lt;duck&gt; lets use ugha.i2p to write up some specs</p>
+14:35 < deer> &lt;duck&gt; .</p>
+14:35 < jrandom> or perhaps we need a "swarming data transfer" section in the forum so we can all discuss this stuff at our own pace?</p>
+14:35 < jrandom> or ugha.i2p, of course</p>
+14:36 < jrandom> (while we work through some bugs in the sam impl and libs :)</p>
+14:36 < deer> &lt;duck&gt; makes it all a challenge</p>
+14:37 < deer> &lt;dinoman&gt; hehe ok</p>
+14:38 < deer> &lt;duck&gt; ...</p>
+14:38 < deer> &lt;duck&gt; mo bt?</p>
+14:38 < deer> * dinoman gets back to work on Savane</p>
+14:39 < jrandom> http://ugha.i2p/SwarmingTransfer / http://ugha.ath.cx/SwarmingTransfer</p>
+14:39 < jrandom> word</p>
+14:39 < jrandom> ok, anything else on 5) BT progress?</p>
+14:39 < jrandom> or shall we hit 6) ???</p>
+14:39 < jrandom> and ask dinoman how the Savane progress is coming?  :)</p>
+14:40 < deer> * jrandom cracks whip</p>
+14:40 < deer> &lt;dinoman&gt; mail i am stuck on using the i2p mail system</p>
+14:40 < deer> &lt;dinoman&gt; i think i should just take the mail out</p>
+14:40 < jrandom> is there any way to tell it to use the SMTP server at a different port?</p>
+14:40 < jrandom> or is the problem authenticated SMTP?</p>
+14:41 < deer> &lt;dinoman&gt; auth</p>
+14:41 < protok0l> Uptime: 5d</p>
+14:41 < protok0l> ii own</p>
+14:41 < deer> &lt;dinoman&gt; it is not in the class Savane uses</p>
+14:42 < deer> &lt;dinoman&gt; i can put it in </p>
+14:42 < protok0l> i'm "Ident: pxEI" can someone tell me my rating</p>
+14:42 < jrandom> ok, i bet we can just get postman to set you up with a custom SMTP destination that doesnt require authentication</p>
+14:42 < dm> I give you a 6/10</p>
+14:42 < dm> You could work on your ass a bit</p>
+14:42 < janonymous1> Whats savana</p>
+14:43 < jrandom> janonymous1: its like sourceforge</p>
+14:43 < deer> &lt;dinoman&gt; because i am looking at the I2P Public Domain Software Homepage in my browser now</p>
+14:43 < jrandom> w00t</p>
+14:45 < deer> &lt;dinoman&gt; that would be cool be what is being done on the server i don't want someone hacking me and the getting the info about the mail server</p>
+14:45 < deer> &lt;dinoman&gt; that is what bugs me</p>
+14:45 < jrandom> well, they wouldn't get any info on the mail server, they'd just be able to (at worst) spoof @mail.i2p</p>
+14:45 < janonymous1> Cool</p>
+14:46 < jrandom> but yeah, it'd be great to have authenticated SMTP support to prevent that</p>
+14:46 < jrandom> i dont know how much work that'd be though</p>
+14:46 < protok0l> well im glad i left my mailserver idea to postman</p>
+14:46 < protok0l> it seem more difficult than i imagined</p>
+14:47 < deer> &lt;Ch0Hag&gt; I wouldn't mind helping with that</p>
+14:47 < dm> protocol</p>
+14:47 < deer> &lt;Ch0Hag&gt; Got to do something. :-)</p>
+14:47 < deer> &lt;dinoman&gt; i will do auth :( it will take a little time but i will do it</p>
+14:47 < deer> &lt;protokol&gt; yes dm</p>
+14:48 < jrandom> see, you've got a volunteer already dinoman!  :)</p>
+14:48 < deer> &lt;protokol&gt; maybe i could host a nessus server</p>
+14:48 < deer> &lt;protokol&gt; and tunnel it through TOR on my side</p>
+14:49 < deer> &lt;Ch0Hag&gt; Plus I need a  good excuse to work on the rest of  my network.</p>
+14:49 < deer> &lt;protokol&gt; and i shall dedicate myself to learning python</p>
+14:49 < janonymous1> 'the i2p software foundation'.  I can see it now</p>
+14:49 < deer> &lt;protokol&gt; and how to correctly type</p>
+14:49 < dm> I shall dedicate myself to the pursuit of more money for myself and for those directly related to myself, who may be inclined to give me money in the near future.</p>
+14:50 < jrandom> ok, anyone else have anything to bring up for 6) ??? </p>
+14:50 < dm> 7) $$$</p>
+14:51 < duck> Roger Dingledine (arma @ freenode) published a draft for a chapter of an upcoming O'Reilly book</p>
+14:51 < duck> http://freehaven.net/doc/wupss04/usability.pdf</p>
+14:51 < jrandom> ah, yeah, its pretty good</p>
+14:51 < duck> it is about anonymity and usability</p>
+14:51 < dm> chapter on usability?</p>
+14:51 < deer> &lt;protokol&gt; i can run the i2p software foundation</p>
+14:51 < deer> &lt;protokol&gt; lol</p>
+14:51 < duck> some interesting parts about negative imago</p>
+14:52 < deer> &lt;protokol&gt; give me the keys the the treasury</p>
+14:52 < duck> having good default</p>
+14:52 < deer> &lt;protokol&gt; NOW!</p>
+14:52 < duck> etc</p>
+14:52 < duck> .</p>
+14:52 < jrandom> and the importance of usability, even over security at times</p>
+14:52 < dm> protok0l: you're the user advocate aren't you? You should read that document.</p>
+14:52 < jrandom> 'k, anything else for the meeting?</p>
+14:52 < deer> &lt;protokol&gt; wow, im seeing 83 peers</p>
+14:52 < duck> now we know why there are so few known hidden sides on tor</p>
+14:53 < deer> &lt;protokol&gt; dm: i shall</p>
+14:53 < duck> arma is affraid for negative imago</p>
+14:53 < duck> .</p>
+14:53 < dm> "imago" ?</p>
+14:53 < duck> image</p>
+14:53 < deer> &lt;duck&gt; (psychoanalysis) an idealized image of someone</p>
+14:53 < dm> No mention of I2P in there :(</p>
+14:53 < duck> jrandom: aint we?</p>
+14:54 < jrandom> hm?</p>
+14:54 < dm> he means aren't we. He's dutch.</p>
+14:54 < duck> if some specific group now moves to i2p,</p>
+14:54 < duck> they could keep away much needed other users</p>
+14:55 < jrandom> oh, thats in there?  i didnt see that</p>
+14:55 < duck> no, I am saying that</p>
+14:55 < duck> but it is in there too, more or less</p>
+14:55 < duck> ofcourse andy anarchist doesnt give a fuck</p>
+14:56 < jrandom> well, i do think there is room for both i2p and tor</p>
+14:56 < duck> yes</p>
+14:56 < duck> but what about early negative image on I2P</p>
+14:56 < deer> &lt;Natalia&gt; this is the reason I am forced to be a somewhat mundane female on this IRC channel</p>
+14:56 < protok0l> haha, when i get the word every major anarchist listserv and forum will hear about i2p within a day or 2</p>
+14:56 < jrandom> oh, i dont give a flying fuck about that duck ;)</p>
+14:56 < deer> &lt;Natalia&gt; jrandom doesn't approve of got</p>
+14:56 < deer> &lt;Natalia&gt; *gott</p>
+14:57 < duck> jrandom: yeah, but well</p>
+14:57  * duck counts the amount of anarchy friendly regions on the globe</p>
+14:57 < deer> &lt;Natalia&gt; so I have to be Natalia, the loved female of the channel</p>
+14:57 < deer> &lt;Natalia&gt; ( lame )</p>
+14:57 < duck> somalia?</p>
+14:57 < duck> I bet they have flying fucks there</p>
+14:57 < protok0l> Chiapas, mexica</p>
+14:57 < duck> but not friendly ones</p>
+14:57 < protok0l> mexiico</p>
+14:58 < deer> &lt;Ragnarok&gt; bah, you want to be feminized</p>
+14:58 < jrandom> duck: when it comes time to be more public, i'm certain we can put on a reasonable joe sixpack friendly face</p>
+14:58 < duck> k</p>
+14:58 < jrandom> will people do "bad" things with i2p?  yeah</p>
+14:58 < dm> I think we should target joe beergut</p>
+14:58 < protok0l> good luck, i know gott is planning something</p>
+14:58 < protok0l> gott will destroy us</p>
+14:58 < duck> ok</p>
+14:58 < duck> .</p>
+14:58 < jrandom> the only way any worthwhile anonymity or security system can survive is to be content neutral</p>
+14:59 < deer> &lt;Ragnarok&gt; anonymous communication systems can only protect communication.  They don't interfere with good old police work if someone actually *does* something.</p>
+14:59 < duck> just saying that some links placed on http://127.0.0.1:7657/index.jsp could be bad</p>
+14:59 < dm> I2P is about technology.</p>
+14:59 < deer> &lt;Natalia&gt; yes</p>
+14:59 < jrandom> true enough duck</p>
+15:00 < duck> and yes, the sitelist.html will turn into a TFE discussion thing all over</p>
+15:00 < jrandom> well, mmhmm</p>
+15:00 < deer> &lt;Natalia&gt; content neutrality is something I write about in the latest eeplog entry</p>
+15:00 < deer> &lt;Natalia&gt; http://gott.i2p/eeplog.html</p>
+15:01 < jrandom> this is, however, the power of interactive eepsites, like wikis</p>
+15:01 < jrandom> (e.g. having people register their site with a sitelist.py or whatever)</p>
+15:01 < deer> &lt;Natalia&gt; jrandom: do you support not support the idea of eepsite crawlers linking to illegal material, being linked from the frontpage ?</p>
+15:01 < deer> &lt;Natalia&gt; +or</p>
+15:01 < deer> &lt;Natalia&gt; if you were going to link to the sitelist</p>
+15:02 < duck> from a moral point I dont give a flying fuck either</p>
+15:02 < deer> &lt;Natalia&gt; jrandom: none of these are registered</p>
+15:02 < duck> but from an usability point I might</p>
+15:02 < deer> &lt;Natalia&gt; the script checks host.txt</p>
+15:02 < deer> &lt;Natalia&gt; *hosts.txt</p>
+15:02 < jrandom> from a nontechnical perspective, i support whatever the user community requires</p>
+15:02 < deer> &lt;Natalia&gt; so everyone gets added to the list if they have a domain</p>
+15:03 < deer> &lt;Natalia&gt; ugh, bras are so uncomfortable.</p>
+15:03 < protok0l> yup, creepy</p>
+15:03 < deer> &lt;cervantes&gt; have you _seen_ the user community?</p>
+15:03 < cat-a-puss> The simplist solution would be to simply link to search pages, Everyone knows how to use them, they provide fast access, and nobody sees for anything they did not ask for.</p>
+15:04 < deer> &lt;cervantes&gt; :)</p>
+15:04 < protok0l> gott is a serial killer, i know it. he will be the first to offer live murders via webcam on i2p</p>
+15:04 < deer> &lt;Natalia&gt; the user community consists of rather strange people.</p>
+15:04 < jrandom> good point cat-a-puss, we could just link to files.i2p </p>
+15:04 < deer> &lt;Natalia&gt; at the moment, I am forced to be a woman because the lead developer disapproves of the immoral behaviour of my other.</p>
+15:04 < duck> cat-a-puss++</p>
+15:04 < deer> &lt;Natalia&gt; we are united through common adventure.</p>
+15:06 < BS314159> I'm not convinced this is a good idea, but the I2P license is certainly broad enough for people to spin off their own versions, differing only in the local link pages</p>
+15:06 < deer> &lt;Natalia&gt; well.</p>
+15:06 < deer> &lt;cervantes&gt; lets hope DrWoo can keep his indices free of corruption</p>
+15:06 < jrandom> certainly BS314159 </p>
+15:06 < BS314159> not versions. distributions.</p>
+15:06 < deer> &lt;Natalia&gt; files.i2p should be one link</p>
+15:06 < jrandom> BS314159: people can even edit their own local link page</p>
+15:06 < deer> &lt;Natalia&gt; and then there should be a yahoo-style internet directory link</p>
+15:06 < protok0l> most people will be wise enuf to use the official version</p>
+15:06 < jrandom> (in docs/readme.html)</p>
+15:07 < deer> &lt;Natalia&gt; search engines and internet directories serve different roles</p>
+15:07 < deer> &lt;Natalia&gt; this is why the directory is there in the first place</p>
+15:07 < deer> &lt;Natalia&gt; it has been requested as independent of a search engine</p>
+15:07 < BS314159> so if you want e.g. to target an anti-pornography demographic, find an anti-pornography maintainer who maintains a filtered default start page set</p>
+15:07 < protok0l> unless they are willing to search for backdoors in third-party versions</p>
+15:07 < deer> &lt;Natalia&gt; by people</p>
+15:07 < deer> &lt;Natalia&gt; so I think the search-engine is good</p>
+15:07 < jrandom> right BS314159 </p>
+15:07 < deer> &lt;Natalia&gt; but should not be the limit</p>
+15:07 < deer> &lt;Natalia&gt; search engine, internet directory, wiki, help page</p>
+15:07 < deer> &lt;Natalia&gt; perhaps.</p>
+15:08 < jrandom> we already link to fproxy.i2p, and we know what scary evil content they have on that site ;)</p>
+15:08 < BS314159> I'm not sure I'm on topic, but that seems possible. Is there an open-source content filter that any search-engine maintainers would be willing to implement support for?</p>
+15:08 < BS314159> I have a feeling I'm not on topic</p>
+15:08 < protok0l> is the meeting still on?</p>
+15:08 < jrandom> yes protok0l </p>
+15:08 < BS314159> sorry. (silences self)</p>
+15:08 < deer> &lt;Natalia&gt; jrandom: perhaps you shouldn't link to fproxy.i2p</p>
+15:08 < deer> &lt;Natalia&gt; it is almost always down</p>
+15:08 < jrandom> BS314159: i think a cntent filter in the search engine is excessive</p>
+15:08 < deer> &lt;Natalia&gt; it is down right now, it seems</p>
+15:09 < protok0l> it is</p>
+15:09 < deer> &lt;Natalia&gt; according to the recent run of the site-checking script</p>
+15:09 < jrandom> 'k</p>
+15:09 < jrandom> well, this has been a good discussion, lots of good ideas</p>
+15:09 < BS314159> not _the_ search engine. _someone_'s search engine</p>
+15:10 < deer> * Natalia smiles.</p>
+15:10 < deer> &lt;cervantes&gt; BS3: aol.i2p ;-)</p>
+15:10 < jrandom> ok, is there anything else for the meeting?</p>
+15:10 < deer> &lt;cervantes&gt; whoa...still in the meeting...</p>
+15:11 < deer> &lt;cervantes&gt; thought I'd missed that by an hour</p>
+15:11 < jrandom> nope, i was late</p>
+15:11 < jrandom> ok, if not..</p>
+15:11  * jrandom winds up</p>
+15:11  * jrandom *baf*s the meeting closed</p>
+</div>
+{% endblock %}

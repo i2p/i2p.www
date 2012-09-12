@@ -1,0 +1,214 @@
+{% extends "_layout.html" %}
+{% block title %}I2P Development Meeting 55{% endblock %}
+{% block content %}<div class="irclog">
+[23:00] <jrand0m> ok, topics&gt; x.0: welcome x.1: spec questions x.2: elg issues x.3: sdk status x.4: release plan x.5: apps </p>
+[23:00] <jrand0m> is x == 0 or 1 or 2? </p>
+[23:00] <jeremiah> 22/7</p>
+[23:01] <thecrypto> i think it's 0</p>
+[23:01] * jrand0m always logs, so wtf, why not.</p>
+[23:01] <jrand0m> 0.0: welcome. </p>
+[23:01] <jrand0m> hi. </p>
+[23:01] <jrand0m> 0.1: spec questions </p>
+[23:01] <jrand0m> anyone read the specs?  :) </p>
+[23:02] * mihi did. at least tried to</p>
+[23:02] <jrand0m> w0ah word </p>
+[23:02] <jeremiah> nope</p>
+[23:02] <jeremiah> what are the new ones?</p>
+[23:02] <thecrypto> occasionally</p>
+[23:02] <jrand0m> mihi&gt; tried to, hard to read, bad language, incomprehensible organization, or just boring as fuck? </p>
+[23:03] <mihi> i'm just not familiar enough with crypto. the first part was very interesting.</p>
+[23:03] <jrand0m> jeremiah&gt; specs are in cvs, and I post to iip-dev when they come out.  current ones are: i2cp, i2np, i2p data structures, polling http transport proto </p>
+[23:03] <mihi> but when it got into detaily, you could have described how to brew an irish stew and i would not hav noticed ;)</p>
+[23:04] <jeremiah> sweet</p>
+[23:04] <jrand0m> lol mihi </p>
+[23:05] <mihi> although the format had its problems as well -don't have open office here, just ol' staroffice 5.2</p>
+[23:05] <jrand0m> does star office 5.2 not read it?  would you prefer .pdf or kludged html? </p>
+[23:05] <jrand0m> (or .txt?  though txt wouldn't have pics or real formatting) </p>
+[23:05] <mihi> i'd prefer "old" .sdw format.</p>
+[23:05] <jeremiah> pdf if at all possible</p>
+[23:05] <mihi> or pdf</p>
+[23:06] <jrand0m> pdf is a one click solution. </p>
+[23:06] * jrand0m edits in open office, reads in pdf</p>
+[23:06] <jeremiah> or appleworks</p>
+[23:06] <jeremiah> ;)</p>
+[23:06] <mihi> sxw is supported only in staroffice 6.0 and above</p>
+[23:06] <jrand0m> ah ok mihi </p>
+[23:06] * jrand0m put out .sxw because last time people complained and wanted .sxw.  when we publish we'll put out .sxw, .sdw, and .pdf</p>
+[23:07] <jrand0m> (or maybe .doc if i'm feeling dirty) </p>
+[23:07] <mihi> i would not mind .sdw.zip or .sdw.gz or .sdw.bzw either...</p>
+[23:07] <mihi> s/bzw/bz2/</p>
+[23:07] <jrand0m> heh, zipped up, for sure. </p>
+[23:08] <jrand0m> the data structures spec may require a mod, and the network proto requires some fixed urls before release. </p>
+[23:08] <jrand0m> anyone have any questions on any of the four specs? </p>
+[23:09] <thecrypto> not at the momemet</p>
+[23:10] <jrand0m> ok.  0.2: elg issues </p>
+[23:10] <jrand0m> we're having some probs w/ elgamal encryption as specified on p13 of the data structures spec. </p>
+[23:11] <jrand0m> it may be key related, algorithm related, or implementation related.  probably not implementation related, as this has been tested against two implementations. </p>
+[23:11] <jrand0m> if its algorithm related, we're going to want to update the spec prior to spec release to reflect whatever we need to change to make it work. </p>
+[23:12] <jrand0m> if its implementation or key generation related, we can publish the spec and fix the sdk when resolved. </p>
+[23:13] <jrand0m> thecrypto&gt; any thoughts on whats up, or we waiting for nop to reply to the list (or here, if he's around and available to talk) </p>
+[23:14] <thecrypto> i'm trying to figure it out at the moment</p>
+[23:15] *** Signoff: mihi (Ping timeout)</p>
+[23:15] *** mihi_ (~none@anon.iip) has joined channel #iip-dev</p>
+[23:15] <jrand0m> 'k </p>
+[23:15] *** mihi_ is now known as mihi</p>
+[23:15] <thecrypto> i have to run some math and through some other implementation and figure it out</p>
+[23:15] <thecrypto> i never had a problem with elgamal</p>
+[23:15] <thecrypto> last time i tested</p>
+[23:16] *** Signoff: mihi ((null))</p>
+[23:17] <thecrypto> with that benchmark</p>
+[23:17] <jrand0m> right, but the benchmark only tried one key </p>
+[23:17] <thecrypto> ahh</p>
+[23:17] <jrand0m> i can quite repeatedly get the error without any mods to the elg impl </p>
+[23:17] <thecrypto> didn't we have a wrong key message that came up?</p>
+[23:18] <jrand0m> yes, those still come up </p>
+[23:18] *** mihi_ (~none@anon.iip) has joined channel #iip-dev</p>
+[23:18] <jrand0m> periodically (usually 2-4 times per keygen) </p>
+[23:18] *** mihi (~none@anon.iip) has joined channel #iip-dev</p>
+[23:18] *** mihi is now known as mihi_backup</p>
+[23:18] *** mihi_ is now known as mihi</p>
+[23:18] <thecrypto> and we still get bad keys?</p>
+[23:19] <jrand0m> or something. </p>
+[23:19] <jrand0m> all that wrong size tests is "if ( (k0.length == PublicKey.KEYSIZE_BYTES) &amp;&amp; (k1.length == PrivateKey.KEYSIZE_BYTES) ) {" </p>
+[23:19] <jrand0m> no value evaluation, etc. </p>
+[23:20] <thecrypto> one second</p>
+[23:23] <thecrypto> can you check if x the private key is &lt; p</p>
+[23:23] <jrand0m> if (m.compareTo(CryptoConstants.elgp) &gt;= 0) </p>
+[23:23] <jrand0m> already done. </p>
+[23:23] <jrand0m> (throw new IllegalArgumentException("ARGH.  Data cannot be larger than the ElGamal prime.  FIXME");)  that exception is never thrown. </p>
+[23:23] <jrand0m> er x?  hmm.   </p>
+[23:24] <jrand0m> 'k.  perhaps we may want to steal bouncycastle's or another impl's elg key gen algo </p>
+[23:25] <jrand0m> ok.  0.3&gt; sdk issues </p>
+[23:26] <jrand0m> elg is pending, but other than that the sdk is very close to 0.8 (aka release matching specs) </p>
+[23:26] <jrand0m> (only the elg issue plus the LeaseSet modification is left) </p>
+[23:26] <jrand0m> I'd like to have the SDK 0.8 ready to go with the spec release, but I don't think we should commit to that. </p>
+[23:27] <jrand0m> or even whether we need to include SDK 0.1 with the spec release. </p>
+[23:27] <thecrypto> gah! annoying</p>
+[23:28] <thecrypto> miracl which nop pointed me too does the exact same thing we do</p>
+[23:28] <thecrypto> and they have no checks</p>
+[23:28] <jrand0m> unsigned though. </p>
+[23:28] <jrand0m> (since miracl is in c) </p>
+[23:28] * jrand0m assumes</p>
+[23:28] <thecrypto> yes</p>
+[23:29] <thecrypto> but still, i make sure we never have a signed biginteger</p>
+[23:30] <jrand0m> biginteger.toByteArray() returns a signed byte array </p>
+[23:30] <thecrypto> sorry, continue</p>
+[23:30] <jrand0m> 'k </p>
+[23:30] <jrand0m> any movement on the python front jeremiah? </p>
+[23:31] <jeremiah> hey</p>
+[23:31] <jeremiah> sorry I was reading the backlog</p>
+[23:31] <jrand0m> heh hi </p>
+[23:31] <jeremiah> nope, I'm still getting used to classes</p>
+[23:31] <jrand0m> coo' </p>
+[23:31] <jrand0m> no prob </p>
+[23:31] <jeremiah> I think I'm gonna sleep for a bit actually</p>
+[23:31] <jrand0m> 'k </p>
+[23:32] <jrand0m> 0.4: release plan </p>
+[23:32] <jrand0m> we need the sdk issues resolved in the next day or so, one way or another. </p>
+[23:32] <jrand0m> we need to get working on wiki-fiying the security model </p>
+[23:32] <jrand0m> (wiki, where art thou) </p>
+[23:33] <jrand0m> we need to get the performance model up (not a prob, ill have it in a day or so) </p>
+[23:33] <jrand0m> we need to update the specs to include any elg mods, plus real URLs to other specs. </p>
+[23:33] <nop> miracl</p>
+[23:33] <nop> has a port</p>
+[23:33] <nop> to java</p>
+[23:33] <jrand0m> perhaps we need to host the specs &amp;&amp; / || sdk outside the US for export regulations [not that i care] </p>
+[23:34] <jrand0m> right, but miracl's java port doesnt have elg encryption last i checked. </p>
+[23:34] <jrand0m> i'll check again. </p>
+[23:34] <nop> jrand0m, we don't care, but we'll worry about that later</p>
+[23:34] <nop> jrand0m if it has bigdig() and modexp()</p>
+[23:34] <nop> you're fine</p>
+[23:34] *** yodel (~yodel@anon.iip) has joined channel #iip-dev</p>
+[23:34] <thecrypto> one second</p>
+[23:34] <thecrypto> i think i found our problem</p>
+[23:35] <jrand0m> word, whats up thecrypto? </p>
+[23:35] <nop> can you check jrand0m</p>
+[23:35] <thecrypto> our k isn't being checked for relitive prime</p>
+[23:36] <jrand0m> will that cause the problems described thecrypto?  i thought that would just render the encryption insecure (a problem, nonetheless) </p>
+[23:36] <thecrypto> but that would mean only some messages with the key would fail</p>
+[23:36] <thecrypto> it's something in keygen</p>
+[23:36] <jrand0m> nop&gt; we'll find something to solve it.  but i outlined some specific questions in my email that are implementation independent </p>
+[23:36] <jrand0m> ok thecrypto, we'll work through that after the meeting </p>
+[23:37] <nop> the double ciphertext question?</p>
+[23:37] <thecrypto> okay</p>
+[23:37] <jrand0m> nop&gt; thats one of the questions </p>
+[23:37] * nop goes to read</p>
+[23:39] <jrand0m> nop&gt; any ideas on when the wiki will be up?  if its just dns, whats the IP so I can mod my hosts file so I can start editing? </p>
+[23:40] <thecrypto> quick q jrand0m: where does it fail, the benchmark runs perfectly and it makes a new keypair every time?</p>
+[23:41] <nop> let me get it up, hold</p>
+[23:41] <mihi> wiki.invisiblenet.net == jasonclinton.com [64.91.236.103]</p>
+[23:41] <jrand0m> gracias mihi </p>
+[23:42] <jrand0m> thecrypto&gt; it makes a new keypair each time.  it fails on a two line test case that I built when debugging the ElGamalAESEngine </p>
+[23:42] <thecrypto> can i see this ElGamalAESEngine?</p>
+[23:42] <thecrypto> just commit it to CVS and i'll see what the problem is</p>
+[23:43] <nop> ok wiki is cname'd</p>
+[23:43] <nop> should propagate in a bit</p>
+[23:43] * jrand0m doesnt commit things that don't work, but I'll email you</p>
+[23:43] <jrand0m> thanks nop </p>
+[23:43] <nop> it's up</p>
+[23:43] <nop> ;)</p>
+[23:43] <nop> (Link: http://wiki.invisiblenet.net)http://wiki.invisiblenet.net</p>
+[23:43] <jrand0m> not on my box it aint </p>
+[23:43] <jrand0m> ;) </p>
+[23:44] <nop> what are we wiki'ing</p>
+[23:44] <nop> ?</p>
+[23:44] <jrand0m> the security doc, plus a place to distro the specs. </p>
+[23:44] <jrand0m> perhaps even the i2p website prior to 1.0 release, but at least the security doc. </p>
+[23:45] *** Signoff: sirk ((null))</p>
+[23:45] *** Signoff: shardy_ (Ping timeout)</p>
+[23:46] <jrand0m> ok.  given the above 5 points on the release plan, I'd like to have the specs out friday, saturday, or sunday, at the latest. </p>
+[23:46] *** shardy_ (~shardy@anon.iip) has joined channel #iip-dev</p>
+[23:46] <nop> I have a grphx guy working on the website</p>
+[23:47] <nop> for i2p</p>
+[23:47] <jrand0m> any problems with that for a deadline?  [friday deadline, fallback only if Bad Things Happen] </p>
+[23:47] <nop> sure</p>
+[23:47] <thecrypto> jrand0m: sent?</p>
+[23:47] <jrand0m> 'k, so just the security docs and the i2p spec distro location </p>
+[23:47] <jrand0m> no thecrypto, there are half a dozen files.  i'll send after the meeting. </p>
+[23:47] <thecrypto> okay</p>
+[23:48] <thecrypto> i'd like them sooner because we're moving tables around today so i need to move computers soon</p>
+[23:48] <nop> jrand0m, I'll need to look at your email and I'll respond shortly</p>
+[23:48] <nop> multi-tasking</p>
+[23:49] <jrand0m> 'k. </p>
+[23:49] <jrand0m> 0.5&gt; apps </p>
+[23:49] <jrand0m> the name service is awol, as co aint around ;)  [but i think he just went off to school too, so thats to be expected for the short term] </p>
+[23:49] <jrand0m> mihi has an awesome awesome i2ptunnel app </p>
+[23:50] *** Signoff: WinBear_ (EOF From client)</p>
+[23:50] <mihi> strip one or two `awesome's ;)</p>
+[23:50] <jrand0m> heh </p>
+[23:51] <jrand0m> well, its very impressive.  there's still stuff to add, but as is its a working port forwarder with reasonable performance.  a really good proof of concept </p>
+[23:51] <mihi> it relies on too many things i cannot see from the spec (e.g. that GUARANTEED packets are delivered in order)</p>
+[23:52] <jrand0m> guaranteed packets are not delivered in order, but the java impl blocks on send of guaranteed, so if you use the java impl w/ guaranteed and don't have multiple sending threads, its guaranteed in order. </p>
+[23:52] <jrand0m> ideally, it'd be cool if it FEC'ed or had built in ordering &amp; reconstruction or something </p>
+[23:52] <jrand0m> (so that it didn't block on send and didn't require GUARANTEED) </p>
+[23:53] <mihi> that's a bot too many ifs i think...</p>
+[23:53] <mihi> s/bot/bit/</p>
+[23:55] <mihi> but perhaps i'll have some time to add reordering/resending to it...</p>
+[23:55] <jrand0m> well, thats how the java client impl is implemented ;)  guaranteed is not recommended for low latency synchronous use, as it requires an ack (which in turn is a full message delivery, though without the client side end to end crypto, just i2np crypto) </p>
+[23:55] <jrand0m> word </p>
+[23:56] <jrand0m> any other apps on the horizon?  should we have a page on the wiki w/ apps &amp; app ideas for devs to get involved with? </p>
+[23:57] * jrand0m thinks we probably aren't too far off until yodel's xml rpc can operate via the i2p sdk (either through mihis tunnel or natively)</p>
+[23:57] <nop> hmm</p>
+[23:57] <thecrypto> test</p>
+[23:57] <jrand0m> tset </p>
+[23:57] <thecrypto> still connected?</p>
+[23:57] <jrand0m> si sr </p>
+[23:58] <thecrypto> we're unplugging phonelines right now</p>
+[23:58] <nop> IIP, it defies phone lines</p>
+[23:58] <jrand0m> heh </p>
+[23:58] <nop> :)</p>
+[23:58] <thecrypto> i can get back on the IM front and file transfer</p>
+[23:58] <jrand0m> wikked </p>
+[00:00] <jrand0m> ok.  thats all i have for agenda items. </p>
+[00:00] <jrand0m> any comments/questions/concerns/frisbees? </p>
+[00:00] * thecrypto throws a frisbee</p>
+[00:00] * jrand0m gets a frisbee in the face</p>
+[00:01] <thecrypto> i just want to get this crypto stuff done so i can go back and optimize elg</p>
+[00:01] <thecrypto> and do the same for python hopefully</p>
+[00:01] <jrand0m> word.  I'll get you the code in the next 5 </p>
+[00:02] <thecrypto> that would be good</p>
+[00:03] * jrand0m readies the *baf*er</p>
+[00:03] * jrand0m winds up</p>
+[00:03] * jrand0m *baf*s the meeting to a close.</p>
+</div>
+{% endblock %}

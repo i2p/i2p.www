@@ -1,0 +1,159 @@
+{% extends "_layout.html" %}
+{% block title %}I2P Development Meeting 127{% endblock %}
+{% block content %}<h3>I2P dev meeting, February 1, 2005</h3>
+<div class="irclog">
+13:06 < jrandom> 0) hi</p>
+13:06 < jrandom> 1) 0.5 status</p>
+13:06 < jrandom> 2) nntp</p>
+13:06 < jrandom> 3) tech proposals</p>
+13:06 < jrandom> 4) ???</p>
+13:06 < jrandom> 0) hi</p>
+13:06  * jrandom waves</p>
+13:06 <+postman> hi jr</p>
+13:07  * postman waves</p>
+13:07 < jrandom> w3wt there is life out there :)</p>
+13:07 < jrandom> weekly status notes posted up @ http://i2p.net/pipermail/i2p/2005-February/000561.html</p>
+13:07 < ant> * dm waves</p>
+13:08 < jrandom> while y'all read that email, we can jump into 1) 0.5 status</p>
+13:08 < MANCOM> hi</p>
+13:09 < jrandom> lots of progress over the last week, all the new crypto is in and tested, and now all of the router's tunnel operation is done through the new tunnel pools</p>
+13:10 < jrandom> there are still some parts of the router i chopped out while doing the update, such as the tie in to request leases from clients or periodically test the tunnels, but those shouldn't be too difficult</p>
+13:11 < jrandom> the code is not compatible with the live net, and is on a separate branch in cvs, so people can still pull cvs HEAD and work with the latest </p>
+13:12 <+polecat> Dook I finally looked at that page, and I still don't understand how we can avoid mixmaster style redundancy to protect from tunnel detection attacks.</p>
+13:12 <+protokol> yey</p>
+13:12 <+polecat> I imagine it works very well though.  :)</p>
+13:12 <+protokol> are you throwing in any other cool compatibility-breaking stuff?</p>
+13:13 <+protokol> the tunnel pool has to do with treads, right?</p>
+13:13 < jrandom> polecat: we don't verify at every hop, but we have a fixed message size to prevent useful tagging (and everything is encrypted at each hop)</p>
+13:14 < jrandom> protokol: i'm considering http://www.i2p/todo#sessionTag</p>
+13:14 <+polecat> So how to prevent multiple hops passing around bogus messages, and causing a DoS?</p>
+13:15 < jrandom> but no, the pools aren't the threading issue, the pools just let us safely manage the tunnels so that we don't get those "Lease expired" messages and can configure the length on a per-client basis</p>
+13:15 < jrandom> polecat: they'll fail at the endpoint, and the creator will detect the failure and move off it</p>
+13:16 <+protokol> jrandom: aside from any difficulty, i think any anon-improving features should go in ASAP</p>
+13:16 <+polecat> w00t!  Synchronized PRNG!  First application I've ever seen of that idea!</p>
+13:17 < ant> &lt;dm&gt; what does PRNG stand for?</p>
+13:17 < ant> &lt;dm&gt; if I may ask :)</p>
+13:18 < jrandom> protokol: agreed, thats what 0.5 is for :)  there aren't any other i2p-layer low hanging fruit, but there's always improvements that can be made at the app and lib layers (e.g. i2ptunnel filtering, etc)</p>
+13:18 < jrandom> dm: PseudoRandom Number Generator</p>
+13:18 < ant> &lt;dm&gt; cool, thanks</p>
+13:20 <+protokol> so youre saying that after this, its mostly speed and reliability tweaking?</p>
+13:21 <+protokol> and why has IRC been sucking lately</p>
+13:21 < jrandom> protokol: prior to 2.0 for the core and router, yes</p>
+13:21 <+protokol> i cant seem to connect to ducks server</p>
+13:21 <+protokol> yey</p>
+13:21  * jrandom doesnt know, we've seen perhaps 5 bulk disconnects in the last day or so, perhaps something on the server side</p>
+13:22 < jrandom> there's lots to be tweaked though, especially in the streaming lib after 0.5 is deployed</p>
+13:23 <+polecat> That whole UDP thing.</p>
+13:24 < jrandom> ah, the streaming lib shouldn't need changes for the 0.6 release, beyond the ones we do for the 0.5 rev</p>
+13:25 < jrandom> ok, thats all i have to bring up wrt 0.5 status - anyone have anything else on it?</p>
+13:27 < jrandom> if not, moving on to 2) nntp</p>
+13:27 < jrandom> nntp.fr.i2p is up, check it out :)</p>
+13:28 < jrandom> it doesnt seem like LonelyGuy is around, but he can be reached at http://fr.i2p/.  there are also configuration instructions for slrn on my blog, and jdot found that thunderbird can be fairly safe (though i dont know what config jdot used)</p>
+13:30 < smeghead> LonelyGuy? :)</p>
+13:30 < cervantes> did someone also test Pan?</p>
+13:30 < jrandom> hes been on here occationally</p>
+13:30 <+polecat> I wouldn't waste too much time on nntp, but as long as it has user managed access control it's fine.</p>
+13:30 < jrandom> (lonelyguy, not pan ;)</p>
+13:30 < smeghead> i thought his name was LazyGuy</p>
+13:31 < jrandom> is it LazyGuy?</p>
+13:31 < jrandom> i know we've had both...</p>
+13:31 < jrandom> you're right, lazyguy</p>
+13:31  * jrandom !stabs self</p>
+13:31 < jrandom> cervantes: i think LazyGuy tried it out, i dont know the config or result though</p>
+13:32 < cervantes> I thought it was LimeyGuy?</p>
+13:33  * jrandom awaits SnarkeyGuy's comments</p>
+13:33 < smeghead> he's French</p>
+13:35 < jrandom> ok, i dont have anything more to add beyond that, so unless anyone has any questions, moving on to 3) tech proposals</p>
+13:35 < cervantes> smeghead: you're thinking of ParesseuxGuy</p>
+13:36 < jrandom> orion has put together some good descriptions and ideas for a few of the messier issues up at 1) 0.5 status</p>
+13:36 < jrandom> 2) nntp</p>
+13:36 < jrandom> 3) tech proposals</p>
+13:36 < jrandom> erg</p>
+13:36 < jrandom> damn ^C^V</p>
+13:36 < jrandom> up at http://ugha.i2p/I2pRfc that is</p>
+13:37 < jrandom> so next time you want to discuss how you've got a killer naming idea, go to http://ugha.i2p/I2pRfc/I2pRfc0001ResourceNameMetadata</p>
+13:39 < jrandom> i dont really have much more to add beyond that. its a wiki, get wikiing :)</p>
+13:39 <+polecat> Yay.</p>
+13:39 <+postman> jrandom: ohh, cool i think i need to add a few ...</p>
+13:40 < jrandom> cool postman, thought you would :)  there's a template up there for new ones</p>
+13:41 <+postman> jrandom: gimme a lil time (first things first) but i will contribute :)</p>
+13:41 < jrandom> w3rd</p>
+13:41 <+polecat> ResourceNameMetadata, forming it is relatively trivial.  The trick is figuring out how to /get/ it from other people.</p>
+13:42 < jrandom> polecat: as postman said, first things first.</p>
+13:42 <+polecat> But if I had a solution, I'd be wikiing now wouldn't I.  :)</p>
+13:42 < jrandom> heh</p>
+13:42 < jrandom> discussion of the tradeoffs of /how/ to distribute prior to deciding /what/ to distribute is premature</p>
+13:43 < jrandom> there's room for lots of 'em though, so anyone should feel free to post up ideas that aren't fully worked through yet even (though fully functional ones with implementations would be cool too ;)</p>
+13:44 < jrandom> ok, unless there's something else on that, perhaps we can swing on to good ol' 4) ???</p>
+13:44 < jrandom> anyone have anything else to bring up?</p>
+13:45 < jrandom> smeghead: is there anything people can do to help out work through the gcj issues, or is it stalled on their prng?</p>
+13:46 <+polecat> What to distribute is just a signed dict.  Simple as that.</p>
+13:46 <+polecat> Yeah probably a good idea.</p>
+13:46 <+polecat> I'm STILL working on the skeleton for my i2p bt client, though would very much appreciate advice at any stage.</p>
+13:46 < smeghead> i think i've found a solution</p>
+13:46 < smeghead> in gnu crypto, there's a fortuna impl. since last summer</p>
+13:46 < jrandom> nice polecat </p>
+13:46 < jrandom> oh cool smeghead </p>
+13:46 <+polecat> smeghead: Hee, the $150 is as good as yours.</p>
+13:47 < smeghead> i can whip up a gnu-crypto.jar that contains only the classes needed for Fortuna</p>
+13:47 <+polecat> My working notes so far are at http://polecat.i2p/bittorrent.plan.doc</p>
+13:47 < smeghead> if we shipped the whole gnu-crypto.jar it's about 500 KB, too big really</p>
+13:47 <+polecat> Don't let the .doc scare you, it's in text/plain.</p>
+13:48 <+polecat> Fortuna doesn't use SecureRandom to do random things?</p>
+13:48 < jrandom> yowza, yeah 500KB is a bit excessive, but glancing at http://www.gnu.org/software/gnu-crypto/, it looks like something we could integrate safely (as we'd only be linking to it, not modifying)</p>
+13:48 < smeghead> SecureRandom was never the problem</p>
+13:48 < jrandom> polecat: fortuna /feeds/ secureRandom :)</p>
+13:49 < smeghead> jrandom: it would be easy to make a custom .jar, probably around 50KB</p>
+13:49 < smeghead> (rough estimate mind you)</p>
+13:49 < smeghead> i could make an ant build to custom package it on demand even</p>
+13:50 < jrandom> smeghead: wanna dig 'er into i2p/apps/fortuna/ ?</p>
+13:50 < smeghead> will do</p>
+13:50 < jrandom> kickass!</p>
+13:51 < smeghead> after that, assuming gcj will finally be spitting out random numbers, there will probably be more testing of various i2p functionality</p>
+13:51 <+polecat> What's the license?</p>
+13:51 < jrandom> we can then work some voodo in net.i2p.util.RandomSource to either use SecureRandom or fortuna (if its found, etc)</p>
+13:51 < smeghead> lgpl</p>
+13:51 <+polecat> Cool.</p>
+13:51 < smeghead> true, SecureRandom would be unnecessary</p>
+13:52 < jrandom> yeah, there's still lots to do to get it gcjing, but its a great start</p>
+13:52 < jrandom> in the profiles i've done on the live net, reseeding the PRNG takes a good portion of the cpu load</p>
+13:52 < smeghead> if anyone is into writing tests</p>
+13:52 < smeghead> but i probably don't have to finish that sentence</p>
+13:52 < jrandom> hehe</p>
+13:53 < smeghead> i will ask the gnu crypto maintainer about this impl., because i googled for info on it and searched their mailing list archives and there's not a peep on it</p>
+13:54 < smeghead> and their cvs commit logs aren't too enlightening either</p>
+13:54 < jrandom> 'k good idea</p>
+13:54 < smeghead> i hope it works</p>
+13:54 < smeghead> it's in kaffe cvs btw</p>
+13:54 < smeghead> your version should have it even</p>
+13:55 < jrandom> hmm, ah, yeah from the gnu-crypto import</p>
+13:55 < smeghead> gnu.security.prng.Fortuna</p>
+13:55 < jrandom> the 'kaffe' provider still uses their old sha1prng iirc</p>
+13:55 < jrandom> cool</p>
+13:56 < MANCOM> what is the status of the .net sam stuff? should one start getting into it or are major changes to be expected?</p>
+13:56 < smeghead> MANCOM: it needs testing, i'll be writing some unit tests for it soon</p>
+13:56 < smeghead> this gcj thing has kinda put that on hold</p>
+13:57 < smeghead> MANCOM: i don't expect there'll be any changes to the API at all, so it should be safe to code against</p>
+13:58 < smeghead> changes behind the API are likely, but you as a client don't need to know that :)</p>
+13:59 < MANCOM> :)</p>
+13:59 < jrandom> there may be some later updates that are relevent if you build apps that do large bulk transfer</p>
+14:00 < jrandom> but if you're just transferring a 10s of KB at a time, it should be fine</p>
+14:00 < smeghead> ok if the Java client's API changes, then the sam-sharp's will too :)</p>
+14:01 < MANCOM> i can't argue against that</p>
+14:02 < jrandom> ok, does anyone have anytihng else to bring up for the meeting?</p>
+14:02  * cervantes lowers big ben into the channel</p>
+14:03 <+DrWoo> note: nice work jrandom</p>
+14:03 < smeghead> nice pun cervantes</p>
+14:03  * jrandom groans</p>
+14:04 < MANCOM> i read that you don't want to advertise i2p too much before v0.5, is that true?</p>
+14:04 < jrandom> MANCOM: before 0.6.  yes</p>
+14:04 < jrandom> MANCOM: 0.5 will improve anonymity and help users control their performance better.  0.6 will let thousands+ concurrent users operate safely</p>
+14:04 < MANCOM> ah. 0.6. ok.</p>
+14:05 < jrandom> gracias doc, lots of progress :)</p>
+14:05 <+polecat> Whee, here's looking forward to 0.6...</p>
+14:05 <+DrWoo> :)</p>
+14:06 < jrandom> agreed polecat, agreed :)</p>
+14:06  * jrandom winds up</p>
+14:06  * jrandom *baf*s the meeting closed</p>
+</div>
+{% endblock %}

@@ -1,0 +1,176 @@
+{% extends "_layout.html" %}
+{% block title %}I2P Development Meeting 163{% endblock %}
+{% block content %}<h3>I2P dev meeting, January 10, 2006</h3>
+<div class="irclog">
+15:26 < jrandom> 0) hi</p>
+15:26 < jrandom> 1) Net status</p>
+15:26 < jrandom> 2) Throughput profiling</p>
+15:26 < jrandom> 3) Syndie blogs</p>
+15:26 < jrandom> 4) HTTP persistent connections</p>
+15:26 < jrandom> 5) I2Phex gwebcache</p>
+15:26 < jrandom> 6) ???</p>
+15:26  * jrandom waves</p>
+15:26 < jrandom> weekly status notes posted up at http://dev.i2p.net/pipermail/i2p/2006-January/001247.html</p>
+15:27 < jrandom> (yeah, I know... we need a 7) One more thing...)</p>
+15:28 < jrandom> jumping on in to 1) Net status </p>
+15:28 < jrandom> In general, seems the same ol' same ol', beyond whats in the mail.  </p>
+15:28 < jrandom> Anyone have anything they want to bring up about 1)?</p>
+15:30 < jrandom> ok, if not, moving on over to 2) Throughput profiling</p>
+15:31 < tethra> it sounds cool, but may i ask what the objective is?</p>
+15:31 < jrandom> find fast peers</p>
+15:31 < tethra> (forgive my lack of wit and tact)</p>
+15:31 < tethra> ah, cool.</p>
+15:32 < jrandom> basically, our old speed profiling wasn't that great (see last week's status notes for a summary), and this seems to be pretty good at finding peers that I know are fast</p>
+15:32 < jrandom> (I know they're fast because I've cheated and measured them with non-anonymous techniques)</p>
+15:33 < tethra> shocking! ;)</p>
+15:33 < jrandom> ((yes, someone could have been crazy and mounted attacks to confuse my measurements, but, well, I doubt it ;)</p>
+15:33 < tethra> haha</p>
+15:33 < tethra> sweet, so that should make client tunnels more likely to find a 'good' peer and presumably put the 'fast' peers under less pressure, then?</p>
+15:35 < tethra> s/'good'/fast/</p>
+15:35 < jrandom> yes to the former, but not really to the later - it won't reduce the pressure on them, but it will let people make more effective use of them</p>
+15:35 <@cervantes> I guess the folks with fast peers will have to hope the peer throttling is good enough to take the extra participation</p>
+15:36 < jrandom> e.g. rather than having $slow--&gt;$fast--&gt;$fast, it'll have $fast--&gt;$fast--&gt;$fast</p>
+15:36 < tethra> ah, i see</p>
+15:36 < jrandom> aye cervantes, I've been paying attention to the capacity profile as well, and its been doing the trick</p>
+15:36 <@cervantes> grand</p>
+15:37 < jrandom> the interplay between capacity and speed is important - peers are not considered fast if they are not high capacity, even if their speed is ranked higher than everyone else</p>
+15:37 <@cervantes> be interesting to see how it effects througput</p>
+15:37 < jrandom> (which is why 'fast' is just shorthand for 'fast and high capacity')</p>
+15:37 <@cervantes> +h</p>
+15:37 < jrandom> aye cervantes</p>
+15:39 < jrandom> ok, if there's nothing else on 2, lets jump on over to 3) Syndie blogs</p>
+15:40 < jrandom> I don't have much more to add beyond whats in the mail there</p>
+15:41 <@cervantes> it's looking swell</p>
+15:41 < tethra> i very much like where the blogs are going, personally. it seems to all be gravy, one might say.</p>
+15:41 < tethra> :D</p>
+15:41 <+Complication> Bit late, sorry.</p>
+15:42 < jrandom> cool, its similar to how it was originally, but I think the blog view has some promise</p>
+15:42 < jrandom> wb Complication, no worry, we've got logs :)</p>
+15:43 <+Complication> Reading scrollback right now :)</p>
+15:43 < jrandom> I do think there's a place for both views, I suppose it just depends on the user</p>
+15:43 < jrandom> (and the content, and the author)</p>
+15:45 < jrandom> one thing though is that the html aint that grand.  cervantes has been helping me revamp my very basic education to a more modern view, but there are lots of issues left</p>
+15:46 < jrandom> there will be continuing improvements to syndie's web interface, and if some html volunteer wanted to help out with formatting, design, css, cross browser issues, etc, it would be much appreciated</p>
+15:47 <@cervantes> other than having 2 opening &lt;style&gt; tags the code looks pretty clean ;-)</p>
+15:47 < jrandom> heh oops</p>
+15:48 <@cervantes> I think the emphasis will be on getting the styling clean and readable and perhaps designing some template alternatives</p>
+15:48 < jrandom> hmm</p>
+15:49 < jrandom> thats one thing I was thinking about for the blog view - it'd be easy to let people customize certain attributes (colors, fonts, sizes), but I'm not sure how much more</p>
+15:50 < jrandom> otoh, the blog view, like the thread view, is all just a template over the syndie archive</p>
+15:50 <@cervantes> well you certainly don't want to allow deployable templates</p>
+15:50 < jrandom> so the question is, a template for whom?</p>
+15:50 < jrandom> (what level of experience would those using the template require)</p>
+15:51 <@cervantes> I was thinking just a popup config option someone can choose for their blog</p>
+15:51 < jrandom> hmm?</p>
+15:51 <@cervantes> I want "Pony Look"</p>
+15:51 < jrandom> ah, ok</p>
+15:51 <@cervantes> so we ship syndie with a variety of skins</p>
+15:52 < jrandom> yeah, preset colors/font/etc</p>
+15:52 < jrandom> (and icons, etc)</p>
+15:52 < jrandom> thats one thing that hasn't really been implemented through the blog view yet</p>
+15:54 < jrandom> good idea on the simple theme chooser though, rather than some complex set of options</p>
+15:54 <@cervantes> an alternative would be someone can offer their own template presets as a download on their site - which could be saved into a theme folder</p>
+15:55 <@cervantes> it's up to the individual if they want to trust the blog author's custom skin</p>
+15:55 < jrandom> ... trust?</p>
+15:55 < jrandom> nothing in syndie will let you do unsafe html or css</p>
+15:55 < tethra> what of unsafe javascript/etc</p>
+15:55 < jrandom> the skins would be text files/config files/images, rather than jsp</p>
+15:55 < tethra> ?</p>
+15:56 < tethra> (page forwards to non-anonymous addresses with js, for instance?)</p>
+15:56 <@cervantes> it depends if a theme might also contain structural html changes </p>
+15:56 <@cervantes> right ok</p>
+15:56 <@cervantes> well that would keep it nice an clean and simple</p>
+15:57 < jrandom> tethra: I'm... incredibly hesitant about javascript.  seen that new blog post today from default?</p>
+15:57 < jrandom> "I'm just curious: does it use AJAX? The page doesn't seem to update as a whole..."</p>
+15:57 < tethra> nein, i did not.</p>
+15:57 < tethra> i'd find a way to just shag any js that is used, personally.</p>
+15:58 < jrandom> since syndie is *local*, its insanely fast, and we don't need do worry about the same latency issues</p>
+15:58 < tethra> as i don't trust it as far as i can throw it.</p>
+15:58 < tethra> hmm :/</p>
+15:58 < jrandom> cervantes: aye, very simple - we could even do things like let people viewing a blog theme they like say "steal this theme"</p>
+15:59 <@cervantes> in theory you could provide a library of "safe" functions fo blog user - but by the time you remove everything that is unsafe from the average browser's implementation you're left with the "alert();" function</p>
+16:00 < jrandom> heh</p>
+16:00 < jrandom> (and you've got all those accessibility issues of javascript)</p>
+16:00 <+Complication> cervantes: mind you, alert() in an infinite loop can be bad :P</p>
+16:00  * jrandom is quite proud of syndie's lynx-friendliness</p>
+16:00 < tethra> lynx &lt;3</p>
+16:02 < jrandom> ok, if there's nothing else on 3), lets jump on over to 4) HTTP persistent connections</p>
+16:02 < jrandom> I don't have anything to add beyond whats in the mail... zzz, you here?</p>
+16:02 <@cervantes> there are other ways of implementing a *spit* AJAX ui, like a mozilla extension</p>
+16:03 < jrandom> fire2pe++ :)</p>
+16:03 < jrandom> zzz doesn't seem to be around, so we'll probably have to wait for later for more info on 4)</p>
+16:03 <@cervantes> fire2pe is just a helper - syndilla is what you mean ;-)</p>
+16:03 < jrandom> lol</p>
+16:04 < jrandom> (and, the usb keychain version, syndog ;)</p>
+16:04 < jrandom> ok, moving on to 5) I2Phex gwebcache</p>
+16:05 < jrandom> Complication: p1ng</p>
+16:05 <+Complication> Well, since it would make integrating with the net easier...</p>
+16:06 <+Complication> ...I've recently worked on reviving the gwebcache code already in I2Phex</p>
+16:06 <+Complication> It's already doing some very limited things (like crash neatly) at this stage :)</p>
+16:06 <+Complication> Also pesters awup's webcache server with moderate success</p>
+16:07 < jrandom> lol nice</p>
+16:07 <+Complication> I have hope though, that eventually I'll get it reworked</p>
+16:07 <+Complication> (lots of it is currently meant to deal with IP addresses)</p>
+16:09 < jrandom> cool, good luck, and lemmie know if there's anything I can do to help</p>
+16:09 <+Complication> Will do :)</p>
+16:10 < jrandom> ok, anything else on 5) I2Phex gwebcache, or shall we mosey on over to 6) ???</p>
+16:11 < jrandom> consider us moseyed</p>
+16:11 < jrandom> anyone have anything else for the meeting?</p>
+16:11 <@cervantes> another cup of tea would be nice</p>
+16:12 < tethra> heheh</p>
+16:12 < Pseudonym> how's the roadmap?</p>
+16:12 < jrandom> no changes</p>
+16:12 < Pseudonym> what's left for 0.6.2?</p>
+16:13 < jrandom> all of the 0.6.2-related stuff</p>
+16:13  * jrandom ducks</p>
+16:14 < Pseudonym> :-P</p>
+16:14 <@cervantes> some bling bling</p>
+16:14 < Pseudonym> do we have a tentative date/timeline?</p>
+16:14 < jrandom> specifically, the new tunnel creation crypto and algorithms, the new peer selection strategies</p>
+16:14 < tethra> heheh</p>
+16:14 < jrandom> no dates and timelines (at least, not announced in meetings ;)</p>
+16:15 < Pseudonym> is there more to peer selection strategies than the throughput stuff you've been working on?</p>
+16:16 < jrandom> yes, these peer profiling changes are performance issues, not the anonymity related peer selection and ordering strategies</p>
+16:16 <+Complication> jrandom: do I remember correct... if I guess the tunnel creation crypto related to things discussed on the mailing list, during the talk about predecessor (and other) attacks?</p>
+16:17 < jrandom> yeah Complication </p>
+16:17 <+Complication> s/related/relates</p>
+16:19 <+Complication> You're going to try making that fancy lil' datastructure work?</p>
+16:19 < jrandom> aye</p>
+16:20 < jrandom> (hence, 0.6.2 is not on the 2 week horizon ;)</p>
+16:20 <+Complication> Neat. Sounds interesting, I should probably read up about it</p>
+16:21 <+Complication> I hope it goes smoothly</p>
+16:21 < jrandom> it was only arm-waved around on the list, no spec digitized yet</p>
+16:21 < tethra> which neat datastructure is this, sorry?</p>
+16:21 <+Complication> Oh, and figured why the link (from the "moo" message) wouldn't work. :D It's freedomarchives.i2p (in the plural, with an "s" at end)</p>
+16:21 < jrandom> it'll be backwards incompatible, so smooth won't be its catchphrase, but hopefully won't hurt too much :)</p>
+16:21 < jrandom> ah bugger</p>
+16:22 < jrandom> tethra: a datastructure that doesn't exist yet for creating tunnels</p>
+16:22 < tethra> cool</p>
+16:22 < jrandom> (see the predecessor threads from november or so)</p>
+16:23 < tethra> what advantages/disadvantages will it have over the current one? (if there is a current one :o)</p>
+16:23 < jrandom> (see the predecessor threads from november or so) ;)</p>
+16:23 < tethra> ah, ok</p>
+16:23 <+Complication> IIRC, to make tunnel creation less transparent to observers</p>
+16:23 < tethra> ""</p>
+16:23 < tethra> ;)</p>
+16:23 < jrandom> but, its not a proposal, there is nothing on the table for 0.6.2 until all of the things prior to 0.6.2 are sorted.</p>
+16:23 < jrandom> once the things that should be working are working in the manner that we need them to work, then we move on.</p>
+16:24 < Pseudonym> other than fast peer selection, what's not working?</p>
+16:25 < jrandom> fast peer selection is a part of "good performance"</p>
+16:25 < jrandom> we /do/ have good performance, for an anonymous network, but not good enough to compete with non-anonymous networks</p>
+16:25 < jrandom> to compete, we've got to get better performance *and* provide functionality they can't get elsewhere</p>
+16:26 < jrandom> (anonymity does not sell)</p>
+16:26 < Pseudonym> is there more to it than fast peer selection?</p>
+16:27 < jrandom> through the last month or two, benchmarking different aspects of i2p, slow peer selection seems to be the smallest bottleneck.  what the next bottleneck will be is unknown.</p>
+16:27 < jrandom> (there have also been countless improvements at different points to improve performance)</p>
+16:27 < jrandom> (see http://dev.i2p.net/cgi-bin/cvsweb.cgi/i2p/history.txt?rev=HEAD )</p>
+16:28 < Pseudonym> so... release of new peer selection this week? ;-)</p>
+16:28 < teal`c_> i2p feels good</p>
+16:29 < jrandom> Pseudonym: aye, new peer profile algorithm is in cvs and will be deployed this week with 0.6.1.9</p>
+16:30 < jrandom> ok, anyone have anything else for the meeting?</p>
+16:30 < Pseudonym> cool</p>
+16:31 < jrandom> if not...</p>
+16:31  * jrandom winds up</p>
+16:32  * jrandom *baf*s the meeting closed</p>
+</div>
+{% endblock %}

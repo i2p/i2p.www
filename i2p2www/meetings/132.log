@@ -1,0 +1,365 @@
+{% extends "_layout.html" %}
+{% block title %}I2P Development Meeting 132{% endblock %}
+{% block content %}<h3>I2P dev meeting, March 8, 2005</h3>
+<div class="irclog">
+13:06 <@jrandom> 0) hi</p>
+13:06 <@jrandom> 1) 0.5.0.2</p>
+13:06 <@jrandom> 2) mail.i2p updates</p>
+13:06 <@jrandom> 3) i2p-bt updates</p>
+13:06 < legion> so it's related to the irc servers?</p>
+13:06 <@jrandom> 4) ???</p>
+13:06 <@jrandom> 0) hi</p>
+13:06 <@jrandom> weekly status notes up @ http://dev.i2p.net/pipermail/i2p/2005-March/000633.html</p>
+13:07 < fedo> hi</p>
+13:07 <+postman> hi</p>
+13:07 < frosk> goodday</p>
+13:07 <@jrandom> legion: no, related to i2p bugs, being worked on</p>
+13:07 < bla> hi</p>
+13:07 < legion> ok</p>
+13:07 <@jrandom> speaking bugs being worked on, lets jump on in to 1) 0.5.0.2 :)</p>
+13:07 < cervantes> 'lo</p>
+13:07 < cervantes> -- Disconnected</p>
+13:08 <@jrandom> heh</p>
+13:08 < ant> &lt;mihi&gt; hi all</p>
+13:08 <@jrandom> 0.5.0.2 is out, and while your irc connection may lag at times, it'll recover ;)</p>
+13:08 <@jrandom> woah heya mihi</p>
+13:09 < cervantes> hey mihi</p>
+13:09 <@jrandom> the status notes give a general overview of where things are and the most immediate priorities</p>
+13:10 <@jrandom> the scary thing I'm trying to track down can be seen on http://localhost:7657/oldstats.jsp#router.invalidMessageTime</p>
+13:10 < bla> As for me, I can say that 0.5.0.2 already improved realiability _vastly_ compared to 0.5.0.1: errors where destinations couldn't be contacted almost don't occur anymore </p>
+13:10 <@jrandom> those numbers should be very very small, but they're not, unfortunately</p>
+13:10 <@jrandom> wikked bla </p>
+13:11 <@jrandom> yeah, the 0.5.0.2 is definitely an improvement, and everyone should upgrade ASAP </p>
+13:11 < bla> 375,932.22 in the last 10 minutes here....</p>
+13:11 <@jrandom> well, the particular value isn't really the problem, its their frequency</p>
+13:11 <@jrandom> (events per period)</p>
+13:12 <@jrandom> those messages can likely be attributed to 0.5 routers, and some of it to 0.5.0.1 routers, which is why I want people to upgrade ASAP</p>
+13:12 <@jrandom> it may be the case that its something else though, but I'd like to rule it out</p>
+13:12 < bla> jrandom: I get about 200 per hour here</p>
+13:13 <@jrandom> bla: i've currently got 93 this hour, but peak count much higher (thousands)</p>
+13:13 <@jrandom> anyway, this particular stat is published in the netdb</p>
+13:13 < bla> jrandom: How about excluding 0.5-0 from the net in software when releasing 0.5.0.3?</p>
+13:14 <@jrandom> so we can all look around and see what values other people have ;)</p>
+13:14 <@duck> 309,854.24 peak 5,473,314.59</p>
+13:15 <@duck> pasting the wrong one,  huh</p>
+13:15 <@jrandom> bla: definitely.  I added some code in the 0.5.0.2 rev to do soem forward compatability that 0.5.0.1 and 0.5 don't have</p>
+13:16 <@jrandom> duck: hard to have a nonintegral # of events ;)</p>
+13:16 < bla> jrandom: Good. At least that allows you to test your invalid-messages-are-due-to-0.5-0 hypothesis in a controlled manner</p>
+13:16 <@jrandom> bla: aye, though it'd be great if people updated before then ;)</p>
+13:17 <@jrandom> (so for those reading at home: http://www.i2p.net/download is your friend ;)</p>
+13:17 < maestro^> jr: those numbers for router.invalidMessageTime deviations in ms?</p>
+13:17 <@jrandom> maestro^: yes</p>
+13:18 <@jrandom> (aka some really insanely skewed values)</p>
+13:18 < legion> Here is a little network report [version|Number of nodes][0.5|6][0.5.0.1|39][0.5.0.2|107]</p>
+13:18 <@jrandom> yeah, y'all have been great about updating</p>
+13:18 < legion> So there is still a few people running 0.5 and many people running 0.5.0.1</p>
+13:18 < maestro^> so any idea where they might be lagging?</p>
+13:18 < bla> jrandom: Freenet has a flag in each release that specifies the minimum node version it will communicate with. Is the new forward-compat. code something like that?</p>
+13:19 <@jrandom> maestro^: many, many ideas for why 0.5 and 0.5.0.1 users are lagging.</p>
+13:19 <@jrandom> bla: similar</p>
+13:19 < maestro^> or is it clock drift on nodes?</p>
+13:20 <@jrandom> maestro^: clock skew, some serialization bugs, the 100% cpu bug</p>
+13:20 <@jrandom> ok, thats generally my focus atm, trying to get the message reliability back up</p>
+13:21 <@jrandom> anyone have any questions/comments/concerns on 0.5.0.2?</p>
+13:21 < ant> * mihi has a 0.4.2.5 router here on hd not started since dec 22th... but he thinks he'd better delete it...</p>
+13:21 <@jrandom> heh</p>
+13:21 <@jrandom> yeah, that wont talk to too many routers ;)</p>
+13:21  * postman got a backup copy of his last 0.4 installation :)</p>
+13:21 < ant> &lt;mihi&gt; question for me 'd be upgrade or delete.</p>
+13:22 <@jrandom> delete</p>
+13:22 <@jrandom> (backing up any destination keys)</p>
+13:22 <@jrandom> there is no upgrade procedure from pre-0.5 anymore</p>
+13:22 < legion> Perhaps releasing another update say 0.5.0.2-1 that only allows connections from 0.5.0.2 or newer, would be good?</p>
+13:22 <@jrandom> legion: that would segment the network</p>
+13:22 <@jrandom> people should juts upgrade.</p>
+13:23 <@jrandom> (and we should work around those that dont)</p>
+13:24 < legion> yeah until the people running outdated nodes updated ;)</p>
+13:24 <@jrandom> segmenting the network hurts us all, not just them</p>
+13:25 < legion> Maybe if there was a update notification in the router console or something that let them know they are running outdated versions?</p>
+13:25 <@jrandom> yeah, that'd certainly be pretty cool</p>
+13:25 <@jrandom> hopefully that can get tied in with the updater as well</p>
+13:26 < legion> yeah, I know, segmentation is bad...</p>
+13:26 <@jrandom> smeghead is working on some of the key components of that, though not sure if that includes the notification / download</p>
+13:26 <@jrandom> (so if anyone wants to help work on that, get in touch!)</p>
+13:27 <@jrandom> ok, movin' on to 2) mail.i2p updates</p>
+13:27 <@jrandom> postman: ping</p>
+13:27 <+postman> yes</p>
+13:27 < bla> jrandom: smeghead was doing some signing-related stuff IIRC (so that when you get an update notice, you at least know it's real, and not a phishing/spyware/crap thing)</p>
+13:28  * postman takes over the mike</p>
+13:28 < legion> hmm, maybe if there was a autoupdate feature built in, where updates would be downloaded through i2p and the nodes would simply download the update, then do a graceful restart.</p>
+13:28 <@jrandom> right bla</p>
+13:28 < ant> &lt;Gatak&gt; Oh, btw. Would I2P work behind nat even if you cannot open a port?</p>
+13:28 <@jrandom> Gatak: not yet.  some people will be able to at 0.6, others at 2.0</p>
+13:29 <@jrandom> legion: patches welcome</p>
+13:29 < ant> &lt;Gatak&gt; 2.0 heck, that is far on the future =)</p>
+13:29 <@jrandom> (http://www.i2p.net/roadmap#2.0 ;)</p>
+13:29 <+postman> erm, shall i start now?</p>
+13:29 < aum> morning all</p>
+13:30 <@jrandom> mic is all yours postman (sorry ;)</p>
+13:30 <@jrandom> 'lo aum, made it for the meeting</p>
+13:30 <@jrandom> (d'oh!  /me shuts up again)</p>
+13:30 < cervantes> Gatek: http://www.i2p.net/roadmap</p>
+13:30 <+postman> first, i wanted to say, that we reached 300 accounts registered at postman.i2p already</p>
+13:30 <@jrandom> w00t</p>
+13:30 <+postman> the number of mails from/to internet is growing steadily and once more proves that we need to move further</p>
+13:31 < cervantes> *squeeeel*</p>
+13:31 <+postman> after talking to jr some weeks ago we agreed upon the the release of v2mail together with I2P 1.0</p>
+13:31 <+postman> recent status is: the java based smtp proxy designed to run on every node is finished</p>
+13:31 <@jrandom> nice!</p>
+13:32 <+postman> the java based POP3 proxy is at 80% with just the maildir engine missing</p>
+13:32 <+postman> there will be a webmanager that needs some heavy tweaking still (15% done)</p>
+13:32 <+postman> the inter node communication is at 40% - we tested some datarecord exchanging with HTTP/XML</p>
+13:33 <+postman> seems to work quite well and fast even</p>
+13:33 <+postman> even if a relay node fails/was powered off for a few days, it'll be synced within a few minutes after going back onlione again</p>
+13:33 <@jrandom> wikked</p>
+13:33 <+postman> i think we're quite n track</p>
+13:34 <+postman> one thing is noteable</p>
+13:34 < bla> postman: Nice work man! One question: Many nodes cannot receive or send data on port 25 (not directly, anyway). Will node-owners be able to specify this (or will this be auto-detected)?</p>
+13:34 < cervantes> cool</p>
+13:34 <+postman> bla: later</p>
+13:34 <+postman> in v2mail there will be a locally run webapp</p>
+13:34 <+postman> with this you can manager your local proxies AND apply for an "relayaccount"</p>
+13:35 <+postman> this relayaccount will then be used to associate your addess/domain to the relays</p>
+13:35 <+postman> the relays will sync the information automatically</p>
+13:35 <@jrandom> cool</p>
+13:35 <+postman> even features like the addressbook / public keys and stuff will work with the LOCAL interface</p>
+13:36 <+postman> so the idea is to have one centralized manager where you can do all your mailstuff</p>
+13:36 <+postman> relevant data is transferred to ONE of the relays and then being synced between the relays</p>
+13:36 <+postman> and this webbased manager will run on your very node</p>
+13:37 <+postman> when your node is online, the relays will deliver mails queued for your destination/domain/address</p>
+13:37 <+postman> it will be delivered to your local smtp proxy</p>
+13:37 <+postman> you can even trigger the whole thing with ETRN :)</p>
+13:37 < aum> hi again</p>
+13:37 < aum> i'd like to raise a discussion point in this meeting, if it's ok</p>
+13:37 <+postman> so much for the future folks :)</p>
+13:37 <+postman> .</p>
+13:38 <@jrandom> sound bitchin postman </p>
+13:38  * postman hands back the mike</p>
+13:38 <@jrandom> aum: great, should be some time at 4) </p>
+13:38 <+postman> yeah, iam ecstatic :)</p>
+13:38 <@jrandom> postman: so for the normal user, the smtp proxy will have the local maildir, and the pop3 proxy will read/etc, right?</p>
+13:39 <+postman> yeah, the smtp proxy got a MDA</p>
+13:39 <+postman> and will deliver the mail into local maildirs</p>
+13:39 <+postman> even several accounts/users can be created locally</p>
+13:39 < cervantes> postman: will the relays keep track of your quotas etc and propogate such info between each other?</p>
+13:39 <+postman> and mapped to accounts of your domain</p>
+13:39 <+postman> cervantes: yes, they will</p>
+13:39 < septu_ssh> sorry, can I ask postman about payment/anti-spam mechanisms in the new model?</p>
+13:40 <+postman> septu_ssh: have you read any of the documents on the webpage?</p>
+13:40 <+postman> cervantes: it's not perfect real time</p>
+13:40 <+postman> cervantes: but i am fine with a few minutes update of quota information exchange</p>
+13:40 < septu_ssh> postman: in the queue for reading :/</p>
+13:40 < septu_ssh> but if it's doc'd, then it's fine</p>
+13:40 < cervantes> postman: yeah I figured</p>
+13:41 <+postman> septu_ssh: www.postman.i2p/inout.html</p>
+13:41 <+postman> septu_ssh: www.postman.i2p/mailv2.html</p>
+13:41 <+postman> cervantes: this is no drama really - the quota is a sane limit</p>
+13:41 < cervantes> postman: even someone being able to send  nrelays * quota recipients is no bad thing</p>
+13:41  * septu_ssh is bungle</p>
+13:41 <+postman> cervantes: yep</p>
+13:42 <+postman> the goal is just to stop anybody from really abusing the service</p>
+13:42 <+postman> in the tests i had 3 relays have been really fast </p>
+13:42 <@jrandom> postman: i forget, will this have support for the local smtp relay talking directly to someone else's smtp relay, rather than bouncing through your nodes?</p>
+13:42 <+postman> cervantes: within 10 secs they have been synced :)</p>
+13:43 <@jrandom> (or perhaps thats just for later)</p>
+13:43 <+postman> jrandom: the i2p mail relays will be operated by several ppl and are the preferred dests for routing mail</p>
+13:43 < cervantes> postman: you could introduce an exponential delay to the send queue</p>
+13:43 < cervantes> if it becomes an issue</p>
+13:43 <+postman> jrandom: so sending to other destinations could be handy under certain circumstances</p>
+13:44 <@jrandom> aye, though dangerous under others</p>
+13:44 < cervantes> so the more mail you send the greater the time the mail gets queued for...should give the relays time to catch up</p>
+13:44 <+postman> jrandom: but if a node's owner discloses his IMIO destination he could be spammed w/o control :)</p>
+13:44 <@jrandom> exactly</p>
+13:44 <@jrandom> otoh, same goes if the i2p mail relays are hostile</p>
+13:45 <+postman> jrandom: indeed, it's a WOT like construction</p>
+13:45 <@jrandom> &lt;/tinFoil&gt;</p>
+13:45 <+postman> jrandom: i cannot stop a relay operator from distributing a quota of 0 for your address</p>
+13:45 <@jrandom> 'k great.  yeah, no need to worry about it for now</p>
+13:45 <+postman> :)</p>
+13:46 <+postman> ok</p>
+13:46 <+postman> .</p>
+13:46 <@jrandom> ok cool, thanks for the update.  some really exciting stuff</p>
+13:46 <@jrandom> ok, swinging on to 3) i2p-bt updates</p>
+13:46 <@jrandom> duck: ping</p>
+13:46 <@duck> hi</p>
+13:47 <@duck> Yesterday BitTorren 4.0.0 was released</p>
+13:47 < ant> &lt;dm&gt; sounds german</p>
+13:47 <@duck> which we more or less waited for before starting on 0.2</p>
+13:47 <@duck> wrote a tasklist / todo: http://pastebin.ca/raw/7037</p>
+13:47 <@duck> (sorry my www is currently down)</p>
+13:48 <@jrandom> cool</p>
+13:48 < legion> what sort of timetable are we talking about for 0.2?</p>
+13:48 <@duck> the goal was 4 weeks</p>
+13:49 < legion> cool</p>
+13:49 <@duck> as you can see RawServer (the part that communicates with i2p) is the biggest task</p>
+13:50 <@duck> .</p>
+13:50 <@duck> a quick poll:</p>
+13:50 < legion> yeah, I'm well aware of that :)</p>
+13:50 <@duck> who is planning to create an i2p-bt fork?</p>
+13:50 <@jrandom> cool, is there anything people can do to help?</p>
+13:50 <@jrandom> heh</p>
+13:51 < ant> &lt;dm&gt; i</p>
+13:51  * jrandom grabs a spoon</p>
+13:51 < ant> &lt;dm&gt; m wiling to hepl</p>
+13:51 < legion> i</p>
+13:51 < ant> &lt;dm&gt; m gay</p>
+13:51 < legion> I'm working on a fork</p>
+13:52 <@duck> good, then I know who not to take serious.</p>
+13:52 <@duck> really, I think it is silly; pooling resources might get you much further</p>
+13:53 <@jrandom> or perhaps if there are better ways to go, you can convince duck to work that way?</p>
+13:53 < named> I'm going to write a fork in qbasic, please take me seriously.</p>
+13:53 <@duck> I'll try to have the process more open, so others can see what is planned etc</p>
+13:53 < ant> &lt;dm&gt; your openness is not swaying us. FORK! FORK! FORK! FORK!</p>
+13:53 <@duck> if you have any other suggestions</p>
+13:54 < ant> * dm raises legion onto his shoulders.</p>
+13:54 < legion> hmm, that may be true, though with what I'm doing I doubt you want me polluting the main i2p-bt development process ;)</p>
+13:54 < ant> &lt;dm&gt; FORK! FORK! FORK! FORK!</p>
+13:54 <@jrandom> legion: what are you doing that duck wouldn't want to support?</p>
+13:55 <@duck> legion: congrats, if you google for 'i2p bittorrent', then an announcement of "Windows I2P Bittorrent Version 1.0" is #1</p>
+13:55 <@jrandom> jesus</p>
+13:56 < bla> jrandom: Yes?</p>
+13:56 <+postman> jrandom: yeah, they will rip this network's ass open soon :)</p>
+13:56 < bla> ;)</p>
+13:56 < named> 1.0? Damn, I'm using 0.1.8!</p>
+13:56 < Ragnarok> oy</p>
+13:57 < legion> omfg, really?! I cannot believe it... that's insane.</p>
+13:57 <@duck> anyway, I dont think that there is much new to say on this</p>
+13:57 < legion> my 1.0 release is based on 0.1.8 if you're running 0.1.8 you're fine.</p>
+13:58 <@jrandom> (and the 1.0 release is a .exe that no one has reviewed, ymmv)</p>
+13:58 < legion> I poorly named and numbered it sorry, again about that.</p>
+13:58 < ant> &lt;dm&gt; 1.0 &gt;&gt; 0.1.8</p>
+13:58 < ant> &lt;dm&gt; any day of the week</p>
+13:59 <@duck> slightly related:</p>
+13:59 <@jrandom> ok, anything else on 3) i2p-bt, or shall we move on to 4) ???</p>
+13:59 <+postman> legion: when there will be sourcecode downloadable?</p>
+13:59 < frosk> "I2P-BT 0.1.8 works pretty fine and stable so far. I personally see no reason to update to I2P-BT 1.0" (seen on forum)</p>
+13:59  * jrandom sighs</p>
+13:59 <@duck> last month bram cohen held a talk about bittorrent on some university</p>
+14:00 <@duck> quite interesting: http://netnews.nctu.edu.tw/~gslin/tmp/050216-ee380-100.wmv.torrent</p>
+14:00 <@duck> (learned lessons about big p2p programs, plus some bittorrent details explained)</p>
+14:00 <@duck> .</p>
+14:01 <@jrandom> word</p>
+14:01 <@duck> postman: legion has released some sourcecode</p>
+14:01 < ant> &lt;dm&gt; is he the inventor of BT?</p>
+14:01 <@duck> but according to smeghead it isnt the same as the .exe</p>
+14:01 <@jrandom> dm: yes</p>
+14:01 < legion> There is a developer source you can download from http://legion.i2p/archives/Itorrent_1_x_Developer_Source.zip.bz2</p>
+14:02 <+postman> k, will have a look</p>
+14:02 < ant> &lt;dm&gt; is the exe a direct compile of that source?</p>
+14:03 < legion> though really the 1.0 source is really just 0.1.8 with a patch from smeghead, compiled and nicely packaged.</p>
+14:04  * cervantes walks over to 4)??? and waits for everyone to catch up</p>
+14:04 < ant> &lt;dm&gt; the question remains unanswered</p>
+14:04 < ant> &lt;dm&gt; Legion, did you or did you not, order a code red???</p>
+14:04 <@jrandom> *cough*</p>
+14:04 < legion> Perhaps we should get back on topic, my bt client discussion moved to #itorrent</p>
+14:05 <@jrandom> ok, 4) ???</p>
+14:05 <@jrandom> anything else people want to bring up?</p>
+14:05 <@jrandom> aum: you had something?</p>
+14:06 < ant> &lt;dm&gt; stasher is back?</p>
+14:06 < legion> I'm just seeing some funky behavior with 0.5.0.2 periods of heavy traffic...</p>
+14:06 < aum> yes</p>
+14:06 < aum> i'd like to raise the question of automated tunnel creation/management</p>
+14:07 < ant> &lt;dm&gt; go on</p>
+14:07 <+detonate> there's a null pointer exception in the systray thing in windows, i just noticed</p>
+14:07 < aum> it's 1337 that the web console now allows for humans to manually create/delete/manage tunnels</p>
+14:07 <@jrandom> detonate: could you toss 'er on the bugzilla?</p>
+14:07 < aum> but I also strongly believe that there should always be a reliable and convenient way for programs to manage tunels as well</p>
+14:08 <@jrandom> aum: no one disagrees.  we need it, and we will have it.  just not yet.</p>
+14:08 < ant> &lt;dm&gt; can't you do that through SAM?</p>
+14:08 < aum> i noticed on my recent return to i2p that the pysam library is no longer working</p>
+14:08 < septu_ssh> I have a quick question as well after aum</p>
+14:08 < aum> which was a disappointment</p>
+14:08 <@jrandom> the SAM protocol works, pysam doesnt</p>
+14:08 < Ragnarok> did it ever work?</p>
+14:09 < aum> correct</p>
+14:09 < aum> pysam used to work brilliantly</p>
+14:09 < legion> During such periods there are 1000+ tunnels my node is participating in and several seconds of lag and delay.</p>
+14:09 <@jrandom> legion: aye, the # of tunnels is because of older builds</p>
+14:09 < cervantes> ah mymodesty</p>
+14:09 < cervantes> eerm pymodesty</p>
+14:09 < aum> i'm presently writing a module 'i2ptunnel.py', which defines classes allowing easy tunnel management</p>
+14:10 < legion> so if older builds were not being connected to, the networking would be much smoother?</p>
+14:10 <@jrandom> 'k, i don't know if thats the right long term solution, but if it bridges the gap for you now, cool</p>
+14:10 <@jrandom> legion: those tunnels aren't the problem</p>
+14:11 < aum> well, the class interfaces can remain even though the underlying mechanism changes</p>
+14:11 <@jrandom> 'k</p>
+14:11 < legion> aren't they?</p>
+14:12 < legion> When there a few tunnels, there is very little lag and delay...</p>
+14:12 < cervantes> legion: sorry aum is just raising some questions, if you hang fire a minute</p>
+14:12 < legion> it just seems odd to me.</p>
+14:13 < legion> ok</p>
+14:13 <@jrandom> i just worry that we need to take into consideration whats been successful in the past - the web config works and is maintained because everyone uses it.  perhaps it'd be best to get whatever app you're working on working with manual tunnel creation *first*, that'd be more efficient?</p>
+14:13 <@jrandom> just so that there is always something that is using i2ptunnel.py, to stress it</p>
+14:13 < aum> we seem to be deadlocking</p>
+14:13 <+detonate> jrandom:sure</p>
+14:14 < ant> &lt;dm&gt; let's move on then</p>
+14:14 < aum> i don't want to invest time in developing my app till I've got a tunnel mgmt API I can rely on</p>
+14:14 < septu_ssh> \o. - point to raise </p>
+14:14 < cervantes> realistically I can't imagine the tunnel interface will be revamped in the next couple of months though...</p>
+14:14 <@jrandom> but surely you see that we can add one trivially</p>
+14:14 < cervantes> so a stopgap solution is viable</p>
+14:15 < named_> Couldn't the web config have some kind of api that aum's program manipulates?</p>
+14:15 <@jrandom> named_: yes</p>
+14:16 <@jrandom> its trivial to add something in to allow safe control via URLs, but only makes sense if there's something that needs it</p>
+14:16 <@jrandom> otherwise it'll just rot</p>
+14:16 < aum> named_: that would be nice, and could work if there were a hardcoded password in config that client progs need to POST in along with tunnel control fields</p>
+14:16 < cervantes> personally I'd like to see the whole tunnel system completely revamped, if you include a tunnel management interface from the start then you won't have to worry about the extra effort needed to maintain a seperate interface</p>
+14:17 <@jrandom> aye, the proxies do need a bunch of work, which i've been hiding from as much as possible :)</p>
+14:17 < aum> SAM is good for some situations, bad for others</p>
+14:17 < cervantes> but that's somewhat down the line...</p>
+14:17 < fedo> (</p>
+14:18 <@jrandom> aum: but as a stopgap, couldn't you just use one of the three available methods?</p>
+14:18 < cervantes> ie if the webinterface itself uses the api then there's no maintenance overhead</p>
+14:18 <@jrandom> right.  the web interface uses the TunnelControllerGroup</p>
+14:19 < aum> SAM usage gets difficult when one wants to use existing libs that are extensively dependent on standard TCP sockets</p>
+14:19 < aum> jrandom: the I2PTunnel CLI doesn't work for opening server tunnels, so i'm presently writing code for using TunnelControllerGroup</p>
+14:19 <@jrandom> aum: exising libs need to be carefully audited.  for instance, the gzip utility itself exposes sensitive data</p>
+14:19 < aum> coding as we speak</p>
+14:21 <@jrandom> I'm certain that the CLI works for server tunnels, but using the TunnelControllerGroup is preferred, if you need it that way</p>
+14:21 <@jrandom> ok, anyone else have anything to bring up?</p>
+14:22 < septu_ssh> My question pertains to a distributed version of the hosts.txt, a DHT table is used currently for routerInfo, could this not be extended to a distributed version of DNS? The DNS DHT could contain mappings from www.bla.i2p to the eepsite SHA, and the entries would be signed by an 'I2P registrar'... comments? rebuttals?</p>
+14:22 < mancom> a question concerning the roadmap: is 0.6 still scheduled for april?</p>
+14:22 <@jrandom> septu_ssh: non-routing data goes in the netDb over my dead body ;)</p>
+14:23 < septu_ssh> jrandom: not the same db</p>
+14:23 < septu_ssh> a different distributed db</p>
+14:23 < aum> jrandom: did you see my bug report? the CLI 'server' command /does not work/</p>
+14:23 < maestro^> septu_ssh: there isnt any i2p registrar</p>
+14:23 <@jrandom> septu_ssh: there are many dangerous aspects of naming, with a few key tradeoffs.  have you seen the naming discussion on ugha.i2p?</p>
+14:24 <@jrandom> septu_ssh: ah, a DHT on top of I2P could certainly be used to distribute entries, though those names would not be secure, if they were treated as global entries</p>
+14:26 <@jrandom> aum: i used it daily up through a few weeks ago, did you see my reply?</p>
+14:26 <@jrandom> maestro^: thats the plan</p>
+14:26 <@jrandom> er, mancom:</p>
+14:26 < cervantes> aum: I have a reply to that i2plist mail from jr, has it not reached you yet, or does the issue remain?</p>
+14:26 < septu_ssh> the only reason why I suggest a 'registrar' is because collisions can take place otherwise</p>
+14:26 <@jrandom> septu_ssh: embrace collisions :)</p>
+14:26 <@jrandom> globally unique, human readable, distributed, and secure naming doesnt exist</p>
+14:27 < septu_ssh> it can also happen in host.txt if it is manually edited, but the problem remains the same</p>
+14:27 <@jrandom> drop the first parameter, and you're golden</p>
+14:27 < aum> jrandom: i did see your reply - and I /do/ have streaming.jar in my cp</p>
+14:27 < septu_ssh> postman manages a central node for mail, so there is some element of trust within the network, surely someone would trust a registrar to manage namespace?</p>
+14:27 <@jrandom> ok cool, and it still comes back with that stacktrace aum?</p>
+14:28 < aum> yes</p>
+14:28 <@jrandom> septu_ssh: postman only acts as a central element for postman's outproxies and inproxies</p>
+14:28  * Ragnarok really need to get around to writing that addressbook doc...</p>
+14:28 < aum> this is when i manually run the cli, do a genkeys, then do a 'server' using the privkeyfile generated by genkeys</p>
+14:28 <@jrandom> septu_ssh: no one will trust anyone to manage a namespace.  censorship == exert presure on that registrar.</p>
+14:28 < maestro^> everyone is really their own registrar</p>
+14:29 < maestro^> you trust your friends and they trust you</p>
+14:29 < aum> oh shit, i picked up an old classpath</p>
+14:29  * aum tests again</p>
+14:30 < ant> &lt;dm&gt; ok, I'll be the registrar.</p>
+14:31 < ant> &lt;dm&gt; I'll be as unbiased as I can... cool?</p>
+14:31 < septu_ssh> hmmm, ok, back to the proverbial drawing board then...</p>
+14:31 <@jrandom> septu_ssh: a good place to review is http://zooko.com/distnames.html :)</p>
+14:32 <@jrandom> everyone wants it, but what they want just isn't secure.  we have a solution that is, but we give up global uniqueness</p>
+14:33 < septu_ssh> hmmm, ok</p>
+14:33 <@jrandom> ok, anyone else have anything else to bring up for the meeting?</p>
+14:33 < cervantes> septu_ssh: http://forum.i2p.net/viewtopic.php?t=134</p>
+14:33 < aum> jrandom - ok, cli 'server' now works, but i never got a 'job number' for the tunnel</p>
+14:34 <@jrandom> hmm right, it runs forever</p>
+14:34 < aum> oh, i gotta do 'list' to get the job num</p>
+14:36 <@jrandom> ok cool, if there's nothing else...</p>
+14:36  * jrandom winds up</p>
+14:36  * jrandom *baf*s the meeting closed</p>
+</div>
+{% endblock %}
