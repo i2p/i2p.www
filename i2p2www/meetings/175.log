@@ -1,0 +1,132 @@
+{% extends "_layout.html" %}
+{% block title %}I2P Development Meeting 175{% endblock %}
+{% block content %}<h3>I2P dev meeting, April 4, 2006</h3>
+<div class="irclog">
+16:21 < jrandom> 0) hi</p>
+16:21 < jrandom> 1) Net status and 0.6.1.14</p>
+16:21 < jrandom> 2) Syndie plotting</p>
+16:21 < jrandom> 3) Local jbigi optimizations</p>
+16:21 < jrandom> 4) ???</p>
+16:21 < jrandom> 0) hi</p>
+16:21  * jrandom waves</p>
+16:21 < jrandom> weekly status notes posted up at http://dev.i2p.net/pipermail/i2p/2006-April/001275.html</p>
+16:21  * Complication reads</p>
+16:22 < jrandom> while y'all read that (briefly put together) post, lets jump on in to 1) Net status</p>
+16:23 <@cervantes> (forum back)</p>
+16:23 < jrandom> there are a few problems out there affecting use on 0.6.1.13, and most of tem have been tracked down and solved</p>
+16:24 < Complication> Over here, with the "fourth" CVS build, I noticed a change in my graphs</p>
+16:24 < jrandom> here are still a few kinks getting tested and revamped though, but a release should be out in the next few days</p>
+16:24 < Complication> In general, things moved towards more stability and less jumpyness</p>
+16:24 < jrandom> oh bugger, I forgot to increment it to -4 didn't I?</p>
+16:24 < jrandom> (ok, -5 will be out later this evening)</p>
+16:24 < jrandom> cool Complication </p>
+16:25 < Complication> But my perceptions could be influenced by jbigi too, as I didn't take steps to exclude that</p>
+16:25 < Complication> Now, after a while, retransmission has edged down to 15% too</p>
+16:28 < jrandom> hmm, i'm also seeing my average ssu rto approach the 3s ceiling as well</p>
+16:28 < jrandom> (though very low retransmission still, under 5%)</p>
+16:29  * Complication takes a second look at it</p>
+16:29 < Complication> Let's say the raw average is a little over 1500</p>
+16:29 < Complication> (over here)</p>
+16:30 <+fox> &lt;BrianR___&gt; jrandom: Is there a de-facto "MTU" for i2p packets?</p>
+16:30 < jrandom> ah ok, perhapsas that inches up, the retransmission rate will go down</p>
+16:30 < Complication> I noticed mine start out with smaller MTUs, now it's upped some to 1350</p>
+16:30 < jrandom> BrianR___: yes, either 1350 or 608 (as shown on http://localhost:7657/peers.js)</p>
+16:31 < jrandom> if the failure rate is too high at the larger MTU, it falls back to the smaller MTU (and if its too low at the smaller MTU, it jumps up to the higher MTU)</p>
+16:31 <+fox> &lt;BrianR___&gt; jrandom: Now is that for the inside payload or the visible IP packets?</p>
+16:31 <+fox> &lt;BrianR___&gt; Ie, if I were to send a block of data over an I2P stream, what would be the ideal size for the chunks to minimize overhead?</p>
+16:31 < jrandom> that is for the UDP payload</p>
+16:32 < jrandom> streams are two layers up</p>
+16:32 < jrandom> (there's fragmentation for tunnels, and then fragmentation at the stream/i2cp level)</p>
+16:32 <+fox> &lt;BrianR___&gt; Yes... Is there an ideal size to minimize fragmentation?</p>
+16:32 < jrandom> the ideal block size of an app using the streaming lib is "large", so that the streaming lib can use the appropriate size.</p>
+16:33 < jrandom> (aka ignore the man behind the curtain)</p>
+16:33 <+fox> &lt;BrianR___&gt; Aah.. Maybe I should think about pipelining or something then..</p>
+16:34 <+fox> &lt;BrianR___&gt; I'm planning an app with lots of request/response traffic...</p>
+16:34 < jrandom> i'd recommend batching then to cut down on the chattyness</p>
+16:34 < Complication> Perhaps keeping traffic focused would help to some extent</p>
+16:37 < jrandom> ok, anyhing else on 1) Net status, or shall e shimmy on over to 2) Syndie plotting</p>
+16:38  * jrandom shimmies</p>
+16:39 < jrandom> this is largely a placeholder and cfp - there's going to be some substantial revamp to syndie, both in operaion and the ui, so if you've got some key features or use cases you think need to be addressed, get in touch</p>
+16:40 < jrandom> (more info will be of course forthcoming as things get fleshed out further)</p>
+16:42 < jrandom> thats all i've got to say on that for the moment, so, moving on over to 3) jbigi optimizations</p>
+16:42 <@frosk> and i had assumed "plotting" referred to some jrobin stuff in syndie :)</p>
+16:43 < jrandom> hehe</p>
+16:43 < jrandom> it'd be interesting to plot posts/day, posts/author, new authors/day, etc ;)</p>
+16:44 < Complication> Oh, on bit about Syndie (sorry, only now remembered)</p>
+16:44 < Complication> =one bit</p>
+16:44 <@frosk> which do you want, 0 or 1? :)</p>
+16:44 < Complication> Do you think it could be practical, or easy/difficult to separate favourite authors and blacklisted (spam)authors into two different lists?</p>
+16:45 < Complication> On addresses.jsp</p>
+16:45 < jrandom> oh, yeah without much trouble</p>
+16:46 < jrandom> thats a good idea for therevamp too, but perhaps we can get that into the 0.6.1.14 build</p>
+16:47 < Complication> Nah, it's not byting me, I just remembered something I noticed back then</p>
+16:47 < Complication> Anyway, jbigi gets faster on Linux/AMD64 when you compile locally and use GMP 4.2</p>
+16:48 < jrandom> cool</p>
+16:48 < jrandom> did you compare that w/ -O3 -m64 on GMP 4.1.2?</p>
+16:48 < Complication> And I'm a damn fool for going after way wrong compile flags :O</p>
+16:48 <@cervantes> the relevant link was http://forum.i2p/viewtopic.php?t=1523&start=30 btw</p>
+16:48 < jrandom> ah thanks cervantes </p>
+16:48 < Complication> jrandom: I haven't compared yet, but will</p>
+16:49 < Complication> During next scheduled reboot</p>
+16:50 < jrandom> the jbigi build process is essentially "build GMP, then build jbigi.o, and link the two together", so any sort of optimizations people want to make on GMP can be made as the first step</p>
+16:50 <@cervantes> I've not seen much difference between -O3 and -O2 in any previous tests I've done, whether that's different under x86_64 ... *shrug*</p>
+16:50 < jrandom> aye, might be compiler rev dependent as well</p>
+16:50 < jrandom> (especially with all these 3.3/3.4/4.0/4.1 issues)</p>
+16:51 <@cervantes> just to re-iterate what I mentioned in that thread... we probably won't see windows64 optimised jbigi anytime soon</p>
+16:51 <+fox> &lt;BrianR___&gt; Does the i2p stream lib do payload compression?</p>
+16:52 < Complication> BrianR: yes</p>
+16:52 <@cervantes> unless someone has M$ VC 2005 w/64-bit SDK and fancies some heavy toil to get it to compile gmp</p>
+16:52 < Complication> At least to my knowledge</p>
+16:53 <@cervantes> (there was a project to port gmp into a vc project somewhere though)</p>
+16:53 < jrandom> cervantes: well, we've got one that /works/ for amd64/win, but it doesn't use the most out of the hardware ;)</p>
+16:53 < jrandom> (when my new box gets here though i may be able to tweak that, as its an amd64)</p>
+16:53 <+fox> &lt;BrianR___&gt; trying to figure if I should use a binary protocol to save bits or if zlib or something is going to smoosh up ascii protocol nice and small..</p>
+16:54 <@cervantes> coolio - unfortunately Mingw64 or cygwin64 doesn't seem to be on the near horizon...</p>
+16:54 < jrandom> BrianR___: premature optimization being the root of all evil, and all that jazz...</p>
+16:55 < Complication> at least partly human readable protocols are generally easier to debug, but I guess it depends what one's doing</p>
+16:56 < Complication> ('cause some things like encryption don't like being human-readable, no matter what :) )</p>
+16:57 < Complication> But if I2P does the encryption, and also compresses, good chances are that many things which occur on top of it, can be done with human-readable protos</p>
+16:58 < jrandom> aye</p>
+16:58 < jrandom> ok, anything else on 3) jbigi stuff?</p>
+16:58 < jrandom> if not, lets move to 4) ??? </p>
+16:59 < jrandom> anyone have anything else for the meeting?</p>
+17:01 <+tethra> i recall hearing something about anonymous collaboration tools recently</p>
+17:01 <+tethra> care to elaborate on what kind, and whether they'll be syndie-esque or not?</p>
+17:02 <@cervantes> irc and syndie is an anonymous collaboration tool :)</p>
+17:02 < jrandom> hmm, not sure of what you refer to - or maybe you mean the actual planned syndie revamps?  :)</p>
+17:02 <+tethra> true.</p>
+17:02  * tethra isn't sure either, which is why he asked</p>
+17:02 <+tethra> there was talk of it on the forums - reasons for anonymity and stuff</p>
+17:03 <+tethra> i'll find the thread so i can get the quote</p>
+17:03 < jrandom> ah right</p>
+17:03 <+tethra> http://forum.i2p.net/viewtopic.php?t=1618</p>
+17:03 < jrandom> the use case thread</p>
+17:03 <+tethra>  - anonymously hosted & publicly reachable forums/boards/wikis </p>
+17:03 <+tethra> yeah</p>
+17:04 <+tethra> is there going to be an i2wiki type project that is based around something like syndie or is it up to users?</p>
+17:04 < jrandom> there have been some good ideas in there, and some good feedback</p>
+17:05 < jrandom> the ability to edit syndie posts is an oft-requested feature, and with that, you could pull off a wiki w/ a rich editor</p>
+17:05 < jrandom> but, of course, nothing will exist in a vaccum - if someone believes that is necessary, someone should say "hey, a wiki is essential, and here's why"</p>
+17:06 < jrandom> there are an infinite number of apps that /can/ be built, but as we're aiming for strong anonymity and strong security, care must be taken in what is built</p>
+17:07 <+tethra> right</p>
+17:07 <+tethra> that said, some of the more difficult things to keep anonymous and secure might be better off being done by someone who is good at keeping things anonymous and secure, right?</p>
+17:08 < jrandom> likely so, though there is no cabal - anyone can learn</p>
+17:08 <+tethra> (key things, basically. not that i'm naming any, but hey.)</p>
+17:08 <+tethra> true</p>
+17:09 <+tethra> but learning at the cost of your own and other people's anonymity isn't the greatest way of doing it</p>
+17:10 < jrandom> everyone has to start somewhere, of course</p>
+17:10 <+tethra> (perhaps if someone made a sandbox type thing that allowed people to run $software and have people attack it and stuff that'd be good for someone who is new/inexperienced?)</p>
+17:10 <+tethra> yeah</p>
+17:14 < jrandom> ok, anyone else have anything for the meeting?</p>
+17:15 < jrandom> if not</p>
+17:15  * jrandom winds up</p>
+17:15 <@cervantes> *ahem*</p>
+17:15  * jrandom pauses</p>
+17:16 < jrandom> whats shakin' cerv? </p>
+17:16 < Complication> Neat, I found a baf ;P</p>
+17:17 < jrandom> baf-blocked ;)</p>
+17:17 <@cervantes> hups srry, continue baffing</p>
+17:17  * jrandom resumes winding</p>
+17:18  * jrandom *baf*s the meeting closed</p>
+</div>
+{% endblock %}

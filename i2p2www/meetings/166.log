@@ -1,0 +1,142 @@
+{% extends "_layout.html" %}
+{% block title %}I2P Development Meeting 166{% endblock %}
+{% block content %}<h3>I2P dev meeting, January 31, 2006</h3>
+<div class="irclog">
+15:19 < jrandom>  0) hi</p>
+15:19 < jrandom> 1) Net status</p>
+15:19 < jrandom> 2) 0.6.1.10 status</p>
+15:19 < jrandom> 3) ???</p>
+15:19  * jrandom waves</p>
+15:19 < jrandom> status notes posted up at http://dev.i2p.net/pipermail/i2p/2006-January/001257.html</p>
+15:20 < jrandom> ok, jumping on in to 1) Net status</p>
+15:21 < jrandom> as mentioned in the mail, those on 0.6.1.9-0 (the full release) should have the same-ol'-same-ol'</p>
+15:21 < jrandom> though users on newer builds (those since 0.6.1.9-5 or newer) may have trouble</p>
+15:21 < jrandom> ("trouble" is perhaps an understatement...)</p>
+15:21 <+Complication> CVS -8 was a bit flaky, so running -2 instad (works nice enough)</p>
+15:22 < gloin> :-)</p>
+15:22 <+Complication> =instead</p>
+15:22 < Pseudonym> things seem unstable lately (I'm on 0.6.1.9-0)</p>
+15:22 < jrandom> cool, I was considering reverting the process changes but including dust's ircclient update and the i2ptunnel httpserver patch on head, but 0.6.1.10 probably isn't that far away</p>
+15:23 < jrandom> hmm Pseudonym, accessing eepsites, irc, or other services, or hosting them?</p>
+15:23 <+Complication> Unstable with -0? How does the problem exibit itself?</p>
+15:23 < Pseudonym> I notice IRC primarily (playing idlerpg)</p>
+15:24 < jrandom> ("playing" ;)</p>
+15:24 < Pseudonym> also, somtimes the router goes wonky and has to be restarted (no active peers)</p>
+15:24 < Pseudonym> heh</p>
+15:24 < jrandom> hmm, internet connectivity issues?</p>
+15:24 <@frosk> -0 is stable here, of course except for the twice-daily "router hung!" restarts</p>
+15:24 < jrandom> hrm frosk, real "router hung", or "router hung" due to leaseSet expiration?</p>
+15:25 < Pseudonym> internet connectivity is fine.  when I restart the i2p router it comes right back</p>
+15:25 <+Complication> My Cel300 also hangs after a while, but the periods have been increasing, and I'm not up-to-date on its reason</p>
+15:25 <@frosk> jrandom: lease expiration, i'm pretty sure</p>
+15:25 < jrandom> hmm 'k</p>
+15:26 < jrandom> pretty much all of that has been rewritten for the new creation and management code, so we'll see how it goes in 0.6.1.10</p>
+15:27 <@frosk> cool</p>
+15:27 <@frosk> i'll be glad to help test it</p>
+15:28 < Pseudonym> I don't need you to troubleshoot the problem right now.  I just wanted to add a datapoint about stability</p>
+15:28 < jrandom> wikked, once its stable locally I'll certainly need to recruit some help :)</p>
+15:28 < jrandom> cool, thanks Pseudonym </p>
+15:28 < jrandom> ok, anyone else have something for 1) Net status?</p>
+15:30 < jrandom> if not, lets jump on in to 2) 0.6.1.10 status</p>
+15:30 < jrandom> as mentioned in the mail, rather than pile tweak upon tweak on the live net, we're going to go straight to the source</p>
+15:31 < jrandom> it won't be backwards compatible, so it will have a... bump, and while we'll roll up a few other backwards incompatible changes with it, there is the possibility for another one afterwards</p>
+15:32 < jrandom> more specifically, one idea I'm toying with is migrating to 1024bit ElGamal for the tunnel creation code, rather than 2048bit</p>
+15:32 < jrandom> but that may not be necessary.  it depends on how hard it hits us on the live net</p>
+15:34 < jrandom> if it does, it would just mean a network upgrade, but all destinations/etc would stay the same.</p>
+15:34 < jrandom> but, anyway, thats something to explore after 0.6.1.10 comes out</p>
+15:34 <+Complication> A loosely related question: is the key length in any way related to the tunnel-creation datastructure length?</p>
+15:34 < jrandom> yes</p>
+15:35 < jrandom> directly related: key length * 2 * max # hops == data structure size</p>
+15:36 < jrandom> (so, 256*2*8 = 4KB, which also happens to be the size of full streaming lib messages)</p>
+15:37 < jrandom> ((ElGamal has a 2x expansion factor))</p>
+15:38 <+Complication> Aha, thanks. :)</p>
+15:38 < jrandom> ah, one other thing re: the new spec.  during implementation I found one other data point I need (a 4 byte "reply message ID") which I've added to the spec locally, using some of the reserved bits</p>
+15:40 < jrandom> I'm hoping to get everything working in the next few days though, so perhaps there'll be some early (non-anonymous) testing by the weekend</p>
+15:40 < jrandom> but, of course, more info on that as it comes</p>
+15:41 < jrandom> ok, anyone have any questions/comments/concerns on the 0.6.1.10 stuff?</p>
+15:41 < bar> another loosely related question: during the rol out of .10, how about keeping i2p.net on .9 for a couple of days for all the auto updating folks?</p>
+15:41 < bar> rollout*</p>
+15:41 < jrandom> aye, definnitely</p>
+15:42 < jrandom> I'll probably have two or three routers on that box during the migration</p>
+15:42 < jrandom> and there will be loud warnings at least 5 days in advance of the release</p>
+15:42 < bar> smooth</p>
+15:42 <+Complication> This way it would be smoother indeed.</p>
+15:43 <+Complication> Forum seems a good channel. News box on the Router Console too...</p>
+15:43  * jrandom remembers the days when every release was backwards incompatible... we got a lot of practice then ;)</p>
+15:43 < jrandom> aye, forum, news box, list, website</p>
+15:43 <+Complication> So those who attend their machines would know.</p>
+15:43 < tethra> heheh</p>
+15:44 < jrandom> and those on 0.6.0.1 still, well, they're fscked anyway ;)</p>
+15:44 <@frosk> off with their heads</p>
+15:44 <+Sugadude> Totally un-related: Can we have more backwards incompatible changes more often to force these old routers out?</p>
+15:44 <+Complication> I think they just forgot I2P running :)</p>
+15:44 < jrandom> heh Sugadude</p>
+15:45 < jrandom> well, if they're compatible, we can make use of their resources, but if there's some reason why we can't, we should mark them as incompatible</p>
+15:47 < jrandom> ok, if there's nothing else on that, lets jump on over to our catch-all: 3) ???</p>
+15:47 < jrandom> anyone have anything else they want to bring up for the meeting?</p>
+15:48 < tethra> it says somewhere on the router console that users behind symmetric NATs aren't currently supported, is that going to change at some point soon? </p>
+15:48 < tethra> or am i showing immense ignorance of something</p>
+15:49 <+Complication> Regarding webcache code... it seems I'm pretty much ready.</p>
+15:49 < jrandom> there are a few techniques to help users behind symetric nats, which bar has outlined on the list and the forum, though I don't know of any immediate progress on it</p>
+15:49 < jrandom> oh, nice1 Complication, lemmie know when to push the release :)</p>
+15:50 <+Complication> Got the watchdog aborting downloads reasonably, doing some testing and clean-up (it currently logs way more than decent)..</p>
+15:50 <+Complication> I have one webcache server up, awup has another... for some realistic testing, we may want to turn limiting on...</p>
+15:51 <+Complication> ...if I manage to encounter legion, I'll ask if he might be interested in running one too.</p>
+15:52 < jrandom> cool, even a single webcache would be a great start</p>
+15:52 <+Complication> And if anyone else wants to run the script (available from awup.i2p, Python script using SAM)... their references can be added, though currently adding refs to more "seed webcaches" does require a recompile of sources.</p>
+15:53 <+Complication> (not in a file but the header of GWebCacheContainer.java)</p>
+15:53  * gloin don't know what this webcache stuff is.</p>
+15:53 < jrandom> gloin: it lets you connect to i2phex without having to download an i2phex.hosts file the first time</p>
+15:54 <+Complication> gloin: for easier integration of I2PHex</p>
+15:55  * cervantes arrives late</p>
+15:55 <+Complication> And for later reconnecters (e.g. people who've run out of live peer refs) it can offer fresh refs</p>
+15:55 < gloin> ok.</p>
+15:57 <+Complication> Oh, offline again</p>
+15:58 < stealth> what about an automatic startup of i2phex after i2p has started ?</p>
+15:58 <+Complication> Seems like overkill</p>
+15:58 <+Complication> At current phase, at least</p>
+15:58 < jrandom> stealth: you can have the i2p router launch any java application you want by adding entries into your client.config file</p>
+15:59 <+Complication> Besides, I think I2Phex can be started before I2P runs</p>
+15:59 <@frosk> at any phase</p>
+15:59 <+Complication> Theoretically, it should keep trying to connect until I2P gets up</p>
+15:59 <+Complication> (haven't tested, though)</p>
+15:59 < jrandom> though remember, if you tell it to launch i2phex, when i2phex closes, chances are the i2phex client will kill the JVM (restarting your router)</p>
+16:00 <+Complication> Besides, one could script it fairly easily too...</p>
+16:00 <+Complication> e.g. "cd /home/i2p; sh i2prouter start; cd /home/i2phex; sleep 100; sh run.sh;"</p>
+16:00 <+Complication> (or however it was)</p>
+16:01 <+Complication> Sorry, /home/user/i2p more likely :)</p>
+16:01 < cervantes> don't forget to start /usr/games/tetris before the sleep 100</p>
+16:02 < jrandom> damn straight</p>
+16:02 < jrandom> ok, anyone have anything else for the meeting?</p>
+16:03 < stealth> well I thought  about it just start the exe. the i2psnark solution with always on is better because people forget to share their files if they are not downloading...</p>
+16:04 < jrandom> aye, though I've yet to hear of a gnutella client that is thin enough (that could be integrated)</p>
+16:05 < cervantes> isn't the work being done on the current Phex to abstract the UI? perhaps the client eventually become skinny</p>
+16:05 <+Complication> I haven't read that part of Phex CVS</p>
+16:06 < jrandom> if phex could be run as a .war, that would indeed rule</p>
+16:06 < cervantes> isn't the=isn't there</p>
+16:06 < cervantes> I'm probably mistaken</p>
+16:06 <+Complication> Sirup certainly was working on an XML-RPC interface, but I'm not sure if Gregor & co are too</p>
+16:07 <+Complication> So I'm not sure if sirup ported it in, or started writing it from scratch</p>
+16:09 < jrandom> iirc he was just importing apache's xmlrpc lib and exposing some of i2phex's internals, but there hasn't been any work on that in probably 6-8 months, and it was never functional afaik</p>
+16:10 < fox_> &lt;tethra> mutella is a web based gnutella client that is fairly lightweight, iirc. not sure if it will be any help, but heh, might be worth someone (more talented) checking it out.</p>
+16:10 < fox_> &lt;tethra> might not be what is being looked for, though.</p>
+16:12 < jrandom> porting a new one is a chunk of work, especially a C/C++ one, unfortunately</p>
+16:12 <+Complication> I'm personally unlikely to tinker with XML-RPC. Attempting to catch various bugs... is in my near-term plans, though.</p>
+16:13  * Complication wants the rehash effect gone for good, since it's such a waste of time</p>
+16:13 < jrandom> ooh, perhaps thats triggered by timezone shift?</p>
+16:14 < jrandom> when the I2P SDK connects to the router, it gets the current I2P (NTP) time from it, and forces the SDK's JVM into UTC</p>
+16:14 <+Complication> Sounds unlikely... but at this stage, I can't exclude much</p>
+16:15 < jrandom> (and if the rehash depended upon ordering and file timestamps, perhaps the shift of a few hours would change that)</p>
+16:15 < jrandom> yeah, you've dug into a lot of it, just mentioning a possibility</p>
+16:15  * jrandom doesn't know anything about it beyond your bug reports :)</p>
+16:16 <+Complication> It occurs occasionally, and *seems* related to something happening when the "sharedlibrary" config file is being loaded/rewritten</p>
+16:16 <+Complication> Hmm, interesting possibility...</p>
+16:16 <+Complication> I've not dug enough to exclude that</p>
+16:18 < jrandom> ok, anyone else have something for the meeting?</p>
+16:19 < jrandom> if not...</p>
+16:19  * jrandom winds up</p>
+16:19  * bar wishes jrandom good luck with .10 and hands him a shiny baf</p>
+16:19 < jrandom> gracias :)</p>
+16:19  * jrandom *baf*s the meeting closed </p>
+</div>
+{% endblock %}

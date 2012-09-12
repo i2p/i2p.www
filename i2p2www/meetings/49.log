@@ -1,0 +1,746 @@
+{% extends "_layout.html" %}
+{% block title %}I2P Development Meeting 49{% endblock %}
+{% block content %}<div class="irclog">
+--- Log opened Tue Jul 15 17:46:47 2003</p>
+17:46 < gott> yo.</p>
+17:46 <@nop> just a heads up on my silence</p>
+17:46 <@hezekiah> Tue Jul 15 21:46:49 UTC 2003</p>
+17:47 <@hezekiah> OK. The iip-dev meeting has started.</p>
+17:47 <@hezekiah> Is it the 48th or 49th?</p>
+17:47 < jrand0m> nop&gt; this is why its critical that we get the router</p>
+	 architecture pounded out asap.  I understand that different people have</p>
+	 different rates of speed, and we must segment so different components can</p>
+	 proceed accordingly</p>
+17:47 < mihi> 49th</p>
+17:47 <@hezekiah> OK! Welcome to the 49th iip-dev meeting!</p>
+17:47 < jrand0m> I have three more days at my job, after which 90+ hours /</p>
+	 week will be dedicated to getting this going</p>
+17:48 < jrand0m> I know and don't expect everyone to be able to do that,</p>
+	 which is why we need to segment</p>
+17:48 < jrand0m> hi hezekiah :)</p>
+17:48 <@hezekiah> lol</p>
+17:48 <@nop> to rebutt on that</p>
+17:48 <@hezekiah> I'll wait a minute. Then we can do the agenda. :)</p>
+17:48 <@nop> the security of the router architecture is dependant that you</p>
+	 do not rush as well</p>
+17:49 <@nop> if we do</p>
+17:49 <@nop> we overlook</p>
+17:49 <@nop> which could leave us cleaning up a big mess later</p>
+17:49 -!- Rain [Rain@anon.iip] has quit [I Quit]</p>
+17:49 < jrand0m> nop&gt; disagree.  we can still build app layer and APIs</p>
+	 without implementing the router (or even knowing how the network will operate)</p>
+17:49 <@nop> I agree with that</p>
+17:50 <@nop> I'm specifically talking about the underlying network</p>
+17:50 < jrand0m> if we can agree to the API I sent out, then thats the</p>
+	 segmentation we need</p>
+17:50 < jrand0m> right, router impl and network design still isn't done</p>
+17:50 <@nop> ok</p>
+17:50 <@nop> oh, I can definitely agree with your api so far</p>
+17:51 <@hezekiah> jrand0m: One problem.</p>
+17:51 < jrand0m> shoot hezekiah</p>
+17:51 <@hezekiah> It will look different if you implement it in C.</p>
+17:51 < jrand0m> not too different</p>
+17:51 < gott> oh dear</p>
+17:51 < jrand0m> less capital letters, and replace the objects with structs</p>
+17:51 < gott> what languages are people considering implementing it in?</p>
+17:51 < jrand0m> (for the api)</p>
+17:51 <@hezekiah> Uh, jrand0m? There is no 'byte[]' in C.</p>
+17:51 < jrand0m> gott&gt; read the mail archives for some example answers to that</p>
+17:52 <@hezekiah> You will be using void*'s with an integer to specifiy the</p>
+	 length most likely.</p>
+17:52 < jrand0m> hezekiah&gt; then unsigned int[]</p>
+17:52 < gott> jrand0m: for once, a religious war that I'm not a part of</p>
+17:52 <@hezekiah> If I remember correctly (help me out here nop), you can't</p>
+	 just return an unsigned int[] from a function.</p>
+17:53 <@hezekiah> gott: It's not a religious war. I'm just saying that the</p>
+	 API as a concept might be fine, but in C it would look seriously different.</p>
+17:53 < gott> hezekiah: as opposed to what? pseudocode?</p>
+17:53 < jrand0m> right, syntactic changes.  but yes, if there are real</p>
+	 differences, we need to get them worked out ASAP.  (like, today)  Perhaps</p>
+	 now would be a good tiem to look at the email I sent entitled "high level</p>
+	 router architecture and API" and review?</p>
+17:54 <@hezekiah> nop? UserX? Are you game for that?</p>
+17:54 < jrand0m> not too different, but different none the less, yes.</p>
+	 which is why I said Java API on todays email :)</p>
+17:54 -!- WinBear [WinBear@anon.iip] has joined #iip-dev</p>
+17:55 <@nop> wait</p>
+17:55 <@nop> reading above</p>
+17:55 -!- mihi_2 [~none@anon.iip] has joined #iip-dev</p>
+17:55 -!- mihi is now known as nickthief60234</p>
+17:55 -!- mihi_2 is now known as mihi</p>
+17:55 < jrand0m> wb mihi</p>
+17:55 < gott> btw, is this being live logged?</p>
+17:55 -!- nickthief60234 [~none@anon.iip] has quit [EOF From client]</p>
+17:55 <@hezekiah> gott: Yes.</p>
+17:55 < mihi> redundancy rules ;)</p>
+17:55 < gott> I'll just read it later on then.</p>
+17:55 -!- gott [~gott@anon.iip] has left #iip-dev [gott]</p>
+17:56 <@nop> ok</p>
+17:56 <@nop> yes</p>
+17:56 < WinBear> jrand0m: hi</p>
+17:56 <@nop> definitely differences</p>
+17:56 <@nop> what we need</p>
+17:56 < jrand0m> heya WinBear</p>
+17:56 <@nop> is a team of certain developers to write the main api level</p>
+	 controls for these languages</p>
+17:56 <@nop> we know that jrand0m can handle java</p>
+17:56 <@nop> and probably could team up with thecrypto as well</p>
+17:56 <@nop> and hezekiah and the gang can do C</p>
+17:56 <@nop> and jeremiah if he's willing</p>
+17:56 <@nop> can do python</p>
+17:56 <@hezekiah> I can do C++ too! ;-)</p>
+17:56 <@nop> ok</p>
+17:56 <@nop> C++ as well</p>
+17:57 <@hezekiah> lol</p>
+17:57 <@nop> C++ will probably work</p>
+17:57 <@nop> with C</p>
+17:57 <@nop> if you don't template the crap out of it</p>
+17:57 < jrand0m> heh</p>
+17:57 <@hezekiah> lol</p>
+17:57 <@hezekiah> Actually, while MSVC can link C and C++ object files,</p>
+	 gcc doesn't seem to like that.</p>
+17:57 <@nop> aka, stick to structs that are compatible with C, or is that</p>
+	 not viable</p>
+17:57 < jrand0m> first question, prior to that, is what applications will use</p>
+	 these APIs?  I know of apps that will want to use java, will iproxy be in C?</p>
+17:58 <@hezekiah> nop: I don't think C and C++ are object compatible.</p>
+17:58 <@nop> ok</p>
+17:58 <@hezekiah> nop: C++ won't get along with C much better than Java.</p>
+17:58 <@nop> well maybe USerX could do C</p>
+17:58 <@nop> and you could pull C++</p>
+17:58 <@hezekiah> We don</p>
+17:58 <@nop> ?</p>
+17:58 <@hezekiah> don't even need to _do_ C++ if you don't want to. It's</p>
+	 just that I prefer it.</p>
+17:59 <@nop> well, the thing is</p>
+17:59 <@nop> there are a lot of C++ developers</p>
+17:59 <@nop> especially in the microsoft world</p>
+17:59 <@hezekiah> Even in the Linux world. (see: KDE and Qt.)</p>
+17:59 < jrand0m> C and C++ are binary compatible if you just make .so or .a</p>
+17:59 < jrand0m> (btw)</p>
+18:00 <@nop> can C be a good placement for C++, aka C++ developers would be</p>
+	 able to handle a c api easier than a C++ api with a c developer?</p>
+18:00 <@hezekiah> jrand0m: Yeah. You can probably have libraries ... but if</p>
+	 you can</p>
+18:00 <@hezekiah> jrand0m: can't even use classes, it sorta defeats the</p>
+	 purpose.</p>
+18:00 <@nop> right</p>
+18:00 <@nop> let's stick with C</p>
+18:01 <@nop> because C++ coders can still call a C library rather easily</p>
+18:01 <@hezekiah> If one module needs to call anothers functions, then they</p>
+	 had best both be the same language.</p>
+18:01 <@hezekiah> nop: C++ coders will know C well enough ... though it</p>
+	 might take some work if they never /learned/ C.</p>
+18:02 <@hezekiah> However, C coders wouldn't know C++ since C is just a</p>
+	 subset of C++.</p>
+18:02 -!- logger_ [~logger@anon.iip] has joined #iip-dev</p>
+18:02 -!- Topic for #iip-dev: logfiles will be online after the meeting:</p>
+	 http://wiki.invisiblenet.net/?Meetings</p>
+18:02 [Users #iip-dev]</p>
+18:02 [@hezekiah] [+Ehud    ] [ leenookx] [ moltar] [ tek    ]</p>
+18:02 [@nop     ] [ jeremiah] [ logger_ ] [ Neo   ] [ WinBear]</p>
+18:02 [@UserX   ] [ jrand0m ] [ mihi    ] [ ptsc  ]</p>
+18:02 -!- Irssi: #iip-dev: Total of 14 nicks [3 ops, 0 halfops, 1 voices,</p>
+10 normal]</p>
+18:02 < jrand0m> right</p>
+18:02 -!- Irssi: Join to #iip-dev was synced in 9 secs</p>
+18:02 < jrand0m> (with JMS :)</p>
+18:02 <@nop> yep</p>
+18:03 -!- You're now known as logger</p>
+18:03 < jrand0m> ok, can we review the overall architecture to see whether</p>
+	 the APIs are even relevent first?</p>
+18:03 <@nop> fine  18:04 &lt; jrand0m&gt; :)</p>
+18:04 < jrand0m> ok, see the email I sent w/ the routerArchitecture.png.</p>
+	 any thoughts on that seperation?</p>
+18:04 -!- tek [~tek@anon.iip] has quit []</p>
+18:05 < WinBear> jrand0m: is that on the wiki?</p>
+18:05 < jrand0m> WinBear&gt; no, on the mailing list, though the archives</p>
+	 are down.  lemmie add it to the wikki</p>
+18:06 <@hezekiah> Correct me if I'm wrong ...</p>
+18:07 <@hezekiah> ... but it looks like we're going to have 3 seperate API's</p>
+	 that are as similar as possible.</p>
+18:07 <@hezekiah> Right?</p>
+18:07 < jrand0m> yes hezekiah</p>
+18:07 <@hezekiah> So since each API is in a different language, are they</p>
+	 going all each have seperate implementations?</p>
+18:07 < jrand0m> yes</p>
+18:07 <@hezekiah> Or is there a way for Java or Python to access a C library?</p>
+18:08 < jrand0m> yes, but we don't want to go that route</p>
+18:08 < mihi> for java: JNI</p>
+18:08 <@hezekiah> So this talk about Java, C, C++, Python, etc. working</p>
+	 together is mute since they never will?</p>
+18:08 < jrand0m> how do I attach an image to the wiki?</p>
+18:08 <@hezekiah> Each API has its own backend written in that language.</p>
+18:08 < jrand0m> no hezekiah, look at the diagram</p>
+18:09 <@hezekiah> Oh, duh!</p>
+18:09 <@hezekiah> The API's don't link to a backend.</p>
+18:10 <@hezekiah> They talk via sockets.</p>
+18:10 < jrand0m> si sr</p>
+18:10 <@hezekiah> This is still a little confusing though.</p>
+18:10 <@hezekiah> Give me a sec here. :)</p>
+18:11 <@hezekiah> OK. What is the thing labeled 'transport'?</p>
+18:11 < jrand0m> for example, bidirectional HTTP transport, SMTP transport,</p>
+	 plain socket transport, polling HTTP socket, etc</p>
+18:11 < jrand0m> the thing that moves bytes between routers</p>
+18:12 <@hezekiah> OK.</p>
+18:12 <@hezekiah> So the diagram I'm looking at shows one person's computer.</p>
+18:12 <@hezekiah> He has a router that talks to other people's computers</p>
+	 via the transports.</p>
+18:12 < jrand0m> correct</p>
+18:12 <@hezekiah> Person 1 (Alice) has 2 applications running.</p>
+18:12 <@hezekiah> One is in C, the other in Java.</p>
+18:13 <@hezekiah> Both are linked to a library (that's the API).</p>
+18:13 < jrand0m> both are "linked" to seperate libraries (the APIs)</p>
+18:13 <@nop> simple concept</p>
+18:13 <@nop> yes</p>
+18:13 <@hezekiah> Those libraries, take input from the program encrypt it,</p>
+	 and send it via sockets (unix or TCP) to the router ... which is another</p>
+	 program Alice is running.</p>
+18:13 < jrand0m> correct</p>
+18:14 <@hezekiah> OK. So it's kinda like isproxy being split in two.</p>
+18:14 < jrand0m> bingo :)</p>
+18:14 <@hezekiah> One part is low end and written in C, and the other is</p>
+	 high end and written in whatever.</p>
+18:14 < jrand0m> exactly</p>
+18:14 <@hezekiah> OK. I get it. :)</p>
+18:14 < jrand0m> w00t</p>
+18:14 <@hezekiah> So no language needs to play nice with any other language.</p>
+18:14 < jrand0m> WinBear&gt; sorry, I can't toss it on the wiki as it only</p>
+	 takes text :/</p>
+18:15 <@hezekiah> Since they all comunicate with the router via sockets,</p>
+	 you could write an API in PASCAL for all the design cares.</p>
+18:15 <@nop> yes</p>
+18:15 <@nop> arbitrary</p>
+18:15 < jrand0m> right</p>
+18:15 <@nop> it handles arbitrary sockets</p>
+18:15 < jrand0m> though some things need to be standardized (like the data</p>
+	 structures for Destination, Lease, etc)</p>
+18:15 < WinBear> jrand0m: i get a vague idea based on what hezekiah is saying</p>
+18:15 < jrand0m> word</p>
+18:16 <@hezekiah> jrand0m: Right. The structure and order of the bytes that</p>
+	 go across that socket is set in a design somewhre</p>
+18:16 <@hezekiah> somewhere.</p>
+18:17 <@hezekiah> But you can still implement how those bytes are send and</p>
+	 received any joly way you please.</p>
+18:17 <@nop> WinBear: it's the same exact way that the irc client works</p>
+	 with isproxy</p>
+18:17 < jrand0m> exactly</p>
+18:17 <@hezekiah> Good.</p>
+18:17 <@hezekiah> I understand now. :)</p>
+18:17 -!- moltar [~me@anon.iip] has left #iip-dev [moltar]</p>
+18:17 <@nop> well</p>
+18:17 <@nop> not exactly</p>
+18:17 <@hezekiah> Uh oh.</p>
+18:17 <@nop> but imagine how that works</p>
+18:17 <@nop> and you can understand arbitrary sockets</p>
+18:17 <@nop> isproxy just routes</p>
+18:17 <@nop> and delivers</p>
+18:18 <@nop> now jrand0m</p>
+18:18 <@nop> quick question</p>
+18:18 < jrand0m> si sr?</p>
+18:18 <@nop> is this api designed for only new applications that are designed</p>
+	 to work on this network</p>
+18:18 -!- mode/#iip-dev [+v logger] by hezekiah</p>
+18:18 < WinBear> nop: with the highlevel replacing the irc client?</p>
+18:18 < jrand0m> nop&gt; yes.  though a SOCKS5 proxy could use this API as well</p>
+18:18 <@nop> or can it be able to have a middle man that can allow already</p>
+	 standard clients</p>
+18:18 <@nop> for instance</p>
+18:19 <@nop> so all we would have to do is write the middleman -&gt; api</p>
+18:19 < jrand0m> (but note that there's no 'lookup' service available -</p>
+	 no DNS for this network)</p>
+18:19 < jrand0m> correct</p>
+18:19 <@nop> so that we can support say Mozilla etc</p>
+18:19 <@nop> so they can just code plugins</p>
+18:19 < jrand0m> nop&gt; yes</p>
+18:19 <@nop> ok</p>
+18:19 <@nop> or transports :)</p>
+18:20 < jrand0m> (e.g. the SOCKS5 has the HTTP outproxies hardcoded to</p>
+	 destination1, destination2, and destination3)</p>
+18:20 <@nop> ok</p>
+18:20 < WinBear> i think i get it</p>
+18:21 < jrand0m> w00t</p>
+18:21 < jrand0m> ok, one of the things I had to think about in this design</p>
+	 was keeping the private keys in the app's memory space - the router never</p>
+	 gets a hold of destination private keys.</p>
+18:21 <@hezekiah> So the application can send raw data over the I2P network</p>
+	 by sending it to the API, and it doesn't need to worry about the rest.</p>
+18:22 <@hezekiah> Right?</p>
+18:22 < jrand0m> that means the APIs need to implement the end to end part</p>
+	 of the crypto</p>
+18:22 < jrand0m> exactly hezekiah</p>
+18:22 <@hezekiah> OK.</p>
+18:22 <@nop> yes</p>
+18:22 <@nop> that's the idea</p>
+18:22 <@nop> it does it for you</p>
+18:22 <@nop> you just call the hook</p>
+18:23 <@hezekiah> One quick question:</p>
+18:23 <@hezekiah> This 'router' obviously needs to speak a certain protocol</p>
+	 over it's transports.</p>
+18:23 < jrand0m> correct</p>
+18:23 <@hezekiah> So it is possible to provide multiple implementations of</p>
+	 the router ...</p>
+18:23 < jrand0m> yes</p>
+18:24 <@hezekiah> ... as long as they both speak the same protocol.</p>
+18:24 < jrand0m> (which is why the spec has placeholders for bitbuckets)</p>
+18:24 < jrand0m> right</p>
+18:24 <@hezekiah> So you have a router in Java, and one in C, and one</p>
+	 in PASCAL.</p>
+18:24  * jrand0m cringes</p>
+18:24 < jrand0m> but yeah</p>
+18:24 <@hezekiah> And they all can talk together since they're talking over</p>
+	 TCP/IP using the same protocol.</p>
+18:24  * WinBear jumps</p>
+18:24 <@hezekiah> jrand0m: And yes. I don't remember my PASCAL days overly</p>
+	 fondly either.</p>
+18:25 < jrand0m> well, Pascal can talk to the C one through the TCP transport,</p>
+	 and the C one can talk to the Java one over the HTTP transport, for example</p>
+18:25 <@hezekiah> Right.</p>
+18:25 < jrand0m> (transports talk to other like transports, routers manage</p>
+	 the messages delivered between them but don't deal with how they're delivered)</p>
+18:26 <@hezekiah> The point I was looking to make was that the protocol is the</p>
+	 same, so it doesn't matter what language someone's router is implemented in.</p>
+18:26 < jrand0m> right</p>
+18:26 <@hezekiah> Cool.</p>
+18:26 < jrand0m> now you understand why I said "who cares" to all the C vs</p>
+	 Java vs etc debates?  :)</p>
+18:26 <@hezekiah> Yup.</p>
+18:26 <@hezekiah> lol</p>
+18:27 <@hezekiah> I've got to hand it to you jrand0m. This will make it very</p>
+	 kind for develoeprs to write programs for this network.</p>
+18:27 < jrand0m> heh, well, the API ain't quite original.  this is how</p>
+	 Message Oriented Middleware (MOM) works</p>
+18:27 <@hezekiah> And you could even make routers that specialize in certain</p>
+	 platform specific features (like 64-bit CPU's).</p>
+18:28 < jrand0m> absolutely</p>
+18:28 <@hezekiah> jrand0m: Humble too! ;-)</p>
+18:28 <@hezekiah> Well, it looks good to me.</p>
+18:28 < jrand0m> ok, UserX, nop, does this seperation make sense?</p>
+18:28 <@nop> of course</p>
+18:28 <@nop> is userx still here</p>
+18:29 <@hezekiah> He's been idle for 1:26.</p>
+18:29 < jrand0m> 'k.  so then we have two tasks: design the network, and</p>
+	 design how the API works.</p>
+18:29 <@nop> right</p>
+18:29 <@hezekiah> Quick simple question: The API's do end to end crypto. Do</p>
+	 the routers to node to node crypto ?</p>
+18:29 <@nop> yes</p>
+18:30 < jrand0m> yes</p>
+18:30 < jrand0m> (transport level)</p>
+18:30 <@hezekiah> Good. :)</p>
+18:30 <@nop> hezekiah: it's very similar to what we have so far</p>
+18:30 <@nop> in that aspect</p>
+18:31 < jrand0m> ok.. er, shit, thecrypto aint around for comments on the</p>
+	 performance model.</p>
+18:31 < Neo> and for the paranoid, the apps can do the pgp encryption before</p>
+	 it hits the API ;)</p>
+18:31 < jrand0m> absolutely neo</p>
+18:31 < jrand0m> I was even tempted to leave the end to end crypto out of</p>
+	 the API and leave it up to the apps...</p>
+18:31 <@hezekiah> jrand0m: That would be cruel.</p>
+18:31 < jrand0m> heheh</p>
+18:32 <@hezekiah> BTW, the API's and the router communicate via sockets.</p>
+18:32 <@hezekiah> On UNIX will they be using UNIX sockets or local TCP/IP</p>
+	 sockets?</p>
+18:32 < jrand0m> prolly just local tcp/ip for simplicity</p>
+18:32 <@nop> hold</p>
+18:32 <@hezekiah> (I suppose you could make a router that accepts both.)</p>
+18:33  * hezekiah is really liking this interchangable parts setup</p>
+18:33 <@nop> if you hold on a sec</p>
+18:34 <@hezekiah> Holding ... :)</p>
+18:34 <@nop> I'll call thecrypto at his house</p>
+18:34 <@nop> see if he can get on</p>
+18:34 < jrand0m> hehe word</p>
+18:34 <@hezekiah> lol</p>
+18:34  * hezekiah dons a thick Itallian accent</p>
+18:34 <@hezekiah> Nop ha' got ... CONNECTIONS!</p>
+18:34 < jeremiah> lo</p>
+18:34 <@nop> hey jeremiah</p>
+18:35 < jrand0m> heya jeremiah</p>
+18:35 <@nop> would you be willing at the api level to assist with a python api</p>
+18:35 < jeremiah> sure</p>
+18:35  * jeremiah reads backlog</p>
+18:35 < jrand0m> heh word</p>
+18:35  * nop is calling</p>
+18:36 <@nop> he's not home</p>
+18:36 <@nop> he'll be back in an hour</p>
+18:36 < jrand0m> 'k, has anyone else read the .xls and/or have comments on</p>
+	 the model?</p>
+18:37 <@hezekiah> I read the .xls ... but I don't know much about p2p so</p>
+	 most of it was over my head.</p>
+18:37 <@hezekiah> UserX is good at that stuff.</p>
+18:37 <@nop> I have to read it still</p>
+18:37 < jrand0m> (btw, morphmix had some insane numbers... they were saying</p>
+	 they could expect random hosts on the net to have average 20-150ms ping times,</p>
+	 rather than the 3-500 I was expecting)</p>
+18:37 < jrand0m> coo'</p>
+18:37 <@nop> it's staroffice or openoffice?</p>
+18:37 < jrand0m> openoffice, but I exported it to .xls</p>
+18:37 <@nop> which is excell?</p>
+18:37 < jrand0m> correct</p>
+18:38 <@hezekiah> BTW, concerning the API ...</p>
+18:38 < jrand0m> si sr?</p>
+18:38 <@hezekiah> ... in C the boolean would be int.</p>
+18:38 <@nop> which email</p>
+18:38 <@nop> hezekiah: yes</p>
+18:38 <@hezekiah> The classes would be sent as structure pointers.</p>
+18:38 <@nop> unless you typedef boolean</p>
+18:39 <@hezekiah> And the functions that use byte[] would use a void* with</p>
+	 an additional parameter that specefies the length of the buffer.</p>
+18:39 <@nop> hezekiah: you're being picky :)</p>
+18:39 < jrand0m> nop&gt; I cant access the archives so I'm not sure what the</p>
+	 subject line was, but it was last week...</p>
+18:39 <@nop> save it for a later time</p>
+18:39 <@hezekiah> nop: Picky?</p>
+18:39 < jrand0m> heh, yeah, y'all working on the C api can work that detail out</p>
+18:39  * jeremiah is done reading backlog</p>
+18:39 <@nop> what's the file called</p>
+18:39 <@hezekiah> nop: I'm just trying to find all the stuff that is different,</p>
+	 so we can hammer it out like jrand0m asked.</p>
+18:40 <@hezekiah> I'm trying to be helpful. :)</p>
+18:40 <@nop> hezekiah: yes, probably off meeting time</p>
+18:40 < jrand0m> nop&gt; simple_latency.xls</p>
+18:40 <@hezekiah> boolean sendMessage(Destination dest, byte[] payload);</p>
+18:40 <@hezekiah>  would be</p>
+18:40 <@hezekiah> int sendMessage(Destination dest, void* payload, int length);</p>
+18:40 <@hezekiah> .</p>
+18:40 <@hezekiah> byte[]  recieveMessage(int msgId);</p>
+18:40 <@hezekiah>  that could either be:</p>
+18:41 <@hezekiah> void*  recieveMessage(int msgId, int* length);</p>
+18:41 <@hezekiah>  or</p>
+18:41 <@nop> jrand0m: got it</p>
+18:41 <@hezekiah> void recieveMessage(int msgId, void* buf, int* length);</p>
+18:41 <@hezekiah>  or</p>
+18:41 < jrand0m> hezekia: why not typedef struct { int length; void* data;</p>
+	 } Payload;</p>
+18:41 <@hezekiah> DataBlock* recieveMessage(int msgId)l</p>
+18:41 <@hezekiah> DataBlock* recieveMessage(int msgId);</p>
+18:41 < jeremiah> where's this xls?</p>
+18:41 <@nop> oh iip-dev</p>
+18:41 <@hezekiah> jrand0m: The struct you just mentioned is basically what</p>
+	 DataBlock is.</p>
+18:42 < jrand0m> word hezekiah</p>
+18:42 <@nop> subject more models</p>
+18:42 <@hezekiah> Chances are the C version would have DataBlocks.</p>
+18:43 <@hezekiah> Beyond that the only other thing to note is that each</p>
+	 'interface' would just be a set of functions.</p>
+18:43 <@hezekiah> nop: Did I find all the differences that would exist in</p>
+	 a C API?</p>
+18:43 < jrand0m> right.  perhaps #include "i2psession.h" or something</p>
+18:43 < jeremiah> is there a mockup python api?</p>
+18:44 < jrand0m> no jeremiah, I don't really know python :/</p>
+18:44 <@nop> I would have to re-review the java api, but I would say that</p>
+	 you're right on target</p>
+18:44 < jrand0m> but it would probably be similar to the java, as python is OO</p>
+18:44 < jeremiah> cool, i can derive one from the C one</p>
+18:44  * nop is not a java head</p>
+18:44 < jrand0m> cool jeremiah</p>
+18:44 < jeremiah> is the c api in the thing you sent out a few days ago?</p>
+18:44 <@hezekiah> Yeah. Python should be able to handle the Java api.</p>
+18:44 < jrand0m> jeremiah&gt; that was the Java one</p>
+18:45 < jrand0m> oh, the Java one was today</p>
+18:45 < jrand0m> the older one was language independent</p>
+18:45 <@hezekiah> Hmm</p>
+18:45 <@nop> UserX says he should be able to assist with C api</p>
+18:45 < jrand0m> word</p>
+18:45 <@nop> he's busy at work at the moment</p>
+18:46 < jrand0m> coo'</p>
+18:46 <@hezekiah> One last note: With the C api, each function would probably</p>
+	 take a structure* to the structure that it is an 'interface' of in Java.</p>
+18:46 <@nop> hezekiah: loos good</p>
+18:46 <@nop> looks good</p>
+18:46 <@hezekiah> I2PSession       createSession(String keyFileToLoadFrom,</p>
+	 Properties options);</p>
+18:46 <@hezekiah>  would be:</p>
+18:46 <@nop> java and their non-native data types</p>
+18:46 <@hezekiah> I2PSession* createSession(I2PClient* client, char*</p>
+	 keyFileToLoadFrom, Properties* options);</p>
+18:46 <@nop> ;)</p>
+18:46 < jrand0m> hehe</p>
+18:46 < jrand0m> right hezekiah</p>
+18:47 < jeremiah> are we addressing unicode?</p>
+18:47 <@hezekiah> Anyway, if you can live with those differences, the C and</p>
+	 Java API's should be identical beyond that.</p>
+18:47 <@hezekiah> nop? Unicode? :)</p>
+18:47 < jrand0m> UTF8 if not UTF16</p>
+18:48 <@hezekiah> Perhaps Unicode should be dealt with on the application</p>
+	 level.</p>
+18:48 < jrand0m> right, charset is all the content of the message</p>
+18:48 <@hezekiah> Oh.</p>
+18:48 < jeremiah> ok</p>
+18:48 <@hezekiah> Java String's are done in Unicode, aren't they jrand0m?</p>
+18:48 < jrand0m> the bitbuckets'll all be bit defined</p>
+18:48 < jrand0m> yes hezekiah</p>
+18:48 < jrand0m> (unless you explicitly instruct them to change charsets)</p>
+18:49 <@hezekiah> So the string sent to the Java API would be different than</p>
+	 the one sent to the C API unless the C API implements strings using Unicode.</p>
+18:49 < jrand0m> not relevent</p>
+18:49 <@hezekiah> OK.</p>
+18:49 < jrand0m> (app-&gt;API != API-&gt;router.  we only define API-&gt;router)</p>
+18:49 <@hezekiah> What I'm saying is this, jrand0m:</p>
+18:50 <@hezekiah> If I set my password with the Java API, it goes to the</p>
+	 router out someplace else.</p>
+18:50 < jrand0m> password?  you mean you create a Destination?</p>
+18:50 <@hezekiah> Then it find another router, which sends it to another API</p>
+	 (?) which is implemented in C.</p>
+18:50 <@hezekiah>   void            setPassphrase(String old, String new);</p>
+18:50 <@hezekiah> That function.</p>
+18:51 < jrand0m> hezekiah&gt; thats the administrative password to access the</p>
+	 administrative methods of the router</p>
+18:51 <@hezekiah> Ah</p>
+18:51 <@hezekiah> Do any functions in the API which use Java String's end</p>
+	 up with that String being sent to another API?</p>
+18:51 < jrand0m> 99.9% of apps will only use I2PSession, not I2PAdminSession</p>
+18:51 <@nop> also, anything carried with the router gets converted for</p>
+	 network travel correct?</p>
+18:51 <@hezekiah> If so, we should probably use Unicode.</p>
+18:51 <@nop> unicode wouldn't be releavant</p>
+18:52 < jrand0m> hezekiah&gt; no.  all inter-router info will be defined by</p>
+	 bit buckets</p>
+18:52 <@hezekiah> OK.</p>
+18:52 < jrand0m> correct nop, at the transport level</p>
+18:52 <@hezekiah> (I'm assuming a bit bucket is just a binary buffer, right?)</p>
+18:53 < jrand0m> a bit bucket is a statement that the first bit means X,</p>
+	 the second bit means Y, bits 3-42 mean Z, etc</p>
+18:53 < jrand0m> (e.g. we may want to use X.509 for the certificates bitbucket)</p>
+
+18:53 <@hezekiah> I've never dealt with that before.</p>
+18:54 <@hezekiah> I'll worry about it when I get there. :)</p>
+18:54 < jrand0m> heh word</p>
+18:55 < jrand0m> ok, the four things I wanted us to hit today: *router</p>
+	 architecture, *performance model, *attack analysis, *psyc.  We've done</p>
+	 the first, thecrypto is offline so perhaps we delay this (unless you have</p>
+	 thoughts on the model nop?)</p>
+18:57 <@hezekiah> Um ... jrand0m. I have yet another question.</p>
+18:57 < jeremiah> jrand0m: where's the latest version of the network spec? is</p>
+	 it what you sent out on the 13th?</p>
+18:57 < jrand0m> si sr?</p>
+18:57 <@hezekiah> Well the router architecture has the API's handle keys</p>
+	 /sent to them by the Application/.</p>
+18:57 < jrand0m> jeremiah&gt; yes</p>
+18:57 <@nop> I don't at this time</p>
+18:58 <@hezekiah> Now ... the only way I see that the API gets the key is</p>
+	 from createSession.</p>
+18:58 < jrand0m> hezekiah&gt; the router  gets public keys and signatures,</p>
+	 not private keys</p>
+18:58 < jrand0m> right</p>
+18:58 <@hezekiah> But that requires a file.</p>
+18:58 < jrand0m> the keys are stored in a file or in the API's memory</p>
+18:58 < jrand0m> yes</p>
+18:58 <@hezekiah> Now if the application generates a key, why can't it just</p>
+	 send it to the API via a buffer?</p>
+18:59 <@hezekiah> Must it really store it in a file, and then provide the</p>
+	 file name?</p>
+18:59 < jrand0m> no, it can be in memory if you'd like</p>
+18:59 <@hezekiah> There is not function to all that in the API though.</p>
+18:59 <@hezekiah> It's just a thought.</p>
+19:00 <@hezekiah> If the key is supposed to be generated only once and used</p>
+	 many, many times (like GPG keys), then a file makes sense.</p>
+19:00 -!- mihi [none@anon.iip] has quit [bye all, it's getting late...]</p>
+19:00 <@hezekiah> But if it will be generated more often, then perhaps some</p>
+	 way to directly send it to the API via a structure or buffer of some sort</p>
+	 might be nice</p>
+19:00 <@hezekiah> .</p>
+19:01 < jrand0m> yes, its generated once and only once (unless you're wearing</p>
+	 a tinfoil hat)</p>
+19:02 < jrand0m> though the createDestination(keyFileToSaveTo) lets you</p>
+	 create that key</p>
+19:02 <@hezekiah> OK.</p>
+19:02 <@hezekiah> So there's really no need for transfer directly from the</p>
+	 App to the API. A file will suffice.</p>
+19:03 <@hezekiah> So where were we before I so rudely interupted? :)</p>
+19:06 < jeremiah> so right now we're just working on the router API, not</p>
+	 the client one, right?</p>
+19:06 < jrand0m> well, we're skipping on performance analysis for now</p>
+	 (hopefully we can get some chatter re: it on the mailing list before next</p>
+	 week?).  and probably the same wrt attack analysis (unless anyone read the</p>
+	 new spec and has comments)</p>
+19:07 <@hezekiah> So we're since we're skipping that, what are we supposed</p>
+	 to be talking about now?</p>
+19:07 <@hezekiah> Psyc?</p>
+19:07 < jrand0m> unless anyone else has other comments to bring up...?</p>
+19:08 <@hezekiah> Well, for once, my comment hole (also notoriously known</p>
+	 as my mouth) is empty.</p>
+19:08 < jrand0m> hehe</p>
+19:09 < jrand0m> ok, anyone have any thoughts on how the IRC side of things</p>
+	 will work, and whether psyc may be relevent or useful?</p>
+19:09 < jeremiah> sidenote (that pissed me off): wired's "Wired, Tired,</p>
+	 Expired" list had Waste as 'wired'</p>
+19:09 < jrand0m> heh</p>
+19:09 < jrand0m> do you realize how much we're going to blow everyone away?</p>
+19:09 < jeremiah> yep</p>
+19:09 <@hezekiah> jrand0m: That assumes we get this to work.</p>
+19:10 < jrand0m> I guarantee it will work.</p>
+19:10 <@hezekiah> There are a lot of other failed efforts out there.</p>
+19:10 < jrand0m> I quit my job to work on this.</p>
+19:10 <@hezekiah> Then we're going to blow everyone away. :)</p>
+19:10 <@hezekiah> Yeah. How is bread getting on the table when you do that?</p>
+19:10 <@hezekiah> GPL code doesn't pay well. ;-)</p>
+19:10 < jrand0m> heh</p>
+19:11 <@hezekiah> As for psyc ... let me put it this way:</p>
+19:11 <@hezekiah> The first time I heard of it was when you emailed us</p>
+	 about it.</p>
+19:11 < jrand0m> shit, I wasn't the one who found it :)</p>
+19:11 <@hezekiah> However, IRC is probably one of the most (if not /the/</p>
+	 most) prolific chat protocols around.</p>
+19:11 <@hezekiah> People will want IRC apps LONG before they even /know/</p>
+	 what psyc is.</p>
+19:11 <@hezekiah> jrand0m: Oops. Sorry. I forgot that detail. :)</p>
+19:12 < jrand0m> not according to psyc.  their history goes back to 86 I think</p>
+19:12 <@hezekiah> The point is that the supperiority of the protocol, isn't</p>
+	 really as relevant as to who uses it.</p>
+19:12 <@hezekiah> Their _history_ may go back that far.</p>
+19:12 <@hezekiah> But how many people _use_ Psyc?</p>
+19:12 < jeremiah> yeah if they've been around since a year after I was born</p>
+	 (ahem) and they aren't that big yet</p>
+19:12 <@hezekiah> My point is that even if it's a better protocol, most</p>
+	 people _use_ IRC.</p>
+19:13 <@hezekiah> We can make the best I2P network on the planet ...</p>
+19:13 -!- Ehud [logger@anon.iip] has quit [Ping timeout]</p>
+19:14 < jeremiah> can someone explain briefly why we care? I thought IRC</p>
+	 would only be one possible application but that the network is flexible to</p>
+	 support psyc as well if it wanted to</p>
+19:14 <@hezekiah> Right.</p>
+19:14 <@hezekiah> Psyc can be made ...</p>
+19:14 <@hezekiah> ... but I'm saying we should do IRC first because more</p>
+	 people use it.</p>
+
+19:14 <@hezekiah> jrand0m, we can make a great I2P network, but people won't</p>
+	 use it unless it has something they want.</p>
+19:14 < jrand0m> jeremiah&gt; the reason psyc is interesting is that we may</p>
+	 want to implement IRC in the same vein that psyc works</p>
+19:15 <@hezekiah> Hence we should provide them with a 'killer-app'.</p>
+19:15 < jeremiah> ok</p>
+19:15 < jrand0m> right, IIP is invisible IRC project, and will allow people</p>
+	 to run IRC</p>
+19:16 < jrand0m> with no central server (or any server at all, actually),</p>
+	 theres a lot of thinking to be done to figure out how IRC will work.</p>
+	 psyc has a possible answer to that</p>
+19:16 < jrand0m> though there are others</p>
+19:17 <@hezekiah> As I said, psyc might do better, but people want to use IRC,</p>
+	 not psyc.</p>
+19:17 < jrand0m> and they will</p>
+19:17 < jrand0m> they'll use irc</p>
+19:17 <@hezekiah> It's all about marketing, baby! ;-)</p>
+19:17 < jeremiah> I'll try to read the spec and some stuff on psyc tonight</p>
+19:17 < jrand0m> word</p>
+19:17 <@hezekiah> lol</p>
+19:17 < jeremiah> planning to meet at 5:00 UTC tommorow?</p>
+19:17 <@hezekiah> No?</p>
+19:18 < jeremiah> or whenever</p>
+19:18 < jrand0m> I'm on iip 24x7 :)</p>
+19:18 < jeremiah> yeah but i eat</p>
+19:18 <@hezekiah> jrand0m: I noticed.</p>
+19:18 < jrand0m> 05:00 utc or 17:00 utc?</p>
+19:18 <@hezekiah> jeremiah: LOL!</p>
+19:18 <@hezekiah> Well the iip-dev meeting officially starts at 21:00 UTC.</p>
+19:18 -!- Ehud [~logger@anon.iip] has joined #iip-dev</p>
+19:19 < jeremiah> ok, i just said 05:00 UTC because I was talking out of my ass</p>
+19:19 < jeremiah> where's mids?</p>
+19:19 <@hezekiah> mids, left the project for a while.</p>
+19:19 <@hezekiah> Weren't you there a few meetings back?</p>
+19:19 < jeremiah> ok</p>
+19:19 < jeremiah> guess not</p>
+19:19 <@hezekiah> We had a goodbye party of sorts as part of the agenda.</p>
+19:19 < jeremiah> oh</p>
+19:20 <@hezekiah> OK ...</p>
+19:20 <@hezekiah> Is there anything still on the agenda?</p>
+19:20  * jrand0m doesn't have any left on mine</p>
+19:20 < jeremiah> about psyc:</p>
+19:20 < jeremiah> if this is a psyc feature, I know you mentioned it a</p>
+	 while ago</p>
+19:20  * hezekiah never had an agenda in the first placve</p>
+19:21 <@hezekiah> pace</p>
+19:21 <@hezekiah> place</p>
+19:21 < jeremiah> I don't think having each user send a message to every</p>
+	 other use in the room is s smart idea</p>
+19:21 <@hezekiah> There!</p>
+19:21 < jrand0m> jeremiah&gt; so you'd have redundant nominated pseudoservers</p>
+	 redistribute the messages?</p>
+19:21 < jrand0m> (pseudoservers = peers in the channel who have the list</p>
+	 of users)</p>
+19:21 < jeremiah> I don't think 'broadcasting' is that smart either, but it</p>
+
+	 seems like it'll require a _lot_ of bandwith for a given user who may be on</p>
+	 a modem, and with the lag from sending say... 20 messages separately would</p>
+	 screw up conversation</p>
+19:21 < jeremiah> I don't know the best solution, maybe that would be one</p>
+19:22 < jeremiah> I think direct messaging would be good if you wanted it,</p>
+	 but there are cases where it's probalby not that important</p>
+19:22 <@hezekiah> The message would need to be signed by the authors private</p>
+	 key to garuntee authenticity.</p>
+19:22 <@hezekiah> Though this issue won't matter for a long time still,</p>
+	 I think jeremiah has a point</p>
+19:22 < jrand0m> hezekiah&gt; that requires users wanting provable comm :)</p>
+19:23 < jrand0m> definitely.</p>
+19:23 <@hezekiah> If I had to send a message to 100 users in a channel ...</p>
+19:23 < jeremiah> although my average message is only a few hundred bytes,</p>
+	 so sending it to hundreds of users might not be so hard</p>
+19:23 <@hezekiah> ... well, my conversation would be /very/ slow.</p>
+19:23 < jeremiah> especially if you didn't wait for a response</p>
+19:23 <@hezekiah> 20K to send one message.</p>
+19:23 <@hezekiah> I don't think so. :)</p>
+19:23 < jrand0m> well, if there are 100 users in a channel, *someone* has</p>
+	 to send out 100 messages</p>
+19:23 < jeremiah> it's 20k?</p>
+19:23 < jeremiah> oh, right</p>
+19:23 <@hezekiah> 200 users</p>
+19:24 < jeremiah> hmm</p>
+19:24 < jeremiah> wouldn't the routers be good at that?</p>
+19:24 < jeremiah> we can somewhat safely assume they have decent bandwith,</p>
+	 right?</p>
+19:24 <@hezekiah> I thought each person had a 'router implementation'</p>
+19:24 < jrand0m> not really.  if there are relays, the nomination mechanism</p>
+	 needs to take that into consideration</p>
+19:24 < jrand0m> yes hezekiah</p>
+19:24 < jeremiah> i haven't read the spec</p>
+19:25 < jrand0m> a router is your local router</p>
+19:25 <@hezekiah> Ugh!</p>
+19:25 <@hezekiah> I'm still mixing your nicks up!</p>
+19:25 <@hezekiah> lol</p>
+19:25 < jrand0m> hehe</p>
+19:25 <@hezekiah> Um ... where'd nop go?</p>
+19:25 <@hezekiah> Oh.</p>
+19:26 <@hezekiah> He's still here.</p>
+19:26 <@hezekiah> I thought he was gone for a moment,</p>
+19:26 < jrand0m> but jeremiah is right, psyc has some ideas we may want to</p>
+	 consider, though we may want to reject them</p>
+19:26 <@hezekiah> Let's just get the network running first.</p>
+19:26  * jrand0m drinks to that</p>
+19:26 <@hezekiah> If you strech your vision to the finish line, you'll trip</p>
+	 over the rock 3 inches in front of you.</p>
+19:27  * jeremiah feels inspired</p>
+19:27 <@hezekiah> lol</p>
+19:27 < jrand0m> I think what would be really great if we could aim to review</p>
+	 the network spec by next week, sending out emails to iip-dev whenever anyone</p>
+	 has thoughts or comments.  am I out of my mind?</p>
+19:27 <@hezekiah> nop? Do you have anything else to add to the agenda,</p>
+	 or do we adjurn?</p>
+19:27 <@hezekiah> jrand0m: Well, I don't know if I could read all that by</p>
+	 next week, but I can try. :)</p>
+19:27 < jrand0m> heh</p>
+19:28 < jrand0m> its a grueling 15 pages ;)</p>
+19:28 <@hezekiah> 15 pages?</p>
+19:28 <@hezekiah> It looked more like 120!</p>
+19:29 < jrand0m> heh, well, depends on your resolution I suppose ;)</p>
+19:29 < jeremiah> he has a lot of anchors in there, makes it look like</p>
+	 it's huge</p>
+19:29 < jrand0m> hehe</p>
+19:29 <@hezekiah> The left side has a LOT more than 15 links, budy!</p>
+19:29 <@hezekiah> 'Fess up!</p>
+19:29 <@hezekiah> It's more than 15. :)</p>
+19:29 <@hezekiah> Oh!</p>
+19:29 <@hezekiah> Those aren't pages! They're just anchors!</p>
+19:29 <@hezekiah> I'm saved!</p>
+19:30  * hezekiah feels like a seaman just rescued from drowning</p>
+19:30 < jeremiah> class turn to volume 4 chapter 2 Message Byte Structure</p>
+19:30 < jrand0m> lol</p>
+19:30 <@hezekiah> lol</p>
+19:30 <@nop> adjourn</p>
+19:30 <@hezekiah> *baf*!</p>
+19:30 <@hezekiah> Next week, 21:00 UTC, same place.</p>
+19:30 <@hezekiah> See y'all there. :)</p>
+19:30 < jeremiah> seeya</p>
+--- Log closed Tue Jul 15 19:30:51 2003</p>
+</div>
+{% endblock %}

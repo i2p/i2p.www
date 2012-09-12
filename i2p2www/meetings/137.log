@@ -1,0 +1,286 @@
+{% extends "_layout.html" %}
+{% block title %}I2P Development Meeting 137{% endblock %}
+{% block content %}<h3>I2P dev meeting, April 12, 2005</h3>
+<div class="irclog">
+14:05 < jrandom> 0) hi</p>
+14:05 < jrandom> 1) Net status</p>
+14:05 < jrandom> 2) SSU status</p>
+14:05 < jrandom> 3) Bayesian peer profiling</p>
+14:05 < jrandom> 4) Q status</p>
+14:05 < jrandom> 5) ???</p>
+14:05 < hummingbird> 7) Profit</p>
+14:06 < jrandom> damn, i messed up y'all's agenda :)</p>
+14:06 < jrandom> hi</p>
+14:06 < jrandom> weekly status notes posted /before/ the meeting up @ http://dev.i2p.net/pipermail/i2p/2005-April/000683.html</p>
+14:06 < gott> jrandom: try it again</p>
+14:06 <+cervantes> never mind, this meeting gott off onto a bad footing anyway</p>
+14:06 < jrandom> *cough*</p>
+14:06 < jrandom> jumping in to 1) Net status</p>
+14:07 < jrandom> the big problem we were seeing with the netDb has been fixed and confirmed dead in the wild</p>
+14:07 < jrandom> there are still some other issues, but it seems on the whole to be fairly reasonable</p>
+14:08 < frosk> any idea what's causing the weird dnfs sometimes?</p>
+14:08 < gott> confirm; I can get my illegal porn at record speeds for i2p now.</p>
+14:08 <+cervantes> seems like that might be a hard one to pin down</p>
+14:08 < jrandom> sneaking suspicion that its some confusion related to the throttle on the tunnel building</p>
+14:09 < jrandom> pulling out those throttles will probably address it, but could be painful for users with slow CPUs</p>
+14:09 < jrandom> otoh, perhaps we could make them optional, or someone could write some smarter throttling code</p>
+14:10 < frosk> i see</p>
+14:10 <+cervantes> the throttle seems much more pro-active than previous versions on my system</p>
+14:10 < jrandom> yeah, we delay tunnel building when there are too many outstanding - before we just said "ok, we need to build X tunnels.  build 'em"</p>
+14:10 <+cervantes> can we not make the threshold tweakable?</p>
+14:11 < jrandom> aye, that we can</p>
+14:11 < gott> jrandom: optional</p>
+14:11 < gott> so users with thin i2p servents can still be productive</p>
+14:12 < jrandom> my attention is focused elsewhere at the moment, so if someone wants to dig into that, the key method is TunnelPoolManager.allocateBuilds</p>
+14:12 < jrandom> (or if no one jumps at it, i can toss in some tweaks when the next build comes out)</p>
+14:13 <+cervantes> ........@    &lt;-- tumbleweed</p>
+14:13 < jrandom> :)</p>
+14:13 < jrandom> anyone have anything else for 1) net status, or shall we move on to 2) SSU?</p>
+14:14  * gott mutters something about too much talk and too little action when it comes to the i2p community</p>
+14:14 <+cervantes> perhaps in the future we can introduce performance profiles into the console</p>
+14:14 < gott> jrandom does too much on the development side.</p>
+14:14 <+cervantes> so people can choose a preset batch of config options for high/med/low spec systems</p>
+14:15 < jrandom> ooh good idea cervantes, there's lots of room for variants.  while we want to automatically tune ourselves as best we can, it may be easier for humans to do it</p>
+14:15 <+cervantes> since there are many that seem to be using low spec machines and modem connections atm</p>
+14:15 < gott> cervantes: yeah, excellent idea.</p>
+14:15 <+cervantes> I should publish my fire2pe todo list...it has lots of shit like that in it ;-)</p>
+14:16 < gott> based on processor and network speed primarily ?</p>
+14:16 < jrandom> a site with a pseudonymous todo list would be nice</p>
+14:16 < gott> that is a good idea.</p>
+14:16 <+cervantes> well the bandwidth limiter should ideally take care of net speed</p>
+14:16 < gott> in typical google-fashion, have a bunch of 'thin i2p servents' in your LAN.</p>
+14:17 <+cervantes> jrandom: ugha.i2p?</p>
+14:17 < jrandom> perhaps</p>
+14:19 < jrandom> ok, anything else for 1) net status?</p>
+14:19  * jrandom moves us on to 2) SSU</p>
+14:19 < jrandom> Lots of progress on the UDP front (SSU == Secure Semireliable UDP)</p>
+14:19 < gott> someone should alias 'i2pwiki.i2p' to that</p>
+14:20 <+cervantes> I guess that's up to ugha ;-)</p>
+14:20 < jrandom> the general overview of whats up is in the email, and a lot more technical details (and a pretty picture ;) is up on my blog</p>
+14:21 <+ant> &lt;godmode0&gt; udp is safe ?</p>
+14:21 <+ant> &lt;godmode0&gt; how :)</p>
+14:21 < jrandom> http://dev.i2p/cgi-bin/cvsweb.cgi/i2p/router/doc/udp.html &lt;-- how</p>
+14:22 <+ant> &lt;godmode0&gt; hehe</p>
+14:22 <+ant> &lt;godmode0&gt; i2p not found  right ip my computer</p>
+14:22 < jrandom> sorry, if you don't have i2p installed, change "dev.i2p" to "dev.i2p.net"</p>
+14:22 <+ant> &lt;godmode0&gt; have installled</p>
+14:23 <+ant> &lt;godmode0&gt; but not work</p>
+14:23 < jrandom> ok, perhaps we can debug that after the meeting </p>
+14:23 <+ant> &lt;godmode0&gt; oops in meeting again sorry</p>
+14:23 < jrandom> hehe np</p>
+14:25 < jrandom> anyway, as i said, the general plan of how things are going is in the email</p>
+14:25 < jrandom> anyone have any questions/comments/concerns wrt SSU?</p>
+14:26 <+Ragnarok> will throughput/latency be much different than the tcp transport?</p>
+14:27 < jrandom> my hope is that the cause of the lag spikes will be addressed, but i'm not making any particular predictions.</p>
+14:28 < jrandom> if we can keep latency in the same ballpark as it is now and get rid of the spikes, we can jack back up the throughput</p>
+14:29 <+Ragnarok> cool</p>
+14:29 < gott> will there be documentation on the implementation provided on i2p.net ?</p>
+14:30 < jrandom> much of my time when i go offline to move will be writing up docs to be put on the website, yes</p>
+14:30 < gott> awesome \m/</p>
+14:30 < jrandom> we do have some pretty good implementation docs at the code level for the core and router, but no great overall router architecture docs yet</p>
+14:31 < jrandom> anyway, if there's nothing else on 2) SSU, lets shimmy on over to 3) Bayesian peer profiling</p>
+14:32 < jrandom> we got a brief update from bla earlier this evening, as shown in the status notes</p>
+14:32 <+bla> I'm still here though... ;)</p>
+14:33 < jrandom> bla may atcually still be around to give us any further thoughts or answer questions -</p>
+14:33 < jrandom> ah, there you are</p>
+14:33 < defnax> jrandom : what do you think about anounce i2p bittorrent Tracker, for security i think is not good or?, </p>
+14:34 <+bla> The IRC discussion quoted by jrandom shows the general idea. Summarized: </p>
+14:34 < jrandom> defnax: perhaps we can discuss that further in 5) </p>
+14:34 < defnax> ok i can wait </p>
+14:34 <+bla> The eventual idea is to use both round-trip-time information obtained from explicit tunnels tests, and implicit information from client-tunnel tests, into one node-speed estimation framework</p>
+14:35 <+bla> For now, I use information obtained from explicit tunnel tests only, as for those tests, all participating peers are known.</p>
+14:36 <+bla> A naive Bayesian classifier framework will be used to estimate a peer's speed, given the tunnels in which it has participated (in any position), and how fast those tunnels were</p>
+14:36 <+bla> In order to compare things to a "ground truth", I've obtained "actual" peer speeds as listed in the status notes</p>
+14:37 <+bla> Results are very prelim. But http://theland.i2p/estspeed.png shows the correlation between actual speeds, and speeds inferred using the Bayesian framework</p>
+14:37 <+bla> Well. Any questions or comments?</p>
+14:38 < jrandom> comment: looks promising.  </p>
+14:38 <+ant> &lt;BS314159&gt; it seems like the total tunnel speed provides a hard lower bound on the speed of every participating peer</p>
+14:38 <+detonate> comment: seem to be a few outliers</p>
+14:38 <+ant> &lt;BS314159&gt; is that incorporated?</p>
+14:39 < jrandom> BS314159: total tunnel speed?  oh, do you mean the testing node's net connection?</p>
+14:40 <+bla> BS314159: That does provide a lower bound, yes. This is not addressed yet, but will be: The naive Bayesian framework enables weighting different samples (RTT measurements) to different degrees. Very fast RTTs will be weighted by a larger factor in the future</p>
+14:40 <+ant> &lt;BS314159&gt; I mean the total bandwidth of a given tunnel</p>
+14:40 <+bla> BS: The results show _latency_ measurements, for now</p>
+14:40 <+ant> &lt;BS314159&gt; right.</p>
+14:41 <+ant> &lt;BS314159&gt; nevermind, then</p>
+14:41 < jrandom> ah, right, certainly.  throughput measurements will require further modifications to test with different size messages</p>
+14:41 < jrandom> otoh, the implicit tunnel tests are driven by larger messages (typically 4KB, since thats the streaming lib fragmentation size)</p>
+14:42 <+bla> detonate: Yes, there are outliers. There will always be _some_ (that's inherent to estimation, and modeling in general). However, the separation between really slow and really fast clients (putting a threshold at around 400 ms), is ok-ish</p>
+14:42 <+detonate> ok</p>
+14:43 <+bla> jrandom: Indeed. Once I get that working (in not a Java buff...), I'll also test using the larger messages</p>
+14:43 <+bla> detonate: Now, I'd like to make the separation between fast and really-fast peers in a better way.</p>
+14:43 < jrandom> cool, i'll see if i can bounce you a modified TestJob for that</p>
+14:44 <+bla> I'll report when I have new results.</p>
+14:44 < jrandom> kickass</p>
+14:45 < jrandom> ok cool, anyone else have anything for 3) Bayesian peer profiling?</p>
+14:46 < jrandom> if not, moving on to 4) Q status</p>
+14:46 < jrandom> As mentioned in the email, rumor has it Aum is making progress on a new web interface</p>
+14:47 < jrandom> i don't know much about it, or the status details on the rest of the Q updates, but i'm sure we'll hear more soon</p>
+14:48 < jrandom> anyone have anything on Q to bring up?  or shall we make this a rapid fire agenda item and move on to 5) ???</p>
+14:49 < jrandom> [consider us moved]</p>
+14:49 < jrandom> ok, anyone have anything else to bring up for the meeting?</p>
+14:50 < jrandom> defnax: announcing an i2p tracker to people in the i2p community would be great.  to the outside world it might be a bit rough, since we aren't at 0.6 yet</p>
+14:50 < gott> Yes.</p>
+14:50 < jrandom> (or 1.0 ;)</p>
+14:50 < gott> I have some information to bring up on userland documentation efforts.</p>
+14:51 <+mancom> just for the record: on mancom.i2p there is a c# implementation of Q's client api (in its first incarnation)</p>
+14:51 < jrandom> oh cool, sup gott</p>
+14:51 < jrandom> ah nice1 mancom</p>
+14:51 < gott> I have previously written userland documentation for 0.4 i2p.</p>
+14:52 < jrandom> which i unforutnately obsoleted by changing a whole bunch of stuff :(</p>
+14:52 < gott> But it is entirely out-of-date with current i2p.</p>
+14:52 < gott> Accordingly, I am very interested in writing a defacto set of documentation that we can either (a) bundle with i2p or (b) have access via i2p.</p>
+14:53 < jrandom> wikked.  docs to bundle with i2p (localized to the user's language, etc) would be great</p>
+14:53 <+cervantes> cool</p>
+14:53 < gott> I don't suggest bundling, but it is still a possible option, as a user can't access eepsites to read the manual if he doesn't know how to use or configure i2p ;-)</p>
+14:53 < gott> Okay.</p>
+14:53 < gott> But is it overkill ?</p>
+14:53 <+ant> &lt;BS314159&gt; what respectable program comes without man pages?</p>
+14:53 <+cervantes> and is it worth waiting til 1.0?</p>
+14:54 < gott> That is another question.</p>
+14:54 < jrandom> since development is fairly fluid, it might be worth focusing on context-specific help, rather than an overall user guide</p>
+14:54 < gott> BS314159: these are not manpages, as it will be platform-independent. Probably HTML.</p>
+14:54 <+cervantes> how much more structural changes are we due before then</p>
+14:54 < jrandom> for instance, it'd be nice to have better docs describing what the different config options *mean*, what their implications are, etc.</p>
+14:55 < gott> Okay, so I shall write an english and french localisation of a manual for i2p.</p>
+14:55 <+jdot> actually, we could use the inproxy to access the documentation even w/o i2p being installed.</p>
+14:55 < gott> Two major questions :</p>
+14:55 < jrandom> those could be kept up to date by virtue of being *in* the interface itself</p>
+14:55 <+cervantes> yeah context help would rock</p>
+14:55 < gott> (1) Bundled or accessible via manual.i2p ?</p>
+14:55 < gott> (2) For which version ?</p>
+14:55 < gott> yes</p>
+14:55 < jrandom> gott: i'm not sure it'd be wise to build a user guide yet</p>
+14:55 < gott> that's a great idea</p>
+14:56 < gott> do you mean to use the auto-update function to update the usermanual ?</p>
+14:56 < gott> jrandom: okay</p>
+14:56 < gott> but then how do you suggest context-specific help ?</p>
+14:56 < jrandom> oh, we can certainly deploy updates to the docs with the update process</p>
+14:56 <+cervantes> if/when it's time to do a manual then perhaps a manual.war can be dropped into a user's webapps folder if they want local access to the docs</p>
+14:57 < gott> I am thinking of a user-manual.</p>
+14:57 < gott> or a HOWTO.</p>
+14:57 < gott> I have no idea what you mean by context-specific help.</p>
+14:57 < gott> it's pretty straightforward.</p>
+14:57 < jrandom> gott: for instance, a set of human (non-ubergeek) readable info explaining wtf things on /config.jsp mean.  that info would go *on* /config.jsp, or on an html page reachable from that config.jsp</p>
+14:58 < jrandom> a user-manual or howto would be great, but not until 1.0</p>
+14:59 < jrandom> there's already some work on that front in the forum @ http://forum.i2p.net/viewtopic.php?t=385</p>
+14:59 < gott> jrandom: yes.</p>
+14:59 < gott> well.</p>
+14:59 < gott> the information on config.jsp is pretty straightfoward already </p>
+15:00 < jrandom> otoh, we see questions about what bandwidth limits actually do, how the burst rates work, etc here all the time.  it'd be great to have the answers on the page, rather than have people ask</p>
+15:00 < gott> heh</p>
+15:00 < jrandom> gott: its straightforward to you because you've been using i2p for almost two years</p>
+15:00 < gott> nevermind, 'configtunnels.jsp' could use some work.</p>
+15:00 < gott> okay.</p>
+15:00 <+cervantes> straightforward to the initiated perhaps, a n00b would be lost</p>
+15:01 < gott> this is, then, a more up-to-date selection of tasks :</p>
+15:01 <+cervantes> not sure the best way to present the help from an interface perspective</p>
+15:01 < gott> (1) Context-specific help on the webpages localised to user's language. A configuration variable can be set for the language interface, by default, loaded from $LANG path variable on linux</p>
+15:02 < gott> I'm not sure how java figures out the default locale under windows.</p>
+15:02 < gott> But this is a good start to localisation and documentation writing.</p>
+15:03 < gott> (2) For version 1.0, a HOWTO _accessed_ via i2p</p>
+15:03 < gott> I don't suggest bundling the HOWTO, as that is just overkill. Would be nice to keep i2p as small as possible, hmm ?</p>
+15:03 < jrandom> dood, its html.  its tiny.  even if its huge, html compresses *really* well</p>
+15:03 < jrandom> having a local manual would be very much preferred</p>
+15:03 < jrandom> especially since we can push updates</p>
+15:03  * gott shrugs</p>
+15:04 < gott> I suppose.</p>
+15:04 < gott> I just find it silly.</p>
+15:04 < gott> when you can just download it via the web.</p>
+15:04 < gott> but on the other hand, if the user can't figure out how to use i2p</p>
+15:04 < gott> he can't.</p>
+15:04 <+ant> &lt;Synonymous2&gt; Is aum around, i was looking at the specs for QuarterMaster</p>
+15:04 <+ant> &lt;Synonymous2&gt; * In order to help client-side searching, all data items are accompanied</p>
+15:04 <+ant> &lt;Synonymous2&gt;    by a simple metadata schema - so far, just consisting of:</p>
+15:04 <+ant> &lt;Synonymous2&gt;     - key - text name of key</p>
+15:04 <+jdot> put it on www.i2p.net so it is accessible via the intarweb and i2p.</p>
+15:04 <+jdot> and always up to date</p>
+15:05 < gott> yeah.</p>
+15:05 < gott> well, just use the update mechanism.</p>
+15:05 < gott> okay.</p>
+15:05 < gott> so, finalising :</p>
+15:05 < jrandom> sure, we can put it on the website too.  we can spam it all over the net if it helps ;)</p>
+15:05 <+ant> &lt;Synonymous2&gt; I am wondering if Aum can implement the datastore so the metadata are seperated incase he wants to upgrade the storage system.  Remember when Freenet wanted to change the storage system but was stuck</p>
+15:05 < gott> 1 : Localised interface and context-specific help.</p>
+15:05 < gott> 2 : Localised HOWTO for version 1.0</p>
+15:05 <+ant> &lt;Synonymous2&gt; oopse is this the meeting :)</p>
+15:05 < gott> Any additions ?</p>
+15:06 < gott> the HOWTO will cover a lot of extra i2p-network features.</p>
+15:06 < gott> where to get the latest porn ( j/k )</p>
+15:06 <+ant> &lt;BS314159&gt; manpage! :-)</p>
+15:06 < gott> manpages aren't platform-independent</p>
+15:06 < jrandom> cool, including things like Q, i2ptunnel, feedspace, i2p-bt, etc would be great for a howto</p>
+15:06 <+cervantes> the installer could be localised too I guess...</p>
+15:06 < gott> the i2p network has a hilariously large amount of french users</p>
+15:07 <+Ragnarok> you should clearly write the addressbook documentation I've never gotten around to :)</p>
+15:07 < gott> I'm sure they would appreciate a localised interface so they don't have to look at the disgusting english language</p>
+15:07 <+cervantes> hey it's mostly french already</p>
+15:07 < gott> true.</p>
+15:07 < gott> good ideas.</p>
+15:08 < gott> well, that is all I had to say.</p>
+15:08 < jrandom> ok cool, thanks gott, nice initiative</p>
+15:08 < gott> for now, I shall start on the context-specific stuff</p>
+15:08 < jrandom> Synonymous2: I'm not sure what Aum is doing on that front</p>
+15:08 < jrandom> bitchin'</p>
+15:08 < gott> and then, when a localisation option is added, the localised languages </p>
+15:08 <+bla> gott: Je _deteste_ Anglais! ;)</p>
+15:09 < gott> moi aussi</p>
+15:09 <+ant> &lt;Synonymous2&gt; Q, i2ptunnel, feedspace, i2p-bt, etc would be great for a howto, i think the wiki article should be updated for i2p to add this, i'll do that</p>
+15:09 <+cervantes> ewll you have william the conquerer to blame for that</p>
+15:09 < jrandom> heh</p>
+15:09 < gott> a wiki is good, but also non-official.</p>
+15:09 < gott> the manual has the element of certification.</p>
+15:09 < gott> it is more reassuring.</p>
+15:10 <+ant> &lt;Synonymous2&gt; if ppl want to come and look that would be helpful too, the freenet wikipedia article is also good describing the tools for freenet.  As well, I see that the Freenet webpage is released under the GNU FDL, if i2p.net could do the same (or public domain) I could copy some stuff to wikipedia :)) if you want to do that</p>
+15:10 <+cervantes> we'd still be speaking anglo-saxon otherwise</p>
+15:10 < jrandom> everything i do which i 'have rights to' is released implicitly into the public domain</p>
+15:11 <+ant> &lt;Synonymous2&gt; i thought it was, if you can put that as a blurb on the webpage that would be great at your convience, the ppl at wikipedia are anal bout copyright :&gt;</p>
+15:11 <+ant> &lt;Synonymous2&gt; :)))</p>
+15:11 < gott> jrandom: all the localisation I write will be public domain</p>
+15:11 < jrandom> otoh, outright copying the text is, er, not too helpful, as your copies will be out of date - just link to it, the web is there for a reason</p>
+15:11 < gott> I don't give a damn about any licenses.</p>
+15:12 < gott> also, last question :</p>
+15:12 <+ant> &lt;Synonymous2&gt; i was going to copy a few things like the chart and some graphics hehe</p>
+15:12 < gott> where are the .jsp for the router located ?</p>
+15:12 < jrandom> gott: http://dev.i2p/cgi-bin/cvsweb.cgi/apps/routerconsole/jsp/</p>
+15:13 < gott> ah</p>
+15:13 < gott> so, locally, they are in a .jar ?</p>
+15:13 < jrandom> gott: routerconsole.war</p>
+15:13 < jrandom> but you can't really edit them there, as they're precompiled into java</p>
+15:13  * gott nods</p>
+15:13 < gott> Sure.</p>
+15:14 < gott> Though, that's an inconvenience.</p>
+15:14 < gott> when localisation comes out, that might be changed ?</p>
+15:14 < jrandom> yep.  lots of options though.  if you work out the html that the jsps should render as, we can wire it in</p>
+15:14 <+cervantes> Synonymous: http://www.i2p.net/licenses</p>
+15:15 < gott> so you can have language packs</p>
+15:15  * gott nods</p>
+15:15 < gott> for now, it is just hardcoded</p>
+15:15 < jrandom> localization in java works by loading up per-language properties files with resources</p>
+15:15 < gott> but later on, it should be less restricted, I suggest</p>
+15:15 < jrandom> right right</p>
+15:16 < gott> awesome.</p>
+15:16 < gott> well, I'll use anonymous CVS then ;-)</p>
+15:16 < jrandom> bitchin'</p>
+15:16 <+ant> &lt;BS314159&gt; bla: is your raw data available anywhere?</p>
+15:16 < jrandom> bla has recently disconnected, but we'll see about getting some data available</p>
+15:17 < gott> btw, do we have anyone running i2p on openbsd ?</p>
+15:17 <+ant> &lt;BS314159&gt; it's be fun to let people try their own estimators</p>
+15:17 <+ant> &lt;BS314159&gt; sister:...23?</p>
+15:17 < jrandom> gott: yeah, i think detonate is</p>
+15:18 <+ant> &lt;BS314159&gt; ack</p>
+15:18 <+ant> &lt;BS314159&gt; cross-post</p>
+15:18 <+ant> &lt;BS314159&gt; curses!</p>
+15:18 < gott> is it even possible ? what are the java limitations regarding openbsd and i2p ?</p>
+15:18 < gott> okay.</p>
+15:18 < jrandom> BS314159: yeah, there's some good info about modifying your estimators up in the forum</p>
+15:18 <+cervantes> long meeting</p>
+15:18 < gott> if I ever have time, I might get it running and setup a port.</p>
+15:18 < gott> but that is long off and someone will probably do it before me ;-)</p>
+15:18 < jrandom> cervantes: check the logs, we've broken 2h before ;)</p>
+15:19 < jrandom> ok, anyone else have anything for the meeting?</p>
+15:20 < jrandom> if not</p>
+15:20  * jrandom winds up</p>
+15:20  * jrandom *baf*s the meeting closed</p>
+</div>
+{% endblock %}

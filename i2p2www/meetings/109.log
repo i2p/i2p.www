@@ -1,0 +1,119 @@
+{% extends "_layout.html" %}
+{% block title %}I2P Development Meeting 109{% endblock %}
+{% block content %}<h3>I2P dev meeting, September 28, 2004</h3>
+<div class="irclog">
+14:08 < jrandom> 0) hi</p>
+14:08 < jrandom> 1) New transport</p>
+14:08 < jrandom> 2) 0.4.1 status</p>
+14:08 < jrandom> 3) ???</p>
+14:08 < jrandom> 0) hi</p>
+14:08 < duck> hi</p>
+14:09 < jrandom> heya</p>
+14:09 < deer> &lt;ugha2p&gt; Hi.</p>
+14:09 < deer> &lt;pseudonym&gt; hi</p>
+14:09 < jrandom> weekly status notes posted up @ http://dev.i2p.net/pipermail/i2p/2004-September/000454.html</p>
+14:09 < deer> * ugha2p is looking for the weekly status notes.</p>
+14:09 < jrandom> (hey, i'm psychic)</p>
+14:10 < jrandom> ok, jumping in to 1) New transport</p>
+14:10 < jrandom> the message pretty much covers the main bits</p>
+14:11 < jrandom> its all working atm, but obviously wont talk to anyone else until the new release is out</p>
+14:12 < jrandom> i've kicked the tires on it a bit, but its pretty hard to simulate all the possible kooky network problems that occur at the transport level</p>
+14:12 < deer> &lt;pseudonym&gt; does it include windowsize?</p>
+14:12 < deer> &lt;ugha2p&gt; However, if you leave that blank, your router will let the first peer it contacts tell it what its IP address is, which it will then start listening on (after adding that to its own RouterInfo and placing that in the network database).</p>
+14:12 < deer> &lt;ugha2p&gt; Sounds like a potential security hole.</p>
+14:12 < jrandom> oh, no, this is just the inter-router transport, not the streaming lib, unfortunately</p>
+14:12 < deer> &lt;pseudonym&gt; ok</p>
+14:12 < jrandom> in a way ugha, yes</p>
+14:12 < jrandom> (which is why if people *can* set their IP, they should)</p>
+14:13 < jrandom> ugha: however, it only 'believes' someone if they have NO connections that work</p>
+14:13 < deer> &lt;ugha2p&gt; Shouldn't the router listen on 0.0.0.0 in any case?</p>
+14:13 < jrandom> but someone pretty smart could probabalistically do some evil things</p>
+14:14 < jrandom> ugha: it does that (almost always)</p>
+14:14 < jrandom> however, we need to know our IP address so we can put it in our RouterInfo</p>
+14:14 < jrandom> (since our RouterInfo is verified whenever we contact someone)</p>
+14:14 < deer> &lt;ugha2p&gt; Ah, ok.</p>
+14:15 < deer> &lt;ugha2p&gt; I'm sure there are ways to make this more secure (rely on more routers for detecting the IP), but I'm not sure if this is feasible.</p>
+14:15 < jrandom> yeah ugha, there's trouble down that path, but its a numbers game</p>
+14:16 < deer> &lt;ugha2p&gt; Anyhow, that was just a suggestion. We can move on.</p>
+14:16 < jrandom> (however, they could just sybil you and mess up whatever #s you're trying)</p>
+14:16 < deer> &lt;ugha2p&gt; Right.</p>
+14:17 < deer> &lt;ugha2p&gt; What if the router loses all connections (eg, network failure)?</p>
+14:17 < deer> &lt;ugha2p&gt; Does it redetect its IP?</p>
+14:18 < jrandom> the IP is transmitted as part of the protocol on all connection attempts, the peer just decides to honor it if 1) no ip was explicitly set 2) there are no active TCP connections</p>
+14:18 < deer> &lt;ugha2p&gt; (This would be the case with dynamic IPs)</p>
+14:18 < jrandom> right, it'll work fine with that</p>
+14:18 < deer> &lt;ugha2p&gt; Ah, ok.</p>
+14:19 < jrandom> (see ourAddressReceived(String addr) in TCPTransport.java for the details)</p>
+14:19 < deer> &lt;pseudonym&gt; what happens when reported IPs don't match?</p>
+14:19 < jrandom> pseudonym: if you already have active TCP connections, you ignore what other people tell you</p>
+14:20 < jrandom> if you dont have active TCP connections, you tear down the old listener and start up a new one with the new address given</p>
+14:20 < jrandom> (updating your routerInfo)</p>
+14:22 < deer> &lt;pseudonym&gt; if there are active conns, it seems like a mismatch should be a red flag</p>
+14:22 < deer> &lt;pseudonym&gt; (I'm not sure what to do with it)</p>
+14:22 < jrandom> if someone gives us the wrong IP address (and we *know* its the wrong IP address, since we already have the right one - that *works*) we ignore it</p>
+14:23 < deer> &lt;ugha2p&gt; Too bad we can no longer reduce the router's reliability ranking.</p>
+14:23 < jrandom> we can add that to the list of connection errors though</p>
+14:24 < jrandom> ugha: but we can shitlist 'em ;)</p>
+14:24 < jrandom> (and we do)</p>
+14:24 < deer> &lt;pseudonym&gt; how do we know the one we already have is "right"?  maybe the existing conns are from black hats</p>
+14:24 < deer> &lt;pseudonym&gt; especially if we have few or only recent conns</p>
+14:24 < jrandom> pseudonym: the existing connections are "right" in that they can send and receive data</p>
+14:24 < deer> &lt;ugha2p&gt; pseudonym: We can be sure when we get new inbound connections, although those can be spoofed as well.</p>
+14:25 < jrandom> right, if we're talking about someone concerned with an active IP spoofing attack in addition to sybil...</p>
+14:25 < jrandom> well, that person can simply set their IP address ;)</p>
+14:25 < deer> &lt;ugha2p&gt; :)</p>
+14:26 < deer> &lt;pseudonym&gt; but what's the likelyhood that the operator will even know what's happening</p>
+14:26 < deer> &lt;pseudonym&gt; if we get a lot of mismatches there should be some active alert</p>
+14:27 < deer> &lt;pseudonym&gt; (this may be something to worry about in a later release, but since it came up...)</p>
+14:27 < jrandom> we can add an explicit message to the list of connection errors</p>
+14:27 < jrandom> the only real concern here is that we're trying to prevent a restricted route from being formed</p>
+14:27 < jrandom> (and the extreme of that being a full network partition)</p>
+14:30 < jrandom> thats about all i can see us working to deal with for now, at least until the 2.0 rev when we need to worry beyond the restricted route</p>
+14:30 < jrandom> ok, anyone else have anything wrt the new transport?</p>
+14:31 < jrandom> if not, moving on to 2) 0.4.1 status</p>
+14:31 < jrandom> all the "necessary" stuff is done, but theres still some debugging and minor updates to get in</p>
+14:32 < jrandom> current target is a thursday release, but we'll see what gets added or removed from the rev ;)</p>
+14:33 < jrandom> one thing that would be cool is if someone could download a jetty install, check out the jetty.xml config file, and could write up some docs on how to run a jetty instance (for an eepsite/etc) with what is shipped with i2p</p>
+14:33 < deer> &lt;ugha2p&gt; Does 0.4.1 include other updates than the new TCP transport?</p>
+14:33 < jrandom> not really ugha :)</p>
+14:34 < deer> &lt;pseudonym&gt; is it backward compatible?</p>
+14:34 < jrandom> (see: www.i2p.net/roadmap )</p>
+14:34 < jrandom> no, it is not backwards compatible</p>
+14:34 < deer> &lt;ugha2p&gt; :)</p>
+14:36 < jrandom> ok, thats all ive got to mention wrt 0.4.1.. anything else on that?</p>
+14:36 < jrandom> if not, we're on to ol' faithful: 3) ???</p>
+14:36 < deer> &lt;ugha2p&gt; *silence*</p>
+14:37 < jrandom> anyone have anything else (i2p related) they want to bring up?</p>
+14:37 < jrandom> we're already twice as long as last week's meeting ;)</p>
+14:37 < deer> &lt;ugha2p&gt; Well, I could mention that thanks to cervantes, my Wiki now has an outproxy to the real world, through http://ugha.ath.cx/</p>
+14:38 < deer> * pseudonym is a troublemaker</p>
+14:38 < jrandom> ooh right, v.cool</p>
+14:38 < jrandom> s/outproxy/inproxy/ :)</p>
+14:38  * jrandom sends the troublemaker to the corner</p>
+14:38 < deer> &lt;ugha2p&gt; Right, inproxy. :)</p>
+14:40 < jrandom> ok, if there's nothing else</p>
+14:40 < deer> &lt;pseudonym&gt; I think the new mail service from the postmaster is pretty cool</p>
+14:40 < jrandom> oh, definitely agreed</p>
+14:40 < deer> &lt;pseudonym&gt; er, postman</p>
+14:41 < deer> * ugha2p has yet to sign up.</p>
+14:41 < deer> &lt;baffled&gt; has anyone heard anything of stasher recently?</p>
+14:41 < jrandom> its nice that it works with both telnet and kmail:)</p>
+14:41 < jrandom> naw baffled, havent heard a peep</p>
+14:42 < deer> &lt;baffled&gt; I guess aum needs a boot to the head.</p>
+14:42 < deer> &lt;ugha2p&gt; I would probably write a page about EepMailAnonymity, but I don't know too much about SMTP/POP3/IMAP/other e-mail-related stuff.</p>
+14:42 < jrandom> not the head, the butt ;)</p>
+14:43 < jrandom> ugha: www.postman.i2p has a few pages about that</p>
+14:43 < deer> &lt;ugha2p&gt; Ah.</p>
+14:43 < deer> &lt;baffled&gt; they may be the same.</p>
+14:45 < deer> * ugha2p taps his fingers waiting for the baf.</p>
+14:45 < jrandom> sorry, nearly passed out here (loong day)</p>
+14:46 < jrandom> anything else?  if not, we've got the forum and the list</p>
+14:46 < duck> thanks to Mi-Go we have an updated i2ptunnel page</p>
+14:46 < duck> it is almost perfect</p>
+14:46 < jrandom> ooh nice</p>
+14:46 < duck> but if someone has some improvements, you know where to find me</p>
+14:47  * jrandom traceroutes</p>
+14:47  * jrandom winds up</p>
+14:47  * jrandom *baf*s the meeting closed</p>
+</div>
+{% endblock %}

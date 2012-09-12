@@ -1,0 +1,177 @@
+{% extends "_layout.html" %}
+{% block title %}I2P Development Meeting 134{% endblock %}
+{% block content %}<h3>I2P dev meeting, March 22, 2005</h3>
+<div class="irclog">
+13:01 <@jrandom> 0) hi</p>
+13:01 <@jrandom> 1) 0.5.0.3</p>
+13:01 <@jrandom> 2) batching</p>
+13:01 <@jrandom> 3) updating</p>
+13:01 <@jrandom> 4) ???</p>
+13:01 <@jrandom> 0) hi</p>
+13:01  * jrandom waves</p>
+13:01 <@jrandom> the just-now-posted weekly status notes are up @ http://dev.i2p.net/pipermail/i2p/2005-March/000654.html</p>
+13:02 <+detonate> hi</p>
+13:02 <+cervantes> 'lo</p>
+13:02 <@jrandom> jumpin' right in to 1) 0.5.0.3</p>
+13:02 <@jrandom> the release came out a few days ago, and reports have been positive</p>
+13:02 <+cervantes> jrandom: let us know when the blue dancing dwarves climb onto your monitor and we'll stop the meeting early</p>
+13:03 <@jrandom> heh cervantes </p>
+13:03 <@jrandom> (thank Bob for editable meeting logs ;)</p>
+13:04 <@jrandom> i dont really have much to add wrt 0.5.0.3 than whats in that message</p>
+13:04 <@jrandom> anyone have any comments/questions/concerns on it?</p>
+13:04 < bla> jrandom: Any new measurements on the fast-peers-selection code?</p>
+13:05 <@jrandom> ah, i knew there was something else in 0.5.0.3 that i had neglected ;)</p>
+13:06 <@jrandom> i dont have any hard metrics yet, but anecdotally the fast peer selection has found the peers that i know explicitly to be 'fast' (e.g. routers on the same box, etc)</p>
+13:07 < bla> jrandom: Sometimes, eepsites still require a number of retries to find a good tunnel to use</p>
+13:07 <@jrandom> reports have come in for fairly reasonable throughput rates on occation as well (in the 10-20KBps range), but thats still not frequent (we still have the parameters tuned down)</p>
+13:08 <+ant> &lt;Connelly&gt; oops there's a meeting</p>
+13:09 <@jrandom> hmm, yes, i've found that reliability still isn't where it need to be.  retrying more than once really isn't a solution though - if a site doesnt load after 1 retry, give it 5-10m before retrying</p>
+13:09 <@jrandom> what i've seen on the net though is some not-infrequent-enough transport layer delay spikes</p>
+13:10 <@jrandom> e.g. taking 5-20+ seconds just to flush a 1-2KB message through a socket</p>
+13:10 <@jrandom> tie that up with a 5 hop path (2 hop tunnels) and you can run into trouble</p>
+13:11 <@jrandom> thats actually part of whats driving the batching code - reducing the # of messages to be sent</p>
+13:13 <@jrandom> ok, anyone else have any questions/comments/concerns on 0.5.0.3?</p>
+13:13 < bla> jrandom: Looks good. I will ask more about it in the next "section"</p>
+13:14 <@jrandom> w3rd, ok, perhaps we can move on there then - 2) batching</p>
+13:15 <@jrandom> the email and my blog (jrandom.dev.i2p&lt;/spam&gt;) should describe the basics of whats planned</p>
+13:15 <@jrandom> and, well, really its some pretty basic stuff</p>
+13:15 <@jrandom> the current preprocessor we have was the simplest possible one to implement (class name: TrivialPreprocessor) ;)</p>
+13:16 <@jrandom> this new one has some tunable parameters for batching frequency, as well as some outbound tunnel affinity within individual tunnel pools (where we try to select the same outbound tunnel for subsequent requests for up to e.g. 500ms, so that we can optimize the batching)</p>
+13:17 <@jrandom> that's about all i have to add on that though - any questions/comments/concerns?  </p>
+13:18 < bla> Does this require all participating nodes to run the new preprocessor, or can a mix of Trivial/NewOne coexist?</p>
+13:18 <+Ragnarok> this will add .5 s to latency, right?</p>
+13:19 <@jrandom> bla: nah, this preprocessor is only used on the tunnel gateway, and its up to that gateway to decide how or whether to batch</p>
+13:20 <@jrandom> Ragnarok: not usually - message 1 may be delayed for up to .5s, but messages 2-15 get transferred much faster than they would have otherwise.  its also a simple threshold - as soon as a full tunnel message worth of data is available, its flushed</p>
+13:20 <+Ragnarok> cool</p>
+13:20 <+Ragnarok> how much overhead does it save?</p>
+13:21 <@jrandom> substantial ;)</p>
+13:21 <+Ragnarok> substantial is good, if vague :P</p>
+13:21 <@jrandom> look on your http://localhost:7657/oldstats.jsp#tunnel.smallFragments</p>
+13:21 <@jrandom> compare that to #tunnel.fullFragments</p>
+13:22 < bla> jrandom: Does this concern endpoint-&gt;IB-gateway communication only? </p>
+13:22 <@jrandom> with batching, the ratio of full to small will go up, and the # of pad bytes in the small will go down</p>
+13:23 <@jrandom> bla: hmm, it concerns all tunnel gateways, whether inbound or outbound</p>
+13:24 < mihi> full fragments: lifetime average value: 1,00 over 1.621,00 events</p>
+13:24 < bla> jrandom: ok</p>
+13:24 < mihi> can there be a frational number of fragments?</p>
+13:24 <@jrandom> full: 1.00 over 807,077.00 events small: 746.80 over 692,682.00 events</p>
+13:25 <@jrandom> heh mihi</p>
+13:25 <@jrandom> (that small: 746 means that on those 692k messages, 746 out of 996 bytes were wasted pad bytes!)</p>
+13:26 <@jrandom> well, not quite wasted - they served their purpose</p>
+13:26 <+detonate> needless overhead anyway</p>
+13:27 <@jrandom> yep, much of which we should be able to shed with the batching preprocessor</p>
+13:28 <@jrandom> unfortunately, that won't be bundled in the next release</p>
+13:28 <@jrandom> but it will be bundled in the 0.5.0.6 rev (or perhaps 0.5.1)</p>
+13:28 <@jrandom> erm, 0.5.0.5, or 0.5.1</p>
+13:28  * jrandom gets confused with #s</p>
+13:29 < bla> jrandom: How come not?</p>
+13:29 <+cervantes> hash and pills...damn</p>
+13:30 <@jrandom> !thwap cervantes </p>
+13:30 <@jrandom> bla: there's a bug in 0.5.0.3 (and before) where the fragmented message handler will cause subsequent fragments within the same tunnel message to be discarded</p>
+13:31 <@jrandom> if we deployed the batching preprocessor directly, we'd have a substantial number of lost messages</p>
+13:31 <@jrandom> its not a worry, we've got other neat stuff up our sleeves though, so this coming 0.5.0.4 won't be totally boring ;)</p>
+13:31 < bla> jrandom: Ah, so that</p>
+13:32 < bla> jrandom: Ah, so that is why we have to do that after 0.5.0.4 is mainstream.. I see. Thnx.</p>
+13:33 <@jrandom> yeah, it'd be nice if the fragment handler was able to deal with it, and it does, generally, it just releases the byte buffer too soon, zeroing out subsequent fragments (oops)</p>
+13:33 <@jrandom> ok, anything else on 2), or shall we move on to 3) updating?</p>
+13:35 <@jrandom> ok, as mentioned in the status notes (and discussed for a while in various venues), we're going to add some functionality for simple and safe updating that doesn't require the end user to go to the website, read the mailing list, or read the topic in the channel :)</p>
+13:36 <+detonate> cool</p>
+13:36 <@jrandom> smeghead has put together some code to help automate and secure the process, working with cervantes to tie in with fire2pe as well as the normal routerconsole</p>
+13:37 <@jrandom> the email lists the general description of whats going to be available, and while most of it is functional, there are still a few pieces not yet fully hashed out</p>
+13:37 <@jrandom> unlike the batching, this /will/ be available in the next rev, though people won't be able to make much use of it until 0.5.0.5 (when it comes time to update)</p>
+13:39 <+Ragnarok> so... what's the cool stuff for 5.0.4, then?</p>
+13:42 <@jrandom> with the update code comes the ability to pull announcement data, displaying e.g. a snippet of news on the top of the router console.  in addition to that, as part of the update code we've got a new reliable download component which works either directly or through the eepproxy, retrying and continuing along the way.  perhaps there'll be some relatd features built off that, but no promises</p>
+13:42 <+Ragnarok> neat</p>
+13:43 <@jrandom> ok, anyone else have any questions/comments/concerns on 3) updating?</p>
+13:45 <@jrandom> if not, moving on to 4) ???</p>
+13:45 <@jrandom> anything else anyone wants to bring up?  i'm sure i've missed soem things</p>
+13:45 <+detonate> i2p's known to work with the sun jvm in OpenBSD 3.7 :)</p>
+13:45 <@jrandom> nice!</p>
+13:47 < bla> What is the status on the UDP transport?</p>
+13:48 <+detonate> udp is going to be messy, i think it would be better to steal the pipelining code from bt and adapt it ;)</p>
+13:48 <@jrandom> *cough*</p>
+13:49 <@jrandom> i dont expect there to be much trouble, but there's certainly work to be done</p>
+13:49 <@jrandom> how the queueing policy operates, as well as the bw throttling for admission to the queue will be interesting</p>
+13:50 < bla> Who was doing that prelim work?</p>
+13:50 <@jrandom> bla: detonate and mule</p>
+13:50 <+detonate> yeah.. i've been slacking off the last month or so though</p>
+13:50 < bla> detonate: I assume you jest, with your BT remark?</p>
+13:51 <+detonate> i'm half-serious</p>
+13:51 <+detonate> you could at least cut the thread count for the transport in half if you did that</p>
+13:51  * jrandom flings a bucket of mud at detonate </p>
+13:51 < jdot> woohoo.  my router is now running on my dedicated server rather than my POS cable connection.</p>
+13:51 <@jrandom> nice1 jdot </p>
+13:52 <@jrandom> we'll be able to get by with 3-5 threads in the transport layer for all comm with all peers</p>
+13:52 < bla> detonate: But half is not going to cut it, when the net becomes large (&gt; couple hundred nodes)</p>
+13:52 < jdot> with 1000GB of b/w at its disposal</p>
+13:53 < jdot> unforunately j.i2p and the chat.i2p will be down for a few more hours while i migrate things</p>
+13:53 < duck> detonate: addressbook on halt too?</p>
+13:53 <+detonate> yeah, it's on halt too</p>
+13:54 <+detonate> the only thing that isn't on halt is the monolithic profile storage, i was meaning to get that working later today</p>
+13:54 <@jrandom> w3rd</p>
+13:54 <+detonate> then i2p won't fragment the drive massively</p>
+13:54 < jdot> jrandom: as far as BW limits go, are they averages?</p>
+13:54 <+frosk> modern filesystems don't fragment, silly</p>
+13:55 <+detonate> ntfs does</p>
+13:55 <@jrandom> jdot: the bandwidth limits are strict token buckets</p>
+13:55 <@jrandom> jdot: if you set the burst duration out, thats how long of a period it averages out through</p>
+13:56 <@jrandom> (well, 2x burst == period)</p>
+13:56 <@jrandom> ((ish))</p>
+13:56 < jdot> hmmm...  well i have 1000GB and want i2p to be able to take up to 800GB/mo....</p>
+13:56 <+ant> &lt;mihi&gt; detonate: ntfs stores really small files in mft which means nealy no fragmentation</p>
+13:57 < jdot> and i dont care what it bursts to</p>
+13:57 <+detonate> well, when you run the defragmenter, it spends 10 minutes moving all 6000 profiles around.. so they must fragment</p>
+13:58 <@jrandom> jdot: hmm, well, 800GB is probably more than it'll want to push anyway, so you can probably go without limits ;)  </p>
+13:58 <@jrandom> otoh, if you could describe a policy that you'd like implemented, we might be able to handle it</p>
+13:58 < jdot> jrandom: i'll do that for now and see how it works</p>
+13:58 < bla> detonate: NTFS, IIRC, is a journalling FS. So even a monolotic file will get fragmented if you write small portions to it </p>
+13:58 <+detonate> everything gets written at once</p>
+13:59 <+detonate> and read at once</p>
+13:59 < bla> detonate: Ok. I see.</p>
+13:59 < jdot> jrandom: well, lets wait until we figure out if it'll even be a problem.</p>
+13:59 < bla> detonate: Good work in that case!</p>
+13:59 <+detonate> i'd be interested in knowing how much usage there really is if you leave it uncapped</p>
+14:00 <+detonate> on a good connection</p>
+14:00 < jdot> i'm interested too!</p>
+14:00 <@jrandom> my colo routers run uncapped, though cpu constrained</p>
+14:00 <+Ragnarok> can you use a bitbucket to average over a month?</p>
+14:00 < jdot> jrandom: cpu contrianed?  what kind of cpu?</p>
+14:01 <@jrandom> 4d transfer 3.04GB/2.73GB</p>
+14:01 <+detonate> hmm, was expecting less</p>
+14:01 <@jrandom> jdot: cpu constrained because i run 3 routers on it, plus a few other jvms, sometimes profiling</p>
+14:01 <+detonate> must be those bt people</p>
+14:01 <+detonate> once the batching stuff is online, it would be interesting to see how that changes</p>
+14:02 <@jrandom> detonate: some of that transfer is also me pushing 50MB files between itself ;)</p>
+14:02 <+detonate> heh</p>
+14:02 < jdot> ahh.  ok.  well, we'll see how this system does.  its an AMD XP 2400 w/ 512MB and a 10Mbit connection</p>
+14:02 <@jrandom> Ragnarok: token buckets dont really work that way</p>
+14:02 <@jrandom> jdot: word, yeah, this is a p4 1.6 iirc</p>
+14:03 <@jrandom> Ragnarok: in a token bucket, every (e.g.) second you add in some tokens, according to the rate.  if the bucket is full (size = burst period), the tokens are discarded</p>
+14:04 <@jrandom> whenever you want to transfer data, you need to get a sufficient amount of tokens</p>
+14:04 <@jrandom> (1 token = 1 byte)</p>
+14:04 <+Ragnarok> I know how they work... what happens if you just make the bucket really big?</p>
+14:05 <+detonate> then you never stop sending data</p>
+14:05 <+detonate> if it's infinite in size</p>
+14:05 <+detonate> err, and it's filled with tokens</p>
+14:05 <@jrandom> if its really big, it may go out and burst to unlimited rates after low usage</p>
+14:06 <@jrandom> though perhaps thats desired in some cases</p>
+14:07 <@jrandom> the thing is, you can't just set the token bucket to 800GB, as that wouldnt constrain the total amount transferred</p>
+14:08 <+detonate> you need a field there where you can set the number of tokens per second, then you can just divide the bandwidth usage per month by the number of seconds</p>
+14:08 <+detonate> :)</p>
+14:10 <@jrandom> thats the same as just setting the rate averaged over the month, which would be unbalanced.  but, anyway, lots of scenarios available - if anyone has any that address their needs that can't be met with whats available, please, get in touch</p>
+14:10 <+Ragnarok> but if you set the rate to the average you want... I think 308 kB/s here, and then set the bitbucket to something very larger... why doesn't that work?</p>
+14:11 <+Ragnarok> s/larger/large/</p>
+14:12 <+detonate> well, you could set it so that it never sends more than 800GB/44000 in a 60 second burst period</p>
+14:12 <+detonate> 44000 being roughly the number of minutes in a month</p>
+14:13 <@jrandom> the bucket size / burst duration describes how much we'll send without constraint, and most people /do/ want constraints, so the router doesnt gobble 10mbps for 5 minutes while draining the bucket (or whatever)</p>
+14:14 <@jrandom> an additional throttle of tokens coming out of the bucket is also possible (and should that throttle have its own token bucket, and that bucket have its own throttle, etc)</p>
+14:16 <+Ragnarok> I thought the bucket only got paid into when there was bandwidth not being used</p>
+14:16 <@jrandom> tokens are added to the bucket at a constant rate (e.g. 64k tokens per second)</p>
+14:17 <@jrandom> anything that wants bandwidth always asks the bucket</p>
+14:18 <+Ragnarok> ah.. ok</p>
+14:19 <@jrandom> ok cool, anyone else have anything they want to bring up for the meeting?</p>
+14:21 <@jrandom> ok if not</p>
+14:21  * jrandom winds up</p>
+14:21  * jrandom *baf*s the meeting closed</p>
+</div>
+{% endblock %}
