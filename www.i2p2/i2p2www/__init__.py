@@ -221,18 +221,19 @@ def get_blog_index():
     """
     Returns list of valid slugs sorted by date
     """
-    ret=[]
-
-    # list of slugs(not sorted in any way)
+    # list of slugs
     entries=[]
     # walk over all directories/files
     for v in os.walk(BLOG_DIR):
         # iterate over all files
+        slugbase = os.path.relpath(v[0], BLOG_DIR)
         for f in v[2]:
             # ignore all non-.rst files
             if not f.endswith('.rst'):
                 continue
-
+            entries.append(safe_join(slugbase, f[:-4]))
+    entries.sort()
+    return entries
 
 def render_blog_entry(slug):
     """
@@ -260,7 +261,9 @@ def render_blog_entry(slug):
 @app.route('/<string:lang>/blog/page/<int:page>')
 def blog_index(page=0):
     # TODO: implement
-    pass
+    entries = get_blog_index()
+
+    return render_template('blog/index.html', entries=entries)
 
 @app.route('/<string:lang>/blog/entry/<path:slug>')
 def blog_entry(slug):
