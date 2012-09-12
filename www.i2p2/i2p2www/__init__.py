@@ -13,7 +13,7 @@ STATIC_DIR = os.path.join(os.path.dirname(__file__), 'static')
 BLOG_DIR = os.path.join(os.path.dirname(__file__), 'blog')
 MEETINGS_DIR = os.path.join(os.path.dirname(__file__), 'meetings')
 
-app = application = Flask(__name__, template_folder=TEMPLATE_DIR, static_url_path='/_static', static_folder=STATIC_DIR)
+app = application = Flask('i2p2www', template_folder=TEMPLATE_DIR, static_url_path='/_static', static_folder=STATIC_DIR)
 app.debug =  bool(os.environ.get('APP_DEBUG', 'False'))
 
 
