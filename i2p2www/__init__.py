@@ -129,37 +129,13 @@ def site_show(page='index'):
     return render_template(name, page=page)
 
 
-########################
-# Meeting helper methods
-
-def get_meetings_index():
-    """
-    Returns reverse-sorted list of valid ids
-    """
-    # list of ids
-    meetings=[]
-    # walk over all directories/files
-    for v in os.walk(MEETINGS_DIR):
-        # iterate over all files
-        for f in v[2]:
-            # ignore all non-.rst files
-            if not f.endswith('.rst'):
-                continue
-            meetings.append(int(f[:-4]))
-    meetings.sort()
-    meetings.reverse()
-    return meetings
-
-
 ##################
 # Meeting handlers
 
 # Meeting index
 @app.route('/<string:lang>/meetings/')
 def meetings_index():
-    meetings = get_meetings_index()
-
-    return render_template('meetings/index.html', meetings=meetings)
+    return render_template('meetings/index.html')
 
 # Renderer for specific meetings
 @app.route('/<string:lang>/meetings/<int:id>')
