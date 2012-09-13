@@ -2,7 +2,7 @@
 {% block title %}I2NP Specification{% endblock %}
 {% block content %}
 
-Updated January 2012, current as of router version 0.8.12
+Updated June 2012, current as of router version 0.9
 
 <h1>I2P Network Protocol (I2NP) Specification</h1>
 <p>
@@ -367,9 +367,16 @@ Certificate :: Always NULL in the current implementation (3 bytes total, all zer
 <li>
   See also <a href="tunnel_message_spec.html#delivery">Delivery Instructions definition</a>
 <li>
+  Maximum length is a function of the total length of all the cloves and the
+  maximum length of the GarlicMessage.
+<li>
   In the future, the certificate could possibly be used for a HashCash to "pay" for the routing.
 <li>
-  The message is always a DataMessage?
+  The message can be any I2NP message (including a GarlicMessage, although that is not used in practice).
+  The messages used in practice are DataMessage, DeliveryStatusMessage, and DatabaseStoreMessage.
+<li>
+  The Clove ID is generally set to a random number on transmit and is checked for
+  duplicates on receive (same message ID space as top-level Message IDs)
 </ul>
 
 
@@ -786,11 +793,23 @@ Expiration :: Date (8 bytes)
 <li>
   When unencrypted, data contains one or more <a href="#struct_GarlicClove">Garlic Cloves</a>.
 <li>
+  The AES encrypted block is padded to a minimum of 128 bytes; with the 32-byte Session Tag
+  the minimum size of the encrypted message is 160 bytes; with the 4 length bytes
+  the minimum size of the Garlic Message is 164 bytes.
+<li>
   Actual max length is less than 64 KB; see the <a href="i2np.html">I2NP Overview</a>.
 <li>
   See also the <a href="how_elgamalaes.html">ElGamal/AES specification</a>.
 <li>
   See also the <a href="how_garlicrouting.html">garlic routing specification</a>.
+<li>
+  The 128 byte minimum size of the AES encrypted block is not currently configurable,
+  however the minimum size of a DataMessage in a GarlicClove in a GarlicMessage, with
+  overhead, is 128 bytes anyway. A configurable option to increase the minimum size
+  may be added in the future.
+<li>
+  The message ID is generally set to a random number on transmit and
+  appears to be ignored on receive.
 <li>
   In the future, the certificate could possibly be used for a HashCash to "pay" for the routing.
 </ul>

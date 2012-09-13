@@ -1,0 +1,259 @@
+{% extends "global/layout.html" %}
+{% block title %}Peer Profiling and Selection{% endblock %}
+{% block content %}
+
+Updated July 2010 for release 0.8
+
+<h2>Overview</h2>
+
+<h3>Peer Profiling</h3>
+
+<p><b>Peer profiling</b> is the process of collecting data based on the <b>observed</b> performance
+of other routers or peers, and classifying those peers into groups.
+Profiling does <b>not</b> use any claimed performance data published by the peer itself
+in the <a href="{{ url_for('site_show', lang=g.lang, page='docs/how/networkdatabase') }}">network database</a>.
+
+<p>
+Profiles are used for two purposes:
+<ol>
+<li>Selecting peers to relay our traffic through, which is discussed below
+<li>Choosing peers from the set of floodfill routers to use for network database storage and queries,
+    which is discussed on the <a href="{{ url_for('site_show', lang=g.lang, page='docs/how/networkdatabase') }}">network database</a> page
+</ol>
+
+
+<h3>Peer Selection</h3>
+<p><b>Peer selection</b> is the process of choosing which routers
+on the network we want to relay our messages to go through (which peers will we 
+ask to join our tunnels).  To accomplish this, we keep track of how each
+peer performs (the peer's "profile") and use that data to estimate how 
+fast they are, how often they will be able to accept our requests, and 
+whether they seem to be overloaded or otherwise unable to perform what
+they agree to reliably.</p>
+<p>
+Unlike some other anonymous networks, in I2P,
+claimed bandwidth is untrusted and is <b>only</b> used to avoid those peers
+advertising very low bandwidth insufficient for routing tunnels.
+All peer selection is done through profiling.
+This prevents simple attacks based on peers claiming high bandwidth
+in order to capture large numbers of tunnels.
+It also makes
+<a href="{{ url_for('site_show', lang=g.lang, page='docs/how/threatmodel') }}#timing">timing attacks</a>
+more difficult.
+</p>
+<p>
+Peer selection is done quite frequently, as a router may maintain a large number
+of client and exploratory tunnels, and a tunnel lifetime is only 10 minutes.
+
+
+<h3>Further Information</h3>
+<p>
+For more information see the paper
+<a href="{{ url_for('static', filename='pdf/I2P-PET-CON-2009.1.pdf') }}">Peer Profiling and Selection in the I2P Anonymous Network</a>
+presented at
+<a href="http://www.pet-con.org/index.php/PET_Convention_2009.1">PET-CON 2009.1</a>.
+See <a href="#notes">below</a> for notes on minor changes since the paper was published.
+</p>
+
+<h2>Profiles</h2>
+
+<p>Each peer has a set of data points collected about them, including statistics 
+about how long it takes for them to reply to a network database query, how 
+often their tunnels fail, and how many new peers they are able to introduce 
+us to, as well as simple data points such as when we last heard from them or
+when the last communication error occurred.  The specific data points gathered
+can be found in the <a href="http://docs.i2p-projekt.de/javadoc/net/i2p/router/peermanager/PeerProfile.html">code</a>
+</p>
+
+<p>
+Profiles are fairly small, a few KB. To control memory usage, the profile expiration time
+lessens as the number of profiles grows.
+Profiles are kept in memory until router shutdown, when they are written to disk.
+At startup, the profiles are read so the router need not reinitialize all profiles,
+thus allowing a router to quickly re-integrate into the network after startup.
+</p>
+
+
+
+<h2>Peer Summaries</h2>
+
+<p>While the profiles themselves can be considered a summary of a peer's 
+performance, to allow for effective peer selection we break each summary down 
+into four simple values, representing the peer's speed, its capacity, how well 
+integrated into the network it is, and whether it is failing.</p>
+
+<h3>Speed</h3>
+
+<p>The speed calculation
+simply goes through the profile and estimates how much data we can
+send or receive on a single tunnel through the peer in a minute.  For this estimate it just looks at
+performance in the previous minute.
+</p>
+
+<h3 id="capacity">Capacity</h3>
+
+<p>The capacity calculation
+simply goes through the profile and estimates how many tunnels the peer
+would agree to participate in over a given time period.  For this estimate it looks at 
+how many tunnel build requests
+the peer has accepted, rejected, and dropped, and how many
+of the agreed-to tunnels later failed.
+While the calculation is time-weighted so that recent activity counts more than later activity,
+statistics up to 48 hours old may be included.
+</p><p>
+Recognizing and avoiding unreliable and unreachable
+peers is critically important.
+Unfortunately, as the tunnel building and testing require the participation of several peers,
+it is difficult to positively identify the cause of a dropped build request or test failure.
+The router assigns a probability of failure to each of the
+peers, and uses that probability in the capacity calculation.
+Drops and test failures are weighted much higher than rejections.
+</p>
+
+<h2>Peer organization</h2>
+
+<p>As mentioned above, we drill through each peer's profile to come up with a 
+few key calculations, and based upon those, we organize each peer into three
+groups - fast, high capacity, and standard.
+
+<p>The groupings are not mutually exclusive, nor are they unrelated:  <ul> 
+<li>A peer is considered "high capacity" if its capacity calculation meets or 
+     exceeds the median of all peers.  </li>
+<li>A peer is considered "fast" if they are already "high capacity" and their 
+    speed calculation meets or exceeds the median of all peers.</li>
+<li>A peer is considered "standard" if it is not "high capacity"</li>
+</ul>
+
+These groupings are implemented in the router's <a 
+href="http://docs.i2p-projekt.de/javadoc/net/i2p/router/peermanager/ProfileOrganizer.html">ProfileOrganizer</a>.
+
+<h3>Group size limits</h3>
+
+The size of the groups may be limited.
+
+<ul>
+<li>The fast group is limited to 30 peers.
+    If there would be more, only the ones with the highest speed rating are placed in the group.
+<li>The high capacity group is limited to 75 peers (including the fast group)
+    If there would be more, only the ones with the highest capacity rating are placed in the group.
+<li>The standard group has no fixed limit, but is somewhat smaller than the number of RouterInfos
+    stored in the local network database.
+    On an active router in today's network, there may be about 1000 RouterInfos and 500 peer profiles
+    (including those in the fast and high capacity groups)
+</ul>
+
+<h2>Recalculation and Stability</h2>
+Summaries are recalculated, and peers are resorted into groups, every 45 seconds.
+
+<p>
+The groups tend to be fairly stable, that is, there is not much "churn" in the rankings
+at each recalculation.
+Peers in the fast and high capacity groups get more tunnels build through them, which increases their speed and capacity ratings,
+which reinforces their presence in the group.
+
+
+
+
+<h2>Peer Selection</h2>
+
+The router selects peers from the above groups to build tunnels through.
+
+
+<h3>Peer Selection for Client Tunnels</h3>
+
+Client tunnels are used for application traffic, such as for HTTP proxies and web servers.
+<p>
+To reduce the susceptibility to <a href="http://blog.torproject.org/blog/one-cell-enough">some attacks</a>,
+and increase performance,
+peers for building client tunnels are chosen randomly from the smallest group, which is the "fast" group.
+There is no bias toward selecting peers that were previously participants in a tunnel for the same client.
+
+
+<h3>Peer Selection for Exploratory Tunnels</h3>
+
+Exploratory tunnels are used for router administrative purposes, such as network database traffic
+and testing client tunnels.
+Exploratory tunnels are also used to contact previously unconnected routers, which is why
+they are called "exploratory".
+These tunnels are usually low-bandwidth.
+<p>
+Peers for building exploratory tunnels are generally chosen randomly from the standard group.
+If the success rate of these build attempts is low compared to the client tunnel build success rate,
+the router will select a weighted average of peers randomly from the high capacity group instead.
+This helps maintain a satisfactory build success rate even when network performance is poor.
+There is no bias toward selecting peers that were previously participants in an exploratory tunnel.
+<p>
+As the standard group includes a very large subset of all peers the router knows about,
+exploratory tunnels are essentially built through a random selection of all peers,
+until the build success rate becomes too low.
+
+
+
+<h3>Restrictions</h3>
+To prevent some simple attacks, and for performance, there are the following restrictions:
+<ul>
+<li>
+Two peers from the same /16 IP space may not be in the same tunnel.
+<li>
+A peer may participate in a maximum of 33% of all tunnels created by the router.
+<li>
+Peers with extremely low bandwidth are not used.
+<li>
+Peers for which a recent connection attempt failed are not used.
+</ul>
+
+
+
+<h3>Peer Ordering in Tunnels</h3>
+
+Peers are ordered within tunnels to
+to deal with the <a href="http://prisms.cs.umass.edu/brian/pubs/wright-tissec.pdf">predecessor 
+attack</a> <a href="http://prisms.cs.umass.edu/brian/pubs/wright.tissec.2008.pdf">(2008 
+update)</a>.
+More information is on the <a href="tunnel-alt.html#ordering">tunnel page</a>.
+
+
+
+
+<h2>Future Work</h2>
+
+<ul>
+<li>
+Continue to analyze an tune speed and capacity calculations as necessary
+<li>
+Implement a more aggressive ejection strategy if necessary to control memory usage as the network grows
+<li>
+Evaluate group size limits
+<li>
+Use GeoIP data to include or exclude certain peers, if configured
+</ul>
+
+<h2 id="notes">Notes</h2>
+For those reading the paper
+<a href="{{ url_for('static', filename='pdf/I2P-PET-CON-2009.1.pdf') }}">Peer Profiling and Selection in the I2P Anonymous Network</a>,
+please keep in mind the following minor changes in I2P since the paper's publication:
+<ul>
+<li>The Integration calculation is still not used
+<li>In the paper, "groups" are called "tiers"
+<li>The "Failing" tier is no longer used
+<li>The "Not Failing" tier is now named "Standard"
+</ul>
+
+
+<h2>References</h2>
+<ul>
+<li>
+<a href="{{ url_for('static', filename='pdf/I2P-PET-CON-2009.1.pdf') }}">Peer Profiling and Selection in the I2P Anonymous Network</a>
+<li>
+<a href="http://blog.torproject.org/blog/one-cell-enough">One Cell Enough</a>
+<li>
+<a href="https://wiki.torproject.org/noreply/TheOnionRouter/TorFAQ#EntryGuards">Tor Entry Guards</a>
+<li>
+<a href="http://freehaven.net/anonbib/#murdoch-pet2007">Murdoch 2007 Paper</a>
+<li>
+<a href="http://www.crhc.uiuc.edu/~nikita/papers/tuneup-cr.pdf">Tune-up for Tor</a>
+<li>
+<a href="http://systems.cs.colorado.edu/~bauerk/papers/wpes25-bauer.pdf">Low-resource Routing Attacks Against Tor</a>
+</ul>
+
+{% endblock %}
