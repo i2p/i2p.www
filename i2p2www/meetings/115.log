@@ -1,523 +1,517 @@
-{% extends "_layout.html" %}
-{% block title %}I2P Development Meeting 115{% endblock %}
-{% block content %}<h3>I2P dev meeting, November 9, 2004</h3>
-<div class="irclog">
-13:26 < jrandom> 0) hi</p>
-13:26 < cervantes> lets see the menu before we order :P</p>
-13:26 < jrandom> 1) 0.4.1.4</p>
-13:26 < jrandom> 2) Streaming lib</p>
-13:26 < jrandom> 3) BT progress</p>
-13:26 < jrandom> 4) addressbook.py</p>
-13:26 < jrandom> 5) ???</p>
-13:26 < jrandom> 0) hi</p>
-13:27  * jrandom waves</p>
-13:27 < Ragnarok> hi</p>
-13:27  * cervantes waves</p>
-13:27 < jrandom> status notes up @ http://dev.i2p.net/pipermail/i2p/2004-November/000485.html</p>
-13:27 < keysersoze> hi</p>
-13:27 <+polecat> 5) can be DHTs, like that bamboo thing?</p>
-13:27 < jrandom> (yeah, i'm late)</p>
-13:27 < jrandom> cool polecat </p>
-13:27  * polecat nips at fingers again!</p>
-13:27 < jrandom> ok, jumping into 1) 0.4.1.4</p>
-13:28 <+Ch0Hag> 0.4.1.4 seems to die more than it should</p>
-13:28 <+Ch0Hag> like - at all</p>
-13:28 < jrandom> die?</p>
-13:28 <+Ch0Hag> Though there's a chance that's kaffe's fault.</p>
-13:28 < jrandom> drop your irc connection, or restart the router?</p>
-13:28 < jrandom> ah, you're on kaffe?</p>
-13:29 <+Ch0Hag> the router</p>
-13:29 <+Ch0Hag> I am.</p>
-13:29 <+Ch0Hag> Someone has to be :)</p>
-13:29 < jrandom> on kaffe i've had to double the defaul mem usage (give 'er a -mx128m on startup)</p>
-13:29 <+polecat> GAH!  No wonder!  I had hawk on ignore.</p>
-13:29 < jrandom> well, we've got at least 3 people on kaffe these days</p>
-13:30 < jrandom> other than that, though, how is 0.4.1.4 going for y'all?</p>
-13:30  * polecat is on kaffe... doesn't know of a better JVM at the moment.</p>
-13:30 < jrandom> early reports were good, but i havent heard much lately</p>
-13:30 <+Ch0Hag> I had 64, shall try 128</p>
-13:30 < Ragnarok> seems good</p>
-13:30 < keysersoze> jrandom: No major problems here</p>
-13:30 <@duck> latest major irc outage was mine</p>
-13:30 <+Ch0Hag> And yes, much of it was OOMing</p>
-13:31 <@duck> otherwise I think it is a bit unstable (since my bw enabling), but I dont have proof</p>
-13:31 < jrandom> the throttling on your machine is a bit of a choke point, as e.g. each message you receive is something like 20+ messages that have to be sent out</p>
-13:32 <@duck> ah</p>
-13:32 < jrandom> but i agree, irc has been bumpy </p>
-13:32 < cervantes> 0.4.1.3 has always been rock solid on my ibm jvm, so I've avoided upgrading at this stage</p>
-13:32 < cervantes> (22 days uptime)</p>
-13:32 < jrandom> nice cervantes </p>
-13:32 < jrandom> duck: [insert comment describing hopes for new streaming lib here]</p>
-13:33 < cervantes> baffled's irc server has been a little less bumpy</p>
-13:33 < jrandom> word, thats a good metric</p>
-13:33 < keysersoze> cervantes:  What version does he run? (Do you know?)</p>
-13:33 < ant> &lt;dm&gt; will streaming lib have an effect on IRC, or are the messages too small anyway?</p>
-13:33 <@duck> I have been a good duck this week, so I'll up the limit a bit</p>
-13:33 < jrandom> lemmie check keysersoze </p>
-13:33 < jrandom> :)</p>
-13:33 <+polecat> I've got 11 hours uptime.  ;.;</p>
-13:34 < jrandom> keysersoze: 0.4.1.4</p>
-13:34 < keysersoze> jrandom: ;) But one could ask him here when he's around</p>
-13:34 < keysersoze> ok</p>
-13:34 < jrandom> dm: the new streaming lib will improve resiliance and address failures, but obviously won't improve irc throughput</p>
-13:34 < jrandom> (router versions are published in the netDb, and i know which routers are his)</p>
-13:34 < ant> &lt;dm&gt; that's good</p>
-13:35 < jrandom> ok, do we have anythingelse for 0.4.1.4?</p>
-13:35 < jrandom> if not, swinging briefly over to 2) streaming lib progress</p>
-13:36 < keysersoze> no</p>
-13:36 < jrandom> as mentioned in the notes, more news when its available :)</p>
-13:36 <+polecat> What would we be able to do with the streaming lib that we would not be able to do before it exists?</p>
-13:36 < Ragnarok> download large files quickly</p>
-13:36 < Ragnarok> and DOS the network :)</p>
-13:36 < jrandom> polecat: transfer arbitrarily large files, transfer at &gt; 4KBps</p>
-13:37 <+Ch0Hag> and/or reliably?</p>
-13:37 < jrandom> Ragnarok: *not* dos'ing the network is what i'm working on now ;)</p>
-13:37 <+protokol> i've noticed over time that if i lose a connection on eepIRC, the reconnects always fail, but if i stop it for a few minutes it connects just fine</p>
-13:37 <+polecat> It would increase the transfer rate?  o.O</p>
-13:37 < jrandom> polecat: yes.  the current streaming lib uses a fixed 1 packet window size - waiting for an ack before sending the next message</p>
-13:37  * polecat nods to protokol, seems so.</p>
-13:38 < ant> &lt;dm&gt; The streaming lib will allow a new class of TCP-based applications to be usable on I2P. </p>
-13:38 < Ragnarok> jrandom: ah, good.  I've been a little concerned about that :)</p>
-13:38 < ant> &lt;dm&gt; That's the marketing version.</p>
-13:38 < jrandom> let me just say that throughput looks promising with the new lib.</p>
-13:39 < jrandom> heh dm</p>
-13:39 < keysersoze> jrandom: Like the extension to normal TCP, where the sending machine will keep sending even if it hasn't receivved an ACK yet, up to a certain number?</p>
-13:39 <+polecat> jrandom: Ah, I see how that could be compromising...</p>
-13:39 < jrandom> right keysersoze, up to a (sliding) window size</p>
-13:39 < jrandom> (doing all that congestion control / avoidance stuff) [/arm waving]</p>
-13:40 <+polecat> I also see how it might have congestion problems.  If many packets are sent after a connection is dropped.</p>
-13:40 < cervantes> will be interesting to see some benchmarks comparisions for i2p BT over the new streaming lib and the old not-so-streaming lib</p>
-13:40 < jrandom> aye cervantes </p>
-13:41 < jrandom> polecat: thats the biggest danger, preventing a network flood, which is why we're deploying cautiously</p>
-13:41 < ant> &lt;dm&gt; I have a bug to report. Someone remind me when we hit 5.</p>
-13:41 < cervantes> jrandom: from an application point of view, how transparent will the switch over be?</p>
-13:42 < keysersoze> polecat: Do the current plans implement a "slow-start" idea, where the window will be 1 first, and then cautiously increased to 2, and ONLY if that works well, to 3, etc. Up to a certain maximum?</p>
-13:42 <+polecat> Does 0.4.1.4 use the streaming lib, or has it not yet been deployed?</p>
-13:42 < jrandom> cervantes when 0.4.2 is out, no code changes.  you can even use the streaming lib now if you want, if you specify a magic flag in the environment :)</p>
-13:42 < cervantes> polecat: that will be with us on 0.4.2</p>
-13:42 < ant> * dm everyone rushes towards jrandom.</p>
-13:42 < jrandom> its with you now - see streaming.jar</p>
-13:42 < jrandom> but disabled by default</p>
-13:42 < ant> &lt;dm&gt; "flag! flag! flag!"</p>
-13:43 < keysersoze> jrandom: Ow come on, spoil us and tell which env var ;)</p>
-13:43 < jrandom> however, the streaming lib is *NOT BACKWARDS COMPATIBLE*</p>
-13:43 < jrandom> aka you can't use IRC with it</p>
-13:43 < cervantes> I have an early .1.3 remember ;-)</p>
-13:43 < jrandom> unless duck runs a seperate newStreamingLib destination</p>
-13:43 <+polecat> Yeah... probably best to switch in sync then, not individually.</p>
-13:43 < jrandom> yup</p>
-13:43 <+Ch0Hag> I think this flag is one of those "if you can't find it, you don't need it" ones.</p>
-13:43 < ant> &lt;dm&gt; duck: for the love of god, do as you're told!!!</p>
-13:43 <+Ch0Hag> Like most of GCCs...</p>
-13:43 < jrandom> right Ch0Hag :)</p>
-13:44 < jrandom> dm: still some other things to be tested</p>
-13:44 < jrandom> e.g. this morning mule was helping out test with FUQID</p>
-13:44 < keysersoze> jrandom: Does that influence any of the hosts.txt keys for existing I2P destinations?</p>
-13:44 < mule> missed the meeting. end of daylight savings :(.</p>
-13:44 < jrandom> (and FUQID does eeevil things :)</p>
-13:45 < jrandom> heya mule, me too :)  you're just in time</p>
-13:45 < ant> &lt;dm&gt; mule: you haven't missed section 5) ?????</p>
-13:45 <+Ch0Hag> Oh speaking of fuqid, is there news on stasher?</p>
-13:45 < ant> &lt;dm&gt; for all you know, ???? might be: GOTO 1</p>
-13:45 < jrandom> keysersoze: no, the streaming lib isn't involved in that part of things</p>
-13:45 <+Ch0Hag> Or is  that a big enough topic to wait until 5?</p>
-13:45 < jrandom> Ch0Hag: no one has heard anything from aum since september, and no one else is doing anything on stasher.</p>
-13:46 < jrandom> (but there is other DHT stuff to discuss in 5)??? i hear)</p>
-13:46 <+Ch0Hag> Oh.</p>
-13:46 <+Ch0Hag> Bummer.</p>
-13:46 <+Ch0Hag> The freenet devs didn't have their competition ... removed did they?</p>
-13:46 <+Ch0Hag> :)</p>
-13:46 < jrandom> heh</p>
-13:47 <+polecat> The first application of assassination politics.   x3</p>
-13:47 <+Ch0Hag> Anyway I have nothing else, so I shan't butt in again until 5</p>
-13:47 < jrandom> ok, there's lots going on in the streaming lib, but discussion will have to wait for later</p>
-13:47 < jrandom> unless there's somethingelse, we can move to 3) BT progress</p>
-13:47 < cervantes> &lt;/evasion&gt;</p>
-13:48 < ant> &lt;dm&gt; Doesn't everyone wish jrandom adopted the toad deployment process?</p>
-13:48 < ant> &lt;dm&gt; Build 3435: streaming lib attempt</p>
-13:48 < jrandom> duck: ping?</p>
-13:48 < ant> &lt;dm&gt; Build 3436: streaming lib attempt 2</p>
-13:48 <@duck> pong</p>
-13:48 < ant> &lt;dm&gt; Build 3436: streaming lib attempt 3</p>
-13:48 < jrandom> be nice</p>
-13:48  * duck takes the mike</p>
-13:48 < Ragnarok> no, no we don't</p>
-13:48 <@duck> dinoman, Ragnarok and me have been working on the BT client.</p>
-13:48 <@duck> - BT protocol analysed and changes specified on http://duck.i2p/i2p-bt/txt/i2p-bt_protocol.txt</p>
-13:48 <@duck> - dino modified phpbt, info at http://duck.i2p/i2p-bt/txt/tracker.txt</p>
-13:48 <@duck> dino got the client to talk with the tracker, R and me have improved it a bit.</p>
-13:48 <@duck> the whole tracker &lt;-&gt; client stuff worked</p>
-13:48 <@duck> but we got stuck at the python sam library...</p>
-13:49 <@duck> Connelly has been helping, but also busy</p>
-13:49 <@duck> and aum is missing</p>
-13:49 <+polecat> I'm still stunned BT can work at all on i2p...</p>
-13:49 <@duck> so I threw out pysam, reimplemented BT's RawServer.py and now it kinda works.</p>
-13:49 < jrandom> (w00t!)</p>
-13:49 <@duck> hot news: channel #i2p-bt (especially topic with latest release info)</p>
-13:49 <@duck> now I am working at adding a lot of logging support, to catch some little flaws</p>
-13:50 < Ragnarok> it's much nicer than the original RawServer.py</p>
-13:50 < peer> duck: so is it ready for beta testing?</p>
-13:50 <@duck> (for example during the EndGame it has to timeout and retry to get the last bits)</p>
-13:50 <@duck> peer: yup</p>
-13:50 <@duck> a little point of discussion:</p>
-13:51 <@duck> so far it is python 2.2 (and up) compatible</p>
-13:51 <@duck> (seems to be the same for bittorrent itself)</p>
-13:51 <@duck> the logging stuff needs 2.3 though...</p>
-13:51 < cervantes> yus indeed</p>
-13:51 <@duck> how bad do you think that is?</p>
-13:51 < jrandom> my freebsd and linux boxen have 2.3</p>
-13:51 < ant> &lt;dm&gt; bad?</p>
-13:52 < jrandom> (though they were installed within the last year)</p>
-13:52 < Ragnarok> are there any major distros still shipping 2.2?</p>
-13:52 <@duck> debian-stable still seems to ship 2.2, last time I checked</p>
-13:52 < jrandom> ah, i'm on debian unstable</p>
-13:52 <@duck> but then again that is hardly a surprise</p>
-13:52 <+Ch0Hag> Debian ships 2.3, 2.2, 2.1 and possibly 2.0</p>
-13:52 <+Ch0Hag> Together.</p>
-13:52 < Ragnarok> except Debian stable, I think...</p>
-13:53 <+Ch0Hag> That's what I'm unsure about.</p>
-13:53 < jrandom> it'd be nice to have 2.2 support - are there no good logging libs for it?</p>
-13:53 < Ragnarok> silly debian</p>
-13:53 <@duck> jrandom: you could bundle the 2.3 lib</p>
-13:54 < Ragnarok> can logging simply be made optional?</p>
-13:54 <@duck> I guess</p>
-13:55 < jrandom> well, its really a coder-productivity-tool, so whatever works best for the people coding</p>
-13:55 < ant> &lt;dm&gt; we can worry about this when I2P + BT becomes popular.</p>
-13:55 < keysersoze> For whom is this logging necessary? Not for the end-user, I guess, so when deploying, it shouldn't matter that logging isn't possible on some platforms, no?</p>
-13:55 < ant> &lt;dm&gt; by then maybe 2.3 is standard</p>
-13:55 < jrandom> 2.2 support would be nice, but i dont think it'd be that bad if 2.3 were required</p>
-13:55 < cervantes> duck: so the tracker's peer announce list can be made to spew out i2p destinations instead of machine ips?</p>
-13:56 <@duck> ok, we'll try to abstract the logging lib, with 2.2 use stdout</p>
-13:56 <@duck> cervantes: http://duck.i2p/i2p-bt/diffs/phpbt-i2p.diff</p>
-13:56 < jrandom> keysersoze: you want logging deployed on the clients machines so that if/when bugs arise, the dev can get detailed logs</p>
-13:56 < jrandom> word duck</p>
-13:56 < cervantes> ta</p>
-13:56 <+Ch0Hag> heh if anyone's still interested, Woody has python 1.5, 2.0 and 2.1</p>
-13:56 <+Ch0Hag> :)</p>
-13:57 <@duck> heh</p>
-13:57 <@duck> ok, in that case I say require 2.3</p>
-13:57 <@duck> and fuck woody</p>
-13:57 < cervantes> think mine is tuck on 1.5 and 2.2</p>
-13:57 < jrandom> yeah, no need to deal with 2.1</p>
-13:57 < cervantes> (upgrade time)</p>
-13:57 < jrandom> heh</p>
-13:57 <+Ch0Hag> That's the opinion of most Debian users, too</p>
-13:58 < Ragnarok> addressbook.py requires 2.3</p>
-13:58 <@duck> there are some interesting sub projects:</p>
-13:58 < jrandom> ah ok cool Ragnarok </p>
-13:58 <@duck> researching the optimal settings for i2p</p>
-13:58 <+polecat> That little thing requires 2.3?</p>
-13:58 < keysersoze> jrandom: I agree, but on a small net like now (~100 peers), it's not a problem to have some beta-testers upgrade to 2.2 or 2.3. And once the most blatant bugs are stamped out, the new "real" endd-users shouldn't really need logging. So what I'm saying is: The logging is no problem at this stage, so we agree ;)</p>
-13:58 < cervantes> when I was pulling apart BT a year or so back, this machine was pushing 6mb/sec through the tracker at times...</p>
-13:58 <+polecat> Weird... 2.2 must be practically crippled then.</p>
-13:58 < Ragnarok> 2.3 has better urllib proxy support</p>
-13:58 <@duck> porting the standard bt tracker too</p>
-13:58 < cervantes> I mean the seed</p>
-13:59 < Ragnarok> it could work on 2.2, but it'd be too much effort :)</p>
-13:59 <+polecat> Ah that would be important, right.</p>
-13:59 < jrandom> duck: researching the optimal settings will be tough until 0.4.2 comes out</p>
-13:59 <@duck> right</p>
-14:00 < jrandom> porting the tracker would be great though. do you have the tools for creating the .torrent implemented, or did you do that manually?</p>
-14:00 <@duck> whut?</p>
-14:00 < cervantes> the client has tons of nice tweaks for peer takeup rates, timeouts, min/max peers etc</p>
-14:01 < cervantes> jrandom: that shouldn't need any modification I think</p>
-14:01 < jrandom> duck: the .torrent references the i2p destination of the tracker, right?</p>
-14:01 <@duck> right now we ship: btdownloadheadless.py + btmakemetafile.py + btshowmetainfo.py</p>
-14:01 < jrandom> or does it reference the name?</p>
-14:01 < cervantes> it's just a url and a bunch of sha1 hashes</p>
-14:01 <@duck> though btmakemetafile.py and btshowmetainfo.py are not modified</p>
-14:01 < jrandom> "a url" is the tough part :)</p>
-14:02 <@duck> so you can use other tools</p>
-14:02 <@duck> its http://duck.i2p/phpbt/announce.php now</p>
-14:02 < jrandom> ok, cool</p>
-14:02 <@duck> guess you can use http://i2p/bigbase64/announce.php</p>
-14:02 <+protokol> are their plans for other clients to support eepTorrent? i like azureus</p>
-14:02 <@duck> plenty</p>
-14:02 < cervantes> jrandom: the early version I looked at did no url validation on the announce string</p>
-14:03 < ant> &lt;dm&gt; what does eep stand for again?</p>
-14:03 < cervantes> you could put anything in there</p>
-14:03 < jrandom> hmm, worth checking to see if that works duck ( in case phpbt does stupid url rewriting, etc)</p>
-14:03 < cervantes> dm: look in the forum glossary</p>
-14:03 <@duck> maybe its time for an i2p-bt forum?</p>
-14:03 < keysersoze> duck: Especially once new users, that don't have a "registration" in hosts.txt, want to host trackers, it _must_ be possible to have a base64 iin theer</p>
-14:03 <+Ch0Hag> Eye Eye Pee?</p>
-14:03 < jrandom> that'd be cool duck</p>
-14:03 <@duck> (forum section on forum.i2p)</p>
-14:04 < ant> &lt;dm&gt; cervantes: that was helpful!</p>
-14:04 < cervantes> duck: yeah no probs</p>
-14:04 <@duck> keysersoze: it will be investigated</p>
-14:04 < jrandom> still, as is its pretty bloody cool</p>
-14:05 < jrandom> the 4KBps per peer isn't really that much of a problem either</p>
-14:05 < ant> &lt;dm&gt; what time is it? "There's a clock just two blocks down the road"</p>
-14:05 < cervantes> moving forward oerhaps we should set up a seperate forum space so people can publish files alla suprnova</p>
-14:05 <@duck> eeprnova</p>
-14:05 < jrandom> cervantes: with reviews, etc :)</p>
-14:05 < keysersoze> jrandom: Will the transition to streaminglib require large changes to the current python I2P-BT code?</p>
-14:05 <+polecat> I sure never get more than 4KBps even on IPv4 bittorrent streams...</p>
-14:05 < peer> would be good if there were a command line argument for setting the i2p server address, so you can run it from other machines on a network</p>
-14:05 < jrandom> (but i think that'd be best left outside of the forum.i2p, perhaps)</p>
-14:06 < jrandom> keysersoze: 0 changes</p>
-14:06 <@duck> mind you that i2p-bt trackers will scale a lot worse</p>
-14:06 <@duck> since they have to send bloaty big keys</p>
-14:06 < Ragnarok> polecat: you must be natted</p>
-14:06 < keysersoze> polecat: ((OT) try the firefox torrent of today ;))</p>
-14:06 < cervantes> jrandom: yup.</p>
-14:06 <@duck> where the normal trackers are recently modified to only send 6 bytes / peer</p>
-14:06 < jrandom> peer: i2p server address?</p>
-14:07 < jrandom> peer: i use the i2p-bt with my SAM bridge locally accessing a remote router</p>
-14:07 < jrandom> oh, but it'd be nice if there were flags to set the SAM bridge location & eep proxy location in the CLI, yeah</p>
-14:07 < peer> jrandom: yep</p>
-14:07 < keysersoze> duck: Can we compress the host-key? (Just asking...)</p>
-14:08 < peer> with one cli arg</p>
-14:08 < jrandom> (rather than remodifying the code after every release :)</p>
-14:08 <@duck> keysersoze: using binary instead of base64 will shrink it a bit</p>
-14:08 <@duck> like 15% </p>
-14:08 <@duck> no worth it</p>
-14:08 < keysersoze> duck: I agree.</p>
-14:09 < ant> &lt;dm&gt; cervantes: where is this forum glossary? I don't see anything at http://forum.i2p.net/</p>
-14:09 < Ragnarok> could hostnames be used?</p>
-14:09 < jrandom> Ragnarok: hostnames are not globally unique</p>
-14:09 <@duck> Ragnarok: dont want to go there</p>
-14:09 < cervantes> dm: only shows up for reg'd users</p>
-14:10 < ant> &lt;dm&gt; cervantes: oh excellent! I'll look for eep on google then!</p>
-14:10 < Ragnarok> fair enough</p>
-14:11 < cervantes> dm: it's a phoneme for IIP</p>
-14:11 < cervantes> is the word on the street</p>
-14:11 < jrandom> ok, y'all are doing tremendous work on the bt side of things, and i look forward to hearing (and using) more :)</p>
-14:11 < ant> &lt;dm&gt; cervantes: not an acronym?</p>
-14:12  * cervantes has 1/2 of a terabyte of movies and tv shows to share</p>
-14:12 < jrandom> do we have anything else wrt i2p-bt to discuss?</p>
-14:12 < cervantes> dm: not that I've heard</p>
-14:12 <@duck> (dont forget #i2p-bt)</p>
-14:12 < jrandom> yeah, #i2p-bt, finally an incentive for people to move from freenode :)</p>
-14:12 < ant> &lt;dm&gt; alrighty. Thank you sir.</p>
-14:13 <+Ch0Hag> As if this Great network wasn't incentive enough already...</p>
-14:13 < jrandom> ok if not, shall we move on to 4) addressbook.py</p>
-14:13 < jrandom> Ragnarok: wanna give us the run down?</p>
-14:13 < Ragnarok> whee</p>
-14:14 < Ragnarok> hm, ok.  addressbook.py is a first stab at a subscribable address book system.</p>
-14:14 < Ragnarok> It's pretty ugly at the moment, but it works</p>
-14:14 < Ragnarok> you can get it at ragnarok.i2p</p>
-14:14 < peer> can i just make a suggestion re: naming? i think the best method would be for the links between eepsites to use base64, but let people create their own bookmark names for sites, rather than having any centralised naming system</p>
-14:14 < Ragnarok> um...</p>
-14:14 < Ragnarok> any questions?</p>
-14:15 <+postman> Ragnarok: define ugly :)</p>
-14:15 < jrandom> Ragnarok: kickass</p>
-14:15 < ant> &lt;dm&gt; jrandom: not a question</p>
-14:15 <+polecat> What were we talking about again?  @.@</p>
-14:15 < peer> sort of like the bookmarks on the front page of the freenet web interface, but instead with urls</p>
-14:15 < cervantes> Ragnarok: is it all command line, or is there a gui?</p>
-14:15 < Ragnarok> read it, it's ugly :)</p>
-14:15 < jrandom> peer: agreed, though we need author tools</p>
-14:15 < cervantes> there weren't any screenies so I lost interest and went away ;-)</p>
-14:15 < jrandom> peer: though the ?i2paddresshelper helps</p>
-14:15 <+postman> Ragnarok: ok, thanks - i will check it out</p>
-14:16 <+polecat> Bah, GUIs are for soccer moms!</p>
-14:16 < Ragnarok> it's all command line.  It's designed to be run as a daemon.  It doesn't run as a daemon on windows yet, but that's my next project.</p>
-14:16 < Ragnarok> aside from the cli tool, all interactions are through config files.</p>
-14:17 < jrandom> perhaps the next step in the namign field is a web interface for managing the entries and subscriptions?</p>
-14:17 < cervantes> are you basically syndicating your hosts file then?</p>
-14:17 < Ragnarok> yes</p>
-14:17 < cervantes> right...cool</p>
-14:17 < Ragnarok> web interface would be great.  I'm not writing it, though :)</p>
-14:17 < jrandom> with merges and conflict management</p>
-14:18 <+polecat> What is the conflict management, besides yelping about it in the log?</p>
-14:18 < jrandom> yeah, the engine itself is Good Stuff, maybe we can get someone else to jump on the web side of it :)</p>
-14:19 < Ragnarok> none.  If you want to resolve a conflict, you do it by hand :).  Though, it is a bit easier now.</p>
-14:19 < jrandom> polecat: yelp & never overwrite an existing entry afaik</p>
-14:19 < jrandom> (er, what he said)</p>
-14:19 < cervantes> it would be nice as a sidebar plugin for firefox...</p>
-14:19 <+polecat> Yes, that's what I had thought.</p>
-14:19 < cervantes> that's something I could work into my i2p toolbar</p>
-14:20 < Ragnarok> user changes are never overwritten, so it's reasonably secure against attack</p>
-14:20 < jrandom> and you should only subscribe to relatively trustworthy peers</p>
-14:20 < Ragnarok> indeed</p>
-14:20 < cervantes> maybe a feature to lock entries?</p>
-14:20 < cervantes> (ie move them to userhosts)</p>
-14:21 < Ragnarok> entries are are never modified</p>
-14:21 <+polecat> I like the concept of a myhosts.txt file for entries you want to endorse yourself.</p>
-14:21 < cervantes> Ragnarok: ah sorry, so you said</p>
-14:22 < Ragnarok> myhosts.txt is a dirty hack to get around a race condition, but for some reason everyone likes it as an interface thing :)</p>
-14:22 < jrandom> if people are interested, there are ways to get the i2ptunnel / sam / etc to read from more than just hosts.txt and userhosts.txt</p>
-14:22 < jrandom> (but only if there's a good solid reason to do so)</p>
-14:22 < cervantes> Ragnarok: you were meant to pretend that was intentional ;-)</p>
-14:23  * duck suggest abstracting away from hosts.txt / userhosts.txt</p>
-14:23 <+polecat> My perl version of addressbook.pl supports the myhosts.txt thing.</p>
-14:23 < Ragnarok> yeah, that will be part of the big rewrite :)</p>
-14:23  * polecat notes to duck, you'd have to modify i2ptunnel and sam to do that.</p>
-14:23 < Ragnarok> first, I want to get feature parity on windows, though.</p>
-14:24 < jrandom> right duck, as it would have been nice for 0.4.2 if we could flag different destinations as "oldLib" and "newLib" (etc)</p>
-14:24 <@duck> polecat: you could write the final result to something called 'hosts.txt'</p>
-14:24 < cervantes> ideally you want a hierachical mini-database of local addresses you can catagorise </p>
-14:24 <@duck> but use some other structure towards the user</p>
-14:24 <+polecat> The final result goes to userhosts.txt</p>
-14:24 <+polecat> And also a file called "hosts.txt" on the eepsite that is not the system hosts.txt.</p>
-14:24 <@duck> which is confusing :)</p>
-14:25 < Ragnarok> I like to be as confusing as possible :)</p>
-14:25 < MrEcho> hope to have the dns done by the end of the month</p>
-14:25 <@duck> ok, then let the name depend on the checksum of the content</p>
-14:25 < cervantes> addressbook.txt? :)</p>
-14:25 < Ragnarok> the published address book is just called hosts.txt, because that's what it is on dev.i2p</p>
-14:25 <+polecat> It's possible to call Ragnarok's hosts.txt file something else.  People just have to subscribe to that other filename.</p>
-14:26 < Ragnarok> true, it's a configuration option</p>
-14:26 <+polecat> i.e. like going http://polecat.i2p/addressbook instead of http://polecat.i2p/hosts.txt</p>
-14:26 < MrEcho> fyi, my dns doesnt touch the hosts file .. just like a real dns</p>
-14:27 <+polecat> Oh yeah, there's that too.  &gt;.&lt;</p>
-14:27 <@duck> my dns causes world peace</p>
-14:27 < jrandom> MrEcho: it might be worthwhile to explore interoperability</p>
-14:27 <+polecat> There's /etc/hosts, jrandom's hosts.txt that i2ptunnel and sam use, and now the hosts.txt published by Ragnarok.</p>
-14:28 < Ragnarok> I don't think anything that doesn't resolve names locally will ever perform acceptably over i2p, but you're welcome to prove me wrong :) </p>
-14:28 < mule> hostile environment :)</p>
-14:28 < MrEcho> i could make it update the hosts text, but i was hoping to add something in other code</p>
-14:28 < jrandom> there is some code in cvs (under apps/myi2p) for loading/storing address book entries with the data posted to that feb email, if anyone is interested ;)</p>
-14:29 <+polecat> ?</p>
-14:29 < MrEcho> already took a look jr</p>
-14:30 < jrandom> polecat: http://forum.i2p.net/viewtopic.php?t=141#419</p>
-14:30 <+polecat> You mean under apps/myi2p/java/src/net/i2p/myi2p</p>
-14:30 < jrandom> well, yeah, if you want to get specific ;)</p>
-14:30 <+polecat> More like hideously redundant.  ;3</p>
-14:31 < jrandom> cool MrEcho, though i'm suggesting that sort of file format for other naming systems too, if people are going to consider replacing hosts.txt</p>
-14:31 < jrandom> polecat: with good reason (and imho there's no redundancy in that pathname ;)</p>
-14:31 < Ragnarok> cool.  I'll have a look</p>
-14:32 < ant> &lt;dm&gt; at least it doesn't say internet three times in there anymore</p>
-14:33 < jrandom> it'd have to be implemented as a net.i2p.client.naming.NamingService as well - something to load from that local db, but that shouldn't be too hard</p>
-14:33 <+polecat> Eek!  No, no noo MX records... no CNAME... </p>
-14:33 < jrandom> having multiple destinations per name is a good idea though</p>
-14:33 < ant> &lt;janonymous2&gt; Im partial to an address book/ dns hybrid</p>
-14:34 < jrandom> an address book is a domain name system :)</p>
-14:34 <+polecat> jrandom: How many times did you have to call it myi2p?  And how necessary is it to call it i2p if it's already called myi2p?  And is there any question whether or not that mess is a thing of java?</p>
-14:34 < jrandom> polecat: not all myi2p code will be in java.</p>
-14:34 <@duck> go back to your cave you perl troll :)</p>
-14:34 <+polecat> I agree that it's all necessary, not blaming you jrandom, but blaming java and ant.</p>
-14:35 < jrandom> polecat: and i2p's codebase is unique under the net.i2p namespace, as we don't control the net.myi2p namespace :)</p>
-14:35  * polecat grunts and crouches under the bridge.</p>
-14:35 < ant> &lt;dm&gt; polecat: it's called OCD</p>
-14:35 < jrandom> heh</p>
-14:35 < jrandom> its called software engineering ;)</p>
-14:36 <+polecat> Yes, but why put everything in a directory structure parroting the namespace?</p>
-14:36 <+polecat> Just specify like... in the file "This file is namespace net.i2p"</p>
-14:36 < jrandom> but anyway, anything else on Ragnarok's kickass naming system?  :)</p>
-14:36 <@duck> it kicks ass</p>
-14:36 < Ragnarok> thank you :)</p>
-14:36 <+polecat> Asseth Kickius.</p>
-14:36 < jrandom> polecat: there are 1340 java files in i2p</p>
-14:37 <@duck> I was _shocked_ when I wanted to visit an eepsite and the host was already propagated</p>
-14:37 < Ragnarok> hehe</p>
-14:37 < jrandom> :)</p>
-14:37 <+polecat> Well, not saying it needs to be squashed all in one place.  1340 files seems an awful lot though, isn't there any redundant code in there?  o.O</p>
-14:38 < Ragnarok> does anyone know a command to kill a windows process by pid?</p>
-14:38 <@duck> like TCP stack reimplementations? :)</p>
-14:38 <+polecat> Not to mention fully functional web servers.  c.c</p>
-14:38 < jrandom> heh</p>
-14:38 < jrandom> oh, lemmie skip the jetty code..</p>
-14:39 < keysersoze> (91 peers on the net now!)</p>
-14:39 < ant> &lt;dm&gt; ragnarok: kill</p>
-14:39 < jrandom> ok, 389 in router/ and core/ </p>
-14:39 < Ragnarok> what versions does that exist on?</p>
-14:39 <+polecat> That's still a lot for a lousy router... but considering the all and everything not too bad.</p>
-14:39 < ant> &lt;dm&gt; not sure... Running XP here.</p>
-14:39 < cervantes> Ragnarook: only if you have the support cd files installed</p>
-14:40 < Ragnarok> ah</p>
-14:40  * duck refocuses</p>
-14:40 < cervantes> Ragnarok: otherwise download sysinternals pskill</p>
-14:40 < jrandom> ok, anything else for 4) addressbook.py, or shall we move on to 5) ???</p>
-14:41 < cervantes> Ragnarok: http://www.sysinternals.com/ntw2k/freeware/pstools.shtml</p>
-14:41 < jrandom> ok, 5) it is</p>
-14:41 < Ragnarok> neat, thanks :)</p>
-14:41 < jrandom> polecat: iirc you wanted to bring up bamboo-dht?</p>
-14:41 < MrEcho> ? meeting right now</p>
-14:41 <+polecat> :chants: DHT DHT USA USA~/o</p>
-14:42 <+polecat> Yes indeed.  I'm just looking something up...</p>
-14:42 < jrandom> yes MrEcho </p>
-14:43 <+Ch0Hag> 5?</p>
-14:43 < jrandom> 5) ???</p>
-14:43 < MrEcho> heh</p>
-14:43 <+Ch0Hag> ooh yes, I've found an irrelevant semantic bug</p>
-14:43 < jrandom> sup Ch0Hag?</p>
-14:43 <+polecat> There are 79 java files in bamboo source.  There are 253 files total.</p>
-14:44 <+polecat> The entire project takes 4.6 megabytes in source and support files, before building.</p>
-14:44 < jrandom> yikes</p>
-14:44 <+Ch0Hag> in /netdb.jsp, 'our' information is given port first, whereas other peers are given host first</p>
-14:44 <+Ch0Hag> On the Addresses line</p>
-14:44 < jrandom> have  you played around with it polecat?</p>
-14:44 < jrandom> Ch0Hag: the ordering is arbitrary</p>
-14:45 <+Ch0Hag> And 0.4.1.4 has been up for an hour with 128MB under Kaffe</p>
-14:45 <+polecat> I haven't had much of a chance.  I played around with circle, and got a nifty graphical representation of a PGP public key, but not bamboo yet.</p>
-14:45 < ant> &lt;dm&gt; ah yes, ch0hag's insignificant bug report reminded me!</p>
-14:45 < ant> &lt;dm&gt; on the config page it says "you should either use a service like dyndns or leave the hostname blank. If you leave it blank, your router will autodetect the 'correct' IP address by asking a peer"</p>
-14:45 <+Ch0Hag> It seems to be host/port on all of them</p>
-14:45 < MrEcho> Uptime: 54h Memory: 23,506KB</p>
-14:45 <+Ch0Hag> But hey</p>
-14:45 <+Ch0Hag> It's not like it really matters.</p>
-14:46 < ant> &lt;dm&gt; which is great for me, since I have a dynamic IP address and have been waiting for this feature for some time, but when I blank and hit save, it automatically fills the box again with an (incorrect) IP</p>
-14:46 < cervantes> polecat: do you have a url?</p>
-14:46 < ant> &lt;dm&gt; Cheers!</p>
-14:47 < jrandom> hmm dm, it doesnt honor you setting it to empty?  </p>
-14:47 < jrandom> thats definitely a substantial bug</p>
-14:47 <+polecat> Yes, moment please.</p>
-14:47 < Ragnarok> it would be nice if it only recommended filling in the box if you have a real, static hostname.  Or if the box wasn't there...</p>
-14:47 < jrandom> Ch0Hag: kaffe typically keeps a steady size</p>
-14:47 <+polecat> http://bamboo-dht.org/</p>
-14:48 < jrandom> Ragnarok: i'm considering removing that box altogether, leaving it for the hackers to add on /configadvanced.jsp</p>
-14:48 < ant> &lt;dm&gt; I only care because the instruction paragraph makes me feel like na idiot when I can't get it to blank ;)</p>
-14:48 < cervantes> polecat: ta</p>
-14:48 <+Ch0Hag> dm: It's clearly an intelligence test.</p>
-14:48 <+Ch0Hag> If you can make it stay blank, you pass.</p>
-14:48 <+polecat> I also notice bamboo seems to compile with jikes and the kaffe jar in approximately 30 seconds.</p>
-14:48 <+polecat> Uses some weird variables though, JAVAC and JAVAHOME instead of JAVA_HOME</p>
-14:49 < Ragnarok> jr: I think that's a great idea.  At this point, it's a bit like a newbie trap.</p>
-14:50 < cervantes> dm: do you click the save button, or hit enter?</p>
-14:50 < ant> &lt;dm&gt; click save</p>
-14:50 < ant> &lt;dm&gt;     * Updated bandwidth limits</p>
-14:50 < ant> &lt;dm&gt;     * Configuration saved successfully</p>
-14:50 <@duck> polecat: do you plan to take a closer look at it?</p>
-14:51 <+polecat> I do indeed.  bamboo seems like the best candidate for porting over i2p, and the most "together" DHT project I see out there.</p>
-14:52 <+polecat> The important thing is whether it "works" or not of course.</p>
-14:52 < jrandom> bah, who needs functionality, its all about buzzword compatability!</p>
-14:53 < jrandom> please keep us updated on how it goes</p>
-14:53 < jrandom> (as i agree, the project does look promising)</p>
-14:53 <@duck> probably most important is what it offers for transport level modifications</p>
-14:54 < ant> &lt;janonymous2&gt; Whats the shtick on bamboo?</p>
-14:54 < jrandom> aye, whether it requires NIO channels or uses plain sockets</p>
-14:54 < cervantes> heh... bamboo news: "5 Aug Bamboo Now 100% Pure Java...uses Berkely DB Java Edition"   "4 Nov Bamboo No Longer 100% Pure Java...BDB Java sucked..back to C""</p>
-14:54 < jrandom> (though we /could/ write NIO channels for i2psocket, it'd take some work)</p>
-14:54 <+polecat> jrandom: Go back to your cathedral, java gargoyle!  X3</p>
-14:54 <+polecat> Indeed.  If it requires TCP or UDP, or worse... DNS, then we might be hosed.</p>
-14:54 <+polecat> NIO/</p>
-14:54 <+polecat> NIO?</p>
-14:55 <+polecat> All I know is ni'o means change the subject in lojban.</p>
-14:55 < jrandom> NIO is a New I/O library in java, added in 1.4</p>
-14:55 <+polecat> I see.  Even plain sockets though, doesn't SAM have analog objects for sockets, and analog read() and write() functions?</p>
-14:55 < jrandom> yes</p>
-14:56 < jrandom> if they use plain sockets, its easy as shit</p>
-14:56 < jrandom> (...whatever that means)</p>
-14:56 < ant> &lt;janonymous2&gt; Whats bamboo?</p>
-14:56 < jrandom> bamboo-dht.org</p>
-14:57 < cervantes> what were the problems with pysam btw?</p>
-14:57  * polecat nods.</p>
-14:58 <@duck> cervantes: sending / receiving data</p>
-14:58 < cervantes> duck: oh is that all? :)</p>
-14:58 < ant> * janonymous2 /me coweres on his inadequate phone</p>
-14:58 <@duck> and making / detecting connections</p>
-14:58 <+Nightblade> it didn't send?</p>
-14:59 < Ragnarok> oy</p>
-14:59 <@duck> Nightblade: it probably did something</p>
-14:59 <+Nightblade> does it work at all?</p>
-15:00 < cervantes> duck: any thoughts on i2p-bt forum section naming?</p>
-15:00 < cervantes> d'you want you're own top level, with some subs?</p>
-15:01 < Ragnarok> hm, I've got to hit the road.  Have a good rest-of-meeting :)</p>
-15:01 < jrandom> Nightblade: aum was using it, so i'm sure it worked</p>
-15:01 < jrandom> l8r Ragnarok </p>
-15:01 < cervantes> you're = your</p>
-15:01 < cervantes> cya ragnarok</p>
-15:02 < ant> &lt;janonymous2&gt; Status on bt?</p>
-15:02 < jrandom> janonymous: see the meeting logs (once they come out)</p>
-15:03 < jrandom> speaking of which, is there anything else people would like to bring up in the meeting?</p>
-15:03 < ant> &lt;janonymous2&gt; Oh, my bad</p>
-15:04  * cervantes hands jr the egold plated baffer</p>
-15:04  * jrandom winds up</p>
-15:04 < jrandom> ...</p>
-15:04 < jrandom> ...</p>
-15:04  * jrandom *baf*s the meeting closed</p>
-</div>
-{% endblock %}
+13:26 < jrandom> 0) hi
+13:26 < cervantes> lets see the menu before we order :P
+13:26 < jrandom> 1) 0.4.1.4
+13:26 < jrandom> 2) Streaming lib
+13:26 < jrandom> 3) BT progress
+13:26 < jrandom> 4) addressbook.py
+13:26 < jrandom> 5) ???
+13:26 < jrandom> 0) hi
+13:27  * jrandom waves
+13:27 < Ragnarok> hi
+13:27  * cervantes waves
+13:27 < jrandom> status notes up @ http://dev.i2p.net/pipermail/i2p/2004-November/000485.html
+13:27 < keysersoze> hi
+13:27 <+polecat> 5) can be DHTs, like that bamboo thing?
+13:27 < jrandom> (yeah, i'm late)
+13:27 < jrandom> cool polecat 
+13:27  * polecat nips at fingers again!
+13:27 < jrandom> ok, jumping into 1) 0.4.1.4
+13:28 <+Ch0Hag> 0.4.1.4 seems to die more than it should
+13:28 <+Ch0Hag> like - at all
+13:28 < jrandom> die?
+13:28 <+Ch0Hag> Though there's a chance that's kaffe's fault.
+13:28 < jrandom> drop your irc connection, or restart the router?
+13:28 < jrandom> ah, you're on kaffe?
+13:29 <+Ch0Hag> the router
+13:29 <+Ch0Hag> I am.
+13:29 <+Ch0Hag> Someone has to be :)
+13:29 < jrandom> on kaffe i've had to double the defaul mem usage (give 'er a -mx128m on startup)
+13:29 <+polecat> GAH!  No wonder!  I had hawk on ignore.
+13:29 < jrandom> well, we've got at least 3 people on kaffe these days
+13:30 < jrandom> other than that, though, how is 0.4.1.4 going for y'all?
+13:30  * polecat is on kaffe... doesn't know of a better JVM at the moment.
+13:30 < jrandom> early reports were good, but i havent heard much lately
+13:30 <+Ch0Hag> I had 64, shall try 128
+13:30 < Ragnarok> seems good
+13:30 < keysersoze> jrandom: No major problems here
+13:30 <@duck> latest major irc outage was mine
+13:30 <+Ch0Hag> And yes, much of it was OOMing
+13:31 <@duck> otherwise I think it is a bit unstable (since my bw enabling), but I dont have proof
+13:31 < jrandom> the throttling on your machine is a bit of a choke point, as e.g. each message you receive is something like 20+ messages that have to be sent out
+13:32 <@duck> ah
+13:32 < jrandom> but i agree, irc has been bumpy 
+13:32 < cervantes> 0.4.1.3 has always been rock solid on my ibm jvm, so I've avoided upgrading at this stage
+13:32 < cervantes> (22 days uptime)
+13:32 < jrandom> nice cervantes 
+13:32 < jrandom> duck: [insert comment describing hopes for new streaming lib here]
+13:33 < cervantes> baffled's irc server has been a little less bumpy
+13:33 < jrandom> word, thats a good metric
+13:33 < keysersoze> cervantes:  What version does he run? (Do you know?)
+13:33 < ant> <dm> will streaming lib have an effect on IRC, or are the messages too small anyway?
+13:33 <@duck> I have been a good duck this week, so I'll up the limit a bit
+13:33 < jrandom> lemmie check keysersoze 
+13:33 < jrandom> :)
+13:33 <+polecat> I've got 11 hours uptime.  ;.;
+13:34 < jrandom> keysersoze: 0.4.1.4
+13:34 < keysersoze> jrandom: ;) But one could ask him here when he's around
+13:34 < keysersoze> ok
+13:34 < jrandom> dm: the new streaming lib will improve resiliance and address failures, but obviously won't improve irc throughput
+13:34 < jrandom> (router versions are published in the netDb, and i know which routers are his)
+13:34 < ant> <dm> that's good
+13:35 < jrandom> ok, do we have anythingelse for 0.4.1.4?
+13:35 < jrandom> if not, swinging briefly over to 2) streaming lib progress
+13:36 < keysersoze> no
+13:36 < jrandom> as mentioned in the notes, more news when its available :)
+13:36 <+polecat> What would we be able to do with the streaming lib that we would not be able to do before it exists?
+13:36 < Ragnarok> download large files quickly
+13:36 < Ragnarok> and DOS the network :)
+13:36 < jrandom> polecat: transfer arbitrarily large files, transfer at > 4KBps
+13:37 <+Ch0Hag> and/or reliably?
+13:37 < jrandom> Ragnarok: *not* dos'ing the network is what i'm working on now ;)
+13:37 <+protokol> i've noticed over time that if i lose a connection on eepIRC, the reconnects always fail, but if i stop it for a few minutes it connects just fine
+13:37 <+polecat> It would increase the transfer rate?  o.O
+13:37 < jrandom> polecat: yes.  the current streaming lib uses a fixed 1 packet window size - waiting for an ack before sending the next message
+13:37  * polecat nods to protokol, seems so.
+13:38 < ant> <dm> The streaming lib will allow a new class of TCP-based applications to be usable on I2P. 
+13:38 < Ragnarok> jrandom: ah, good.  I've been a little concerned about that :)
+13:38 < ant> <dm> That's the marketing version.
+13:38 < jrandom> let me just say that throughput looks promising with the new lib.
+13:39 < jrandom> heh dm
+13:39 < keysersoze> jrandom: Like the extension to normal TCP, where the sending machine will keep sending even if it hasn't receivved an ACK yet, up to a certain number?
+13:39 <+polecat> jrandom: Ah, I see how that could be compromising...
+13:39 < jrandom> right keysersoze, up to a (sliding) window size
+13:39 < jrandom> (doing all that congestion control / avoidance stuff) [/arm waving]
+13:40 <+polecat> I also see how it might have congestion problems.  If many packets are sent after a connection is dropped.
+13:40 < cervantes> will be interesting to see some benchmarks comparisions for i2p BT over the new streaming lib and the old not-so-streaming lib
+13:40 < jrandom> aye cervantes 
+13:41 < jrandom> polecat: thats the biggest danger, preventing a network flood, which is why we're deploying cautiously
+13:41 < ant> <dm> I have a bug to report. Someone remind me when we hit 5.
+13:41 < cervantes> jrandom: from an application point of view, how transparent will the switch over be?
+13:42 < keysersoze> polecat: Do the current plans implement a "slow-start" idea, where the window will be 1 first, and then cautiously increased to 2, and ONLY if that works well, to 3, etc. Up to a certain maximum?
+13:42 <+polecat> Does 0.4.1.4 use the streaming lib, or has it not yet been deployed?
+13:42 < jrandom> cervantes when 0.4.2 is out, no code changes.  you can even use the streaming lib now if you want, if you specify a magic flag in the environment :)
+13:42 < cervantes> polecat: that will be with us on 0.4.2
+13:42 < ant> * dm everyone rushes towards jrandom.
+13:42 < jrandom> its with you now - see streaming.jar
+13:42 < jrandom> but disabled by default
+13:42 < ant> <dm> "flag! flag! flag!"
+13:43 < keysersoze> jrandom: Ow come on, spoil us and tell which env var ;)
+13:43 < jrandom> however, the streaming lib is *NOT BACKWARDS COMPATIBLE*
+13:43 < jrandom> aka you can't use IRC with it
+13:43 < cervantes> I have an early .1.3 remember ;-)
+13:43 < jrandom> unless duck runs a seperate newStreamingLib destination
+13:43 <+polecat> Yeah... probably best to switch in sync then, not individually.
+13:43 < jrandom> yup
+13:43 <+Ch0Hag> I think this flag is one of those "if you can't find it, you don't need it" ones.
+13:43 < ant> <dm> duck: for the love of god, do as you're told!!!
+13:43 <+Ch0Hag> Like most of GCCs...
+13:43 < jrandom> right Ch0Hag :)
+13:44 < jrandom> dm: still some other things to be tested
+13:44 < jrandom> e.g. this morning mule was helping out test with FUQID
+13:44 < keysersoze> jrandom: Does that influence any of the hosts.txt keys for existing I2P destinations?
+13:44 < mule> missed the meeting. end of daylight savings :(.
+13:44 < jrandom> (and FUQID does eeevil things :)
+13:45 < jrandom> heya mule, me too :)  you're just in time
+13:45 < ant> <dm> mule: you haven't missed section 5) ?????
+13:45 <+Ch0Hag> Oh speaking of fuqid, is there news on stasher?
+13:45 < ant> <dm> for all you know, ???? might be: GOTO 1
+13:45 < jrandom> keysersoze: no, the streaming lib isn't involved in that part of things
+13:45 <+Ch0Hag> Or is  that a big enough topic to wait until 5?
+13:45 < jrandom> Ch0Hag: no one has heard anything from aum since september, and no one else is doing anything on stasher.
+13:46 < jrandom> (but there is other DHT stuff to discuss in 5)??? i hear)
+13:46 <+Ch0Hag> Oh.
+13:46 <+Ch0Hag> Bummer.
+13:46 <+Ch0Hag> The freenet devs didn't have their competition ... removed did they?
+13:46 <+Ch0Hag> :)
+13:46 < jrandom> heh
+13:47 <+polecat> The first application of assassination politics.   x3
+13:47 <+Ch0Hag> Anyway I have nothing else, so I shan't butt in again until 5
+13:47 < jrandom> ok, there's lots going on in the streaming lib, but discussion will have to wait for later
+13:47 < jrandom> unless there's somethingelse, we can move to 3) BT progress
+13:47 < cervantes> </evasion>
+13:48 < ant> <dm> Doesn't everyone wish jrandom adopted the toad deployment process?
+13:48 < ant> <dm> Build 3435: streaming lib attempt
+13:48 < jrandom> duck: ping?
+13:48 < ant> <dm> Build 3436: streaming lib attempt 2
+13:48 <@duck> pong
+13:48 < ant> <dm> Build 3436: streaming lib attempt 3
+13:48 < jrandom> be nice
+13:48  * duck takes the mike
+13:48 < Ragnarok> no, no we don't
+13:48 <@duck> dinoman, Ragnarok and me have been working on the BT client.
+13:48 <@duck> - BT protocol analysed and changes specified on http://duck.i2p/i2p-bt/txt/i2p-bt_protocol.txt
+13:48 <@duck> - dino modified phpbt, info at http://duck.i2p/i2p-bt/txt/tracker.txt
+13:48 <@duck> dino got the client to talk with the tracker, R and me have improved it a bit.
+13:48 <@duck> the whole tracker <-> client stuff worked
+13:48 <@duck> but we got stuck at the python sam library...
+13:49 <@duck> Connelly has been helping, but also busy
+13:49 <@duck> and aum is missing
+13:49 <+polecat> I'm still stunned BT can work at all on i2p...
+13:49 <@duck> so I threw out pysam, reimplemented BT's RawServer.py and now it kinda works.
+13:49 < jrandom> (w00t!)
+13:49 <@duck> hot news: channel #i2p-bt (especially topic with latest release info)
+13:49 <@duck> now I am working at adding a lot of logging support, to catch some little flaws
+13:50 < Ragnarok> it's much nicer than the original RawServer.py
+13:50 < peer> duck: so is it ready for beta testing?
+13:50 <@duck> (for example during the EndGame it has to timeout and retry to get the last bits)
+13:50 <@duck> peer: yup
+13:50 <@duck> a little point of discussion:
+13:51 <@duck> so far it is python 2.2 (and up) compatible
+13:51 <@duck> (seems to be the same for bittorrent itself)
+13:51 <@duck> the logging stuff needs 2.3 though...
+13:51 < cervantes> yus indeed
+13:51 <@duck> how bad do you think that is?
+13:51 < jrandom> my freebsd and linux boxen have 2.3
+13:51 < ant> <dm> bad?
+13:52 < jrandom> (though they were installed within the last year)
+13:52 < Ragnarok> are there any major distros still shipping 2.2?
+13:52 <@duck> debian-stable still seems to ship 2.2, last time I checked
+13:52 < jrandom> ah, i'm on debian unstable
+13:52 <@duck> but then again that is hardly a surprise
+13:52 <+Ch0Hag> Debian ships 2.3, 2.2, 2.1 and possibly 2.0
+13:52 <+Ch0Hag> Together.
+13:52 < Ragnarok> except Debian stable, I think...
+13:53 <+Ch0Hag> That's what I'm unsure about.
+13:53 < jrandom> it'd be nice to have 2.2 support - are there no good logging libs for it?
+13:53 < Ragnarok> silly debian
+13:53 <@duck> jrandom: you could bundle the 2.3 lib
+13:54 < Ragnarok> can logging simply be made optional?
+13:54 <@duck> I guess
+13:55 < jrandom> well, its really a coder-productivity-tool, so whatever works best for the people coding
+13:55 < ant> <dm> we can worry about this when I2P + BT becomes popular.
+13:55 < keysersoze> For whom is this logging necessary? Not for the end-user, I guess, so when deploying, it shouldn't matter that logging isn't possible on some platforms, no?
+13:55 < ant> <dm> by then maybe 2.3 is standard
+13:55 < jrandom> 2.2 support would be nice, but i dont think it'd be that bad if 2.3 were required
+13:55 < cervantes> duck: so the tracker's peer announce list can be made to spew out i2p destinations instead of machine ips?
+13:56 <@duck> ok, we'll try to abstract the logging lib, with 2.2 use stdout
+13:56 <@duck> cervantes: http://duck.i2p/i2p-bt/diffs/phpbt-i2p.diff
+13:56 < jrandom> keysersoze: you want logging deployed on the clients machines so that if/when bugs arise, the dev can get detailed logs
+13:56 < jrandom> word duck
+13:56 < cervantes> ta
+13:56 <+Ch0Hag> heh if anyone's still interested, Woody has python 1.5, 2.0 and 2.1
+13:56 <+Ch0Hag> :)
+13:57 <@duck> heh
+13:57 <@duck> ok, in that case I say require 2.3
+13:57 <@duck> and fuck woody
+13:57 < cervantes> think mine is tuck on 1.5 and 2.2
+13:57 < jrandom> yeah, no need to deal with 2.1
+13:57 < cervantes> (upgrade time)
+13:57 < jrandom> heh
+13:57 <+Ch0Hag> That's the opinion of most Debian users, too
+13:58 < Ragnarok> addressbook.py requires 2.3
+13:58 <@duck> there are some interesting sub projects:
+13:58 < jrandom> ah ok cool Ragnarok 
+13:58 <@duck> researching the optimal settings for i2p
+13:58 <+polecat> That little thing requires 2.3?
+13:58 < keysersoze> jrandom: I agree, but on a small net like now (~100 peers), it's not a problem to have some beta-testers upgrade to 2.2 or 2.3. And once the most blatant bugs are stamped out, the new "real" endd-users shouldn't really need logging. So what I'm saying is: The logging is no problem at this stage, so we agree ;)
+13:58 < cervantes> when I was pulling apart BT a year or so back, this machine was pushing 6mb/sec through the tracker at times...
+13:58 <+polecat> Weird... 2.2 must be practically crippled then.
+13:58 < Ragnarok> 2.3 has better urllib proxy support
+13:58 <@duck> porting the standard bt tracker too
+13:58 < cervantes> I mean the seed
+13:59 < Ragnarok> it could work on 2.2, but it'd be too much effort :)
+13:59 <+polecat> Ah that would be important, right.
+13:59 < jrandom> duck: researching the optimal settings will be tough until 0.4.2 comes out
+13:59 <@duck> right
+14:00 < jrandom> porting the tracker would be great though. do you have the tools for creating the .torrent implemented, or did you do that manually?
+14:00 <@duck> whut?
+14:00 < cervantes> the client has tons of nice tweaks for peer takeup rates, timeouts, min/max peers etc
+14:01 < cervantes> jrandom: that shouldn't need any modification I think
+14:01 < jrandom> duck: the .torrent references the i2p destination of the tracker, right?
+14:01 <@duck> right now we ship: btdownloadheadless.py + btmakemetafile.py + btshowmetainfo.py
+14:01 < jrandom> or does it reference the name?
+14:01 < cervantes> it's just a url and a bunch of sha1 hashes
+14:01 <@duck> though btmakemetafile.py and btshowmetainfo.py are not modified
+14:01 < jrandom> "a url" is the tough part :)
+14:02 <@duck> so you can use other tools
+14:02 <@duck> its http://duck.i2p/phpbt/announce.php now
+14:02 < jrandom> ok, cool
+14:02 <@duck> guess you can use http://i2p/bigbase64/announce.php
+14:02 <+protokol> are their plans for other clients to support eepTorrent? i like azureus
+14:02 <@duck> plenty
+14:02 < cervantes> jrandom: the early version I looked at did no url validation on the announce string
+14:03 < ant> <dm> what does eep stand for again?
+14:03 < cervantes> you could put anything in there
+14:03 < jrandom> hmm, worth checking to see if that works duck ( in case phpbt does stupid url rewriting, etc)
+14:03 < cervantes> dm: look in the forum glossary
+14:03 <@duck> maybe its time for an i2p-bt forum?
+14:03 < keysersoze> duck: Especially once new users, that don't have a "registration" in hosts.txt, want to host trackers, it _must_ be possible to have a base64 iin theer
+14:03 <+Ch0Hag> Eye Eye Pee?
+14:03 < jrandom> that'd be cool duck
+14:03 <@duck> (forum section on forum.i2p)
+14:04 < ant> <dm> cervantes: that was helpful!
+14:04 < cervantes> duck: yeah no probs
+14:04 <@duck> keysersoze: it will be investigated
+14:04 < jrandom> still, as is its pretty bloody cool
+14:05 < jrandom> the 4KBps per peer isn't really that much of a problem either
+14:05 < ant> <dm> what time is it? "There's a clock just two blocks down the road"
+14:05 < cervantes> moving forward oerhaps we should set up a seperate forum space so people can publish files alla suprnova
+14:05 <@duck> eeprnova
+14:05 < jrandom> cervantes: with reviews, etc :)
+14:05 < keysersoze> jrandom: Will the transition to streaminglib require large changes to the current python I2P-BT code?
+14:05 <+polecat> I sure never get more than 4KBps even on IPv4 bittorrent streams...
+14:05 < peer> would be good if there were a command line argument for setting the i2p server address, so you can run it from other machines on a network
+14:05 < jrandom> (but i think that'd be best left outside of the forum.i2p, perhaps)
+14:06 < jrandom> keysersoze: 0 changes
+14:06 <@duck> mind you that i2p-bt trackers will scale a lot worse
+14:06 <@duck> since they have to send bloaty big keys
+14:06 < Ragnarok> polecat: you must be natted
+14:06 < keysersoze> polecat: ((OT) try the firefox torrent of today ;))
+14:06 < cervantes> jrandom: yup.
+14:06 <@duck> where the normal trackers are recently modified to only send 6 bytes / peer
+14:06 < jrandom> peer: i2p server address?
+14:07 < jrandom> peer: i use the i2p-bt with my SAM bridge locally accessing a remote router
+14:07 < jrandom> oh, but it'd be nice if there were flags to set the SAM bridge location & eep proxy location in the CLI, yeah
+14:07 < peer> jrandom: yep
+14:07 < keysersoze> duck: Can we compress the host-key? (Just asking...)
+14:08 < peer> with one cli arg
+14:08 < jrandom> (rather than remodifying the code after every release :)
+14:08 <@duck> keysersoze: using binary instead of base64 will shrink it a bit
+14:08 <@duck> like 15% 
+14:08 <@duck> no worth it
+14:08 < keysersoze> duck: I agree.
+14:09 < ant> <dm> cervantes: where is this forum glossary? I don't see anything at http://forum.i2p.net/
+14:09 < Ragnarok> could hostnames be used?
+14:09 < jrandom> Ragnarok: hostnames are not globally unique
+14:09 <@duck> Ragnarok: dont want to go there
+14:09 < cervantes> dm: only shows up for reg'd users
+14:10 < ant> <dm> cervantes: oh excellent! I'll look for eep on google then!
+14:10 < Ragnarok> fair enough
+14:11 < cervantes> dm: it's a phoneme for IIP
+14:11 < cervantes> is the word on the street
+14:11 < jrandom> ok, y'all are doing tremendous work on the bt side of things, and i look forward to hearing (and using) more :)
+14:11 < ant> <dm> cervantes: not an acronym?
+14:12  * cervantes has 1/2 of a terabyte of movies and tv shows to share
+14:12 < jrandom> do we have anything else wrt i2p-bt to discuss?
+14:12 < cervantes> dm: not that I've heard
+14:12 <@duck> (dont forget #i2p-bt)
+14:12 < jrandom> yeah, #i2p-bt, finally an incentive for people to move from freenode :)
+14:12 < ant> <dm> alrighty. Thank you sir.
+14:13 <+Ch0Hag> As if this Great network wasn't incentive enough already...
+14:13 < jrandom> ok if not, shall we move on to 4) addressbook.py
+14:13 < jrandom> Ragnarok: wanna give us the run down?
+14:13 < Ragnarok> whee
+14:14 < Ragnarok> hm, ok.  addressbook.py is a first stab at a subscribable address book system.
+14:14 < Ragnarok> It's pretty ugly at the moment, but it works
+14:14 < Ragnarok> you can get it at ragnarok.i2p
+14:14 < peer> can i just make a suggestion re: naming? i think the best method would be for the links between eepsites to use base64, but let people create their own bookmark names for sites, rather than having any centralised naming system
+14:14 < Ragnarok> um...
+14:14 < Ragnarok> any questions?
+14:15 <+postman> Ragnarok: define ugly :)
+14:15 < jrandom> Ragnarok: kickass
+14:15 < ant> <dm> jrandom: not a question
+14:15 <+polecat> What were we talking about again?  @.@
+14:15 < peer> sort of like the bookmarks on the front page of the freenet web interface, but instead with urls
+14:15 < cervantes> Ragnarok: is it all command line, or is there a gui?
+14:15 < Ragnarok> read it, it's ugly :)
+14:15 < jrandom> peer: agreed, though we need author tools
+14:15 < cervantes> there weren't any screenies so I lost interest and went away ;-)
+14:15 < jrandom> peer: though the ?i2paddresshelper helps
+14:15 <+postman> Ragnarok: ok, thanks - i will check it out
+14:16 <+polecat> Bah, GUIs are for soccer moms!
+14:16 < Ragnarok> it's all command line.  It's designed to be run as a daemon.  It doesn't run as a daemon on windows yet, but that's my next project.
+14:16 < Ragnarok> aside from the cli tool, all interactions are through config files.
+14:17 < jrandom> perhaps the next step in the namign field is a web interface for managing the entries and subscriptions?
+14:17 < cervantes> are you basically syndicating your hosts file then?
+14:17 < Ragnarok> yes
+14:17 < cervantes> right...cool
+14:17 < Ragnarok> web interface would be great.  I'm not writing it, though :)
+14:17 < jrandom> with merges and conflict management
+14:18 <+polecat> What is the conflict management, besides yelping about it in the log?
+14:18 < jrandom> yeah, the engine itself is Good Stuff, maybe we can get someone else to jump on the web side of it :)
+14:19 < Ragnarok> none.  If you want to resolve a conflict, you do it by hand :).  Though, it is a bit easier now.
+14:19 < jrandom> polecat: yelp & never overwrite an existing entry afaik
+14:19 < jrandom> (er, what he said)
+14:19 < cervantes> it would be nice as a sidebar plugin for firefox...
+14:19 <+polecat> Yes, that's what I had thought.
+14:19 < cervantes> that's something I could work into my i2p toolbar
+14:20 < Ragnarok> user changes are never overwritten, so it's reasonably secure against attack
+14:20 < jrandom> and you should only subscribe to relatively trustworthy peers
+14:20 < Ragnarok> indeed
+14:20 < cervantes> maybe a feature to lock entries?
+14:20 < cervantes> (ie move them to userhosts)
+14:21 < Ragnarok> entries are are never modified
+14:21 <+polecat> I like the concept of a myhosts.txt file for entries you want to endorse yourself.
+14:21 < cervantes> Ragnarok: ah sorry, so you said
+14:22 < Ragnarok> myhosts.txt is a dirty hack to get around a race condition, but for some reason everyone likes it as an interface thing :)
+14:22 < jrandom> if people are interested, there are ways to get the i2ptunnel / sam / etc to read from more than just hosts.txt and userhosts.txt
+14:22 < jrandom> (but only if there's a good solid reason to do so)
+14:22 < cervantes> Ragnarok: you were meant to pretend that was intentional ;-)
+14:23  * duck suggest abstracting away from hosts.txt / userhosts.txt
+14:23 <+polecat> My perl version of addressbook.pl supports the myhosts.txt thing.
+14:23 < Ragnarok> yeah, that will be part of the big rewrite :)
+14:23  * polecat notes to duck, you'd have to modify i2ptunnel and sam to do that.
+14:23 < Ragnarok> first, I want to get feature parity on windows, though.
+14:24 < jrandom> right duck, as it would have been nice for 0.4.2 if we could flag different destinations as "oldLib" and "newLib" (etc)
+14:24 <@duck> polecat: you could write the final result to something called 'hosts.txt'
+14:24 < cervantes> ideally you want a hierachical mini-database of local addresses you can catagorise 
+14:24 <@duck> but use some other structure towards the user
+14:24 <+polecat> The final result goes to userhosts.txt
+14:24 <+polecat> And also a file called "hosts.txt" on the eepsite that is not the system hosts.txt.
+14:24 <@duck> which is confusing :)
+14:25 < Ragnarok> I like to be as confusing as possible :)
+14:25 < MrEcho> hope to have the dns done by the end of the month
+14:25 <@duck> ok, then let the name depend on the checksum of the content
+14:25 < cervantes> addressbook.txt? :)
+14:25 < Ragnarok> the published address book is just called hosts.txt, because that's what it is on dev.i2p
+14:25 <+polecat> It's possible to call Ragnarok's hosts.txt file something else.  People just have to subscribe to that other filename.
+14:26 < Ragnarok> true, it's a configuration option
+14:26 <+polecat> i.e. like going http://polecat.i2p/addressbook instead of http://polecat.i2p/hosts.txt
+14:26 < MrEcho> fyi, my dns doesnt touch the hosts file .. just like a real dns
+14:27 <+polecat> Oh yeah, there's that too.  >.<
+14:27 <@duck> my dns causes world peace
+14:27 < jrandom> MrEcho: it might be worthwhile to explore interoperability
+14:27 <+polecat> There's /etc/hosts, jrandom's hosts.txt that i2ptunnel and sam use, and now the hosts.txt published by Ragnarok.
+14:28 < Ragnarok> I don't think anything that doesn't resolve names locally will ever perform acceptably over i2p, but you're welcome to prove me wrong :) 
+14:28 < mule> hostile environment :)
+14:28 < MrEcho> i could make it update the hosts text, but i was hoping to add something in other code
+14:28 < jrandom> there is some code in cvs (under apps/myi2p) for loading/storing address book entries with the data posted to that feb email, if anyone is interested ;)
+14:29 <+polecat> ?
+14:29 < MrEcho> already took a look jr
+14:30 < jrandom> polecat: http://forum.i2p.net/viewtopic.php?t=141#419
+14:30 <+polecat> You mean under apps/myi2p/java/src/net/i2p/myi2p
+14:30 < jrandom> well, yeah, if you want to get specific ;)
+14:30 <+polecat> More like hideously redundant.  ;3
+14:31 < jrandom> cool MrEcho, though i'm suggesting that sort of file format for other naming systems too, if people are going to consider replacing hosts.txt
+14:31 < jrandom> polecat: with good reason (and imho there's no redundancy in that pathname ;)
+14:31 < Ragnarok> cool.  I'll have a look
+14:32 < ant> <dm> at least it doesn't say internet three times in there anymore
+14:33 < jrandom> it'd have to be implemented as a net.i2p.client.naming.NamingService as well - something to load from that local db, but that shouldn't be too hard
+14:33 <+polecat> Eek!  No, no noo MX records... no CNAME... 
+14:33 < jrandom> having multiple destinations per name is a good idea though
+14:33 < ant> <janonymous2> Im partial to an address book/ dns hybrid
+14:34 < jrandom> an address book is a domain name system :)
+14:34 <+polecat> jrandom: How many times did you have to call it myi2p?  And how necessary is it to call it i2p if it's already called myi2p?  And is there any question whether or not that mess is a thing of java?
+14:34 < jrandom> polecat: not all myi2p code will be in java.
+14:34 <@duck> go back to your cave you perl troll :)
+14:34 <+polecat> I agree that it's all necessary, not blaming you jrandom, but blaming java and ant.
+14:35 < jrandom> polecat: and i2p's codebase is unique under the net.i2p namespace, as we don't control the net.myi2p namespace :)
+14:35  * polecat grunts and crouches under the bridge.
+14:35 < ant> <dm> polecat: it's called OCD
+14:35 < jrandom> heh
+14:35 < jrandom> its called software engineering ;)
+14:36 <+polecat> Yes, but why put everything in a directory structure parroting the namespace?
+14:36 <+polecat> Just specify like... in the file "This file is namespace net.i2p"
+14:36 < jrandom> but anyway, anything else on Ragnarok's kickass naming system?  :)
+14:36 <@duck> it kicks ass
+14:36 < Ragnarok> thank you :)
+14:36 <+polecat> Asseth Kickius.
+14:36 < jrandom> polecat: there are 1340 java files in i2p
+14:37 <@duck> I was _shocked_ when I wanted to visit an eepsite and the host was already propagated
+14:37 < Ragnarok> hehe
+14:37 < jrandom> :)
+14:37 <+polecat> Well, not saying it needs to be squashed all in one place.  1340 files seems an awful lot though, isn't there any redundant code in there?  o.O
+14:38 < Ragnarok> does anyone know a command to kill a windows process by pid?
+14:38 <@duck> like TCP stack reimplementations? :)
+14:38 <+polecat> Not to mention fully functional web servers.  c.c
+14:38 < jrandom> heh
+14:38 < jrandom> oh, lemmie skip the jetty code..
+14:39 < keysersoze> (91 peers on the net now!)
+14:39 < ant> <dm> ragnarok: kill
+14:39 < jrandom> ok, 389 in router/ and core/ 
+14:39 < Ragnarok> what versions does that exist on?
+14:39 <+polecat> That's still a lot for a lousy router... but considering the all and everything not too bad.
+14:39 < ant> <dm> not sure... Running XP here.
+14:39 < cervantes> Ragnarook: only if you have the support cd files installed
+14:40 < Ragnarok> ah
+14:40  * duck refocuses
+14:40 < cervantes> Ragnarok: otherwise download sysinternals pskill
+14:40 < jrandom> ok, anything else for 4) addressbook.py, or shall we move on to 5) ???
+14:41 < cervantes> Ragnarok: http://www.sysinternals.com/ntw2k/freeware/pstools.shtml
+14:41 < jrandom> ok, 5) it is
+14:41 < Ragnarok> neat, thanks :)
+14:41 < jrandom> polecat: iirc you wanted to bring up bamboo-dht?
+14:41 < MrEcho> ? meeting right now
+14:41 <+polecat> :chants: DHT DHT USA USA~/o
+14:42 <+polecat> Yes indeed.  I'm just looking something up...
+14:42 < jrandom> yes MrEcho 
+14:43 <+Ch0Hag> 5?
+14:43 < jrandom> 5) ???
+14:43 < MrEcho> heh
+14:43 <+Ch0Hag> ooh yes, I've found an irrelevant semantic bug
+14:43 < jrandom> sup Ch0Hag?
+14:43 <+polecat> There are 79 java files in bamboo source.  There are 253 files total.
+14:44 <+polecat> The entire project takes 4.6 megabytes in source and support files, before building.
+14:44 < jrandom> yikes
+14:44 <+Ch0Hag> in /netdb.jsp, 'our' information is given port first, whereas other peers are given host first
+14:44 <+Ch0Hag> On the Addresses line
+14:44 < jrandom> have  you played around with it polecat?
+14:44 < jrandom> Ch0Hag: the ordering is arbitrary
+14:45 <+Ch0Hag> And 0.4.1.4 has been up for an hour with 128MB under Kaffe
+14:45 <+polecat> I haven't had much of a chance.  I played around with circle, and got a nifty graphical representation of a PGP public key, but not bamboo yet.
+14:45 < ant> <dm> ah yes, ch0hag's insignificant bug report reminded me!
+14:45 < ant> <dm> on the config page it says "you should either use a service like dyndns or leave the hostname blank. If you leave it blank, your router will autodetect the 'correct' IP address by asking a peer"
+14:45 <+Ch0Hag> It seems to be host/port on all of them
+14:45 < MrEcho> Uptime: 54h Memory: 23,506KB
+14:45 <+Ch0Hag> But hey
+14:45 <+Ch0Hag> It's not like it really matters.
+14:46 < ant> <dm> which is great for me, since I have a dynamic IP address and have been waiting for this feature for some time, but when I blank and hit save, it automatically fills the box again with an (incorrect) IP
+14:46 < cervantes> polecat: do you have a url?
+14:46 < ant> <dm> Cheers!
+14:47 < jrandom> hmm dm, it doesnt honor you setting it to empty?  
+14:47 < jrandom> thats definitely a substantial bug
+14:47 <+polecat> Yes, moment please.
+14:47 < Ragnarok> it would be nice if it only recommended filling in the box if you have a real, static hostname.  Or if the box wasn't there...
+14:47 < jrandom> Ch0Hag: kaffe typically keeps a steady size
+14:47 <+polecat> http://bamboo-dht.org/
+14:48 < jrandom> Ragnarok: i'm considering removing that box altogether, leaving it for the hackers to add on /configadvanced.jsp
+14:48 < ant> <dm> I only care because the instruction paragraph makes me feel like na idiot when I can't get it to blank ;)
+14:48 < cervantes> polecat: ta
+14:48 <+Ch0Hag> dm: It's clearly an intelligence test.
+14:48 <+Ch0Hag> If you can make it stay blank, you pass.
+14:48 <+polecat> I also notice bamboo seems to compile with jikes and the kaffe jar in approximately 30 seconds.
+14:48 <+polecat> Uses some weird variables though, JAVAC and JAVAHOME instead of JAVA_HOME
+14:49 < Ragnarok> jr: I think that's a great idea.  At this point, it's a bit like a newbie trap.
+14:50 < cervantes> dm: do you click the save button, or hit enter?
+14:50 < ant> <dm> click save
+14:50 < ant> <dm>     * Updated bandwidth limits
+14:50 < ant> <dm>     * Configuration saved successfully
+14:50 <@duck> polecat: do you plan to take a closer look at it?
+14:51 <+polecat> I do indeed.  bamboo seems like the best candidate for porting over i2p, and the most "together" DHT project I see out there.
+14:52 <+polecat> The important thing is whether it "works" or not of course.
+14:52 < jrandom> bah, who needs functionality, its all about buzzword compatability!
+14:53 < jrandom> please keep us updated on how it goes
+14:53 < jrandom> (as i agree, the project does look promising)
+14:53 <@duck> probably most important is what it offers for transport level modifications
+14:54 < ant> <janonymous2> Whats the shtick on bamboo?
+14:54 < jrandom> aye, whether it requires NIO channels or uses plain sockets
+14:54 < cervantes> heh... bamboo news: "5 Aug Bamboo Now 100% Pure Java...uses Berkely DB Java Edition"   "4 Nov Bamboo No Longer 100% Pure Java...BDB Java sucked..back to C""
+14:54 < jrandom> (though we /could/ write NIO channels for i2psocket, it'd take some work)
+14:54 <+polecat> jrandom: Go back to your cathedral, java gargoyle!  X3
+14:54 <+polecat> Indeed.  If it requires TCP or UDP, or worse... DNS, then we might be hosed.
+14:54 <+polecat> NIO/
+14:54 <+polecat> NIO?
+14:55 <+polecat> All I know is ni'o means change the subject in lojban.
+14:55 < jrandom> NIO is a New I/O library in java, added in 1.4
+14:55 <+polecat> I see.  Even plain sockets though, doesn't SAM have analog objects for sockets, and analog read() and write() functions?
+14:55 < jrandom> yes
+14:56 < jrandom> if they use plain sockets, its easy as shit
+14:56 < jrandom> (...whatever that means)
+14:56 < ant> <janonymous2> Whats bamboo?
+14:56 < jrandom> bamboo-dht.org
+14:57 < cervantes> what were the problems with pysam btw?
+14:57  * polecat nods.
+14:58 <@duck> cervantes: sending / receiving data
+14:58 < cervantes> duck: oh is that all? :)
+14:58 < ant> * janonymous2 /me coweres on his inadequate phone
+14:58 <@duck> and making / detecting connections
+14:58 <+Nightblade> it didn't send?
+14:59 < Ragnarok> oy
+14:59 <@duck> Nightblade: it probably did something
+14:59 <+Nightblade> does it work at all?
+15:00 < cervantes> duck: any thoughts on i2p-bt forum section naming?
+15:00 < cervantes> d'you want you're own top level, with some subs?
+15:01 < Ragnarok> hm, I've got to hit the road.  Have a good rest-of-meeting :)
+15:01 < jrandom> Nightblade: aum was using it, so i'm sure it worked
+15:01 < jrandom> l8r Ragnarok 
+15:01 < cervantes> you're = your
+15:01 < cervantes> cya ragnarok
+15:02 < ant> <janonymous2> Status on bt?
+15:02 < jrandom> janonymous: see the meeting logs (once they come out)
+15:03 < jrandom> speaking of which, is there anything else people would like to bring up in the meeting?
+15:03 < ant> <janonymous2> Oh, my bad
+15:04  * cervantes hands jr the egold plated baffer
+15:04  * jrandom winds up
+15:04 < jrandom> ...
+15:04 < jrandom> ...
+15:04  * jrandom *baf*s the meeting closed

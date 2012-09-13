@@ -1,94 +1,88 @@
-{% extends "_layout.html" %}
-{% block title %}I2P Development Meeting 142{% endblock %}
-{% block content %}<h3>I2P dev meeting, August 9, 2005</h3>
-<div class="irclog">
-13:11 < jrandom2p> 0) hi</p>
-13:11 < jrandom2p> 1) 0.6.0.2</p>
-13:11 < jrandom2p> 2) roadmap update</p>
-13:11 < jrandom2p> 3) ???</p>
-13:11 < jrandom2p> 0) hi</p>
-13:11  * jrandom2p waves</p>
-13:11 <+detonate> hi</p>
-13:11 < jrandom2p> weekly status notes up @ http://dev.i2p.net/pipermail/i2p/2005-August/000839.html</p>
-13:12 < jrandom2p> ok, jumping in briefly to [1-2] before the freeforall..</p>
-13:12 < jrandom2p> 1) 0.6.0.2</p>
-13:12 < jrandom2p> its out.  and stuff</p>
-13:12 < jrandom2p> anyone have any questions/comments/concerns w/ 0.6.0.2?</p>
-13:13 < jrandom2p> if not, moving on to 2) roadmap update</p>
-13:13 < jrandom2p> the, er, roadmap has been updated.  and stuff ;)</p>
-13:14 < duck> you aussie</p>
-13:14 <+bla> jrandom: There still are intermittent problems contacting a destination, even when it's normally up</p>
-13:14  * postman can second this</p>
-13:14  * detonate can third that</p>
-13:14 <+bla> jrandom: E.g., forum.i2p works fine, then after a few minutes it doesn't, and requires a few reloads</p>
-13:15  * bla firsted it ;)</p>
-13:15 < jrandom2p> hmm, aye, i've heard reports of that.  with 0.6.0.2 as well, right?</p>
-13:16 <+postman> indeed sir</p>
-13:16 <+bla> Yes, 0.6.0.2</p>
-13:16 <+bla> Could be netDb trouble, or poor selection of peers to put in tunnels (or something else)</p>
-13:16 < jrandom2p> 'k</p>
-13:17 < jrandom2p> the tunnel peer selection has been pretty bad lately, as has netDb store flooding</p>
-13:17 < jrandom2p> (see your /oldstats.jsp for tunnel request failure counts)</p>
-13:18 <+bla> Now that we use UDP/SSU, peer classification seems to be better than before: a number of peers I _know_ to be fast, usually show up under the "fast" section on the profile pafe</p>
-13:19 < jrandom2p> nice</p>
-13:19 < jrandom2p> 0.6.0.2 added some tunnel rejection code based on the netDb that it should have been doing before (refusing to join if we can't find the next hop), so the increase in rejections is expected</p>
-13:19 <+bla> Though I really should get going at the classification algorithms again... ;)</p>
-13:20 < jrandom2p> i've been doing profile/stat analysis, but no solid results yet</p>
-13:21 < jrandom> that would be cool bla :)</p>
-13:25 < jrandom2p> ok, anything else on 2) roadmpa update?  :)</p>
-13:26 < jrandom2p> if not, moving on to 3) ???</p>
-13:26 <+detonate> do you think it would be useful to shitlist peers with high failure/duprecv rates compared to the mode?</p>
-13:27 < jrandom> hmm, i'm not sure about that - if the failure/dup rates are too high to be useful, we should just transfer slowly and carefully</p>
-13:27 < jrandom> as long as messages are getting through, messages are getting through</p>
-13:28 < jrandom> there's a reason why we haven't used stats on direct peer communication as part of our profiling - depending upon them would make us vulnerable to some easy and powerful attacks (acting differently to different peers and see who uses you, etc)</p>
-13:29 <+detonate> hmm</p>
-13:29 <+detonate> ok</p>
-13:29 < jrandom> but perhaps we need to drop sessions for peers who are in such congested cons</p>
-13:29 <+detonate> good point</p>
-13:34 < jrandom> ok, anyone else have something to bring up for 3) ???</p>
-13:34 < luckypunk> o,oh, maybe you should wait ti leveryone is back</p>
-13:34 < luckypunk> before asking critical questions :P</p>
-13:35 < jrandom2p> bah, they've got the mailing list ;)</p>
-13:35 < luckypunk> well</p>
-13:35 < luckypunk> i guess this is the right place to whine</p>
-13:36 < luckypunk> I2P still uses a bit of CPU</p>
-13:36 < luckypunk> but not as much as before</p>
-13:36 < luckypunk> true, i haven't run it since the 5.0 days</p>
-13:36 < luckypunk> but yeah</p>
-13:36 < luckypunk> er</p>
-13:36 < luckypunk> 0.5.0</p>
-13:36 < jrandom2p> cool, which of your boxes works with it?</p>
-13:36 < luckypunk> er</p>
-13:36 < luckypunk> ffs</p>
-13:36 < luckypunk> i haven't used it since 0.6.0.0</p>
-13:36 < luckypunk> it works fine with the pentium 2</p>
-13:37 < luckypunk> the default nice value mens it tends to crashif i do anything too CPU intensive for too long as I2P gets CPU starved</p>
-13:38 <+detonate> hmm, i guess there could be a space in the router console network config to hardwire the introducers, once there are introducers, if the user prefers</p>
-13:39 < jrandom2p> are you on 0.6.0.2 now luckypunk?</p>
-13:39 <@smeghead> detonate: that's trusted route stuff... later on in the roadmap :)</p>
-13:39 < luckypunk> no</p>
-13:39 < luckypunk> i haven't run it since 0.6.0.0</p>
-13:39 <@smeghead> *restricted route</p>
-13:40 < luckypunk> but it's CPU use seemed much less.</p>
-13:40 <+detonate> heh, it should be there as soon as there's introducers :)</p>
-13:40 < jrandom2p> ah yeah detonate, the introducer selection could certainly be configurable, but it'll probably be a hidden advanced config option ;)</p>
-13:41 < jrandom2p> luckypunk: 0.6.0.1 cut out a lot of crypto, and 0.6.0.2 should help further.  give it a try sometime, it may handle it better</p>
-13:41 < luckypunk> ok</p>
-13:41 <@smeghead> what if an introducer doesn't want you selecting them all the time?</p>
-13:41 < luckypunk> i have the feeling I2P would on a dedicated mid range pentium now.</p>
-13:41 < jrandom> smeghead: then they say "fuck off, i'm not going to serve as an introducer for you"</p>
-13:42 < jrandom> and peers will have multiple introducers, so it'll be balanced</p>
-13:42 < jrandom> (and its only 2 packets to wire up a new peer, not all packets communicated)</p>
-13:44 <+detonate> if introducers worked differently you could do a majority vote between them to decide which ones are working, but as it stands that doesn't make sense</p>
-13:45 < ant> &lt;jme___&gt; q. where can i find a description of this voting system ?</p>
-13:45 < jrandom> majority doesnt make any sense</p>
-13:45  * jrandom doesnt trust voting any further than i can throw it</p>
-13:45 < jrandom> (especially in light of sybil)</p>
-13:45 < jrandom> an introducer is working if a new peer can contact you through it</p>
-13:47 <+detonate> what's the status of vanguard, that's sort of related</p>
-13:47 <+detonate> while smeghead is around</p>
-13:51 < jrandom> ok, if there isn't anything else...</p>
-13:51  * jrandom winds up </p>
-13:51  * jrandom *baf*s the meeting closed</p>
-</div>
-{% endblock %}
+13:11 < jrandom2p> 0) hi
+13:11 < jrandom2p> 1) 0.6.0.2
+13:11 < jrandom2p> 2) roadmap update
+13:11 < jrandom2p> 3) ???
+13:11 < jrandom2p> 0) hi
+13:11  * jrandom2p waves
+13:11 <+detonate> hi
+13:11 < jrandom2p> weekly status notes up @ http://dev.i2p.net/pipermail/i2p/2005-August/000839.html
+13:12 < jrandom2p> ok, jumping in briefly to [1-2] before the freeforall..
+13:12 < jrandom2p> 1) 0.6.0.2
+13:12 < jrandom2p> its out.  and stuff
+13:12 < jrandom2p> anyone have any questions/comments/concerns w/ 0.6.0.2?
+13:13 < jrandom2p> if not, moving on to 2) roadmap update
+13:13 < jrandom2p> the, er, roadmap has been updated.  and stuff ;)
+13:14 < duck> you aussie
+13:14 <+bla> jrandom: There still are intermittent problems contacting a destination, even when it's normally up
+13:14  * postman can second this
+13:14  * detonate can third that
+13:14 <+bla> jrandom: E.g., forum.i2p works fine, then after a few minutes it doesn't, and requires a few reloads
+13:15  * bla firsted it ;)
+13:15 < jrandom2p> hmm, aye, i've heard reports of that.  with 0.6.0.2 as well, right?
+13:16 <+postman> indeed sir
+13:16 <+bla> Yes, 0.6.0.2
+13:16 <+bla> Could be netDb trouble, or poor selection of peers to put in tunnels (or something else)
+13:16 < jrandom2p> 'k
+13:17 < jrandom2p> the tunnel peer selection has been pretty bad lately, as has netDb store flooding
+13:17 < jrandom2p> (see your /oldstats.jsp for tunnel request failure counts)
+13:18 <+bla> Now that we use UDP/SSU, peer classification seems to be better than before: a number of peers I _know_ to be fast, usually show up under the "fast" section on the profile pafe
+13:19 < jrandom2p> nice
+13:19 < jrandom2p> 0.6.0.2 added some tunnel rejection code based on the netDb that it should have been doing before (refusing to join if we can't find the next hop), so the increase in rejections is expected
+13:19 <+bla> Though I really should get going at the classification algorithms again... ;)
+13:20 < jrandom2p> i've been doing profile/stat analysis, but no solid results yet
+13:21 < jrandom> that would be cool bla :)
+13:25 < jrandom2p> ok, anything else on 2) roadmpa update?  :)
+13:26 < jrandom2p> if not, moving on to 3) ???
+13:26 <+detonate> do you think it would be useful to shitlist peers with high failure/duprecv rates compared to the mode?
+13:27 < jrandom> hmm, i'm not sure about that - if the failure/dup rates are too high to be useful, we should just transfer slowly and carefully
+13:27 < jrandom> as long as messages are getting through, messages are getting through
+13:28 < jrandom> there's a reason why we haven't used stats on direct peer communication as part of our profiling - depending upon them would make us vulnerable to some easy and powerful attacks (acting differently to different peers and see who uses you, etc)
+13:29 <+detonate> hmm
+13:29 <+detonate> ok
+13:29 < jrandom> but perhaps we need to drop sessions for peers who are in such congested cons
+13:29 <+detonate> good point
+13:34 < jrandom> ok, anyone else have something to bring up for 3) ???
+13:34 < luckypunk> o,oh, maybe you should wait ti leveryone is back
+13:34 < luckypunk> before asking critical questions :P
+13:35 < jrandom2p> bah, they've got the mailing list ;)
+13:35 < luckypunk> well
+13:35 < luckypunk> i guess this is the right place to whine
+13:36 < luckypunk> I2P still uses a bit of CPU
+13:36 < luckypunk> but not as much as before
+13:36 < luckypunk> true, i haven't run it since the 5.0 days
+13:36 < luckypunk> but yeah
+13:36 < luckypunk> er
+13:36 < luckypunk> 0.5.0
+13:36 < jrandom2p> cool, which of your boxes works with it?
+13:36 < luckypunk> er
+13:36 < luckypunk> ffs
+13:36 < luckypunk> i haven't used it since 0.6.0.0
+13:36 < luckypunk> it works fine with the pentium 2
+13:37 < luckypunk> the default nice value mens it tends to crashif i do anything too CPU intensive for too long as I2P gets CPU starved
+13:38 <+detonate> hmm, i guess there could be a space in the router console network config to hardwire the introducers, once there are introducers, if the user prefers
+13:39 < jrandom2p> are you on 0.6.0.2 now luckypunk?
+13:39 <@smeghead> detonate: that's trusted route stuff... later on in the roadmap :)
+13:39 < luckypunk> no
+13:39 < luckypunk> i haven't run it since 0.6.0.0
+13:39 <@smeghead> *restricted route
+13:40 < luckypunk> but it's CPU use seemed much less.
+13:40 <+detonate> heh, it should be there as soon as there's introducers :)
+13:40 < jrandom2p> ah yeah detonate, the introducer selection could certainly be configurable, but it'll probably be a hidden advanced config option ;)
+13:41 < jrandom2p> luckypunk: 0.6.0.1 cut out a lot of crypto, and 0.6.0.2 should help further.  give it a try sometime, it may handle it better
+13:41 < luckypunk> ok
+13:41 <@smeghead> what if an introducer doesn't want you selecting them all the time?
+13:41 < luckypunk> i have the feeling I2P would on a dedicated mid range pentium now.
+13:41 < jrandom> smeghead: then they say "fuck off, i'm not going to serve as an introducer for you"
+13:42 < jrandom> and peers will have multiple introducers, so it'll be balanced
+13:42 < jrandom> (and its only 2 packets to wire up a new peer, not all packets communicated)
+13:44 <+detonate> if introducers worked differently you could do a majority vote between them to decide which ones are working, but as it stands that doesn't make sense
+13:45 < ant> <jme___> q. where can i find a description of this voting system ?
+13:45 < jrandom> majority doesnt make any sense
+13:45  * jrandom doesnt trust voting any further than i can throw it
+13:45 < jrandom> (especially in light of sybil)
+13:45 < jrandom> an introducer is working if a new peer can contact you through it
+13:47 <+detonate> what's the status of vanguard, that's sort of related
+13:47 <+detonate> while smeghead is around
+13:51 < jrandom> ok, if there isn't anything else...
+13:51  * jrandom winds up 
+13:51  * jrandom *baf*s the meeting closed

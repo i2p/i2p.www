@@ -1,78 +1,72 @@
-{% extends "_layout.html" %}
-{% block title %}I2P Development Meeting 195{% endblock %}
-{% block content %}<h3>I2P dev meeting, January 2, 2007</h3>
-<div class="irclog">
-15:02 < jrandom> 0) hi</p>
-15:02 < jrandom> 1) Net status and plans</p>
-15:02 < jrandom> 2) Syndie 1.001a</p>
-15:02 < jrandom> 3) ???</p>
-15:02 < jrandom> 0) hi</p>
-15:02  * jrandom waves</p>
-15:02 < jrandom> weekly status notes posted up on http://dev.i2p.net/pipermail/i2p/2007-January/001325.html</p>
-15:03  * mrflibble waves to jrandom</p>
-15:03  * jrandom expects most are still nursing their hangovers, so we'll do this quietly</p>
-15:04 < jrandom> lets jump on in to 1) Net status and plans</p>
-15:05 < jrandom> as mentioned in the notes, there's been a lot covered, but we've got our work cut out for us this year</p>
-15:05 < jrandom> we'll want to discuss the various tradeoffs though and make sure the most appropriate ones are taken to support the specific functionality we're driving towards</p>
-15:06 < jrandom> but, we'll see how it goes as things progress</p>
-15:06 < jrandom> for the time being though, the net seems fairly steady-state, which is Good</p>
-15:07 < jrandom> anyone have anything they'd like to bring up re: net status and plans?</p>
-15:09 < jrandom> if not, lets hop on over to 2) Syndie 1.001a</p>
-15:09 < z^z> anything I can work on on the net - netdb or tunnels?</p>
-15:09  * jrandom hops back</p>
-15:10 < z^z> I know we have questions on netdb propagation and on cpu usage but I would need a good pointer to get started</p>
-15:11 < z^z> think about it anyway</p>
-15:11 < jrandom> z^z: netDb search when the # of known/reachable floodfill peers reaches 0 needs to, most likely, do a random iterated walk across known peers</p>
-15:12 < z^z> ok thx will poke around and ask questions later</p>
-15:12 < jrandom> perhaps a new flag on the netDb lookup message asking for "give me some floodfill peers"</p>
-15:12 < jrandom> kickass z^z!  that'd likely have a substantial impact for new users - let me know if you run into any trouble</p>
-15:13 < z^z> ha that will take me into new territory sounds like fun for the new year</p>
-15:13 < jrandom> :)</p>
-15:14 < bar> "do not delete floodfill peer router infos from netdb if there are too few of them" &lt;-- does anyone remember if this one got into cvs or not?</p>
-15:15 < jrandom> nope</p>
-15:15 < jrandom> or, not that i recall...</p>
-15:16 < bar> okie</p>
-15:17 < jrandom> (a great spot for that would be KademliaFloodfillNetworkFacade::dropAfterLookupFailed)</p>
-15:18 < jrandom> er, KademliaNetworkDatabaseFacade, that is (floodfill extends it)</p>
-15:20 < jrandom> (there's also a few bits in the DatabaseLookupMessage that could be used to flag 'send me floodfill peers' - the 'tunnelSpecified' is a boolean, but transferred in a full byte)</p>
-15:21 < jrandom> ok, anything else on 1) Net status and plans?</p>
-15:23  * jrandom resumes the hopping to 2) Syndie 1.001a </p>
-15:24 < jrandom> she's coming soon, maybe in a day or two.  lots of bugfixes and cleanup (thanks to everyone helping!), with more details in the announcement when its released</p>
-15:25 < jrandom> thats about it to mention on that, though (but if you're using the new syndie, you can follow up on the latest discussions there ;)</p>
-15:27 < jrandom> anyone have anything to bring up on syndie 1.001a, or shall we skip on over to 3) ???</p>
-15:27 < jrandom> anyone have anything else they'd like to discuss in the meeting?</p>
-15:28 <+fox> &lt;covracer&gt; are you still not in favor of an ebuild?</p>
-15:29 < jrandom> for syndie, or i2p?  </p>
-15:29 <+fox> &lt;covracer&gt; i2p</p>
-15:29 < jrandom> correct, i am still not in favor of an ebuild</p>
-15:29 < jrandom> (thank you for the offer/suggestion though!)</p>
-15:30 < jrandom> i2p's problems are not related to the size of the network, so increasing the size will not address them</p>
-15:30 < jrandom> instead, it will just force more people to deal with the problems and the upgrade path to address them</p>
-15:30 <+fox> &lt;covracer&gt; yeah</p>
-15:31 <+fox> &lt;covracer&gt; alex has done some good work though on an ebuild</p>
-15:31 <+fox> &lt;covracer&gt; it's in the java-experimental-migration overlay iirc</p>
-15:31 <+fox> * godmode0 is back (gone 01:57:51)</p>
-15:32 <+fox> &lt;covracer&gt; well at any rate it depends on lots improvements in gentoo's handling of java and jetty</p>
-15:32 <+fox> &lt;covracer&gt; and won't get into the main tree any time soon</p>
-15:33 < jrandom> cool (that alex's work is going well), and hopefully we'll get i2p to the point where pushing it to main will be a great thing :)</p>
-15:34 <+fox> &lt;covracer&gt; would a ebuild for syndie be welcomed or should it also be postponed?</p>
-15:34  * jrandom wonders how much shakeup there is going to be in java handling once the sun jvm & libs go gpl</p>
-15:35 < jrandom> syndie will hopefully be ready for full production use in a matter of months, with beta in maybe a month, so looking at an ebuild there would be great</p>
-15:36 < jrandom> when syndie goes production i'd like to make it as easy as possible for people to use - apt-get, emerge, rpm, etc</p>
-15:36 <+fox> &lt;covracer&gt; okay, I'll see if I can hack an ebuild together this week of vacation--I've got nothing better to do</p>
-15:36 < jrandom> kickass, thanks covracer!</p>
-15:37 <+fox> &lt;covracer&gt; easy installation is very important for wide adoption</p>
-15:37 < jrandom> (and let me know if you run into any bits that could be simplified 'upstream' - i'd like to make packaging as transparent as possible)</p>
-15:37 < jrandom> aye, definitely</p>
-15:38 <+fox> &lt;covracer&gt; alright, although I'm only vaguely aware of the best practices of ebuild writing, not being a dev myself or really all that active on the coding front</p>
-15:40 < jrandom> cool, you likely know more about ebuild writing than I though :)  good luck, and thanks</p>
-15:40 < jrandom> ok, anyone have anything else they'd like to bring up for the meeting?</p>
-15:40 < bar> well, i think an official post in cervantes' syndie forum and the old syndie wouldn't hurt, if/when you're looking for more testers for the new syndie</p>
-15:40 < bar> except for the last meeting log, i don't think there has been much mentioning of the alpha release, many i2p users simply haven't heard the news, methinks</p>
-15:41 < jrandom> good idea - i'll spam 'em when 1.001a is out</p>
-15:42 < bar> alritey :)</p>
-15:47 < jrandom> ok, if there isn't anything else for the meeting...</p>
-15:47  * jrandom winds up</p>
-15:47  * jrandom *baf*s the meeting closed</p>
-</div>
-{% endblock %}
+15:02 < jrandom> 0) hi
+15:02 < jrandom> 1) Net status and plans
+15:02 < jrandom> 2) Syndie 1.001a
+15:02 < jrandom> 3) ???
+15:02 < jrandom> 0) hi
+15:02  * jrandom waves
+15:02 < jrandom> weekly status notes posted up on http://dev.i2p.net/pipermail/i2p/2007-January/001325.html
+15:03  * mrflibble waves to jrandom
+15:03  * jrandom expects most are still nursing their hangovers, so we'll do this quietly
+15:04 < jrandom> lets jump on in to 1) Net status and plans
+15:05 < jrandom> as mentioned in the notes, there's been a lot covered, but we've got our work cut out for us this year
+15:05 < jrandom> we'll want to discuss the various tradeoffs though and make sure the most appropriate ones are taken to support the specific functionality we're driving towards
+15:06 < jrandom> but, we'll see how it goes as things progress
+15:06 < jrandom> for the time being though, the net seems fairly steady-state, which is Good
+15:07 < jrandom> anyone have anything they'd like to bring up re: net status and plans?
+15:09 < jrandom> if not, lets hop on over to 2) Syndie 1.001a
+15:09 < z^z> anything I can work on on the net - netdb or tunnels?
+15:09  * jrandom hops back
+15:10 < z^z> I know we have questions on netdb propagation and on cpu usage but I would need a good pointer to get started
+15:11 < z^z> think about it anyway
+15:11 < jrandom> z^z: netDb search when the # of known/reachable floodfill peers reaches 0 needs to, most likely, do a random iterated walk across known peers
+15:12 < z^z> ok thx will poke around and ask questions later
+15:12 < jrandom> perhaps a new flag on the netDb lookup message asking for "give me some floodfill peers"
+15:12 < jrandom> kickass z^z!  that'd likely have a substantial impact for new users - let me know if you run into any trouble
+15:13 < z^z> ha that will take me into new territory sounds like fun for the new year
+15:13 < jrandom> :)
+15:14 < bar> "do not delete floodfill peer router infos from netdb if there are too few of them" <-- does anyone remember if this one got into cvs or not?
+15:15 < jrandom> nope
+15:15 < jrandom> or, not that i recall...
+15:16 < bar> okie
+15:17 < jrandom> (a great spot for that would be KademliaFloodfillNetworkFacade::dropAfterLookupFailed)
+15:18 < jrandom> er, KademliaNetworkDatabaseFacade, that is (floodfill extends it)
+15:20 < jrandom> (there's also a few bits in the DatabaseLookupMessage that could be used to flag 'send me floodfill peers' - the 'tunnelSpecified' is a boolean, but transferred in a full byte)
+15:21 < jrandom> ok, anything else on 1) Net status and plans?
+15:23  * jrandom resumes the hopping to 2) Syndie 1.001a 
+15:24 < jrandom> she's coming soon, maybe in a day or two.  lots of bugfixes and cleanup (thanks to everyone helping!), with more details in the announcement when its released
+15:25 < jrandom> thats about it to mention on that, though (but if you're using the new syndie, you can follow up on the latest discussions there ;)
+15:27 < jrandom> anyone have anything to bring up on syndie 1.001a, or shall we skip on over to 3) ???
+15:27 < jrandom> anyone have anything else they'd like to discuss in the meeting?
+15:28 <+fox> <covracer> are you still not in favor of an ebuild?
+15:29 < jrandom> for syndie, or i2p?  
+15:29 <+fox> <covracer> i2p
+15:29 < jrandom> correct, i am still not in favor of an ebuild
+15:29 < jrandom> (thank you for the offer/suggestion though!)
+15:30 < jrandom> i2p's problems are not related to the size of the network, so increasing the size will not address them
+15:30 < jrandom> instead, it will just force more people to deal with the problems and the upgrade path to address them
+15:30 <+fox> <covracer> yeah
+15:31 <+fox> <covracer> alex has done some good work though on an ebuild
+15:31 <+fox> <covracer> it's in the java-experimental-migration overlay iirc
+15:31 <+fox> * godmode0 is back (gone 01:57:51)
+15:32 <+fox> <covracer> well at any rate it depends on lots improvements in gentoo's handling of java and jetty
+15:32 <+fox> <covracer> and won't get into the main tree any time soon
+15:33 < jrandom> cool (that alex's work is going well), and hopefully we'll get i2p to the point where pushing it to main will be a great thing :)
+15:34 <+fox> <covracer> would a ebuild for syndie be welcomed or should it also be postponed?
+15:34  * jrandom wonders how much shakeup there is going to be in java handling once the sun jvm & libs go gpl
+15:35 < jrandom> syndie will hopefully be ready for full production use in a matter of months, with beta in maybe a month, so looking at an ebuild there would be great
+15:36 < jrandom> when syndie goes production i'd like to make it as easy as possible for people to use - apt-get, emerge, rpm, etc
+15:36 <+fox> <covracer> okay, I'll see if I can hack an ebuild together this week of vacation--I've got nothing better to do
+15:36 < jrandom> kickass, thanks covracer!
+15:37 <+fox> <covracer> easy installation is very important for wide adoption
+15:37 < jrandom> (and let me know if you run into any bits that could be simplified 'upstream' - i'd like to make packaging as transparent as possible)
+15:37 < jrandom> aye, definitely
+15:38 <+fox> <covracer> alright, although I'm only vaguely aware of the best practices of ebuild writing, not being a dev myself or really all that active on the coding front
+15:40 < jrandom> cool, you likely know more about ebuild writing than I though :)  good luck, and thanks
+15:40 < jrandom> ok, anyone have anything else they'd like to bring up for the meeting?
+15:40 < bar> well, i think an official post in cervantes' syndie forum and the old syndie wouldn't hurt, if/when you're looking for more testers for the new syndie
+15:40 < bar> except for the last meeting log, i don't think there has been much mentioning of the alpha release, many i2p users simply haven't heard the news, methinks
+15:41 < jrandom> good idea - i'll spam 'em when 1.001a is out
+15:42 < bar> alritey :)
+15:47 < jrandom> ok, if there isn't anything else for the meeting...
+15:47  * jrandom winds up
+15:47  * jrandom *baf*s the meeting closed

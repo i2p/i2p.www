@@ -1,734 +1,730 @@
-{% extends "_layout.html" %}
-{% block title %}Meeting 59{% endblock %}
-{% block content %}<div class="irclog">
-[22:56] <jrand0m> ok ok </p>
-[22:56] <jrand0m> agenda </p>
-[22:56] <jrand0m> 0.0) welcome </p>
-[22:56] <jrand0m> 1.0) dev status </p>
-[22:56] <jrand0m> 1.1) router </p>
-[22:56] *** Myself248 (~ident@anon.iip) has joined channel #iip-dev</p>
-[22:56] <jrand0m> 1.2) DH precalc </p>
-[22:56] <jrand0m> 2.0) microroadmap </p>
-[22:56] <jrand0m> 3.0) apps / usage </p>
-[22:56] <jrand0m> 4.0) ns </p>
-[22:56] <jrand0m> 5.0) IM </p>
-[22:56] <jrand0m> 6.0) administravia (cvs, bugzilla, cvs list, cvs web) </p>
-[22:56] <jrand0m> 7.0) questions </p>
-[22:57] <jrand0m> (yes, 7 points today.  w00t) </p>
-[22:57] <jrand0m> 0.0) welcome </p>
-[22:57] <jrand0m> hi. </p>
-[22:57] <dm> hey</p>
-[22:57] <jrand0m> 17 users today.  neat </p>
-[22:57] *** Ryan_Singer (chatzilla@anon.iip) has joined channel #iip-dev</p>
-[22:57] <jrand0m> and counting </p>
-[22:57] <jrand0m> ok </p>
-[22:57] <thecrypto> 1~hi</p>
-[22:57] <jrand0m> 1.1) dev status for router </p>
-[22:58] <jrand0m> the java reference impl router is doing very well </p>
-[22:58] *** ChZEROHag (hag@anon.iip) has joined channel #iip-dev</p>
-[22:58] <jrand0m> we can now run applications on different routers and send messages ot each other </p>
-[22:59] <ChZEROHag> Sorry to interrupt, but hopefully it'll just be once</p>
-[22:59] <jrand0m> taking an iterative and incremental approach, the current state is secure, not anonymous, not scalable, and harvestable </p>
-[22:59] <ChZEROHag> Is anyone else working on a C api?</p>
-[22:59] <jrand0m> 'lo ChZEROHag, whats shakin? </p>
-[22:59] <ChZEROHag> Because I am, but very slowly</p>
-[22:59] *** dcat (dirtycat@anon.iip) has joined channel #iip-dev</p>
-[22:59] <jrand0m> oh cool </p>
-[22:59] <jrand0m> shardy will be working on one after toorcon is finished </p>
-[22:59] <jrand0m> perhaps you two could work together on that? </p>
-[23:00] <co> jrand0m: Can you input a destination to send messages to by hand?</p>
-[23:00] <co> Better said, is there an ASCII representation of a destination?</p>
-[23:00] <jrand0m> yes co, to both </p>
-[23:00] <co> Excellent.</p>
-[23:00] <jrand0m> destinations, and all I2P structures, are loadable and serializable in (an alternate alphabet) base 64 </p>
-[23:01] <thecrypto> so it won't be easy to remember, but it will be ascii?</p>
-[23:01] <jrand0m> (e.g. in the netDb for one of my routers, I have leaseSet-enD4jtE-orMwFD0QGog9GAyC5MvLvnPzhVD8cDYvSI8.dat which contains the lease set for destination enD4jtE-orMwFD0QGog9GAyC5MvLvnPzhVD8cDYvSI8) </p>
-[23:02] <jrand0m> [though that is H(destination).toBase64() </p>
-[23:03] <jrand0m> ChZEROHag&gt; if there's anything we can do to help you with that, just say the word </p>
-[23:03] <jrand0m> ok thats 1.1.  1.2) DH precalc </p>
-[23:03] <ChZEROHag> You could do it for me? :-)</p>
-[23:04] <jrand0m> last night I wrote up a precalc optimization for DH exchanges to save ~1s off 1.5s session negotiations.  I'd love if someone who knows crypto could make sure I'm not nuts ;) </p>
-[23:04] <jrand0m> lol ChZEROHag </p>
-[23:04] <ChZEROHag> aah I know what I needed</p>
-[23:04] <ChZEROHag> A netdb implementation</p>
-[23:04] <thecrypto> is it in cvs?</p>
-[23:04] <thecrypto> the dh</p>
-[23:04] <jrand0m> yes thecrypto </p>
-[23:05] <jrand0m> C:\dev\i2p\code\core\java\src\net\invisiblenet\i2p\crypto\DHSessionKeyBuilder.java </p>
-[23:05] <ChZEROHag> Well I'm going to be up for a good 3/4 hours yet, maybe it'll give me something to do</p>
-[23:05] <jrand0m> er, s/C:\\dev/g; s/\\/\//g </p>
-[23:05] *** wax_off (~nomail@anon.iip) has joined channel #iip-dev</p>
-[23:06] <jrand0m> word.  what do you need a netdb impl for? </p>
-[23:06] <ChZEROHag> I don't remember</p>
-[23:06] <jrand0m> we currently have a non-scalable netdb in cvs </p>
-[23:06] <jrand0m> heh </p>
-[23:06] <ChZEROHag> Haven't touched it in at least a week</p>
-[23:06] <jrand0m> you're working on a C I2CP api, right?  not I2NP? </p>
-[23:07] <ChZEROHag> I was just going to do everything</p>
-[23:07] *** wax_off has left #iip-dev</p>
-[23:07] <jrand0m> I2NP is really, really, really significantly more work than I2CP </p>
-[23:07] <ChZEROHag> Once I actually get properly started, it'll just roll out</p>
-[23:07] <jrand0m> but if you impl an I2NP in C that'd rule </p>
-[23:07] <dm> is there a I2NP in anything right now?</p>
-[23:07] <jrand0m> (I2CP:I2NP::FCP:FNP) </p>
-[23:07] <jrand0m> yes dm </p>
-[23:08] * ChZEROHag deminimizes emacs</p>
-[23:08] <jrand0m> the java impl i'm working on has I2NP functioning </p>
-[23:08] <dm> alrighty...</p>
-[23:08] <ChZEROHag> jrand0m: url? I could do with a reference, even if it's in a horrible language.</p>
-[23:08] <jrand0m> heh </p>
-[23:08] <jrand0m> erm, actually thats 6.0 administravia: aka where the fuck is our anon cvs access ;) </p>
-[23:09] <thecrypto> i'm getting the DH stuff</p>
-[23:09] <jrand0m> coo' </p>
-[23:09] <ChZEROHag> Oh right</p>
-[23:09] <Ryan_Singer> jrand0m,  back to schedule, the microroadmap?</p>
-[23:09] * thecrypto hides his face</p>
-[23:09] <ChZEROHag> well I'll wait :)</p>
-[23:09] <jrand0m> heh 'k </p>
-[23:09] <jrand0m> microroadmap </p>
-[23:09] <jrand0m> I have 0.1 through 0.5 mapped out </p>
-[23:09] <dm> followed freenet's roadmap then?</p>
-[23:10] *** mrflibble (mrflibble@anon.iip) has joined channel #iip-dev</p>
-[23:10] <jrand0m> 0.1) functional, secure, not anonymous, not scalable, harvestable </p>
-[23:10] <dm> development slows down and freezes during 0.5...</p>
-[23:10] <jrand0m> we are now at 0.1.   </p>
-[23:10] <jrand0m> heh I noticed that dm, flinks hosed off at 0.5.2 as well ;) </p>
-[23:10] <co> What are you calling the whole package?</p>
-[23:10] <jrand0m> (strange coincidence) </p>
-[23:10] <co> i.e. version 0.1 of?</p>
-[23:10] <jrand0m> the whole package?  i2p router reference implementation </p>
-[23:10] <ChZEROHag> co: Wonga</p>
-[23:10] * beefbroth joins the meeting</p>
-[23:11] <jrand0m> buenos noches beefbroth </p>
-[23:11] <co> All right. That explains it.</p>
-[23:11] <ChZEROHag> Actually maybe I will call it that. Certainly sounds more interesting than 'i2pd'</p>
-[23:11] <jrand0m> 0.1 has bugs.  thats a given.  and it has no optimizations of note (though the DH precalc helps).   </p>
-[23:11] <jrand0m> heh </p>
-[23:11] <Ryan_Singer> jrand0m,  what's 0.2) then?</p>
-[23:11] <jrand0m> invisible internet police department </p>
-[23:11] <jrand0m> ok, 0.2 </p>
-[23:12] <jrand0m> 0.2 is functional, secure, anonymous, not scalable, harvestable </p>
-[23:12] <jrand0m> 0.2 adds support for non-zero-length tunnels </p>
-[23:12] <jrand0m> I actually implemented most of that last night, but not thoroughly tested </p>
-[23:12] <jrand0m> I think 0.2 will be ready by end of week </p>
-[23:12] <Ryan_Singer> how far away are we from that from a dev perspective?</p>
-[23:13] <Ryan_Singer> great</p>
-[23:13] <jrand0m> 0.3) is functional, secure, anonymous, scalable, harvestable </p>
-[23:13] * thecrypto gets bochs so he can simulate a network to help with this</p>
-[23:13] <jrand0m> 0.3 adds a kademliaDatabaseManager </p>
-[23:13] <jrand0m> right now we use a BroadcastDatabaseManager </p>
-[23:13] <jrand0m> (aka gnunet ;) </p>
-[23:14] <jrand0m> trivial to implement and functional for small networks, but we need the kademlia to scale </p>
-[23:14] <jrand0m> 0.4) is functional, secure, anonymous, scalable, non-harvestable </p>
-[23:14] <jrand0m> that adds trusted links </p>
-[23:14] <Ryan_Singer> jrand0m,  and how much of a dev challenge is it to implement kademlia?</p>
-[23:14] <jrand0m> I have two ideas for trusted links.. one is more easily implementable and usable </p>
-[23:15] <jrand0m> kademlia will probably take a full week </p>
-[23:15] <jrand0m> (to get right) </p>
-[23:15] <jrand0m> note that all of this has lots of room for refactoring and tuning.  I'm aiming functional first, then we tune. </p>
-[23:16] <co> Are you certain you will be able to develop and test that quickly?</p>
-[23:16] <jrand0m> I am certain of nothing </p>
-[23:16] <jrand0m> thats just my estimate </p>
-[23:16] <Ryan_Singer> co, hegets functional, we test</p>
-[23:16] <ChZEROHag> Are you sure?</p>
-[23:16] <ChZEROHag> (sorry)</p>
-[23:16] <co> Ryan_Singer: I see.</p>
-[23:17] * jrand0m <3 people who test :)</p>
-[23:17] <Myself248> When you say "we" test. Is there any place for non-coders to help with the testing?</p>
-[23:17] <jrand0m> Myself248&gt; probably not until 0.4 </p>
-[23:17] <dm> lets just hope it never gets to the point where it's functional, but nobody knows what the fuck is going on inside the network to make it work well (i.e. freenet)</p>
-[23:18] <jrand0m> once 0.4 is ready, thats pre-alpha.  once its 0.4 I'll tune and refactor and fill in the blanks to get ready for 0.5 (alpha) </p>
-[23:18] <Myself248> Document, document, document.</p>
-[23:18] <dm> is there any though being put into active monitoring of network internals, or is it straightforward?</p>
-[23:18] <jrand0m> yes dm, absolutely </p>
-[23:18] <jrand0m> one of the key pieces of i2np is the inclusion of stats in the routerInfo strutures published </p>
-[23:18] <mihi> jrand0m: do a s/0./0.0./ ;)</p>
-[23:18] <jrand0m> the initial revs will publish real stats so we can tune </p>
-[23:19] <jrand0m> later revs will either not publish any stats or publish fake ones </p>
-[23:19] * jrand0m does not do 0.0</p>
-[23:19] <shardy> ok, I'm here</p>
-[23:19] <jrand0m> wb shardy </p>
-[23:19] <shardy> sorry for being late, forgot about this window being open, heh</p>
-[23:19] <dm> cool.</p>
-[23:19] <Ryan_Singer> is there a higher level document describing the archetecture for the network under .4?</p>
-[23:19] <jrand0m> off with your head </p>
-[23:20] <jrand0m> Ryan_Singer&gt; hmm, I had some overview docs a few months back that mids and nop mirrored, and there's the i2p overview doc </p>
-[23:20] <jrand0m> 0.4 is full i2np as described in the spec, just not optimally implemented </p>
-[23:20] <shardy> oh and jrand0m, I'll check out the DH optimization for you</p>
-[23:20] <jrand0m> word, gracias  </p>
-[23:20] <Ryan_Singer> can I get those docs?</p>
-[23:21] <jrand0m> the overview is at (Link: http://www.invisiblenet.net/i2p/i2p_philosophy.pdf)http://www.invisiblenet.net/i2p/i2p_philosophy.pdf </p>
-[23:21] <beefbroth> they're on the wiki I think?</p>
-[23:21] <jrand0m> hte old overview docs... hmm </p>
-[23:21] <jrand0m> (i2p specs are at (Link: http://wiki.invisiblenet.net/iip-wiki?I2PProtocolSpecs)http://wiki.invisiblenet.net/iip-wiki?I2PProtocolSpecs) </p>
-[23:21] <co> They are on (Link: www.invisiblenet.net/i2p/.)www.invisiblenet.net/i2p/.</p>
-[23:21] <jrand0m> right beefbroth </p>
-[23:22] <jrand0m> though there are old docs in html format w/ ugly ms paint pictures from before showing how tunnels work... </p>
-[23:22] <beefbroth> I should know, I've read them enough</p>
-[23:22] <jrand0m> hehe </p>
-[23:22] <co> Unless those are older versions or mirrors.</p>
-[23:22] <jrand0m> those files on the wiki are 0.9 (0.9.1 is out for I2NP and datastructures, but they only include minor changes) </p>
-[23:23] <thecrypto> jrand0m: the precalc looks good</p>
-[23:23] <jrand0m> cool </p>
-[23:24] *** pitu (~pitu@anon.iip) has joined channel #iip-dev</p>
-[23:24] * jrand0m runs the router w/ java -Dcrypto.dh.precalc.min=3 -Dcrypto.dh.precalc.max=10 -Dcrypto.dh.precalc.delay=5000 -jar C:\dev\i2p\code\router\java\src\router.jar </p>
-[23:25] <jrand0m> ok, thats the microroadmap </p>
-[23:25] <jrand0m> as you can see, I'm accepting that alpha won't be ready for end of month.  0.4 will probably be first week of october </p>
-[23:26] <dm> that's okay, even that would be the fastest ever implementation of a network of this type ;)</p>
-[23:26] <Ryan_Singer> lol</p>
-[23:26] <beefbroth> when reading jrand0m's time estimates here, please remember that he has been drinking whiskey for the last 4 hours :-P</p>
-[23:26] <jrand0m> heh </p>
-[23:26] <Ryan_Singer> ok...apps/usage?</p>
-[23:26] <jrand0m> good whiskey at that ;) </p>
-[23:26] <jrand0m> ok, apps/usage </p>
-[23:27] <dm> 0.7 in 4 seconds....3...2...1..!!</p>
-[23:27] <jrand0m> I'm aiming for low hanging fruit here - these are things that we can do with 0 or minimal new code. </p>
-[23:27] <ChZEROHag> How are you supposed to code properly if you're stone sober?</p>
-[23:27] <jrand0m> all of these make significant use of mihi's kickass i2ptunnel </p>
-[23:27] <co> ChZEROHag: Easily.</p>
-[23:27] *** mihi has changed the topic on channel #iip-dev to <dm> 0.7 in 4 seconds....3...2...1..!!</p>
-[23:28] <jrand0m> using the i2ptunnel, we can do the following without writing any new code: </p>
-[23:28] <jrand0m> public ww proxy (using i2ptunnel + squid) </p>
-[23:28] * dm tips his hat to mihi.</p>
-[23:28] <jrand0m> JAP (using i2ptunnel + JAP) </p>
-[23:28] <mihi> you cannot kick asses though i2p (not through a tunnel either...)</p>
-[23:28] <jrand0m> browse www anon (i2ptunnel + web browser) </p>
-[23:28] <jrand0m> run an i2p web server (i2ptunnel + httpd) </p>
-[23:29] <co> Very nice. Bravo, mihi.</p>
-[23:29] <jrand0m> cvs outproxy (i2ptunnel) [e.g. cvs outproxy to sourceforge for anon freenet dev] </p>
-[23:29] <jrand0m> cvs client, cvs server </p>
-[23:29] <jrand0m> IM app, pop3 server, imap server, opennap </p>
-[23:29] <jrand0m> those are all really low hanging fruit </p>
-[23:29] <dm> okay, now all we need is i2p :)</p>
-[23:30] <jrand0m> right ;) </p>
-[23:30] <Myself248> wouldn't i2p webserver kinda supplant freenet? :)</p>
-[23:30] * jrand0m thinks that qualifies as a faq I should answer</p>
-[23:30] <Ryan_Singer> jrand0m,  but they are also very valuable</p>
-[23:30] <ChZEROHag> From that list, I'd consider cvs more important/useful</p>
-[23:30] <ChZEROHag> Partly because I wish to remain anonymous, but also because if anonymous www is provided you'll get lusers</p>
-[23:30] <jrand0m> i2p + web doesn't supplant freenet - freenet adds significant value on top of an anon comm framework - content distribution </p>
-[23:31] <ChZEROHag> And at the moment the idea of anonymous email is scary :)</p>
-[23:31] * dm writes down: "no lusers"</p>
-[23:31] <jrand0m> cvs definitely is in the top 3 </p>
-[23:31] <beefbroth> i think if i2p webserving works well, you have to consider merging the DHT/storage parts of freenet on top of i2p and then you have the best of both worlds.</p>
-[23:31] <Ryan_Singer> ChZEROHag,  if it's scalable thats a goodthing</p>
-[23:31] <ChZEROHag> dm: lusers are only a problem during the early stages, but they tend not to use cvs</p>
-[23:31] <Myself248> okay, add lots of hashcash to any anon email thing.</p>
-[23:31] <ChZEROHag> Or, for that matter, even know what (or that) it is</p>
-[23:31] <co> I think one of the tests that needs to be done is a test attack on the network.</p>
-[23:31] <jrand0m> yes beefbroth, once i2p does what we aim at, freenet will most likely adjust to make use of it </p>
-[23:32] <co> Sorry if that is offtopic.</p>
-[23:32] <mihi> Myself248: just add a redirector to an anon remailer.</p>
-[23:32] <jrand0m> no, thats definitely on topic co - attacking this network is key </p>
-[23:32] <ChZEROHag> Myself248: hashcash is primarily to stop flooding while we're forced to use the ancient protocol that is 'irc'</p>
-[23:32] <ChZEROHag> Not to stop what could be termed 'abuse'</p>
-[23:32] <jrand0m> right mihi.  though perhaps mixminion run over i2p would be useful </p>
-[23:33] <jrand0m> right, hashcash is even built into i2p itself to keep messages from being delivered a single hop unless they "pay up" </p>
-[23:33] <Ryan_Singer> jrand0m,  we could run imap over this easily?</p>
-[23:33] <jrand0m> absolutely </p>
-[23:33] <Ryan_Singer> impressive</p>
-[23:33] <jrand0m> imapd with an i2ptunnel pointing at it, with i2ptunnel on the client pointing at that tunnel's destination </p>
-[23:34] <Myself248> and freenet search engines :)</p>
-[23:34] <mihi> ftp or several non-jabber instant messengers will make problems...</p>
-[23:34] <jrand0m> right, things that require two connections are more complex </p>
-[23:34] <ChZEROHag> jrand0m: hashcash in i2p?</p>
-[23:34] <ChZEROHag> I shall bug you about that when this is over.</p>
-[23:34] <shardy> hashcash in i2p? nice. </p>
-[23:34] <dm> we're getting ahead of ourselves! oh alright, who cares.. QUAKE + IIP!!!!!!</p>
-[23:34] <dm> sorry, I2p :)</p>
-[23:34] <jrand0m> lol dm </p>
-[23:35] <Myself248> Those of us with little CPUs get nervous when someone says hashcash, but as an anti-spamming measure I understand it.</p>
-[23:35] <co> dm: That is *reallY* getting ahead of ourselves.</p>
-[23:35] * mihi is jabber:schierlm@a-message.de ;)</p>
-[23:35] <jrand0m> yes ChZEROHag - Destination == public signing key (DSA) + public encryption key (ElGamal) + certificate (either null or hashcash(keys)) </p>
-[23:35] <beefbroth> is the i2p tunnel static or dynamic on the client end?</p>
-[23:35] <mihi> beefbroth: atm it is all static. but you could use a socks proxy as dest. ;)</p>
-[23:35] <jrand0m> Myself248&gt; I'm getting a bitching sun ultra1 in the mail in a few weeks.  if a 160Mhz box can do it, everyone can </p>
-[23:35] <shardy> well. hashcash shouldn't be something that is terrible even to small cpus. only if you want to do something eleventy billion times, should you notice it.</p>
-[23:36] <co> beefbroth: It can be dynamic.</p>
-[23:36] <Ryan_Singer> the potential applications of the "low-hanging fruit"  here are very impressive</p>
-[23:36] <jrand0m> right mihi </p>
-[23:36] <jrand0m> "eleventy".  heh </p>
-[23:36] <ChZEROHag> the low hanging fruit is essentially 'normal' internet apps, but anonymously</p>
-[23:36] <ChZEROHag> right?</p>
-[23:36] <jrand0m> right </p>
-[23:36] <Ryan_Singer> yes</p>
-[23:36] <dm> (quake)</p>
-[23:37] <jrand0m> 0.1 runs them securely, 0.2 runs them anonymously, 0.3 runs them scalably, 0.4 runs them non-harvestably </p>
-[23:37] <jrand0m> (we're @ 0.1 now) </p>
-[23:37] <shardy> what do you mean by non-harvestably?</p>
-[23:37] <co> Sorry, what is harvestable again?</p>
-[23:37] <ChZEROHag> dm: Unfortunately we've ben held back enough that realtime is after more than 30 years still not 'normal'</p>
-[23:37] <Myself248> Phew. I was hoping someone would ask that. ;)</p>
-[23:37] <Ryan_Singer> loggable</p>
-[23:37] <jrand0m> harvesting means an active attacker can run a router, find out about lots of other routers ("harvest" them), and send the goons to kick in their doors </p>
-[23:38] <Myself248> oh, like you can do with gnutella. :)</p>
-[23:38] <Ryan_Singer> secret-servicy like goons</p>
-[23:38] <jrand0m> right </p>
-[23:39] <shardy> ah, gotcha.</p>
-[23:39] <jrand0m> ok, but yeah, thats the microroadmap. </p>
-[23:40] <jrand0m> now, am I being stupid calling these 0.x instead of 0.0.x?  should 1.0 be "perfect" or should 1.0 be functional and safe? </p>
-[23:40] <Ryan_Singer> jrand0m,  and we will see .4 when?</p>
-[23:40] <jrand0m> 0.4 is probably 2 weeks out </p>
-[23:40] * jrand0m is taking a week off (ish) in mid october as I have people coming to visit</p>
-[23:40] *** Signoff: dm (EOF From client)</p>
-[23:40] <mihi> 1.0 should be stable.</p>
-[23:40] <co> Let 1.0 be functional and safe.</p>
-[23:40] <thecrypto> dittos co</p>
-[23:41] <Ryan_Singer> 1.0 should be functional, stable and safe</p>
-[23:41] <ChZEROHag> jrand0m: My philosophy, regarding version numbers, is if in doubt, copy Linux</p>
-[23:41] <Myself248> 5.0 can be "perfect". Free software people are overly afraid of version number bloat.</p>
-[23:41] <jrand0m> word </p>
-[23:41] <mrflibble> jrand0m, v1 of things are never perfect :)</p>
-[23:41] *** dm (~gj@anon.iip) has joined channel #iip-dev</p>
-[23:41] <mrflibble> people dont expect them to be perfect either</p>
-[23:41] <dm> did I miss 1.0?</p>
-[23:41] <ChZEROHag> mrflibble: People don't expect any software to be perfect. People use windows.</p>
-[23:41] <Ryan_Singer> this software will beGPL orLGPL?</p>
-[23:41] <jrand0m> cool, I've already gotten flack for 1.0 being not-perfect yet </p>
-[23:41] <ChZEROHag> That doesn't mean it shouldn't be.</p>
-[23:41] <mrflibble> good point ChZEROHag</p>
-[23:42] <dm> ah shit, I did didn't i..</p>
-[23:42] <mihi> dm: stop kidding</p>
-[23:42] <mrflibble> yup, u did</p>
-[23:42] <jrand0m> the router is GPL.  the java client library is currently GPL, but I'm open.  thecrypto and I are full owners of all but one section (the Cryptix AES impl, which is MIT) </p>
-[23:42] <dm> alright alright I'm sorry :(</p>
-[23:42] <jrand0m> actually, I take that back </p>
-[23:42] <jrand0m> I used the Base64.java from freenet too </p>
-[23:43] <beefbroth> are we still on agenda item 0.3 Apps ?</p>
-[23:43] <jrand0m> so base64 is GPL :) </p>
-[23:43] <thecrypto> and the IM client will be GPL</p>
-[23:43] <jrand0m> oh yeah, we're on 0.3 aren't we </p>
-[23:43] <thecrypto> as soon as i get around to putting comments in the code</p>
-[23:43] *** UserX_ (~User@anon.iip) has joined channel #iip-dev</p>
-[23:43] <jrand0m> heh thecrypto </p>
-[23:43] <ChZEROHag> GPL sounds good to me</p>
-[23:43] <jrand0m> w0ah, 23 users </p>
-[23:43] <Myself248> we're on agenda item 6.02E23, random crap. :)</p>
-[23:43] <Ryan_Singer> jrand0m,  if you get time, I want to talk to you about liscencing and potential consulting gigs</p>
-[23:43] <jrand0m> cool Ryan_Singer </p>
-[23:43] <ChZEROHag> Though as someone (Fillament?) pointed out - if someone breaks the license how is an anonymous person going to do anything about it?</p>
-[23:43] <mihi> jrand0m: 22 ;)</p>
-[23:43] <jrand0m> ChZEROHag&gt; read my license on flinks ;) </p>
-[23:43] <Myself248> we need an anonymous court system.</p>
-[23:44] * mihi is here twice</p>
-[23:44] <jrand0m> Myself248&gt; its called yodel ;) </p>
-[23:44] <Myself248> "The court now hears docket number 34534, J. Doe v. J. Doe"</p>
-[23:44] <Ryan_Singer> ChZEROHag,  the reason I ask is for corporations to make use of this software for security against industrialespionage</p>
-[23:44] <co> Naming server will be licensed under GPL as well.</p>
-[23:44] <CCD> lol</p>
-[23:44] <Myself248> "Baliff, aren't those the same parties as the last 34533 cases we've heard?"</p>
-[23:44] <shardy> well</p>
-[23:45] <shardy> there's always the idea that if you want people to *really* use your protocol, and you're not worried about money, just make it completely open. not even restricted by gpl.</p>
-[23:45] <co> shardy: You mean public domain?</p>
-[23:45] <beefbroth> i think that was co's lead in to 0.4 agenda item :-P</p>
-[23:45] <jrand0m> shardy&gt; the specs are public and open.  I have not asserted copyright on the specs. </p>
-[23:45] <Ryan_Singer> shardy,  no, we would like work on the protocol to stay available</p>
-[23:45] <shardy> public domain, bsd license, "do whatever you want just give us credit please" license, etc</p>
-[23:45] <jrand0m> the code is GPL for the router.  one client api implementation in java is GPL </p>
-[23:46] <Ryan_Singer> check out the liberty protocol.... (Link: http://projectliberty.org)http://projectliberty.org</p>
-[23:46] <shardy> jrand0m: ok cool. gotcha.</p>
-[23:46] * jrand0m has thought about "no government use" licenses ;)</p>
-[23:46] <jrand0m> ok, the reason I tossed 3.0) apps into the list of issues is this </p>
-[23:46] <jrand0m> we need help. </p>
-[23:46] <Ryan_Singer> help with what?</p>
-[23:46] <jrand0m> i2ptunnel is good code.  i2p's router will be good code. </p>
-[23:47] <jrand0m> what we need is for people to start figuring out the nuts and bolts of release engineering </p>
-[23:47] <dm> why do you need apps if you can just use i2ptunner?</p>
-[23:47] <ChZEROHag> jrand0m: come again?</p>
-[23:47] <jrand0m> aka, how to actually package something up that joe sixpack can download and browse the web </p>
-[23:47] <ChZEROHag> dm: Why do you need apps if you can just use telnet?</p>
-[23:47] <dm> what?</p>
-[23:47] * dm scratches his head.</p>
-[23:47] <CCD> err, there is something besides telnet?</p>
-[23:48] * jrand0m thinks thats ChZEROHag's point dm ;)</p>
-[23:48] *** Myself248 is now known as myself248</p>
-[23:48] *** Signoff: thecrypto (Ping timeout)</p>
-[23:48] <ChZEROHag> dm: To use i2ptunnel would be like having a working car and then dragging it around on a handcart</p>
-[23:48] <jrand0m> ok, thats just that.  I just wanted to mention in case people had spare time :) </p>
-[23:48] <jrand0m> ok, 4.0) </p>
-[23:48] <jrand0m> naming service </p>
-[23:48] <dm> I can see he's trying to make a point.</p>
-[23:48] <jrand0m> hi co, hows it going?  :) </p>
-[23:48] <co> The naming server must be GPL, since at least the Java implementation uses code from the client library to contact routers.</p>
-[23:49] <dm> but we just spent 20 minutes going: I2Ptunnel + web server!, I2Ptunnel + quake! ;)</p>
-[23:49] <ChZEROHag> Or, in computing terms, like doing all your internet stuff with telnet instead if directly on the ip stack</p>
-[23:49] <co> I did not do much last week. I released the client API, which also needs work.</p>
-[23:49] <ChZEROHag> i2ptunnel is an interrim solution</p>
-[23:49] <co> I will have time this week, though, to begin implementing the naming server.</p>
-[23:49] <jrand0m> cool </p>
-[23:49] <jrand0m> where is the client api again? </p>
-[23:50] <mihi> on the mailing list ;)</p>
-[23:50] <co> One of its assumptions is that destinations can be encoded in base64, which is why I asked the question about that earlier.</p>
-[23:50] <jrand0m> ChZEROHag&gt; in some ways its interim </p>
-[23:50] * jrand0m !thwaps self</p>
-[23:50] *** thecrypto (~thecrypto@anon.iip) has joined channel #iip-dev</p>
-[23:50] <dm> so is TCP!</p>
-[23:50] *** yodel (yodel@anon.iip) has joined channel #iip-dev</p>
-[23:50] <jrand0m> 'lo yodel </p>
-[23:50] <beefbroth> what are the naming conventions going to look like? is it something that joe average will be able to relate to (i.e. (Link: www.somthing.com)www.somthing.com  or (Link: www.something.i2p)www.something.i2p for http/web stuff)?</p>
-[23:50] <co> I will put the naming service specification and client API into CVS.</p>
-[23:50] <jrand0m> wb thecrypto </p>
-[23:50] <ChZEROHag> These have probably been covered before, but how will the ns provide unique names fairly?</p>
-[23:50] * mihi wants to have *.mihi.iip ;)</p>
-[23:50] <jrand0m> beefbroth&gt; with the naming service or without? </p>
-[23:50] <jrand0m> heh mihi </p>
-[23:50] <ChZEROHag> avoiding the squatting, etc. that has plagued DNS</p>
-[23:50] <thecrypto> can someone send me what happened?</p>
-[23:51] <beefbroth> jrand0m: with. i think without would be a long string of numbers.</p>
-[23:51] <co> ChZEROHag: You will register with a group of naming servers, then will use the name of that group to identify yourself.</p>
-[23:51] <co> As in IM.beefbroth.mygroup if you provide IM service.</p>
-[23:51] <mihi> oops, s/iip/i2p</p>
-[23:51] *** godmode0_ (~mode@anon.iip) has joined channel #iip-dev</p>
-[23:51] *** Signoff: godmode0 (EOF From client)</p>
-[23:51] <jrand0m> ChZEROHag&gt; co's naming service has trusted groups, where each group manages a group name (tld).  you select chose which groups run each tld </p>
-[23:51] <co> Yes, it will be possible for someone to register the username beefbroth with group2.</p>
-[23:51] <thecrypto> in the 4 minutes i was gone</p>
-[23:52] <ChZEROHag> co: So the only issue is the .mygroup uniqueness?</p>
-[23:52] <ChZEROHag> And who gets the group 'com'? :-)</p>
-[23:52] <jrand0m> and that is selected by the client </p>
-[23:52] <mihi> ChZEROHag: i2p is not COMmerical</p>
-[23:52] <jrand0m> (e.g. you tell your ns client lib "group '.com' is group 0123ff33aefcbb34fe </p>
-[23:52] <beefbroth> I hate to suggest it, but I almost think the groups should default to 3 letters to preserve the illusion that it is similar to the regular web</p>
-[23:52] <co> ChZEROHag: I am not sure who gets the "com" group.</p>
-[23:52] <co> Good question.</p>
-[23:53] <shardy> beefbroth: except the "regular web" is no longer only 3 letter lds</p>
-[23:53] <mihi> beefbroth: or add a .i2p to all addresses.</p>
-[23:53] <ChZEROHag> beefbroth: That illusion is only present in america</p>
-[23:53] <shardy> tlds.</p>
-[23:53] <jrand0m> to start with, we may just want to initially have one group of naming servers, ".i2p" </p>
-[23:53] <co> beefbroth: The naming server software permits you to have up to 32 letters.</p>
-[23:53] <ChZEROHag> Elsewhere we use the 2-letter country codes given us</p>
-[23:53] <shardy> .us is also in use in america.</p>
-[23:53] <co> Actually, I wanted the first group to be "test".</p>
-[23:53] <shardy> as are things like .info and .name</p>
-[23:53] <jrand0m> heh 'k </p>
-[23:54] <ChZEROHag> shardy: yeah, by about 5 people.</p>
-[23:54] <ChZEROHag> But this is perhaps a rant for another time :)</p>
-[23:54] <jrand0m> actually... </p>
-[23:54] <shardy> there's even a .museum</p>
-[23:54] <Ryan_Singer> jrand0m,  using .12p sounds good</p>
-[23:54] <jrand0m> I ran into a distributed DNS based of JXTA the other day </p>
-[23:54] <co> ChZEROHag: But the point is that if you do not like the people running the "com" group, you can establish the "com2" group and run its servers (and register with it).</p>
-[23:55] <ChZEROHag> YEs that bit makes perfect sense</p>
-[23:55] <mihi> ChZEROHag: (Link: http://www.nic.us/press/audio/dotus-mayEM.wav)http://www.nic.us/press/audio/dotus-mayEM.wav ;)</p>
-[23:55] <jrand0m> co&gt; can't you just say "well, they 'think' they're .com, but I say .com is run by group2"? </p>
-[23:55] <ChZEROHag> What I'm getting at, I suppose, is does it rely on first-come-first-served?</p>
-[23:55] <co> You may configure your client to do anything.</p>
-[23:56] <Ryan_Singer> how does the JXTA name system work?</p>
-[23:56] <jrand0m> co&gt; (Link: http://wiki.java.net/bin/view/Jxta/DisDNS)http://wiki.java.net/bin/view/Jxta/DisDNS is a distributed DNS wiki, though its very rough and doesn't address any real hard issues </p>
-[23:56] <co> ChZEROHag: In registering your username with a group, yes.</p>
-[23:56] <co> jrand0m: I will look at that after the meeting.</p>
-[23:56] <jrand0m> jxta runs naming servers off rendevous points </p>
-[23:56] <ChZEROHag> mihi: wassat?</p>
-[23:56] <beefbroth> so it is possible someone tries to attack the NS system by mimicing the already existing i2p group of naming servers</p>
-[23:57] *** Signoff: jeremiah (Ping timeout)</p>
-[23:57] <co> beefbroth: I think not.</p>
-[23:57] <mihi> ChZEROHag: listen to it. why xxx million americans prefer .us over .com</p>
-[23:57] <mihi> 68 million</p>
-[23:57] <co> As I envision it, people setting up groups will announce those groups.</p>
-[23:57] <jrand0m> mimicing?  they can't mimic as the servers in the group are authenticated by public key systems </p>
-[23:58] <jrand0m> however, if groups allow non-trusted members to join the group, they can be taken over trivially. </p>
-[23:58] <shardy> but how is the key exchange done?</p>
-[23:58] <co> The later people will face the problem that the group is already established, and the client software configuration files contain the former group's destinations.</p>
-[23:58] <ChZEROHag> mihi: Well I've always said it makes sense to prefer it, patriotism and whatnot, I've just never really seen it.</p>
-[23:58] <beefbroth> what happens if two groups of naming servers both claim to resolve the .i2p group?</p>
-[23:58] <co> Good question, though, and I will think over it again, carefully.</p>
-[23:58] <ChZEROHag> Anyway, I shall have a listen</p>
-[23:58] <jrand0m> shardy&gt; no key exchange - key publishing </p>
-[23:58] <beefbroth> i see, good point</p>
-[23:58] <ChZEROHag> co: Yeah that's another thing I was trying to get at</p>
-[23:58] <shardy> but keys can still be intercepted if they're published online</p>
-[23:58] <jrand0m> beefbroth&gt; no one claims anything.  your client says "i2p == [dest1, dest2, dest]" </p>
-[23:59] <shardy> what we need is a trust-based dns system :)</p>
-[23:59] <shardy> so you can submit a query for the name and get back a list of responses... and then go with the trusted one</p>
-[23:59] <co> Thank you for bringing this up.</p>
-[23:59] <jrand0m> shardy&gt; ah, I think I understand the confusion.  I think the naming service will want to come with a set of destinations out of band (aka packaged with install) </p>
-[23:59] <ChZEROHag> Yeah we have one - everyone trusts IANA (or whatever they call themselves) or else.</p>
-[23:59] * shardy ducks</p>
-[23:59] <ChZEROHag> :-D</p>
-[23:59] <mrflibble> they're trying that with dnssec, but of course that's not anonymous</p>
-[00:00] <jrand0m> what this naming service does is get away from root servers </p>
-[00:00] <beefbroth> you could always have an i2p homepage that listed active naming groups and authorites?</p>
-[00:00] <shardy> jrand0m: ok. just pointing out that it can still be intercepted no matter what you do, unless there's a physically secure channel to initially transmit those keys over...</p>
-[00:00] <co> shardy: I think I covered key exchange in the spec. If not, tell me.</p>
-[00:00] <shardy> but packaging it oob makes it better</p>
-[00:00] <shardy> co: I'll check it out. </p>
-[00:00] <jrand0m> shardy&gt; oh, right.  yes, people need to be able to trust the code they download </p>
-[00:00] <co> beefbroth: Certainly.</p>
-[00:01] <ChZEROHag> aah that reminds me</p>
-[00:01] <jrand0m> beefbroth&gt; yes, thats most certainly one of the first apps that will be implemented - an i2p webserver w/ bbs &amp; wiki that people can access through i2p </p>
-[00:01] <ChZEROHag> I should create a gpg key for my iipmail</p>
-[00:01] *** yodel has left #iip-dev</p>
-[00:01] * ChZEROHag does so while unexciting stuff happens</p>
-[00:01] <jrand0m> heh ok </p>
-[00:01] <co> Please understand that the naming server specification is still open to suggestions for improvement.</p>
-[00:02] <shardy> I think I'm going to bring all the specs with me on the flight to toorcon... that'll give me a time to read them</p>
-[00:02] <co> I do not claim it is perfect or finalized at this time.</p>
-[00:02] <jrand0m> heh I hope its a long flight </p>
-[00:02] <shardy> and it's more productive than playing fft advance the entire time, heh</p>
-[00:02] * jrand0m has found that criticism will more freely come once there is code implementing specs</p>
-[00:02] *** godmode0_ is now known as godmode0</p>
-[00:02] <co> And I have to write the code.</p>
-[00:02] <co> I think we can move on to the next topic now.</p>
-[00:02] <jrand0m> 'k </p>
-[00:02] <jrand0m> 5.0) IM </p>
-[00:03] <jrand0m> hi thecrypto </p>
-[00:03] <mihi> names should not be able to clash with base64 representations.</p>
-[00:03] <thecrypto> hi</p>
-[00:03] <thecrypto> okay</p>
-[00:03] <mihi> and the namin server should transparently return bas64 addressas as is.</p>
-[00:03] <co> mihi: Very well, I will try to avoid that problem.</p>
-[00:03] <thecrypto> first since my e-mail isn't working again (damn spammers)</p>
-[00:03] <jrand0m> (all classes that extend DataStructure have String .toBase64() and .fromBase64(InputStream) ) </p>
-[00:03] <thecrypto> i'll answer whit's questions about me system here</p>
-[00:04] * jrand0m loads up co's email</p>
-[00:04] <mihi> jrandom? why Inputstream and not Reader?</p>
-[00:04] <thecrypto> network is the first thing that came to mind, you are making connections over the i2p network, it's very p2p so i called it a networkr</p>
-[00:04] <jrand0m> if you want a Reader, just run an InputStreamReader, you brat </p>
-[00:04] <mihi> base64 is characters, not bytes in my opinion.</p>
-[00:04] <ChZEROHag> jrand0m: IM == Instant Messaging?</p>
-[00:04] <jrand0m> yes ChZEROHag </p>
-[00:04] <thecrypto> if people have a problem with that, give me a suggestion for what to call it about</p>
-[00:05] <ChZEROHag> jabber?</p>
-[00:05] <thecrypto> IM == my own distributed IM network</p>
-[00:05] <shardy> you should call it "bob"</p>
-[00:05] <jrand0m> i2p im is a network in the same way aim is a network, or kazaa is a network, all running over tcp/ip or udp/ip </p>
-[00:05] <co> How about IM application?</p>
-[00:05] <ChZEROHag> (anonabber)</p>
-[00:05] <co> jrand0m: I see.</p>
-[00:05] <thecrypto> jabber requires a centerized server</p>
-[00:05] <jrand0m> terminology doesn't matter to me.  I like shardy's idea </p>
-[00:05] <ChZEROHag> thecrypto: Nothing *requires* a centralised server</p>
-[00:05] <thecrypto> and i cannot spell today so bear with me</p>
-[00:06] <ChZEROHag> That's just the way things are written</p>
-[00:06] <jrand0m> (though I prefer Betty) </p>
-[00:06] <thecrypto> so you want me to call it I2PIM bob?</p>
-[00:06] <thecrypto> :)</p>
-[00:06] <jrand0m> how about wilma? </p>
-[00:06] <jrand0m> fred is taken thoug </p>
-[00:06] <co> How about distributed IM?</p>
-[00:06] <jrand0m> DIM, heh </p>
-[00:06] <co> But then, distributed IM *application*?</p>
-[00:06] <dm> AIM, anonymous Instant messaging!</p>
-[00:06] <thecrypto> bad acronym :)</p>
-[00:07] <dm> then we can take over AOL.</p>
-[00:07] <thecrypto> ohh i can just wait for AOL to get wind of that</p>
-[00:07] <ChZEROHag> dm: That would realy piss certain wankers off. I like it.</p>
-[00:07] <jrand0m> heh do it </p>
-[00:07] <Ryan_Singer> thecrypto,  will webe able to implement IM in a decentralised way, or will it have to be centrallized?</p>
-[00:07] <co> dm: Good idea. I would back that acronym.</p>
-[00:07] <jrand0m> the way I've read thecrypto's docs, the IM is fully decentralized </p>
-[00:07] <thecrypto> i am implementing a distributed IM, it's in the CVS</p>
-[00:07] <beefbroth> I would vote against anything that is going to confuse people</p>
-[00:08] <Ryan_Singer> AOL TimeWarner changed it's name to Time Warner</p>
-[00:08] <ChZEROHag> beefbroth: I would too, but the vote to piss AOL off outweighs that.</p>
-[00:08] <beefbroth> You want the system to be familiar enough that people won't be afraid to install it, but different enough to differentiate</p>
-[00:08] <jrand0m> actually, thats a good point </p>
-[00:08] <thecrypto> I2PIM is the name of the application</p>
-[00:08] <jrand0m> being transparently anonymous isn't useful if people don't understand what anonymous is. </p>
-[00:09] <ChZEROHag> Oh wait, I have something like this down on paper</p>
-[00:09] <beefbroth> I like the crypto's idea</p>
-[00:09] <thecrypto> what "network" I2PIM runs on is what I'm looking for</p>
-[00:09] <jrand0m> teaching people how to protect themselves is a really important thing </p>
-[00:09] <thecrypto> i was thinking Presence System?</p>
-[00:09] <Ryan_Singer> hypethe security aspect of anon</p>
-[00:09] <dm> I2M (instant 2 messaging)</p>
-[00:09] <ChZEROHag> Although I only called it XIrc</p>
-[00:10] <jrand0m> you're the man thecrypto, whatever works for ya ;) </p>
-[00:10] <dm> and in the I2M logo, the 2 will be really small :)</p>
-[00:10] <thecrypto> well I2P expands to Invisible ... jrand0m ?</p>
-[00:10] <ChZEROHag> The main thing I liked about it was that everyone was called a Borg and they chatted in Collectives</p>
-[00:10] <jrand0m> i2p = i^2p (invisible internet project) </p>
-[00:10] <co> I thought the P stands for protocol.</p>
-[00:10] <jrand0m> that too </p>
-[00:10] <jrand0m> well, actually, no </p>
-[00:11] <thecrypto> so it's Invisible Internet Project Instant Messaging</p>
-[00:11] <jrand0m> i2np is the protocol </p>
-[00:11] <jrand0m> i2p is the project </p>
-[00:11] <beefbroth> I thought it stood for "poop"</p>
-[00:11] <jrand0m> i2cp is the client proto </p>
-[00:11] <co> thecrypto: You are right, the name does not matter too much.</p>
-[00:11] <dm> i2m = i^2m = instant invisible messaging</p>
-[00:11] <thecrypto> so next topic then</p>
-[00:11] <Ryan_Singer> ok....so, we're drifting off agenda...are we done with IM?</p>
-[00:11] <shardy> if "bob" isn't good enough, we can call it "jimbob"</p>
-[00:11] <jrand0m> 0k, 6.0) administravia </p>
-[00:11] <thecrypto> no, still more here</p>
-[00:12] <thecrypto> sorry</p>
-[00:12] <co> It's administrivia.</p>
-[00:12] <thecrypto> no it's IM</p>
-[00:12] <jrand0m> nop&gt; give me root.  I need to get anon cvs, bugzilla, and cvsweb installed. </p>
-[00:12] <thecrypto> i wasn't finished</p>
-[00:12] <thecrypto> :)</p>
-[00:12] <thecrypto> rewind!</p>
-[00:12] * jrand0m backs up</p>
-[00:12] <jrand0m> 5.1) thecrypto v2 </p>
-[00:12] <Ryan_Singer> what else is there in IM, thecrypto?</p>
-[00:13] <mihi> thecrypto: just talk on; /me idi it the same way as i missed the naming services</p>
-[00:13] <thecrypto> okay, the thing about presences communicating is different</p>
-[00:13] <thecrypto> not everyone knows everyone else</p>
-[00:13] <thecrypto> there is practically no way to "stalk" someone</p>
-[00:13] <thecrypto> you have to ask to be shown</p>
-[00:14] <mihi> in anonymous networks, usually no one knows anyone else ;)</p>
-[00:14] <jrand0m> (as long as people's Destination is random) </p>
-[00:14] *** Signoff: pitu (Lost terminal)</p>
-[00:14] <dm> what do you mean?</p>
-[00:14] <thecrypto> Alice wants to talk to Bob</p>
-[00:14] <jrand0m> mihi&gt; though the naming service allows search by service </p>
-[00:14] <jrand0m> (service being IM, www, etc) </p>
-[00:14] <thecrypto> Alice finds Bobs IM destination some how, prolly by the naming service</p>
-[00:15] <thecrypto> So Alice sends a message to Bobs IM destination</p>
-[00:15] <dm> yes?</p>
-[00:15] <thecrypto> he gets a little message saying "Alice tried to contact you" if he wants to talk to her, he can, or he can ignore it</p>
-[00:16] <thecrypto> but there is no central presence server, Alice can also just see her message disappear and not get a response</p>
-[00:16] <dm> ok, like MSN then?</p>
-[00:16] <jrand0m> (though Alice can know that Bob ignored her) </p>
-[00:16] <thecrypto> and Alice can't just put Bob on her buddy list and wait for him</p>
-[00:16] <Ryan_Singer> thecrypto,  ok...how is this different then properly configured Y!, MSN or AIM..apart from the nocentral server bit</p>
-[00:16] <thecrypto> because Bob has to send a message to Alice to see her sign on</p>
-[00:16] <Ryan_Singer> oh</p>
-[00:16] <dm> ok, it doesn't change anything as far as the user is concerned, but I see what you mean.</p>
-[00:17] <jrand0m> thecrypto&gt; not quite true </p>
-[00:17] <Ryan_Singer> got it..no buddylist functionality...</p>
-[00:17] <jrand0m> oh, well, hmm, technically... </p>
-[00:17] <thecrypto> Ryan_Singer: no there is still a buddy list</p>
-[00:17] <dm> how does alice send bob a message if she can't see him?</p>
-[00:17] <dm> you just have to try random contacts in case they are there?</p>
-[00:17] <jrand0m> bob has to send a message to alice's router, which can happen without alice knowing it </p>
-[00:17] <thecrypto> Alice can just randomly try</p>
-[00:18] <dm> that's not very convenient? you go online and have to send everyone a message saying (you there?, you there?)</p>
-[00:18] <beefbroth> thecrypto: can't a user "notify" all their buddies when they sign on by sending them a message? or is that what you were just saying</p>
-[00:18] * co notes that there can be two Bobs registered with two different naming server groups.</p>
-[00:18] <thecrypto> beefbroth: that was just want i'm saying</p>
-[00:18] <dm> ok, so similar to current scheme but you are invisible by default.</p>
-[00:18] <dm> gotcha.</p>
-[00:19] <thecrypto> dm: no it's the other way around, when you sign on, you send a message to everyone saying "I'm on, I'm on" if you recieve a message saying "I'm on" you return it</p>
-[00:19] <thecrypto> if you want to</p>
-[00:19] <co> So the user controls who can see him/her/it.</p>
-[00:19] <thecrypto> so Alice can put you on her buddy list and you'll get a message when she signs on saying "Alice has put you on her buddy list, would you like to notify her of your presece"</p>
-[00:20] <Ryan_Singer> when you get off do you first send a msg that says "I'm getting off"?</p>
-[00:20] <dm> ok, that's just a way to get around having a server, but the question is will the apps be setup by default to send a "I'm on" when someone logs on.</p>
-[00:20] <Ryan_Singer> hopefully</p>
-[00:20] <jrand0m> Ryan_Singer&gt; or just have a periodic "I'm still on" ping </p>
-[00:20] <jrand0m> (and missing ping == off) </p>
-[00:21] <Ryan_Singer> keep-alive type deal?</p>
-[00:21] <beefbroth> It might need to "ping" the other IM user every so often to make sure there wasn't an unintentional disconnect</p>
-[00:21] <thecrypto> if Bob has Alice on his buddy list and Bob recives and Online message from Alice the return message is automatic</p>
-[00:21] <beefbroth> heh</p>
-[00:21] <thecrypto> If Bob doesn't have Alice on his buddy list and bob recives an online message from alice, the user is propmted</p>
-[00:21] <dm> ok, so the IM experience is the same as it is now. Just wanted to confirm that.</p>
-[00:22] <thecrypto> just you now have a confirm on buddy adds</p>
-[00:22] <thecrypto> which i think only ICQ has</p>
-[00:22] <jrand0m> will the IM app be a stand alone or will I be able to use trillian? </p>
-[00:22] <dm> yeah, that's how MSN works.</p>
-[00:22] <jrand0m> [etc] </p>
-[00:22] <ChZEROHag> thecrypto: ICQ only pretends to require confirmation</p>
-[00:22] <beefbroth> dm: wrong. you won't have to deal with MSN, Y! and AIM changing their protocols and locking people out every few months :)</p>
-[00:23] <thecrypto> jrand0m: i'll make a spec, trillian can either give me a plugin interface or they can write thier own</p>
-[00:23] <thecrypto> i will be writing a plugin for gaim at leasty</p>
-[00:23] <thecrypto> along with a standalong client</p>
-[00:23] <jrand0m> cool </p>
-[00:23] <thecrypto> which is built to be used with the network</p>
-[00:23] <jrand0m> does gaim support file xfer or will that be the benefit of the i2pim client? </p>
-[00:23] <beefbroth> thecrypto: you might want to give a shout to the kopete developers just to let them know</p>
-[00:23] * jrand0m shows his cluelessnesss</p>
-[00:24] <thecrypto> i'll try to make the gaim plugin work as well as the standalong, but i don't know</p>
-[00:24] <co> thecrypto: Let's have the standalone application first.</p>
-[00:24] <thecrypto> gaim file transfer i think only works on AIM</p>
-[00:24] <thecrypto> so it might take some wrangling to get it into a plugin</p>
-[00:24] <Ryan_Singer> ok..I think we all understand this now...any more IM issues?</p>
-[00:25] <thecrypto> and co's final thing</p>
-[00:25] <beefbroth> gaim suffers problems with it's IM xfers for people using NAT</p>
-[00:25] <thecrypto> more than one person can have the same name</p>
-[00:25] <thecrypto> they will have unique destinations</p>
-[00:25] *** Signoff: mihi (Ping timeout)</p>
-[00:25] <co> All right.</p>
-[00:25] * mihi_backup is still here...</p>
-[00:25] <thecrypto> but someone can't masquerde</p>
-[00:26] <jrand0m> heh nice1 mihi_backup </p>
-[00:26] <co> If you use the naming server, it will be "Bob from group1" and "Bob from group2".</p>
-[00:26] <co> With unique destinations.</p>
-[00:26] <jrand0m> right thecrypto.  names are arbitrary.  kind of like dns ;) </p>
-[00:26] *** mihi (~none@anon.iip) has joined channel #iip-dev</p>
-[00:26] <thecrypto> also the IM client itself can optionally check "Hey, this IM you got was from someone called Bob, the destination of the Bob in your list is different, accept message?"</p>
-[00:27] <dm> mihi: your backup talked while you were gone.</p>
-[00:27] <thecrypto> if they person is trying to masquerde Bob, you'll know, otherwise, you can alias them out</p>
-[00:27] <mihi> i know...</p>
-[00:27] <jrand0m> "someone called bob"?  says who?  they call themself bob?  or some group calls them bob?  or you call their dest bob? </p>
-[00:27] <thecrypto> there is a feild in the presence called name</p>
-[00:27] <thecrypto> i'm looking at that</p>
-[00:28] * jrand0m likes the way ICQ works with that problem - everyone is a number and you just alias numbers locally to names</p>
-[00:28] <co> As an aside, should I make the NS entity names case insensitive?</p>
-[00:28] <jrand0m> probably co </p>
-[00:28] <mihi> base64 things must be case sensitive still ;)</p>
-[00:28] * jrand0m doesn't want people spoofing Jrand0m</p>
-[00:28] <co> mihi: Entity names, not destinations.</p>
-[00:28] <jrand0m> right right mihi </p>
-[00:29] <jrand0m> (well, people can spoof jrand0m all they want.  I just want jrandom back) </p>
-[00:29] <co> Go on, thecrypto.</p>
-[00:29] *** Signoff: UserX_ (Ping timeout)</p>
-[00:29] <thecrypto> that's all i have</p>
-[00:29] <thecrypto> finally :)</p>
-[00:29] <mihi> co: you should be able to place a destination wherever you can place an entity name.</p>
-[00:29] <mihi> like it is with dns names and IPs</p>
-[00:29] <co> mihi: Good point. I will add that to the specification.</p>
-[00:29] <thecrypto> jrand0m: actully it's kinda like ICQ except you tell people what you'd like your alias to be</p>
-[00:30] <thecrypto> which i think they do now</p>
-[00:30] <co> The idea, though, is that it will be much shorter to type names than destinations.</p>
-[00:30] <jrand0m> mihi&gt; the naming service only turns names to destinations - if you ask the naming service for the destination of a destination, it should return really really quickly </p>
-[00:30] <Ryan_Singer> ok guys...I have a meeting... jrand0m, anonymail me</p>
-[00:30] <jrand0m> 'k adios </p>
-[00:30] <mihi> jrand0m: yes, and it should return that dest itself, and not "not found"</p>
-[00:31] <jrand0m> right </p>
-[00:31] *** Signoff: Ryan_Singer ((null))</p>
-[00:31] <jrand0m> ok.  we're at 7.0)  </p>
-[00:31] <jrand0m> questions </p>
-[00:31] <jrand0m> hi </p>
-[00:31] <co> What about 6.0) Administrivia?</p>
-[00:32] <co> Or were you done with that?</p>
-[00:32] <jrand0m> 6.0 administravia was just me nagging nop to give me root to get y'all: anon cvs access, bugzilla, and a cvsweb interface :) </p>
-[00:32] <beefbroth> are there going to be owners to work on packaging the alpha, beta and releases for Win/Mac/SuSE/RehHat/Debian to speed up adoption?</p>
-[00:33] <jrand0m> you volunteering? </p>
-[00:33] <jrand0m> (aka yeah, that'd be great) </p>
-[00:33] <beefbroth> If I learn how to make a package for my distribution :)</p>
-[00:33] <jrand0m> what distro do you use? </p>
-[00:34] <co> As I recall, the IIP developers wanted to reimplement IIP over I2P. If I2P delivers on its promises of anonymity, will it not be simpler to just have IRC over I2P?</p>
-[00:34] <beefbroth> But my point is, alot of people rely on those. It would make it easier for people to adopt. Freenet suffers from a lack of active maintainers.</p>
-[00:34] <dm> jr makes for a good manager :)</p>
-[00:34] <jrand0m> yes co, simpler, but not as scalable </p>
-[00:34] *** UserX_ (~User@anon.iip) has joined channel #iip-dev</p>
-[00:34] <thecrypto> yes, but some people don't want IRC</p>
-[00:35] <jrand0m> beefbroth&gt; you're absolutely right, there's a lot of work to do, and I need to sleep at least 4 hours a night </p>
-[00:35] <co> thecrypto: Good point, though I2P will anonymize people's IP addresses.</p>
-[00:35] <beefbroth> jrand0m: i can help package when things are ready. I think that's a great way some non-developers with a bit of technical expertise can contribute.</p>
-[00:35] <jrand0m> awesome beefbroth </p>
-[00:35] <thecrypto> if we have IM and IRC, more adoption</p>
-[00:36] <mihi> co: the problem is that with irc there is something to shut down (servers).</p>
-[00:36] *** jeremiah (~jeremiah@anon.iip) has joined channel #iip-dev</p>
-[00:36] <jrand0m> thecrypto&gt; instant adoption: opennap </p>
-[00:36] <beefbroth> it's easier to learn to make packages than to learn i2p datastructures. it's an easy way for a few people to get involved</p>
-[00:36] <dm> IRC is quite tough though isn't it?</p>
-[00:36] <dm> distributed IRC that is...</p>
-[00:36] <co> mihi: Of course. I forgot that. Thank you for reminding me. Objection withdrawn.</p>
-[00:37] <jrand0m> dm&gt; irc can have multiple irc servers (ala efnet, etc) that talk to each other through i2p </p>
-[00:37] <shardy> do you mean an "irc lookalike" chat protocol?</p>
-[00:37] <shardy> or adapting irc?</p>
-[00:37] <jrand0m> with people talking to each other by tunneling to one of the irc servers via i2p </p>
-[00:37] <dm> irc with servers behind i2p is fine, I'm saying without servers. Doesn't matter I guess.</p>
-[00:38] <jrand0m> dm&gt; right, it can be done much better without servers, and some thought has been put into it, but nothing really solid (to my knowledge) </p>
-[00:39] <dm> anyway, it's off-topic.</p>
-[00:39] <dm> carry on!</p>
-[00:39] <jrand0m> any other questions?   </p>
-[00:39] <jrand0m> anyone read the specs yet?  ;) </p>
-[00:39] <jrand0m> (other than beefbroth, who has them memorized) </p>
-[00:39] * dm looks at the ceiling.</p>
-[00:40] <jrand0m> ok, 100 minute meeting it is then </p>
-[00:40] <thecrypto> i'm reading the, when i need something :)</p>
-[00:40] <ChZEROHag> specs!</p>
-[00:40] <ChZEROHag> That's what I forgot!</p>
-[00:40] <jrand0m> heh </p>
-[00:41] *** dm has changed the topic on channel #iip-dev to topic1</p>
-[00:41] * jrand0m loads up and...</p>
-[00:41] * jrand0m *baf*s the meeting to an end</p>
-</div>{% endblock %}
+[22:56] <jrand0m> ok ok 
+[22:56] <jrand0m> agenda 
+[22:56] <jrand0m> 0.0) welcome 
+[22:56] <jrand0m> 1.0) dev status 
+[22:56] <jrand0m> 1.1) router 
+[22:56] *** Myself248 (~ident@anon.iip) has joined channel #iip-dev
+[22:56] <jrand0m> 1.2) DH precalc 
+[22:56] <jrand0m> 2.0) microroadmap 
+[22:56] <jrand0m> 3.0) apps / usage 
+[22:56] <jrand0m> 4.0) ns 
+[22:56] <jrand0m> 5.0) IM 
+[22:56] <jrand0m> 6.0) administravia (cvs, bugzilla, cvs list, cvs web) 
+[22:56] <jrand0m> 7.0) questions 
+[22:57] <jrand0m> (yes, 7 points today.  w00t) 
+[22:57] <jrand0m> 0.0) welcome 
+[22:57] <jrand0m> hi. 
+[22:57] <dm> hey
+[22:57] <jrand0m> 17 users today.  neat 
+[22:57] *** Ryan_Singer (chatzilla@anon.iip) has joined channel #iip-dev
+[22:57] <jrand0m> and counting 
+[22:57] <jrand0m> ok 
+[22:57] <thecrypto> 1~hi
+[22:57] <jrand0m> 1.1) dev status for router 
+[22:58] <jrand0m> the java reference impl router is doing very well 
+[22:58] *** ChZEROHag (hag@anon.iip) has joined channel #iip-dev
+[22:58] <jrand0m> we can now run applications on different routers and send messages ot each other 
+[22:59] <ChZEROHag> Sorry to interrupt, but hopefully it'll just be once
+[22:59] <jrand0m> taking an iterative and incremental approach, the current state is secure, not anonymous, not scalable, and harvestable 
+[22:59] <ChZEROHag> Is anyone else working on a C api?
+[22:59] <jrand0m> 'lo ChZEROHag, whats shakin? 
+[22:59] <ChZEROHag> Because I am, but very slowly
+[22:59] *** dcat (dirtycat@anon.iip) has joined channel #iip-dev
+[22:59] <jrand0m> oh cool 
+[22:59] <jrand0m> shardy will be working on one after toorcon is finished 
+[22:59] <jrand0m> perhaps you two could work together on that? 
+[23:00] <co> jrand0m: Can you input a destination to send messages to by hand?
+[23:00] <co> Better said, is there an ASCII representation of a destination?
+[23:00] <jrand0m> yes co, to both 
+[23:00] <co> Excellent.
+[23:00] <jrand0m> destinations, and all I2P structures, are loadable and serializable in (an alternate alphabet) base 64 
+[23:01] <thecrypto> so it won't be easy to remember, but it will be ascii?
+[23:01] <jrand0m> (e.g. in the netDb for one of my routers, I have leaseSet-enD4jtE-orMwFD0QGog9GAyC5MvLvnPzhVD8cDYvSI8.dat which contains the lease set for destination enD4jtE-orMwFD0QGog9GAyC5MvLvnPzhVD8cDYvSI8) 
+[23:02] <jrand0m> [though that is H(destination).toBase64() 
+[23:03] <jrand0m> ChZEROHag> if there's anything we can do to help you with that, just say the word 
+[23:03] <jrand0m> ok thats 1.1.  1.2) DH precalc 
+[23:03] <ChZEROHag> You could do it for me? :-)
+[23:04] <jrand0m> last night I wrote up a precalc optimization for DH exchanges to save ~1s off 1.5s session negotiations.  I'd love if someone who knows crypto could make sure I'm not nuts ;) 
+[23:04] <jrand0m> lol ChZEROHag 
+[23:04] <ChZEROHag> aah I know what I needed
+[23:04] <ChZEROHag> A netdb implementation
+[23:04] <thecrypto> is it in cvs?
+[23:04] <thecrypto> the dh
+[23:04] <jrand0m> yes thecrypto 
+[23:05] <jrand0m> C:\dev\i2p\code\core\java\src\net\invisiblenet\i2p\crypto\DHSessionKeyBuilder.java 
+[23:05] <ChZEROHag> Well I'm going to be up for a good 3/4 hours yet, maybe it'll give me something to do
+[23:05] <jrand0m> er, s/C:\\dev/g; s/\\/\//g 
+[23:05] *** wax_off (~nomail@anon.iip) has joined channel #iip-dev
+[23:06] <jrand0m> word.  what do you need a netdb impl for? 
+[23:06] <ChZEROHag> I don't remember
+[23:06] <jrand0m> we currently have a non-scalable netdb in cvs 
+[23:06] <jrand0m> heh 
+[23:06] <ChZEROHag> Haven't touched it in at least a week
+[23:06] <jrand0m> you're working on a C I2CP api, right?  not I2NP? 
+[23:07] <ChZEROHag> I was just going to do everything
+[23:07] *** wax_off has left #iip-dev
+[23:07] <jrand0m> I2NP is really, really, really significantly more work than I2CP 
+[23:07] <ChZEROHag> Once I actually get properly started, it'll just roll out
+[23:07] <jrand0m> but if you impl an I2NP in C that'd rule 
+[23:07] <dm> is there a I2NP in anything right now?
+[23:07] <jrand0m> (I2CP:I2NP::FCP:FNP) 
+[23:07] <jrand0m> yes dm 
+[23:08] * ChZEROHag deminimizes emacs
+[23:08] <jrand0m> the java impl i'm working on has I2NP functioning 
+[23:08] <dm> alrighty...
+[23:08] <ChZEROHag> jrand0m: url? I could do with a reference, even if it's in a horrible language.
+[23:08] <jrand0m> heh 
+[23:08] <jrand0m> erm, actually thats 6.0 administravia: aka where the fuck is our anon cvs access ;) 
+[23:09] <thecrypto> i'm getting the DH stuff
+[23:09] <jrand0m> coo' 
+[23:09] <ChZEROHag> Oh right
+[23:09] <Ryan_Singer> jrand0m,  back to schedule, the microroadmap?
+[23:09] * thecrypto hides his face
+[23:09] <ChZEROHag> well I'll wait :)
+[23:09] <jrand0m> heh 'k 
+[23:09] <jrand0m> microroadmap 
+[23:09] <jrand0m> I have 0.1 through 0.5 mapped out 
+[23:09] <dm> followed freenet's roadmap then?
+[23:10] *** mrflibble (mrflibble@anon.iip) has joined channel #iip-dev
+[23:10] <jrand0m> 0.1) functional, secure, not anonymous, not scalable, harvestable 
+[23:10] <dm> development slows down and freezes during 0.5...
+[23:10] <jrand0m> we are now at 0.1.   
+[23:10] <jrand0m> heh I noticed that dm, flinks hosed off at 0.5.2 as well ;) 
+[23:10] <co> What are you calling the whole package?
+[23:10] <jrand0m> (strange coincidence) 
+[23:10] <co> i.e. version 0.1 of?
+[23:10] <jrand0m> the whole package?  i2p router reference implementation 
+[23:10] <ChZEROHag> co: Wonga
+[23:10] * beefbroth joins the meeting
+[23:11] <jrand0m> buenos noches beefbroth 
+[23:11] <co> All right. That explains it.
+[23:11] <ChZEROHag> Actually maybe I will call it that. Certainly sounds more interesting than 'i2pd'
+[23:11] <jrand0m> 0.1 has bugs.  thats a given.  and it has no optimizations of note (though the DH precalc helps).   
+[23:11] <jrand0m> heh 
+[23:11] <Ryan_Singer> jrand0m,  what's 0.2) then?
+[23:11] <jrand0m> invisible internet police department 
+[23:11] <jrand0m> ok, 0.2 
+[23:12] <jrand0m> 0.2 is functional, secure, anonymous, not scalable, harvestable 
+[23:12] <jrand0m> 0.2 adds support for non-zero-length tunnels 
+[23:12] <jrand0m> I actually implemented most of that last night, but not thoroughly tested 
+[23:12] <jrand0m> I think 0.2 will be ready by end of week 
+[23:12] <Ryan_Singer> how far away are we from that from a dev perspective?
+[23:13] <Ryan_Singer> great
+[23:13] <jrand0m> 0.3) is functional, secure, anonymous, scalable, harvestable 
+[23:13] * thecrypto gets bochs so he can simulate a network to help with this
+[23:13] <jrand0m> 0.3 adds a kademliaDatabaseManager 
+[23:13] <jrand0m> right now we use a BroadcastDatabaseManager 
+[23:13] <jrand0m> (aka gnunet ;) 
+[23:14] <jrand0m> trivial to implement and functional for small networks, but we need the kademlia to scale 
+[23:14] <jrand0m> 0.4) is functional, secure, anonymous, scalable, non-harvestable 
+[23:14] <jrand0m> that adds trusted links 
+[23:14] <Ryan_Singer> jrand0m,  and how much of a dev challenge is it to implement kademlia?
+[23:14] <jrand0m> I have two ideas for trusted links.. one is more easily implementable and usable 
+[23:15] <jrand0m> kademlia will probably take a full week 
+[23:15] <jrand0m> (to get right) 
+[23:15] <jrand0m> note that all of this has lots of room for refactoring and tuning.  I'm aiming functional first, then we tune. 
+[23:16] <co> Are you certain you will be able to develop and test that quickly?
+[23:16] <jrand0m> I am certain of nothing 
+[23:16] <jrand0m> thats just my estimate 
+[23:16] <Ryan_Singer> co, hegets functional, we test
+[23:16] <ChZEROHag> Are you sure?
+[23:16] <ChZEROHag> (sorry)
+[23:16] <co> Ryan_Singer: I see.
+[23:17] * jrand0m <3 people who test :)
+[23:17] <Myself248> When you say "we" test. Is there any place for non-coders to help with the testing?
+[23:17] <jrand0m> Myself248> probably not until 0.4 
+[23:17] <dm> lets just hope it never gets to the point where it's functional, but nobody knows what the fuck is going on inside the network to make it work well (i.e. freenet)
+[23:18] <jrand0m> once 0.4 is ready, thats pre-alpha.  once its 0.4 I'll tune and refactor and fill in the blanks to get ready for 0.5 (alpha) 
+[23:18] <Myself248> Document, document, document.
+[23:18] <dm> is there any though being put into active monitoring of network internals, or is it straightforward?
+[23:18] <jrand0m> yes dm, absolutely 
+[23:18] <jrand0m> one of the key pieces of i2np is the inclusion of stats in the routerInfo strutures published 
+[23:18] <mihi> jrand0m: do a s/0./0.0./ ;)
+[23:18] <jrand0m> the initial revs will publish real stats so we can tune 
+[23:19] <jrand0m> later revs will either not publish any stats or publish fake ones 
+[23:19] * jrand0m does not do 0.0
+[23:19] <shardy> ok, I'm here
+[23:19] <jrand0m> wb shardy 
+[23:19] <shardy> sorry for being late, forgot about this window being open, heh
+[23:19] <dm> cool.
+[23:19] <Ryan_Singer> is there a higher level document describing the archetecture for the network under .4?
+[23:19] <jrand0m> off with your head 
+[23:20] <jrand0m> Ryan_Singer> hmm, I had some overview docs a few months back that mids and nop mirrored, and there's the i2p overview doc 
+[23:20] <jrand0m> 0.4 is full i2np as described in the spec, just not optimally implemented 
+[23:20] <shardy> oh and jrand0m, I'll check out the DH optimization for you
+[23:20] <jrand0m> word, gracias  
+[23:20] <Ryan_Singer> can I get those docs?
+[23:21] <jrand0m> the overview is at (Link: http://www.invisiblenet.net/i2p/i2p_philosophy.pdf)http://www.invisiblenet.net/i2p/i2p_philosophy.pdf 
+[23:21] <beefbroth> they're on the wiki I think?
+[23:21] <jrand0m> hte old overview docs... hmm 
+[23:21] <jrand0m> (i2p specs are at (Link: http://wiki.invisiblenet.net/iip-wiki?I2PProtocolSpecs)http://wiki.invisiblenet.net/iip-wiki?I2PProtocolSpecs) 
+[23:21] <co> They are on (Link: www.invisiblenet.net/i2p/.)www.invisiblenet.net/i2p/.
+[23:21] <jrand0m> right beefbroth 
+[23:22] <jrand0m> though there are old docs in html format w/ ugly ms paint pictures from before showing how tunnels work... 
+[23:22] <beefbroth> I should know, I've read them enough
+[23:22] <jrand0m> hehe 
+[23:22] <co> Unless those are older versions or mirrors.
+[23:22] <jrand0m> those files on the wiki are 0.9 (0.9.1 is out for I2NP and datastructures, but they only include minor changes) 
+[23:23] <thecrypto> jrand0m: the precalc looks good
+[23:23] <jrand0m> cool 
+[23:24] *** pitu (~pitu@anon.iip) has joined channel #iip-dev
+[23:24] * jrand0m runs the router w/ java -Dcrypto.dh.precalc.min=3 -Dcrypto.dh.precalc.max=10 -Dcrypto.dh.precalc.delay=5000 -jar C:\dev\i2p\code\router\java\src\router.jar 
+[23:25] <jrand0m> ok, thats the microroadmap 
+[23:25] <jrand0m> as you can see, I'm accepting that alpha won't be ready for end of month.  0.4 will probably be first week of october 
+[23:26] <dm> that's okay, even that would be the fastest ever implementation of a network of this type ;)
+[23:26] <Ryan_Singer> lol
+[23:26] <beefbroth> when reading jrand0m's time estimates here, please remember that he has been drinking whiskey for the last 4 hours :-P
+[23:26] <jrand0m> heh 
+[23:26] <Ryan_Singer> ok...apps/usage?
+[23:26] <jrand0m> good whiskey at that ;) 
+[23:26] <jrand0m> ok, apps/usage 
+[23:27] <dm> 0.7 in 4 seconds....3...2...1..!!
+[23:27] <jrand0m> I'm aiming for low hanging fruit here - these are things that we can do with 0 or minimal new code. 
+[23:27] <ChZEROHag> How are you supposed to code properly if you're stone sober?
+[23:27] <jrand0m> all of these make significant use of mihi's kickass i2ptunnel 
+[23:27] <co> ChZEROHag: Easily.
+[23:27] *** mihi has changed the topic on channel #iip-dev to <dm> 0.7 in 4 seconds....3...2...1..!!
+[23:28] <jrand0m> using the i2ptunnel, we can do the following without writing any new code: 
+[23:28] <jrand0m> public ww proxy (using i2ptunnel + squid) 
+[23:28] * dm tips his hat to mihi.
+[23:28] <jrand0m> JAP (using i2ptunnel + JAP) 
+[23:28] <mihi> you cannot kick asses though i2p (not through a tunnel either...)
+[23:28] <jrand0m> browse www anon (i2ptunnel + web browser) 
+[23:28] <jrand0m> run an i2p web server (i2ptunnel + httpd) 
+[23:29] <co> Very nice. Bravo, mihi.
+[23:29] <jrand0m> cvs outproxy (i2ptunnel) [e.g. cvs outproxy to sourceforge for anon freenet dev] 
+[23:29] <jrand0m> cvs client, cvs server 
+[23:29] <jrand0m> IM app, pop3 server, imap server, opennap 
+[23:29] <jrand0m> those are all really low hanging fruit 
+[23:29] <dm> okay, now all we need is i2p :)
+[23:30] <jrand0m> right ;) 
+[23:30] <Myself248> wouldn't i2p webserver kinda supplant freenet? :)
+[23:30] * jrand0m thinks that qualifies as a faq I should answer
+[23:30] <Ryan_Singer> jrand0m,  but they are also very valuable
+[23:30] <ChZEROHag> From that list, I'd consider cvs more important/useful
+[23:30] <ChZEROHag> Partly because I wish to remain anonymous, but also because if anonymous www is provided you'll get lusers
+[23:30] <jrand0m> i2p + web doesn't supplant freenet - freenet adds significant value on top of an anon comm framework - content distribution 
+[23:31] <ChZEROHag> And at the moment the idea of anonymous email is scary :)
+[23:31] * dm writes down: "no lusers"
+[23:31] <jrand0m> cvs definitely is in the top 3 
+[23:31] <beefbroth> i think if i2p webserving works well, you have to consider merging the DHT/storage parts of freenet on top of i2p and then you have the best of both worlds.
+[23:31] <Ryan_Singer> ChZEROHag,  if it's scalable thats a goodthing
+[23:31] <ChZEROHag> dm: lusers are only a problem during the early stages, but they tend not to use cvs
+[23:31] <Myself248> okay, add lots of hashcash to any anon email thing.
+[23:31] <ChZEROHag> Or, for that matter, even know what (or that) it is
+[23:31] <co> I think one of the tests that needs to be done is a test attack on the network.
+[23:31] <jrand0m> yes beefbroth, once i2p does what we aim at, freenet will most likely adjust to make use of it 
+[23:32] <co> Sorry if that is offtopic.
+[23:32] <mihi> Myself248: just add a redirector to an anon remailer.
+[23:32] <jrand0m> no, thats definitely on topic co - attacking this network is key 
+[23:32] <ChZEROHag> Myself248: hashcash is primarily to stop flooding while we're forced to use the ancient protocol that is 'irc'
+[23:32] <ChZEROHag> Not to stop what could be termed 'abuse'
+[23:32] <jrand0m> right mihi.  though perhaps mixminion run over i2p would be useful 
+[23:33] <jrand0m> right, hashcash is even built into i2p itself to keep messages from being delivered a single hop unless they "pay up" 
+[23:33] <Ryan_Singer> jrand0m,  we could run imap over this easily?
+[23:33] <jrand0m> absolutely 
+[23:33] <Ryan_Singer> impressive
+[23:33] <jrand0m> imapd with an i2ptunnel pointing at it, with i2ptunnel on the client pointing at that tunnel's destination 
+[23:34] <Myself248> and freenet search engines :)
+[23:34] <mihi> ftp or several non-jabber instant messengers will make problems...
+[23:34] <jrand0m> right, things that require two connections are more complex 
+[23:34] <ChZEROHag> jrand0m: hashcash in i2p?
+[23:34] <ChZEROHag> I shall bug you about that when this is over.
+[23:34] <shardy> hashcash in i2p? nice. 
+[23:34] <dm> we're getting ahead of ourselves! oh alright, who cares.. QUAKE + IIP!!!!!!
+[23:34] <dm> sorry, I2p :)
+[23:34] <jrand0m> lol dm 
+[23:35] <Myself248> Those of us with little CPUs get nervous when someone says hashcash, but as an anti-spamming measure I understand it.
+[23:35] <co> dm: That is *reallY* getting ahead of ourselves.
+[23:35] * mihi is jabber:schierlm@a-message.de ;)
+[23:35] <jrand0m> yes ChZEROHag - Destination == public signing key (DSA) + public encryption key (ElGamal) + certificate (either null or hashcash(keys)) 
+[23:35] <beefbroth> is the i2p tunnel static or dynamic on the client end?
+[23:35] <mihi> beefbroth: atm it is all static. but you could use a socks proxy as dest. ;)
+[23:35] <jrand0m> Myself248> I'm getting a bitching sun ultra1 in the mail in a few weeks.  if a 160Mhz box can do it, everyone can 
+[23:35] <shardy> well. hashcash shouldn't be something that is terrible even to small cpus. only if you want to do something eleventy billion times, should you notice it.
+[23:36] <co> beefbroth: It can be dynamic.
+[23:36] <Ryan_Singer> the potential applications of the "low-hanging fruit"  here are very impressive
+[23:36] <jrand0m> right mihi 
+[23:36] <jrand0m> "eleventy".  heh 
+[23:36] <ChZEROHag> the low hanging fruit is essentially 'normal' internet apps, but anonymously
+[23:36] <ChZEROHag> right?
+[23:36] <jrand0m> right 
+[23:36] <Ryan_Singer> yes
+[23:36] <dm> (quake)
+[23:37] <jrand0m> 0.1 runs them securely, 0.2 runs them anonymously, 0.3 runs them scalably, 0.4 runs them non-harvestably 
+[23:37] <jrand0m> (we're @ 0.1 now) 
+[23:37] <shardy> what do you mean by non-harvestably?
+[23:37] <co> Sorry, what is harvestable again?
+[23:37] <ChZEROHag> dm: Unfortunately we've ben held back enough that realtime is after more than 30 years still not 'normal'
+[23:37] <Myself248> Phew. I was hoping someone would ask that. ;)
+[23:37] <Ryan_Singer> loggable
+[23:37] <jrand0m> harvesting means an active attacker can run a router, find out about lots of other routers ("harvest" them), and send the goons to kick in their doors 
+[23:38] <Myself248> oh, like you can do with gnutella. :)
+[23:38] <Ryan_Singer> secret-servicy like goons
+[23:38] <jrand0m> right 
+[23:39] <shardy> ah, gotcha.
+[23:39] <jrand0m> ok, but yeah, thats the microroadmap. 
+[23:40] <jrand0m> now, am I being stupid calling these 0.x instead of 0.0.x?  should 1.0 be "perfect" or should 1.0 be functional and safe? 
+[23:40] <Ryan_Singer> jrand0m,  and we will see .4 when?
+[23:40] <jrand0m> 0.4 is probably 2 weeks out 
+[23:40] * jrand0m is taking a week off (ish) in mid october as I have people coming to visit
+[23:40] *** Signoff: dm (EOF From client)
+[23:40] <mihi> 1.0 should be stable.
+[23:40] <co> Let 1.0 be functional and safe.
+[23:40] <thecrypto> dittos co
+[23:41] <Ryan_Singer> 1.0 should be functional, stable and safe
+[23:41] <ChZEROHag> jrand0m: My philosophy, regarding version numbers, is if in doubt, copy Linux
+[23:41] <Myself248> 5.0 can be "perfect". Free software people are overly afraid of version number bloat.
+[23:41] <jrand0m> word 
+[23:41] <mrflibble> jrand0m, v1 of things are never perfect :)
+[23:41] *** dm (~gj@anon.iip) has joined channel #iip-dev
+[23:41] <mrflibble> people dont expect them to be perfect either
+[23:41] <dm> did I miss 1.0?
+[23:41] <ChZEROHag> mrflibble: People don't expect any software to be perfect. People use windows.
+[23:41] <Ryan_Singer> this software will beGPL orLGPL?
+[23:41] <jrand0m> cool, I've already gotten flack for 1.0 being not-perfect yet 
+[23:41] <ChZEROHag> That doesn't mean it shouldn't be.
+[23:41] <mrflibble> good point ChZEROHag
+[23:42] <dm> ah shit, I did didn't i..
+[23:42] <mihi> dm: stop kidding
+[23:42] <mrflibble> yup, u did
+[23:42] <jrand0m> the router is GPL.  the java client library is currently GPL, but I'm open.  thecrypto and I are full owners of all but one section (the Cryptix AES impl, which is MIT) 
+[23:42] <dm> alright alright I'm sorry :(
+[23:42] <jrand0m> actually, I take that back 
+[23:42] <jrand0m> I used the Base64.java from freenet too 
+[23:43] <beefbroth> are we still on agenda item 0.3 Apps ?
+[23:43] <jrand0m> so base64 is GPL :) 
+[23:43] <thecrypto> and the IM client will be GPL
+[23:43] <jrand0m> oh yeah, we're on 0.3 aren't we 
+[23:43] <thecrypto> as soon as i get around to putting comments in the code
+[23:43] *** UserX_ (~User@anon.iip) has joined channel #iip-dev
+[23:43] <jrand0m> heh thecrypto 
+[23:43] <ChZEROHag> GPL sounds good to me
+[23:43] <jrand0m> w0ah, 23 users 
+[23:43] <Myself248> we're on agenda item 6.02E23, random crap. :)
+[23:43] <Ryan_Singer> jrand0m,  if you get time, I want to talk to you about liscencing and potential consulting gigs
+[23:43] <jrand0m> cool Ryan_Singer 
+[23:43] <ChZEROHag> Though as someone (Fillament?) pointed out - if someone breaks the license how is an anonymous person going to do anything about it?
+[23:43] <mihi> jrand0m: 22 ;)
+[23:43] <jrand0m> ChZEROHag> read my license on flinks ;) 
+[23:43] <Myself248> we need an anonymous court system.
+[23:44] * mihi is here twice
+[23:44] <jrand0m> Myself248> its called yodel ;) 
+[23:44] <Myself248> "The court now hears docket number 34534, J. Doe v. J. Doe"
+[23:44] <Ryan_Singer> ChZEROHag,  the reason I ask is for corporations to make use of this software for security against industrialespionage
+[23:44] <co> Naming server will be licensed under GPL as well.
+[23:44] <CCD> lol
+[23:44] <Myself248> "Baliff, aren't those the same parties as the last 34533 cases we've heard?"
+[23:44] <shardy> well
+[23:45] <shardy> there's always the idea that if you want people to *really* use your protocol, and you're not worried about money, just make it completely open. not even restricted by gpl.
+[23:45] <co> shardy: You mean public domain?
+[23:45] <beefbroth> i think that was co's lead in to 0.4 agenda item :-P
+[23:45] <jrand0m> shardy> the specs are public and open.  I have not asserted copyright on the specs. 
+[23:45] <Ryan_Singer> shardy,  no, we would like work on the protocol to stay available
+[23:45] <shardy> public domain, bsd license, "do whatever you want just give us credit please" license, etc
+[23:45] <jrand0m> the code is GPL for the router.  one client api implementation in java is GPL 
+[23:46] <Ryan_Singer> check out the liberty protocol.... (Link: http://projectliberty.org)http://projectliberty.org
+[23:46] <shardy> jrand0m: ok cool. gotcha.
+[23:46] * jrand0m has thought about "no government use" licenses ;)
+[23:46] <jrand0m> ok, the reason I tossed 3.0) apps into the list of issues is this 
+[23:46] <jrand0m> we need help. 
+[23:46] <Ryan_Singer> help with what?
+[23:46] <jrand0m> i2ptunnel is good code.  i2p's router will be good code. 
+[23:47] <jrand0m> what we need is for people to start figuring out the nuts and bolts of release engineering 
+[23:47] <dm> why do you need apps if you can just use i2ptunner?
+[23:47] <ChZEROHag> jrand0m: come again?
+[23:47] <jrand0m> aka, how to actually package something up that joe sixpack can download and browse the web 
+[23:47] <ChZEROHag> dm: Why do you need apps if you can just use telnet?
+[23:47] <dm> what?
+[23:47] * dm scratches his head.
+[23:47] <CCD> err, there is something besides telnet?
+[23:48] * jrand0m thinks thats ChZEROHag's point dm ;)
+[23:48] *** Myself248 is now known as myself248
+[23:48] *** Signoff: thecrypto (Ping timeout)
+[23:48] <ChZEROHag> dm: To use i2ptunnel would be like having a working car and then dragging it around on a handcart
+[23:48] <jrand0m> ok, thats just that.  I just wanted to mention in case people had spare time :) 
+[23:48] <jrand0m> ok, 4.0) 
+[23:48] <jrand0m> naming service 
+[23:48] <dm> I can see he's trying to make a point.
+[23:48] <jrand0m> hi co, hows it going?  :) 
+[23:48] <co> The naming server must be GPL, since at least the Java implementation uses code from the client library to contact routers.
+[23:49] <dm> but we just spent 20 minutes going: I2Ptunnel + web server!, I2Ptunnel + quake! ;)
+[23:49] <ChZEROHag> Or, in computing terms, like doing all your internet stuff with telnet instead if directly on the ip stack
+[23:49] <co> I did not do much last week. I released the client API, which also needs work.
+[23:49] <ChZEROHag> i2ptunnel is an interrim solution
+[23:49] <co> I will have time this week, though, to begin implementing the naming server.
+[23:49] <jrand0m> cool 
+[23:49] <jrand0m> where is the client api again? 
+[23:50] <mihi> on the mailing list ;)
+[23:50] <co> One of its assumptions is that destinations can be encoded in base64, which is why I asked the question about that earlier.
+[23:50] <jrand0m> ChZEROHag> in some ways its interim 
+[23:50] * jrand0m !thwaps self
+[23:50] *** thecrypto (~thecrypto@anon.iip) has joined channel #iip-dev
+[23:50] <dm> so is TCP!
+[23:50] *** yodel (yodel@anon.iip) has joined channel #iip-dev
+[23:50] <jrand0m> 'lo yodel 
+[23:50] <beefbroth> what are the naming conventions going to look like? is it something that joe average will be able to relate to (i.e. (Link: www.somthing.com)www.somthing.com  or (Link: www.something.i2p)www.something.i2p for http/web stuff)?
+[23:50] <co> I will put the naming service specification and client API into CVS.
+[23:50] <jrand0m> wb thecrypto 
+[23:50] <ChZEROHag> These have probably been covered before, but how will the ns provide unique names fairly?
+[23:50] * mihi wants to have *.mihi.iip ;)
+[23:50] <jrand0m> beefbroth> with the naming service or without? 
+[23:50] <jrand0m> heh mihi 
+[23:50] <ChZEROHag> avoiding the squatting, etc. that has plagued DNS
+[23:50] <thecrypto> can someone send me what happened?
+[23:51] <beefbroth> jrand0m: with. i think without would be a long string of numbers.
+[23:51] <co> ChZEROHag: You will register with a group of naming servers, then will use the name of that group to identify yourself.
+[23:51] <co> As in IM.beefbroth.mygroup if you provide IM service.
+[23:51] <mihi> oops, s/iip/i2p
+[23:51] *** godmode0_ (~mode@anon.iip) has joined channel #iip-dev
+[23:51] *** Signoff: godmode0 (EOF From client)
+[23:51] <jrand0m> ChZEROHag> co's naming service has trusted groups, where each group manages a group name (tld).  you select chose which groups run each tld 
+[23:51] <co> Yes, it will be possible for someone to register the username beefbroth with group2.
+[23:51] <thecrypto> in the 4 minutes i was gone
+[23:52] <ChZEROHag> co: So the only issue is the .mygroup uniqueness?
+[23:52] <ChZEROHag> And who gets the group 'com'? :-)
+[23:52] <jrand0m> and that is selected by the client 
+[23:52] <mihi> ChZEROHag: i2p is not COMmerical
+[23:52] <jrand0m> (e.g. you tell your ns client lib "group '.com' is group 0123ff33aefcbb34fe 
+[23:52] <beefbroth> I hate to suggest it, but I almost think the groups should default to 3 letters to preserve the illusion that it is similar to the regular web
+[23:52] <co> ChZEROHag: I am not sure who gets the "com" group.
+[23:52] <co> Good question.
+[23:53] <shardy> beefbroth: except the "regular web" is no longer only 3 letter lds
+[23:53] <mihi> beefbroth: or add a .i2p to all addresses.
+[23:53] <ChZEROHag> beefbroth: That illusion is only present in america
+[23:53] <shardy> tlds.
+[23:53] <jrand0m> to start with, we may just want to initially have one group of naming servers, ".i2p" 
+[23:53] <co> beefbroth: The naming server software permits you to have up to 32 letters.
+[23:53] <ChZEROHag> Elsewhere we use the 2-letter country codes given us
+[23:53] <shardy> .us is also in use in america.
+[23:53] <co> Actually, I wanted the first group to be "test".
+[23:53] <shardy> as are things like .info and .name
+[23:53] <jrand0m> heh 'k 
+[23:54] <ChZEROHag> shardy: yeah, by about 5 people.
+[23:54] <ChZEROHag> But this is perhaps a rant for another time :)
+[23:54] <jrand0m> actually... 
+[23:54] <shardy> there's even a .museum
+[23:54] <Ryan_Singer> jrand0m,  using .12p sounds good
+[23:54] <jrand0m> I ran into a distributed DNS based of JXTA the other day 
+[23:54] <co> ChZEROHag: But the point is that if you do not like the people running the "com" group, you can establish the "com2" group and run its servers (and register with it).
+[23:55] <ChZEROHag> YEs that bit makes perfect sense
+[23:55] <mihi> ChZEROHag: (Link: http://www.nic.us/press/audio/dotus-mayEM.wav)http://www.nic.us/press/audio/dotus-mayEM.wav ;)
+[23:55] <jrand0m> co> can't you just say "well, they 'think' they're .com, but I say .com is run by group2"? 
+[23:55] <ChZEROHag> What I'm getting at, I suppose, is does it rely on first-come-first-served?
+[23:55] <co> You may configure your client to do anything.
+[23:56] <Ryan_Singer> how does the JXTA name system work?
+[23:56] <jrand0m> co> (Link: http://wiki.java.net/bin/view/Jxta/DisDNS)http://wiki.java.net/bin/view/Jxta/DisDNS is a distributed DNS wiki, though its very rough and doesn't address any real hard issues 
+[23:56] <co> ChZEROHag: In registering your username with a group, yes.
+[23:56] <co> jrand0m: I will look at that after the meeting.
+[23:56] <jrand0m> jxta runs naming servers off rendevous points 
+[23:56] <ChZEROHag> mihi: wassat?
+[23:56] <beefbroth> so it is possible someone tries to attack the NS system by mimicing the already existing i2p group of naming servers
+[23:57] *** Signoff: jeremiah (Ping timeout)
+[23:57] <co> beefbroth: I think not.
+[23:57] <mihi> ChZEROHag: listen to it. why xxx million americans prefer .us over .com
+[23:57] <mihi> 68 million
+[23:57] <co> As I envision it, people setting up groups will announce those groups.
+[23:57] <jrand0m> mimicing?  they can't mimic as the servers in the group are authenticated by public key systems 
+[23:58] <jrand0m> however, if groups allow non-trusted members to join the group, they can be taken over trivially. 
+[23:58] <shardy> but how is the key exchange done?
+[23:58] <co> The later people will face the problem that the group is already established, and the client software configuration files contain the former group's destinations.
+[23:58] <ChZEROHag> mihi: Well I've always said it makes sense to prefer it, patriotism and whatnot, I've just never really seen it.
+[23:58] <beefbroth> what happens if two groups of naming servers both claim to resolve the .i2p group?
+[23:58] <co> Good question, though, and I will think over it again, carefully.
+[23:58] <ChZEROHag> Anyway, I shall have a listen
+[23:58] <jrand0m> shardy> no key exchange - key publishing 
+[23:58] <beefbroth> i see, good point
+[23:58] <ChZEROHag> co: Yeah that's another thing I was trying to get at
+[23:58] <shardy> but keys can still be intercepted if they're published online
+[23:58] <jrand0m> beefbroth> no one claims anything.  your client says "i2p == [dest1, dest2, dest]" 
+[23:59] <shardy> what we need is a trust-based dns system :)
+[23:59] <shardy> so you can submit a query for the name and get back a list of responses... and then go with the trusted one
+[23:59] <co> Thank you for bringing this up.
+[23:59] <jrand0m> shardy> ah, I think I understand the confusion.  I think the naming service will want to come with a set of destinations out of band (aka packaged with install) 
+[23:59] <ChZEROHag> Yeah we have one - everyone trusts IANA (or whatever they call themselves) or else.
+[23:59] * shardy ducks
+[23:59] <ChZEROHag> :-D
+[23:59] <mrflibble> they're trying that with dnssec, but of course that's not anonymous
+[00:00] <jrand0m> what this naming service does is get away from root servers 
+[00:00] <beefbroth> you could always have an i2p homepage that listed active naming groups and authorites?
+[00:00] <shardy> jrand0m: ok. just pointing out that it can still be intercepted no matter what you do, unless there's a physically secure channel to initially transmit those keys over...
+[00:00] <co> shardy: I think I covered key exchange in the spec. If not, tell me.
+[00:00] <shardy> but packaging it oob makes it better
+[00:00] <shardy> co: I'll check it out. 
+[00:00] <jrand0m> shardy> oh, right.  yes, people need to be able to trust the code they download 
+[00:00] <co> beefbroth: Certainly.
+[00:01] <ChZEROHag> aah that reminds me
+[00:01] <jrand0m> beefbroth> yes, thats most certainly one of the first apps that will be implemented - an i2p webserver w/ bbs &amp; wiki that people can access through i2p 
+[00:01] <ChZEROHag> I should create a gpg key for my iipmail
+[00:01] *** yodel has left #iip-dev
+[00:01] * ChZEROHag does so while unexciting stuff happens
+[00:01] <jrand0m> heh ok 
+[00:01] <co> Please understand that the naming server specification is still open to suggestions for improvement.
+[00:02] <shardy> I think I'm going to bring all the specs with me on the flight to toorcon... that'll give me a time to read them
+[00:02] <co> I do not claim it is perfect or finalized at this time.
+[00:02] <jrand0m> heh I hope its a long flight 
+[00:02] <shardy> and it's more productive than playing fft advance the entire time, heh
+[00:02] * jrand0m has found that criticism will more freely come once there is code implementing specs
+[00:02] *** godmode0_ is now known as godmode0
+[00:02] <co> And I have to write the code.
+[00:02] <co> I think we can move on to the next topic now.
+[00:02] <jrand0m> 'k 
+[00:02] <jrand0m> 5.0) IM 
+[00:03] <jrand0m> hi thecrypto 
+[00:03] <mihi> names should not be able to clash with base64 representations.
+[00:03] <thecrypto> hi
+[00:03] <thecrypto> okay
+[00:03] <mihi> and the namin server should transparently return bas64 addressas as is.
+[00:03] <co> mihi: Very well, I will try to avoid that problem.
+[00:03] <thecrypto> first since my e-mail isn't working again (damn spammers)
+[00:03] <jrand0m> (all classes that extend DataStructure have String .toBase64() and .fromBase64(InputStream) ) 
+[00:03] <thecrypto> i'll answer whit's questions about me system here
+[00:04] * jrand0m loads up co's email
+[00:04] <mihi> jrandom? why Inputstream and not Reader?
+[00:04] <thecrypto> network is the first thing that came to mind, you are making connections over the i2p network, it's very p2p so i called it a networkr
+[00:04] <jrand0m> if you want a Reader, just run an InputStreamReader, you brat 
+[00:04] <mihi> base64 is characters, not bytes in my opinion.
+[00:04] <ChZEROHag> jrand0m: IM == Instant Messaging?
+[00:04] <jrand0m> yes ChZEROHag 
+[00:04] <thecrypto> if people have a problem with that, give me a suggestion for what to call it about
+[00:05] <ChZEROHag> jabber?
+[00:05] <thecrypto> IM == my own distributed IM network
+[00:05] <shardy> you should call it "bob"
+[00:05] <jrand0m> i2p im is a network in the same way aim is a network, or kazaa is a network, all running over tcp/ip or udp/ip 
+[00:05] <co> How about IM application?
+[00:05] <ChZEROHag> (anonabber)
+[00:05] <co> jrand0m: I see.
+[00:05] <thecrypto> jabber requires a centerized server
+[00:05] <jrand0m> terminology doesn't matter to me.  I like shardy's idea 
+[00:05] <ChZEROHag> thecrypto: Nothing *requires* a centralised server
+[00:05] <thecrypto> and i cannot spell today so bear with me
+[00:06] <ChZEROHag> That's just the way things are written
+[00:06] <jrand0m> (though I prefer Betty) 
+[00:06] <thecrypto> so you want me to call it I2PIM bob?
+[00:06] <thecrypto> :)
+[00:06] <jrand0m> how about wilma? 
+[00:06] <jrand0m> fred is taken thoug 
+[00:06] <co> How about distributed IM?
+[00:06] <jrand0m> DIM, heh 
+[00:06] <co> But then, distributed IM *application*?
+[00:06] <dm> AIM, anonymous Instant messaging!
+[00:06] <thecrypto> bad acronym :)
+[00:07] <dm> then we can take over AOL.
+[00:07] <thecrypto> ohh i can just wait for AOL to get wind of that
+[00:07] <ChZEROHag> dm: That would realy piss certain wankers off. I like it.
+[00:07] <jrand0m> heh do it 
+[00:07] <Ryan_Singer> thecrypto,  will webe able to implement IM in a decentralised way, or will it have to be centrallized?
+[00:07] <co> dm: Good idea. I would back that acronym.
+[00:07] <jrand0m> the way I've read thecrypto's docs, the IM is fully decentralized 
+[00:07] <thecrypto> i am implementing a distributed IM, it's in the CVS
+[00:07] <beefbroth> I would vote against anything that is going to confuse people
+[00:08] <Ryan_Singer> AOL TimeWarner changed it's name to Time Warner
+[00:08] <ChZEROHag> beefbroth: I would too, but the vote to piss AOL off outweighs that.
+[00:08] <beefbroth> You want the system to be familiar enough that people won't be afraid to install it, but different enough to differentiate
+[00:08] <jrand0m> actually, thats a good point 
+[00:08] <thecrypto> I2PIM is the name of the application
+[00:08] <jrand0m> being transparently anonymous isn't useful if people don't understand what anonymous is. 
+[00:09] <ChZEROHag> Oh wait, I have something like this down on paper
+[00:09] <beefbroth> I like the crypto's idea
+[00:09] <thecrypto> what "network" I2PIM runs on is what I'm looking for
+[00:09] <jrand0m> teaching people how to protect themselves is a really important thing 
+[00:09] <thecrypto> i was thinking Presence System?
+[00:09] <Ryan_Singer> hypethe security aspect of anon
+[00:09] <dm> I2M (instant 2 messaging)
+[00:09] <ChZEROHag> Although I only called it XIrc
+[00:10] <jrand0m> you're the man thecrypto, whatever works for ya ;) 
+[00:10] <dm> and in the I2M logo, the 2 will be really small :)
+[00:10] <thecrypto> well I2P expands to Invisible ... jrand0m ?
+[00:10] <ChZEROHag> The main thing I liked about it was that everyone was called a Borg and they chatted in Collectives
+[00:10] <jrand0m> i2p = i^2p (invisible internet project) 
+[00:10] <co> I thought the P stands for protocol.
+[00:10] <jrand0m> that too 
+[00:10] <jrand0m> well, actually, no 
+[00:11] <thecrypto> so it's Invisible Internet Project Instant Messaging
+[00:11] <jrand0m> i2np is the protocol 
+[00:11] <jrand0m> i2p is the project 
+[00:11] <beefbroth> I thought it stood for "poop"
+[00:11] <jrand0m> i2cp is the client proto 
+[00:11] <co> thecrypto: You are right, the name does not matter too much.
+[00:11] <dm> i2m = i^2m = instant invisible messaging
+[00:11] <thecrypto> so next topic then
+[00:11] <Ryan_Singer> ok....so, we're drifting off agenda...are we done with IM?
+[00:11] <shardy> if "bob" isn't good enough, we can call it "jimbob"
+[00:11] <jrand0m> 0k, 6.0) administravia 
+[00:11] <thecrypto> no, still more here
+[00:12] <thecrypto> sorry
+[00:12] <co> It's administrivia.
+[00:12] <thecrypto> no it's IM
+[00:12] <jrand0m> nop> give me root.  I need to get anon cvs, bugzilla, and cvsweb installed. 
+[00:12] <thecrypto> i wasn't finished
+[00:12] <thecrypto> :)
+[00:12] <thecrypto> rewind!
+[00:12] * jrand0m backs up
+[00:12] <jrand0m> 5.1) thecrypto v2 
+[00:12] <Ryan_Singer> what else is there in IM, thecrypto?
+[00:13] <mihi> thecrypto: just talk on; /me idi it the same way as i missed the naming services
+[00:13] <thecrypto> okay, the thing about presences communicating is different
+[00:13] <thecrypto> not everyone knows everyone else
+[00:13] <thecrypto> there is practically no way to "stalk" someone
+[00:13] <thecrypto> you have to ask to be shown
+[00:14] <mihi> in anonymous networks, usually no one knows anyone else ;)
+[00:14] <jrand0m> (as long as people's Destination is random) 
+[00:14] *** Signoff: pitu (Lost terminal)
+[00:14] <dm> what do you mean?
+[00:14] <thecrypto> Alice wants to talk to Bob
+[00:14] <jrand0m> mihi> though the naming service allows search by service 
+[00:14] <jrand0m> (service being IM, www, etc) 
+[00:14] <thecrypto> Alice finds Bobs IM destination some how, prolly by the naming service
+[00:15] <thecrypto> So Alice sends a message to Bobs IM destination
+[00:15] <dm> yes?
+[00:15] <thecrypto> he gets a little message saying "Alice tried to contact you" if he wants to talk to her, he can, or he can ignore it
+[00:16] <thecrypto> but there is no central presence server, Alice can also just see her message disappear and not get a response
+[00:16] <dm> ok, like MSN then?
+[00:16] <jrand0m> (though Alice can know that Bob ignored her) 
+[00:16] <thecrypto> and Alice can't just put Bob on her buddy list and wait for him
+[00:16] <Ryan_Singer> thecrypto,  ok...how is this different then properly configured Y!, MSN or AIM..apart from the nocentral server bit
+[00:16] <thecrypto> because Bob has to send a message to Alice to see her sign on
+[00:16] <Ryan_Singer> oh
+[00:16] <dm> ok, it doesn't change anything as far as the user is concerned, but I see what you mean.
+[00:17] <jrand0m> thecrypto> not quite true 
+[00:17] <Ryan_Singer> got it..no buddylist functionality...
+[00:17] <jrand0m> oh, well, hmm, technically... 
+[00:17] <thecrypto> Ryan_Singer: no there is still a buddy list
+[00:17] <dm> how does alice send bob a message if she can't see him?
+[00:17] <dm> you just have to try random contacts in case they are there?
+[00:17] <jrand0m> bob has to send a message to alice's router, which can happen without alice knowing it 
+[00:17] <thecrypto> Alice can just randomly try
+[00:18] <dm> that's not very convenient? you go online and have to send everyone a message saying (you there?, you there?)
+[00:18] <beefbroth> thecrypto: can't a user "notify" all their buddies when they sign on by sending them a message? or is that what you were just saying
+[00:18] * co notes that there can be two Bobs registered with two different naming server groups.
+[00:18] <thecrypto> beefbroth: that was just want i'm saying
+[00:18] <dm> ok, so similar to current scheme but you are invisible by default.
+[00:18] <dm> gotcha.
+[00:19] <thecrypto> dm: no it's the other way around, when you sign on, you send a message to everyone saying "I'm on, I'm on" if you recieve a message saying "I'm on" you return it
+[00:19] <thecrypto> if you want to
+[00:19] <co> So the user controls who can see him/her/it.
+[00:19] <thecrypto> so Alice can put you on her buddy list and you'll get a message when she signs on saying "Alice has put you on her buddy list, would you like to notify her of your presece"
+[00:20] <Ryan_Singer> when you get off do you first send a msg that says "I'm getting off"?
+[00:20] <dm> ok, that's just a way to get around having a server, but the question is will the apps be setup by default to send a "I'm on" when someone logs on.
+[00:20] <Ryan_Singer> hopefully
+[00:20] <jrand0m> Ryan_Singer> or just have a periodic "I'm still on" ping 
+[00:20] <jrand0m> (and missing ping == off) 
+[00:21] <Ryan_Singer> keep-alive type deal?
+[00:21] <beefbroth> It might need to "ping" the other IM user every so often to make sure there wasn't an unintentional disconnect
+[00:21] <thecrypto> if Bob has Alice on his buddy list and Bob recives and Online message from Alice the return message is automatic
+[00:21] <beefbroth> heh
+[00:21] <thecrypto> If Bob doesn't have Alice on his buddy list and bob recives an online message from alice, the user is propmted
+[00:21] <dm> ok, so the IM experience is the same as it is now. Just wanted to confirm that.
+[00:22] <thecrypto> just you now have a confirm on buddy adds
+[00:22] <thecrypto> which i think only ICQ has
+[00:22] <jrand0m> will the IM app be a stand alone or will I be able to use trillian? 
+[00:22] <dm> yeah, that's how MSN works.
+[00:22] <jrand0m> [etc] 
+[00:22] <ChZEROHag> thecrypto: ICQ only pretends to require confirmation
+[00:22] <beefbroth> dm: wrong. you won't have to deal with MSN, Y! and AIM changing their protocols and locking people out every few months :)
+[00:23] <thecrypto> jrand0m: i'll make a spec, trillian can either give me a plugin interface or they can write thier own
+[00:23] <thecrypto> i will be writing a plugin for gaim at leasty
+[00:23] <thecrypto> along with a standalong client
+[00:23] <jrand0m> cool 
+[00:23] <thecrypto> which is built to be used with the network
+[00:23] <jrand0m> does gaim support file xfer or will that be the benefit of the i2pim client? 
+[00:23] <beefbroth> thecrypto: you might want to give a shout to the kopete developers just to let them know
+[00:23] * jrand0m shows his cluelessnesss
+[00:24] <thecrypto> i'll try to make the gaim plugin work as well as the standalong, but i don't know
+[00:24] <co> thecrypto: Let's have the standalone application first.
+[00:24] <thecrypto> gaim file transfer i think only works on AIM
+[00:24] <thecrypto> so it might take some wrangling to get it into a plugin
+[00:24] <Ryan_Singer> ok..I think we all understand this now...any more IM issues?
+[00:25] <thecrypto> and co's final thing
+[00:25] <beefbroth> gaim suffers problems with it's IM xfers for people using NAT
+[00:25] <thecrypto> more than one person can have the same name
+[00:25] <thecrypto> they will have unique destinations
+[00:25] *** Signoff: mihi (Ping timeout)
+[00:25] <co> All right.
+[00:25] * mihi_backup is still here...
+[00:25] <thecrypto> but someone can't masquerde
+[00:26] <jrand0m> heh nice1 mihi_backup 
+[00:26] <co> If you use the naming server, it will be "Bob from group1" and "Bob from group2".
+[00:26] <co> With unique destinations.
+[00:26] <jrand0m> right thecrypto.  names are arbitrary.  kind of like dns ;) 
+[00:26] *** mihi (~none@anon.iip) has joined channel #iip-dev
+[00:26] <thecrypto> also the IM client itself can optionally check "Hey, this IM you got was from someone called Bob, the destination of the Bob in your list is different, accept message?"
+[00:27] <dm> mihi: your backup talked while you were gone.
+[00:27] <thecrypto> if they person is trying to masquerde Bob, you'll know, otherwise, you can alias them out
+[00:27] <mihi> i know...
+[00:27] <jrand0m> "someone called bob"?  says who?  they call themself bob?  or some group calls them bob?  or you call their dest bob? 
+[00:27] <thecrypto> there is a feild in the presence called name
+[00:27] <thecrypto> i'm looking at that
+[00:28] * jrand0m likes the way ICQ works with that problem - everyone is a number and you just alias numbers locally to names
+[00:28] <co> As an aside, should I make the NS entity names case insensitive?
+[00:28] <jrand0m> probably co 
+[00:28] <mihi> base64 things must be case sensitive still ;)
+[00:28] * jrand0m doesn't want people spoofing Jrand0m
+[00:28] <co> mihi: Entity names, not destinations.
+[00:28] <jrand0m> right right mihi 
+[00:29] <jrand0m> (well, people can spoof jrand0m all they want.  I just want jrandom back) 
+[00:29] <co> Go on, thecrypto.
+[00:29] *** Signoff: UserX_ (Ping timeout)
+[00:29] <thecrypto> that's all i have
+[00:29] <thecrypto> finally :)
+[00:29] <mihi> co: you should be able to place a destination wherever you can place an entity name.
+[00:29] <mihi> like it is with dns names and IPs
+[00:29] <co> mihi: Good point. I will add that to the specification.
+[00:29] <thecrypto> jrand0m: actully it's kinda like ICQ except you tell people what you'd like your alias to be
+[00:30] <thecrypto> which i think they do now
+[00:30] <co> The idea, though, is that it will be much shorter to type names than destinations.
+[00:30] <jrand0m> mihi> the naming service only turns names to destinations - if you ask the naming service for the destination of a destination, it should return really really quickly 
+[00:30] <Ryan_Singer> ok guys...I have a meeting... jrand0m, anonymail me
+[00:30] <jrand0m> 'k adios 
+[00:30] <mihi> jrand0m: yes, and it should return that dest itself, and not "not found"
+[00:31] <jrand0m> right 
+[00:31] *** Signoff: Ryan_Singer ((null))
+[00:31] <jrand0m> ok.  we're at 7.0)  
+[00:31] <jrand0m> questions 
+[00:31] <jrand0m> hi 
+[00:31] <co> What about 6.0) Administrivia?
+[00:32] <co> Or were you done with that?
+[00:32] <jrand0m> 6.0 administravia was just me nagging nop to give me root to get y'all: anon cvs access, bugzilla, and a cvsweb interface :) 
+[00:32] <beefbroth> are there going to be owners to work on packaging the alpha, beta and releases for Win/Mac/SuSE/RehHat/Debian to speed up adoption?
+[00:33] <jrand0m> you volunteering? 
+[00:33] <jrand0m> (aka yeah, that'd be great) 
+[00:33] <beefbroth> If I learn how to make a package for my distribution :)
+[00:33] <jrand0m> what distro do you use? 
+[00:34] <co> As I recall, the IIP developers wanted to reimplement IIP over I2P. If I2P delivers on its promises of anonymity, will it not be simpler to just have IRC over I2P?
+[00:34] <beefbroth> But my point is, alot of people rely on those. It would make it easier for people to adopt. Freenet suffers from a lack of active maintainers.
+[00:34] <dm> jr makes for a good manager :)
+[00:34] <jrand0m> yes co, simpler, but not as scalable 
+[00:34] *** UserX_ (~User@anon.iip) has joined channel #iip-dev
+[00:34] <thecrypto> yes, but some people don't want IRC
+[00:35] <jrand0m> beefbroth> you're absolutely right, there's a lot of work to do, and I need to sleep at least 4 hours a night 
+[00:35] <co> thecrypto: Good point, though I2P will anonymize people's IP addresses.
+[00:35] <beefbroth> jrand0m: i can help package when things are ready. I think that's a great way some non-developers with a bit of technical expertise can contribute.
+[00:35] <jrand0m> awesome beefbroth 
+[00:35] <thecrypto> if we have IM and IRC, more adoption
+[00:36] <mihi> co: the problem is that with irc there is something to shut down (servers).
+[00:36] *** jeremiah (~jeremiah@anon.iip) has joined channel #iip-dev
+[00:36] <jrand0m> thecrypto> instant adoption: opennap 
+[00:36] <beefbroth> it's easier to learn to make packages than to learn i2p datastructures. it's an easy way for a few people to get involved
+[00:36] <dm> IRC is quite tough though isn't it?
+[00:36] <dm> distributed IRC that is...
+[00:36] <co> mihi: Of course. I forgot that. Thank you for reminding me. Objection withdrawn.
+[00:37] <jrand0m> dm> irc can have multiple irc servers (ala efnet, etc) that talk to each other through i2p 
+[00:37] <shardy> do you mean an "irc lookalike" chat protocol?
+[00:37] <shardy> or adapting irc?
+[00:37] <jrand0m> with people talking to each other by tunneling to one of the irc servers via i2p 
+[00:37] <dm> irc with servers behind i2p is fine, I'm saying without servers. Doesn't matter I guess.
+[00:38] <jrand0m> dm> right, it can be done much better without servers, and some thought has been put into it, but nothing really solid (to my knowledge) 
+[00:39] <dm> anyway, it's off-topic.
+[00:39] <dm> carry on!
+[00:39] <jrand0m> any other questions?   
+[00:39] <jrand0m> anyone read the specs yet?  ;) 
+[00:39] <jrand0m> (other than beefbroth, who has them memorized) 
+[00:39] * dm looks at the ceiling.
+[00:40] <jrand0m> ok, 100 minute meeting it is then 
+[00:40] <thecrypto> i'm reading the, when i need something :)
+[00:40] <ChZEROHag> specs!
+[00:40] <ChZEROHag> That's what I forgot!
+[00:40] <jrand0m> heh 
+[00:41] *** dm has changed the topic on channel #iip-dev to topic1
+[00:41] * jrand0m loads up and...
+[00:41] * jrand0m *baf*s the meeting to an end

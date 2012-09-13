@@ -1,329 +1,323 @@
-{% extends "_layout.html" %}
-{% block title %}I2P Development Meeting 121{% endblock %}
-{% block content %}<h3>I2P dev meeting, December 21, 2004</h3>
-<div class="irclog">
-13:05 <@jrandom> 0) hi</p>
-13:05 <@jrandom> 1) 0.4.2.4 & 0.4.2.5</p>
-13:05 <@jrandom> 2) 0.5 strategy</p>
-13:05 <@jrandom> 3) naming</p>
-13:05 <@jrandom> 4) eepsite roundup</p>
-13:05 <@jrandom> 5) ???</p>
-13:06 <@jrandom> 0) hi</p>
-13:06  * jrandom waves</p>
-13:06 <@jrandom> weekly status notes posted a lil while ago @ http://dev.i2p.net/pipermail/i2p/2004-December/000528.html</p>
-13:07 <@jrandom> lets jump on in to 1) 0.4.2.4 & 0.4.2.5</p>
-13:08 <@jrandom> for those of you who have already upgraded to 0.4.2.5 - a good 1/3 of the network so far - thanks!</p>
-13:09 <@jrandom> i do try to keep a more calm pacing to the releases, but there were some things in 0.4.2.5 that really needed wider deployment</p>
-13:10 < Madman2003> 0.4.2.5 is working well for me when it comes to disconnects, but i don't run i2p 24/7(i had quite a few irc disconnects lately) and it's only been a few hours after the release</p>
-13:10 <@jrandom> as mentioned later on in the email, i dont have a planned date for when the next bugfix release will be, but we shall see</p>
-13:10 <@jrandom> ah great Madman2003 </p>
-13:10 <@jrandom> yeah, its definitely too early to tell about 0.4.2.5</p>
-13:11 < frosk> i used to see periods of high lag on .4, so far none of those with .5, but again, a bit early</p>
-13:11 < frosk> (i'm talking about irc lag, of course)</p>
-13:11 <@jrandom> the dns bug fixed could manifest itself in large numbers of peers running older releases failing at once, so the sooner people upgrade, the better</p>
-13:12 <@duck> is that related with the failures on those manually entering a hostname?</p>
-13:12 <@jrandom> yep</p>
-13:12 < dm> how useless is the windows system tray I2P icon!?!?</p>
-13:12 <@duck> ah, so that is why config.jsp is still friendly</p>
-13:13 < Madman2003> anyone have a clue why some still run pre 0.4.2.4 routers?(it's been out a while)</p>
-13:13 <@jrandom> dm: its more of a placeholder right now, plus a status icon saying "i2p is running"</p>
-13:13 < dm> They have a life? :)</p>
-13:13  * jrandom should resent that...</p>
-13:14 < redzog> is there a way to do soft-restarts from the command line?</p>
-13:14 <@jrandom> redzog: unfortunately not</p>
-13:14 < redzog> hmm, pity</p>
-13:14 <@jrandom> other than with wget, perhaps</p>
-13:14 < redzog> would make it easier to do automatic updates</p>
-13:14 <+detonate> i2prouter stop && i2prouter start :)</p>
-13:14 <@jrandom> no, nm, wget wouldnt work either</p>
-13:14 <@jrandom> (as the form requires interaction)</p>
-13:14 < Madman2003> i generally update trough cvs several times in between releases(at best once a day), only takes a few minutes</p>
-13:15 < redzog> lwp::simple could manage it</p>
-13:15 < redzog> just a POST</p>
-13:15 <@jrandom> redzog: support for that would be pretty cool</p>
-13:15 < redzog> I'll try to whip something up</p>
-13:15 <@jrandom> well, its more than just a post, you need to read the form presented to you then post those fields back</p>
-13:16 <+detonate> eventually releases will be further spaced though.. right?</p>
-13:16 <@jrandom> (there's a hidden flag to prevent people from doing things like &lt;img src="/configservice.jsp?action=restart"&gt;</p>
-13:16 < redzog> heh, right</p>
-13:16 <@jrandom> right detonate, t'wasn't planned to be this rapid, once a week at most</p>
-13:16 < redzog> does the nonce value change?</p>
-13:17 <@jrandom> if it didn't, it wouldnt be a nonce ;)</p>
-13:17 < redzog> hmm, seems so</p>
-13:17 < redzog> well, between sessions, between pageloads... ;)</p>
-13:17 < redzog> pageloads it is</p>
-13:17 <@jrandom> right</p>
-13:17 <@jrandom> ok, anyone have anything else wrt 0.4.2.4/0.4.2.5?</p>
-13:18 <@jrandom> i'm sur there'll be more discussion later after we've burnt in the new release more</p>
-13:18 < dm> oh, is this a meeting?</p>
-13:18 <+detonate> starting up seems to be a lot less smooth</p>
-13:18 <+detonate> than 2.3</p>
-13:18 <@jrandom> oh?  in what way detonate - cpu, lag, memory, time?</p>
-13:19 <+detonate> the list of peers takes forever to populate</p>
-13:19 <+detonate> and i get a huge number of shitlisted peers</p>
-13:19 <+detonate> also the i2ptunnel stuff sometimes hangs, but generally seems to take at least 2x as long to actually start up</p>
-13:19 <+detonate> once it's started things smooth out</p>
-13:19 <+detonate> it's odd</p>
-13:19 <@jrandom> hmm, what does it list for the cause on /logs.jsp#connectionlogs ?</p>
-13:20 < ant> &lt;BS314159&gt; I just did a graceful restart into 0.4.2.5. It took 120s to have Local Destinations</p>
-13:20 < ant> &lt;BS314159&gt; seems good</p>
-13:20 <@jrandom> cool BS314159 - thats pretty much the bare minimum, as we don't start i2ptunnel until 2 minutes after startup :)</p>
-13:20 <+detonate> there's nothing out of the ordinary</p>
-13:20 <+detonate> a shutdown exception</p>
-13:21 <+detonate> but i think i caused that</p>
-13:21 < mule> i have pulled over 300M through fcp for a movie with the last release. never been that good before. top rates beyond 40k. great work.</p>
-13:21 <@jrandom> wow, nice mule!</p>
-13:21 < mule> however i still have serious trouble with recovering from an IP change</p>
-13:21 <@jrandom> detonate: hmm, ok, i'd love to debug this further after the meeting or another time you have available</p>
-13:22 <+detonate> yeah</p>
-13:22 <+detonate> ok</p>
-13:22 < dm> tunnel lag: 364ms. What the fuck is going on , the tunnel lag is dropping 100-200ms on each release!</p>
-13:22 <@jrandom> ah mule, ok</p>
-13:22 <@jrandom> i've got an idea for how we could deal with those hung tcp connections - just toss on a 5m keepalive</p>
-13:23 <@jrandom> heh dm, dont worry, it'll get back up again ;)</p>
-13:23 < frosk> wow, i only have 261ms here :)</p>
-13:24 <@jrandom> ok, if there's nothing else, lets jump on to 2) 0.5 strategy</p>
-13:24 < dm> That can't be right...</p>
-13:25 <+ugha2p> Looks like I'm late for the meeting again.</p>
-13:26 <@jrandom> there's still a lot of work to be done with 0.5, but a broad outline of the process was included in that email</p>
-13:26  * jrandom sends ugha2p to the principal's office</p>
-13:27 <@jrandom> there are still some details left to be worked out on the tunnel pooling and creation, but i think we've got a few different offerings that will meet the needs of various user bases</p>
-13:28 <@jrandom> there'll be some good ol' fashioned documentation posted once most of the kinks in the design are hammered out for y'all's review</p>
-13:28 <@jrandom> (currently its taking up ~8 pages in the notebook, should compress well though)</p>
-13:29 < kaji> has the meeting started yet?</p>
-13:29 <@jrandom> but another one of the tasks listed for 0.5 is "deal with the bandwidth needs of the network", and i have no idea how to plan for that, so we'll play that by ear</p>
-13:29 <@jrandom> yes kaji, we're on 2) 0.5 strategy</p>
-13:30 <@jrandom> well, thats all i have to say about that at the moment, unless anyone has any questions/comments/concerns?</p>
-13:31 <+ugha2p> Wow, most of the routers have already upgraded.</p>
-13:31 <+detonate> is filtering http traffic to strip out javascript/etc in the roadmap?</p>
-13:31 <+detonate> for 0.5</p>
-13:31 <+ugha2p> detonate: No.</p>
-13:31 <@jrandom> detonate: 0.6</p>
-13:31 < ant> &lt;cat-a-puss&gt; WRT bandwidth, should we enable probabilistic tunnel length, and/or local biased tunnels, for bittorrent as in general BT users have a weaker threat modle?</p>
-13:32 <@jrandom> cat-a-puss: yes, definitely.  thats one of the big parts of the 0.5 release</p>
-13:32 <+ugha2p> detonate: Unless you implement it first. ;)</p>
-13:32 <+detonate> i was thinking about it</p>
-13:33 < ant> &lt;cat-a-puss&gt; will html filtering be conducted in a seperate process?</p>
-13:33 <@jrandom> i think michelle is looking at that too, so if you two wanted to work together (michelle is learning java) that'd rule</p>
-13:33 <+detonate> ok</p>
-13:33 <@jrandom> cat-a-puss: i know not.  </p>
-13:34 <+ugha2p> cat-a-puss: Why should it?</p>
-13:35 < ant> &lt;cat-a-puss&gt; (I ask because I was thinking of making a proxy that ran all incomming brouser traffic through clamav) That is GPLed so if we could include that in the filter, it would probably be good.</p>
-13:35 <@jrandom> cool cat-a-puss!</p>
-13:35 <+ugha2p> Some people already use Privoxy for I2P.</p>
-13:36 < bens> in general, I'm anti-including-stuff</p>
-13:36 < susi23> I would rather see people configuring their browsers right than promising to protect them from malicious code.</p>
-13:36 <@jrandom> susi23: no one configures their browser properly</p>
-13:36 <@jrandom> especially not joe sixpack</p>
-13:37 < frosk> one can wonder if Joe is even able to set a proxy for his browser</p>
-13:37 <@jrandom> my personal view is that something cgi-proxy like would be ideal</p>
-13:37 <@jrandom> exactly frosk</p>
-13:37 <@jrandom> with a cgi-proxy like interface (filtering according to their preferences, safe by default), even a drooling moron could use it</p>
-13:38 < bens> I suppose I2P needs multiple versions for multiple markets even more than MS Office</p>
-13:38 <@jrandom> 'tis why we have small components and push this stuff out of the router bens ;)  </p>
-13:38 < Ragnarok> a proxy auto config file would help</p>
-13:39 <@jrandom> Ragnarok: we have one, but there are still dangerous things that can be done with it</p>
-13:39 < frosk> maybe a specialized i2p browser even (if someone is drowning in free time ;)</p>
-13:39 < susi23> ragnarok: that one? http://dev.i2p.net/cgi-bin/cvsweb.cgi/i2p/apps/proxyscript/i2pProxy.pac</p>
-13:39 <@jrandom> frosk: on the specialized i2p OS and hardware too, i suppose</p>
-13:40 < frosk> hehe, perfect</p>
-13:40 < Ragnarok> that's not in the install, though</p>
-13:40  * jrandom implements those in the specialized i2p universe</p>
-13:40 < susi23> . o O ( perhaps we should try to find a dedicated i2p planet too )</p>
-13:40 < susi23> . o O ( damn, too slow )</p>
-13:40 < mule> ok, we'll sell the hardware :)</p>
-13:40 < frosk> you know what they say, to create something from scratch, first create the universe</p>
-13:41 <@jrandom> w00t, now all we need are some investors..</p>
-13:41 < bens> seriously, a firefox autoconfigurator might be reasonable</p>
-13:41 <@jrandom> bens: the .pac susi linked to above should do the trick</p>
-13:41 < bens> not just for proxy; also for the security settings, homepage, etc.</p>
-13:41 <@jrandom> we can ship that with the install too, but its insufficient for people who need anonymity (and are not ubergeeks already)</p>
-13:42 <@jrandom> hmm, perhaps that sort of thing could go into cervantes' i2p xul app</p>
-13:43 <@jrandom> but thats getting further off topic from the 2) 0.5 strategy</p>
-13:43 <@jrandom> anyone else have anything for that, or shall we move on to 3) naming?</p>
-13:44 -!- Irssi: #i2p: Total of 40 nicks [2 ops, 0 halfops, 6 voices, 32 normal]</p>
-13:44 <@jrandom> consider us moved</p>
-13:44 <@jrandom> ok, aparently i kind of jumped the gun w/ the 2.0.1 ref of addressbook - Ragnarok, want to give us an update?</p>
-13:44 <+ugha2p> jrandom: Can we expect the dates on the roadmap to be correct?</p>
-13:45 <@jrandom> ugha2p: they currently reflect my best estimate</p>
-13:45 <+ugha2p> jrandom: Ok, right.</p>
-13:45 < Ragnarok> it's released now</p>
-13:45 <@jrandom> w00t</p>
-13:45 < Ragnarok> check ragnarok.i2p</p>
-13:45 < Ragnarok> I wasn't planning on releasing it yet, but jrandom forced my hand :)</p>
-13:46 <@jrandom> hehe</p>
-13:46 <+ugha2p> Ragnarok: Btw, you're missing a link from the homepage. :)</p>
-13:46 < Ragnarok> it's just a few bug fixes, nothing major, but it should deal better with some corner cases</p>
-13:46 <@jrandom> its on the top right ugha2p </p>
-13:47 < Ragnarok> ugha2p: it's on the sidebar</p>
-13:47 < Ragnarok> I'll add links to the post as well, though :)</p>
-13:47 < mule2> "that'll be the day when i die". daily IP change to set the clock after.</p>
-13:48 < Ragnarok> anyway, if everyone could try it out, that'd be nice.  Bug reports are always appreciated</p>
-13:48 <+ugha2p> Ragnarok: Oh, that sidebar is seriously fucked in Opera.</p>
-13:48 < mule2> Lease expired 12773d ago</p>
-13:49 <+ugha2p> Ragnarok: Well, not really fucked, but just located at the end of the page.</p>
-13:49 <@jrandom> cool Ragnarok, thanks</p>
-13:49 < Ragnarok> your window's probably not wide enough</p>
-13:49 <+ugha2p> Ragnarok: Right, but it should work with any window size.</p>
-13:50 <+ugha2p> So you might want to fix it in the future. :)</p>
-13:50 < Ragnarok> ugha2p: should is an interesting choice of words :)</p>
-13:50 < Frooze> ah, wrong in mozilla 1.7 too.  my window is small though.</p>
-13:50 <+ugha2p> Why's that?</p>
-13:50 < Frooze> thanks ragnarok.  cool stuff.</p>
-13:51 < Ragnarok> I may fix it in the future, but it's really low on my priorities</p>
-13:51  * jrandom prefers addressbook updates to html fixes</p>
-13:52 < Ragnarok> anyhoo, any questions?</p>
-13:53 < frosk> thanks for addressbook, Ragnarok, sounds very useful</p>
-13:54 <+ugha2p> Is the documented way of loading addressbook the only way, or are there any less intrusive ones?</p>
-13:54 < kaji> i just installed it, it rocks</p>
-13:54 < Ragnarok> you can start it by hand using "java -jar addresbook.jar &lt;path to i2p/addressbook&gt;"</p>
-13:54 < Ragnarok> thank you :)</p>
-13:55 < kaji> oh, and i dled version 2.0.0 is there an update someware?</p>
-13:55 < Ragnarok> ok, I fixed the column, it was just a stupid mix of absolute and realitive sizes</p>
-13:56 < Ragnarok> yep, there's 2.0.1 up now on ragnarok.i2p</p>
-13:57 <+ugha2p> I'm getting "Failed to load Main-Class manifest attribute from" now, but never mind, I'll do a restart later.</p>
-13:57 < Ragnarok> whoops</p>
-13:58 < Ragnarok> that's my bad</p>
-13:58 < Ragnarok> I'll try to fix that soon</p>
-13:58 <+ugha2p> Ah, okay. :)</p>
-13:58 < Ragnarok> there will also be an easy to install .war version soon</p>
-13:59 < dm> jrandom: you are a machine</p>
-14:00 <@jrandom> wikked, thanks Ragnarok </p>
-14:00 <@jrandom> susi23: ping?</p>
-14:00 < susi23> 1200ms</p>
-14:01 <@jrandom> !thwap</p>
-14:01 <@jrandom> anyway, wanna give us a rundown on whats up w/ susidns?</p>
-14:01 <@jrandom> or should that wait for later?</p>
-14:01 < susi23> do we have time for a more general discussion about naming stuff?</p>
-14:02 < susi23> what features we want in the future?</p>
-14:03 <@jrandom> some of my thoughts are posted up on http://dev.i2p.net/pipermail/i2p/2004-February/000135.html</p>
-14:03 <@jrandom> (for what general features)</p>
-14:04 <@jrandom> i think the hardest thing will be weaning people off globally unique human readable names, but with some good interfaces it should be doable</p>
-14:04 < Ragnarok> implementing the data structures you outlined in xml is one of my next goals</p>
-14:04 < susi23> ok, there is a small writing about attributes at http://susi.i2p/removablekeys.html</p>
-14:05 < ant> &lt;Jnymo&gt; wow.. pretty crowded in here tonight</p>
-14:05 < bens> ragnarok: have you checked out YAML? Might be easier</p>
-14:05 <+ugha2p> Jnymo: Yeah, we're trying to hold a meeting here.</p>
-14:05 < Ragnarok> YAML's name is far too apt</p>
-14:05 <@jrandom> cool susi23, though i think we'll definitely want to migrate away from the plain hosts.txt format</p>
-14:05 < ant> &lt;Quadn-werk&gt; addition of a command line graceful restart?</p>
-14:06 < ant> &lt;Jnymo&gt; ugha2p: ah</p>
-14:06 < susi23> are there any ideas how to keep names unique in the long run?</p>
-14:06 <@jrandom> one of the important parts of the data to be managed in the naming service is for an entry to be signed, requiring some hard structure (or careful xml)</p>
-14:07 <@jrandom> i dont believe in globally unique human, human readable, and secure names.</p>
-14:07 <@jrandom> (i bundle centralized & secure together)</p>
-14:07 <@jrandom> susi23: have you seen http://zooko.com/distnames.html ?</p>
-14:07 < Ragnarok> I think using an addressbook like system, the names will end up being mostly unique, since it's in the interest of the person claiming a name not to choose one that's already in use</p>
-14:08 <@jrandom> Ragnarok: we'll see.  perhaps</p>
-14:08 < susi23> i'll check this out</p>
-14:08 < bens> I suspect trusted authorities will emerge</p>
-14:08 < Ragnarok> well, there already is one</p>
-14:08 < frosk> hosts.txt? :)</p>
-14:09 < Ragnarok> jrandom's, yeah</p>
-14:09 <@jrandom> or if not trusted authorities, names that include the path to uniquely identify it</p>
-14:09 <@jrandom> (e.g. "the site orion.i2p calls 'frosk.i2p'")</p>
-14:10 <@jrandom> Derek Eddington had some posts along those lines in september - http://dev.i2p.net/pipermail/i2p/2004-September/000432.html</p>
-14:10 < bens> frosk.orion.i2p</p>
-14:10 <@jrandom> smtp.frosk.ns.orion.i2p</p>
-14:11  * jrandom starts building uucp bang paths</p>
-14:11 < frosk> hah</p>
-14:12 < susi23> ok, what now... how about a "naming roadmap"? :)</p>
-14:12 < ant> &lt;Jnymo&gt; you guys have swayed me away from an absolute distributed dns for i2p.. somewhat.. but ducks ideas started me thinking that a trust system might work.. like, a lookup could bring back a list of sites/files, and each could be listed with the amount of trust that the network gives it</p>
-14:12 < susi23> once we agreed what to do</p>
-14:12 <@jrandom> thats a good idea susi23, wanna write one up?</p>
-14:13 <@jrandom> trusting other people's trust has potential, but needs to be done very carefully</p>
-14:13 < susi23> I could do this, but I still have no idea WHAT we want to do. There are some decisions to make.</p>
-14:14 <@jrandom> (aka only according to the terms that you trust the peers along the chain to the trust author)</p>
-14:14 < modulus> there is or there should not be a "network trust" of a site, trust has to be user-centric always</p>
-14:14 <@jrandom> susi23: roadmap step 1: decide among $featureset</p>
-14:14 < susi23> Or at least we have to develop all ideas into a more precise concept.</p>
-14:14 < ant> &lt;Jnymo&gt; well, if it was explicitly simple.. like, if files i2p listed how many sites linked to siteinquestion.i2p</p>
-14:15 < Ragnarok> ok, the I've updated the addressbook package with an executable jar.</p>
-14:15 < ant> &lt;Jnymo&gt; er, files.i2p</p>
-14:15 <@jrandom> jnymo: that turns into a centralized authority - files.i2p</p>
-14:15 < modulus> not to say that you could poison the pool of links by establishing a shitload of sites.</p>
-14:16 < modulus> googlebombing on i2p</p>
-14:16 < ant> &lt;Jnymo&gt; true.. but files i2p could be decentralized</p>
-14:16 < susi23> ok, how about collection ideas/information/concepts until, lets say january</p>
-14:16 < orion> 'lo all. I see naming is on the table.. *again* :)</p>
-14:16 < susi23> then comes the decision phase, ok?</p>
-14:16 <@jrandom> sounds good - will you be the point of contact to gather that together?</p>
-14:16 < Ragnarok> sure</p>
-14:16 < modulus> doesn't matter if the trust aggregate is descentralized, trust has to emanate from the user. anything else can be poisoned imo.</p>
-14:17 < susi23> can't we take the mailinglist for this?</p>
-14:17 < bob> or perhaps ugha's wiki?</p>
-14:17 < ant> &lt;Jnymo&gt; agreed.. but what how to do that? put a little trust meter bar at the top of the web browser?</p>
-14:18 <@jrandom> the wiki would be good, we can gather links to all the previous discussions there</p>
-14:18 < modulus> jnyo: probably the most feasible solution is to bind to the first name encountered or something.</p>
-14:18 < dm> let's all give a hand of applause to jrandom for his wonderful project management</p>
-14:18 < susi23> fine</p>
-14:18 < modulus> but there are more ways than sausages.</p>
-14:19 < susi23> url to the wiki? (for the records)</p>
-14:19 < ant> * Jnymo claps</p>
-14:19 <@jrandom> ugha.i2p</p>
-14:19  * dm claps</p>
-14:19 < susi23> ok</p>
-14:19 < susi23> then I'm done and ping jrandom back ;)</p>
-14:20 < ant> &lt;Jnymo&gt; modulus: so, if i refer a link to someone else, i'm refering them to the site i first binded to.. that might work.. </p>
-14:20 <+ugha2p> Looks like jrandom has ping timeouted.</p>
-14:20 <@jrandom> ok cool, anything else on nami^W nm, no more on naming.  on to the wiki</p>
-14:20 < modulus> anyway, if you're linking you'll probably want to put an absolute path in the link, not just a name</p>
-14:21 <@jrandom> moving forward to 4) eepsite roundup</p>
-14:21 < dm> dm.i2p is up and running</p>
-14:21 <@jrandom> cool</p>
-14:22 <@jrandom> ok, i dont really have much to add beyond whats mentioned in the mail</p>
-14:22 < bob> nice to see an influx of sites!  all speedy to access as well!</p>
-14:22 <@jrandom> aye, agreed bob</p>
-14:22 < bob> orion, thanks for your work.. I use your site daily.</p>
-14:22  * jrandom too, the 'last updated' is especially helpful</p>
-14:23 < bob> dm: :-)</p>
-14:24 <@jrandom> ok, if there's nothing more on that, we can jump to 5) ???</p>
-14:24 <@jrandom> is there anything else people want to bring up for the meeting?</p>
-14:24 < ant> &lt;Jnymo&gt; hows the net status?</p>
-14:24 < ant> &lt;Jnymo&gt; wrt 4.2.5?</p>
-14:25 <@jrandom> its looking good, but the release is only a few hours old, so too soon to tell</p>
-14:25 < ant> &lt;Jnymo&gt; oh, heh</p>
-14:25 < ant> &lt;Jnymo&gt; any fusenet news?</p>
-14:26 <@jrandom> (http://piespy.i2p/i2p/i2p-current.png heh)</p>
-14:26 < frosk> my work on i2pcontent has been largely put aside for some weeks, but the latest version of the document can be read at http://frosk.i2p/i2pcontent.html . if anyone is interested, do read, and do comment harshly if needs be (om irc when i'm not /away or mail to frosk@mail.i2p)</p>
-14:26 < frosk> i2pcontent/fusenet/anything ;)</p>
-14:26 < ant> &lt;Jnymo&gt; wordicus</p>
-14:28 <@jrandom> ok, if there's nothing else...</p>
-14:28 < mule2> tons of applause for all the excellent contributions</p>
-14:29 <@jrandom> aye, y'all are doing some kickass shit</p>
-14:29 < frosk> you too, jrandom :)</p>
-14:29 < orion> word.</p>
-14:29 < orion> yes, very much so, you too jrandom.</p>
-14:29 < scintilla> hear hear!</p>
-14:29 < ant> &lt;Jnymo&gt; yea, i noticed on the site, theres less info on how to help out</p>
-14:29 <@jrandom> sometimes kickass, sometimes ass kicked ;)</p>
-14:29 < orion> HIP HIP</p>
-14:30 < ant> &lt;Jnymo&gt; HORRAY</p>
-14:30  * orion smiles</p>
-14:30 < Frooze> downloaded eclipse today, to learn java over holiday, because y'all are so impressive.</p>
-14:30 <@jrandom> jnymo: many of the small easy-to-accomplish tasks have been done</p>
-14:30 <@jrandom> ooh wikked Frooze </p>
-14:31 < Frooze> so, trouble on horizon.  heh</p>
-14:31 <@jrandom> jnymo: i really should collect some more of them though and post 'em</p>
-14:31 < ant> &lt;Jnymo&gt; jrandom: You still looking for someone to help out on alexandria.i2p?</p>
-14:31 <@jrandom> (take cover arizona!)</p>
-14:31  * jrandom is not involved in alexandria, but yes, i believe they are still looking for a librarian</p>
-14:31 < ant> &lt;Jnymo&gt; learn to swim, folks ;)</p>
-14:31  * orion loves pump up the volume references. Vague though they may be.</p>
-14:31 <@duck> yes we do</p>
-14:31 <@jrandom> :)</p>
-14:31 < Ragnarok> jrandom: where is the war actually supposed to go?</p>
-14:31 <@jrandom> (orion++)</p>
-14:32 <@jrandom> Ragnarok: i2p/webapps/addressbook.war</p>
-14:32 <@jrandom> (then restart the router)</p>
-14:32 < ant> &lt;Jnymo&gt; duck, you talkint to me?</p>
-14:32 < Ragnarok> cool.  I shall commence testing</p>
-14:32 <@jrandom> r0x0r</p>
-14:32 < ant> &lt;Jnymo&gt; duck: is alexandria on your site?</p>
-14:33 <@duck> duck.i2p/alexandria/</p>
-14:33 < ant> &lt;Jnymo&gt; word</p>
-14:34 <@jrandom> ok, if thats all, we can slide out of here @ the 90m mark..</p>
-14:34  * jrandom winds up</p>
-14:34  * jrandom *baf*s the meeting closed</p>
-</div>
-{% endblock %}
+13:05 <@jrandom> 0) hi
+13:05 <@jrandom> 1) 0.4.2.4 & 0.4.2.5
+13:05 <@jrandom> 2) 0.5 strategy
+13:05 <@jrandom> 3) naming
+13:05 <@jrandom> 4) eepsite roundup
+13:05 <@jrandom> 5) ???
+13:06 <@jrandom> 0) hi
+13:06  * jrandom waves
+13:06 <@jrandom> weekly status notes posted a lil while ago @ http://dev.i2p.net/pipermail/i2p/2004-December/000528.html
+13:07 <@jrandom> lets jump on in to 1) 0.4.2.4 & 0.4.2.5
+13:08 <@jrandom> for those of you who have already upgraded to 0.4.2.5 - a good 1/3 of the network so far - thanks!
+13:09 <@jrandom> i do try to keep a more calm pacing to the releases, but there were some things in 0.4.2.5 that really needed wider deployment
+13:10 < Madman2003> 0.4.2.5 is working well for me when it comes to disconnects, but i don't run i2p 24/7(i had quite a few irc disconnects lately) and it's only been a few hours after the release
+13:10 <@jrandom> as mentioned later on in the email, i dont have a planned date for when the next bugfix release will be, but we shall see
+13:10 <@jrandom> ah great Madman2003 
+13:10 <@jrandom> yeah, its definitely too early to tell about 0.4.2.5
+13:11 < frosk> i used to see periods of high lag on .4, so far none of those with .5, but again, a bit early
+13:11 < frosk> (i'm talking about irc lag, of course)
+13:11 <@jrandom> the dns bug fixed could manifest itself in large numbers of peers running older releases failing at once, so the sooner people upgrade, the better
+13:12 <@duck> is that related with the failures on those manually entering a hostname?
+13:12 <@jrandom> yep
+13:12 < dm> how useless is the windows system tray I2P icon!?!?
+13:12 <@duck> ah, so that is why config.jsp is still friendly
+13:13 < Madman2003> anyone have a clue why some still run pre 0.4.2.4 routers?(it's been out a while)
+13:13 <@jrandom> dm: its more of a placeholder right now, plus a status icon saying "i2p is running"
+13:13 < dm> They have a life? :)
+13:13  * jrandom should resent that...
+13:14 < redzog> is there a way to do soft-restarts from the command line?
+13:14 <@jrandom> redzog: unfortunately not
+13:14 < redzog> hmm, pity
+13:14 <@jrandom> other than with wget, perhaps
+13:14 < redzog> would make it easier to do automatic updates
+13:14 <+detonate> i2prouter stop && i2prouter start :)
+13:14 <@jrandom> no, nm, wget wouldnt work either
+13:14 <@jrandom> (as the form requires interaction)
+13:14 < Madman2003> i generally update trough cvs several times in between releases(at best once a day), only takes a few minutes
+13:15 < redzog> lwp::simple could manage it
+13:15 < redzog> just a POST
+13:15 <@jrandom> redzog: support for that would be pretty cool
+13:15 < redzog> I'll try to whip something up
+13:15 <@jrandom> well, its more than just a post, you need to read the form presented to you then post those fields back
+13:16 <+detonate> eventually releases will be further spaced though.. right?
+13:16 <@jrandom> (there's a hidden flag to prevent people from doing things like <img src="/configservice.jsp?action=restart">
+13:16 < redzog> heh, right
+13:16 <@jrandom> right detonate, t'wasn't planned to be this rapid, once a week at most
+13:16 < redzog> does the nonce value change?
+13:17 <@jrandom> if it didn't, it wouldnt be a nonce ;)
+13:17 < redzog> hmm, seems so
+13:17 < redzog> well, between sessions, between pageloads... ;)
+13:17 < redzog> pageloads it is
+13:17 <@jrandom> right
+13:17 <@jrandom> ok, anyone have anything else wrt 0.4.2.4/0.4.2.5?
+13:18 <@jrandom> i'm sur there'll be more discussion later after we've burnt in the new release more
+13:18 < dm> oh, is this a meeting?
+13:18 <+detonate> starting up seems to be a lot less smooth
+13:18 <+detonate> than 2.3
+13:18 <@jrandom> oh?  in what way detonate - cpu, lag, memory, time?
+13:19 <+detonate> the list of peers takes forever to populate
+13:19 <+detonate> and i get a huge number of shitlisted peers
+13:19 <+detonate> also the i2ptunnel stuff sometimes hangs, but generally seems to take at least 2x as long to actually start up
+13:19 <+detonate> once it's started things smooth out
+13:19 <+detonate> it's odd
+13:19 <@jrandom> hmm, what does it list for the cause on /logs.jsp#connectionlogs ?
+13:20 < ant> <BS314159> I just did a graceful restart into 0.4.2.5. It took 120s to have Local Destinations
+13:20 < ant> <BS314159> seems good
+13:20 <@jrandom> cool BS314159 - thats pretty much the bare minimum, as we don't start i2ptunnel until 2 minutes after startup :)
+13:20 <+detonate> there's nothing out of the ordinary
+13:20 <+detonate> a shutdown exception
+13:21 <+detonate> but i think i caused that
+13:21 < mule> i have pulled over 300M through fcp for a movie with the last release. never been that good before. top rates beyond 40k. great work.
+13:21 <@jrandom> wow, nice mule!
+13:21 < mule> however i still have serious trouble with recovering from an IP change
+13:21 <@jrandom> detonate: hmm, ok, i'd love to debug this further after the meeting or another time you have available
+13:22 <+detonate> yeah
+13:22 <+detonate> ok
+13:22 < dm> tunnel lag: 364ms. What the fuck is going on , the tunnel lag is dropping 100-200ms on each release!
+13:22 <@jrandom> ah mule, ok
+13:22 <@jrandom> i've got an idea for how we could deal with those hung tcp connections - just toss on a 5m keepalive
+13:23 <@jrandom> heh dm, dont worry, it'll get back up again ;)
+13:23 < frosk> wow, i only have 261ms here :)
+13:24 <@jrandom> ok, if there's nothing else, lets jump on to 2) 0.5 strategy
+13:24 < dm> That can't be right...
+13:25 <+ugha2p> Looks like I'm late for the meeting again.
+13:26 <@jrandom> there's still a lot of work to be done with 0.5, but a broad outline of the process was included in that email
+13:26  * jrandom sends ugha2p to the principal's office
+13:27 <@jrandom> there are still some details left to be worked out on the tunnel pooling and creation, but i think we've got a few different offerings that will meet the needs of various user bases
+13:28 <@jrandom> there'll be some good ol' fashioned documentation posted once most of the kinks in the design are hammered out for y'all's review
+13:28 <@jrandom> (currently its taking up ~8 pages in the notebook, should compress well though)
+13:29 < kaji> has the meeting started yet?
+13:29 <@jrandom> but another one of the tasks listed for 0.5 is "deal with the bandwidth needs of the network", and i have no idea how to plan for that, so we'll play that by ear
+13:29 <@jrandom> yes kaji, we're on 2) 0.5 strategy
+13:30 <@jrandom> well, thats all i have to say about that at the moment, unless anyone has any questions/comments/concerns?
+13:31 <+ugha2p> Wow, most of the routers have already upgraded.
+13:31 <+detonate> is filtering http traffic to strip out javascript/etc in the roadmap?
+13:31 <+detonate> for 0.5
+13:31 <+ugha2p> detonate: No.
+13:31 <@jrandom> detonate: 0.6
+13:31 < ant> <cat-a-puss> WRT bandwidth, should we enable probabilistic tunnel length, and/or local biased tunnels, for bittorrent as in general BT users have a weaker threat modle?
+13:32 <@jrandom> cat-a-puss: yes, definitely.  thats one of the big parts of the 0.5 release
+13:32 <+ugha2p> detonate: Unless you implement it first. ;)
+13:32 <+detonate> i was thinking about it
+13:33 < ant> <cat-a-puss> will html filtering be conducted in a seperate process?
+13:33 <@jrandom> i think michelle is looking at that too, so if you two wanted to work together (michelle is learning java) that'd rule
+13:33 <+detonate> ok
+13:33 <@jrandom> cat-a-puss: i know not.  
+13:34 <+ugha2p> cat-a-puss: Why should it?
+13:35 < ant> <cat-a-puss> (I ask because I was thinking of making a proxy that ran all incomming brouser traffic through clamav) That is GPLed so if we could include that in the filter, it would probably be good.
+13:35 <@jrandom> cool cat-a-puss!
+13:35 <+ugha2p> Some people already use Privoxy for I2P.
+13:36 < bens> in general, I'm anti-including-stuff
+13:36 < susi23> I would rather see people configuring their browsers right than promising to protect them from malicious code.
+13:36 <@jrandom> susi23: no one configures their browser properly
+13:36 <@jrandom> especially not joe sixpack
+13:37 < frosk> one can wonder if Joe is even able to set a proxy for his browser
+13:37 <@jrandom> my personal view is that something cgi-proxy like would be ideal
+13:37 <@jrandom> exactly frosk
+13:37 <@jrandom> with a cgi-proxy like interface (filtering according to their preferences, safe by default), even a drooling moron could use it
+13:38 < bens> I suppose I2P needs multiple versions for multiple markets even more than MS Office
+13:38 <@jrandom> 'tis why we have small components and push this stuff out of the router bens ;)  
+13:38 < Ragnarok> a proxy auto config file would help
+13:39 <@jrandom> Ragnarok: we have one, but there are still dangerous things that can be done with it
+13:39 < frosk> maybe a specialized i2p browser even (if someone is drowning in free time ;)
+13:39 < susi23> ragnarok: that one? http://dev.i2p.net/cgi-bin/cvsweb.cgi/i2p/apps/proxyscript/i2pProxy.pac
+13:39 <@jrandom> frosk: on the specialized i2p OS and hardware too, i suppose
+13:40 < frosk> hehe, perfect
+13:40 < Ragnarok> that's not in the install, though
+13:40  * jrandom implements those in the specialized i2p universe
+13:40 < susi23> . o O ( perhaps we should try to find a dedicated i2p planet too )
+13:40 < susi23> . o O ( damn, too slow )
+13:40 < mule> ok, we'll sell the hardware :)
+13:40 < frosk> you know what they say, to create something from scratch, first create the universe
+13:41 <@jrandom> w00t, now all we need are some investors..
+13:41 < bens> seriously, a firefox autoconfigurator might be reasonable
+13:41 <@jrandom> bens: the .pac susi linked to above should do the trick
+13:41 < bens> not just for proxy; also for the security settings, homepage, etc.
+13:41 <@jrandom> we can ship that with the install too, but its insufficient for people who need anonymity (and are not ubergeeks already)
+13:42 <@jrandom> hmm, perhaps that sort of thing could go into cervantes' i2p xul app
+13:43 <@jrandom> but thats getting further off topic from the 2) 0.5 strategy
+13:43 <@jrandom> anyone else have anything for that, or shall we move on to 3) naming?
+13:44 -!- Irssi: #i2p: Total of 40 nicks [2 ops, 0 halfops, 6 voices, 32 normal]
+13:44 <@jrandom> consider us moved
+13:44 <@jrandom> ok, aparently i kind of jumped the gun w/ the 2.0.1 ref of addressbook - Ragnarok, want to give us an update?
+13:44 <+ugha2p> jrandom: Can we expect the dates on the roadmap to be correct?
+13:45 <@jrandom> ugha2p: they currently reflect my best estimate
+13:45 <+ugha2p> jrandom: Ok, right.
+13:45 < Ragnarok> it's released now
+13:45 <@jrandom> w00t
+13:45 < Ragnarok> check ragnarok.i2p
+13:45 < Ragnarok> I wasn't planning on releasing it yet, but jrandom forced my hand :)
+13:46 <@jrandom> hehe
+13:46 <+ugha2p> Ragnarok: Btw, you're missing a link from the homepage. :)
+13:46 < Ragnarok> it's just a few bug fixes, nothing major, but it should deal better with some corner cases
+13:46 <@jrandom> its on the top right ugha2p 
+13:47 < Ragnarok> ugha2p: it's on the sidebar
+13:47 < Ragnarok> I'll add links to the post as well, though :)
+13:47 < mule2> "that'll be the day when i die". daily IP change to set the clock after.
+13:48 < Ragnarok> anyway, if everyone could try it out, that'd be nice.  Bug reports are always appreciated
+13:48 <+ugha2p> Ragnarok: Oh, that sidebar is seriously fucked in Opera.
+13:48 < mule2> Lease expired 12773d ago
+13:49 <+ugha2p> Ragnarok: Well, not really fucked, but just located at the end of the page.
+13:49 <@jrandom> cool Ragnarok, thanks
+13:49 < Ragnarok> your window's probably not wide enough
+13:49 <+ugha2p> Ragnarok: Right, but it should work with any window size.
+13:50 <+ugha2p> So you might want to fix it in the future. :)
+13:50 < Ragnarok> ugha2p: should is an interesting choice of words :)
+13:50 < Frooze> ah, wrong in mozilla 1.7 too.  my window is small though.
+13:50 <+ugha2p> Why's that?
+13:50 < Frooze> thanks ragnarok.  cool stuff.
+13:51 < Ragnarok> I may fix it in the future, but it's really low on my priorities
+13:51  * jrandom prefers addressbook updates to html fixes
+13:52 < Ragnarok> anyhoo, any questions?
+13:53 < frosk> thanks for addressbook, Ragnarok, sounds very useful
+13:54 <+ugha2p> Is the documented way of loading addressbook the only way, or are there any less intrusive ones?
+13:54 < kaji> i just installed it, it rocks
+13:54 < Ragnarok> you can start it by hand using "java -jar addresbook.jar <path to i2p/addressbook>"
+13:54 < Ragnarok> thank you :)
+13:55 < kaji> oh, and i dled version 2.0.0 is there an update someware?
+13:55 < Ragnarok> ok, I fixed the column, it was just a stupid mix of absolute and realitive sizes
+13:56 < Ragnarok> yep, there's 2.0.1 up now on ragnarok.i2p
+13:57 <+ugha2p> I'm getting "Failed to load Main-Class manifest attribute from" now, but never mind, I'll do a restart later.
+13:57 < Ragnarok> whoops
+13:58 < Ragnarok> that's my bad
+13:58 < Ragnarok> I'll try to fix that soon
+13:58 <+ugha2p> Ah, okay. :)
+13:58 < Ragnarok> there will also be an easy to install .war version soon
+13:59 < dm> jrandom: you are a machine
+14:00 <@jrandom> wikked, thanks Ragnarok 
+14:00 <@jrandom> susi23: ping?
+14:00 < susi23> 1200ms
+14:01 <@jrandom> !thwap
+14:01 <@jrandom> anyway, wanna give us a rundown on whats up w/ susidns?
+14:01 <@jrandom> or should that wait for later?
+14:01 < susi23> do we have time for a more general discussion about naming stuff?
+14:02 < susi23> what features we want in the future?
+14:03 <@jrandom> some of my thoughts are posted up on http://dev.i2p.net/pipermail/i2p/2004-February/000135.html
+14:03 <@jrandom> (for what general features)
+14:04 <@jrandom> i think the hardest thing will be weaning people off globally unique human readable names, but with some good interfaces it should be doable
+14:04 < Ragnarok> implementing the data structures you outlined in xml is one of my next goals
+14:04 < susi23> ok, there is a small writing about attributes at http://susi.i2p/removablekeys.html
+14:05 < ant> <Jnymo> wow.. pretty crowded in here tonight
+14:05 < bens> ragnarok: have you checked out YAML? Might be easier
+14:05 <+ugha2p> Jnymo: Yeah, we're trying to hold a meeting here.
+14:05 < Ragnarok> YAML's name is far too apt
+14:05 <@jrandom> cool susi23, though i think we'll definitely want to migrate away from the plain hosts.txt format
+14:05 < ant> <Quadn-werk> addition of a command line graceful restart?
+14:06 < ant> <Jnymo> ugha2p: ah
+14:06 < susi23> are there any ideas how to keep names unique in the long run?
+14:06 <@jrandom> one of the important parts of the data to be managed in the naming service is for an entry to be signed, requiring some hard structure (or careful xml)
+14:07 <@jrandom> i dont believe in globally unique human, human readable, and secure names.
+14:07 <@jrandom> (i bundle centralized & secure together)
+14:07 <@jrandom> susi23: have you seen http://zooko.com/distnames.html ?
+14:07 < Ragnarok> I think using an addressbook like system, the names will end up being mostly unique, since it's in the interest of the person claiming a name not to choose one that's already in use
+14:08 <@jrandom> Ragnarok: we'll see.  perhaps
+14:08 < susi23> i'll check this out
+14:08 < bens> I suspect trusted authorities will emerge
+14:08 < Ragnarok> well, there already is one
+14:08 < frosk> hosts.txt? :)
+14:09 < Ragnarok> jrandom's, yeah
+14:09 <@jrandom> or if not trusted authorities, names that include the path to uniquely identify it
+14:09 <@jrandom> (e.g. "the site orion.i2p calls 'frosk.i2p'")
+14:10 <@jrandom> Derek Eddington had some posts along those lines in september - http://dev.i2p.net/pipermail/i2p/2004-September/000432.html
+14:10 < bens> frosk.orion.i2p
+14:10 <@jrandom> smtp.frosk.ns.orion.i2p
+14:11  * jrandom starts building uucp bang paths
+14:11 < frosk> hah
+14:12 < susi23> ok, what now... how about a "naming roadmap"? :)
+14:12 < ant> <Jnymo> you guys have swayed me away from an absolute distributed dns for i2p.. somewhat.. but ducks ideas started me thinking that a trust system might work.. like, a lookup could bring back a list of sites/files, and each could be listed with the amount of trust that the network gives it
+14:12 < susi23> once we agreed what to do
+14:12 <@jrandom> thats a good idea susi23, wanna write one up?
+14:13 <@jrandom> trusting other people's trust has potential, but needs to be done very carefully
+14:13 < susi23> I could do this, but I still have no idea WHAT we want to do. There are some decisions to make.
+14:14 <@jrandom> (aka only according to the terms that you trust the peers along the chain to the trust author)
+14:14 < modulus> there is or there should not be a "network trust" of a site, trust has to be user-centric always
+14:14 <@jrandom> susi23: roadmap step 1: decide among $featureset
+14:14 < susi23> Or at least we have to develop all ideas into a more precise concept.
+14:14 < ant> <Jnymo> well, if it was explicitly simple.. like, if files i2p listed how many sites linked to siteinquestion.i2p
+14:15 < Ragnarok> ok, the I've updated the addressbook package with an executable jar.
+14:15 < ant> <Jnymo> er, files.i2p
+14:15 <@jrandom> jnymo: that turns into a centralized authority - files.i2p
+14:15 < modulus> not to say that you could poison the pool of links by establishing a shitload of sites.
+14:16 < modulus> googlebombing on i2p
+14:16 < ant> <Jnymo> true.. but files i2p could be decentralized
+14:16 < susi23> ok, how about collection ideas/information/concepts until, lets say january
+14:16 < orion> 'lo all. I see naming is on the table.. *again* :)
+14:16 < susi23> then comes the decision phase, ok?
+14:16 <@jrandom> sounds good - will you be the point of contact to gather that together?
+14:16 < Ragnarok> sure
+14:16 < modulus> doesn't matter if the trust aggregate is descentralized, trust has to emanate from the user. anything else can be poisoned imo.
+14:17 < susi23> can't we take the mailinglist for this?
+14:17 < bob> or perhaps ugha's wiki?
+14:17 < ant> <Jnymo> agreed.. but what how to do that? put a little trust meter bar at the top of the web browser?
+14:18 <@jrandom> the wiki would be good, we can gather links to all the previous discussions there
+14:18 < modulus> jnyo: probably the most feasible solution is to bind to the first name encountered or something.
+14:18 < dm> let's all give a hand of applause to jrandom for his wonderful project management
+14:18 < susi23> fine
+14:18 < modulus> but there are more ways than sausages.
+14:19 < susi23> url to the wiki? (for the records)
+14:19 < ant> * Jnymo claps
+14:19 <@jrandom> ugha.i2p
+14:19  * dm claps
+14:19 < susi23> ok
+14:19 < susi23> then I'm done and ping jrandom back ;)
+14:20 < ant> <Jnymo> modulus: so, if i refer a link to someone else, i'm refering them to the site i first binded to.. that might work.. 
+14:20 <+ugha2p> Looks like jrandom has ping timeouted.
+14:20 <@jrandom> ok cool, anything else on nami^W nm, no more on naming.  on to the wiki
+14:20 < modulus> anyway, if you're linking you'll probably want to put an absolute path in the link, not just a name
+14:21 <@jrandom> moving forward to 4) eepsite roundup
+14:21 < dm> dm.i2p is up and running
+14:21 <@jrandom> cool
+14:22 <@jrandom> ok, i dont really have much to add beyond whats mentioned in the mail
+14:22 < bob> nice to see an influx of sites!  all speedy to access as well!
+14:22 <@jrandom> aye, agreed bob
+14:22 < bob> orion, thanks for your work.. I use your site daily.
+14:22  * jrandom too, the 'last updated' is especially helpful
+14:23 < bob> dm: :-)
+14:24 <@jrandom> ok, if there's nothing more on that, we can jump to 5) ???
+14:24 <@jrandom> is there anything else people want to bring up for the meeting?
+14:24 < ant> <Jnymo> hows the net status?
+14:24 < ant> <Jnymo> wrt 4.2.5?
+14:25 <@jrandom> its looking good, but the release is only a few hours old, so too soon to tell
+14:25 < ant> <Jnymo> oh, heh
+14:25 < ant> <Jnymo> any fusenet news?
+14:26 <@jrandom> (http://piespy.i2p/i2p/i2p-current.png heh)
+14:26 < frosk> my work on i2pcontent has been largely put aside for some weeks, but the latest version of the document can be read at http://frosk.i2p/i2pcontent.html . if anyone is interested, do read, and do comment harshly if needs be (om irc when i'm not /away or mail to frosk@mail.i2p)
+14:26 < frosk> i2pcontent/fusenet/anything ;)
+14:26 < ant> <Jnymo> wordicus
+14:28 <@jrandom> ok, if there's nothing else...
+14:28 < mule2> tons of applause for all the excellent contributions
+14:29 <@jrandom> aye, y'all are doing some kickass shit
+14:29 < frosk> you too, jrandom :)
+14:29 < orion> word.
+14:29 < orion> yes, very much so, you too jrandom.
+14:29 < scintilla> hear hear!
+14:29 < ant> <Jnymo> yea, i noticed on the site, theres less info on how to help out
+14:29 <@jrandom> sometimes kickass, sometimes ass kicked ;)
+14:29 < orion> HIP HIP
+14:30 < ant> <Jnymo> HORRAY
+14:30  * orion smiles
+14:30 < Frooze> downloaded eclipse today, to learn java over holiday, because y'all are so impressive.
+14:30 <@jrandom> jnymo: many of the small easy-to-accomplish tasks have been done
+14:30 <@jrandom> ooh wikked Frooze 
+14:31 < Frooze> so, trouble on horizon.  heh
+14:31 <@jrandom> jnymo: i really should collect some more of them though and post 'em
+14:31 < ant> <Jnymo> jrandom: You still looking for someone to help out on alexandria.i2p?
+14:31 <@jrandom> (take cover arizona!)
+14:31  * jrandom is not involved in alexandria, but yes, i believe they are still looking for a librarian
+14:31 < ant> <Jnymo> learn to swim, folks ;)
+14:31  * orion loves pump up the volume references. Vague though they may be.
+14:31 <@duck> yes we do
+14:31 <@jrandom> :)
+14:31 < Ragnarok> jrandom: where is the war actually supposed to go?
+14:31 <@jrandom> (orion++)
+14:32 <@jrandom> Ragnarok: i2p/webapps/addressbook.war
+14:32 <@jrandom> (then restart the router)
+14:32 < ant> <Jnymo> duck, you talkint to me?
+14:32 < Ragnarok> cool.  I shall commence testing
+14:32 <@jrandom> r0x0r
+14:32 < ant> <Jnymo> duck: is alexandria on your site?
+14:33 <@duck> duck.i2p/alexandria/
+14:33 < ant> <Jnymo> word
+14:34 <@jrandom> ok, if thats all, we can slide out of here @ the 90m mark..
+14:34  * jrandom winds up
+14:34  * jrandom *baf*s the meeting closed

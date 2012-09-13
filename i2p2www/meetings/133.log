@@ -1,323 +1,317 @@
-{% extends "_layout.html" %}
-{% block title %}I2P Development Meeting 133{% endblock %}
-{% block content %}<h3>I2P dev meeting, March 15, 2005</h3>
-<div class="irclog">
-13:07 < jrandom> 0) hi</p>
-13:07 < jrandom> 1) Net status</p>
-13:07 < jrandom> 2) Feedspace</p>
-13:07 < jrandom> 3) ???</p>
-13:07 < jrandom> 0) hi</p>
-13:07  * jrandom waves</p>
-13:07 < jrandom> weekly status notes up @ http://dev.i2p.net/pipermail/i2p/2005-March/000649.html</p>
-13:08 < Teal> hi</p>
-13:08 < jrandom> (yeah, i was late this time, but close!)</p>
-13:08 < frosk> hi</p>
-13:08 < jrandom> might as well jump on in to 1) net status</p>
-13:08 < jrandom> the net, its, like, up, 'n stuff</p>
-13:09 < jrandom> overall throughput is still down where it was before, with a substantial number of dropped messages & fragments</p>
-13:09 < bla> hi</p>
-13:09 < ant> &lt;dm&gt; bad</p>
-13:09 < Teal> any clues as to why ?</p>
-13:10 < jrandom> Teal: sure, read the status notes?  :)</p>
-13:10 <+detonate> hi</p>
-13:11 < jrandom> there are still ~ 25 people on older builds, and likely, they'll be staying there until we drop them off the net</p>
-13:11 < jrandom> in any case, we should be able to work around them, so having them here is actually helpful, i suppose</p>
-13:11 < jrandom> (though it'd be nice if they upgraded... ;)</p>
-13:11 < cervantes> (hi)</p>
-13:11 < frosk> those are probably sheeple who installed i2p because they read about it somewhere and wanted to try "anonymous p2p"</p>
-13:12 < ant> &lt;BS314159&gt; yeah, if network quality degradation can happen due to bugs, it's possible due to malice</p>
-13:12 < newkid> This is the first meeting I am in, but I read the notes, and the problem seems related to what I explained before the meeting</p>
-13:12 < Pseudonym> do we know what specific probblems the old nodes are causing and why?</p>
-13:12 < jrandom> bs314159: never attribute to malice what can be attributed to jrandom writing bad code ;)</p>
-13:13 < jrandom> Pseudonym: yeah, see the changelog</p>
-13:13 < newkid> I run two nodes, milliseconds apart, and they don't regard eacxh other "fast" more of the time</p>
-13:13 < jrandom> right newkid </p>
-13:13 < jrandom> the speed calculator as deployed is, well, pretty shitty</p>
-13:13 < jrandom> it doesnt gather enough data to have any sort of confidence in the values</p>
-13:13 < bla> Hmm.. That's bad at best ;)</p>
-13:13 < jrandom> its about as meaningless as the "instantaneous rates" you can see on /oldconsole.jsp</p>
-13:14 < jrandom> i'm trying out some new calculators, and there is an improvement, but there are problems in the algorithm</p>
-13:14 < jrandom> namely, it won't let high capacity peers turn into fast peers without those fast peers dropping from the high capacity group</p>
-13:15 < bla> jrandom: Does every node get "fastness" data for the other nodes directly ("P2P"), or via tunnels?</p>
-13:15 < jrandom> (aka the first K peers placed in the fast group will stay in the fast group)</p>
-13:15 < jrandom> bla: tunnels, we cannot trust direct measurement, as that'd allow trivial anonymity attacks</p>
-13:15 < godmode0> "alfYl6RvHzw="  =   "21538-900"</p>
-13:15 < godmode0> "alV9ye/y/Us="  =  "23565-200"</p>
-13:15 < godmode0> its is sha1 ?</p>
-13:15 < jrandom> (e.g. be really really slow to everyone except Alice)</p>
-13:15 <+detonate> they'll stay there for the lifetime of the router?</p>
-13:15 < jrandom> godmode0: we're in a meeting right now</p>
-13:16 < godmode0> ops sorry</p>
-13:16 < jrandom> detonate: until one of them failed or rejected a tunnel (aka their capacity rank drops them from the high capacity group)</p>
-13:16 <+detonate> ok</p>
-13:17 < bla> bla: Hmm.. This sounds like a problem that ---in order to get _really_ enough_ data--- has to be &gt;&gt;log(N) on the network. </p>
-13:17 < jrandom> i've been toying with some ideas to get more data, but haven't updated it yet</p>
-13:17 < bla> In terms of load, that is.</p>
-13:18 < jrandom> well, one of the critical points certainly is when the network load exceeds the network capacity</p>
-13:18 < jrandom> i believe our capacity calculators can handle that though</p>
-13:18 < cervantes> jrandom: is -3 actually employing this fast peer selection method?</p>
-13:18 <+polecat> Hopefully since data transfer between peers has fairness controls, there won't be any way to increase load too much...</p>
-13:19 < bla> jrandom: Well, I mean more specifically: we need to make sure that the "finding out who is fast" algo. stays O(log(N))</p>
-13:19 < jrandom> cervantes: yeah, but as i said, it doesn't allow promoting peers between fast and high capacity</p>
-13:19 < jrandom> polecat: fairness controls?</p>
-13:19 < cervantes> since I've just realised I've had the proxy enabled, and have been browsing the live web without realising (I did think my connection was a little sluggish) ;-)</p>
-13:20 < cervantes> s/live web/outerweb</p>
-13:20 < jrandom> bla: i'm not sure we should be dependent upon N.  no need to find an optimal 'fastest on the net', merely 'fast enough to handle our data'</p>
-13:20 <@smeghead> it would seem i2pProxy.pac is dangerous even for its creator :)</p>
-13:20 < jrandom> heh nice cervantes :)</p>
-13:20 < jrandom> lol</p>
-13:20 < cervantes> so it certainly seems to have improved things on my home node which was really suffering before</p>
-13:21 < ant> &lt;BS314159&gt; jrandom: can you randomize it?</p>
-13:21 < cervantes> smeghead: hehe hell I don't use that! you think I'm mad!</p>
-13:21 < ant> &lt;BS314159&gt; i.e. create a spontaneous transition rate?</p>
-13:21 < jrandom> BS314159: we use the tiers, and randomize within the tiers</p>
-13:22 < jrandom> BS314159: spontaneous rates are essentially what we have now, which fluctuate widely</p>
-13:22 < jrandom> (we == 0.5.0.2-0)</p>
-13:22 < ant> &lt;BS314159&gt; I think I don't understand the problem. nm.</p>
-13:23 < jrandom> it is tough to do safely and accurately, but i think there's enough data around for us to harvest sufficient info.  we shall see</p>
-13:23 < bla> jrandom: In any case, finding out a couple of good nodes looks an awful lot like an ant-colony optimization thing</p>
-13:24 < bla> jrandom: Because once you've got fast peers, you're likely to use _those_ to find out who else is fast.</p>
-13:24 < jrandom> would you propose further active probing along those lines?</p>
-13:24 < jrandom> ah, actualy, thats not true</p>
-13:25 < jrandom> thats the difference between client tunnels and exploratory tunnels</p>
-13:25 < bla> jrandom: And thus, it seems you'd essentially be doing a greedy optimization scheme (much like ant-colony)</p>
-13:25 < jrandom> client tunnels are built with fast peers, exploratory tunnels are built with any non-failing peer</p>
-13:25 < jrandom> (chosen randomly)</p>
-13:26 < bla> jrandom: Hmm.. For anonimity, that's good. However, for quickly finding good tunnel-partners to use, it would be better to use fast peers in the expl. tunnels... The trade-off again</p>
-13:26 < jrandom> otoh, there may be something in that vein to help optimize the peer selection</p>
-13:26 < jrandom> oh, right, certainly you'd get better performance by using the fast peers, but then you wouldn't be exploring :)</p>
-13:27 < jrandom> the exploratory tunnels aren't used for end to end client messages, just for netDb messages, tunnel maintenance messages, and peer test messages</p>
-13:27 < bla> jrandom: I see, so effectively, you use random expl. tunnels to prevent falling into local optima?</p>
-13:27 < jrandom> so the actual throughput of the exploratory tunnels doesnt matter (as long as the data gets through, eventually)</p>
-13:27 < jrandom> aye</p>
-13:29 < bla> jrandom: Ok, I see. OTOH: When I use my client tunnels to transfer some data (like downloading from an eepsite), I seems to me (intuitively), that the timing/throughput data on that could also serve as some kind of "passive peers assessment", couldn't it?</p>
-13:29 < jrandom> definitely bla, and at the moment, we don't yet harvest that data within the speed selection</p>
-13:29 < bla> jrandom: i.e. as an aux. way to get more data on peers</p>
-13:30 < jrandom> some of it we can, though some of it will be harder to grab (since the streaming lib is external)</p>
-13:30 < jrandom> we should definitely grab what we can though to get more confidence</p>
-13:30 < ant> &lt;BS314159&gt; won't that depend on the slowest link in any tunnel?</p>
-13:31 < ant> &lt;BS314159&gt; making it very difficult to use for hops&gt;0?</p>
-13:31 < jrandom> BS314159: yeah, but it'll average out, as peers are selected randomly within the fast tier</p>
-13:31 < jrandom> same goes for any remote measurement</p>
-13:34 < jrandom> ok, so thats generally where things stand atm.  hopefully we'll have some new calculators & stats up for a -4 or -5 build in the next few days, trying to see how it handles the live net</p>
-13:34 < jrandom> anyone have anything else to bring up for 1) Net status?</p>
-13:34 < bla> jrandom: It may seem that I'm putting a truckload of emphasis on this, but it seems to me to be a problem that['s very fundamental for a big I2P net to work...</p>
-13:35 < jrandom> bla: its certainly important, but remember, we don't need optimal peer selection.  merely sufficient</p>
-13:35 < ant> &lt;aum&gt; morning folks</p>
-13:36 < jrandom> all we care about is finding some peers who can handle a tunnel, and making sure those tunnels can handle our data</p>
-13:36 < jrandom> 'mornin aum, in time for the meeting :)</p>
-13:36 < bla> jrandom: I see. Thnx for the explaination!</p>
-13:36 < jrandom> of course, you're right in that it'd be kickass if we /could/ find the optimal peer selection ;)</p>
-13:37 < jrandom> and there is definitely lots of room for some students to work out some ideas and write up some papers</p>
-13:37 < frosk> this would be a cool thesis project :)</p>
-13:37 <+detonate> how workable do you think it would be to actively tweak the parameters of the peer selection until it hopefully settles on something that works, disregarding the impossibility of debugging such a system? :)</p>
-13:38 < jrandom> detonate: manual peer selection is a PITA, since fast peers get congested occationally, asking you to back off, etc.  </p>
-13:38 <+detonate> ah</p>
-13:39 < jrandom> i know we could dig into this forever, which is why i've set a milestone of successfully transferring one specific large file through standard tunnels, without disconnect</p>
-13:39 <+detonate> alright</p>
-13:40 < Teal> Victory at any cost!</p>
-13:40 < jrandom> (otoh, there are some undocumented features of the peer selection system to let people weight individual peers manually, but i'm not recommending 'em ;)</p>
-13:40 < jrandom> ok, thats 'bout it for 1), now lets swing on to 2) Feedspace</p>
-13:41  * jrandom hands the mic to frosk </p>
-13:41 < frosk> oh, ok, hi</p>
-13:42 < Myo9> Hi Frosk.</p>
-13:42  * jrandom gets out the high intensity spotlight</p>
-13:42 < frosk> so, everyone should check out http://feedspace.i2p (keys at orion or jrandom's blog)</p>
-13:42 < frosk> my devbuddy (which i will out now as ku) and i have started writing some code and have had many lively discussions</p>
-13:42 < frosk> also, http://feedspace.i2p/wiki/CallForComments has a fresh rev of the feedspace document :)</p>
-13:43 < frosk> hi Myo9</p>
-13:43 < frosk> oh yeah, feedspace is our new (and final) name for what used to be known as i2pcontent or fusenet :)</p>
-13:43 < jrandom> r0x0r</p>
-13:43 < frosk> as the status notes notes, we are still very interested in feedback on the general design of everything</p>
-13:44 < frosk> nobody should be shy about challenging it :)</p>
-13:44 < frosk> and the web site also lists some "job openings", we could use some helping hands on many aspects of the system and project</p>
-13:45 < frosk> we're on a pretty tight schedule and none of us are full-time developers on the project unfortunately</p>
-13:45 < frosk> so that's pretty much it, i think. questions? :)</p>
-13:45 < ant> * aum can't reach orion.i2p or jrandom's blog, so can't reach feedspace.i2p</p>
-13:46 < frosk> hm yes, the web site also has a roadmap, but the dates there _will_ change :)</p>
-13:46 < legion> feedspace.i2p=KuW5sR2iGCfnnuwdslHbFsNyNCsoZnoIwAmHeypOV-s8OQxokBpdNazksBrhoQum9nv81vprl6k15Mhcd~KWE4OajjmdU7v2fjqps7QK3KmLv4UTrX-ihSIUdhb5B9FLh2XEFEQ4-8guFTVxBRqQQE~c058AL6~uZpuFpLtEOg0HEZ6BydndOhx-FCDm8ip12pPwZ3a5O86l1UoATZBXxoctGafTjnUlx64jyQs6y0WB811l36wVrc~~dqEcanxab0yfg8dJ~1M4EUNrXcHT-PwYYrr3GgpimuF4oUtYjkeDKlq5WjfMAa8bE73HFgquxq99fuW5aI1JbLPxnTLHi00-2On0dSDwJxSP08HOhKFKMNzykI9Asg8CywzNO6kWpbX9yaML36ohCJF0iaLvvDyhS4a2B65crSJRJPVkbxIvsyyUyYMGi31EK593ijOLjOvug</p>
-13:46 < legion> there you go aum</p>
-13:46  * jrandom just added feedspace to http://dev.i2p.net/i2p/hosts.txt</p>
-13:46 < jrandom> (and cvs)</p>
-13:46  * frosk goes temporarily blind</p>
-13:46 < jrandom> legion: never paste as a single line, its too large to fit</p>
-13:47 < ant> &lt;aum&gt; thx</p>
-13:47 < frosk> jrandom can probably commit the key into his hosts.txt maybe? :)</p>
-13:47 < jrandom> aye, 'tis on there now, forgot to :)</p>
-13:48 < frosk> anyway, the plan is to have something simple and functional (and 100% bug-free!) out by I2P 0.6.1, and we'll build more neat stuff in later</p>
-13:49 < jrandom> heh wikked</p>
-13:49 < frosk> s/out/ready for real-world testing/</p>
-13:49 < frosk> i still can't say if that's realistic or not, but i hope it will be, or we'll continue to cut features ;)</p>
-13:49 < ant> &lt;BS314159&gt; since I can't reach feedspace.i2p, I'll ask a basic question</p>
-13:50 < ant> &lt;aum&gt; that key is not correct, only 441 chars</p>
-13:50 < jrandom> right aum, irc trims it, snag http://dev.i2p.net/i2p/hosts.txt</p>
-13:51 <+detonate> frosk: i have a suggestion for the meantime</p>
-13:51 <+detonate> get something on the i2p router console that grabs a list of updates from the i2p webserver, so people know when to update their routers, etc :)</p>
-13:51 < legion> ah sorry, about that. Anyways I've already commited it to my hosts.txt also.</p>
-13:51 < ant> &lt;aum&gt; thx jrandom</p>
-13:51 < ant> &lt;BS314159&gt; which of the following systems do you see feedspace supplanting: usenet, gnutella, google, livejournal, www</p>
-13:52 < jrandom> , the church</p>
-13:52 < jrandom> er..</p>
-13:52 < cervantes> jrandom: ah you caught me mid commit of hosts</p>
-13:52 < ant> &lt;BS314159&gt; i.e. is it a message forum, a filesharing system, a content indexing system, a dynamic page system, and/or a static serving system</p>
-13:53 < ant> * aum turns off throttling within routerConsole, and sees if that helps</p>
-13:54 < frosk> BS314159: we will support blogs, forums, and shared address books (for the first version, other applications are possible)</p>
-13:54 < frosk> it doesn't replace web pages per se</p>
-13:54 < frosk> but it certainly could be used for "file sharing"</p>
-13:54 <+detonate> content syndication then?</p>
-13:54 < jrandom> it'd probably supplant static web content though, allowing persistent web publication for people who cannot run eepsites</p>
-13:54 < frosk> that's what it's about</p>
-13:55 < jrandom> (two word summary: usenet+SSK)</p>
-13:55 < frosk> yeah</p>
-13:55 < ant> &lt;BS314159&gt; ok</p>
-13:55 < Ragnarok> not that persistent</p>
-13:56 < jrandom> Ragnarok: depends on syndicator policy, true</p>
-13:56 <+detonate> is anything happening with stasher?</p>
-13:56 < frosk> it can be as persistant as the most eager syndicator :)</p>
-13:56 < jrandom> (see: dejanews ;)</p>
-13:56 < ant> &lt;aum&gt; detonate: stasher is on hold, writing a whole new thing called quartermaster</p>
-13:57 <+detonate> i see</p>
-13:58 < jrandom> frosk: what can we do to help?</p>
-13:59 < jrandom> should people register & hack on the wiki, email, post on the forum?</p>
-13:59 < jrandom> oh, perhaps we can get cervantes to add a new forum category?</p>
-13:59 < frosk> i think actually a forum would be very nice at this point</p>
-14:00 < frosk> for more private discussion, you can email us both at ku@mail.i2p and frosk@mail.i2p</p>
-14:01 < cervantes> hrrrm ... are you going to put game reviews in it?</p>
-14:01 < jrandom> heh</p>
-14:01 < jrandom> w3rd</p>
-14:01 < cervantes> because if not...then you're welcome to have a new forum section</p>
-14:01 < frosk> i was thinking top20 music reviews, cervantes</p>
-14:02 < jrandom> (btw, mirror of the call for comments @ http://dev.i2p.net/~jrandom/feedspace.txt)</p>
-14:02 < cervantes> :)</p>
-14:04 < cervantes> frosk: feedspace or feed space or Feedspace or Feed Space or FeedSpace?</p>
-14:04 < frosk> cervantes: Feedspace</p>
-14:05 < frosk> looking forward to much discussion over at the forum then :) i don't have anything else for this point, anyone else?</p>
-14:05 < jrandom> ok cool, thanks for the update frosk </p>
-14:06 <@smeghead> or FEeDspace?</p>
-14:06 < ant> &lt;cervantes&gt; frosk: when you have a moment, just pm me a one liner description for the forum section</p>
-14:06 < legion> hmm speaking of new forums, lol. I'm putting a new forum site together. Though I have much hacking left to do on the phpbb code, it should be finshed sometime this week. ;)</p>
-14:06 < jrandom> cool legion </p>
-14:06 < jrandom> that actually brings us into 3) ??? nicely</p>
-14:06 < jrandom> anyone have anything else to bring up? </p>
-14:06 < jrandom> aum: any updates on Q?</p>
-14:07 < frosk> i, uhm, no</p>
-14:07 < ant> &lt;aum&gt; Q devlt is moving along nicely, nothing to announce atm</p>
-14:07 < jrandom> w3rd</p>
-14:07 < ant> * aum is 90% complete with net.i2p.i2ptunnel.I2PTunnelXMLServer</p>
-14:07 < ant> &lt;BS314159&gt; I have a simple question about netDb</p>
-14:07 < ant> &lt;aum&gt; everything's working now except 'i2p.tunnel.close'</p>
-14:07 < legion> my forums will allow for members to have decent sized avatars, discuss shared content, just about whatever.</p>
-14:08 < jrandom> wikked</p>
-14:08 < ant> &lt;BS314159&gt; it says on the page that entries are stores on the peers closest to SHA256(router identity + YYYYMMdd)</p>
-14:08 < jrandom> right BSpi</p>
-14:08 <@smeghead> legion: will it be as much a security hazard as your bt client?</p>
-14:08 < ant> &lt;BS314159&gt; does this mean there's a burst of traffic every 00:00 GMT?</p>
-14:08 < ant> * aum is actually gaining some fluency in java, having attained a 'cognitive critical mass'</p>
-14:09 < jrandom> BS: data points expire more frequently than they migrate</p>
-14:09 < jrandom> a LeaseSet is only good for 10 minutes, for example</p>
-14:09 < bla> jrandom: Is there a command-line call  I can make, such that I can speed estimates of each of the peers in the net over the last, say, 60 seconds, or so?</p>
-14:09 < legion> lol, forums a security hazard?</p>
-14:10 <@smeghead> legion: yes, and if you don't know that much, i'm already convinced that your forums will be a security hazard</p>
-14:10 < jrandom> bla: yeah, java -cp lib/i2p.jar:lib/router.jar -Djava.library.path=. net.i2p.router.peermanager.ProfileOrganizer peerProfiles/*</p>
-14:10 < jrandom> (i think)</p>
-14:10 < legion> oh and the next release of my bt client shouldn't cause such issues...</p>
-14:10 < jrandom> you may need to add some log levels to logger.config, lemmie check</p>
-14:10 <@smeghead> legion: Cervantes made a ton of modifications to phpBB to lock it down for i2p use</p>
-14:10 < ant> &lt;BS314159&gt; It just seems like having it occur all-at-once at a specified time is awkward.  If it were happening continuously, that would seem...smoother.  It would also give an attacker less time to mount an attack, since bits of the data would be wrong in less than 24 hours</p>
-14:11 < jrandom> nah, it dumps to stdout</p>
-14:11 < frosk> jrandom: how do you feel about the i2p roadmap currently, if one may ask? do you think it's realistic?</p>
-14:11 < legion> Hmm I wonder if I can get a copy of cervantes mods?</p>
-14:11 < jrandom> frosk: i update it when i become uncomfortable with it</p>
-14:12 < frosk> ok</p>
-14:12 <+detonate> you know, there's a windows installer for python 2.4, one for wxpython, and there's the i2p-bt tarball, i don't really see why anyone would get/trust a third-party release</p>
-14:12 < legion> Otherwise I'll just have to continue to hack on the phpbb source myself...</p>
-14:12 < jrandom> BS: peers would only look in the wrong place for up to 30s, due to clock synchronization</p>
-14:12 <@smeghead> legion: have fun</p>
-14:12 < legion> well why would anyone get and use kazaa?</p>
-14:13 < bla> jrandom: I'm asking, because...</p>
-14:13 < legion> Or morpheus?</p>
-14:13 < jrandom> (because they dont know better?)</p>
-14:13 < legion> Both of those contain adware/etc...</p>
-14:13 <+detonate> they are ignorant?</p>
-14:14 < legion> yeah and there are millions of ignorant users out there. ;)</p>
-14:14 < ant> &lt;BS314159&gt; legion: you sound like you want to bundle spyware with I2P.  Truly, a stroke of genius.</p>
-14:14 < bla> jrandom: ...I browsed SpeedCalculator.java and CapacityCalculator.java, and I'd like to experiment with the estimators</p>
-14:14 < cervantes> legion: stay uptodate with official patches, and put htaccess on the admin areas</p>
-14:14 < jrandom> wikked bla</p>
-14:14 < legion> What? Heck no... I hate malware...</p>
-14:14 < cervantes> most of my mods involve spam prevention</p>
-14:14 < ant> &lt;aum&gt; can i raise a more critical issue?</p>
-14:14 < legion> That's it? cervantes?</p>
-14:15 < jrandom> sup aum?</p>
-14:15 <@smeghead> legion: what about your users that also hate malware? why do you do nothing to alleviate any concerns they might have?</p>
-14:15 < ant> &lt;dm&gt; BS314159: are you a windows hotfix?</p>
-14:15 < ant> &lt;aum&gt; is it just me, or is there still some flakiness going on with in i2p? i'm having heaps of trouble with even main eepsites, irc etc</p>
-14:15 < bla> jrandom: In addition, the idea of "passive fingerprinting" is now in my head (a bit ;): If I receive data through a tunnel, this tells me something about the bandwidth/capacity of all the peers in that tunnel:...</p>
-14:15 < jrandom> aum: see the weekly status notes</p>
-14:16 < cervantes> legion: rename all registration, login , posting and profile editing pages to something non-standard </p>
-14:16 < bla> jrandom: It tells me some about the peer closest to me, somewhat less about the peers one step away, and so progressively less.</p>
-14:16 < cervantes> will help keep worms at bay</p>
-14:16 < jrandom> bla: aye, i read that timing paper, and yesterday's tor attack paper with much interest</p>
-14:17 < Myo9> Cervantes, releasing ant of your mods?</p>
-14:17 < Myo9> s/ant/any/</p>
-14:17 < jrandom> there is worry along those lines in the capacity calculator with the different tiers of rejection</p>
-14:18 < bla> jrandom: In a way, this gives me some degree of "belief" in a peers bandwidth/capacity (that degree of belief depends on the distance to each of the tunnel members, and on the amount of belief I have on the BW/cap. of the nodes closest to me)</p>
-14:18 < legion> thanks for the advice cervantes :)</p>
-14:18 < bla> jrandom: Now, I happen to know some ppl that know a lot about Bayesian Belief Networks... ;))</p>
-14:18 <@smeghead> again, legion ignores the question</p>
-14:18 <+thetower> I think we're all gonna have to call a truce with legion and let him write whatever he wants, its not like anyone is forced to use it.</p>
-14:18 < jrandom> hmm, what do you mean by distance bla?</p>
-14:18 < ant> &lt;dm&gt; what is legion up to?</p>
-14:19 < bla> jrandom: I'll have a chat with them, regarding passive fingerprinting (note: I do not mean "fingerprinting" in the negative sense of the word)</p>
-14:19 < jrandom> wikked</p>
-14:19 < jrandom> suggestions as to how we can best select 'quality' peers are very much welcome</p>
-14:19 < cervantes> Myo9: I certainly could do.</p>
-14:19 < legion> Anyways there isn't many i2p windows users just yet and not that many running my i2p-bt binary distribution. Soon my next release will be done and released, it will not have such issues... As there will be a binary and source distribution.</p>
-14:19 <@smeghead> why anyone would want to use software from someone who doesn't even take the most basic measures to address users' concerns about security and anonymity is beyond me</p>
-14:20 < ant> &lt;aum&gt; frosk: what lang you writing feedspace in? (forgive me if i asked you before)</p>
-14:20 < cervantes> it's not a clean "patch" or anything though</p>
-14:20 < bla> jrandom: distance... Say I have an inbound tunnel X -&gt; Y -&gt; me, and I know a _lot_ about Y's properties, than stats on what I receive thru that tunnel tells me a good deal about X</p>
-14:20 < frosk> aum: java (and i forgive you ;)</p>
-14:20 < cervantes> I've just been fixing stuff andproblems as it arises</p>
-14:20 < bla> jrandom: OTOH, if I have little data/belief on Y's properties, transfer stats don't tell me much about X yet; I first have more to learn about Y</p>
-14:20 < cervantes> as they</p>
-14:20 < jrandom> bla: its very hard to tell whether lag or congestion occurs @ X or Y (or earlier hops)</p>
-14:20 < cervantes> http://forum.i2p/index.php?c=4</p>
-14:21 < cervantes> new section: Feedspace</p>
-14:21 < jrandom> w00t</p>
-14:21 < frosk> yay</p>
-14:22 < legion> anyways enough discussion about my release, any further discussion about it should be done in the #itorrent channel</p>
-14:22 < bla> jrandom: That is true. However, given large amount of data (and hoping that the measurement time is not _much_ larger than the timescale on which node properties change), I'm convinced there _must_ be information in traffic/tunnel stats</p>
-14:22 <@smeghead> legion: we can discuss in meeting point # 3) any business that affects i2p</p>
-14:23 <@smeghead> legion: and i think your software is of serious concern and warrants a warning to users</p>
-14:23 < legion> yeah, ok</p>
-14:23 < jrandom> bla: certainly, we just need to rope in the RTT from the OutboundClientMessageOneShotJob</p>
-14:23 < jrandom> (and then figure out how best to calculate & decay the data)</p>
-14:24 < legion> So smeghead if you were to make such a release, what would you do differently?</p>
-14:24 <@smeghead> legion: the way you continually dodge questions and try to defer discussion on the subject is very disconcerting</p>
-14:25 <@smeghead> legion: first of all, release the source to your current binary, no matter if it's "just i2p-bt with smeghead's patch", and have a writeup on your site explaining about your fork</p>
-14:25 < bla> jrandom: What does the RTT signify there?</p>
-14:26 <@smeghead> legion: it would be helpful to do as i2p-bt does also, and make a changelog indicating all the modifications you've made</p>
-14:27 < jrandom> bla: end to end client messages are often (by default, always) bundled in garlic wrapping, containing an additional DeliveryStatusMessage that returns to the sender (through tunnels, of course), allowing the use of AES+sessionTags instead of ElGamal</p>
-14:28 < bla> jrandom: (yes)</p>
-14:28 <+detonate> as i said, you could just provide a link to the download page for the three things you need for i2p-bt to work, it's straight-forward and gets you exactly the same thing, i can't actually see a use for it besides a trojan</p>
-14:28 < jrandom> later on we'll update I2CP (and the SDK) to allow the streaming lib to deliver that same data without requiring the DeliveryStatusMessage</p>
-14:29 <@smeghead> detonate: i agree, he should have just submitted a patch to the official i2p-bt in the first place, forking was completely unnecessary and fostered immediate suspicioun</p>
-14:30 <+detonate> indeed</p>
-14:30 <@smeghead> *suspicion</p>
-14:31 < jrandom> ok, anyone else have anything to bring up for the meeting?</p>
-14:31 < ant> &lt;drakoh&gt; hi people ! wanted to know, is there anything special with the network ?</p>
-14:32 <@smeghead> because of the nature of i2p, applications developed for it require a greater measure of openness with end users and cooperation among developers</p>
-14:32 < jrandom> drakoh: see the weekly status notes</p>
-14:32 < bla> quit</p>
-14:32 < ant> &lt;drakoh&gt; no I mean something strange ...</p>
-14:32 <@smeghead> i2p users will always be naturally paranoid to some extent, and it's our duty to do what we can to dispel any concerns we possibly can</p>
-14:32 < ant> &lt;drakoh&gt; like I lost all my peers</p>
-14:33 < jrandom> aye, agreed smeghead.  for anonymity or security software, especially software dealing with a trojan-laden field such as filesharing, its critical to be open.</p>
-14:33 < jrandom> drakoh: ok, hold on, we can debug that once the meeting is over</p>
-14:33 < ant> &lt;drakoh&gt; woops sorry</p>
-14:33 < jrandom> ok, speaking of the meeting being over...</p>
-14:34  * jrandom winds up</p>
-14:34  * jrandom *baf*s the meeting closed</p>
-</div>
-{% endblock %}
+13:07 < jrandom> 0) hi
+13:07 < jrandom> 1) Net status
+13:07 < jrandom> 2) Feedspace
+13:07 < jrandom> 3) ???
+13:07 < jrandom> 0) hi
+13:07  * jrandom waves
+13:07 < jrandom> weekly status notes up @ http://dev.i2p.net/pipermail/i2p/2005-March/000649.html
+13:08 < Teal> hi
+13:08 < jrandom> (yeah, i was late this time, but close!)
+13:08 < frosk> hi
+13:08 < jrandom> might as well jump on in to 1) net status
+13:08 < jrandom> the net, its, like, up, 'n stuff
+13:09 < jrandom> overall throughput is still down where it was before, with a substantial number of dropped messages & fragments
+13:09 < bla> hi
+13:09 < ant> <dm> bad
+13:09 < Teal> any clues as to why ?
+13:10 < jrandom> Teal: sure, read the status notes?  :)
+13:10 <+detonate> hi
+13:11 < jrandom> there are still ~ 25 people on older builds, and likely, they'll be staying there until we drop them off the net
+13:11 < jrandom> in any case, we should be able to work around them, so having them here is actually helpful, i suppose
+13:11 < jrandom> (though it'd be nice if they upgraded... ;)
+13:11 < cervantes> (hi)
+13:11 < frosk> those are probably sheeple who installed i2p because they read about it somewhere and wanted to try "anonymous p2p"
+13:12 < ant> <BS314159> yeah, if network quality degradation can happen due to bugs, it's possible due to malice
+13:12 < newkid> This is the first meeting I am in, but I read the notes, and the problem seems related to what I explained before the meeting
+13:12 < Pseudonym> do we know what specific probblems the old nodes are causing and why?
+13:12 < jrandom> bs314159: never attribute to malice what can be attributed to jrandom writing bad code ;)
+13:13 < jrandom> Pseudonym: yeah, see the changelog
+13:13 < newkid> I run two nodes, milliseconds apart, and they don't regard eacxh other "fast" more of the time
+13:13 < jrandom> right newkid 
+13:13 < jrandom> the speed calculator as deployed is, well, pretty shitty
+13:13 < jrandom> it doesnt gather enough data to have any sort of confidence in the values
+13:13 < bla> Hmm.. That's bad at best ;)
+13:13 < jrandom> its about as meaningless as the "instantaneous rates" you can see on /oldconsole.jsp
+13:14 < jrandom> i'm trying out some new calculators, and there is an improvement, but there are problems in the algorithm
+13:14 < jrandom> namely, it won't let high capacity peers turn into fast peers without those fast peers dropping from the high capacity group
+13:15 < bla> jrandom: Does every node get "fastness" data for the other nodes directly ("P2P"), or via tunnels?
+13:15 < jrandom> (aka the first K peers placed in the fast group will stay in the fast group)
+13:15 < jrandom> bla: tunnels, we cannot trust direct measurement, as that'd allow trivial anonymity attacks
+13:15 < godmode0> "alfYl6RvHzw="  =   "21538-900"
+13:15 < godmode0> "alV9ye/y/Us="  =  "23565-200"
+13:15 < godmode0> its is sha1 ?
+13:15 < jrandom> (e.g. be really really slow to everyone except Alice)
+13:15 <+detonate> they'll stay there for the lifetime of the router?
+13:15 < jrandom> godmode0: we're in a meeting right now
+13:16 < godmode0> ops sorry
+13:16 < jrandom> detonate: until one of them failed or rejected a tunnel (aka their capacity rank drops them from the high capacity group)
+13:16 <+detonate> ok
+13:17 < bla> bla: Hmm.. This sounds like a problem that ---in order to get _really_ enough_ data--- has to be >>log(N) on the network. 
+13:17 < jrandom> i've been toying with some ideas to get more data, but haven't updated it yet
+13:17 < bla> In terms of load, that is.
+13:18 < jrandom> well, one of the critical points certainly is when the network load exceeds the network capacity
+13:18 < jrandom> i believe our capacity calculators can handle that though
+13:18 < cervantes> jrandom: is -3 actually employing this fast peer selection method?
+13:18 <+polecat> Hopefully since data transfer between peers has fairness controls, there won't be any way to increase load too much...
+13:19 < bla> jrandom: Well, I mean more specifically: we need to make sure that the "finding out who is fast" algo. stays O(log(N))
+13:19 < jrandom> cervantes: yeah, but as i said, it doesn't allow promoting peers between fast and high capacity
+13:19 < jrandom> polecat: fairness controls?
+13:19 < cervantes> since I've just realised I've had the proxy enabled, and have been browsing the live web without realising (I did think my connection was a little sluggish) ;-)
+13:20 < cervantes> s/live web/outerweb
+13:20 < jrandom> bla: i'm not sure we should be dependent upon N.  no need to find an optimal 'fastest on the net', merely 'fast enough to handle our data'
+13:20 <@smeghead> it would seem i2pProxy.pac is dangerous even for its creator :)
+13:20 < jrandom> heh nice cervantes :)
+13:20 < jrandom> lol
+13:20 < cervantes> so it certainly seems to have improved things on my home node which was really suffering before
+13:21 < ant> <BS314159> jrandom: can you randomize it?
+13:21 < cervantes> smeghead: hehe hell I don't use that! you think I'm mad!
+13:21 < ant> <BS314159> i.e. create a spontaneous transition rate?
+13:21 < jrandom> BS314159: we use the tiers, and randomize within the tiers
+13:22 < jrandom> BS314159: spontaneous rates are essentially what we have now, which fluctuate widely
+13:22 < jrandom> (we == 0.5.0.2-0)
+13:22 < ant> <BS314159> I think I don't understand the problem. nm.
+13:23 < jrandom> it is tough to do safely and accurately, but i think there's enough data around for us to harvest sufficient info.  we shall see
+13:23 < bla> jrandom: In any case, finding out a couple of good nodes looks an awful lot like an ant-colony optimization thing
+13:24 < bla> jrandom: Because once you've got fast peers, you're likely to use _those_ to find out who else is fast.
+13:24 < jrandom> would you propose further active probing along those lines?
+13:24 < jrandom> ah, actualy, thats not true
+13:25 < jrandom> thats the difference between client tunnels and exploratory tunnels
+13:25 < bla> jrandom: And thus, it seems you'd essentially be doing a greedy optimization scheme (much like ant-colony)
+13:25 < jrandom> client tunnels are built with fast peers, exploratory tunnels are built with any non-failing peer
+13:25 < jrandom> (chosen randomly)
+13:26 < bla> jrandom: Hmm.. For anonimity, that's good. However, for quickly finding good tunnel-partners to use, it would be better to use fast peers in the expl. tunnels... The trade-off again
+13:26 < jrandom> otoh, there may be something in that vein to help optimize the peer selection
+13:26 < jrandom> oh, right, certainly you'd get better performance by using the fast peers, but then you wouldn't be exploring :)
+13:27 < jrandom> the exploratory tunnels aren't used for end to end client messages, just for netDb messages, tunnel maintenance messages, and peer test messages
+13:27 < bla> jrandom: I see, so effectively, you use random expl. tunnels to prevent falling into local optima?
+13:27 < jrandom> so the actual throughput of the exploratory tunnels doesnt matter (as long as the data gets through, eventually)
+13:27 < jrandom> aye
+13:29 < bla> jrandom: Ok, I see. OTOH: When I use my client tunnels to transfer some data (like downloading from an eepsite), I seems to me (intuitively), that the timing/throughput data on that could also serve as some kind of "passive peers assessment", couldn't it?
+13:29 < jrandom> definitely bla, and at the moment, we don't yet harvest that data within the speed selection
+13:29 < bla> jrandom: i.e. as an aux. way to get more data on peers
+13:30 < jrandom> some of it we can, though some of it will be harder to grab (since the streaming lib is external)
+13:30 < jrandom> we should definitely grab what we can though to get more confidence
+13:30 < ant> <BS314159> won't that depend on the slowest link in any tunnel?
+13:31 < ant> <BS314159> making it very difficult to use for hops>0?
+13:31 < jrandom> BS314159: yeah, but it'll average out, as peers are selected randomly within the fast tier
+13:31 < jrandom> same goes for any remote measurement
+13:34 < jrandom> ok, so thats generally where things stand atm.  hopefully we'll have some new calculators & stats up for a -4 or -5 build in the next few days, trying to see how it handles the live net
+13:34 < jrandom> anyone have anything else to bring up for 1) Net status?
+13:34 < bla> jrandom: It may seem that I'm putting a truckload of emphasis on this, but it seems to me to be a problem that['s very fundamental for a big I2P net to work...
+13:35 < jrandom> bla: its certainly important, but remember, we don't need optimal peer selection.  merely sufficient
+13:35 < ant> <aum> morning folks
+13:36 < jrandom> all we care about is finding some peers who can handle a tunnel, and making sure those tunnels can handle our data
+13:36 < jrandom> 'mornin aum, in time for the meeting :)
+13:36 < bla> jrandom: I see. Thnx for the explaination!
+13:36 < jrandom> of course, you're right in that it'd be kickass if we /could/ find the optimal peer selection ;)
+13:37 < jrandom> and there is definitely lots of room for some students to work out some ideas and write up some papers
+13:37 < frosk> this would be a cool thesis project :)
+13:37 <+detonate> how workable do you think it would be to actively tweak the parameters of the peer selection until it hopefully settles on something that works, disregarding the impossibility of debugging such a system? :)
+13:38 < jrandom> detonate: manual peer selection is a PITA, since fast peers get congested occationally, asking you to back off, etc.  
+13:38 <+detonate> ah
+13:39 < jrandom> i know we could dig into this forever, which is why i've set a milestone of successfully transferring one specific large file through standard tunnels, without disconnect
+13:39 <+detonate> alright
+13:40 < Teal> Victory at any cost!
+13:40 < jrandom> (otoh, there are some undocumented features of the peer selection system to let people weight individual peers manually, but i'm not recommending 'em ;)
+13:40 < jrandom> ok, thats 'bout it for 1), now lets swing on to 2) Feedspace
+13:41  * jrandom hands the mic to frosk 
+13:41 < frosk> oh, ok, hi
+13:42 < Myo9> Hi Frosk.
+13:42  * jrandom gets out the high intensity spotlight
+13:42 < frosk> so, everyone should check out http://feedspace.i2p (keys at orion or jrandom's blog)
+13:42 < frosk> my devbuddy (which i will out now as ku) and i have started writing some code and have had many lively discussions
+13:42 < frosk> also, http://feedspace.i2p/wiki/CallForComments has a fresh rev of the feedspace document :)
+13:43 < frosk> hi Myo9
+13:43 < frosk> oh yeah, feedspace is our new (and final) name for what used to be known as i2pcontent or fusenet :)
+13:43 < jrandom> r0x0r
+13:43 < frosk> as the status notes notes, we are still very interested in feedback on the general design of everything
+13:44 < frosk> nobody should be shy about challenging it :)
+13:44 < frosk> and the web site also lists some "job openings", we could use some helping hands on many aspects of the system and project
+13:45 < frosk> we're on a pretty tight schedule and none of us are full-time developers on the project unfortunately
+13:45 < frosk> so that's pretty much it, i think. questions? :)
+13:45 < ant> * aum can't reach orion.i2p or jrandom's blog, so can't reach feedspace.i2p
+13:46 < frosk> hm yes, the web site also has a roadmap, but the dates there _will_ change :)
+13:46 < legion> feedspace.i2p=KuW5sR2iGCfnnuwdslHbFsNyNCsoZnoIwAmHeypOV-s8OQxokBpdNazksBrhoQum9nv81vprl6k15Mhcd~KWE4OajjmdU7v2fjqps7QK3KmLv4UTrX-ihSIUdhb5B9FLh2XEFEQ4-8guFTVxBRqQQE~c058AL6~uZpuFpLtEOg0HEZ6BydndOhx-FCDm8ip12pPwZ3a5O86l1UoATZBXxoctGafTjnUlx64jyQs6y0WB811l36wVrc~~dqEcanxab0yfg8dJ~1M4EUNrXcHT-PwYYrr3GgpimuF4oUtYjkeDKlq5WjfMAa8bE73HFgquxq99fuW5aI1JbLPxnTLHi00-2On0dSDwJxSP08HOhKFKMNzykI9Asg8CywzNO6kWpbX9yaML36ohCJF0iaLvvDyhS4a2B65crSJRJPVkbxIvsyyUyYMGi31EK593ijOLjOvug
+13:46 < legion> there you go aum
+13:46  * jrandom just added feedspace to http://dev.i2p.net/i2p/hosts.txt
+13:46 < jrandom> (and cvs)
+13:46  * frosk goes temporarily blind
+13:46 < jrandom> legion: never paste as a single line, its too large to fit
+13:47 < ant> <aum> thx
+13:47 < frosk> jrandom can probably commit the key into his hosts.txt maybe? :)
+13:47 < jrandom> aye, 'tis on there now, forgot to :)
+13:48 < frosk> anyway, the plan is to have something simple and functional (and 100% bug-free!) out by I2P 0.6.1, and we'll build more neat stuff in later
+13:49 < jrandom> heh wikked
+13:49 < frosk> s/out/ready for real-world testing/
+13:49 < frosk> i still can't say if that's realistic or not, but i hope it will be, or we'll continue to cut features ;)
+13:49 < ant> <BS314159> since I can't reach feedspace.i2p, I'll ask a basic question
+13:50 < ant> <aum> that key is not correct, only 441 chars
+13:50 < jrandom> right aum, irc trims it, snag http://dev.i2p.net/i2p/hosts.txt
+13:51 <+detonate> frosk: i have a suggestion for the meantime
+13:51 <+detonate> get something on the i2p router console that grabs a list of updates from the i2p webserver, so people know when to update their routers, etc :)
+13:51 < legion> ah sorry, about that. Anyways I've already commited it to my hosts.txt also.
+13:51 < ant> <aum> thx jrandom
+13:51 < ant> <BS314159> which of the following systems do you see feedspace supplanting: usenet, gnutella, google, livejournal, www
+13:52 < jrandom> , the church
+13:52 < jrandom> er..
+13:52 < cervantes> jrandom: ah you caught me mid commit of hosts
+13:52 < ant> <BS314159> i.e. is it a message forum, a filesharing system, a content indexing system, a dynamic page system, and/or a static serving system
+13:53 < ant> * aum turns off throttling within routerConsole, and sees if that helps
+13:54 < frosk> BS314159: we will support blogs, forums, and shared address books (for the first version, other applications are possible)
+13:54 < frosk> it doesn't replace web pages per se
+13:54 < frosk> but it certainly could be used for "file sharing"
+13:54 <+detonate> content syndication then?
+13:54 < jrandom> it'd probably supplant static web content though, allowing persistent web publication for people who cannot run eepsites
+13:54 < frosk> that's what it's about
+13:55 < jrandom> (two word summary: usenet+SSK)
+13:55 < frosk> yeah
+13:55 < ant> <BS314159> ok
+13:55 < Ragnarok> not that persistent
+13:56 < jrandom> Ragnarok: depends on syndicator policy, true
+13:56 <+detonate> is anything happening with stasher?
+13:56 < frosk> it can be as persistant as the most eager syndicator :)
+13:56 < jrandom> (see: dejanews ;)
+13:56 < ant> <aum> detonate: stasher is on hold, writing a whole new thing called quartermaster
+13:57 <+detonate> i see
+13:58 < jrandom> frosk: what can we do to help?
+13:59 < jrandom> should people register & hack on the wiki, email, post on the forum?
+13:59 < jrandom> oh, perhaps we can get cervantes to add a new forum category?
+13:59 < frosk> i think actually a forum would be very nice at this point
+14:00 < frosk> for more private discussion, you can email us both at ku@mail.i2p and frosk@mail.i2p
+14:01 < cervantes> hrrrm ... are you going to put game reviews in it?
+14:01 < jrandom> heh
+14:01 < jrandom> w3rd
+14:01 < cervantes> because if not...then you're welcome to have a new forum section
+14:01 < frosk> i was thinking top20 music reviews, cervantes
+14:02 < jrandom> (btw, mirror of the call for comments @ http://dev.i2p.net/~jrandom/feedspace.txt)
+14:02 < cervantes> :)
+14:04 < cervantes> frosk: feedspace or feed space or Feedspace or Feed Space or FeedSpace?
+14:04 < frosk> cervantes: Feedspace
+14:05 < frosk> looking forward to much discussion over at the forum then :) i don't have anything else for this point, anyone else?
+14:05 < jrandom> ok cool, thanks for the update frosk 
+14:06 <@smeghead> or FEeDspace?
+14:06 < ant> <cervantes> frosk: when you have a moment, just pm me a one liner description for the forum section
+14:06 < legion> hmm speaking of new forums, lol. I'm putting a new forum site together. Though I have much hacking left to do on the phpbb code, it should be finshed sometime this week. ;)
+14:06 < jrandom> cool legion 
+14:06 < jrandom> that actually brings us into 3) ??? nicely
+14:06 < jrandom> anyone have anything else to bring up? 
+14:06 < jrandom> aum: any updates on Q?
+14:07 < frosk> i, uhm, no
+14:07 < ant> <aum> Q devlt is moving along nicely, nothing to announce atm
+14:07 < jrandom> w3rd
+14:07 < ant> * aum is 90% complete with net.i2p.i2ptunnel.I2PTunnelXMLServer
+14:07 < ant> <BS314159> I have a simple question about netDb
+14:07 < ant> <aum> everything's working now except 'i2p.tunnel.close'
+14:07 < legion> my forums will allow for members to have decent sized avatars, discuss shared content, just about whatever.
+14:08 < jrandom> wikked
+14:08 < ant> <BS314159> it says on the page that entries are stores on the peers closest to SHA256(router identity + YYYYMMdd)
+14:08 < jrandom> right BSpi
+14:08 <@smeghead> legion: will it be as much a security hazard as your bt client?
+14:08 < ant> <BS314159> does this mean there's a burst of traffic every 00:00 GMT?
+14:08 < ant> * aum is actually gaining some fluency in java, having attained a 'cognitive critical mass'
+14:09 < jrandom> BS: data points expire more frequently than they migrate
+14:09 < jrandom> a LeaseSet is only good for 10 minutes, for example
+14:09 < bla> jrandom: Is there a command-line call  I can make, such that I can speed estimates of each of the peers in the net over the last, say, 60 seconds, or so?
+14:09 < legion> lol, forums a security hazard?
+14:10 <@smeghead> legion: yes, and if you don't know that much, i'm already convinced that your forums will be a security hazard
+14:10 < jrandom> bla: yeah, java -cp lib/i2p.jar:lib/router.jar -Djava.library.path=. net.i2p.router.peermanager.ProfileOrganizer peerProfiles/*
+14:10 < jrandom> (i think)
+14:10 < legion> oh and the next release of my bt client shouldn't cause such issues...
+14:10 < jrandom> you may need to add some log levels to logger.config, lemmie check
+14:10 <@smeghead> legion: Cervantes made a ton of modifications to phpBB to lock it down for i2p use
+14:10 < ant> <BS314159> It just seems like having it occur all-at-once at a specified time is awkward.  If it were happening continuously, that would seem...smoother.  It would also give an attacker less time to mount an attack, since bits of the data would be wrong in less than 24 hours
+14:11 < jrandom> nah, it dumps to stdout
+14:11 < frosk> jrandom: how do you feel about the i2p roadmap currently, if one may ask? do you think it's realistic?
+14:11 < legion> Hmm I wonder if I can get a copy of cervantes mods?
+14:11 < jrandom> frosk: i update it when i become uncomfortable with it
+14:12 < frosk> ok
+14:12 <+detonate> you know, there's a windows installer for python 2.4, one for wxpython, and there's the i2p-bt tarball, i don't really see why anyone would get/trust a third-party release
+14:12 < legion> Otherwise I'll just have to continue to hack on the phpbb source myself...
+14:12 < jrandom> BS: peers would only look in the wrong place for up to 30s, due to clock synchronization
+14:12 <@smeghead> legion: have fun
+14:12 < legion> well why would anyone get and use kazaa?
+14:13 < bla> jrandom: I'm asking, because...
+14:13 < legion> Or morpheus?
+14:13 < jrandom> (because they dont know better?)
+14:13 < legion> Both of those contain adware/etc...
+14:13 <+detonate> they are ignorant?
+14:14 < legion> yeah and there are millions of ignorant users out there. ;)
+14:14 < ant> <BS314159> legion: you sound like you want to bundle spyware with I2P.  Truly, a stroke of genius.
+14:14 < bla> jrandom: ...I browsed SpeedCalculator.java and CapacityCalculator.java, and I'd like to experiment with the estimators
+14:14 < cervantes> legion: stay uptodate with official patches, and put htaccess on the admin areas
+14:14 < jrandom> wikked bla
+14:14 < legion> What? Heck no... I hate malware...
+14:14 < cervantes> most of my mods involve spam prevention
+14:14 < ant> <aum> can i raise a more critical issue?
+14:14 < legion> That's it? cervantes?
+14:15 < jrandom> sup aum?
+14:15 <@smeghead> legion: what about your users that also hate malware? why do you do nothing to alleviate any concerns they might have?
+14:15 < ant> <dm> BS314159: are you a windows hotfix?
+14:15 < ant> <aum> is it just me, or is there still some flakiness going on with in i2p? i'm having heaps of trouble with even main eepsites, irc etc
+14:15 < bla> jrandom: In addition, the idea of "passive fingerprinting" is now in my head (a bit ;): If I receive data through a tunnel, this tells me something about the bandwidth/capacity of all the peers in that tunnel:...
+14:15 < jrandom> aum: see the weekly status notes
+14:16 < cervantes> legion: rename all registration, login , posting and profile editing pages to something non-standard 
+14:16 < bla> jrandom: It tells me some about the peer closest to me, somewhat less about the peers one step away, and so progressively less.
+14:16 < cervantes> will help keep worms at bay
+14:16 < jrandom> bla: aye, i read that timing paper, and yesterday's tor attack paper with much interest
+14:17 < Myo9> Cervantes, releasing ant of your mods?
+14:17 < Myo9> s/ant/any/
+14:17 < jrandom> there is worry along those lines in the capacity calculator with the different tiers of rejection
+14:18 < bla> jrandom: In a way, this gives me some degree of "belief" in a peers bandwidth/capacity (that degree of belief depends on the distance to each of the tunnel members, and on the amount of belief I have on the BW/cap. of the nodes closest to me)
+14:18 < legion> thanks for the advice cervantes :)
+14:18 < bla> jrandom: Now, I happen to know some ppl that know a lot about Bayesian Belief Networks... ;))
+14:18 <@smeghead> again, legion ignores the question
+14:18 <+thetower> I think we're all gonna have to call a truce with legion and let him write whatever he wants, its not like anyone is forced to use it.
+14:18 < jrandom> hmm, what do you mean by distance bla?
+14:18 < ant> <dm> what is legion up to?
+14:19 < bla> jrandom: I'll have a chat with them, regarding passive fingerprinting (note: I do not mean "fingerprinting" in the negative sense of the word)
+14:19 < jrandom> wikked
+14:19 < jrandom> suggestions as to how we can best select 'quality' peers are very much welcome
+14:19 < cervantes> Myo9: I certainly could do.
+14:19 < legion> Anyways there isn't many i2p windows users just yet and not that many running my i2p-bt binary distribution. Soon my next release will be done and released, it will not have such issues... As there will be a binary and source distribution.
+14:19 <@smeghead> why anyone would want to use software from someone who doesn't even take the most basic measures to address users' concerns about security and anonymity is beyond me
+14:20 < ant> <aum> frosk: what lang you writing feedspace in? (forgive me if i asked you before)
+14:20 < cervantes> it's not a clean "patch" or anything though
+14:20 < bla> jrandom: distance... Say I have an inbound tunnel X -> Y -> me, and I know a _lot_ about Y's properties, than stats on what I receive thru that tunnel tells me a good deal about X
+14:20 < frosk> aum: java (and i forgive you ;)
+14:20 < cervantes> I've just been fixing stuff andproblems as it arises
+14:20 < bla> jrandom: OTOH, if I have little data/belief on Y's properties, transfer stats don't tell me much about X yet; I first have more to learn about Y
+14:20 < cervantes> as they
+14:20 < jrandom> bla: its very hard to tell whether lag or congestion occurs @ X or Y (or earlier hops)
+14:20 < cervantes> http://forum.i2p/index.php?c=4
+14:21 < cervantes> new section: Feedspace
+14:21 < jrandom> w00t
+14:21 < frosk> yay
+14:22 < legion> anyways enough discussion about my release, any further discussion about it should be done in the #itorrent channel
+14:22 < bla> jrandom: That is true. However, given large amount of data (and hoping that the measurement time is not _much_ larger than the timescale on which node properties change), I'm convinced there _must_ be information in traffic/tunnel stats
+14:22 <@smeghead> legion: we can discuss in meeting point # 3) any business that affects i2p
+14:23 <@smeghead> legion: and i think your software is of serious concern and warrants a warning to users
+14:23 < legion> yeah, ok
+14:23 < jrandom> bla: certainly, we just need to rope in the RTT from the OutboundClientMessageOneShotJob
+14:23 < jrandom> (and then figure out how best to calculate & decay the data)
+14:24 < legion> So smeghead if you were to make such a release, what would you do differently?
+14:24 <@smeghead> legion: the way you continually dodge questions and try to defer discussion on the subject is very disconcerting
+14:25 <@smeghead> legion: first of all, release the source to your current binary, no matter if it's "just i2p-bt with smeghead's patch", and have a writeup on your site explaining about your fork
+14:25 < bla> jrandom: What does the RTT signify there?
+14:26 <@smeghead> legion: it would be helpful to do as i2p-bt does also, and make a changelog indicating all the modifications you've made
+14:27 < jrandom> bla: end to end client messages are often (by default, always) bundled in garlic wrapping, containing an additional DeliveryStatusMessage that returns to the sender (through tunnels, of course), allowing the use of AES+sessionTags instead of ElGamal
+14:28 < bla> jrandom: (yes)
+14:28 <+detonate> as i said, you could just provide a link to the download page for the three things you need for i2p-bt to work, it's straight-forward and gets you exactly the same thing, i can't actually see a use for it besides a trojan
+14:28 < jrandom> later on we'll update I2CP (and the SDK) to allow the streaming lib to deliver that same data without requiring the DeliveryStatusMessage
+14:29 <@smeghead> detonate: i agree, he should have just submitted a patch to the official i2p-bt in the first place, forking was completely unnecessary and fostered immediate suspicioun
+14:30 <+detonate> indeed
+14:30 <@smeghead> *suspicion
+14:31 < jrandom> ok, anyone else have anything to bring up for the meeting?
+14:31 < ant> <drakoh> hi people ! wanted to know, is there anything special with the network ?
+14:32 <@smeghead> because of the nature of i2p, applications developed for it require a greater measure of openness with end users and cooperation among developers
+14:32 < jrandom> drakoh: see the weekly status notes
+14:32 < bla> quit
+14:32 < ant> <drakoh> no I mean something strange ...
+14:32 <@smeghead> i2p users will always be naturally paranoid to some extent, and it's our duty to do what we can to dispel any concerns we possibly can
+14:32 < ant> <drakoh> like I lost all my peers
+14:33 < jrandom> aye, agreed smeghead.  for anonymity or security software, especially software dealing with a trojan-laden field such as filesharing, its critical to be open.
+14:33 < jrandom> drakoh: ok, hold on, we can debug that once the meeting is over
+14:33 < ant> <drakoh> woops sorry
+14:33 < jrandom> ok, speaking of the meeting being over...
+14:34  * jrandom winds up
+14:34  * jrandom *baf*s the meeting closed

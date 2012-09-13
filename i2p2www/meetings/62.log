@@ -1,288 +1,284 @@
-{% extends "_layout.html" %}
-{% block title %}I2P Development Meeting 62{% endblock %}
-{% block content %}<div class="irclog">
-[23:01] <jrand0m> agenda </p>
-[23:01] <jrand0m> 0) welcome </p>
-[23:01] <jrand0m> 1) 0.2 status </p>
-[23:01] <jrand0m> 2) www proxy </p>
-[23:01] * dm ponders.</p>
-[23:02] <dm> oh, meeting?</p>
-[23:02] <jrand0m> 3) phttprelay </p>
-[23:02] <jrand0m> 4) i2ptunnel </p>
-[23:02] <jrand0m> 5) installation </p>
-[23:02] <dm> sorry.</p>
-[23:02] <jrand0m> 6) iip feature request </p>
-[23:02] <jrand0m> 7) ??? </p>
-[23:02] <jrand0m> 0) welcome  </p>
-[23:02] <jrand0m> hi. </p>
-[23:02] <jrand0m> meeting 62? is it? </p>
-[23:02] <Dellammo> hi</p>
-[23:02] <jrand0m> (no worry dm, we can forgive you) </p>
-[23:02] <mihi> hi jrand0m</p>
-[23:02] <dm> hi mihi</p>
-[23:02] * mihi thinks so</p>
-[23:03] <jrand0m> 1) 0.2 status </p>
-[23:03] * jrand0m has had a severe case of feature-creep-itis as of late, so the 0.2 release still has about 30 minutes left of code left to do.</p>
-[23:04] <jrand0m> but then we'll be able to run and communicate reliably regardless of NAT, firewall, or HTTP proxy. </p>
-[23:04] * dm has just created I2PSecureRemoteShell 1.0</p>
-[23:04] <dm> cool jr!</p>
-[23:05] <jrand0m> everything is functional, the only thing left to do is to expire unused database entries after N minutes (probably 5 for a default) </p>
-[23:05] <jrand0m> the comm across NAT/firewall/HTTP proxy is the PHTTP transport.  its slow, but reliable. </p>
-[23:05] <dm> how does it work? what ports does it use?</p>
-[23:06] <jrand0m> it sends the message to a reachable PHTTP relay, which stores the message, and then the receiver polls for messages ever N seconds </p>
-[23:06] <jrand0m> there is a LOT that can be tuned and improved on that side of things, which is agenda point 3 :) </p>
-[23:06] <dm> P stands for?</p>
-[23:06] <jrand0m> Polling HTTP </p>
-[23:06] <dm> ok thanks.</p>
-[23:07] <jrand0m> I'm going to update the "kludges" page on the wiki after the meeting too, to note the things that are funky </p>
-[23:07] <jrand0m> (such as not yet handling a lease change during communication) </p>
-[23:08] <jrand0m> the other point to discuss is agenda item 5 - installation.  aka how we should handle installation of the router/sdk/tunnel/etc </p>
-[23:08] <jrand0m> ok, thats it for 0.2 status </p>
-[23:08] <jrand0m> 2) www proxy. </p>
-[23:09] <jrand0m> moi had a really cool idea for browsing in-i2p www sites. </p>
-[23:09] <jrand0m> wanna explain whats up moi? </p>
-[23:09] * jrand0m puts the spotlight on ya</p>
-*** moi is ~someone@anon.iip (someone) </p>
-*** on channels: #freenet #anonymous #iip #iip-dev </p>
-*** on irc via server anon.iip (Official IIP )</p>
-*** moi has been idle 9 minutes, signed on at Thu Jan 01 01:00:00 1970 </p>
-[23:10] <moi> well</p>
-[23:10] <moi> i am just modifying an HTTP proxy and using mihi's tunnel</p>
-[23:10] <moi> so that you can go to (Link: http://i2p/BASE64KEYHERE)http://i2p/BASE64KEYHERE</p>
-[23:10] <moi> eventually the naming server would be there--</p>
-[23:11] <dm> sweet</p>
-[23:11] *** Signoff: mihi (Ping timeout)</p>
-[23:11] <moi> you have to paste in the first long key, but after that you should technically be able to follow links I think</p>
-[23:11] <Dellammo> so an internal web page or a page outside of i2p?</p>
-[23:11] <dm> i2p resolves to localhost?</p>
-[23:11] <moi> so someone could put up an i2p Google, and go from there.... mabye</p>
-[23:12] <mihi-backup> !thwap dm.</p>
-[23:12] <mihi-backup> a proxy...</p>
-[23:12] <jrand0m> for security, the proxy should 404 all hosts other than (Link: http://i2p/)http://i2p/ </p>
-[23:12] <dm> oops!</p>
-[23:12] <moi> good point</p>
-[23:12] <dm> missed that part</p>
-[23:12] <mihi-backup> although a simple servlet would be nice too</p>
-[23:12] <jrand0m> hmm? </p>
-[23:13] *** mihi (~mihi@anon.iip) has joined channel #iip-dev</p>
-[23:13] <jrand0m> hmm, there may be a problem. </p>
-[23:13] <jrand0m> this would use HTTP 1.0 or 1.1? </p>
-[23:14] <mihi> if the server requests a Host: header?</p>
-[23:14] <jrand0m> [aka, would it have a Host: header?] </p>
-[23:14] <jrand0m> exactly </p>
-[23:14] * mihi wishes for something</p>
-[23:14] <moi> I wonder if we can have the proxy blank that out</p>
-[23:14] <jrand0m> if the server's outbound tunnel is always on the same host, thats fine </p>
-[23:14] <jrand0m> you can set the proxy Host: to 127.0.0.1 </p>
-[23:15] *** dm_backup (~as@anon.iip) has joined channel #iip-dev</p>
-[23:15] <jrand0m> but then you must run the tunnel on the same host as the server.  not a bad problem, as its not for general normal-web browsing </p>
-[23:15] <jrand0m> right? </p>
-[23:15] *** Signoff: dm (Ping timeout)</p>
-[23:16] * moi hadn't thought that deeply into it yet</p>
-[23:16] <mihi> if you run the server on your own box you can also alias i2p to localhost or sth like that.</p>
-[23:16] <dm_backup> so do people have to run web servers now?</p>
-[23:16] <jrand0m> dm_backup&gt; this is only for people who want to. </p>
-[23:16] *** dm_backup is now known as dm</p>
-[23:16] <Dellammo> like me</p>
-[23:16] <dm> yeah, I mean for this (Link: http://i2p)http://i2p thingie</p>
-[23:17] <mihi> if you want to provide content, yes.</p>
-[23:17] <mihi> but you have to run one to provide content in good ol' www as well.</p>
-[23:18] <Dellammo> why?</p>
-[23:18] <dm> Hmmm, maybe I should build a P2P app for I2P.</p>
-[23:18] <jrand0m> a filesharing app over i2p would rule. </p>
-[23:18] <dm> yes sorry, filesharing.</p>
-[23:19] <moi> I think it would be possible for someone to run an OpenNap server in conjunction with i2ptunnel</p>
-[23:19] <jrand0m> yes. </p>
-[23:19] <jrand0m> (though a native i2p p2p would have better performance) </p>
-[23:19] <mihi> but the downloads will be hard. </p>
-[23:20] <mihi> no way to get to the correct host as all are localhost ;)</p>
-[23:20] <dm> Let's wait till we see PING running over i2ptunnel first.</p>
-[23:20] * Dellammo is confused are we talking about a proxy thats not i2ptunnel that lets you access webservers that are internal to the i2p network by typing '(Link: http://i2p/')http://i2p/' ?</p>
-[23:20] <jrand0m> perhaps just a simple FTP client designed to run over i2p? </p>
-[23:20] <dm> (not ping literally)</p>
-[23:20] <mihi> jrand0m: ftp needs 2 ports...</p>
-[23:20] <jrand0m> designed to run over i2p. </p>
-[23:21] <jrand0m> a general file transfer app, not the FTP protocol, specifically </p>
-[23:21] <mihi> then it's not ftp.</p>
-[23:21] <mihi> ATalk ;)</p>
-[23:21] <jrand0m> (taking advantage of larger message sizes) </p>
-[23:21] <dm> battle of the wise men!</p>
-[23:21] <jrand0m> heh </p>
-[23:21] <moi> Dellammo: right now you have to create an i2ptunnel for each website/Destination you want to browse. We are thinking of using a proxy server that would dynamically build an i2ptunnel for each site.</p>
-[23:22] <jrand0m> (kind of) </p>
-[23:22] <jrand0m> you won't want to use an i2ptunnel, specifically.  </p>
-[23:22] <jrand0m> you'll want to use the i2ptunnel protocol, and send messages directly, not via TCP/IP sockets. </p>
-[23:23] <jrand0m> mihi&gt; any idea what kind of time it would take to factor the protocol functionality out of i2ptunnel so other apps could send data to an i2p tunnel? </p>
-*** mihi is mihi@anon.iip (mihi) </p>
-*** on channels: #iip-dev #iip #headlines #german #freenet-opn #freenet #fredisdead #frazaa @#fiw #anonymous </p>
-*** on irc via server anon.iip (Official IIP )</p>
-*** mihi has been idle 3 minutes, signed on at Thu Jan 01 01:00:00 1970 </p>
-*** mihi-backup is ~mihi@anon.iip (mihi) </p>
-*** on channels: #iip-dev </p>
-*** on irc via server anon.iip (Official IIP )</p>
-*** mihi-backup has been idle 12 minutes, signed on at Thu Jan 01 01:00:00 1970 </p>
-[23:25] <mihi> is there any large protocol functionality? I2PTunnelRunner can be used as is.</p>
-[23:25] <mihi> You just have to adjust the client class for your needs.</p>
-[23:25] <jrand0m> hmm, not really - i2ptunnelRunner uses a socket </p>
-[23:26] <jrand0m> this is a plain java app that wants to generate a message ("HTTP GET /\n\n") and send it to an outbound I2PTunnel </p>
-[23:27] <jrand0m> we don't want to redirect the client contacting the proxy to a new port to connect to the newly instantiated I2PTunnel (as there'd be no way to switch back for links off that site) </p>
-[23:28] <jrand0m> but perhaps switching I2PTunnelRunner to use an InputStream (all it uses is socket.getInputStream) would be easy... </p>
-[23:28] <jrand0m> but then we still need the listen side </p>
-[23:28] *** Signoff: mihi (Ping timeout)</p>
-[23:28] <jrand0m> d'oh </p>
-[23:28] * jrand0m hopes the backup isn't about to ping out...</p>
-[23:28] <dm> backup's gonna die as well ,watch it!</p>
-[23:29] <mihi-backup> ;)</p>
-[23:29] <jrand0m> w00t </p>
-[23:29] <mihi-backup> [23:25] &lt;jrand0m&gt; hmm, not really - i2ptunnelRunner uses a socket</p>
-[23:29] <mihi-backup> [23:25] &lt;mihi&gt; oops, right. and you want to do it completely without sockets?</p>
-[23:29] <mihi-backup> [23:26] &lt;mihi&gt; then there is not much code left from i2ptunnel. most is for handling the sockets.</p>
-[23:29] <mihi-backup> [23:26] &lt;mihi&gt; best stick to the protocol and implement it yourself (build the messages w/ the static method in i2ptunnel.java)</p>
-[23:29] <mihi-backup> [23:28] &lt;mihi&gt; http would not need that many threads. Just run a reader over the incoming message until a double return and then send your thing out.</p>
-[23:30] <jrand0m> ah 'k.  thanks </p>
-[23:30] <jrand0m> moi&gt; tu sabes? </p>
-[23:30] <mihi-backup> re switching I2PTunnel for an input stream. what for? you won't get anythin on it any more after you parsed the request.</p>
-[23:31] * moi thinks</p>
-[23:31] <dm> toi thinks</p>
-[23:31] <mihi-backup> just forget the tunnelrunner. ;)</p>
-[23:31] <jrand0m> right, I was just thinking to keep the I2PTunnel and the http proxy to use the same code - I2PTunnel would use socket.getInputStream(), the http proxy would use new ByteArrayInputStream("GET / \n\n".getBytes()) </p>
-[23:31] *** mihi (mihi@anon.iip) has joined channel #iip-dev</p>
-[23:32] * moi will need to go over this later in detail</p>
-[23:32] <mihi-backup> but that will cause the runner to send a "Connection closed" when the string is sent.</p>
-[23:32] <mihi-backup> as the stream ends.</p>
-[23:32] <jrand0m> right, which is normal HTTP </p>
-[23:33] <mihi-backup> just forget the runner, i said ;)</p>
-[23:33] <jrand0m> 'k </p>
-[23:33] <mihi-backup> jrand0m: nope. the connection is closed when the answer is here, not when the question is out.</p>
-[23:33] <jrand0m> oh yeah </p>
-[23:33] <jrand0m> ;) </p>
-[23:36] <jrand0m> cool moi, we can work through this stuff later on. </p>
-[23:36] <jrand0m> ok, thats agenda item 2).  now for 3) </p>
-[23:36] <moi> ok</p>
-[23:37] <jrand0m> 3) phttprelay </p>
-[23:37] <jrand0m> phttp relay is a set of servlets wrapped in a .war file </p>
-[23:38] <jrand0m> it works out of the box on windows / sun JVM, but I had to hack jetty to run w/ kaffe </p>
-[23:38] <mihi> make .peace not .war</p>
-[23:39] * jrand0m groans</p>
-[23:39] <dm> you can run .war files without a J2ee server?</p>
-[23:39] <dm> good to know.</p>
-[23:39] <jrand0m> .war files run in any servlet container - tomcat, apache w/ mod_jk, jetty, etc </p>
-[23:40] <jrand0m> we're going to want some people to run these on machines w/ publicly reachable IP addresses, but they're only necessary for people who don't have publicly reachable addresses (like me) </p>
-[23:41] <mihi> which ports do you need to redirect if you want to go through a nat without that?</p>
-[23:41] <jrand0m> its implementation is very rudimentary as well - it needs some limits as to how many routers it relays for, how many messages it queues up, how long before it times out, etc </p>
-[23:41] <jrand0m> just the I2NP TCP port </p>
-[23:41] <jrand0m> (or the I2NP UDP port) </p>
-[23:41] * mihi does not know if his nat allows udp forwarding</p>
-[23:42] * jrand0m doesn't know if mihi's nat does either</p>
-[23:43] <jrand0m> right now, for example, my laptop is reachable via PHTTP only, and my server's router is reachable via PHTTP, TCP, and UDP.  if my laptop establishes a connection to the server's router via TCP, it can send messages via TCP.  but if my laptop doesn't first do that, the server must send messages via PHTTP </p>
-[23:44] <jrand0m> the code is in i2p/code/apps/phttprelay/ for anyone with servlets experience who wants to hack on a small app </p>
-[23:45] <jrand0m> (it should also work transparently with https as well as plain http) </p>
-[23:45] <jrand0m> I'll doc up the PHTTP protocol Real Soon Now.  :) </p>
-[23:45] *** Signoff: mihi (Ping timeout)</p>
-[23:45] <jrand0m> ok, thats it for item 3) phttprelay </p>
-[23:45] <jrand0m> 4) i2ptunnel </p>
-[23:46] <jrand0m> we've already discussed a bunch of stuff.  unless mihi (or anyone else) has anything else on it, we can move to 5) </p>
-[23:46] *** wilde (~anon@anon.iip) has joined channel #iip-dev</p>
-[23:46] <jrand0m> hola wilde </p>
-[23:47] <jrand0m> ok.  that said, item 5 :) </p>
-[23:47] <jrand0m> 5) installation </p>
-[23:48] <jrand0m> to get 0.2 out the door, and beyond, I'm thinking of some ant scripts. </p>
-[23:48] <jrand0m> or should we use another open source installation system? </p>
-[23:48] <jrand0m> anyone have any experiences / thoughts on this? </p>
-[23:49] <Dellammo> hmm</p>
-[23:50] <jrand0m> ant has the benefit of being unified with the build system, platform independent, and has headless operation. </p>
-[23:50] <wilde> hey</p>
-[23:50] <jrand0m> but it requires ant (which requires java).  and it doesn't have a GUI </p>
-[23:51] <Dellammo> i can think of many install programs for windows... i dont know how many are gpl though</p>
-[23:51] <jrand0m> yeah, I have a licensed InstallAnywhere Enterprise installation, but its bad for open source </p>
-[23:51] <jrand0m> NSIS is open source, but has its nuances. </p>
-[23:51] <dm> stupid question: is ant included in java?</p>
-[23:52] <jrand0m> nope. </p>
-[23:52] <jrand0m> oh, though we COULD distribute a GCJ'ed ant </p>
-[23:52] <dm> alright, must have come with eclipse then.</p>
-[23:52] <jrand0m> (compiled to native code) </p>
-[23:52] <jrand0m> definitely dm. </p>
-[23:52] <jrand0m> apache makes ant (ant.apache.org) and its apache licensed. </p>
-[23:52] <jrand0m> oh, yuck. </p>
-[23:52] * jrand0m just read the sentence I typed)</p>
-[23:53] <jrand0m> gpl is not apl friendly, according to the FSF </p>
-[23:53] <jrand0m> we probably can't distribute ant. </p>
-[23:53] <dm> can't we just a script? what needs to be done for it to be installed?</p>
-[23:53] <jrand0m> but we can use it. </p>
-[23:53] <jrand0m> not much at all.  a script is fine. </p>
-[23:53] <jrand0m> but do we want a .bat and a .sh, etc. </p>
-[23:54] *** shardy (~shardy@anon.iip) has joined channel #iip-dev</p>
-[23:54] <dm> what does an installation entail, a couple of questions?</p>
-[23:54] <jrand0m> writing a java installer to do the install platform independent is overkill, so we should ideally use an existing install framework </p>
-[23:54] <jrand0m> yeah, a few questions </p>
-[23:54] <jrand0m> the installation targets I forsee: </p>
-[23:54] <Dellammo> do we get a flashy new logo? whos working on that?</p>
-[23:54] <jrand0m> install-router </p>
-[23:55] <jrand0m> install-www-tunnel, install-www-proxy, install-sdk, install-cvs-tunnel, update-seednodes </p>
-[23:55] <moi> why not use InstallAnywhere? if the code is open that is what matters</p>
-[23:55] * jrand0m thinks YOU are Dellammo :)</p>
-[23:55] <jrand0m> InstallAnywhere isn't open source. </p>
-[23:55] * Dellammo gets to work</p>
-[23:56] <dm> script would probably be enough at this point, but I guess might as well think ahead.</p>
-[23:56] <jrand0m> (its about 4k euro / seat) </p>
-[23:56] <jrand0m> right.  so for tomorrow, I'll probably just write ant scripts, but we need to look into a system </p>
-[23:56] *** Signoff: wilde (Ping timeout)</p>
-[23:56] <jrand0m> so if anyone can help out with that, it'd be appreciated :) </p>
-[23:57] <dm> ah okay, I was thinking shell scripts.</p>
-[23:57] <moi> Some of the package managers could do that on the Linux installs</p>
-[23:57] *** wilde (~anon@anon.iip) has joined channel #iip-dev</p>
-[23:57] <jrand0m> managing different installers for different platforms is a PITA </p>
-[23:59] <dm> java installer? Why is it a PITA?</p>
-[23:59] <jrand0m> a java installer would be great </p>
-[23:59] <mihi-backup> pain in the a**e</p>
-[23:59] <mihi-backup> oops, sorry...</p>
-[23:59] <dm> system.out.println("Please enter where you would like to install I2P") ;)</p>
-[23:59] <mihi-backup> s/tln/t; s/P"/P: "/</p>
-[23:59] <mihi-backup> s/sys/Sys/</p>
-[00:00] <jrand0m> writing a custom installer in java is possible, but its preferred to use an existing framework.  but if you're volunteering to write a custom installer, I'm behind ya! </p>
-[00:00] <dm> mihi's having an epileptic seizure.</p>
-[00:00] * mihi-backup slaps dm around a bit with a large trout</p>
-[00:00] <dm> Tell you what...</p>
-[00:01] <dm> If you have time at any point to write out the exact steps needed in an install, I'll write a java installer.</p>
-[00:01] <mihi-backup> dm: read the ant script ;)</p>
-[00:01] <jrand0m> word dm.  once I get the ant thing working I'll doc 'er up for you </p>
-[00:01] <dm> fair enough, we'll see if I can figure out the ant script once it's out.</p>
-[00:02] *** Signoff: wilde (Ping timeout)</p>
-[00:02] <Dellammo> jrand0m, i2p I2P i^2p or I^2P ?</p>
-[00:02] * jrand0m has some scribbles with a capital I, 2 and a capital P all superimposed on each other...</p>
-[00:03] <Dellammo> hmm</p>
-[00:03] *** wilde (~anon@anon.iip) has joined channel #iip-dev</p>
-[00:03] *** mihi (~mihi@anon.iip) has joined channel #iip-dev</p>
-[00:03] <jrand0m> ok, thats 5) installation </p>
-[00:03] <jrand0m> 6) iip feature request </p>
-[00:04] <jrand0m> someone came on here with a request for auto-nicktheifing </p>
-[00:04] <jrand0m> basically, if someone has registered a nick, no one can stay as that nick unless they're identified </p>
-[00:04] <jrand0m> nop or anyone who has done iip dev - thoughts? </p>
-[00:04] * jrand0m thinks it'd be a great feature to have</p>
-[00:05] * Dellammo draws an illuminati eye with a no 'as in no smoking sign' over it</p>
-[00:05] <jrand0m> heh </p>
-[00:05] <dm> Maybe I'll make an I2P logo as well... for the gui part of my installer ;)</p>
-[00:05] *** Signoff: wilde ((null))</p>
-[00:05] <Dellammo> lets all make them, so we dont get stuck with a sucky logo</p>
-[00:05] <mihi> jrand0m: ask mids - he maintains trent.</p>
-[00:06] <mihi> the trent source is in cvs btw</p>
-[00:06] <Dellammo> the logo is the most important part of any activity</p>
-[00:06] <jrand0m> definitely Dellammo. </p>
-[00:06] * dm dusts off Corel Draw...</p>
-[00:06] <dm> man I love Corel Draw.</p>
-[00:07] <jrand0m> ok, thats it for 6) </p>
-[00:07] <jrand0m> 7) ??? </p>
-[00:07] <jrand0m> any questions / thoughts / frisbees/ toenails? </p>
-[00:07] <dm> Thought: hope it works.</p>
-[00:08] <jrand0m> heh </p>
-[00:08] * jrand0m too.</p>
-[00:09] <mihi> jrand0m: keep the good work!</p>
-[00:09] <dm> yes, keep it up.</p>
-[00:09] <jrand0m> good work?  you obviously haven't seen the code ;) </p>
-[00:09] <dm> Love your code, except for the bliding underscores.</p>
-[00:09] <dm> blinding...bleeding..etc..</p>
-[00:09] <jrand0m> heh, instance variables have _, so we don't ever need to do this.var = var; </p>
-[00:10] <jrand0m> ok... 68 minutes... if I can drag this out for one more minute... </p>
-[00:10] <jrand0m> w00t </p>
-[00:10] * jrand0m *baf*s the meeting closed.</p>
-</div>{% endblock %}
+[23:01] <jrand0m> agenda 
+[23:01] <jrand0m> 0) welcome 
+[23:01] <jrand0m> 1) 0.2 status 
+[23:01] <jrand0m> 2) www proxy 
+[23:01] * dm ponders.
+[23:02] <dm> oh, meeting?
+[23:02] <jrand0m> 3) phttprelay 
+[23:02] <jrand0m> 4) i2ptunnel 
+[23:02] <jrand0m> 5) installation 
+[23:02] <dm> sorry.
+[23:02] <jrand0m> 6) iip feature request 
+[23:02] <jrand0m> 7) ??? 
+[23:02] <jrand0m> 0) welcome  
+[23:02] <jrand0m> hi. 
+[23:02] <jrand0m> meeting 62? is it? 
+[23:02] <Dellammo> hi
+[23:02] <jrand0m> (no worry dm, we can forgive you) 
+[23:02] <mihi> hi jrand0m
+[23:02] <dm> hi mihi
+[23:02] * mihi thinks so
+[23:03] <jrand0m> 1) 0.2 status 
+[23:03] * jrand0m has had a severe case of feature-creep-itis as of late, so the 0.2 release still has about 30 minutes left of code left to do.
+[23:04] <jrand0m> but then we'll be able to run and communicate reliably regardless of NAT, firewall, or HTTP proxy. 
+[23:04] * dm has just created I2PSecureRemoteShell 1.0
+[23:04] <dm> cool jr!
+[23:05] <jrand0m> everything is functional, the only thing left to do is to expire unused database entries after N minutes (probably 5 for a default) 
+[23:05] <jrand0m> the comm across NAT/firewall/HTTP proxy is the PHTTP transport.  its slow, but reliable. 
+[23:05] <dm> how does it work? what ports does it use?
+[23:06] <jrand0m> it sends the message to a reachable PHTTP relay, which stores the message, and then the receiver polls for messages ever N seconds 
+[23:06] <jrand0m> there is a LOT that can be tuned and improved on that side of things, which is agenda point 3 :) 
+[23:06] <dm> P stands for?
+[23:06] <jrand0m> Polling HTTP 
+[23:06] <dm> ok thanks.
+[23:07] <jrand0m> I'm going to update the "kludges" page on the wiki after the meeting too, to note the things that are funky 
+[23:07] <jrand0m> (such as not yet handling a lease change during communication) 
+[23:08] <jrand0m> the other point to discuss is agenda item 5 - installation.  aka how we should handle installation of the router/sdk/tunnel/etc 
+[23:08] <jrand0m> ok, thats it for 0.2 status 
+[23:08] <jrand0m> 2) www proxy. 
+[23:09] <jrand0m> moi had a really cool idea for browsing in-i2p www sites. 
+[23:09] <jrand0m> wanna explain whats up moi? 
+[23:09] * jrand0m puts the spotlight on ya
+*** moi is ~someone@anon.iip (someone) 
+*** on channels: #freenet #anonymous #iip #iip-dev 
+*** on irc via server anon.iip (Official IIP )
+*** moi has been idle 9 minutes, signed on at Thu Jan 01 01:00:00 1970 
+[23:10] <moi> well
+[23:10] <moi> i am just modifying an HTTP proxy and using mihi's tunnel
+[23:10] <moi> so that you can go to (Link: http://i2p/BASE64KEYHERE)http://i2p/BASE64KEYHERE
+[23:10] <moi> eventually the naming server would be there--
+[23:11] <dm> sweet
+[23:11] *** Signoff: mihi (Ping timeout)
+[23:11] <moi> you have to paste in the first long key, but after that you should technically be able to follow links I think
+[23:11] <Dellammo> so an internal web page or a page outside of i2p?
+[23:11] <dm> i2p resolves to localhost?
+[23:11] <moi> so someone could put up an i2p Google, and go from there.... mabye
+[23:12] <mihi-backup> !thwap dm.
+[23:12] <mihi-backup> a proxy...
+[23:12] <jrand0m> for security, the proxy should 404 all hosts other than (Link: http://i2p/)http://i2p/ 
+[23:12] <dm> oops!
+[23:12] <moi> good point
+[23:12] <dm> missed that part
+[23:12] <mihi-backup> although a simple servlet would be nice too
+[23:12] <jrand0m> hmm? 
+[23:13] *** mihi (~mihi@anon.iip) has joined channel #iip-dev
+[23:13] <jrand0m> hmm, there may be a problem. 
+[23:13] <jrand0m> this would use HTTP 1.0 or 1.1? 
+[23:14] <mihi> if the server requests a Host: header?
+[23:14] <jrand0m> [aka, would it have a Host: header?] 
+[23:14] <jrand0m> exactly 
+[23:14] * mihi wishes for something
+[23:14] <moi> I wonder if we can have the proxy blank that out
+[23:14] <jrand0m> if the server's outbound tunnel is always on the same host, thats fine 
+[23:14] <jrand0m> you can set the proxy Host: to 127.0.0.1 
+[23:15] *** dm_backup (~as@anon.iip) has joined channel #iip-dev
+[23:15] <jrand0m> but then you must run the tunnel on the same host as the server.  not a bad problem, as its not for general normal-web browsing 
+[23:15] <jrand0m> right? 
+[23:15] *** Signoff: dm (Ping timeout)
+[23:16] * moi hadn't thought that deeply into it yet
+[23:16] <mihi> if you run the server on your own box you can also alias i2p to localhost or sth like that.
+[23:16] <dm_backup> so do people have to run web servers now?
+[23:16] <jrand0m> dm_backup> this is only for people who want to. 
+[23:16] *** dm_backup is now known as dm
+[23:16] <Dellammo> like me
+[23:16] <dm> yeah, I mean for this (Link: http://i2p)http://i2p thingie
+[23:17] <mihi> if you want to provide content, yes.
+[23:17] <mihi> but you have to run one to provide content in good ol' www as well.
+[23:18] <Dellammo> why?
+[23:18] <dm> Hmmm, maybe I should build a P2P app for I2P.
+[23:18] <jrand0m> a filesharing app over i2p would rule. 
+[23:18] <dm> yes sorry, filesharing.
+[23:19] <moi> I think it would be possible for someone to run an OpenNap server in conjunction with i2ptunnel
+[23:19] <jrand0m> yes. 
+[23:19] <jrand0m> (though a native i2p p2p would have better performance) 
+[23:19] <mihi> but the downloads will be hard. 
+[23:20] <mihi> no way to get to the correct host as all are localhost ;)
+[23:20] <dm> Let's wait till we see PING running over i2ptunnel first.
+[23:20] * Dellammo is confused are we talking about a proxy thats not i2ptunnel that lets you access webservers that are internal to the i2p network by typing '(Link: http://i2p/')http://i2p/' ?
+[23:20] <jrand0m> perhaps just a simple FTP client designed to run over i2p? 
+[23:20] <dm> (not ping literally)
+[23:20] <mihi> jrand0m: ftp needs 2 ports...
+[23:20] <jrand0m> designed to run over i2p. 
+[23:21] <jrand0m> a general file transfer app, not the FTP protocol, specifically 
+[23:21] <mihi> then it's not ftp.
+[23:21] <mihi> ATalk ;)
+[23:21] <jrand0m> (taking advantage of larger message sizes) 
+[23:21] <dm> battle of the wise men!
+[23:21] <jrand0m> heh 
+[23:21] <moi> Dellammo: right now you have to create an i2ptunnel for each website/Destination you want to browse. We are thinking of using a proxy server that would dynamically build an i2ptunnel for each site.
+[23:22] <jrand0m> (kind of) 
+[23:22] <jrand0m> you won't want to use an i2ptunnel, specifically.  
+[23:22] <jrand0m> you'll want to use the i2ptunnel protocol, and send messages directly, not via TCP/IP sockets. 
+[23:23] <jrand0m> mihi> any idea what kind of time it would take to factor the protocol functionality out of i2ptunnel so other apps could send data to an i2p tunnel? 
+*** mihi is mihi@anon.iip (mihi) 
+*** on channels: #iip-dev #iip #headlines #german #freenet-opn #freenet #fredisdead #frazaa @#fiw #anonymous 
+*** on irc via server anon.iip (Official IIP )
+*** mihi has been idle 3 minutes, signed on at Thu Jan 01 01:00:00 1970 
+*** mihi-backup is ~mihi@anon.iip (mihi) 
+*** on channels: #iip-dev 
+*** on irc via server anon.iip (Official IIP )
+*** mihi-backup has been idle 12 minutes, signed on at Thu Jan 01 01:00:00 1970 
+[23:25] <mihi> is there any large protocol functionality? I2PTunnelRunner can be used as is.
+[23:25] <mihi> You just have to adjust the client class for your needs.
+[23:25] <jrand0m> hmm, not really - i2ptunnelRunner uses a socket 
+[23:26] <jrand0m> this is a plain java app that wants to generate a message ("HTTP GET /\n\n") and send it to an outbound I2PTunnel 
+[23:27] <jrand0m> we don't want to redirect the client contacting the proxy to a new port to connect to the newly instantiated I2PTunnel (as there'd be no way to switch back for links off that site) 
+[23:28] <jrand0m> but perhaps switching I2PTunnelRunner to use an InputStream (all it uses is socket.getInputStream) would be easy... 
+[23:28] <jrand0m> but then we still need the listen side 
+[23:28] *** Signoff: mihi (Ping timeout)
+[23:28] <jrand0m> d'oh 
+[23:28] * jrand0m hopes the backup isn't about to ping out...
+[23:28] <dm> backup's gonna die as well ,watch it!
+[23:29] <mihi-backup> ;)
+[23:29] <jrand0m> w00t 
+[23:29] <mihi-backup> [23:25] <jrand0m> hmm, not really - i2ptunnelRunner uses a socket
+[23:29] <mihi-backup> [23:25] <mihi> oops, right. and you want to do it completely without sockets?
+[23:29] <mihi-backup> [23:26] <mihi> then there is not much code left from i2ptunnel. most is for handling the sockets.
+[23:29] <mihi-backup> [23:26] <mihi> best stick to the protocol and implement it yourself (build the messages w/ the static method in i2ptunnel.java)
+[23:29] <mihi-backup> [23:28] <mihi> http would not need that many threads. Just run a reader over the incoming message until a double return and then send your thing out.
+[23:30] <jrand0m> ah 'k.  thanks 
+[23:30] <jrand0m> moi> tu sabes? 
+[23:30] <mihi-backup> re switching I2PTunnel for an input stream. what for? you won't get anythin on it any more after you parsed the request.
+[23:31] * moi thinks
+[23:31] <dm> toi thinks
+[23:31] <mihi-backup> just forget the tunnelrunner. ;)
+[23:31] <jrand0m> right, I was just thinking to keep the I2PTunnel and the http proxy to use the same code - I2PTunnel would use socket.getInputStream(), the http proxy would use new ByteArrayInputStream("GET / \n\n".getBytes()) 
+[23:31] *** mihi (mihi@anon.iip) has joined channel #iip-dev
+[23:32] * moi will need to go over this later in detail
+[23:32] <mihi-backup> but that will cause the runner to send a "Connection closed" when the string is sent.
+[23:32] <mihi-backup> as the stream ends.
+[23:32] <jrand0m> right, which is normal HTTP 
+[23:33] <mihi-backup> just forget the runner, i said ;)
+[23:33] <jrand0m> 'k 
+[23:33] <mihi-backup> jrand0m: nope. the connection is closed when the answer is here, not when the question is out.
+[23:33] <jrand0m> oh yeah 
+[23:33] <jrand0m> ;) 
+[23:36] <jrand0m> cool moi, we can work through this stuff later on. 
+[23:36] <jrand0m> ok, thats agenda item 2).  now for 3) 
+[23:36] <moi> ok
+[23:37] <jrand0m> 3) phttprelay 
+[23:37] <jrand0m> phttp relay is a set of servlets wrapped in a .war file 
+[23:38] <jrand0m> it works out of the box on windows / sun JVM, but I had to hack jetty to run w/ kaffe 
+[23:38] <mihi> make .peace not .war
+[23:39] * jrand0m groans
+[23:39] <dm> you can run .war files without a J2ee server?
+[23:39] <dm> good to know.
+[23:39] <jrand0m> .war files run in any servlet container - tomcat, apache w/ mod_jk, jetty, etc 
+[23:40] <jrand0m> we're going to want some people to run these on machines w/ publicly reachable IP addresses, but they're only necessary for people who don't have publicly reachable addresses (like me) 
+[23:41] <mihi> which ports do you need to redirect if you want to go through a nat without that?
+[23:41] <jrand0m> its implementation is very rudimentary as well - it needs some limits as to how many routers it relays for, how many messages it queues up, how long before it times out, etc 
+[23:41] <jrand0m> just the I2NP TCP port 
+[23:41] <jrand0m> (or the I2NP UDP port) 
+[23:41] * mihi does not know if his nat allows udp forwarding
+[23:42] * jrand0m doesn't know if mihi's nat does either
+[23:43] <jrand0m> right now, for example, my laptop is reachable via PHTTP only, and my server's router is reachable via PHTTP, TCP, and UDP.  if my laptop establishes a connection to the server's router via TCP, it can send messages via TCP.  but if my laptop doesn't first do that, the server must send messages via PHTTP 
+[23:44] <jrand0m> the code is in i2p/code/apps/phttprelay/ for anyone with servlets experience who wants to hack on a small app 
+[23:45] <jrand0m> (it should also work transparently with https as well as plain http) 
+[23:45] <jrand0m> I'll doc up the PHTTP protocol Real Soon Now.  :) 
+[23:45] *** Signoff: mihi (Ping timeout)
+[23:45] <jrand0m> ok, thats it for item 3) phttprelay 
+[23:45] <jrand0m> 4) i2ptunnel 
+[23:46] <jrand0m> we've already discussed a bunch of stuff.  unless mihi (or anyone else) has anything else on it, we can move to 5) 
+[23:46] *** wilde (~anon@anon.iip) has joined channel #iip-dev
+[23:46] <jrand0m> hola wilde 
+[23:47] <jrand0m> ok.  that said, item 5 :) 
+[23:47] <jrand0m> 5) installation 
+[23:48] <jrand0m> to get 0.2 out the door, and beyond, I'm thinking of some ant scripts. 
+[23:48] <jrand0m> or should we use another open source installation system? 
+[23:48] <jrand0m> anyone have any experiences / thoughts on this? 
+[23:49] <Dellammo> hmm
+[23:50] <jrand0m> ant has the benefit of being unified with the build system, platform independent, and has headless operation. 
+[23:50] <wilde> hey
+[23:50] <jrand0m> but it requires ant (which requires java).  and it doesn't have a GUI 
+[23:51] <Dellammo> i can think of many install programs for windows... i dont know how many are gpl though
+[23:51] <jrand0m> yeah, I have a licensed InstallAnywhere Enterprise installation, but its bad for open source 
+[23:51] <jrand0m> NSIS is open source, but has its nuances. 
+[23:51] <dm> stupid question: is ant included in java?
+[23:52] <jrand0m> nope. 
+[23:52] <jrand0m> oh, though we COULD distribute a GCJ'ed ant 
+[23:52] <dm> alright, must have come with eclipse then.
+[23:52] <jrand0m> (compiled to native code) 
+[23:52] <jrand0m> definitely dm. 
+[23:52] <jrand0m> apache makes ant (ant.apache.org) and its apache licensed. 
+[23:52] <jrand0m> oh, yuck. 
+[23:52] * jrand0m just read the sentence I typed)
+[23:53] <jrand0m> gpl is not apl friendly, according to the FSF 
+[23:53] <jrand0m> we probably can't distribute ant. 
+[23:53] <dm> can't we just a script? what needs to be done for it to be installed?
+[23:53] <jrand0m> but we can use it. 
+[23:53] <jrand0m> not much at all.  a script is fine. 
+[23:53] <jrand0m> but do we want a .bat and a .sh, etc. 
+[23:54] *** shardy (~shardy@anon.iip) has joined channel #iip-dev
+[23:54] <dm> what does an installation entail, a couple of questions?
+[23:54] <jrand0m> writing a java installer to do the install platform independent is overkill, so we should ideally use an existing install framework 
+[23:54] <jrand0m> yeah, a few questions 
+[23:54] <jrand0m> the installation targets I forsee: 
+[23:54] <Dellammo> do we get a flashy new logo? whos working on that?
+[23:54] <jrand0m> install-router 
+[23:55] <jrand0m> install-www-tunnel, install-www-proxy, install-sdk, install-cvs-tunnel, update-seednodes 
+[23:55] <moi> why not use InstallAnywhere? if the code is open that is what matters
+[23:55] * jrand0m thinks YOU are Dellammo :)
+[23:55] <jrand0m> InstallAnywhere isn't open source. 
+[23:55] * Dellammo gets to work
+[23:56] <dm> script would probably be enough at this point, but I guess might as well think ahead.
+[23:56] <jrand0m> (its about 4k euro / seat) 
+[23:56] <jrand0m> right.  so for tomorrow, I'll probably just write ant scripts, but we need to look into a system 
+[23:56] *** Signoff: wilde (Ping timeout)
+[23:56] <jrand0m> so if anyone can help out with that, it'd be appreciated :) 
+[23:57] <dm> ah okay, I was thinking shell scripts.
+[23:57] <moi> Some of the package managers could do that on the Linux installs
+[23:57] *** wilde (~anon@anon.iip) has joined channel #iip-dev
+[23:57] <jrand0m> managing different installers for different platforms is a PITA 
+[23:59] <dm> java installer? Why is it a PITA?
+[23:59] <jrand0m> a java installer would be great 
+[23:59] <mihi-backup> pain in the a**e
+[23:59] <mihi-backup> oops, sorry...
+[23:59] <dm> system.out.println("Please enter where you would like to install I2P") ;)
+[23:59] <mihi-backup> s/tln/t; s/P"/P: "/
+[23:59] <mihi-backup> s/sys/Sys/
+[00:00] <jrand0m> writing a custom installer in java is possible, but its preferred to use an existing framework.  but if you're volunteering to write a custom installer, I'm behind ya! 
+[00:00] <dm> mihi's having an epileptic seizure.
+[00:00] * mihi-backup slaps dm around a bit with a large trout
+[00:00] <dm> Tell you what...
+[00:01] <dm> If you have time at any point to write out the exact steps needed in an install, I'll write a java installer.
+[00:01] <mihi-backup> dm: read the ant script ;)
+[00:01] <jrand0m> word dm.  once I get the ant thing working I'll doc 'er up for you 
+[00:01] <dm> fair enough, we'll see if I can figure out the ant script once it's out.
+[00:02] *** Signoff: wilde (Ping timeout)
+[00:02] <Dellammo> jrand0m, i2p I2P i^2p or I^2P ?
+[00:02] * jrand0m has some scribbles with a capital I, 2 and a capital P all superimposed on each other...
+[00:03] <Dellammo> hmm
+[00:03] *** wilde (~anon@anon.iip) has joined channel #iip-dev
+[00:03] *** mihi (~mihi@anon.iip) has joined channel #iip-dev
+[00:03] <jrand0m> ok, thats 5) installation 
+[00:03] <jrand0m> 6) iip feature request 
+[00:04] <jrand0m> someone came on here with a request for auto-nicktheifing 
+[00:04] <jrand0m> basically, if someone has registered a nick, no one can stay as that nick unless they're identified 
+[00:04] <jrand0m> nop or anyone who has done iip dev - thoughts? 
+[00:04] * jrand0m thinks it'd be a great feature to have
+[00:05] * Dellammo draws an illuminati eye with a no 'as in no smoking sign' over it
+[00:05] <jrand0m> heh 
+[00:05] <dm> Maybe I'll make an I2P logo as well... for the gui part of my installer ;)
+[00:05] *** Signoff: wilde ((null))
+[00:05] <Dellammo> lets all make them, so we dont get stuck with a sucky logo
+[00:05] <mihi> jrand0m: ask mids - he maintains trent.
+[00:06] <mihi> the trent source is in cvs btw
+[00:06] <Dellammo> the logo is the most important part of any activity
+[00:06] <jrand0m> definitely Dellammo. 
+[00:06] * dm dusts off Corel Draw...
+[00:06] <dm> man I love Corel Draw.
+[00:07] <jrand0m> ok, thats it for 6) 
+[00:07] <jrand0m> 7) ??? 
+[00:07] <jrand0m> any questions / thoughts / frisbees/ toenails? 
+[00:07] <dm> Thought: hope it works.
+[00:08] <jrand0m> heh 
+[00:08] * jrand0m too.
+[00:09] <mihi> jrand0m: keep the good work!
+[00:09] <dm> yes, keep it up.
+[00:09] <jrand0m> good work?  you obviously haven't seen the code ;) 
+[00:09] <dm> Love your code, except for the bliding underscores.
+[00:09] <dm> blinding...bleeding..etc..
+[00:09] <jrand0m> heh, instance variables have _, so we don't ever need to do this.var = var; 
+[00:10] <jrand0m> ok... 68 minutes... if I can drag this out for one more minute... 
+[00:10] <jrand0m> w00t 
+[00:10] * jrand0m *baf*s the meeting closed.

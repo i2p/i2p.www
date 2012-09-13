@@ -1,221 +1,215 @@
-{% extends "_layout.html" %}
-{% block title %}I2P Development Meeting 101{% endblock %}
-{% block content %}<h3>I2P dev meeting, August 3 @ 21:00 GMT</h3>
-<div class="irclog">
-14:05 <jrandomi2p> 0) hi</p>
-14:05 <jrandomi2p> 1) 0.3.4 status</p>
-14:05 <hypercubus> i guarantee that on PDforge your project will be confirmed virtually immediately ;-)</p>
-14:05 <jrandomi2p> 2) On deck for 0.3.4.1</p>
-14:05 <jrandomi2p> 3) New web console / I2PTunnel controller</p>
-14:05 <jrandomi2p> 4) 0.4 stuff</p>
-14:05 <jrandomi2p> 5) Other development activities</p>
-14:05 <jrandomi2p> 6) ???</p>
-14:05 <jrandomi2p> 0) hi</p>
-14:05 * jrandomi2p waves</p>
-14:05 < mihi> lla ih</p>
-14:05 * oOo goof</p>
-14:06 <mihi> hi all</p>
-14:06 <jrandomi2p> weekly status notes posted up to http://dev.i2p.net/pipermail/i2p/2004-August/000388.html</p>
-14:06 <jrandomi2p> jumping right in to 1) 0.3.4 status</p>
-14:07 <jrandomi2p> the net seems generally functional, both for irc and eepsites</p>
-14:07 <jrandomi2p> what kind of eepsite reliability / failures are y'all seeing?</p>
-14:07 * jrandomi2p can see the irc failures here, as i see when people disconnect / etc</p>
-14:08 <mule2p> in general good, got out-of-memory after approx 25MBytes</p>
-14:08 <mule2p> but that should be fixed in cvs, as you mentioned</p>
-14:08 <jrandomi2p> ah ok thats on a single 25MB download right?</p>
-14:09 <mule2p> yes</p>
-14:09 <jrandomi2p> right</p>
-14:10 <jrandomi2p> large file transfers do still seem to have problems (disconnect over time, not  corruption though).  i think that may be fixed with the mod mentioned, but i'm not sure</p>
-14:11 * jrandomi2p forgot to mention that oOo's roundtrip/connections_reliability.php includes both irc servers here, not just i2p, so doesnt really have the right data atm</p>
-14:11 <jrandomi2p> oOo - any thoughts on what it'd take to get the bogobot code to ignore @irc.metropipe.net?</p>
-14:12 < duck> kicking hypercubus</p>
-14:12 < duck> and me to upgrade</p>
-14:12 <oOo> Very few coding, a peer review by hypercubus and the update of bogobot by duke</p>
-14:13 <jrandomi2p> ok cool</p>
-14:13 <hypercubus> duke?</p>
-14:13 <oOo> duck, sorry :p</p>
-14:13 * jrandomi2p thinks that sort of statistical summary would be very helpful</p>
-14:13 <jrandomi2p> duke duck</p>
-14:14 <oOo> The stats are made on PHP, could be given to duck, too</p>
-14:14 <jrandomi2p> ok, anyone have anything to bring up wrt 0.3.4?</p>
-14:14 <jrandomi2p> w3rd</p>
-14:15 <jrandomi2p> ok, moving on to 2) 0.3.4.1</p>
-14:15 <jrandomi2p> i dont know what else to mention beyond whats mentioned in the mail</p>
-14:16 <jrandomi2p> the StreamSinkServer and StreamSinkClient apps are compact demo apps for ministreaming (for any java devs who want to write streaming over i2p)</p>
-14:16 <jrandomi2p> oh, and StreamSinkServer is kind of like aum's dropbox python app (it takes any data anyone sends it and writes it to a file)</p>
-14:17 <jrandomi2p> (StreamSinkClient sends a fixed size of random data, so not too useful ;)</p>
-14:17 <jrandomi2p> any thoughts / concerns / questions wrt 0.3.4.1?</p>
-14:18 * jrandomi2p estimates it'll be out in a day or two</p>
-14:19 <jrandomi2p> ok, moving on at a good clip to 3) New web console / I2PTunnel controller</p>
-14:20 <jrandomi2p> as mentioned in the mail, we've got the new web console pretty much functional, and a simple web interface to control / edit / create i2ptunnel instances</p>
-14:21 < protok0l> where can the protok0l get it</p>
-14:22 < protok0l> and what do i do with jetty</p>
-14:22 <jrandomi2p> its all in cvs now, but i need to put up some docs on how to set it up</p>
-14:22 < protok0l> ok</p>
-14:23 * jrandomi2p wrote up and posted a ~5 step process to the channel a few days ago, but we need a simpler proc (or at least a more clear one)</p>
-14:23 < protok0l> i heard that CVS sucks</p>
-14:23 <mule2p> ok, can tell you once i have the docs :)</p>
-14:23 < protok0l> and there was some better CVS thingy</p>
-14:23 * oOo logged only the first 2 steps before getting disconnected :p</p>
-14:24 < protok0l> same thing with Vi</p>
-14:24 < protok0l> lol</p>
-14:24 <jrandomi2p> we'll eventually moving to have this new console be the 'standard', but that'll probably wait until we've got everything integrated with hypercubus' new installer</p>
-14:26 <jrandomi2p> actually</p>
-14:26 <jrandomi2p> for the brave, here's the ugly steps from before:</p>
-14:26 <jrandomi2p> 20:19 &lt; jrandom&gt; w3rd hyper - could you pull latest from cvs, 'ant dist', grab build/*jar and toss them into your lib dir, mkdir $instDir/webapps/ ; cp build/routerconsole.war $instDir/webapps/  ; edit your router.config to uncomment the clientApp.3.* lines and update your classpath</p>
-14:26 <jrandomi2p> 20:19 &lt; jrandom&gt; (in the classpath, set it to: lib/i2p.jar:lib/router.jar:lib/mstreaming.jar:lib/heartbeat.jar:lib/i2ptunnel.jar:lib/netmonitor.jar:lib/sam.jar:lib/timestamper.jar:lib/ant.jar:lib/jasper-compiler.jar:lib/jasper-runtime.jar:\</p>
-14:26 <jrandomi2p> 20:19 &lt; jrandom&gt; lib/jnet.jar:lib/org.mortbay.jetty.jar:lib/routerconsole.jar:lib/xercesImpl.jar:lib/xml-apis.jar:lib/javax.servlet.jar</p>
-14:26 < protok0l> ok screw it</p>
-14:27 <jrandomi2p> in addition to that, there's a new i2ptunnel.war - take that and drop it into $instDir/webapps/ and go to http://localhost:7657/i2ptunnel/</p>
-14:27 <jrandomi2p> yeah, as i said, its a pain</p>
-14:27 <jrandomi2p> *but* its functional, and I dont really have either the time or the expertise to make it much better</p>
-14:27 <oOo> That's all it needs to be done ?</p>
-14:28 <jrandomi2p> yup</p>
-14:28 <oOo> Ok, thanks</p>
-14:28 <jrandomi2p> (you'll get something looking like http://dev.i2p.net/~jrandom/config.png when you go to http://localhost:7657/config.jsp</p>
-14:29 <jrandomi2p> anyway, thats that</p>
-14:29 <jrandomi2p> i'd appreciate if/when people can kick it around, and hopefully come up with ways to improve it :)</p>
-14:30 <jrandomi2p> mihi: any thoughts on the whole web interface idea?</p>
-14:30 < duck> nice layout</p>
-14:31 <jrandomi2p> thought you'd like it duck ;)</p>
-14:31 <mrflibble> nice</p>
-14:31 * mihi likes the layout as well</p>
-14:31 <mihi> web interfaces are always great</p>
-14:32 <jrandomi2p> the one i put together for i2ptunnel.war is pretty bland... functional, but bland</p>
-14:33 <jrandomi2p> ok, thats that - if/when people wanna chat about it further, we've got irc and the list, etc :)</p>
-14:33 <mule2p> jrandomi2p: clientApp.3 is netmonitor for me</p>
-14:34 <jrandomi2p> ah ok mule2p - check the router.config from cvs -</p>
-14:34 <jrandomi2p> #clientApp.3.main=net.i2p.router.web.RouterConsoleRunner</p>
-14:34 <jrandomi2p> #clientApp.3.name=webConsole</p>
-14:34 <jrandomi2p> #clientApp.3.args=7657 127.0.0.1 ./webapps/</p>
-14:34 <jrandomi2p> obviously change the 3 to 4 and uncomment :)</p>
-14:35 <jrandomi2p> replace 127.0.0.1 if you want to be able to access it remotely</p>
-14:35 <jrandomi2p> (and 7657 to use a different port)</p>
-14:36 <mule2p> ok, thanks, have looked in the checked out i2p tree for a new router.config, but it may be elsewhere in cvs</p>
-14:36 <jrandomi2p> ah sorry, yeah its i2p/installer/java/src/router.config.template</p>
-14:37 <mule2p> k</p>
-14:37 <jrandomi2p> ok, unless there's anything else, swinging on to 4) 0.4 stuff </p>
-14:38 <jrandomi2p> hmm, i dont know if there's anything i can add to whats in that paragraph in the mail</p>
-14:38 <jrandomi2p> basically just a bunch of entries on my todo list :)</p>
-14:39 <jrandomi2p> anyone have any questions / concerns wrt things posted there?</p>
-14:40 <oOo> How is the installer doing ? ^^</p>
-14:40 <jrandomi2p> hypercubus?  que tal?</p>
-14:40 <hypercubus> patience, danielsan... good things come to those who chafe... uh, wait ;-)</p>
-14:40 <jrandomi2p> hehe</p>
-14:41 <jrandomi2p> no rush, just wondering how things are goin'</p>
-14:41 <jrandomi2p> any problems you're running into, things we can help with, etc?</p>
-14:41 <mihi> who is danielsan?</p>
-14:41 <hypercubus> no problems, just the tedium of testing atm</p>
-14:42 <jrandomi2p> w3rd</p>
-14:42 <hypercubus> i should have written unit tests first, but oh well ;-)</p>
-14:42 <jrandomi2p> hehe</p>
-14:43 <hypercubus> java's supposed platform independence really breaks down in the area of installation tasks</p>
-14:44  * jrandom senses a bulk disconnect</p>
-14:45 <oOo> Uh oh</p>
-14:45 <hypercubus_> hmmm, wonderful... what was the last thing i said?</p>
-14:45 <oOo> &lt;hypercubus&gt; java's supposed platform independence really breaks down in the area of installation tasks</p>
-14:46 <hypercubus> ok, who sabotaged the meeting? ;-)</p>
-14:46  * jrandom blames jebus</p>
-14:46 <hypercubus> maybe it was duke</p>
-14:46 <mule> you don't want to tell me my router is that important :)</p>
-14:46 < jrandom> heh</p>
-14:47 <mihi> [23:46] * jrandomi2p has quit IRC (Client exited)</p>
-14:47 <mihi> hehe...</p>
-14:47 <mule> if so, sorry.</p>
-14:47 <hypercubus> anyhow, no worries about the installer's progress, i fully expect it to be ready when 0.4 is</p>
-14:47 < jrandom> duck: how many inbound tunnels do you have listening on irc.duck.i2p? </p>
-14:47 <hypercubus> i'm not running into any head-scratchers</p>
-14:47 < jrandom> cool hypercubus</p>
-14:47 < hobbs> Reminds me -- is there a commandline-accessible way to spit out a new router.config from router.config.template?</p>
-14:47 < jrandom> nope</p>
-14:48 < jrandom> not afaik</p>
-14:48 < mihi> run the installer and copy it</p>
-14:48 < jrandom> other than java -jar install.jar </p>
-14:48 < jrandom> heh</p>
-14:48 < mihi> into a new dir i mean</p>
-14:48 < cervantes> at least not the head scratching you're all thinking of</p>
-14:48 < jrandom> ooh neat, my router dumped core</p>
-14:48 < duck> jrandom: remind me how I know the hash of irc.duck.i2p</p>
-14:48 * hypercubus wonders what cervantes means</p>
-14:49 < jrandom> cd lib ; java -cp i2p.jar net.i2p.data.TestData display Destination ../irc.privKey</p>
-14:49 < cervantes> hyper: you'd be more familiar with the term strunking :)</p>
-14:49 <hypercubus> duck: try increasing to 3 or more inbound tunnels... seems to have helped me some</p>
-14:50 < duck> *** Building a seperate global context!</p>
-14:50 < duck> Log file logger.config does not exist</p>
-14:50 < duck> 23:49:47.387 ERROR [main        ] net.i2p.util.LogManager       : Log file logger.config does not exist</p>
-14:50 < duck> 23:49:49.589 CRIT  [ 1 shutdown ] net.i2p.util.LogManager       : Shutting down logger</p>
-14:50 < jrandom> ah hrm</p>
-14:50 <hypercubus> guess it couldn't handle your log *cough*</p>
-14:51 < mihi> copy your logger.config everywhere ;)</p>
-14:51 < mihi> at least everywhere where your pwd could be when you run any i2p app</p>
-14:51 < duck> no I wont</p>
-14:51 < jrandom> ok, echo logger.record.net.i2p.data.TestData=INFO &gt;&gt; logger.config</p>
-14:52 < jrandom> actually, thats why i said (cd lib), but i forgot that i changed the default from DEBUG to ERROR in cvs</p>
-14:52 < duck> 4 inbounds</p>
-14:52 < jrandom> 4 current &amp; ready?</p>
-14:52 < jrandom> or 2 not ready (or recently expired) and 2 ready?</p>
-14:53 < duck> now it changed to 3 with 1 not ready</p>
-14:53 < jrandom> 'k so its probably during tunnel expiration / replacement</p>
-14:54 <jrandomi2p> if you update your router.config to specify 3 inbound tunnels that should help with reliability</p>
-14:54 <jrandomi2p> (or you can use the new i2ptunnel web interface to do it ;)</p>
-14:54 <hypercubus> perhaps tunnel expiration for a single client with multiple tunnels should be staggered</p>
-14:55 <jrandomi2p> they are, generally - new tunnels are allocated &amp; a new leaseSet created 60s before tunnel expiration</p>
-14:55 <hypercubus> ah</p>
-14:55 <jrandomi2p> however, during tunnel failure it has to create a new leaseSet on demand which doesnt immediately propogate</p>
-14:56 <jrandomi2p> (well, it goes out on the netDb, but clients wont get that for up to a few seconds)</p>
-14:57 <jteitel> !who</p>
-14:57 < alpaca_> Userlist for #i2p: [hobbs] [Iakin3] [duck] [pwk__] [Sonium] [jar] [alpaca_] [interrupt] [protok0l] [mihi] [aum] [Shaun-Away] [cervantes] [jrandom] [deer] [hirvox] [Bladenight] </p>
-14:57 <bogobot> Userlist for #i2p: [shendaras] [duck] [josh] [mule2p] [aum] [mrflibble] [hypercubus] [TrueSeeker] [laggybot] [bogobot] [ion_] [mihi] [ion] [mule] [jteitel] [ant] [oOo_] [jrandomi2p] [dm] [ugha2p] [Ch0Hag] [jnk] [oOo] [soros] [bob] [revival] [DrWoo] [thetower] </p>
-14:57 <jrandomi2p> there are some further optimizations that can be done to the tunnel pool, but i'm not sure how useful it'd be atm</p>
-14:57 <jrandomi2p> ok, jumping back on track - anyone else have anything wrt 4) 0.4. stuff?</p>
-14:57 <oOo> About 'large scale simulations' for 0.4, any way to prepare thus ? Need 'new' specifics applications/tools ? (transition to point 5 ? ;) )</p>
-14:58 <jrandomi2p> actually, for the sim it would be great if someone could help mod the heartbeat (or a sam-powered app) to be kind of a scriptable client / server</p>
-14:59 -!- Bladenight is now known as Nightblade</p>
-14:59 <jrandomi2p> (e.g. rather than the current "every 30s, send 20KB to peer X", a "for 10 minutes, ask peer X for a 1MB file, and then pause for 60m, then  ask peer Y for 1KB files" etc)</p>
-15:00 <jrandomi2p> but if someone is interested in helping out with that, please let me know and we can chan</p>
-15:00 <jrandomi2p> er, chat</p>
-15:00 <jrandomi2p> taking that lead in, lets jump to 5) stuff y'all are doing :)</p>
-15:01 <jrandomi2p> not sure how to go about covering this, lets just go down in the (arbitrary) order listed in the mail for updates?</p>
-15:01 <jrandomi2p> i dont see sunshine here, and aum probably isn't up yet ;)</p>
-15:02 <jrandomi2p> nightblade - how goes the battle? </p>
-15:02 < Nightblade> i have some plans for making the libsam interface like bsd sockets</p>
-15:02 < Nightblade> but i haven't done any coding on that part yet</p>
-15:02 < duck> changed to tunnels.numInbound=3</p>
-15:03 <jrandomi2p> cool duck (hopefully wait until after the meeting to restart your tunnel ;)</p>
-15:03 < duck> oh, it doesnt detect the changes?</p>
-15:03 <jrandomi2p> word nightblade - is there a problem w/ the way things are now?</p>
-15:03 <hypercubus> not until you code it to ;-)</p>
-15:03 <jrandomi2p> naw duck, the clientApp lines are only read on startup</p>
-15:04 <jrandomi2p> (clientApp is really outside the control of the router - thats what the i2ptunnel web app is for)</p>
-15:04 < Nightblade> no there is no problem with it the way it is now.... what i would be doing is in addition to the interface that is already there (developers could choose what they want to use)</p>
-15:04 <jrandomi2p> wikked</p>
-15:05 <jrandomi2p> ok, you're the boss.  having variety is good, though variety means more code to maintain / etc, but its a balance</p>
-15:06 <jrandomi2p> ok, moving on down the list - mule2p - how goes the outproxy stuff?</p>
-15:07 <mule> nothing done beyond the patch you have</p>
-15:07 <jrandomi2p> ah ok i thought you were working on a further mod</p>
-15:07 <mule> need to find some spare time for real load balancing</p>
-15:07 <jrandomi2p> w3rd</p>
-15:08 <jrandomi2p> i'll get that patch applied then</p>
-15:08 <mule> thanks. and include my outproxy in the client app :) seems to be faster</p>
-15:08 <jrandomi2p> heh, well, of course your proxy will be faster for you, its local :)</p>
-15:09 <oOo> And no one else use it ^^</p>
-15:09 <mule> no, it isn't</p>
-15:09 <jrandomi2p> ooh, its on a different router?  cool</p>
-15:09 <mule> yep, on a root server at an isp</p>
-15:10 <jrandomi2p> the i2ptunnel web interface has a field for people to specify the list of outproxies, so it should be easy enough for people to tweak, but we'll get it out in the next rev &amp; release notes</p>
-15:10 <jrandomi2p> nice</p>
-15:11 <jrandomi2p> ok, nickster seems to be offline atm</p>
-15:12 <jrandomi2p> are there any other active client development efforts going on?</p>
-15:12 <jrandomi2p> (or are any of the paused ones active, etc?)</p>
-15:13 <jrandomi2p> ok, if someone wants to mention anything else on that front, we've got the list and the channel, as always :)</p>
-15:13 <jrandomi2p> moving on to 6) ???</p>
-15:13 <jrandomi2p> anyone else have anything they want to bring up?</p>
-15:14 < Nightblade> nope</p>
-15:15 <mihi> duck has anything to bring down ;)</p>
-15:15 <mihi> s/any/some/</p>
-15:15 * jrandomi2p pingfloods mihi</p>
-15:15 <jrandomi2p> ok, on that note</p>
-15:15 * jrandomi2p winds up</p>
-15:15 * jrandomi2p *baf*s the meeting closed</p>
-</div>
-{% endblock %}
+14:05 <jrandomi2p> 0) hi
+14:05 <jrandomi2p> 1) 0.3.4 status
+14:05 <hypercubus> i guarantee that on PDforge your project will be confirmed virtually immediately ;-)
+14:05 <jrandomi2p> 2) On deck for 0.3.4.1
+14:05 <jrandomi2p> 3) New web console / I2PTunnel controller
+14:05 <jrandomi2p> 4) 0.4 stuff
+14:05 <jrandomi2p> 5) Other development activities
+14:05 <jrandomi2p> 6) ???
+14:05 <jrandomi2p> 0) hi
+14:05 * jrandomi2p waves
+14:05 < mihi> lla ih
+14:05 * oOo goof
+14:06 <mihi> hi all
+14:06 <jrandomi2p> weekly status notes posted up to http://dev.i2p.net/pipermail/i2p/2004-August/000388.html
+14:06 <jrandomi2p> jumping right in to 1) 0.3.4 status
+14:07 <jrandomi2p> the net seems generally functional, both for irc and eepsites
+14:07 <jrandomi2p> what kind of eepsite reliability / failures are y'all seeing?
+14:07 * jrandomi2p can see the irc failures here, as i see when people disconnect / etc
+14:08 <mule2p> in general good, got out-of-memory after approx 25MBytes
+14:08 <mule2p> but that should be fixed in cvs, as you mentioned
+14:08 <jrandomi2p> ah ok thats on a single 25MB download right?
+14:09 <mule2p> yes
+14:09 <jrandomi2p> right
+14:10 <jrandomi2p> large file transfers do still seem to have problems (disconnect over time, not  corruption though).  i think that may be fixed with the mod mentioned, but i'm not sure
+14:11 * jrandomi2p forgot to mention that oOo's roundtrip/connections_reliability.php includes both irc servers here, not just i2p, so doesnt really have the right data atm
+14:11 <jrandomi2p> oOo - any thoughts on what it'd take to get the bogobot code to ignore @irc.metropipe.net?
+14:12 < duck> kicking hypercubus
+14:12 < duck> and me to upgrade
+14:12 <oOo> Very few coding, a peer review by hypercubus and the update of bogobot by duke
+14:13 <jrandomi2p> ok cool
+14:13 <hypercubus> duke?
+14:13 <oOo> duck, sorry :p
+14:13 * jrandomi2p thinks that sort of statistical summary would be very helpful
+14:13 <jrandomi2p> duke duck
+14:14 <oOo> The stats are made on PHP, could be given to duck, too
+14:14 <jrandomi2p> ok, anyone have anything to bring up wrt 0.3.4?
+14:14 <jrandomi2p> w3rd
+14:15 <jrandomi2p> ok, moving on to 2) 0.3.4.1
+14:15 <jrandomi2p> i dont know what else to mention beyond whats mentioned in the mail
+14:16 <jrandomi2p> the StreamSinkServer and StreamSinkClient apps are compact demo apps for ministreaming (for any java devs who want to write streaming over i2p)
+14:16 <jrandomi2p> oh, and StreamSinkServer is kind of like aum's dropbox python app (it takes any data anyone sends it and writes it to a file)
+14:17 <jrandomi2p> (StreamSinkClient sends a fixed size of random data, so not too useful ;)
+14:17 <jrandomi2p> any thoughts / concerns / questions wrt 0.3.4.1?
+14:18 * jrandomi2p estimates it'll be out in a day or two
+14:19 <jrandomi2p> ok, moving on at a good clip to 3) New web console / I2PTunnel controller
+14:20 <jrandomi2p> as mentioned in the mail, we've got the new web console pretty much functional, and a simple web interface to control / edit / create i2ptunnel instances
+14:21 < protok0l> where can the protok0l get it
+14:22 < protok0l> and what do i do with jetty
+14:22 <jrandomi2p> its all in cvs now, but i need to put up some docs on how to set it up
+14:22 < protok0l> ok
+14:23 * jrandomi2p wrote up and posted a ~5 step process to the channel a few days ago, but we need a simpler proc (or at least a more clear one)
+14:23 < protok0l> i heard that CVS sucks
+14:23 <mule2p> ok, can tell you once i have the docs :)
+14:23 < protok0l> and there was some better CVS thingy
+14:23 * oOo logged only the first 2 steps before getting disconnected :p
+14:24 < protok0l> same thing with Vi
+14:24 < protok0l> lol
+14:24 <jrandomi2p> we'll eventually moving to have this new console be the 'standard', but that'll probably wait until we've got everything integrated with hypercubus' new installer
+14:26 <jrandomi2p> actually
+14:26 <jrandomi2p> for the brave, here's the ugly steps from before:
+14:26 <jrandomi2p> 20:19 < jrandom> w3rd hyper - could you pull latest from cvs, 'ant dist', grab build/*jar and toss them into your lib dir, mkdir $instDir/webapps/ ; cp build/routerconsole.war $instDir/webapps/  ; edit your router.config to uncomment the clientApp.3.* lines and update your classpath
+14:26 <jrandomi2p> 20:19 < jrandom> (in the classpath, set it to: lib/i2p.jar:lib/router.jar:lib/mstreaming.jar:lib/heartbeat.jar:lib/i2ptunnel.jar:lib/netmonitor.jar:lib/sam.jar:lib/timestamper.jar:lib/ant.jar:lib/jasper-compiler.jar:lib/jasper-runtime.jar:\
+14:26 <jrandomi2p> 20:19 < jrandom> lib/jnet.jar:lib/org.mortbay.jetty.jar:lib/routerconsole.jar:lib/xercesImpl.jar:lib/xml-apis.jar:lib/javax.servlet.jar
+14:26 < protok0l> ok screw it
+14:27 <jrandomi2p> in addition to that, there's a new i2ptunnel.war - take that and drop it into $instDir/webapps/ and go to http://localhost:7657/i2ptunnel/
+14:27 <jrandomi2p> yeah, as i said, its a pain
+14:27 <jrandomi2p> *but* its functional, and I dont really have either the time or the expertise to make it much better
+14:27 <oOo> That's all it needs to be done ?
+14:28 <jrandomi2p> yup
+14:28 <oOo> Ok, thanks
+14:28 <jrandomi2p> (you'll get something looking like http://dev.i2p.net/~jrandom/config.png when you go to http://localhost:7657/config.jsp
+14:29 <jrandomi2p> anyway, thats that
+14:29 <jrandomi2p> i'd appreciate if/when people can kick it around, and hopefully come up with ways to improve it :)
+14:30 <jrandomi2p> mihi: any thoughts on the whole web interface idea?
+14:30 < duck> nice layout
+14:31 <jrandomi2p> thought you'd like it duck ;)
+14:31 <mrflibble> nice
+14:31 * mihi likes the layout as well
+14:31 <mihi> web interfaces are always great
+14:32 <jrandomi2p> the one i put together for i2ptunnel.war is pretty bland... functional, but bland
+14:33 <jrandomi2p> ok, thats that - if/when people wanna chat about it further, we've got irc and the list, etc :)
+14:33 <mule2p> jrandomi2p: clientApp.3 is netmonitor for me
+14:34 <jrandomi2p> ah ok mule2p - check the router.config from cvs -
+14:34 <jrandomi2p> #clientApp.3.main=net.i2p.router.web.RouterConsoleRunner
+14:34 <jrandomi2p> #clientApp.3.name=webConsole
+14:34 <jrandomi2p> #clientApp.3.args=7657 127.0.0.1 ./webapps/
+14:34 <jrandomi2p> obviously change the 3 to 4 and uncomment :)
+14:35 <jrandomi2p> replace 127.0.0.1 if you want to be able to access it remotely
+14:35 <jrandomi2p> (and 7657 to use a different port)
+14:36 <mule2p> ok, thanks, have looked in the checked out i2p tree for a new router.config, but it may be elsewhere in cvs
+14:36 <jrandomi2p> ah sorry, yeah its i2p/installer/java/src/router.config.template
+14:37 <mule2p> k
+14:37 <jrandomi2p> ok, unless there's anything else, swinging on to 4) 0.4 stuff 
+14:38 <jrandomi2p> hmm, i dont know if there's anything i can add to whats in that paragraph in the mail
+14:38 <jrandomi2p> basically just a bunch of entries on my todo list :)
+14:39 <jrandomi2p> anyone have any questions / concerns wrt things posted there?
+14:40 <oOo> How is the installer doing ? ^^
+14:40 <jrandomi2p> hypercubus?  que tal?
+14:40 <hypercubus> patience, danielsan... good things come to those who chafe... uh, wait ;-)
+14:40 <jrandomi2p> hehe
+14:41 <jrandomi2p> no rush, just wondering how things are goin'
+14:41 <jrandomi2p> any problems you're running into, things we can help with, etc?
+14:41 <mihi> who is danielsan?
+14:41 <hypercubus> no problems, just the tedium of testing atm
+14:42 <jrandomi2p> w3rd
+14:42 <hypercubus> i should have written unit tests first, but oh well ;-)
+14:42 <jrandomi2p> hehe
+14:43 <hypercubus> java's supposed platform independence really breaks down in the area of installation tasks
+14:44  * jrandom senses a bulk disconnect
+14:45 <oOo> Uh oh
+14:45 <hypercubus_> hmmm, wonderful... what was the last thing i said?
+14:45 <oOo> <hypercubus> java's supposed platform independence really breaks down in the area of installation tasks
+14:46 <hypercubus> ok, who sabotaged the meeting? ;-)
+14:46  * jrandom blames jebus
+14:46 <hypercubus> maybe it was duke
+14:46 <mule> you don't want to tell me my router is that important :)
+14:46 < jrandom> heh
+14:47 <mihi> [23:46] * jrandomi2p has quit IRC (Client exited)
+14:47 <mihi> hehe...
+14:47 <mule> if so, sorry.
+14:47 <hypercubus> anyhow, no worries about the installer's progress, i fully expect it to be ready when 0.4 is
+14:47 < jrandom> duck: how many inbound tunnels do you have listening on irc.duck.i2p? 
+14:47 <hypercubus> i'm not running into any head-scratchers
+14:47 < jrandom> cool hypercubus
+14:47 < hobbs> Reminds me -- is there a commandline-accessible way to spit out a new router.config from router.config.template?
+14:47 < jrandom> nope
+14:48 < jrandom> not afaik
+14:48 < mihi> run the installer and copy it
+14:48 < jrandom> other than java -jar install.jar 
+14:48 < jrandom> heh
+14:48 < mihi> into a new dir i mean
+14:48 < cervantes> at least not the head scratching you're all thinking of
+14:48 < jrandom> ooh neat, my router dumped core
+14:48 < duck> jrandom: remind me how I know the hash of irc.duck.i2p
+14:48 * hypercubus wonders what cervantes means
+14:49 < jrandom> cd lib ; java -cp i2p.jar net.i2p.data.TestData display Destination ../irc.privKey
+14:49 < cervantes> hyper: you'd be more familiar with the term strunking :)
+14:49 <hypercubus> duck: try increasing to 3 or more inbound tunnels... seems to have helped me some
+14:50 < duck> *** Building a seperate global context!
+14:50 < duck> Log file logger.config does not exist
+14:50 < duck> 23:49:47.387 ERROR [main        ] net.i2p.util.LogManager       : Log file logger.config does not exist
+14:50 < duck> 23:49:49.589 CRIT  [ 1 shutdown ] net.i2p.util.LogManager       : Shutting down logger
+14:50 < jrandom> ah hrm
+14:50 <hypercubus> guess it couldn't handle your log *cough*
+14:51 < mihi> copy your logger.config everywhere ;)
+14:51 < mihi> at least everywhere where your pwd could be when you run any i2p app
+14:51 < duck> no I wont
+14:51 < jrandom> ok, echo logger.record.net.i2p.data.TestData=INFO >> logger.config
+14:52 < jrandom> actually, thats why i said (cd lib), but i forgot that i changed the default from DEBUG to ERROR in cvs
+14:52 < duck> 4 inbounds
+14:52 < jrandom> 4 current &amp; ready?
+14:52 < jrandom> or 2 not ready (or recently expired) and 2 ready?
+14:53 < duck> now it changed to 3 with 1 not ready
+14:53 < jrandom> 'k so its probably during tunnel expiration / replacement
+14:54 <jrandomi2p> if you update your router.config to specify 3 inbound tunnels that should help with reliability
+14:54 <jrandomi2p> (or you can use the new i2ptunnel web interface to do it ;)
+14:54 <hypercubus> perhaps tunnel expiration for a single client with multiple tunnels should be staggered
+14:55 <jrandomi2p> they are, generally - new tunnels are allocated &amp; a new leaseSet created 60s before tunnel expiration
+14:55 <hypercubus> ah
+14:55 <jrandomi2p> however, during tunnel failure it has to create a new leaseSet on demand which doesnt immediately propogate
+14:56 <jrandomi2p> (well, it goes out on the netDb, but clients wont get that for up to a few seconds)
+14:57 <jteitel> !who
+14:57 < alpaca_> Userlist for #i2p: [hobbs] [Iakin3] [duck] [pwk__] [Sonium] [jar] [alpaca_] [interrupt] [protok0l] [mihi] [aum] [Shaun-Away] [cervantes] [jrandom] [deer] [hirvox] [Bladenight] 
+14:57 <bogobot> Userlist for #i2p: [shendaras] [duck] [josh] [mule2p] [aum] [mrflibble] [hypercubus] [TrueSeeker] [laggybot] [bogobot] [ion_] [mihi] [ion] [mule] [jteitel] [ant] [oOo_] [jrandomi2p] [dm] [ugha2p] [Ch0Hag] [jnk] [oOo] [soros] [bob] [revival] [DrWoo] [thetower] 
+14:57 <jrandomi2p> there are some further optimizations that can be done to the tunnel pool, but i'm not sure how useful it'd be atm
+14:57 <jrandomi2p> ok, jumping back on track - anyone else have anything wrt 4) 0.4. stuff?
+14:57 <oOo> About 'large scale simulations' for 0.4, any way to prepare thus ? Need 'new' specifics applications/tools ? (transition to point 5 ? ;) )
+14:58 <jrandomi2p> actually, for the sim it would be great if someone could help mod the heartbeat (or a sam-powered app) to be kind of a scriptable client / server
+14:59 -!- Bladenight is now known as Nightblade
+14:59 <jrandomi2p> (e.g. rather than the current "every 30s, send 20KB to peer X", a "for 10 minutes, ask peer X for a 1MB file, and then pause for 60m, then  ask peer Y for 1KB files" etc)
+15:00 <jrandomi2p> but if someone is interested in helping out with that, please let me know and we can chan
+15:00 <jrandomi2p> er, chat
+15:00 <jrandomi2p> taking that lead in, lets jump to 5) stuff y'all are doing :)
+15:01 <jrandomi2p> not sure how to go about covering this, lets just go down in the (arbitrary) order listed in the mail for updates?
+15:01 <jrandomi2p> i dont see sunshine here, and aum probably isn't up yet ;)
+15:02 <jrandomi2p> nightblade - how goes the battle? 
+15:02 < Nightblade> i have some plans for making the libsam interface like bsd sockets
+15:02 < Nightblade> but i haven't done any coding on that part yet
+15:02 < duck> changed to tunnels.numInbound=3
+15:03 <jrandomi2p> cool duck (hopefully wait until after the meeting to restart your tunnel ;)
+15:03 < duck> oh, it doesnt detect the changes?
+15:03 <jrandomi2p> word nightblade - is there a problem w/ the way things are now?
+15:03 <hypercubus> not until you code it to ;-)
+15:03 <jrandomi2p> naw duck, the clientApp lines are only read on startup
+15:04 <jrandomi2p> (clientApp is really outside the control of the router - thats what the i2ptunnel web app is for)
+15:04 < Nightblade> no there is no problem with it the way it is now.... what i would be doing is in addition to the interface that is already there (developers could choose what they want to use)
+15:04 <jrandomi2p> wikked
+15:05 <jrandomi2p> ok, you're the boss.  having variety is good, though variety means more code to maintain / etc, but its a balance
+15:06 <jrandomi2p> ok, moving on down the list - mule2p - how goes the outproxy stuff?
+15:07 <mule> nothing done beyond the patch you have
+15:07 <jrandomi2p> ah ok i thought you were working on a further mod
+15:07 <mule> need to find some spare time for real load balancing
+15:07 <jrandomi2p> w3rd
+15:08 <jrandomi2p> i'll get that patch applied then
+15:08 <mule> thanks. and include my outproxy in the client app :) seems to be faster
+15:08 <jrandomi2p> heh, well, of course your proxy will be faster for you, its local :)
+15:09 <oOo> And no one else use it ^^
+15:09 <mule> no, it isn't
+15:09 <jrandomi2p> ooh, its on a different router?  cool
+15:09 <mule> yep, on a root server at an isp
+15:10 <jrandomi2p> the i2ptunnel web interface has a field for people to specify the list of outproxies, so it should be easy enough for people to tweak, but we'll get it out in the next rev &amp; release notes
+15:10 <jrandomi2p> nice
+15:11 <jrandomi2p> ok, nickster seems to be offline atm
+15:12 <jrandomi2p> are there any other active client development efforts going on?
+15:12 <jrandomi2p> (or are any of the paused ones active, etc?)
+15:13 <jrandomi2p> ok, if someone wants to mention anything else on that front, we've got the list and the channel, as always :)
+15:13 <jrandomi2p> moving on to 6) ???
+15:13 <jrandomi2p> anyone else have anything they want to bring up?
+15:14 < Nightblade> nope
+15:15 <mihi> duck has anything to bring down ;)
+15:15 <mihi> s/any/some/
+15:15 * jrandomi2p pingfloods mihi
+15:15 <jrandomi2p> ok, on that note
+15:15 * jrandomi2p winds up
+15:15 * jrandomi2p *baf*s the meeting closed

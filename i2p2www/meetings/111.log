@@ -1,201 +1,195 @@
-{% extends "_layout.html" %}
-{% block title %}I2P Development Meeting 111{% endblock %}
-{% block content %}<h3>I2P dev meeting, October 12, 2004</h3>
-<div class="irclog">
-14:04 < jrandom> 0) hi</p>
-14:04 < jrandom> 1) 0.4.1.2</p>
-14:04 < jrandom> 2) 0.4.1.3</p>
-14:05 < jrandom> 3) 0.4.2</p>
-14:05 < jrandom> 4) mail discussions</p>
-14:05 < jrandom> 5) ???</p>
-14:05 < jrandom> 0) hi</p>
-14:05  * jrandom waves</p>
-14:05 < Janonymous> hello</p>
-14:05 < jrandom> lots of #s in our agenda this week</p>
-14:05 < jrandom> weekly status notes up @ http://i2p.net/pipermail/i2p/2004-October/000466.html</p>
-14:05 < jrandom> (posted a min or three ago)</p>
-14:05 < deer> * cervantes has brought a pillow</p>
-14:06 < jrandom> oh i hope it won't be that boring ;)</p>
-14:06 < jrandom> anyway, jumping on in to the good stuff: 1) 0.4.1.2</p>
-14:06 < deer> &lt;cervantes&gt; make me up after the statistal analysis section</p>
-14:06 < jrandom> the release is out and everyone should upgrade</p>
-14:06 < jrandom> heh</p>
-14:06 < deer> &lt;cervantes&gt; eerm wake</p>
-14:07 < jrandom> there are some bugs with the watchdog code, which will kill your router poorly (rather than restart it when bad stuff happens)</p>
-14:07 < jrandom> but hopefully those situations are few and far between</p>
-14:07 < deer> &lt;mule_iip&gt; nope :(</p>
-14:08 < jrandom> well, it varies by the user</p>
-14:08 < jrandom> i'm trying to find the cause, as its been around forever and its pretty annoying</p>
-14:08 < jrandom> (the actual hang, not the watchdog code that detects the hang)</p>
-14:09 < jrandom> the current CVS rev (0.4.1.2-1) has the 'meat' of the watchdog disabled - it monitors, but oesn't shut down the router</p>
-14:10 < jrandom> but 0.4.1.2 should be fine for everyone (except mule ;)</p>
-14:10 < jrandom> oh, as mentioned before, start up some logging and send me some data, per http://dev.i2p.net/pipermail/i2p/2004-October/000465.html</p>
-14:11 < jrandom> the more data the better - if you can leave it running overnight, that'd be great (a 20h run on duck's box generated ~60MB of data)</p>
-14:11 < jrandom> ok, moving on to 2) 0.4.1.3</p>
-14:12 < jrandom> well, there's not really anything i want to mention beyond wahts in the email</p>
-14:12 < jrandom> anyone have anything they want to say re: 0.4.1.3?</p>
-14:12 < Janonymous> nah</p>
-14:13 < deer> &lt;postman&gt; no</p>
-14:13 < Janonymous> backwards compatable?</p>
-14:13 < jrandom> certainly</p>
-14:13 < jrandom> ok, moving on to * 3) 0.4.2</p>
-14:14 < jrandom> again, another "see the email" :)</p>
-14:14 < Janonymous> xpc vs. tcp ??</p>
-14:14 < jrandom> i've never implemented a tcp stack before, so any guidance would be appreciated</p>
-14:15 < jrandom> xcp has better handling in networks with high delays</p>
-14:15 < jrandom> (for congestion control)</p>
-14:15 < Janonymous> does that include fec?</p>
-14:15 < jrandom> no</p>
-14:16 < Janonymous> k, cause I've been researching that some</p>
-14:17 < jrandom> cool</p>
-14:17 < jrandom> anything good you've found?</p>
-14:17 < deer> &lt;cervantes&gt; most GET requests are sub 32kb...and your average html page should be around that size...so I'd imagine eepsurfing will be much improved... - I wouldn't mind seeing an improvement in per-tunnel throughput though...will the new stack improve upon that?</p>
-14:17 < Janonymous> fec is used a lot for high latency/high throughput networks</p>
-14:18 < deer> &lt;mule_iip&gt; jrandom: nor have i, but i could tell a folk here to support you</p>
-14:18 < Janonymous> jrandom: some.. I'll report back</p>
-14:18 < deer> &lt;mule_iip&gt; at least it would be a good learning experience for him and another pair of eyes</p>
-14:18 < jrandom> great Janonymous </p>
-14:18 < jrandom> oh kickass mule</p>
-14:18 < jrandom> cervantes: per-tunnel throughput would improve with &gt;1 message windows</p>
-14:19 < jrandom> (i expect we'll be able to even start with &gt;1 as a window size, depending upon what we can gleam from the router)</p>
-14:19 < jrandom> ((ecn++))</p>
-14:19 < deer> &lt;cervantes&gt; grand</p>
-14:20 < jrandom> ok, anything else on 0.4.2 stuff?</p>
-14:20 < Janonymous> fresh stack.. fresh laptop.. *drools*</p>
-14:21 < jrandom> heh</p>
-14:21 < Janonymous> yea</p>
-14:21 < Janonymous> one thing</p>
-14:22 < Janonymous> this will implement the new short handshake?</p>
-14:22 < jrandom> hmm?</p>
-14:22 < jrandom> we have the low-cpu TCP reconnection code in the 0.4.1 transport</p>
-14:22 < Janonymous> ah, in the email, you mention the alice-&gt; bob handshake</p>
-14:23 < Janonymous> ah</p>
-14:23 < Janonymous> still catching up</p>
-14:23 < jrandom> oh.  yeah, whatever 0.4.2 comes up with, it'll support a packet sequence like the one in the email</p>
-14:24 < Janonymous> k</p>
-14:24 < jrandom> we'll probably control it largely through socket options (e.g. set the stream to interactive and it sends asap, set the stream to bulk and it only sends when the buffer is full or itsflushed [or it needs to ack])</p>
-14:25 < jrandom> ok, swinging on to 4) mail discussion</p>
-14:25 < jrandom> postman - you 'round?</p>
-14:26 < deer> &lt;postman&gt; ya</p>
-14:26 < jrandom> word, wanna give us a run down / update wrt the mail stuff?</p>
-14:27 < deer> &lt;postman&gt; hmm, ok tho i am quite shy talking in front of that many ppl :)</p>
-14:27 < jrandom> heh just imagine we're all nak^H^H^Her... nm</p>
-14:28  * Janonymous gets popcorn out</p>
-14:28 < deer> &lt;postman&gt; since the 20th od september there is a SMTP/POP Service running - accessible with normal smtp/pop3 MUAs</p>
-14:29 < deer> &lt;postman&gt; i put quite some efforts in it in a way that i analyzed the potential risks that normal mail clients bear</p>
-14:29 < Janonymous> what about inproxies/outproxies?</p>
-14:29 < deer> &lt;postman&gt; put it all together on a website </p>
-14:29 < deer> &lt;postman&gt; for those who haven't done so: www.postman.i2p</p>
-14:29  * Janonymous has not access to the network currently</p>
-14:30 < deer> &lt;postman&gt; there's a proposal on the website that tries to comprehend all the common problems dealing with anonymity and reliability of a mailservice when doing a bridging between i2p and internet</p>
-14:30 < deer> &lt;postman&gt; out/inproxy does not run yet but is in the planning</p>
-14:30 < Janonymous> I think I caught some of the discussion on the maillist or the forum</p>
-14:30 < Janonymous> out would be more dangerous than in, right?</p>
-14:31 < deer> &lt;postman&gt; first i want a commonly accepted concept</p>
-14:31 < deer> &lt;postman&gt; generally YES, but i think we found a way that spam and the likes won't be sent outward</p>
-14:31 < jrandom> what'd be neat is if the mx.postman.i2p in/outproxy could dispatch to different (or multiple redundant) pop3 accts</p>
-14:31 < deer> &lt;postman&gt; simply by putting a quota on every user trying to send mails out</p>
-14:32 < jrandom> (that way it wouldn't be tied to a particular mailhost)</p>
-14:32 < deer> &lt;postman&gt; jrandom2p: please explain further</p>
-14:33 < Janonymous> could the seperate mailhosts be syncronized too?</p>
-14:33 < deer> &lt;postman&gt; jrandom2p: it's a question of account based routing</p>
-14:33 < jrandom> right postman</p>
-14:33 < jrandom> probably lots of work, i dont know much about the MTAs you're working on</p>
-14:33 < deer> &lt;postman&gt; jrandom2p: the out/in proxy could easily handle more than one internal mailsystem - even could arrange a fallback kind of delivery </p>
-14:34 < jrandom> 'k, great</p>
-14:34 < Janonymous> Q wrt in/out</p>
-14:34 < deer> &lt;postman&gt; janonymous: i did not understand your question - please explain</p>
-14:34  * jrandom dreams up uucp-style offline fetch from mx.postman :)</p>
-14:35 < Janonymous> would mandatory mailbox to mailbox encryption make in/out sending less dangerous?</p>
-14:35 < deer> &lt;postman&gt; jrandom: haha, uucp is not needed i think - maybe ETRN is sexier :)</p>
-14:35 < deer> &lt;postman&gt; janonymous: right now the system works only internaly - everyone is free to apply PGP or sth similiar</p>
-14:36 < jrandom> Janonymous: you should swing by www.postman.i2p - he's put up a chunk of ideas / issues on there</p>
-14:36 < Janonymous> mandatory encryption/signatures is also an antispam method I believe</p>
-14:36 < deer> &lt;Ragnarok&gt; would it be possible to serve the postman.i2p address book using LDAP?</p>
-14:36 < Janonymous> I will once my laptop comes in</p>
-14:37 < deer> &lt;postman&gt; rag: there's an addressbook already - it is based on SQL tho - a transfer to LDAP os possible</p>
-14:38 < Janonymous> = server hosted address book?</p>
-14:38 < deer> * postman invites everybody to contribute own ideas to the ideas/concepts html document</p>
-14:38 < Janonymous> will do postman</p>
-14:38 < deer> * cervantes spiders the address book and starts writing penis enlargement pharmacutical mails </p>
-14:39 < deer> &lt;postman&gt; janonymous: well, ALL mailusers are SQL based - thus the "addressbook" is just a view on that table</p>
-14:39 < deer> &lt;postman&gt; cervantes: btw, every user can chose whether he wants to be visible or not</p>
-14:39 < Janonymous> ah</p>
-14:40 < Janonymous> how about selective groups ;)</p>
-14:40 < deer> &lt;cervantes&gt; postman: yup I've signed up already ;-)</p>
-14:40 < deer> &lt;postman&gt; cervantes: and since we HAVE a mailidentidy system , you cannot forge your senderaddress - we know it has been YOU :)</p>
-14:40 < deer> &lt;postman&gt; janonymous: yeah, it's planned for version 2.0 :)</p>
-14:41 < deer> &lt;cervantes&gt; postman: but I'll just spam every ircnym@postman.i2p ;-)</p>
-14:41 < deer> &lt;postman&gt; cervantes: this is technically possible, yes :)</p>
-14:42 < deer> &lt;postman&gt; cervantes: i hope you're able to deliver those pills too :)</p>
-14:42 < Janonymous> sounds like a much needed and long expected development for i2p</p>
-14:42 < Janonymous> the new email system</p>
-14:42 < deer> &lt;cervantes&gt; postman: and on the sender thing..the "Cervantes' penis enlargement elixir" would indicate the sender too :)</p>
-14:42 < deer> &lt;postman&gt; janonyous: i cannot tell about every detail implemented</p>
-14:43 < deer> &lt;postman&gt; jan: the website is best suited for this</p>
-14:43 < deer> &lt;postman&gt; cervantes: indeed - but this could be forged :)</p>
-14:43 < Janonymous> alrighty.. I'll get there asap</p>
-14:43 < jrandom> ok, great.  so, yeah, y'all should review whats up on www.postman.i2p and send in your ideas/comments</p>
-14:43 < deer> * postman nods and sits down again</p>
-14:44 < jrandom> (postman++)</p>
-14:44 < jrandom> ok that brings us to 5) ???</p>
-14:44 < jrandom> anyone have anything else they want to bring up?</p>
-14:44 < jrandom> (i2p related)</p>
-14:44 < deer> &lt;postman&gt; :)</p>
-14:44 < Janonymous> just a thought</p>
-14:45 < Janonymous> possible uses for I2P.. we know its a "distributed anonymous network layer"</p>
-14:45 < deer> &lt;Jake&gt; my node is down :( moving equipment to a different part of the house</p>
-14:46 < Janonymous> but what can that be used for.. particularly, those "common good" issues</p>
-14:46 < Janonymous> Oppressive third world countries, freedom of speech.. etc.. thats one of the primary things that got me so interested in i2p to start with</p>
-14:47 < Janonymous> and freenet for that matter</p>
-14:47 < deer> &lt;Jake&gt; oppressed 1st world countries like the u.s.</p>
-14:47 < Janonymous> so, I thought maybe some extrapolation on those issues, maybe starting on the forum, then some words on the site</p>
-14:48 < jrandom> we've got a lot of work to do before we can claim any relevence for people in china</p>
-14:48 < Janonymous> heh, yea, wouldn't want to make any false promises, but..</p>
-14:48  * jrandom will not say we're safe when there has been so little peer review (and there are still so many outstanding issues)</p>
-14:49 < deer> &lt;fidd&gt; how hard will it be for china to censor i2p?</p>
-14:49 < deer> &lt;cervantes&gt; I think applications will begin to surface more readily once the underlying network has stopped "shapeshifting"</p>
-14:49 < Janonymous> but those issues to me are one of the main things that makes i2p so exciting</p>
-14:49 < jrandom> fidd: censor has many definitions.  in the sense "stop specific content from being transferred", pretty much impossible, short of making i2p illegal</p>
-14:50 < Janonymous> how about, "detect i2p on networks in china"</p>
-14:50 < Janonymous> stego?</p>
-14:51 < jrandom> exciting, yes.  important?  yes.  necessary?  yes.  but since there's so much work to do before we're relevent, its just depressing to talk about it.</p>
-14:51 < Janonymous> my bad :) </p>
-14:51 < deer> &lt;cervantes&gt; once the base network is solid, then we could probably do with some nice toys to play with  - eg filesharing apps, IM systems etc. Hopefully the userbase will swell at that point....before this happens there just won't be enough peers to guarantee anonymity for people who live in oppressive systems</p>
-14:52 < jrandom> its always important to keep your eyes on the real goals Janonymous, and i appreciate that</p>
-14:52 < Janonymous> yea, numbers of nodes has a lot to do with it</p>
-14:52 < modulus> imo until there is stego and things like random noise to defeat traffic analysis people in oppressive countries should stay away for a while.</p>
-14:53 < deer> &lt;cervantes&gt; no..they should stay here and help :)</p>
-14:53 < modulus> :-)</p>
-14:53  * jrandom will not describe in detail why those aspects won't be necessary, as the 3.0 rev will take care of 'em :)</p>
-14:53 < modulus> 3.0? sounds long-term ;-)</p>
-14:53 < jrandom> i have ~= 0 faith in stego transports for public networks</p>
-14:54 < jrandom> it aint tomorrow, thats for sure.</p>
-14:54 < Janonymous> word? huh</p>
-14:54 < Janonymous> jrandom: whys that (wrt stego)?</p>
-14:55 < jrandom> how to defeat stego on public networks with open source software: download the source, review the stego generation code, write detection code, deploy.</p>
-14:56 < jrandom> how to defeat stego on public networks with closed source software: kidnap the dev's family, subvert the code.  deploy.</p>
-14:56 < Janonymous> ah.. yea.. random inputs? eh.. I just read this article talking like it was the future or something</p>
-14:56 < jrandom> how to defeat stego on private networks:  laugh at the 5 people using it, and arrest 'em all.</p>
-14:56 < modulus> well, what about anonymous closed-source software? of course it could be a trojan ;-)</p>
-14:57 < deer> &lt;Jake&gt; jrandom: if you're ever kidnapped, you can let us know by telling us "my dog fido is really upset about the food he's eating today"</p>
-14:57 < deer> &lt;Jake&gt; that will be the giveaway and we'll know</p>
-14:57 < deer> &lt;cervantes&gt; %s!dev's family!jrandom</p>
-14:57 < jrandom> heh jake</p>
-14:58 < Janonymous> whens the eta for 4.2?</p>
-14:58 < jrandom> Janonymous: the #1 feature of anonymity or security software: snake oil.</p>
-14:58 < jrandom> 0.4.2?  sometime this month</p>
-14:58 < jrandom> prolly near the end</p>
-14:58 < Janonymous> heheh. </p>
-14:58 < jrandom> 0.4.1.3 will prolly be out later this week or the weekend</p>
-14:58 < deer> &lt;cervantes&gt; Jake: that would never work, we'll juist think you've poisoned his dog</p>
-14:58 < deer> &lt;cervantes&gt; *just</p>
-14:58 < Janonymous> I should be back on the net in a week or two</p>
-14:59 < jrandom> r0x0r</p>
-14:59 < jrandom> ok, anyone else have something to bring up?</p>
-14:59 < deer> &lt;Jake&gt; cervantes :)</p>
-15:00 < jrandom> if not..</p>
-15:00  * jrandom winds up</p>
-15:00  * jrandom *baf*s the meeting closed</p>
-</div>
-{% endblock %}
+14:04 < jrandom> 0) hi
+14:04 < jrandom> 1) 0.4.1.2
+14:04 < jrandom> 2) 0.4.1.3
+14:05 < jrandom> 3) 0.4.2
+14:05 < jrandom> 4) mail discussions
+14:05 < jrandom> 5) ???
+14:05 < jrandom> 0) hi
+14:05  * jrandom waves
+14:05 < Janonymous> hello
+14:05 < jrandom> lots of #s in our agenda this week
+14:05 < jrandom> weekly status notes up @ http://i2p.net/pipermail/i2p/2004-October/000466.html
+14:05 < jrandom> (posted a min or three ago)
+14:05 < deer> * cervantes has brought a pillow
+14:06 < jrandom> oh i hope it won't be that boring ;)
+14:06 < jrandom> anyway, jumping on in to the good stuff: 1) 0.4.1.2
+14:06 < deer> <cervantes> make me up after the statistal analysis section
+14:06 < jrandom> the release is out and everyone should upgrade
+14:06 < jrandom> heh
+14:06 < deer> <cervantes> eerm wake
+14:07 < jrandom> there are some bugs with the watchdog code, which will kill your router poorly (rather than restart it when bad stuff happens)
+14:07 < jrandom> but hopefully those situations are few and far between
+14:07 < deer> <mule_iip> nope :(
+14:08 < jrandom> well, it varies by the user
+14:08 < jrandom> i'm trying to find the cause, as its been around forever and its pretty annoying
+14:08 < jrandom> (the actual hang, not the watchdog code that detects the hang)
+14:09 < jrandom> the current CVS rev (0.4.1.2-1) has the 'meat' of the watchdog disabled - it monitors, but oesn't shut down the router
+14:10 < jrandom> but 0.4.1.2 should be fine for everyone (except mule ;)
+14:10 < jrandom> oh, as mentioned before, start up some logging and send me some data, per http://dev.i2p.net/pipermail/i2p/2004-October/000465.html
+14:11 < jrandom> the more data the better - if you can leave it running overnight, that'd be great (a 20h run on duck's box generated ~60MB of data)
+14:11 < jrandom> ok, moving on to 2) 0.4.1.3
+14:12 < jrandom> well, there's not really anything i want to mention beyond wahts in the email
+14:12 < jrandom> anyone have anything they want to say re: 0.4.1.3?
+14:12 < Janonymous> nah
+14:13 < deer> <postman> no
+14:13 < Janonymous> backwards compatable?
+14:13 < jrandom> certainly
+14:13 < jrandom> ok, moving on to * 3) 0.4.2
+14:14 < jrandom> again, another "see the email" :)
+14:14 < Janonymous> xpc vs. tcp ??
+14:14 < jrandom> i've never implemented a tcp stack before, so any guidance would be appreciated
+14:15 < jrandom> xcp has better handling in networks with high delays
+14:15 < jrandom> (for congestion control)
+14:15 < Janonymous> does that include fec?
+14:15 < jrandom> no
+14:16 < Janonymous> k, cause I've been researching that some
+14:17 < jrandom> cool
+14:17 < jrandom> anything good you've found?
+14:17 < deer> <cervantes> most GET requests are sub 32kb...and your average html page should be around that size...so I'd imagine eepsurfing will be much improved... - I wouldn't mind seeing an improvement in per-tunnel throughput though...will the new stack improve upon that?
+14:17 < Janonymous> fec is used a lot for high latency/high throughput networks
+14:18 < deer> <mule_iip> jrandom: nor have i, but i could tell a folk here to support you
+14:18 < Janonymous> jrandom: some.. I'll report back
+14:18 < deer> <mule_iip> at least it would be a good learning experience for him and another pair of eyes
+14:18 < jrandom> great Janonymous 
+14:18 < jrandom> oh kickass mule
+14:18 < jrandom> cervantes: per-tunnel throughput would improve with >1 message windows
+14:19 < jrandom> (i expect we'll be able to even start with >1 as a window size, depending upon what we can gleam from the router)
+14:19 < jrandom> ((ecn++))
+14:19 < deer> <cervantes> grand
+14:20 < jrandom> ok, anything else on 0.4.2 stuff?
+14:20 < Janonymous> fresh stack.. fresh laptop.. *drools*
+14:21 < jrandom> heh
+14:21 < Janonymous> yea
+14:21 < Janonymous> one thing
+14:22 < Janonymous> this will implement the new short handshake?
+14:22 < jrandom> hmm?
+14:22 < jrandom> we have the low-cpu TCP reconnection code in the 0.4.1 transport
+14:22 < Janonymous> ah, in the email, you mention the alice-> bob handshake
+14:23 < Janonymous> ah
+14:23 < Janonymous> still catching up
+14:23 < jrandom> oh.  yeah, whatever 0.4.2 comes up with, it'll support a packet sequence like the one in the email
+14:24 < Janonymous> k
+14:24 < jrandom> we'll probably control it largely through socket options (e.g. set the stream to interactive and it sends asap, set the stream to bulk and it only sends when the buffer is full or itsflushed [or it needs to ack])
+14:25 < jrandom> ok, swinging on to 4) mail discussion
+14:25 < jrandom> postman - you 'round?
+14:26 < deer> <postman> ya
+14:26 < jrandom> word, wanna give us a run down / update wrt the mail stuff?
+14:27 < deer> <postman> hmm, ok tho i am quite shy talking in front of that many ppl :)
+14:27 < jrandom> heh just imagine we're all nak^H^H^Her... nm
+14:28  * Janonymous gets popcorn out
+14:28 < deer> <postman> since the 20th od september there is a SMTP/POP Service running - accessible with normal smtp/pop3 MUAs
+14:29 < deer> <postman> i put quite some efforts in it in a way that i analyzed the potential risks that normal mail clients bear
+14:29 < Janonymous> what about inproxies/outproxies?
+14:29 < deer> <postman> put it all together on a website 
+14:29 < deer> <postman> for those who haven't done so: www.postman.i2p
+14:29  * Janonymous has not access to the network currently
+14:30 < deer> <postman> there's a proposal on the website that tries to comprehend all the common problems dealing with anonymity and reliability of a mailservice when doing a bridging between i2p and internet
+14:30 < deer> <postman> out/inproxy does not run yet but is in the planning
+14:30 < Janonymous> I think I caught some of the discussion on the maillist or the forum
+14:30 < Janonymous> out would be more dangerous than in, right?
+14:31 < deer> <postman> first i want a commonly accepted concept
+14:31 < deer> <postman> generally YES, but i think we found a way that spam and the likes won't be sent outward
+14:31 < jrandom> what'd be neat is if the mx.postman.i2p in/outproxy could dispatch to different (or multiple redundant) pop3 accts
+14:31 < deer> <postman> simply by putting a quota on every user trying to send mails out
+14:32 < jrandom> (that way it wouldn't be tied to a particular mailhost)
+14:32 < deer> <postman> jrandom2p: please explain further
+14:33 < Janonymous> could the seperate mailhosts be syncronized too?
+14:33 < deer> <postman> jrandom2p: it's a question of account based routing
+14:33 < jrandom> right postman
+14:33 < jrandom> probably lots of work, i dont know much about the MTAs you're working on
+14:33 < deer> <postman> jrandom2p: the out/in proxy could easily handle more than one internal mailsystem - even could arrange a fallback kind of delivery 
+14:34 < jrandom> 'k, great
+14:34 < Janonymous> Q wrt in/out
+14:34 < deer> <postman> janonymous: i did not understand your question - please explain
+14:34  * jrandom dreams up uucp-style offline fetch from mx.postman :)
+14:35 < Janonymous> would mandatory mailbox to mailbox encryption make in/out sending less dangerous?
+14:35 < deer> <postman> jrandom: haha, uucp is not needed i think - maybe ETRN is sexier :)
+14:35 < deer> <postman> janonymous: right now the system works only internaly - everyone is free to apply PGP or sth similiar
+14:36 < jrandom> Janonymous: you should swing by www.postman.i2p - he's put up a chunk of ideas / issues on there
+14:36 < Janonymous> mandatory encryption/signatures is also an antispam method I believe
+14:36 < deer> <Ragnarok> would it be possible to serve the postman.i2p address book using LDAP?
+14:36 < Janonymous> I will once my laptop comes in
+14:37 < deer> <postman> rag: there's an addressbook already - it is based on SQL tho - a transfer to LDAP os possible
+14:38 < Janonymous> = server hosted address book?
+14:38 < deer> * postman invites everybody to contribute own ideas to the ideas/concepts html document
+14:38 < Janonymous> will do postman
+14:38 < deer> * cervantes spiders the address book and starts writing penis enlargement pharmacutical mails 
+14:39 < deer> <postman> janonymous: well, ALL mailusers are SQL based - thus the "addressbook" is just a view on that table
+14:39 < deer> <postman> cervantes: btw, every user can chose whether he wants to be visible or not
+14:39 < Janonymous> ah
+14:40 < Janonymous> how about selective groups ;)
+14:40 < deer> <cervantes> postman: yup I've signed up already ;-)
+14:40 < deer> <postman> cervantes: and since we HAVE a mailidentidy system , you cannot forge your senderaddress - we know it has been YOU :)
+14:40 < deer> <postman> janonymous: yeah, it's planned for version 2.0 :)
+14:41 < deer> <cervantes> postman: but I'll just spam every ircnym@postman.i2p ;-)
+14:41 < deer> <postman> cervantes: this is technically possible, yes :)
+14:42 < deer> <postman> cervantes: i hope you're able to deliver those pills too :)
+14:42 < Janonymous> sounds like a much needed and long expected development for i2p
+14:42 < Janonymous> the new email system
+14:42 < deer> <cervantes> postman: and on the sender thing..the "Cervantes' penis enlargement elixir" would indicate the sender too :)
+14:42 < deer> <postman> janonyous: i cannot tell about every detail implemented
+14:43 < deer> <postman> jan: the website is best suited for this
+14:43 < deer> <postman> cervantes: indeed - but this could be forged :)
+14:43 < Janonymous> alrighty.. I'll get there asap
+14:43 < jrandom> ok, great.  so, yeah, y'all should review whats up on www.postman.i2p and send in your ideas/comments
+14:43 < deer> * postman nods and sits down again
+14:44 < jrandom> (postman++)
+14:44 < jrandom> ok that brings us to 5) ???
+14:44 < jrandom> anyone have anything else they want to bring up?
+14:44 < jrandom> (i2p related)
+14:44 < deer> <postman> :)
+14:44 < Janonymous> just a thought
+14:45 < Janonymous> possible uses for I2P.. we know its a "distributed anonymous network layer"
+14:45 < deer> <Jake> my node is down :( moving equipment to a different part of the house
+14:46 < Janonymous> but what can that be used for.. particularly, those "common good" issues
+14:46 < Janonymous> Oppressive third world countries, freedom of speech.. etc.. thats one of the primary things that got me so interested in i2p to start with
+14:47 < Janonymous> and freenet for that matter
+14:47 < deer> <Jake> oppressed 1st world countries like the u.s.
+14:47 < Janonymous> so, I thought maybe some extrapolation on those issues, maybe starting on the forum, then some words on the site
+14:48 < jrandom> we've got a lot of work to do before we can claim any relevence for people in china
+14:48 < Janonymous> heh, yea, wouldn't want to make any false promises, but..
+14:48  * jrandom will not say we're safe when there has been so little peer review (and there are still so many outstanding issues)
+14:49 < deer> <fidd> how hard will it be for china to censor i2p?
+14:49 < deer> <cervantes> I think applications will begin to surface more readily once the underlying network has stopped "shapeshifting"
+14:49 < Janonymous> but those issues to me are one of the main things that makes i2p so exciting
+14:49 < jrandom> fidd: censor has many definitions.  in the sense "stop specific content from being transferred", pretty much impossible, short of making i2p illegal
+14:50 < Janonymous> how about, "detect i2p on networks in china"
+14:50 < Janonymous> stego?
+14:51 < jrandom> exciting, yes.  important?  yes.  necessary?  yes.  but since there's so much work to do before we're relevent, its just depressing to talk about it.
+14:51 < Janonymous> my bad :) 
+14:51 < deer> <cervantes> once the base network is solid, then we could probably do with some nice toys to play with  - eg filesharing apps, IM systems etc. Hopefully the userbase will swell at that point....before this happens there just won't be enough peers to guarantee anonymity for people who live in oppressive systems
+14:52 < jrandom> its always important to keep your eyes on the real goals Janonymous, and i appreciate that
+14:52 < Janonymous> yea, numbers of nodes has a lot to do with it
+14:52 < modulus> imo until there is stego and things like random noise to defeat traffic analysis people in oppressive countries should stay away for a while.
+14:53 < deer> <cervantes> no..they should stay here and help :)
+14:53 < modulus> :-)
+14:53  * jrandom will not describe in detail why those aspects won't be necessary, as the 3.0 rev will take care of 'em :)
+14:53 < modulus> 3.0? sounds long-term ;-)
+14:53 < jrandom> i have ~= 0 faith in stego transports for public networks
+14:54 < jrandom> it aint tomorrow, thats for sure.
+14:54 < Janonymous> word? huh
+14:54 < Janonymous> jrandom: whys that (wrt stego)?
+14:55 < jrandom> how to defeat stego on public networks with open source software: download the source, review the stego generation code, write detection code, deploy.
+14:56 < jrandom> how to defeat stego on public networks with closed source software: kidnap the dev's family, subvert the code.  deploy.
+14:56 < Janonymous> ah.. yea.. random inputs? eh.. I just read this article talking like it was the future or something
+14:56 < jrandom> how to defeat stego on private networks:  laugh at the 5 people using it, and arrest 'em all.
+14:56 < modulus> well, what about anonymous closed-source software? of course it could be a trojan ;-)
+14:57 < deer> <Jake> jrandom: if you're ever kidnapped, you can let us know by telling us "my dog fido is really upset about the food he's eating today"
+14:57 < deer> <Jake> that will be the giveaway and we'll know
+14:57 < deer> <cervantes> %s!dev's family!jrandom
+14:57 < jrandom> heh jake
+14:58 < Janonymous> whens the eta for 4.2?
+14:58 < jrandom> Janonymous: the #1 feature of anonymity or security software: snake oil.
+14:58 < jrandom> 0.4.2?  sometime this month
+14:58 < jrandom> prolly near the end
+14:58 < Janonymous> heheh. 
+14:58 < jrandom> 0.4.1.3 will prolly be out later this week or the weekend
+14:58 < deer> <cervantes> Jake: that would never work, we'll juist think you've poisoned his dog
+14:58 < deer> <cervantes> *just
+14:58 < Janonymous> I should be back on the net in a week or two
+14:59 < jrandom> r0x0r
+14:59 < jrandom> ok, anyone else have something to bring up?
+14:59 < deer> <Jake> cervantes :)
+15:00 < jrandom> if not..
+15:00  * jrandom winds up
+15:00  * jrandom *baf*s the meeting closed

@@ -1,267 +1,261 @@
-{% extends "_layout.html" %}
-{% block title %}I2P Development Meeting 164{% endblock %}
-{% block content %}<h3>I2P dev meeting, January 17, 2006</h3>
-<div class="irclog">
-15:40 < jrandom> 0) hi</p>
-15:40 < jrandom> 1) Net status and 0.6.1.9</p>
-15:40 < jrandom> 2) Tunnel creation crypto</p>
-15:40 < jrandom> 3) Syndie blogs</p>
-15:40 < jrandom> 4) ???</p>
-15:40 < jrandom> 0) hi</p>
-15:40  * jrandom waves</p>
-15:40 < jrandom> weekly status notes posted @ http://dev.i2p.net/pipermail/i2p/2006-January/001251.html</p>
-15:41 <@cervantes> pfff, good job i2p is more reliable than NASA</p>
-15:41 < jrandom> heh </p>
-15:41 < tethra> haha</p>
-15:41 < jrandom> (though I am 20 minutes late... ;)</p>
-15:41 < jrandom> anyway, lets jump on in to 1) Net status and 0.6.1.9</p>
-15:42 < wmpq> NSA or NASA, not that diffrent are they?</p>
-15:42 <@cervantes> I said I2P not jrandom ;-)</p>
-15:42 < jrandom> good point cervantes ;)</p>
-15:42 < tethra> don't be silly, jrandom IS i2p! ;D</p>
-15:42 <@cervantes> oh I thought it was a way of thinking</p>
-15:42 < wmpq> [redact]</p>
-15:43 < jrandom> heh well, anyway, 0.6.1.9 is out and about, with 70% of the net upgraded (thanks y'all)</p>
-15:43 < Pseudonym> mmmm, tasty new release</p>
-15:44 <+zzz> client tunnel build success remains &lt; 30%</p>
-15:44 < jrandom> I haven't heard many reports of substantially increased end to end throughput, though some routers are more than saturating T1 lines</p>
-15:44 <+zzz> down from ~40%</p>
-15:44 <+Complication> Bandwidth seems normal, a bit higher than on the last CVS before release. Peer counts look a big higher.</p>
-15:45 < jrandom> hmm, yeah, I'm not really worried about that zzz, since its all getting completely reworked for 0.6.2</p>
-15:45 <+zzz> avg BW up from ~12K to ~20K</p>
-15:45 < jrandom> 0.6.1.9 shouldn't pick peers more liable to agree (meaning, high capacity), but should instead focus on those who have higher throughput</p>
-15:46 <+Complication> Retransmission percentage (noted 7% on the night of release) has come down to 6 point something</p>
-15:46 < jrandom> aye, with routers pushing 1-300KBps, there's going to be a skew</p>
-15:46 < jrandom> hmm, thats a pretty crazy rate Complication, i've only seen 2-3%</p>
-15:46 < jrandom> (but I don't doubt what you see)</p>
-15:47 <+Complication> I'm maxing out my outbound, pretty much</p>
-15:47 <+Complication> (and I mean maxing out the line capacity)</p>
-15:47 < jrandom> ah, that'd do the trick</p>
-15:47 <+zzz> still getting NULLs before gets which results in 405 bad method, rate may be declining, hard to say for sure</p>
-15:48 < jrandom> yeah zzz, there are some things that need to be worked through in the streaming lib, but I probably won't get to that until after the 0.6.2 tunnel revamps</p>
-15:48 < jrandom> (but if someone wants to dig in further before that, that would rule, of course)</p>
-15:49 < jrandom> Complication: if you reduce your bw limiter to something like 70% of your line capacity, does the failure rate go back to a reasonable value?</p>
-15:49 <+zzz> I still think it was something that went in the code just before new years, so better to look at before those recent changes are forgotten :)</p>
-15:50 <+zzz> First seen Dec. 29</p>
-15:50 < jrandom> yeah zzz, it certainly was.  likely related to how we now honor timeouts.</p>
-15:51 <+Complication> jrandom: I'm actually trying that currently :)</p>
-15:51 <+Complication> Adjusted a few seconds before you asked, but won't know very soon, I guess</p>
-15:51 < jrandom> but there is substantial work that needs to be done in there to clean it up, and its more important to get the new tunnel creation code implemented (which will substantially improve tunnel build success rates, as well as add a whole set of anonymity improvements)</p>
-15:51 < jrandom> cool Complication, yeah, give it 3-6 hours </p>
-15:51 < jrandom> (to clear out the old values / connections)</p>
-15:52 <+zzz> ~ 1% - 3% of GETs are corrupted atm</p>
-15:54 < jrandom> so do you suggest reverting the streaming lib changes (so that i2psnark will OOM all of its users in 12-48 hours) and put off further streaming lib rework until after the 0.6.2 tunnel work, or push out the 0.6.2 tunnel work for a week or two while revamping the streaming lib?</p>
-15:55 <+zzz> certainly don't revert</p>
-15:56 <+zzz> your call</p>
-15:56 <+Complication> It's a fairly sly bug, I can only say</p>
-15:58 < jrandom> there are other bugs in the streaming lib, so if I'm going to roll up my sleeves, I'd want to tackle them all together (since none of the remaining bugs are apparent).  </p>
-15:59 < jrandom> on the other hand, we'll have substantial bandwidth usage reduction, increased build success percentage, better anonymity, and an improved ability to monitor load balancing on the live net by going with the tunnel work first</p>
-15:59 < Pseudonym> if it's only a 1-3% failure rate on surfing, I'd say it can wait, but that's just my opinion.</p>
-16:00 < jrandom> I'm leaning towards doing the tunnel work first, since after deploying it, we can passively monitor the network while actively revamping the streaming lib</p>
-16:01 < jrandom> (I'd also like to build a GUI for editing/posting to Syndie, but that can wait until after both of those things are sorted ;)</p>
-16:01 <+Complication> That's what the rate is like, here too</p>
-16:02 <+Complication> (on my eepsite)</p>
-16:04 < jrandom> Ok, I think it'd be great if y'all can keep an eye on things to see if those rates changes, but in the meantime, I'll continue on with the tunnel revamp, after which will come the streaming lib revamp (both of which will be in place before 0.6.2)</p>
-16:05 < jrandom> (or, if somene wants to dig into the streaming lib [or see if there's some odd interaction with i2ptunnel], lemmie know!)</p>
-16:06 <+Complication> jrandom: out of curiosity, could one exclude i2ptunnel with a test app?</p>
-16:07 <+Complication> e.g. if something like jnymo's sample app would *also* receive nulls, that would clear i2ptunnel from the list of suspected causes?</p>
-16:07 < jrandom> one could wire up a thin (in-VM) I2PSocket implementation to do that, certainly </p>
-16:07 <+Complication> Since, IIRC, that sample used the streaming lib directly...</p>
-16:08 <+Complication> (or pretty directly)</p>
-16:08 < jrandom> aye, of course if something using the streaming lib can duplicate it, it would exonerate i2ptunnel</p>
-16:10 <+Complication> Hmm, unless someone else gets first (I'll try finishing with the webcache thingy first) I might try emulating HTTP with something like that...</p>
-16:10 < jrandom> wikked, thanks Complication</p>
-16:10 < jrandom> ok, anything else on 1) Net status and 0.6.1.9?  </p>
-16:11 < jrandom> if not, lets mosey on over to 2) Tunnel creation crypto</p>
-16:11 <+Complication> Nah, it may lead to nothing useful, or I may stumble on halfway... but it's a possibility which intrigues me</p>
-16:11 < jrandom> aye, definitely worth exploring Complication</p>
-16:12 < jrandom> (and explorations do not have to have positive results to be worthwhile :)</p>
-16:12  * cervantes spots a "moo" exception in the source changes leading up to new year....perhaps that's the issue? :)</p>
-16:13 < jrandom> ok, there's a new tunnel creation crypto spec referenced in the email, based on the discussion toad, Michael, and myself had on the mailing list last october</p>
-16:14 < jrandom> give 'er a look and lemmie know your thoughts - it won't be deployed on the live net for a while, as there are other things that need to be implemented first, but its coming</p>
-16:14 <+Complication> Is "moo" a reserved word for Java? ;P</p>
-16:14 <+zzz> on 2) I'll help review references in status mail</p>
-16:14 <+Complication> On the tunnel crypto subject, do you mind checking if the following rephrase is decent - I'd just like to ensure I've understood it right...</p>
-16:14 < jrandom> thanks zzz</p>
-16:15 <+Complication> "Each hop encrypts all records with their reply key, which they decrypted from their record, using their ElGamal private key, and by encrypting in such fashion, reverses one layer of decryption (or should I say, encryption) done by the tunnel owner, rendering the next participants' record readable with the next participant's ElGamal private key?"</p>
-16:15 < jrandom> Complication: yes</p>
-16:15 <+Complication> Or is my rephrase plain wrong?</p>
-16:16 <+fox> &lt;jme___&gt; and way to complicated, if i may</p>
-16:16 < jrandom> its correct I believe, but yeah, too many clauses :)</p>
-16:16 <+Complication> I didn't think of a better way to visualize it. 'Twas hard enough that way. :P</p>
-16:16 < jrandom> (or jme___ are you saying the algorithm is too complicated?)</p>
-16:17 <+fox> &lt;jme___&gt; nope i tried rapidely to read the doc and give up as too many things require prior knowledge</p>
-16:17 <+fox> &lt;jme___&gt; on the other hand i didnt try much :) other things to do</p>
-16:17 < jrandom> Complication: http://dev.i2p.net/cgi-bin/cvsweb.cgi/i2p/router/java/src/net/i2p/router/tunnel/BuildMessageProcessor.java?rev=HEAD</p>
-16:18 <+fox> &lt;jme___&gt; is this peer review a formality, or you are really worried/unsure of it ?</p>
-16:19 <+Complication> Well, it's always good to know what an underlying mechanism is doing...</p>
-16:19 < jrandom> I'm confident that it does what I intend for it to do, but I am sincerely interested if someone can see a problem</p>
-16:19 <+fox> &lt;jme___&gt; if the second i could spend the time, but my knowledge is old and not on top of my head</p>
-16:20 <+fox> &lt;jme___&gt; if not i trust :)</p>
-16:20 < jrandom> the notes section has some questions - http://dev.i2p.net/cgi-bin/cvsweb.cgi/i2p/router/doc/tunnel-alt-creation.html?rev=HEAD#tunnelCreate.notes </p>
-16:22 < jrandom> there's no rush, it'll probably be a week or two before this new crypto is actually used in the router </p>
-16:22 <@cervantes> jrandom: on those, would there be much of a performance hit on injecting a random delay between hops?</p>
-16:22 <@cervantes> as that seems the most sensible option to prevent timing attacks</p>
-16:23 < jrandom> its tunnel creation, so a delay wouldn't hurt, though could cause premature lease set expiration under catastrophic failures</p>
-16:25 < jrandom> well, I'm not sure how effective those delays would be.  they may help substantially, but they may not.  live tunnels, however, can simply use blending to detect colluding peers on that tunnel anyway though, so I'm not sure it matters</p>
-16:25 <+fox> &lt;jme___&gt; ok rereading it</p>
-16:27 < jrandom> thanks.  ok, no rush, but if/when anyone has any thoughts, bounce 'em my way (or to the list, or to your blog, etc)</p>
-16:27 < jrandom> ok, anything else on 2, or shall we move on to 3) Syndie blogs?</p>
-16:29 < jrandom> (consider us moved)</p>
-16:29 < jrandom> ok, new neat bloggy stuff in syndie, dig in ;)</p>
-16:29 <@cervantes> v.cool</p>
-16:30 < jrandom> the groups on the left can contain links to arbitrary urls, as well as links to blogs, posts within blogs, or attachments to posts within blogs</p>
-16:30 < jrandom> there are a whole slew of enhancements possible, too, such as adding per-blog or per-tag styling for posts, icons, etc.  if someone wants to dig into that, it'd rule (and have a highly visible impact :)</p>
-16:31 <@cervantes> btw external links defined in comments should also have a title attribute set to the target url (as you have done on the left panel)</p>
-16:31 <@cervantes> comments/posts</p>
-16:32 < jrandom> ah, good idea</p>
-16:33 < jrandom> (net.i2p.syndie.sml.BlogPostInfoRenderer method renderLinks(...) :)</p>
-16:34 <@cervantes> *scribble*</p>
-16:35 < jrandom> what else do the syndie blogs need for them to offer a functional alternative to informational eepsites?  obviously, syndie is static content, so you can't do some things, but you can publish content and let people comment</p>
-16:36 < jrandom> are there particular customizations you want to be able to do?  if so, lemmie know</p>
-16:37 < DoubtfulSalmon> jrandom: updating existing content via script?</p>
-16:37 <@cervantes> archive by date</p>
-16:37 < jrandom> DoubtfulSalmon: via script?</p>
-16:37 < jrandom> cervantes: ah, like a little calendar widget, rather than the "5 older entries" links?</p>
-16:38 <@cervantes> yup</p>
-16:38 < DoubtfulSalmon> jrandom: say I want this file/text to replace that file/text. How do I do that?</p>
-16:38 < jrandom> ok cool, yeah, that should be really easy (if someone whips up the html :)</p>
-16:38 <@cervantes> or more simply "view last month's posts"</p>
-16:39 <@cervantes> jrandom: you just need a 7x6 table with some numbers in it ;-)</p>
-16:40 < jrandom> DoubtfulSalmon: changing content that has been published is an interesting direction.  across the board, it wouldn't always work, since it'd have to operate like usenet control messages (cancelling an old post, etc)</p>
-16:40 < jrandom> DoubtfulSalmon: on the other hand, you can simply post a new file/entry and change the links on the left hand side to point to the new file/entry</p>
-16:40 < jrandom> (that way, the old content is still there, but people are directed to the new content)</p>
-16:41 < DoubtfulSalmon> jrandom: yeah, it would be ok if the old content was still there, as long as everyone's links pointed to the new content, without them having to change their content.</p>
-16:41 < jrandom> building a full blown wiki out of it, essentially posting diffs with syndie rendering them result, is possible, but may be overkill</p>
-16:41 < jrandom> hmm, ok I see what you're saying</p>
-16:42 < jrandom> so, you want the ability to have redirectable links, rather than the existing links to exact versions of content</p>
-16:43 < jrandom> perhaps that could be done by linking to a blog's bookmark, and the exact version is found by loading that blog's current bookmarks and seeing where it points</p>
-16:44 < jrandom> otoh, the new version could be marked as a reply to the old post, so when people follow a link, they can follow it to the reply which replaces the content</p>
-16:44 < jrandom> (though thats probably not as seamless)</p>
-16:44 < DoubtfulSalmon> yeah: say I want to have a link to say: a current radar image, or somthing like that that will be upadated every 10 min. It's ok if the contet doesn't fly all over the net, but if someone else links to my page, the user should see the current image.</p>
-16:45 < jrandom> well, that depends on what they want to do - do they want to link to the image as it was when they referred to it, or do they want to link to the service that renders the image when the reader views it</p>
-16:45 <+Complication> cervantes: oddity of the day :D Last post in: http://forum.i2p/viewtopic.php?t=1199&start=15</p>
-16:46 <+Complication> Felt like it might be another of our robotic overlords :P</p>
-16:46 < jrandom> but its a good idea to support both concepts, and I don't think it'd be much trouble</p>
-16:46 <@cervantes> thnx</p>
-16:46 < jrandom> though it'd need a small extension to sml (e.g. [blog bloghash="ovpBy2mpO1CQ7deYhQ1cDGAwI6pQzLbWOm1Sdd0W06c=" bookmark="radar.png"])</p>
-16:47  * cervantes will upgrade forum defenses if we start to get a lot of them</p>
-16:47 <@cervantes> (already know how to stop that one)</p>
-16:47 < DoubtfulSalmon> jrandom: they should be able to link to both a static version of it, provided the syndicator has not deleted the content, as well as a generic url that points to whatever is the latest version</p>
-16:47 < jrandom> (which would look at ovpBy2mpO1CQ7deYhQ1cDGAwI6pQzLbWOm1Sdd0W06c='s current meta post for bookmarks, pulling the exact uri from the one named "radar.png")</p>
-16:48 < DoubtfulSalmon> jrandom: could that be done now with something like: "View most recent one post in tag &lt;weird string&gt;"</p>
-16:48 < jrandom> ah, good point - yes, it could</p>
-16:49 < jrandom> that could even be restricted to "View most recent post by $author with tag $tag"</p>
-16:49 < jrandom> (so other people couldn't spoof it)</p>
-16:49 < DoubtfulSalmon> so maybe just put some sort of UI so the user does not have to see weird tags and what not</p>
-16:50 < jrandom> there's an example of how that looks up there, though I don't have the uri offhand... but yeah, is a link around the linked text</p>
-16:50 < DoubtfulSalmon> I assume all of that information can come in URL form.</p>
-16:51 < jrandom> but this is definitely complicated to write the source SML, which is why a GUI to create SML would be useful</p>
-16:51 < jrandom> they're attributes on the SML tags, not URLs</p>
-16:52 <@cervantes> and SML gui will be tricky without javascript</p>
-16:52 < DoubtfulSalmon> but you can bookmark a search result right?</p>
-16:52 < jrandom> what is a search result?</p>
-16:52 < jrandom> and what do you mean by bookmark?</p>
-16:52 <@cervantes> (or a browser extension ;-)</p>
-16:52 < jrandom> oh, browser side bookmarks,  yes</p>
-16:52 <+Complication> A filter result?</p>
-16:53 < jrandom> but those bookmarks are not generally shareable</p>
-16:53 < DoubtfulSalmon> er: a "get most resent 1 post by X with tag Y" </p>
-16:53 < jrandom> (actually, most are, but its not universal, since they're URLs not URIs))</p>
-16:53 < DoubtfulSalmon> yeah, it would be good if other bolgs could link to those too</p>
-16:54 < jrandom> DoubtfulSalmon: they can, with sml</p>
-16:54 < jrandom> [blog tag="Y" bloghash="X"]</p>
-16:54 < DoubtfulSalmon> oh goodie</p>
-16:55 < jrandom> cervantes: javascript, or xul, or java, or some other OS-specific client app</p>
-16:57 <@cervantes> ah cool, so you don't mind a scripting or plugin dependancy</p>
-16:57 < jrandom> (when our website gets revamped for 0.6.2, syndie will definitely get a website explaining wtf this whole syndie thing is, and how it can do everything short of wash the dishes ;)</p>
-16:57 <@cervantes> (as long as it degrades gracefully)</p>
-16:57 < jrandom> cervantes: syndie should be function with lynx, but there's lots of room for rich clients</p>
-16:58 < jrandom> (s/function/functional/)</p>
-16:58 <@cervantes> right..so lynx uses would get an SML reference chart, but nothing more</p>
-16:58 < jrandom> aye, as we have now</p>
-16:58 < jrandom> though perhaps a simplified sml, dunno.</p>
-17:01 <+Complication> jrandom: do you think it might be even remotely plausible... that the null bug might be related to gzip encoding?</p>
-17:01 <+Complication> I was thinking of how to disable gzipping for my eepsite tunnel...</p>
-17:01 <+Complication> Or would that be entirely implausible?</p>
-17:01 <@cervantes> there was some http compressor stuff added just before new year in i2ptunnel</p>
-17:03 < jrandom> aye, it could - yo ucan disable it on the client side with i2ptunnel.gzip=false (on /configadvanced.jsp).  atm I don't think you can disable it in i2ptunnelhttpserver though</p>
-17:03 <+zzz> it's on the request side where there isn't any compression</p>
-17:03 <+zzz> server won't compess if client set to false</p>
-17:03 <+Complication> zzz: oh, right, I forgot that</p>
-17:04 < jrandom> (but without too much trouble you could add it to I2PTunnelHTTPServer [line 310, etc)</p>
-17:04  * Complication is a fool, and apologizes for that</p>
-17:04 <@cervantes> (or you could use a normal tunnel)</p>
-17:04 <+Complication> Aha, thanks...</p>
-17:05 < jrandom> hmm, though by the time the i2ptunnelhttpserver receives the GET, the null is already there</p>
-17:05 <+zzz> yup I did get orion moved back to HTTP tunnel which greatly helps load times for his pages since now compressed again</p>
-17:05 <+Complication> I somehow entirely forgot that gzipping starts when the client and server have *agreed* to do it</p>
-17:05 < jrandom> so it may be on the client side, but definitely not the server side</p>
-17:05 < jrandom> yeah zzz, its pretty insanely fast now :)</p>
-17:05 <+zzz> its on the _request_ side not the _response_ side - could be on either client or server side</p>
-17:06 < jrandom> true</p>
-17:09 < jrandom> ok, anyone else have anything on 3) Syndie blogs?</p>
-17:09 < jrandom> if not, lets jump on to 4) ???</p>
-17:09 < jrandom> anyone have anything else to bring up for the meeting?</p>
-17:10 < cat-a-puss> Complication: Java's gzip stream + I2P tunnels. Does NOT work and it's sun's bug</p>
-17:10 < jrandom> hmm cat-a-puss?  really?</p>
-17:10 <+zzz> HTTP persistent connections update: client side mostly done, server side making good progress, lots of bulletproofing and testing to do, est. completion 2-4 wks</p>
-17:10 < jrandom> nice1 zzz!</p>
-17:11 < cat-a-puss> jrandom: yeah I talked to you about that a long time ago, I could probably find the long explination as to why, but it's probably best to just document that somewhere as there is no reason to do it.</p>
-17:12 < jrandom> hmm I'm out of context, what exactly does not work?  what is sun's bug?  </p>
-17:14 < dust> i get weird logs like this: 21:21:59.816 WARN [%d0%a2%d1%4f] net.i2p.util.EepGet : ERR: status &lt;html&gt;</p>
-17:14 < jrandom> hmm, interesting</p>
-17:15 < jrandom> what tracker?</p>
-17:15 < cat-a-puss> jrandom: As I recall sun uses headerless zips and some magic number to tell that it's a zip stream. But the number just so happens to be negitive, so if you endup creating a zip stream within a zip stream for some reason, it reads the data out of the stream as a sequence of unsigned bytes and so the magic number gets converted to some other positive number. (I am probably missing some detail but that is the gist of it)</p>
-17:16 < dust> for example the  OSDevWithCVS_3E.pdf.torrent</p>
-17:17 < dust> d8:announce540:http://YRgrgTLGnbTq2aZOZDJQ...</p>
-17:17 < jrandom> hmm, I don't know anything about that, and I'm not sure how it'd affect gzip stream over i2ptunnel (if it /did/, they'd all fail, because we gzip evertthing)</p>
-17:19 < jrandom> ok cool dust, so postman's tracker.  hmm, are you on 0.6.1.9 dust?</p>
-17:20 < cat-a-puss> jrandom: yeah it's been almost a year now sense I had that problem so I don't remember too well, and I don't know if it is fixed in 1.5 but I did have a reall devil of a time trying to figure out why every normal type of stream would work, but as soon as I wrapped them in a compressed stream they would all fail.</p>
-17:20 < dust> yes</p>
-17:20 < jrandom> cat-a-puss: we've changed things dramatically for compression over i2p in the last year ;)</p>
-17:21 < jrandom> (and I don't personally use 1.5)</p>
-17:21 < jrandom> but we do our own zip encoding explicitly, rather than use their packaged stream (but for anonymity / efficiency reasons, not compatability)</p>
-17:22 <@cervantes> zzz: where exactly in the request does the null happen? right after GET?</p>
-17:22 <+Complication> Before, if I remember</p>
-17:23 <+fox> &lt;lordalbert&gt; hi</p>
-17:23 <+Complication> Sidenote: Celeron 300 shows twice lower retran. percentage than Sempron</p>
-17:23 < jrandom> 'lo lordalbert</p>
-17:23 < jrandom> cool Complication, 2-3% is reasonable (though I'd prefer lower, of course)</p>
-17:23 <@cervantes> would be interesting to fire off a load of HEAD requests or something...</p>
-17:24 < jrandom> yeah, a set of local tests would be great, though iirc Complication tried that a while back with no errors</p>
-17:24 <+fox> &lt;lordalbert&gt; can anyone make a anonymous tracker? I try it but i dont' understand how use the tunnel</p>
-17:24 <+Complication> cervantes: I once tried provoking it, with a recursive wget between my 2 nodes</p>
-17:24 <+Complication> Grew tired before it happened</p>
-17:25 <@cervantes> heh</p>
-17:26 <+fox> &lt;lordalbert&gt; 'lo b0unc3 ;)</p>
-17:26 <+fox> &lt;b0unc3&gt; lordalbert, :D</p>
-17:26 <+Complication> lordalbert: which part would you need advise about?</p>
-17:27 <+Complication> About setting up trackers, I unfortunately don't know.</p>
-17:27 <+Complication> About I2PTunnel, I could try explaining...</p>
-17:27 <+fox> &lt;lordalbert&gt; I have installed BTtracker, and it work perfectly</p>
-17:28 <+Complication> It should also be noted that, for the tracker to *remain* anonymous, it should likely run a pretty careful config</p>
-17:28 <+fox> &lt;lordalbert&gt; now, i'd like anonimise it</p>
-17:28 <+fox> &lt;lordalbert&gt; so</p>
-17:28 < jrandom> I'm sure we can help work through it after the meeting.  you shouldn't use generic trackers, you need one built for anonymity</p>
-17:28 <+fox> &lt;lordalbert&gt; i have just made a i2ptunnel</p>
-17:29 < jrandom> (e.g. the bytemonsoon modification that you can find on any of the i2p trackers, or in the cvs)</p>
-17:29 <+fox> &lt;lordalbert&gt; now, i'd like to know how use this tunnel. I have made a tunnel yet</p>
-17:29 < jrandom> ok, anyone have anything else for the meeting?</p>
-17:30 < jrandom> lordalbert: http://localhost:7657/i2ptunnel/ should let you create an 'http server tunnel' pointing at your webserver/tracker, but your tracker will not work unless it has been modified for anonymous use</p>
-17:30 <+fox> &lt;lordalbert&gt; jrandom, what tracker i must use?</p>
-17:31 <+Complication> postman uses a modified version of ByteMonsoon, I think</p>
-17:32 < jrandom> i2p-bytemonsoon has been modified for anonymous use - there's a zip up @ http://i2p-bt.postman.i2p/, and there's the cvs in http://dev.i2p.net/cgi-bin/cvsweb.cgi/bytemonsoon/ but I really don't know much about it</p>
-17:32 <+fox> &lt;lordalbert&gt; isn't bytemonsoon obsolete?</p>
-17:32 < jrandom> if it works, its not obsolete.  it works</p>
-17:33 <+fox> &lt;lordalbert&gt; ok XD</p>
-17:33 < jrandom> there are many trackers out there, and if some developer wants to modify it to work safely and anonymously, that'd be great</p>
-17:33 <+Complication> May well be oldish... but definitely works with destkeys instead of IP's...</p>
-17:33 <+Complication> Can't tell about security and leakproofness</p>
-17:34 < jrandom> (it was modified by duck et al for anonymity and security)</p>
-17:34 <+Complication> But it's been up for a while, and seems to manage...</p>
-17:35 < jrandom> ok, if there's nothing else for the meeting...</p>
-17:36  * jrandom winds up</p>
-17:36  * jrandom *baf*S the meeting closed</p>
-</div>
-{% endblock %}
+15:40 < jrandom> 0) hi
+15:40 < jrandom> 1) Net status and 0.6.1.9
+15:40 < jrandom> 2) Tunnel creation crypto
+15:40 < jrandom> 3) Syndie blogs
+15:40 < jrandom> 4) ???
+15:40 < jrandom> 0) hi
+15:40  * jrandom waves
+15:40 < jrandom> weekly status notes posted @ http://dev.i2p.net/pipermail/i2p/2006-January/001251.html
+15:41 <@cervantes> pfff, good job i2p is more reliable than NASA
+15:41 < jrandom> heh 
+15:41 < tethra> haha
+15:41 < jrandom> (though I am 20 minutes late... ;)
+15:41 < jrandom> anyway, lets jump on in to 1) Net status and 0.6.1.9
+15:42 < wmpq> NSA or NASA, not that diffrent are they?
+15:42 <@cervantes> I said I2P not jrandom ;-)
+15:42 < jrandom> good point cervantes ;)
+15:42 < tethra> don't be silly, jrandom IS i2p! ;D
+15:42 <@cervantes> oh I thought it was a way of thinking
+15:42 < wmpq> [redact]
+15:43 < jrandom> heh well, anyway, 0.6.1.9 is out and about, with 70% of the net upgraded (thanks y'all)
+15:43 < Pseudonym> mmmm, tasty new release
+15:44 <+zzz> client tunnel build success remains < 30%
+15:44 < jrandom> I haven't heard many reports of substantially increased end to end throughput, though some routers are more than saturating T1 lines
+15:44 <+zzz> down from ~40%
+15:44 <+Complication> Bandwidth seems normal, a bit higher than on the last CVS before release. Peer counts look a big higher.
+15:45 < jrandom> hmm, yeah, I'm not really worried about that zzz, since its all getting completely reworked for 0.6.2
+15:45 <+zzz> avg BW up from ~12K to ~20K
+15:45 < jrandom> 0.6.1.9 shouldn't pick peers more liable to agree (meaning, high capacity), but should instead focus on those who have higher throughput
+15:46 <+Complication> Retransmission percentage (noted 7% on the night of release) has come down to 6 point something
+15:46 < jrandom> aye, with routers pushing 1-300KBps, there's going to be a skew
+15:46 < jrandom> hmm, thats a pretty crazy rate Complication, i've only seen 2-3%
+15:46 < jrandom> (but I don't doubt what you see)
+15:47 <+Complication> I'm maxing out my outbound, pretty much
+15:47 <+Complication> (and I mean maxing out the line capacity)
+15:47 < jrandom> ah, that'd do the trick
+15:47 <+zzz> still getting NULLs before gets which results in 405 bad method, rate may be declining, hard to say for sure
+15:48 < jrandom> yeah zzz, there are some things that need to be worked through in the streaming lib, but I probably won't get to that until after the 0.6.2 tunnel revamps
+15:48 < jrandom> (but if someone wants to dig in further before that, that would rule, of course)
+15:49 < jrandom> Complication: if you reduce your bw limiter to something like 70% of your line capacity, does the failure rate go back to a reasonable value?
+15:49 <+zzz> I still think it was something that went in the code just before new years, so better to look at before those recent changes are forgotten :)
+15:50 <+zzz> First seen Dec. 29
+15:50 < jrandom> yeah zzz, it certainly was.  likely related to how we now honor timeouts.
+15:51 <+Complication> jrandom: I'm actually trying that currently :)
+15:51 <+Complication> Adjusted a few seconds before you asked, but won't know very soon, I guess
+15:51 < jrandom> but there is substantial work that needs to be done in there to clean it up, and its more important to get the new tunnel creation code implemented (which will substantially improve tunnel build success rates, as well as add a whole set of anonymity improvements)
+15:51 < jrandom> cool Complication, yeah, give it 3-6 hours 
+15:51 < jrandom> (to clear out the old values / connections)
+15:52 <+zzz> ~ 1% - 3% of GETs are corrupted atm
+15:54 < jrandom> so do you suggest reverting the streaming lib changes (so that i2psnark will OOM all of its users in 12-48 hours) and put off further streaming lib rework until after the 0.6.2 tunnel work, or push out the 0.6.2 tunnel work for a week or two while revamping the streaming lib?
+15:55 <+zzz> certainly don't revert
+15:56 <+zzz> your call
+15:56 <+Complication> It's a fairly sly bug, I can only say
+15:58 < jrandom> there are other bugs in the streaming lib, so if I'm going to roll up my sleeves, I'd want to tackle them all together (since none of the remaining bugs are apparent).  
+15:59 < jrandom> on the other hand, we'll have substantial bandwidth usage reduction, increased build success percentage, better anonymity, and an improved ability to monitor load balancing on the live net by going with the tunnel work first
+15:59 < Pseudonym> if it's only a 1-3% failure rate on surfing, I'd say it can wait, but that's just my opinion.
+16:00 < jrandom> I'm leaning towards doing the tunnel work first, since after deploying it, we can passively monitor the network while actively revamping the streaming lib
+16:01 < jrandom> (I'd also like to build a GUI for editing/posting to Syndie, but that can wait until after both of those things are sorted ;)
+16:01 <+Complication> That's what the rate is like, here too
+16:02 <+Complication> (on my eepsite)
+16:04 < jrandom> Ok, I think it'd be great if y'all can keep an eye on things to see if those rates changes, but in the meantime, I'll continue on with the tunnel revamp, after which will come the streaming lib revamp (both of which will be in place before 0.6.2)
+16:05 < jrandom> (or, if somene wants to dig into the streaming lib [or see if there's some odd interaction with i2ptunnel], lemmie know!)
+16:06 <+Complication> jrandom: out of curiosity, could one exclude i2ptunnel with a test app?
+16:07 <+Complication> e.g. if something like jnymo's sample app would *also* receive nulls, that would clear i2ptunnel from the list of suspected causes?
+16:07 < jrandom> one could wire up a thin (in-VM) I2PSocket implementation to do that, certainly 
+16:07 <+Complication> Since, IIRC, that sample used the streaming lib directly...
+16:08 <+Complication> (or pretty directly)
+16:08 < jrandom> aye, of course if something using the streaming lib can duplicate it, it would exonerate i2ptunnel
+16:10 <+Complication> Hmm, unless someone else gets first (I'll try finishing with the webcache thingy first) I might try emulating HTTP with something like that...
+16:10 < jrandom> wikked, thanks Complication
+16:10 < jrandom> ok, anything else on 1) Net status and 0.6.1.9?  
+16:11 < jrandom> if not, lets mosey on over to 2) Tunnel creation crypto
+16:11 <+Complication> Nah, it may lead to nothing useful, or I may stumble on halfway... but it's a possibility which intrigues me
+16:11 < jrandom> aye, definitely worth exploring Complication
+16:12 < jrandom> (and explorations do not have to have positive results to be worthwhile :)
+16:12  * cervantes spots a "moo" exception in the source changes leading up to new year....perhaps that's the issue? :)
+16:13 < jrandom> ok, there's a new tunnel creation crypto spec referenced in the email, based on the discussion toad, Michael, and myself had on the mailing list last october
+16:14 < jrandom> give 'er a look and lemmie know your thoughts - it won't be deployed on the live net for a while, as there are other things that need to be implemented first, but its coming
+16:14 <+Complication> Is "moo" a reserved word for Java? ;P
+16:14 <+zzz> on 2) I'll help review references in status mail
+16:14 <+Complication> On the tunnel crypto subject, do you mind checking if the following rephrase is decent - I'd just like to ensure I've understood it right...
+16:14 < jrandom> thanks zzz
+16:15 <+Complication> "Each hop encrypts all records with their reply key, which they decrypted from their record, using their ElGamal private key, and by encrypting in such fashion, reverses one layer of decryption (or should I say, encryption) done by the tunnel owner, rendering the next participants' record readable with the next participant's ElGamal private key?"
+16:15 < jrandom> Complication: yes
+16:15 <+Complication> Or is my rephrase plain wrong?
+16:16 <+fox> <jme___> and way to complicated, if i may
+16:16 < jrandom> its correct I believe, but yeah, too many clauses :)
+16:16 <+Complication> I didn't think of a better way to visualize it. 'Twas hard enough that way. :P
+16:16 < jrandom> (or jme___ are you saying the algorithm is too complicated?)
+16:17 <+fox> <jme___> nope i tried rapidely to read the doc and give up as too many things require prior knowledge
+16:17 <+fox> <jme___> on the other hand i didnt try much :) other things to do
+16:17 < jrandom> Complication: http://dev.i2p.net/cgi-bin/cvsweb.cgi/i2p/router/java/src/net/i2p/router/tunnel/BuildMessageProcessor.java?rev=HEAD
+16:18 <+fox> <jme___> is this peer review a formality, or you are really worried/unsure of it ?
+16:19 <+Complication> Well, it's always good to know what an underlying mechanism is doing...
+16:19 < jrandom> I'm confident that it does what I intend for it to do, but I am sincerely interested if someone can see a problem
+16:19 <+fox> <jme___> if the second i could spend the time, but my knowledge is old and not on top of my head
+16:20 <+fox> <jme___> if not i trust :)
+16:20 < jrandom> the notes section has some questions - http://dev.i2p.net/cgi-bin/cvsweb.cgi/i2p/router/doc/tunnel-alt-creation.html?rev=HEAD#tunnelCreate.notes 
+16:22 < jrandom> there's no rush, it'll probably be a week or two before this new crypto is actually used in the router 
+16:22 <@cervantes> jrandom: on those, would there be much of a performance hit on injecting a random delay between hops?
+16:22 <@cervantes> as that seems the most sensible option to prevent timing attacks
+16:23 < jrandom> its tunnel creation, so a delay wouldn't hurt, though could cause premature lease set expiration under catastrophic failures
+16:25 < jrandom> well, I'm not sure how effective those delays would be.  they may help substantially, but they may not.  live tunnels, however, can simply use blending to detect colluding peers on that tunnel anyway though, so I'm not sure it matters
+16:25 <+fox> <jme___> ok rereading it
+16:27 < jrandom> thanks.  ok, no rush, but if/when anyone has any thoughts, bounce 'em my way (or to the list, or to your blog, etc)
+16:27 < jrandom> ok, anything else on 2, or shall we move on to 3) Syndie blogs?
+16:29 < jrandom> (consider us moved)
+16:29 < jrandom> ok, new neat bloggy stuff in syndie, dig in ;)
+16:29 <@cervantes> v.cool
+16:30 < jrandom> the groups on the left can contain links to arbitrary urls, as well as links to blogs, posts within blogs, or attachments to posts within blogs
+16:30 < jrandom> there are a whole slew of enhancements possible, too, such as adding per-blog or per-tag styling for posts, icons, etc.  if someone wants to dig into that, it'd rule (and have a highly visible impact :)
+16:31 <@cervantes> btw external links defined in comments should also have a title attribute set to the target url (as you have done on the left panel)
+16:31 <@cervantes> comments/posts
+16:32 < jrandom> ah, good idea
+16:33 < jrandom> (net.i2p.syndie.sml.BlogPostInfoRenderer method renderLinks(...) :)
+16:34 <@cervantes> *scribble*
+16:35 < jrandom> what else do the syndie blogs need for them to offer a functional alternative to informational eepsites?  obviously, syndie is static content, so you can't do some things, but you can publish content and let people comment
+16:36 < jrandom> are there particular customizations you want to be able to do?  if so, lemmie know
+16:37 < DoubtfulSalmon> jrandom: updating existing content via script?
+16:37 <@cervantes> archive by date
+16:37 < jrandom> DoubtfulSalmon: via script?
+16:37 < jrandom> cervantes: ah, like a little calendar widget, rather than the "5 older entries" links?
+16:38 <@cervantes> yup
+16:38 < DoubtfulSalmon> jrandom: say I want this file/text to replace that file/text. How do I do that?
+16:38 < jrandom> ok cool, yeah, that should be really easy (if someone whips up the html :)
+16:38 <@cervantes> or more simply "view last month's posts"
+16:39 <@cervantes> jrandom: you just need a 7x6 table with some numbers in it ;-)
+16:40 < jrandom> DoubtfulSalmon: changing content that has been published is an interesting direction.  across the board, it wouldn't always work, since it'd have to operate like usenet control messages (cancelling an old post, etc)
+16:40 < jrandom> DoubtfulSalmon: on the other hand, you can simply post a new file/entry and change the links on the left hand side to point to the new file/entry
+16:40 < jrandom> (that way, the old content is still there, but people are directed to the new content)
+16:41 < DoubtfulSalmon> jrandom: yeah, it would be ok if the old content was still there, as long as everyone's links pointed to the new content, without them having to change their content.
+16:41 < jrandom> building a full blown wiki out of it, essentially posting diffs with syndie rendering them result, is possible, but may be overkill
+16:41 < jrandom> hmm, ok I see what you're saying
+16:42 < jrandom> so, you want the ability to have redirectable links, rather than the existing links to exact versions of content
+16:43 < jrandom> perhaps that could be done by linking to a blog's bookmark, and the exact version is found by loading that blog's current bookmarks and seeing where it points
+16:44 < jrandom> otoh, the new version could be marked as a reply to the old post, so when people follow a link, they can follow it to the reply which replaces the content
+16:44 < jrandom> (though thats probably not as seamless)
+16:44 < DoubtfulSalmon> yeah: say I want to have a link to say: a current radar image, or somthing like that that will be upadated every 10 min. It's ok if the contet doesn't fly all over the net, but if someone else links to my page, the user should see the current image.
+16:45 < jrandom> well, that depends on what they want to do - do they want to link to the image as it was when they referred to it, or do they want to link to the service that renders the image when the reader views it
+16:45 <+Complication> cervantes: oddity of the day :D Last post in: http://forum.i2p/viewtopic.php?t=1199&start=15
+16:46 <+Complication> Felt like it might be another of our robotic overlords :P
+16:46 < jrandom> but its a good idea to support both concepts, and I don't think it'd be much trouble
+16:46 <@cervantes> thnx
+16:46 < jrandom> though it'd need a small extension to sml (e.g. [blog bloghash="ovpBy2mpO1CQ7deYhQ1cDGAwI6pQzLbWOm1Sdd0W06c=" bookmark="radar.png"])
+16:47  * cervantes will upgrade forum defenses if we start to get a lot of them
+16:47 <@cervantes> (already know how to stop that one)
+16:47 < DoubtfulSalmon> jrandom: they should be able to link to both a static version of it, provided the syndicator has not deleted the content, as well as a generic url that points to whatever is the latest version
+16:47 < jrandom> (which would look at ovpBy2mpO1CQ7deYhQ1cDGAwI6pQzLbWOm1Sdd0W06c='s current meta post for bookmarks, pulling the exact uri from the one named "radar.png")
+16:48 < DoubtfulSalmon> jrandom: could that be done now with something like: "View most recent one post in tag <weird string>"
+16:48 < jrandom> ah, good point - yes, it could
+16:49 < jrandom> that could even be restricted to "View most recent post by $author with tag $tag"
+16:49 < jrandom> (so other people couldn't spoof it)
+16:49 < DoubtfulSalmon> so maybe just put some sort of UI so the user does not have to see weird tags and what not
+16:50 < jrandom> there's an example of how that looks up there, though I don't have the uri offhand... but yeah, is a link around the linked text
+16:50 < DoubtfulSalmon> I assume all of that information can come in URL form.
+16:51 < jrandom> but this is definitely complicated to write the source SML, which is why a GUI to create SML would be useful
+16:51 < jrandom> they're attributes on the SML tags, not URLs
+16:52 <@cervantes> and SML gui will be tricky without javascript
+16:52 < DoubtfulSalmon> but you can bookmark a search result right?
+16:52 < jrandom> what is a search result?
+16:52 < jrandom> and what do you mean by bookmark?
+16:52 <@cervantes> (or a browser extension ;-)
+16:52 < jrandom> oh, browser side bookmarks,  yes
+16:52 <+Complication> A filter result?
+16:53 < jrandom> but those bookmarks are not generally shareable
+16:53 < DoubtfulSalmon> er: a "get most resent 1 post by X with tag Y" 
+16:53 < jrandom> (actually, most are, but its not universal, since they're URLs not URIs))
+16:53 < DoubtfulSalmon> yeah, it would be good if other bolgs could link to those too
+16:54 < jrandom> DoubtfulSalmon: they can, with sml
+16:54 < jrandom> [blog tag="Y" bloghash="X"]
+16:54 < DoubtfulSalmon> oh goodie
+16:55 < jrandom> cervantes: javascript, or xul, or java, or some other OS-specific client app
+16:57 <@cervantes> ah cool, so you don't mind a scripting or plugin dependancy
+16:57 < jrandom> (when our website gets revamped for 0.6.2, syndie will definitely get a website explaining wtf this whole syndie thing is, and how it can do everything short of wash the dishes ;)
+16:57 <@cervantes> (as long as it degrades gracefully)
+16:57 < jrandom> cervantes: syndie should be function with lynx, but there's lots of room for rich clients
+16:58 < jrandom> (s/function/functional/)
+16:58 <@cervantes> right..so lynx uses would get an SML reference chart, but nothing more
+16:58 < jrandom> aye, as we have now
+16:58 < jrandom> though perhaps a simplified sml, dunno.
+17:01 <+Complication> jrandom: do you think it might be even remotely plausible... that the null bug might be related to gzip encoding?
+17:01 <+Complication> I was thinking of how to disable gzipping for my eepsite tunnel...
+17:01 <+Complication> Or would that be entirely implausible?
+17:01 <@cervantes> there was some http compressor stuff added just before new year in i2ptunnel
+17:03 < jrandom> aye, it could - yo ucan disable it on the client side with i2ptunnel.gzip=false (on /configadvanced.jsp).  atm I don't think you can disable it in i2ptunnelhttpserver though
+17:03 <+zzz> it's on the request side where there isn't any compression
+17:03 <+zzz> server won't compess if client set to false
+17:03 <+Complication> zzz: oh, right, I forgot that
+17:04 < jrandom> (but without too much trouble you could add it to I2PTunnelHTTPServer [line 310, etc)
+17:04  * Complication is a fool, and apologizes for that
+17:04 <@cervantes> (or you could use a normal tunnel)
+17:04 <+Complication> Aha, thanks...
+17:05 < jrandom> hmm, though by the time the i2ptunnelhttpserver receives the GET, the null is already there
+17:05 <+zzz> yup I did get orion moved back to HTTP tunnel which greatly helps load times for his pages since now compressed again
+17:05 <+Complication> I somehow entirely forgot that gzipping starts when the client and server have *agreed* to do it
+17:05 < jrandom> so it may be on the client side, but definitely not the server side
+17:05 < jrandom> yeah zzz, its pretty insanely fast now :)
+17:05 <+zzz> its on the _request_ side not the _response_ side - could be on either client or server side
+17:06 < jrandom> true
+17:09 < jrandom> ok, anyone else have anything on 3) Syndie blogs?
+17:09 < jrandom> if not, lets jump on to 4) ???
+17:09 < jrandom> anyone have anything else to bring up for the meeting?
+17:10 < cat-a-puss> Complication: Java's gzip stream + I2P tunnels. Does NOT work and it's sun's bug
+17:10 < jrandom> hmm cat-a-puss?  really?
+17:10 <+zzz> HTTP persistent connections update: client side mostly done, server side making good progress, lots of bulletproofing and testing to do, est. completion 2-4 wks
+17:10 < jrandom> nice1 zzz!
+17:11 < cat-a-puss> jrandom: yeah I talked to you about that a long time ago, I could probably find the long explination as to why, but it's probably best to just document that somewhere as there is no reason to do it.
+17:12 < jrandom> hmm I'm out of context, what exactly does not work?  what is sun's bug?  
+17:14 < dust> i get weird logs like this: 21:21:59.816 WARN [%d0%a2%d1%4f] net.i2p.util.EepGet : ERR: status <html>
+17:14 < jrandom> hmm, interesting
+17:15 < jrandom> what tracker?
+17:15 < cat-a-puss> jrandom: As I recall sun uses headerless zips and some magic number to tell that it's a zip stream. But the number just so happens to be negitive, so if you endup creating a zip stream within a zip stream for some reason, it reads the data out of the stream as a sequence of unsigned bytes and so the magic number gets converted to some other positive number. (I am probably missing some detail but that is the gist of it)
+17:16 < dust> for example the  OSDevWithCVS_3E.pdf.torrent
+17:17 < dust> d8:announce540:http://YRgrgTLGnbTq2aZOZDJQ...
+17:17 < jrandom> hmm, I don't know anything about that, and I'm not sure how it'd affect gzip stream over i2ptunnel (if it /did/, they'd all fail, because we gzip evertthing)
+17:19 < jrandom> ok cool dust, so postman's tracker.  hmm, are you on 0.6.1.9 dust?
+17:20 < cat-a-puss> jrandom: yeah it's been almost a year now sense I had that problem so I don't remember too well, and I don't know if it is fixed in 1.5 but I did have a reall devil of a time trying to figure out why every normal type of stream would work, but as soon as I wrapped them in a compressed stream they would all fail.
+17:20 < dust> yes
+17:20 < jrandom> cat-a-puss: we've changed things dramatically for compression over i2p in the last year ;)
+17:21 < jrandom> (and I don't personally use 1.5)
+17:21 < jrandom> but we do our own zip encoding explicitly, rather than use their packaged stream (but for anonymity / efficiency reasons, not compatability)
+17:22 <@cervantes> zzz: where exactly in the request does the null happen? right after GET?
+17:22 <+Complication> Before, if I remember
+17:23 <+fox> <lordalbert> hi
+17:23 <+Complication> Sidenote: Celeron 300 shows twice lower retran. percentage than Sempron
+17:23 < jrandom> 'lo lordalbert
+17:23 < jrandom> cool Complication, 2-3% is reasonable (though I'd prefer lower, of course)
+17:23 <@cervantes> would be interesting to fire off a load of HEAD requests or something...
+17:24 < jrandom> yeah, a set of local tests would be great, though iirc Complication tried that a while back with no errors
+17:24 <+fox> <lordalbert> can anyone make a anonymous tracker? I try it but i dont' understand how use the tunnel
+17:24 <+Complication> cervantes: I once tried provoking it, with a recursive wget between my 2 nodes
+17:24 <+Complication> Grew tired before it happened
+17:25 <@cervantes> heh
+17:26 <+fox> <lordalbert> 'lo b0unc3 ;)
+17:26 <+fox> <b0unc3> lordalbert, :D
+17:26 <+Complication> lordalbert: which part would you need advise about?
+17:27 <+Complication> About setting up trackers, I unfortunately don't know.
+17:27 <+Complication> About I2PTunnel, I could try explaining...
+17:27 <+fox> <lordalbert> I have installed BTtracker, and it work perfectly
+17:28 <+Complication> It should also be noted that, for the tracker to *remain* anonymous, it should likely run a pretty careful config
+17:28 <+fox> <lordalbert> now, i'd like anonimise it
+17:28 <+fox> <lordalbert> so
+17:28 < jrandom> I'm sure we can help work through it after the meeting.  you shouldn't use generic trackers, you need one built for anonymity
+17:28 <+fox> <lordalbert> i have just made a i2ptunnel
+17:29 < jrandom> (e.g. the bytemonsoon modification that you can find on any of the i2p trackers, or in the cvs)
+17:29 <+fox> <lordalbert> now, i'd like to know how use this tunnel. I have made a tunnel yet
+17:29 < jrandom> ok, anyone have anything else for the meeting?
+17:30 < jrandom> lordalbert: http://localhost:7657/i2ptunnel/ should let you create an 'http server tunnel' pointing at your webserver/tracker, but your tracker will not work unless it has been modified for anonymous use
+17:30 <+fox> <lordalbert> jrandom, what tracker i must use?
+17:31 <+Complication> postman uses a modified version of ByteMonsoon, I think
+17:32 < jrandom> i2p-bytemonsoon has been modified for anonymous use - there's a zip up @ http://i2p-bt.postman.i2p/, and there's the cvs in http://dev.i2p.net/cgi-bin/cvsweb.cgi/bytemonsoon/ but I really don't know much about it
+17:32 <+fox> <lordalbert> isn't bytemonsoon obsolete?
+17:32 < jrandom> if it works, its not obsolete.  it works
+17:33 <+fox> <lordalbert> ok XD
+17:33 < jrandom> there are many trackers out there, and if some developer wants to modify it to work safely and anonymously, that'd be great
+17:33 <+Complication> May well be oldish... but definitely works with destkeys instead of IP's...
+17:33 <+Complication> Can't tell about security and leakproofness
+17:34 < jrandom> (it was modified by duck et al for anonymity and security)
+17:34 <+Complication> But it's been up for a while, and seems to manage...
+17:35 < jrandom> ok, if there's nothing else for the meeting...
+17:36  * jrandom winds up
+17:36  * jrandom *baf*S the meeting closed

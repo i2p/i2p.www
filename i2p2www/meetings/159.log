@@ -1,266 +1,260 @@
-{% extends "_layout.html" %}
-{% block title %}I2P Development Meeting 159{% endblock %}
-{% block content %}<h3>I2P dev meeting, December 6, 2005</h3>
-<div class="irclog">
-15:26 < jrandom> 0) hi</p>
-15:26 < jrandom> 1) 0.6.1.7 and net status</p>
-15:26 < jrandom> 2) Experimental tunnel failures</p>
-15:26 < jrandom> 3) SSU and NATs</p>
-15:26 < jrandom> 4) Syndie</p>
-15:26 < jrandom> 5) ???</p>
-15:26 < jrandom> 0) hi</p>
-15:26  * jrandom waves</p>
-15:26 < jrandom> weekly status notes posted up at http://dev.i2p.net/pipermail/i2p/2005-December/001237.html</p>
-15:26  * ailouros read the notes</p>
-15:27  * jrandom is late, so I'll give y'all a moment to read up :)</p>
-15:29 < jrandom> ok, might as well jump on in to 1) 0.6.1.7 and net status</p>
-15:29 <@cervantes> *cough*</p>
-15:29 < jrandom> I don't have much more to add beyond whats in the mail on this point.  anyone have any further comments/questions/ideas?</p>
-15:30 < Pseudonym> seems like doing performance optimization before changing the the tunnel creation algo might be backwards</p>
-15:30 < gott> I am getting a lot of "No HTTP method found in the request.</p>
-15:30 < gott> Software caused connection abort: socket write error</p>
-15:30 < gott> "</p>
-15:30 <@modulus> tunnel lag is much lower, i don't know if you made any changes or my ISP is better all of a suden.</p>
-15:30 < gott> from the I2PTunnel Webmanager</p>
-15:31 < jrandom> gott: those suggest bad http requests, or things that the eepproxy ouldn't understand</p>
-15:31 < jrandom> modulus: cool, we've been doing lots to try and improve things</p>
-15:31 < jrandom> Pseudonym: well, so far tunnel creation hasn't been our choke point - our choke point was much higher level stuff</p>
-15:32 < jrandom> otoh, the improvements of the last few revs have exposed some issues down there</p>
-15:32 < Pseudonym> oh, so the optimization has been related to other parts of the code?</p>
-15:32 < Pseudonym> cool</p>
-15:33 < jrandom> aye, at the SSU level, as well as the tunnel operation level.  tunnel creation is not a performance sensitive operation [except when it is ;]</p>
-15:34 < jrandom> I'm doing some live net load testing though, gathering some non-anonymous load stats of different peers to try to narrow things down further</p>
-15:34 < ailouros> I wonder why sometimes I see more tunnels than those configured for a destination (eg. eeProxy, inbound 7 tunnels 4 outbound)</p>
-15:34 < jrandom> so, over the next few days when you see the router 7xgV transferring lots of data, well, dont mind it ;)</p>
-15:35 < jrandom> ailouros: when tunnel creation takes a while, it builds extras, just in case.  </p>
-15:35 < jrandom> zzz outlines a few of the odd issues on that front too, and there's a patch being worked on to improve things a bit</p>
-15:35 < ailouros> I see.. but then why they all expire at the same time?</p>
-15:35 <@cervantes> jrandom: out of curiosity, when did you begin those tests?</p>
-15:35 < jrandom> cervantes: a few days ago</p>
-15:36 <@cervantes> ah cool, it's _not_ that then ;-)</p>
-15:36 < jrandom> dunno ailouros, depends on a few conditions.  but there are some... *cough* oddities in the tunnel creation code, which I've been holding off messing with since its getting rewritten for 0.6.2</p>
-15:38 < ailouros> I see. I thought it was a policy matter... I'd rather see the tunnels die at different times unless there's a good reason not to</p>
-15:38 < ailouros> as in, tunnel creations are skewed</p>
-15:39 < jrandom> aye, there will be better randomization for 0.6.2, and zzz's patch adds some randomization for the current rev too</p>
-15:40 <+Complication> I wonder why an otherwise sane instance of i2phex... would decide to rehash files every other time I start it?</p>
-15:40 < jrandom> not a clue</p>
-15:40 <+Complication> Damaged configuration sounds the likely cause so far, but I've not deleted my config yet.</p>
-15:40 < jrandom> perhaps skewed timestamps?</p>
-15:42 <+Complication> Nah, they seem correct too</p>
-15:42  * jrandom knows not.  never looked at that part of phex's cod</p>
-15:42 < jrandom> er, code</p>
-15:42 <+Complication> I'll see if deleting old config files does it any good</p>
-15:42 < jrandom> cool</p>
-15:43 < jrandom> ok, anything else on 1) Net status / 0.6.1.7?</p>
-15:43 < jrandom> if not, moving on to 2) Experimental tunnel failures</p>
-15:44 < jrandom> we've touched on this a bit already, and there's more in the notes and on zzz.i2p</p>
-15:44 < jrandom> zzz: do you have anything you want to add/bring up?</p>
-15:46 < jrandom> if not, lets move on to 3) SSU and NATs</p>
-15:46 < jrandom> bar: anything you want to add?</p>
-15:46 <+bar> nope, i have nothing else to add but what's in the mail</p>
-15:47 < jrandom> cool, yeah I've still got to reply to some of the details - i think our retransmission will already take care of some of the issues you bring up</p>
-15:48 < jrandom> the trick is going to be detecting which situation is in play, so we can automate the right procedure (or inform the user that they're screwed)</p>
-15:48 <+bar> all in due time, no hurry</p>
-15:49 <+bar> aye, i suggested a manual user setting to circumvent that problem for the time being, perhaps it's not possible, but we can discuss it later</p>
-15:50 < jrandom> yeah, manual overrides will help, but my experience with earlier i2p revs was that everyone (*everyone*) fucked it up ;)  so automation is preferred </p>
-15:50 < jrandom> (everyone meaning myself included ;)</p>
-15:52 <+bar> agree</p>
-15:52 < ailouros> lol if I did too then there were something wrong with the docs, as I followed them bit by bit :D</p>
-15:53 <+bar> meanwhile, i will spend some time studying the peer testing</p>
-15:53 < jrandom> cool, thanks bar!</p>
-15:54 <+bar> (perhaps i could generate some useless spam regarding that as well :)</p>
-15:54 < jrandom> :)</p>
-15:55 < jrandom> ok, if there's nothing else on 3), lets move on to 4) Syndie</p>
-15:56 < jrandom> there has been a lot of progress on this front lately, with pretty substantial UI revamps since 0.6.1.7 came out</p>
-15:57 < jrandom> there's also a new standalone install/build, though since all of us have i2p installed, we don't need a separate one </p>
-15:57 < ailouros> I find that 6.1.7's layout is harder to use than 6.1.6's</p>
-15:58 < jrandom> hmm, are you running syndie in single user mode?  and/or are you using the latest CVS build or the official 0.6.1.7 build?</p>
-15:58 < ailouros> official 0.6.1.7, single user</p>
-15:58 < jrandom> are you one of the proponents of the blog-like interface, as opposed to the threaded nav?</p>
-15:58 < ailouros> I am not, though I don't really know which is the blog-like</p>
-15:58 < ailouros> personally I'd rather have a threaded nav</p>
-15:59 < ailouros> (and some color-coding of new messages as well in thread view)</p>
-15:59 <+Complication> Relatively late CVS, single user</p>
-15:59 <+Complication> I've found a minor oddity (which I think, could be non-intended)</p>
-15:59 < jrandom> ah, there has been a lot of progress on that front in CVS ailouros </p>
-15:59 < ailouros> great :)</p>
-16:00 < jrandom> we've got a new threaded display too, using cervantes' suggested full traversal of just one branch, as opposed to all branches</p>
-16:00 <@cervantes> are those changes pushed to syndiemedia.i2p.net?</p>
-16:00 <+bla> Would it be a good idea to show some default examples for the location in http://localhost:7657/syndie/syndicate.jsp ?</p>
-16:00 < jrandom> syndiemedia.i2p.net is CVS head, yeah</p>
-16:00 <+Complication> When you've opened up a thread, and are currently reading its posts... and then choose to apply a filter to which no posts match (e.g. open thread "Syndie threading", apply filter "i2p.i2phex")...</p>
-16:00 < jrandom> aye, perhaps bla.  new installs will have the three defaults in there, but examples would be good</p>
-16:01 <@cervantes> (the actual thread's tree needs to fully open too though)</p>
-16:01 <+Complication> ...it appears to leave the current posts displayed, as if they were matching or something...</p>
-16:01 <+Complication> Despite me definitely clicking the "Go" button.</p>
-16:01 <@cervantes> Complication: yeah I found that confusing too</p>
-16:02 < jrandom> hmm Complication, the general idea was to let you browse around while still looking at a post, but perhaps it'd be best to drop the posts being displayed</p>
-16:02 < jrandom> cervantes: ah, yeah expanding it to the leaf would be good, and should be trivial to do</p>
-16:02 <+Complication> Just noticed, and since it stuck out, thought I'd tell</p>
-16:02 <@cervantes> (or make it more obvious that there aren't any matches)</p>
-16:03 < jrandom> well, the thread nav says *no matches* :)</p>
-16:03 < ailouros> perhaps he's looking for a lighter</p>
-16:03 < jrandom> !thwap</p>
-16:03 <@cervantes> (or make it even more obvious that there aren't any matches)</p>
-16:03 < jrandom> &lt;blink&gt;No matches&lt;/blink&gt;</p>
-16:03 <+Complication> Oops :)</p>
-16:04 < tethra> seems your !thwap got spaetz__ instead, jr!</p>
-16:04 <+Complication> Right, sometimes the thread navigator *does* feel a long distance away :)</p>
-16:04 < jrandom> yeah, we're experimenting with some css to float that down the side, as an option</p>
-16:05 <@cervantes> with skinning support you could have the thread top buttom left right etc</p>
-16:05 <@cervantes> ah as jr said</p>
-16:05 <+Complication> The "Threads" link takes one there fairly quick, though</p>
-16:05 <+Complication> ...if it's within the viewport currently.</p>
-16:06 <+Complication> And those who are used to keyboard-navigating can naturally press "End"</p>
-16:06 < jrandom> of course, this stuff is really simple to modify (as you can see from the rapid changes in CVS :), so if anyone has any suggestions (or mockups - html / png / etc), please, post 'em up whenever</p>
-16:07 < jrandom> I expect we'll have a main blog overview page in the next few days in cvs</p>
-16:08 < jrandom> ok, there's lots of other stuff going on w/ syndie, so swing on by http://localhost:7657/syndie/ for more info :)</p>
-16:08 < jrandom> anyone have anything else to bring up on that, or shall we move on to 5) ???</p>
-16:09 < zzz> hi just walked in. on 2), I'm looking for testers for my patch.  </p>
-16:10 < zzz> My results are improvements in job lag and reliability, and reduction in router hangs. So hoping others will try.</p>
-16:10 < ailouros> that sounds good enough. what do I have to do?</p>
-16:11 < jrandom> heya zzz, ok cool, i'll be bashing it around a bit here too.  its got lots of different components to it, so might be worth splitting up into pieces, but it does look good and is on track for 0.6.1.8</p>
-16:11 < ailouros> (average uptime is about 10h here :(</p>
-16:11 < zzz> If  you have source code and ant just apply the patch - or I can put up an i2pupdate.zip if you want</p>
-16:12 < zzz> jrandom I'll work on splitting it up</p>
-16:12 < ailouros> I'll go for the update, thanks</p>
-16:13 < zzz> ailouros will put it on zzz.i2p within an hour - thanks</p>
-16:13 < jrandom> zzz: I wouldn't worry about it unless you've got spare time... I can read through the diff :)</p>
-16:13 < ailouros> thank you</p>
-16:14 < zzz> jrandom OK. There's some miscellaneous stuff that can easily be ripped out by either you or me.</p>
-16:16 < ailouros> I guess we're at 5) ??? now?</p>
-16:16 < zzz> jrandom other topic  was Router OOMs with i2phex and possible SAM  issues</p>
-16:16 < jrandom> aye ailouros </p>
-16:16 < jrandom> ah yeah zzz, it'd be great to track down whats up with SAM</p>
-16:17 < ailouros> j346, did you have the chance to check out my app?</p>
-16:17 < jrandom> what would Rule is if someone could jump on and take over maintenance of the SAM bridge, as I havent done any substantial work on it, and human hasn't been around for a while.</p>
-16:19 < jrandom> not yet ailouros, unfortunately.  was a bit unsure about how it worked, so I've got to read through the source first</p>
-16:20 < ailouros> feel free to ask</p>
-16:20 < ailouros> (and good luck on the journey through the source, it's a good definition for the word "mess")</p>
-16:20 < jrandom> hehe</p>
-16:21 < zzz> correction my experience has been OOMs when using i2p-bt, not i2phex. Happens after about 24 hours when running one i2p-bt and in a few hours when running two i2p-bt</p>
-16:22 <+Complication> Mine happened after some late-night stress-testing.</p>
-16:22 <+Complication> (during which, let it be noted, I saw 5-minute averages of 50 KB/s)</p>
-16:22 < bar_> could you please remind me what your app is/does, ailouros? my memory is good but short...</p>
-16:22 <+Complication> Incoming, that is.</p>
-16:22 <+Complication> Outgoing was limited to 35 KB/s</p>
-16:22 <@cervantes> Complication: I've never heard it called late-night stress testing before...</p>
-16:22 < jrandom> nice Complication </p>
-16:23 <+Complication> cervantes: well, one *could* call it semi-daily megaleeching then :P</p>
-16:23 < ailouros> bar_: it's a working proof-of-concept for a distributed filesharing app which shares common blocks among differnt files (as suggested by polecat)</p>
-16:23 < bar_> ah, right, thanks ailouros</p>
-16:24 < tethra> cervantes: heheheh ;)</p>
-16:24 < ailouros> you're welcome (if anyone wants to get the source, it's in c/c++)</p>
-16:25 <+polecat> ailouros: Be careful, the chance of two binary blocks being the same is sufficiently rare, I'm mostly talking about pure theory that would be unuseful in practice.</p>
-16:25 < ailouros> polecat, I agree. My best guess is that it comes useful when you get different versions of the same files</p>
-16:25 < ailouros> like, a movie which has a corrupted block</p>
-16:25 <+polecat> You could transfer blocks of zeroes at lightning speeds!  ("The next block is zeroes" "oh I have that already" "the next block is zeroes" "oh I have that already")</p>
-16:26 < ailouros> or an archive of other zip files</p>
-16:26 < jrandom> or e.g. modified ID3 tags, etc</p>
-16:26 < ailouros> exactly</p>
-16:26 <+polecat> True.  But an easy way to "fix" a movie with a corrupted block is to tell bittorrent to download on top of it.  Most clients will preserve the blocks whose hashes are the same, and overwrite the ones that are different.</p>
-16:26 < jrandom> archives of files probably won't work though, since they'd have to break on file boundaries</p>
-16:27 < ailouros> j636, that's why I want to implement LBFS's idea of splitting on data marks and not fixed block sizes</p>
-16:27 <@cervantes> the DC community used that method, by sharing file distributions in rarsets</p>
-16:27 <+polecat> What might be useful is to make a general binary error correction algorithm, then implement it on a huge scale.  All blocks could be "corrected" into each other, and you'd only have to transmit the correction data, which might be smaller than transmitting the block itself.</p>
-16:29 <@cervantes> and then searches are basedon tiger hashes of those rar parts</p>
-16:29 <+Complication> Nice thought... sounds difficult though :)</p>
-16:29 <+polecat> But just a hash-for-hash equivalent... you'd never find two blocks alike!</p>
-16:29 < ailouros> cervantes, what's a "rarset"? :D (except a "RAR file", that is)</p>
-16:29 <+polecat> Unless both sides already had the file, one of them corrupted.</p>
-16:29 < ailouros> polecat, uh?</p>
-16:29 <@cervantes> ailouros: a split rar archive, with parity files if necessary</p>
-16:30 < ailouros> cervantes: I don't understand the advantage of doing that</p>
-16:31 <@cervantes> it's main benefit was to add pseudo-multi-source downloading to DC</p>
-16:32 < ailouros> well, that's part of the block sharing mechanism between files, isn't it?</p>
-16:34 < ailouros> polecat: about the bittorrent overwriting of damaged files, what it doesn't buy you is when you're trying to get multiple versions at once</p>
-16:35 <@cervantes> your client only matches/downloads valid parts, if you have parity files you can also recover damaged parts </p>
-16:35 < ailouros> with my system there are no damaged parts (files are assembled only when the composing blocks are downloaded and re-checked)</p>
-16:36 <@cervantes> stuff bittorrent does by default, except that you can't search specifically for individual parts</p>
-16:36 <+polecat> Multiple versions aren't likely to have a single bit in common though... which is why they're so stupid.  Some jerk decides to re-encode the movie in postage stamp format, and gives it the same name.</p>
-16:37 <+polecat> Or another jerk takes random data and names it by the file you want to download.</p>
-16:37 < ailouros> lol that's correct</p>
-16:37 <@cervantes> exactly and rarset releases are immune to that...</p>
-16:37 < ailouros> but keep in mind that files from other networks (emule, kazaa, whatever) often come corrupted</p>
-16:38 <+polecat> rarset releases aren't immune...</p>
-16:38 <+polecat> You still have to figure out which rarset is the right one.</p>
-16:38 < ailouros> cervantes, how are rarsets immune to an idiot publishing random junk?</p>
-16:38 <@cervantes> (provided you have a reliable source)</p>
-16:39 <@cervantes> because a release group publishes hashes/distribution information</p>
-16:39 < ailouros> hahaha that's easy :D</p>
-16:39 <@cervantes> and stuff is marked as nuked if it's poor quality, folk remove it from shares</p>
-16:40 < ailouros> cervantes, that much my toy already does</p>
-16:40 <@cervantes> cool</p>
-16:40 < ailouros> you get the file descriptor from a trusted source, you multiget the file pronto</p>
-16:41 <@cervantes> sounds good ;-)</p>
-16:41 < ailouros> you don't get to sarch for files, but you can browse through each user's shared dire, so you can use a web crawler and cache the results</p>
-16:42 < ailouros> though I might add a search function sometime in the future if deemed necessary</p>
-16:44 < ailouros> I believe my toy, proprely developed into an app, can offer the caching and resiliancy the freenet people try to offer</p>
-16:44 < ailouros> as in static content distribution and caching</p>
-16:45 < ailouros> you read my blog, you cache it and offer it to other people when they want. you don't do anything more than leave the content there</p>
-16:45 < ailouros> don't like the content? delete it and we're all set</p>
-16:45 < jrandom> hmm, so do you see it as a backing store that could be used for syndie?  </p>
-16:46 < ailouros> it CAN be used as a backing store</p>
-16:46 < ailouros> as it is now, you might even use it in place of jetty, in i2p default installations</p>
-16:46 < jrandom> e.g. attachments / links to [clunk hash="$foo"]my file[/clunk]</p>
-16:46 < ailouros> (well with a couple of minor changes :D )</p>
-16:46 < jrandom> heh</p>
-16:47 < jrandom> ok, yeah, I definitely don't understand how clunk works... wanna post about it in syndie, or put up an eepsite?  :)</p>
-16:47 < ailouros> file hashes are downloaded on file request, and these hashes are automagically downloaded into the full file</p>
-16:48 < jrandom> right, but "down"loaded is a question of from where to where, etc.  an overal network architecture description would be helpful</p>
-16:48 < ailouros> I'll write a decent doc first, then publish it somewhere</p>
-16:48 < jrandom> r0x0r, thanks</p>
-16:48 < ailouros> downloaded from wherever you got the hash from</p>
-16:48 < ailouros> plus everyone else sharing these blocks</p>
-16:49 < ailouros> think go!zilla and download accellerator :)</p>
-16:49 < jrandom> I think you misunderstand how much I am confused</p>
-16:49 < ailouros> but transparent and within i2p</p>
-16:49 < ailouros> lol guess so :D</p>
-16:50 < jrandom> a very, very basic explanation of e.g. "you run a clunk client, download from a clunk server, get info about clunk peers", etc</p>
-16:50 < jrandom> do I use a web browser to query a clunk client?  or server?  or peer?</p>
-16:51 < jrandom> (thats how lost I am)</p>
-16:51 < ailouros> redo from 0 :)</p>
-16:51 < ailouros> you use your web browser</p>
-16:51 < ailouros> you connect to your client</p>
-16:51 < ailouros> you browse others' dir with your browser</p>
-16:51 < ailouros> you select which files to download with your browser</p>
-16:51 < ailouros> your client does the dirty work</p>
-16:52 < ailouros> you get the downloaded file back</p>
-16:52 < ailouros> is this better? :)</p>
-16:52 < jrandom> ok great, thanks - so the "browse other's dir" is done by your client querying their client and responding back with an HTML representation of it</p>
-16:52 < ailouros> exactly</p>
-16:52 < jrandom> (or pulled from some server/superpeer/etc)</p>
-16:53 < jrandom> coo'</p>
-16:53 < ailouros> all the dirty work (finding duplicates, multidownloads and so on) is done by your (local) client transparently</p>
-16:54 < ailouros> what you see is, basically, a directory tree and some fiels you can download</p>
-16:54 < jrandom> cool</p>
-16:55 < ailouros> to publish your data you give away your public (p2p) address</p>
-16:55 < ailouros> and to share files you copy them (or symlink them) to the pub/ directory (or some subdir). It's that easy</p>
-16:57  * jrandom will dig through the source further, and look forward to more info :)</p>
-16:57 < jrandom> ok, anyone else have anything for the meeting?</p>
-16:57 < bar_> umm.. what's the difference between publishing and sharing, if i may ask? does publishing push the data to some datastore?</p>
-16:58 < ailouros> bar_: sharing is giving the blocks to download. publishing is letting the world know what you share</p>
-16:58 < ailouros> publishing is a subset of sharing</p>
-16:58 < bar_> aha, gotcha, thanks</p>
-16:58 < ailouros> for example, if you have half of a file, you share it but don't publish it</p>
-16:59 < jrandom> how would people know they ould get those blocks from you then?</p>
-16:59 < ailouros> and you have full control over which files you publish (unlike emule where every downloaded file is published)</p>
-16:59 < ailouros> because each client periodically sends information to the network about which blocks he has to offer</p>
-17:00 < jrandom> coo'</p>
-17:00 < ailouros> sends to the network as in server (as is now) or DHT (future)</p>
-17:00 < jrandom> so its mnet-esque, with a block tracker</p>
-17:00 < ailouros> err mnet-esque?</p>
-17:01 < jrandom> similar to how mnet (mnetproject.org) works</p>
-17:01  * ailouros is reading mnetproject.org</p>
-17:02 < ailouros> well, you have just your personal spaces, no shared spaces</p>
-17:02 < ailouros> and you don't PUSH blocks around</p>
-17:02 < jrandom> yeah, its not exactly the same as mnet, but it similar structurally</p>
-17:03 < jrandom> its like mnet where everyone is too broke to have anyone host their data ;)</p>
-17:03 < ailouros> yep</p>
-17:03 < ailouros> :D</p>
-17:03 < jrandom> ok, anyone else have anything else to bring up?</p>
-17:04 < jrandom> if not...</p>
-17:04  * jrandom winds up</p>
-17:04  * jrandom *baf*s the meeting closed</p>
-</div>
-{% endblock %}
+15:26 < jrandom> 0) hi
+15:26 < jrandom> 1) 0.6.1.7 and net status
+15:26 < jrandom> 2) Experimental tunnel failures
+15:26 < jrandom> 3) SSU and NATs
+15:26 < jrandom> 4) Syndie
+15:26 < jrandom> 5) ???
+15:26 < jrandom> 0) hi
+15:26  * jrandom waves
+15:26 < jrandom> weekly status notes posted up at http://dev.i2p.net/pipermail/i2p/2005-December/001237.html
+15:26  * ailouros read the notes
+15:27  * jrandom is late, so I'll give y'all a moment to read up :)
+15:29 < jrandom> ok, might as well jump on in to 1) 0.6.1.7 and net status
+15:29 <@cervantes> *cough*
+15:29 < jrandom> I don't have much more to add beyond whats in the mail on this point.  anyone have any further comments/questions/ideas?
+15:30 < Pseudonym> seems like doing performance optimization before changing the the tunnel creation algo might be backwards
+15:30 < gott> I am getting a lot of "No HTTP method found in the request.
+15:30 < gott> Software caused connection abort: socket write error
+15:30 < gott> "
+15:30 <@modulus> tunnel lag is much lower, i don't know if you made any changes or my ISP is better all of a suden.
+15:30 < gott> from the I2PTunnel Webmanager
+15:31 < jrandom> gott: those suggest bad http requests, or things that the eepproxy ouldn't understand
+15:31 < jrandom> modulus: cool, we've been doing lots to try and improve things
+15:31 < jrandom> Pseudonym: well, so far tunnel creation hasn't been our choke point - our choke point was much higher level stuff
+15:32 < jrandom> otoh, the improvements of the last few revs have exposed some issues down there
+15:32 < Pseudonym> oh, so the optimization has been related to other parts of the code?
+15:32 < Pseudonym> cool
+15:33 < jrandom> aye, at the SSU level, as well as the tunnel operation level.  tunnel creation is not a performance sensitive operation [except when it is ;]
+15:34 < jrandom> I'm doing some live net load testing though, gathering some non-anonymous load stats of different peers to try to narrow things down further
+15:34 < ailouros> I wonder why sometimes I see more tunnels than those configured for a destination (eg. eeProxy, inbound 7 tunnels 4 outbound)
+15:34 < jrandom> so, over the next few days when you see the router 7xgV transferring lots of data, well, dont mind it ;)
+15:35 < jrandom> ailouros: when tunnel creation takes a while, it builds extras, just in case.  
+15:35 < jrandom> zzz outlines a few of the odd issues on that front too, and there's a patch being worked on to improve things a bit
+15:35 < ailouros> I see.. but then why they all expire at the same time?
+15:35 <@cervantes> jrandom: out of curiosity, when did you begin those tests?
+15:35 < jrandom> cervantes: a few days ago
+15:36 <@cervantes> ah cool, it's _not_ that then ;-)
+15:36 < jrandom> dunno ailouros, depends on a few conditions.  but there are some... *cough* oddities in the tunnel creation code, which I've been holding off messing with since its getting rewritten for 0.6.2
+15:38 < ailouros> I see. I thought it was a policy matter... I'd rather see the tunnels die at different times unless there's a good reason not to
+15:38 < ailouros> as in, tunnel creations are skewed
+15:39 < jrandom> aye, there will be better randomization for 0.6.2, and zzz's patch adds some randomization for the current rev too
+15:40 <+Complication> I wonder why an otherwise sane instance of i2phex... would decide to rehash files every other time I start it?
+15:40 < jrandom> not a clue
+15:40 <+Complication> Damaged configuration sounds the likely cause so far, but I've not deleted my config yet.
+15:40 < jrandom> perhaps skewed timestamps?
+15:42 <+Complication> Nah, they seem correct too
+15:42  * jrandom knows not.  never looked at that part of phex's cod
+15:42 < jrandom> er, code
+15:42 <+Complication> I'll see if deleting old config files does it any good
+15:42 < jrandom> cool
+15:43 < jrandom> ok, anything else on 1) Net status / 0.6.1.7?
+15:43 < jrandom> if not, moving on to 2) Experimental tunnel failures
+15:44 < jrandom> we've touched on this a bit already, and there's more in the notes and on zzz.i2p
+15:44 < jrandom> zzz: do you have anything you want to add/bring up?
+15:46 < jrandom> if not, lets move on to 3) SSU and NATs
+15:46 < jrandom> bar: anything you want to add?
+15:46 <+bar> nope, i have nothing else to add but what's in the mail
+15:47 < jrandom> cool, yeah I've still got to reply to some of the details - i think our retransmission will already take care of some of the issues you bring up
+15:48 < jrandom> the trick is going to be detecting which situation is in play, so we can automate the right procedure (or inform the user that they're screwed)
+15:48 <+bar> all in due time, no hurry
+15:49 <+bar> aye, i suggested a manual user setting to circumvent that problem for the time being, perhaps it's not possible, but we can discuss it later
+15:50 < jrandom> yeah, manual overrides will help, but my experience with earlier i2p revs was that everyone (*everyone*) fucked it up ;)  so automation is preferred 
+15:50 < jrandom> (everyone meaning myself included ;)
+15:52 <+bar> agree
+15:52 < ailouros> lol if I did too then there were something wrong with the docs, as I followed them bit by bit :D
+15:53 <+bar> meanwhile, i will spend some time studying the peer testing
+15:53 < jrandom> cool, thanks bar!
+15:54 <+bar> (perhaps i could generate some useless spam regarding that as well :)
+15:54 < jrandom> :)
+15:55 < jrandom> ok, if there's nothing else on 3), lets move on to 4) Syndie
+15:56 < jrandom> there has been a lot of progress on this front lately, with pretty substantial UI revamps since 0.6.1.7 came out
+15:57 < jrandom> there's also a new standalone install/build, though since all of us have i2p installed, we don't need a separate one 
+15:57 < ailouros> I find that 6.1.7's layout is harder to use than 6.1.6's
+15:58 < jrandom> hmm, are you running syndie in single user mode?  and/or are you using the latest CVS build or the official 0.6.1.7 build?
+15:58 < ailouros> official 0.6.1.7, single user
+15:58 < jrandom> are you one of the proponents of the blog-like interface, as opposed to the threaded nav?
+15:58 < ailouros> I am not, though I don't really know which is the blog-like
+15:58 < ailouros> personally I'd rather have a threaded nav
+15:59 < ailouros> (and some color-coding of new messages as well in thread view)
+15:59 <+Complication> Relatively late CVS, single user
+15:59 <+Complication> I've found a minor oddity (which I think, could be non-intended)
+15:59 < jrandom> ah, there has been a lot of progress on that front in CVS ailouros 
+15:59 < ailouros> great :)
+16:00 < jrandom> we've got a new threaded display too, using cervantes' suggested full traversal of just one branch, as opposed to all branches
+16:00 <@cervantes> are those changes pushed to syndiemedia.i2p.net?
+16:00 <+bla> Would it be a good idea to show some default examples for the location in http://localhost:7657/syndie/syndicate.jsp ?
+16:00 < jrandom> syndiemedia.i2p.net is CVS head, yeah
+16:00 <+Complication> When you've opened up a thread, and are currently reading its posts... and then choose to apply a filter to which no posts match (e.g. open thread "Syndie threading", apply filter "i2p.i2phex")...
+16:00 < jrandom> aye, perhaps bla.  new installs will have the three defaults in there, but examples would be good
+16:01 <@cervantes> (the actual thread's tree needs to fully open too though)
+16:01 <+Complication> ...it appears to leave the current posts displayed, as if they were matching or something...
+16:01 <+Complication> Despite me definitely clicking the "Go" button.
+16:01 <@cervantes> Complication: yeah I found that confusing too
+16:02 < jrandom> hmm Complication, the general idea was to let you browse around while still looking at a post, but perhaps it'd be best to drop the posts being displayed
+16:02 < jrandom> cervantes: ah, yeah expanding it to the leaf would be good, and should be trivial to do
+16:02 <+Complication> Just noticed, and since it stuck out, thought I'd tell
+16:02 <@cervantes> (or make it more obvious that there aren't any matches)
+16:03 < jrandom> well, the thread nav says *no matches* :)
+16:03 < ailouros> perhaps he's looking for a lighter
+16:03 < jrandom> !thwap
+16:03 <@cervantes> (or make it even more obvious that there aren't any matches)
+16:03 < jrandom> <blink>No matches</blink>
+16:03 <+Complication> Oops :)
+16:04 < tethra> seems your !thwap got spaetz__ instead, jr!
+16:04 <+Complication> Right, sometimes the thread navigator *does* feel a long distance away :)
+16:04 < jrandom> yeah, we're experimenting with some css to float that down the side, as an option
+16:05 <@cervantes> with skinning support you could have the thread top buttom left right etc
+16:05 <@cervantes> ah as jr said
+16:05 <+Complication> The "Threads" link takes one there fairly quick, though
+16:05 <+Complication> ...if it's within the viewport currently.
+16:06 <+Complication> And those who are used to keyboard-navigating can naturally press "End"
+16:06 < jrandom> of course, this stuff is really simple to modify (as you can see from the rapid changes in CVS :), so if anyone has any suggestions (or mockups - html / png / etc), please, post 'em up whenever
+16:07 < jrandom> I expect we'll have a main blog overview page in the next few days in cvs
+16:08 < jrandom> ok, there's lots of other stuff going on w/ syndie, so swing on by http://localhost:7657/syndie/ for more info :)
+16:08 < jrandom> anyone have anything else to bring up on that, or shall we move on to 5) ???
+16:09 < zzz> hi just walked in. on 2), I'm looking for testers for my patch.  
+16:10 < zzz> My results are improvements in job lag and reliability, and reduction in router hangs. So hoping others will try.
+16:10 < ailouros> that sounds good enough. what do I have to do?
+16:11 < jrandom> heya zzz, ok cool, i'll be bashing it around a bit here too.  its got lots of different components to it, so might be worth splitting up into pieces, but it does look good and is on track for 0.6.1.8
+16:11 < ailouros> (average uptime is about 10h here :(
+16:11 < zzz> If  you have source code and ant just apply the patch - or I can put up an i2pupdate.zip if you want
+16:12 < zzz> jrandom I'll work on splitting it up
+16:12 < ailouros> I'll go for the update, thanks
+16:13 < zzz> ailouros will put it on zzz.i2p within an hour - thanks
+16:13 < jrandom> zzz: I wouldn't worry about it unless you've got spare time... I can read through the diff :)
+16:13 < ailouros> thank you
+16:14 < zzz> jrandom OK. There's some miscellaneous stuff that can easily be ripped out by either you or me.
+16:16 < ailouros> I guess we're at 5) ??? now?
+16:16 < zzz> jrandom other topic  was Router OOMs with i2phex and possible SAM  issues
+16:16 < jrandom> aye ailouros 
+16:16 < jrandom> ah yeah zzz, it'd be great to track down whats up with SAM
+16:17 < ailouros> j346, did you have the chance to check out my app?
+16:17 < jrandom> what would Rule is if someone could jump on and take over maintenance of the SAM bridge, as I havent done any substantial work on it, and human hasn't been around for a while.
+16:19 < jrandom> not yet ailouros, unfortunately.  was a bit unsure about how it worked, so I've got to read through the source first
+16:20 < ailouros> feel free to ask
+16:20 < ailouros> (and good luck on the journey through the source, it's a good definition for the word "mess")
+16:20 < jrandom> hehe
+16:21 < zzz> correction my experience has been OOMs when using i2p-bt, not i2phex. Happens after about 24 hours when running one i2p-bt and in a few hours when running two i2p-bt
+16:22 <+Complication> Mine happened after some late-night stress-testing.
+16:22 <+Complication> (during which, let it be noted, I saw 5-minute averages of 50 KB/s)
+16:22 < bar_> could you please remind me what your app is/does, ailouros? my memory is good but short...
+16:22 <+Complication> Incoming, that is.
+16:22 <+Complication> Outgoing was limited to 35 KB/s
+16:22 <@cervantes> Complication: I've never heard it called late-night stress testing before...
+16:22 < jrandom> nice Complication 
+16:23 <+Complication> cervantes: well, one *could* call it semi-daily megaleeching then :P
+16:23 < ailouros> bar_: it's a working proof-of-concept for a distributed filesharing app which shares common blocks among differnt files (as suggested by polecat)
+16:23 < bar_> ah, right, thanks ailouros
+16:24 < tethra> cervantes: heheheh ;)
+16:24 < ailouros> you're welcome (if anyone wants to get the source, it's in c/c++)
+16:25 <+polecat> ailouros: Be careful, the chance of two binary blocks being the same is sufficiently rare, I'm mostly talking about pure theory that would be unuseful in practice.
+16:25 < ailouros> polecat, I agree. My best guess is that it comes useful when you get different versions of the same files
+16:25 < ailouros> like, a movie which has a corrupted block
+16:25 <+polecat> You could transfer blocks of zeroes at lightning speeds!  ("The next block is zeroes" "oh I have that already" "the next block is zeroes" "oh I have that already")
+16:26 < ailouros> or an archive of other zip files
+16:26 < jrandom> or e.g. modified ID3 tags, etc
+16:26 < ailouros> exactly
+16:26 <+polecat> True.  But an easy way to "fix" a movie with a corrupted block is to tell bittorrent to download on top of it.  Most clients will preserve the blocks whose hashes are the same, and overwrite the ones that are different.
+16:26 < jrandom> archives of files probably won't work though, since they'd have to break on file boundaries
+16:27 < ailouros> j636, that's why I want to implement LBFS's idea of splitting on data marks and not fixed block sizes
+16:27 <@cervantes> the DC community used that method, by sharing file distributions in rarsets
+16:27 <+polecat> What might be useful is to make a general binary error correction algorithm, then implement it on a huge scale.  All blocks could be "corrected" into each other, and you'd only have to transmit the correction data, which might be smaller than transmitting the block itself.
+16:29 <@cervantes> and then searches are basedon tiger hashes of those rar parts
+16:29 <+Complication> Nice thought... sounds difficult though :)
+16:29 <+polecat> But just a hash-for-hash equivalent... you'd never find two blocks alike!
+16:29 < ailouros> cervantes, what's a "rarset"? :D (except a "RAR file", that is)
+16:29 <+polecat> Unless both sides already had the file, one of them corrupted.
+16:29 < ailouros> polecat, uh?
+16:29 <@cervantes> ailouros: a split rar archive, with parity files if necessary
+16:30 < ailouros> cervantes: I don't understand the advantage of doing that
+16:31 <@cervantes> it's main benefit was to add pseudo-multi-source downloading to DC
+16:32 < ailouros> well, that's part of the block sharing mechanism between files, isn't it?
+16:34 < ailouros> polecat: about the bittorrent overwriting of damaged files, what it doesn't buy you is when you're trying to get multiple versions at once
+16:35 <@cervantes> your client only matches/downloads valid parts, if you have parity files you can also recover damaged parts 
+16:35 < ailouros> with my system there are no damaged parts (files are assembled only when the composing blocks are downloaded and re-checked)
+16:36 <@cervantes> stuff bittorrent does by default, except that you can't search specifically for individual parts
+16:36 <+polecat> Multiple versions aren't likely to have a single bit in common though... which is why they're so stupid.  Some jerk decides to re-encode the movie in postage stamp format, and gives it the same name.
+16:37 <+polecat> Or another jerk takes random data and names it by the file you want to download.
+16:37 < ailouros> lol that's correct
+16:37 <@cervantes> exactly and rarset releases are immune to that...
+16:37 < ailouros> but keep in mind that files from other networks (emule, kazaa, whatever) often come corrupted
+16:38 <+polecat> rarset releases aren't immune...
+16:38 <+polecat> You still have to figure out which rarset is the right one.
+16:38 < ailouros> cervantes, how are rarsets immune to an idiot publishing random junk?
+16:38 <@cervantes> (provided you have a reliable source)
+16:39 <@cervantes> because a release group publishes hashes/distribution information
+16:39 < ailouros> hahaha that's easy :D
+16:39 <@cervantes> and stuff is marked as nuked if it's poor quality, folk remove it from shares
+16:40 < ailouros> cervantes, that much my toy already does
+16:40 <@cervantes> cool
+16:40 < ailouros> you get the file descriptor from a trusted source, you multiget the file pronto
+16:41 <@cervantes> sounds good ;-)
+16:41 < ailouros> you don't get to sarch for files, but you can browse through each user's shared dire, so you can use a web crawler and cache the results
+16:42 < ailouros> though I might add a search function sometime in the future if deemed necessary
+16:44 < ailouros> I believe my toy, proprely developed into an app, can offer the caching and resiliancy the freenet people try to offer
+16:44 < ailouros> as in static content distribution and caching
+16:45 < ailouros> you read my blog, you cache it and offer it to other people when they want. you don't do anything more than leave the content there
+16:45 < ailouros> don't like the content? delete it and we're all set
+16:45 < jrandom> hmm, so do you see it as a backing store that could be used for syndie?  
+16:46 < ailouros> it CAN be used as a backing store
+16:46 < ailouros> as it is now, you might even use it in place of jetty, in i2p default installations
+16:46 < jrandom> e.g. attachments / links to [clunk hash="$foo"]my file[/clunk]
+16:46 < ailouros> (well with a couple of minor changes :D )
+16:46 < jrandom> heh
+16:47 < jrandom> ok, yeah, I definitely don't understand how clunk works... wanna post about it in syndie, or put up an eepsite?  :)
+16:47 < ailouros> file hashes are downloaded on file request, and these hashes are automagically downloaded into the full file
+16:48 < jrandom> right, but "down"loaded is a question of from where to where, etc.  an overal network architecture description would be helpful
+16:48 < ailouros> I'll write a decent doc first, then publish it somewhere
+16:48 < jrandom> r0x0r, thanks
+16:48 < ailouros> downloaded from wherever you got the hash from
+16:48 < ailouros> plus everyone else sharing these blocks
+16:49 < ailouros> think go!zilla and download accellerator :)
+16:49 < jrandom> I think you misunderstand how much I am confused
+16:49 < ailouros> but transparent and within i2p
+16:49 < ailouros> lol guess so :D
+16:50 < jrandom> a very, very basic explanation of e.g. "you run a clunk client, download from a clunk server, get info about clunk peers", etc
+16:50 < jrandom> do I use a web browser to query a clunk client?  or server?  or peer?
+16:51 < jrandom> (thats how lost I am)
+16:51 < ailouros> redo from 0 :)
+16:51 < ailouros> you use your web browser
+16:51 < ailouros> you connect to your client
+16:51 < ailouros> you browse others' dir with your browser
+16:51 < ailouros> you select which files to download with your browser
+16:51 < ailouros> your client does the dirty work
+16:52 < ailouros> you get the downloaded file back
+16:52 < ailouros> is this better? :)
+16:52 < jrandom> ok great, thanks - so the "browse other's dir" is done by your client querying their client and responding back with an HTML representation of it
+16:52 < ailouros> exactly
+16:52 < jrandom> (or pulled from some server/superpeer/etc)
+16:53 < jrandom> coo'
+16:53 < ailouros> all the dirty work (finding duplicates, multidownloads and so on) is done by your (local) client transparently
+16:54 < ailouros> what you see is, basically, a directory tree and some fiels you can download
+16:54 < jrandom> cool
+16:55 < ailouros> to publish your data you give away your public (p2p) address
+16:55 < ailouros> and to share files you copy them (or symlink them) to the pub/ directory (or some subdir). It's that easy
+16:57  * jrandom will dig through the source further, and look forward to more info :)
+16:57 < jrandom> ok, anyone else have anything for the meeting?
+16:57 < bar_> umm.. what's the difference between publishing and sharing, if i may ask? does publishing push the data to some datastore?
+16:58 < ailouros> bar_: sharing is giving the blocks to download. publishing is letting the world know what you share
+16:58 < ailouros> publishing is a subset of sharing
+16:58 < bar_> aha, gotcha, thanks
+16:58 < ailouros> for example, if you have half of a file, you share it but don't publish it
+16:59 < jrandom> how would people know they ould get those blocks from you then?
+16:59 < ailouros> and you have full control over which files you publish (unlike emule where every downloaded file is published)
+16:59 < ailouros> because each client periodically sends information to the network about which blocks he has to offer
+17:00 < jrandom> coo'
+17:00 < ailouros> sends to the network as in server (as is now) or DHT (future)
+17:00 < jrandom> so its mnet-esque, with a block tracker
+17:00 < ailouros> err mnet-esque?
+17:01 < jrandom> similar to how mnet (mnetproject.org) works
+17:01  * ailouros is reading mnetproject.org
+17:02 < ailouros> well, you have just your personal spaces, no shared spaces
+17:02 < ailouros> and you don't PUSH blocks around
+17:02 < jrandom> yeah, its not exactly the same as mnet, but it similar structurally
+17:03 < jrandom> its like mnet where everyone is too broke to have anyone host their data ;)
+17:03 < ailouros> yep
+17:03 < ailouros> :D
+17:03 < jrandom> ok, anyone else have anything else to bring up?
+17:04 < jrandom> if not...
+17:04  * jrandom winds up
+17:04  * jrandom *baf*s the meeting closed

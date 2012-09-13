@@ -1,134 +1,128 @@
-{% extends "_layout.html" %}
-{% block title %}I2P Development Meeting 145{% endblock %}
-{% block content %}<h3>I2P dev meeting, August 30, 2005</h2>
-<div class="irclog">
-13:03 <+bla> Is there a meeting today?</p>
-13:04 < jrandom> 0) hi</p>
-13:04 < jrandom> 1) Net status</p>
-13:04 < jrandom> 2) floodfill netDb</p>
-13:04 < jrandom> 3) Syndie</p>
-13:04 < jrandom> 4) ???</p>
-13:04 < jrandom> 0) hi</p>
-13:04 <+bla> ;)</p>
-13:04  * jrandom waves</p>
-13:04 < jrandom> weekly status notes posted up at http://dev.i2p.net/pipermail/i2p/2005-August/000871.html</p>
-13:04 < jrandom> (yeah, i'm a few minutes late ;)</p>
-13:05 < jrandom> anyway, jumping into 1) net status</p>
-13:06 < jrandom> restricted routes suck, and we finally have some data as to how common they are (boo hiss)</p>
-13:06 < jrandom> but stil, the net seems fairly healthy, if you ignore all the worried reports of "omg it says status: Unknown!" ;)</p>
-13:07 < gloin> hmm.. where should be the document root for the i2p  included webserver?</p>
-13:07 < jrandom> $i2pInstallDir/eepsite/docroot/</p>
-13:07 < gloin> i2p/eepsite/docroot ?</p>
-13:07 < jrandom> anyone have any questions/comments/concerns regarding the net status outside of whats posted in the status notes?</p>
-13:08 < gloin> found it. it seems that the webserver won't deliver index.html automatically.</p>
-13:08 <+bla> jrandom: I have been doing some tests to check which nodes are selected in tunnels.</p>
-13:09 <+bla> jrandom: Mainly, as I've now implemented node-localization in the RouterInfo struct, I can see graphically (country flags) were tunnel participants are located.</p>
-13:09 <+bla> I am in Europe (no secret), and most of my tunnel participants are in Europe</p>
-13:09 < jrandom> gloin: it should serve up the index.html (thats what renders "Welcome to your Eepsite")</p>
-13:10 < jrandom> ooh nice1 bla!</p>
-13:10 < redzara> as some people have reported some low perf with UDP, maybe we could had a little perfmeter like iperf in I2P ?</p>
-13:11 < redzara> s/had/add</p>
-13:11 < jrandom> bla: so thats not just on the profiles.jsp page, but also on tunnels.jsp?  v.cool... screenshots, screenshots!  :)</p>
-13:11 < gloin> jrandom: now it works. strange.</p>
-13:11 <+bla> jrandom: I'll post some screenshots, but I first have to black out my own router-ID in the screenshots ;)</p>
-13:11 < jrandom> redzara: hmm, a command line utility to let people check their link quality, or a monitor for SSU performance?</p>
-13:11 < jrandom> heh bla</p>
-13:12 < jrandom> odd gloin </p>
-13:13 < gloin> jrandom: btw, since I updated my pppoe i2p seems to be more stable.</p>
-13:13 < jrandom> nice, what was the problem with your net connection?  firmware update?</p>
-13:14 < gloin> jrandom: I lost all peers. But the internet connection was ok, but every peer failed. </p>
-13:16 < jrandom> right, but what did you update about your pppoe settings?</p>
-13:17 < gloin> jrandom: I mean the linux ppppoe deamon.</p>
-13:18 < jrandom> ah ok</p>
-13:18 < jrandom> ok, anyone else have anything for 1) net status, or shall we move on to 2) floodfill netdb?</p>
-13:18 <+bla> http://theland.i2p/parttunnels.jpg</p>
-13:19 <+bla> http://theland.i2p/servertunnels.jpg</p>
-13:21 <+bar> (umm.. inaccessible?)</p>
-13:21 < jrandom> yeah, i'm having trouble reaching it too</p>
-13:21 < fox> &lt;godmode0> i use pppoe never be at problem i2p</p>
-13:22  * jrandom will try later though</p>
-13:22 <+bla> jrandom: Well.. There's new network problem just there ;)</p>
-13:22 < jrandom> hehe</p>
-13:22 < jrandom> bla: are you on -4 or an earlier build?</p>
-13:23 <+bla> jrandom: I'm on -4</p>
-13:23 < jrandom> hmm, ok cool</p>
-13:23 < jrandom> ok, anyway, we can dig through that later</p>
-13:24 < jrandom> (if you could send me the netDb stats from /oldstats.jsp, that'd be great :)</p>
-13:25 < jrandom> ok, moving on to 2) floodfill netdb</p>
-13:26 < jrandom> there's lots of info posted to my blog on this topic</p>
-13:26 < jrandom> we've begun deploying a first pass, though there's still some work to be done</p>
-13:26 < jrandom> does anyone have any questions/comments/concerns on the plan?</p>
-13:27 <+bla> jrandom: Will the floodfill scale as log(N) (N=number of peers in the net), or linearly?</p>
-13:27 < jrandom> linearly with M (M= number of peers participating in the floodfill netdb)</p>
-13:28 < jrandom> well, M may be small enough that N is the dominant term</p>
-13:29 < jrandom> (in which case it'll be linearly with N)</p>
-13:29 < jrandom> which is not great, but until we have > 10K eepsites, it doesnt matter</p>
-13:30 < jrandom> once we do, then we can go into more advanced algorithms for sharing the load between the floodfill participants</p>
-13:31 < jrandom> (note thats 10k eepsites, not users, since we don't really need to publish client leaseSets in the netdb)</p>
-13:32 <+bla> jrandom: Is there a reason why we still do publish the client destinations in the netDb?</p>
-13:32 <+bla> jrandom: Or, for that matter, why we still show off who our fast peers are in the netDb?</p>
-13:33 <+bla> jrandom: Removing both would slash the netDb data by a big factor</p>
-13:33 < jrandom> bla: to the former, no.  to the later, for me to debug (though i havent looked at that particular field recently)</p>
-13:33 < jrandom> aye, worth trying, perhaps in -5</p>
-13:36 < jrandom> ok coo', well, we'll see and hopefully get -5 out in the next few days</p>
-13:37 < jrandom> (maybe tomorrow)</p>
-13:37 < jrandom> ok, if there's nothing else on 2) floodfill netdb, lets move on to 3) syndie</p>
-13:38 < jrandom> i posted a bunch of info in the mail and on my blog, so rather than rehash them, does anyone have any questions / comments / concerns?</p>
-13:40  * jrandom really digs the remote syndication functionality, though its far from what we're hoping for with feedspace integration</p>
-13:41 < jrandom> (i havent been bothered to do freenet posting integration, though it would be quite easy to fire up a CLI and post all the entries in)</p>
-13:42 < jrandom> ok, if there's nothing else on 3) syndie, lets open 'er up to 4) ???</p>
-13:42 < jrandom> anyone have anything else i2p related to bring up?</p>
-13:42 < redzara> sure, where is the doc ;)</p>
-13:43 < laberhorst> just that my node under 0.6.x sonsumes up to 100% cpu load, but have to crosscheck it with linux on that line here</p>
-13:43 <+nickless_head> I think the i2pProxy.pac script should be in the jetty web folder by default.</p>
-13:43 < jrandom> nickless_head: i dont recommend i2pproxy.pac, as its a huge security risk</p>
-13:44 < redzara> 2 - could be have the latest build of jetty included in I2P ?</p>
-13:44 < jrandom> we've got 5.2.1 in i2p right now</p>
-13:44 < jrandom> er, 5.1.2</p>
-13:44 <+nickless_head> jrandom: it's the only thing available for separating between eepsites and websites in one browser without having to switch by hand afaik</p>
-13:45 < jrandom> i use switchproxy</p>
-13:45 < jrandom> (and i dont switch to non-anonymous browsing)</p>
-13:45 < jrandom> ((squid.i2p is fast enough for me))</p>
-13:45 <+nickless_head> Think of the slashdotters! :p</p>
-13:46 < jrandom> as i've said before, i have reservations about the viability of eepsites.  the security risks are tremendous</p>
-13:46 < jrandom> but, for those who don't care about those risks, perhaps an i2pproxy.pac makes sense.</p>
-13:47 <+bla> I strongly think that something that isn't secure by _default_, shouldn't be in I2P, as to not give new users a false sense of secutiry</p>
-13:48 < jrandom> agreed (though we do push i2pproxy.pac, we just dont tell people about it until we scare 'em enough ;)</p>
-13:49 <+nickless_head> I somehow can't believe that within the configuration of Mozilla there isn't a way to make sites only access resources from the same domain .. </p>
-13:50 < redzara> sorry but IRC connection lost :( about jetty there is a fix about common logging and maybe this help me running my mvnforum in the same instance of I2P</p>
-13:50 < redzara> Jetty-5.1.5rc1 - 23 August 2005</p>
-13:52 < jrandom> ah cool, whats the problem exactly redzara?</p>
-13:52 < jrandom> nickless_head: if you find a way, let us know</p>
-13:52 < redzara> or maybe i could even only build my own I2P with the latest version of jetty</p>
-13:52 < jrandom> redzara: that you certainly can do - just drop in the jetty jar files into your i2p lib directory</p>
-13:53 < redzara> jrandom : everythime i try to start mvnforum in I2P, jetty failed to find apache common logging</p>
-13:53 <+nickless_head> Oh! I just noticed that the default i2pproxy.pac uses a mode which allows sites to switch proxy'ing to i2p on and off at runtime, which is protected by the TOTALLY SECURE AND UNBREAKABLE &lt;/sarcasm> default password "passw0rd". Please, someone who knows about cvs change this.</p>
-13:54 < jrandom> redzara: thats in commons-logging.jar and commons-el.jar iirc, which should be in your lib dir and in your wrapper.config's classpath</p>
-13:54 < jrandom> nickless_head: yet another reason why i dont recommend anyone use it ;)</p>
-13:55 < redzara> yes i know, i'm not so n00b :)) i've to dig into again with this new version of jetty</p>
-13:56 < jrandom> cool, keep us updated</p>
-13:56 < redzara> np</p>
-13:57 < fox> * mihi guesses most i2p users will reveal their "real ip" to a java applet  anyway :)</p>
-13:57 < fox> &lt;mihi> try http://www.stilllistener.com/checkpoint1/Java/ (and scroll down)</p>
-13:58  * jrandom sees lots of blank fields ;)</p>
-13:59 <+bla> fox: All one exposes is the relation between an IP and a particular client destination, where the client destination will change at every router restart.</p>
-13:59 < jrandom> bla: unless the user is on some site like e.g. http://i_have_illegal_stuff.i2p/</p>
-14:00 < jrandom> (exposing the clients IP "just once" is fatal enough ;)</p>
-14:00 <+bla> jrandom: Yes. </p>
-14:00 <+bla> But then again, if you're serious about anonymous browsing, you'll use temporary HTTP proxies, and disable all things java, and plugins, and cookies, entirely</p>
-14:01 < jrandom> or use syndie :)</p>
-14:02 < ZULU> sorry for interruption,is duck.ip down ?</p>
-14:02 <+bla> jrandom: Is it time yet for general questions?</p>
-14:02 < jrandom> aye, we're on 4) ???</p>
-14:02 < jrandom> ZULU: yeah, duck is offline for the time being</p>
-14:03 <+bla> jrandom: I've edited the java-files that help profiles.jsp and tunnels.jsp generate the country-flags</p>
-14:04 <+bla> jrandom: However, where do I place images that I can actually LINK to, and that will work, on my local router (_not_ my eepsite)?</p>
-14:06 < jrandom> we need a "get.jsp?name" that dumps the contents of ./docs/'name' to the browser</p>
-14:06 < jrandom> (aka you need to have it in the .war right now, but with a tiny .jsp file, you could dump 'em in docs)</p>
-14:06 <+bla> jrandom: Ah, ok, so it wasn't my fault ;)</p>
-14:06 < jrandom> heh nope, blame me :)</p>
-14:09 < jrandom> ok, if there's nothing else for the meeting</p>
-14:09  * jrandom winds up</p>
-14:10  * jrandom *baf*s the meeting closed</p>
-</div>
-{% endblock %}
+13:03 <+bla> Is there a meeting today?
+13:04 < jrandom> 0) hi
+13:04 < jrandom> 1) Net status
+13:04 < jrandom> 2) floodfill netDb
+13:04 < jrandom> 3) Syndie
+13:04 < jrandom> 4) ???
+13:04 < jrandom> 0) hi
+13:04 <+bla> ;)
+13:04  * jrandom waves
+13:04 < jrandom> weekly status notes posted up at http://dev.i2p.net/pipermail/i2p/2005-August/000871.html
+13:04 < jrandom> (yeah, i'm a few minutes late ;)
+13:05 < jrandom> anyway, jumping into 1) net status
+13:06 < jrandom> restricted routes suck, and we finally have some data as to how common they are (boo hiss)
+13:06 < jrandom> but stil, the net seems fairly healthy, if you ignore all the worried reports of "omg it says status: Unknown!" ;)
+13:07 < gloin> hmm.. where should be the document root for the i2p  included webserver?
+13:07 < jrandom> $i2pInstallDir/eepsite/docroot/
+13:07 < gloin> i2p/eepsite/docroot ?
+13:07 < jrandom> anyone have any questions/comments/concerns regarding the net status outside of whats posted in the status notes?
+13:08 < gloin> found it. it seems that the webserver won't deliver index.html automatically.
+13:08 <+bla> jrandom: I have been doing some tests to check which nodes are selected in tunnels.
+13:09 <+bla> jrandom: Mainly, as I've now implemented node-localization in the RouterInfo struct, I can see graphically (country flags) were tunnel participants are located.
+13:09 <+bla> I am in Europe (no secret), and most of my tunnel participants are in Europe
+13:09 < jrandom> gloin: it should serve up the index.html (thats what renders "Welcome to your Eepsite")
+13:10 < jrandom> ooh nice1 bla!
+13:10 < redzara> as some people have reported some low perf with UDP, maybe we could had a little perfmeter like iperf in I2P ?
+13:11 < redzara> s/had/add
+13:11 < jrandom> bla: so thats not just on the profiles.jsp page, but also on tunnels.jsp?  v.cool... screenshots, screenshots!  :)
+13:11 < gloin> jrandom: now it works. strange.
+13:11 <+bla> jrandom: I'll post some screenshots, but I first have to black out my own router-ID in the screenshots ;)
+13:11 < jrandom> redzara: hmm, a command line utility to let people check their link quality, or a monitor for SSU performance?
+13:11 < jrandom> heh bla
+13:12 < jrandom> odd gloin 
+13:13 < gloin> jrandom: btw, since I updated my pppoe i2p seems to be more stable.
+13:13 < jrandom> nice, what was the problem with your net connection?  firmware update?
+13:14 < gloin> jrandom: I lost all peers. But the internet connection was ok, but every peer failed. 
+13:16 < jrandom> right, but what did you update about your pppoe settings?
+13:17 < gloin> jrandom: I mean the linux ppppoe deamon.
+13:18 < jrandom> ah ok
+13:18 < jrandom> ok, anyone else have anything for 1) net status, or shall we move on to 2) floodfill netdb?
+13:18 <+bla> http://theland.i2p/parttunnels.jpg
+13:19 <+bla> http://theland.i2p/servertunnels.jpg
+13:21 <+bar> (umm.. inaccessible?)
+13:21 < jrandom> yeah, i'm having trouble reaching it too
+13:21 < fox> <godmode0> i use pppoe never be at problem i2p
+13:22  * jrandom will try later though
+13:22 <+bla> jrandom: Well.. There's new network problem just there ;)
+13:22 < jrandom> hehe
+13:22 < jrandom> bla: are you on -4 or an earlier build?
+13:23 <+bla> jrandom: I'm on -4
+13:23 < jrandom> hmm, ok cool
+13:23 < jrandom> ok, anyway, we can dig through that later
+13:24 < jrandom> (if you could send me the netDb stats from /oldstats.jsp, that'd be great :)
+13:25 < jrandom> ok, moving on to 2) floodfill netdb
+13:26 < jrandom> there's lots of info posted to my blog on this topic
+13:26 < jrandom> we've begun deploying a first pass, though there's still some work to be done
+13:26 < jrandom> does anyone have any questions/comments/concerns on the plan?
+13:27 <+bla> jrandom: Will the floodfill scale as log(N) (N=number of peers in the net), or linearly?
+13:27 < jrandom> linearly with M (M= number of peers participating in the floodfill netdb)
+13:28 < jrandom> well, M may be small enough that N is the dominant term
+13:29 < jrandom> (in which case it'll be linearly with N)
+13:29 < jrandom> which is not great, but until we have > 10K eepsites, it doesnt matter
+13:30 < jrandom> once we do, then we can go into more advanced algorithms for sharing the load between the floodfill participants
+13:31 < jrandom> (note thats 10k eepsites, not users, since we don't really need to publish client leaseSets in the netdb)
+13:32 <+bla> jrandom: Is there a reason why we still do publish the client destinations in the netDb?
+13:32 <+bla> jrandom: Or, for that matter, why we still show off who our fast peers are in the netDb?
+13:33 <+bla> jrandom: Removing both would slash the netDb data by a big factor
+13:33 < jrandom> bla: to the former, no.  to the later, for me to debug (though i havent looked at that particular field recently)
+13:33 < jrandom> aye, worth trying, perhaps in -5
+13:36 < jrandom> ok coo', well, we'll see and hopefully get -5 out in the next few days
+13:37 < jrandom> (maybe tomorrow)
+13:37 < jrandom> ok, if there's nothing else on 2) floodfill netdb, lets move on to 3) syndie
+13:38 < jrandom> i posted a bunch of info in the mail and on my blog, so rather than rehash them, does anyone have any questions / comments / concerns?
+13:40  * jrandom really digs the remote syndication functionality, though its far from what we're hoping for with feedspace integration
+13:41 < jrandom> (i havent been bothered to do freenet posting integration, though it would be quite easy to fire up a CLI and post all the entries in)
+13:42 < jrandom> ok, if there's nothing else on 3) syndie, lets open 'er up to 4) ???
+13:42 < jrandom> anyone have anything else i2p related to bring up?
+13:42 < redzara> sure, where is the doc ;)
+13:43 < laberhorst> just that my node under 0.6.x sonsumes up to 100% cpu load, but have to crosscheck it with linux on that line here
+13:43 <+nickless_head> I think the i2pProxy.pac script should be in the jetty web folder by default.
+13:43 < jrandom> nickless_head: i dont recommend i2pproxy.pac, as its a huge security risk
+13:44 < redzara> 2 - could be have the latest build of jetty included in I2P ?
+13:44 < jrandom> we've got 5.2.1 in i2p right now
+13:44 < jrandom> er, 5.1.2
+13:44 <+nickless_head> jrandom: it's the only thing available for separating between eepsites and websites in one browser without having to switch by hand afaik
+13:45 < jrandom> i use switchproxy
+13:45 < jrandom> (and i dont switch to non-anonymous browsing)
+13:45 < jrandom> ((squid.i2p is fast enough for me))
+13:45 <+nickless_head> Think of the slashdotters! :p
+13:46 < jrandom> as i've said before, i have reservations about the viability of eepsites.  the security risks are tremendous
+13:46 < jrandom> but, for those who don't care about those risks, perhaps an i2pproxy.pac makes sense.
+13:47 <+bla> I strongly think that something that isn't secure by _default_, shouldn't be in I2P, as to not give new users a false sense of secutiry
+13:48 < jrandom> agreed (though we do push i2pproxy.pac, we just dont tell people about it until we scare 'em enough ;)
+13:49 <+nickless_head> I somehow can't believe that within the configuration of Mozilla there isn't a way to make sites only access resources from the same domain .. 
+13:50 < redzara> sorry but IRC connection lost :( about jetty there is a fix about common logging and maybe this help me running my mvnforum in the same instance of I2P
+13:50 < redzara> Jetty-5.1.5rc1 - 23 August 2005
+13:52 < jrandom> ah cool, whats the problem exactly redzara?
+13:52 < jrandom> nickless_head: if you find a way, let us know
+13:52 < redzara> or maybe i could even only build my own I2P with the latest version of jetty
+13:52 < jrandom> redzara: that you certainly can do - just drop in the jetty jar files into your i2p lib directory
+13:53 < redzara> jrandom : everythime i try to start mvnforum in I2P, jetty failed to find apache common logging
+13:53 <+nickless_head> Oh! I just noticed that the default i2pproxy.pac uses a mode which allows sites to switch proxy'ing to i2p on and off at runtime, which is protected by the TOTALLY SECURE AND UNBREAKABLE </sarcasm> default password "passw0rd". Please, someone who knows about cvs change this.
+13:54 < jrandom> redzara: thats in commons-logging.jar and commons-el.jar iirc, which should be in your lib dir and in your wrapper.config's classpath
+13:54 < jrandom> nickless_head: yet another reason why i dont recommend anyone use it ;)
+13:55 < redzara> yes i know, i'm not so n00b :)) i've to dig into again with this new version of jetty
+13:56 < jrandom> cool, keep us updated
+13:56 < redzara> np
+13:57 < fox> * mihi guesses most i2p users will reveal their "real ip" to a java applet  anyway :)
+13:57 < fox> <mihi> try http://www.stilllistener.com/checkpoint1/Java/ (and scroll down)
+13:58  * jrandom sees lots of blank fields ;)
+13:59 <+bla> fox: All one exposes is the relation between an IP and a particular client destination, where the client destination will change at every router restart.
+13:59 < jrandom> bla: unless the user is on some site like e.g. http://i_have_illegal_stuff.i2p/
+14:00 < jrandom> (exposing the clients IP "just once" is fatal enough ;)
+14:00 <+bla> jrandom: Yes. 
+14:00 <+bla> But then again, if you're serious about anonymous browsing, you'll use temporary HTTP proxies, and disable all things java, and plugins, and cookies, entirely
+14:01 < jrandom> or use syndie :)
+14:02 < ZULU> sorry for interruption,is duck.ip down ?
+14:02 <+bla> jrandom: Is it time yet for general questions?
+14:02 < jrandom> aye, we're on 4) ???
+14:02 < jrandom> ZULU: yeah, duck is offline for the time being
+14:03 <+bla> jrandom: I've edited the java-files that help profiles.jsp and tunnels.jsp generate the country-flags
+14:04 <+bla> jrandom: However, where do I place images that I can actually LINK to, and that will work, on my local router (_not_ my eepsite)?
+14:06 < jrandom> we need a "get.jsp?name" that dumps the contents of ./docs/'name' to the browser
+14:06 < jrandom> (aka you need to have it in the .war right now, but with a tiny .jsp file, you could dump 'em in docs)
+14:06 <+bla> jrandom: Ah, ok, so it wasn't my fault ;)
+14:06 < jrandom> heh nope, blame me :)
+14:09 < jrandom> ok, if there's nothing else for the meeting
+14:09  * jrandom winds up
+14:10  * jrandom *baf*s the meeting closed

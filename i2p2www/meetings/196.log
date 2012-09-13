@@ -1,117 +1,111 @@
-{% extends "_layout.html" %}
-{% block title %}I2P Development Meeting 196{% endblock %}
-{% block content %}<h3>I2P dev meeting, January 9, 2007</h3>
-<div class="irclog">
-15:07 < jrandom> 0) hi</p>
-15:07 < jrandom> 1) Net status</p>
-15:07 < jrandom> 2) I2Phex 0.1.1.38</p>
-15:07 < jrandom> 3) Syndie progress</p>
-15:07 < jrandom> 4) Syndie bug harvesting contest</p>
-15:07 < jrandom> 5) ???</p>
-15:07 < jrandom> 0) hi</p>
-15:07  * jrandom waves</p>
-15:07 < jrandom> weekly status notes posted up at http://dev.i2p.net/pipermail/i2p/2007-January/001328.html</p>
-15:09 < jrandom> while y'all continue drooling over the macworld stuff, lets jump on in to 1) net status</p>
-15:09 < jrandom> i don't have anything to mention here this week, but felt bad not including the net status in the report, so here it is</p>
-15:09 < jrandom> anyone have anything to add regarding the network status?</p>
-15:09 <+zzz> I'm testing a couple of i2psnark tweaks, nothing major</p>
-15:10 < jrandom> ah cool, regarding the recent bug reports, or other goodies we can look forward to?</p>
-15:11 <+zzz> other - mostly better handling of torrents with &gt; 4 peers</p>
-15:11 < jrandom> wikked</p>
-15:11 <+zzz> also catching a couple of common OOM spots rather than dumping the whole JVM</p>
-15:12 < tea> sounds great, atm i2p-bt seems the best choice for "high"-speed torrents</p>
-15:12 <+zzz> i.e where it grabs a whole 256KB - 1MB chunk to store a piece</p>
-15:13 <+zzz> everybody pick a torrent and pile onto it to help me test :)</p>
-15:14 < jrandom> kickass, let us know when we should try things out zzz</p>
-15:14 < tea> shall someone redo 'casino royale' ? :)</p>
-15:14  * jrandom mentions that this meeting is logged and posted on the web ;)</p>
-15:15 <+void> oh, the meeting</p>
-15:15 < tea> no volunteers, then</p>
-15:16 < jrandom> ok cool, anyone have anything else for 1) Net status?</p>
-15:17 < bar> while we're mentioning i2psnark...</p>
-15:18 < bar> ...would it be possible to start, stop and restart i2psnark from the console?</p>
-15:18 < bar> (rather than restarting the whole router to kill the tunnels)</p>
-15:19 <+zzz> don't know - jrandom you have any thoughts?</p>
-15:20 < jrandom> bar: when you say stop and start, what does that entail beyond stopping and starting the inividual torrents?</p>
-15:21 < bar> killing the i2psnark tunnels that are draining my resources when not torrenting</p>
-15:22 < bar> (the tunnels don't die when you remove the .torrents, iirc)</p>
-15:22 < jrandom> ah, stopping the actual i2p destination for it.  doable without much trouble, the web interface has access to the SnarkManager</p>
-15:23 < jrandom> (an interim workaround could be to set the tunnel lengths to 0 until you need to use them again)</p>
-15:23 < jrandom> but you're right, that would be useful</p>
-15:23 <+void> you could change the tunnels to have 0 depth, although that would be error prone</p>
-15:23 <+zzz> good idea to provide a stop tunnel button on the web page, agreed</p>
-15:23  * jrandom !hi5s void</p>
-15:24 <+void> ack, i'm lagging *that* much?</p>
-15:24 < jrandom> I2PSnarkUtil already has a static .disconnect() too</p>
-15:25 < jrandom> (so calling that from the I2PSnarkServlet should be trivial)</p>
-15:25 < jrandom> zzz: you wanna hit that, or you want me to toss that in there?</p>
-15:27 <+zzz> I don't see a question there so take it</p>
-15:27 < jrandom> ok cool, shall do</p>
-15:27 < jrandom> ok, anyone have anything else on 1) Net status?</p>
-15:29 < jrandom> if not, lets hop over to 2) I2Phex 0.1.1.38</p>
-15:29 < jrandom> Complication: wanna pelt us with the low down?</p>
-15:31 < jrandom> afaik, there's a good summary of changes in the CVS and announcement (http://forum.i2p.net/viewtopic.php?t=2005)</p>
-15:33 < tea> is there a possibility of permantly changing the tunnel lengths ?</p>
-15:34 < jrandom> sure, i recall there's a place where you can set them in the i2phex config file by specifying the custom i2p options (though i don't recall the i2phex config file option to use at the moment)</p>
-15:35 < bar> tea: yes, in i2phex.cfg (i2pInboundLength, i2pInboundLengthVariance, i2pOutboundLength, i2pOutboundLengthVariance)</p>
-15:36 < tea> i was thinking of the option tab i2p-rufus has</p>
-15:37 < tea> could something like that be added ? </p>
-15:38 < jrandom> i think complication said that'd be a good idea, so its probably pretty doable</p>
-15:38  * jrandom hasn't done any gui hacking in i2phex (though I'm sure if you sent in a patch, I'd make sure it went in :)</p>
-15:38 < jrandom> oh, nm, seems complication said 'e's working on it</p>
-15:39 < jrandom> http://forum.i2p.net/viewtopic.php?t=2005#9149</p>
-15:39 < tea> as an amateur rufus user i was pleased to see the pop up question 'allow zero hop connections ?', and be able to click no ...</p>
-15:42 < jrandom> aye.  ok, anyone have anything else on 2) I2Phex 0.1.1.38?</p>
-15:42 < bar> well, while we're at it, i think congratulations to the original Phex team on their 3.0 release are in order, it came out just the other day :)</p>
-15:43  * bar waves</p>
-15:43 < jrandom> aye, congrats ArneBab et al!</p>
-15:45 < tea> maybe they'll wave back one day ...</p>
-15:46 < jrandom> ArneBab and GregorK have had some good feedback on i2phex over the years </p>
-15:46 <+void> the day that i2phex reaches version 3.0?</p>
-15:46 < jrandom> here's hopin :)</p>
-15:47 < bar> we'll be long gone by then, but yeah :)</p>
-15:48 < jrandom> ok, lets jump on over to 3) Syndie progress</p>
-15:48 < jrandom> lots of progress in the last week, including 1.001a hitting the street</p>
-15:50 < jrandom> though most of the discussion on that front is going on within syndie itself</p>
-15:50 < jrandom> so, if you're not on it yet, get on it and find out more :)</p>
-15:51 < jrandom> anyone have anything they'd like to discuss regarding syndie?</p>
-15:53 <+void> well, i just ran sync and it imported one unread message with a bunch of read ones</p>
-15:53 <+void> but i guess we'll debug that after the meeting?</p>
-15:54 < jrandom> hmm, aye, quite strange (i imported a few new messages recently, and they showed up as unread).  but yeah definitely need to dig some more into that</p>
-15:54 < jrandom> ok, lets hop on over to 4) Syndie bug harvesting contest</p>
-15:55 <+void> can you register anonymous egold accounts?</p>
-15:55 < jrandom> aye, no ID necessary</p>
-15:56 <+void> ah, cool</p>
-15:56 < jrandom> though, of course, they can freeze fraudulent accounts, and they do track all the transfers, and share the transfer data with Them</p>
-15:56 < jrandom> but it is more than sufficient to defend against most adversaries</p>
-15:57 <+void> yeah, naturally</p>
-15:58  * jrandom has found the bug reports and feature requests invaluable, and while I realize the $50USD doesn't come close to compensate the actual time involved, its hopefully a small token of thanks</p>
-15:58 < jrandom> I'm hoping we'll continue this contest every month</p>
-15:58 <+void> hehe</p>
-15:59 <+void> heheat least it's fun time</p>
-15:59 <+void> arg</p>
-16:00 < jrandom> does anyone have any questions regarding the contest, or suggestions, or frisbees?</p>
-16:01 <+tethra> contest?</p>
-16:01 <+tethra> (i am late)</p>
-16:01  * tethra reads up</p>
-16:01 <+tethra> cool :o</p>
-16:02 < jrandom> so get yer bug reports flowin' :)</p>
-16:03 < jrandom> ok, lets swing on over to 5) ???</p>
-16:03 <+void> they already are :)</p>
-16:03 <+tethra> yessir! ;)</p>
-16:03 < jrandom> aye, thanks!  (yes, I'm counting everything from jan1 to jan31 :)</p>
-16:03 < jrandom> ok, anyone have anything else to bring up for the meeting?</p>
-16:04 <+fox> &lt;nony&gt; does it run on java6?</p>
-16:04 < tea> sure</p>
-16:04 <+tethra> come to that, does it compile with gcj?</p>
-16:04 < jrandom> nony: i run it on java6 here, yes</p>
-16:04 < jrandom> tethra: aye, and runs ;)</p>
-16:04 <+tethra> excellent</p>
-16:04 <+tethra> ;)</p>
-16:04 <+fox> &lt;nony&gt; sweet</p>
-16:07 < jrandom> ok, anyone have anything else for the meeting?</p>
-16:09 < jrandom> if not...</p>
-16:09  * jrandom winds up</p>
-16:09  * jrandom *baf*s the meeting closed</p>
-</div>
-{% endblock %}
+15:07 < jrandom> 0) hi
+15:07 < jrandom> 1) Net status
+15:07 < jrandom> 2) I2Phex 0.1.1.38
+15:07 < jrandom> 3) Syndie progress
+15:07 < jrandom> 4) Syndie bug harvesting contest
+15:07 < jrandom> 5) ???
+15:07 < jrandom> 0) hi
+15:07  * jrandom waves
+15:07 < jrandom> weekly status notes posted up at http://dev.i2p.net/pipermail/i2p/2007-January/001328.html
+15:09 < jrandom> while y'all continue drooling over the macworld stuff, lets jump on in to 1) net status
+15:09 < jrandom> i don't have anything to mention here this week, but felt bad not including the net status in the report, so here it is
+15:09 < jrandom> anyone have anything to add regarding the network status?
+15:09 <+zzz> I'm testing a couple of i2psnark tweaks, nothing major
+15:10 < jrandom> ah cool, regarding the recent bug reports, or other goodies we can look forward to?
+15:11 <+zzz> other - mostly better handling of torrents with > 4 peers
+15:11 < jrandom> wikked
+15:11 <+zzz> also catching a couple of common OOM spots rather than dumping the whole JVM
+15:12 < tea> sounds great, atm i2p-bt seems the best choice for "high"-speed torrents
+15:12 <+zzz> i.e where it grabs a whole 256KB - 1MB chunk to store a piece
+15:13 <+zzz> everybody pick a torrent and pile onto it to help me test :)
+15:14 < jrandom> kickass, let us know when we should try things out zzz
+15:14 < tea> shall someone redo 'casino royale' ? :)
+15:14  * jrandom mentions that this meeting is logged and posted on the web ;)
+15:15 <+void> oh, the meeting
+15:15 < tea> no volunteers, then
+15:16 < jrandom> ok cool, anyone have anything else for 1) Net status?
+15:17 < bar> while we're mentioning i2psnark...
+15:18 < bar> ...would it be possible to start, stop and restart i2psnark from the console?
+15:18 < bar> (rather than restarting the whole router to kill the tunnels)
+15:19 <+zzz> don't know - jrandom you have any thoughts?
+15:20 < jrandom> bar: when you say stop and start, what does that entail beyond stopping and starting the inividual torrents?
+15:21 < bar> killing the i2psnark tunnels that are draining my resources when not torrenting
+15:22 < bar> (the tunnels don't die when you remove the .torrents, iirc)
+15:22 < jrandom> ah, stopping the actual i2p destination for it.  doable without much trouble, the web interface has access to the SnarkManager
+15:23 < jrandom> (an interim workaround could be to set the tunnel lengths to 0 until you need to use them again)
+15:23 < jrandom> but you're right, that would be useful
+15:23 <+void> you could change the tunnels to have 0 depth, although that would be error prone
+15:23 <+zzz> good idea to provide a stop tunnel button on the web page, agreed
+15:23  * jrandom !hi5s void
+15:24 <+void> ack, i'm lagging *that* much?
+15:24 < jrandom> I2PSnarkUtil already has a static .disconnect() too
+15:25 < jrandom> (so calling that from the I2PSnarkServlet should be trivial)
+15:25 < jrandom> zzz: you wanna hit that, or you want me to toss that in there?
+15:27 <+zzz> I don't see a question there so take it
+15:27 < jrandom> ok cool, shall do
+15:27 < jrandom> ok, anyone have anything else on 1) Net status?
+15:29 < jrandom> if not, lets hop over to 2) I2Phex 0.1.1.38
+15:29 < jrandom> Complication: wanna pelt us with the low down?
+15:31 < jrandom> afaik, there's a good summary of changes in the CVS and announcement (http://forum.i2p.net/viewtopic.php?t=2005)
+15:33 < tea> is there a possibility of permantly changing the tunnel lengths ?
+15:34 < jrandom> sure, i recall there's a place where you can set them in the i2phex config file by specifying the custom i2p options (though i don't recall the i2phex config file option to use at the moment)
+15:35 < bar> tea: yes, in i2phex.cfg (i2pInboundLength, i2pInboundLengthVariance, i2pOutboundLength, i2pOutboundLengthVariance)
+15:36 < tea> i was thinking of the option tab i2p-rufus has
+15:37 < tea> could something like that be added ? 
+15:38 < jrandom> i think complication said that'd be a good idea, so its probably pretty doable
+15:38  * jrandom hasn't done any gui hacking in i2phex (though I'm sure if you sent in a patch, I'd make sure it went in :)
+15:38 < jrandom> oh, nm, seems complication said 'e's working on it
+15:39 < jrandom> http://forum.i2p.net/viewtopic.php?t=2005#9149
+15:39 < tea> as an amateur rufus user i was pleased to see the pop up question 'allow zero hop connections ?', and be able to click no ...
+15:42 < jrandom> aye.  ok, anyone have anything else on 2) I2Phex 0.1.1.38?
+15:42 < bar> well, while we're at it, i think congratulations to the original Phex team on their 3.0 release are in order, it came out just the other day :)
+15:43  * bar waves
+15:43 < jrandom> aye, congrats ArneBab et al!
+15:45 < tea> maybe they'll wave back one day ...
+15:46 < jrandom> ArneBab and GregorK have had some good feedback on i2phex over the years 
+15:46 <+void> the day that i2phex reaches version 3.0?
+15:46 < jrandom> here's hopin :)
+15:47 < bar> we'll be long gone by then, but yeah :)
+15:48 < jrandom> ok, lets jump on over to 3) Syndie progress
+15:48 < jrandom> lots of progress in the last week, including 1.001a hitting the street
+15:50 < jrandom> though most of the discussion on that front is going on within syndie itself
+15:50 < jrandom> so, if you're not on it yet, get on it and find out more :)
+15:51 < jrandom> anyone have anything they'd like to discuss regarding syndie?
+15:53 <+void> well, i just ran sync and it imported one unread message with a bunch of read ones
+15:53 <+void> but i guess we'll debug that after the meeting?
+15:54 < jrandom> hmm, aye, quite strange (i imported a few new messages recently, and they showed up as unread).  but yeah definitely need to dig some more into that
+15:54 < jrandom> ok, lets hop on over to 4) Syndie bug harvesting contest
+15:55 <+void> can you register anonymous egold accounts?
+15:55 < jrandom> aye, no ID necessary
+15:56 <+void> ah, cool
+15:56 < jrandom> though, of course, they can freeze fraudulent accounts, and they do track all the transfers, and share the transfer data with Them
+15:56 < jrandom> but it is more than sufficient to defend against most adversaries
+15:57 <+void> yeah, naturally
+15:58  * jrandom has found the bug reports and feature requests invaluable, and while I realize the $50USD doesn't come close to compensate the actual time involved, its hopefully a small token of thanks
+15:58 < jrandom> I'm hoping we'll continue this contest every month
+15:58 <+void> hehe
+15:59 <+void> heheat least it's fun time
+15:59 <+void> arg
+16:00 < jrandom> does anyone have any questions regarding the contest, or suggestions, or frisbees?
+16:01 <+tethra> contest?
+16:01 <+tethra> (i am late)
+16:01  * tethra reads up
+16:01 <+tethra> cool :o
+16:02 < jrandom> so get yer bug reports flowin' :)
+16:03 < jrandom> ok, lets swing on over to 5) ???
+16:03 <+void> they already are :)
+16:03 <+tethra> yessir! ;)
+16:03 < jrandom> aye, thanks!  (yes, I'm counting everything from jan1 to jan31 :)
+16:03 < jrandom> ok, anyone have anything else to bring up for the meeting?
+16:04 <+fox> <nony> does it run on java6?
+16:04 < tea> sure
+16:04 <+tethra> come to that, does it compile with gcj?
+16:04 < jrandom> nony: i run it on java6 here, yes
+16:04 < jrandom> tethra: aye, and runs ;)
+16:04 <+tethra> excellent
+16:04 <+tethra> ;)
+16:04 <+fox> <nony> sweet
+16:07 < jrandom> ok, anyone have anything else for the meeting?
+16:09 < jrandom> if not...
+16:09  * jrandom winds up
+16:09  * jrandom *baf*s the meeting closed

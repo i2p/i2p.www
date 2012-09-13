@@ -1,287 +1,282 @@
-{% extends "_layout.html" %}
-{% block title %}I2P Development Meeting 95{% endblock %}
-{% block content %}<div class="irclog">
-14:00 < jrandom> 0) hi</p>
-14:00 < jrandom> 1) status update</p>
-14:00 < jrandom> 2) cvs HEAD</p>
-14:00 < jrandom> 3) 0.4</p>
-14:00 < jrandom> 4) 1.0</p>
-14:00 < jrandom> 5) other activities</p>
-14:00 < jrandom> 6) ???</p>
-14:00 < jrandom> 0) hi</p>
-14:00 < dm> 7) Profit!!</p>
-14:00 < mihi> hi</p>
-14:00 < cervantes> hello</p>
-14:00 < dm> hi</p>
-14:00 < fvw> hi dr nick</p>
-14:01 < jrandom> for all those playing at home, we've got the status notes up @ http://dev.i2p.net/pipermail/i2p/2004-June/000286.html</p>
-14:01 < jrandom> as we've done in the past, that contains the actual content - we get all meta here and discuss stuff</p>
-14:01  * dm is playing at home. WINK WINK WINK.</p>
-14:01 < jrandom> BrianR: this is where the LART comes in handy</p>
-14:02 < jrandom> anyway, jumping into 1) status update</p>
-14:02 < thecrypto> let's see if i can connect to an eepsite</p>
-14:03 < jrandom> the other day we had a larger than usual # of routers jumping off the network, which i'm hoping is because a lot of the services on the network were b0rked due to my stupid bugs</p>
-14:03  * mihi fires up his router</p>
-14:03 < thecrypto> yah!</p>
-14:03 < jrandom> if people are taking down their router for another reason (bugs, cpu/memory usage, etc) i'd really love to hear about it</p>
-14:04 < dm> ok</p>
-14:05 < BrianR> I must say, i2p is currently more well behaved than freenet on my machine... Both in bandwidth hogging and cpu/ram hogging.</p>
-14:05 < jrandom> there's a really bad bug in cvs at the moment, but fixed locally - i'll have that committed later tonight (not sure if i'll do so before or after getting my new machine together)</p>
-14:05 < jrandom> ah wikked</p>
-14:06 < jrandom> well, to be fair, i2p does a lot less than freenet - once we have thousands of routers we'll see how it goes</p>
-14:06 < dm> Why don't operating system's have per-application bandwidth limiting built-in? Is it a hard task?</p>
-14:06 < BrianR> I'd like to do some stress testing with i2p's built in bandwidth limiting stuff though. How far along is that?</p>
-14:06 < dm> All these projects wasting time implementing their own bandwidth limiting, seems silly.</p>
-14:06 < fvw> dm: Linux does it, as does freebsd no doubt.</p>
-14:07 < dm> Do they?</p>
-14:07 < cervantes> netlimiter on windoze does it</p>
-14:07 < BrianR> dm: It's not a hard task. There's lots of system level bandwidth limiting stuff available, for 'doze, linux, *bsd...</p>
-14:07 < dm> Makes sense to put it in the OS if you ask me.</p>
-14:07 < fvw> dm iptables marking + tc under linux; Using it right now, works like a charm.</p>
-14:07 < jrandom> BrianR: its in pretty good shape - it'll be in the next 0.3.1.5 release (which i'm hoping to have out this week)</p>
-14:07 < dm> But anyway...</p>
-14:07 < BrianR> thing is, it often makes more sense to do limiting at the application level so you can make intelligent decisions about where to spend bandwidth first</p>
-14:08 < jrandom> exactly</p>
-14:08 < dm> That's a different problem.</p>
-14:08 < jrandom> with bandwidth limiting within i2p, we know when we're saturating our limit and can refuse to participate in tunnels (etc)</p>
-14:08 < BrianR> At the application level you have no idea which one of your TCP connections is going to lose a packet when you're above the system imposed TX limit.</p>
-14:08 < fvw> actually, best would be to have the OS give proper feedback; But that's not relevant for i2p right now.</p>
-14:09 < jrandom> true fvw, once we integrate i2p with tun/tap ;)</p>
-14:09 < BrianR> fvw: You do get some feedback in terms of backpressure.. But it's hard to tell if backpressure is due to the remote side's link being slow or the local side..</p>
-14:09 < dm> Put a bounty on patching windows to have per-application bandwidth limiting. Thanks.</p>
-14:09 < jrandom> heh</p>
-14:09 < fvw> "my stuff isn't arriving" and "this connection is being throttled now" are two entirely different things.</p>
-14:09 < fvw> they sometimes overlap ofcourse.</p>
-14:10 < dm> (extra $20 for having a small graph with bandwidth usage of each window in the window title bar... Next to the minimize buttons, etc)</p>
-14:11 < jrandom> ok does anyone else have any network status related things to bring up?</p>
-14:12 < BrianR> Oh.. That IRC connection monitoring thing..</p>
-14:12 < duckie> I appologize for updating to cvs</p>
-14:12 < jrandom> hehe</p>
-14:12 < BrianR> Is there a MRTG graph of that or logs or something somewhere?</p>
-14:12 < jrandom> bogobot right?  duck.i2p/bogo/ iirc?</p>
-14:13 < duckie> something like that</p>
-14:13 < jrandom> (its linked to off duck.i2p, my routers are down atm so i cant check)</p>
-14:13 < duckie> linked to on http://duck.i2p/ uder the stats section</p>
-14:13 < duckie> http://duck.i2p/bogobotlogs/</p>
-14:14 < BrianR> it might be useful to extend that thing to act as a general reachability survey tool..</p>
-14:15 < dm> You guys type reaaaaaaaaaaaaaaaally slowly.</p>
-14:15 < deer> &lt;cervantes&gt; hypercubus has some enhancements on the backburner, but he's pretty busy with installer stuff atm</p>
-14:16 < jrandom> BrianR: bogobot is just for passive irc tracking, but someone could modify i2ptunnel's ping command to support periodic checking?</p>
-14:16 < jrandom> or someone could whip up a perl/SAM script ;)</p>
-14:16 < BrianR> maybe some sort of script that produces a MRTG graph of endpoint reachability....</p>
-14:16 < BrianR> jrandom: speaking of perl/sam, bring that up again when we get to the appropriate number in the agenda</p>
-14:16 < duckie> doesnt the heartbeat thing do that?</p>
-14:17 < BrianR> If it does, I couldn't make it work :(</p>
-14:17 < jrandom> kind of - heartbeat tests heartbeat servers, not generic apps</p>
-14:18 < BrianR> Yes... Like I want to see if I can successfully do a "GET /" on duck.i2p, and how long it took.</p>
-14:18 < jrandom> but yes, once the net is in good shape, lots of people can run a heartbeat server and people can ping each other to measure network performance</p>
-14:18 < Nightblade> pingflood too</p>
-14:18 < dm> Is there a limit on GET strings?</p>
-14:18 < dm> like if you have a really long URL, because of cgi parameters?</p>
-14:19 < cervantes> 2047 characters iirc</p>
-14:19 < jrandom> that wouldnt be too hard to put together</p>
-14:19 < BrianR> dm: Depends on the web server... I think the RFC also specifies a minimum which must be suported.</p>
-14:19 < jrandom> (er, an http tester)</p>
-14:19 < dm> cervantes: thanks</p>
-14:19 < dm> (just realized it might affect something I've been working on)</p>
-14:20 < cervantes> you run into 2 problems, webserver support and client support</p>
-14:20 < BrianR> have we stumbled off topic?</p>
-14:20 < cervantes> both IE and Mozilla are 2047</p>
-14:20 < cervantes> eer yep :)</p>
-14:21 < dm> I got my answer, we can move on :)</p>
-14:21 < jrandom> ok, i think that covers 1), now briefly to 2) cvs HEAD</p>
-14:21 < jrandom> there's a nasty bug in there currently, and i apologize for not fixing it sooner</p>
-14:22 < jrandom> in general, if you try out cvs HEAD and it doesnt work well, just roll back (download jars / pull from the tag)</p>
-14:22 < jrandom> anyway, 'nuff 'bout that</p>
-14:23 < jrandom> jumping forward to 3) 0.4</p>
-14:23 < jrandom> the email has my viewpoint / rational for the release - anyone have any concerns / questions / ideas / suggestions?</p>
-14:24 < Nightblade> looks good to me</p>
-14:24 < duckie> how does it change the time estimates?</p>
-14:24  * fvw nods. Sane and everything.</p>
-14:25 < jrandom> it actually moves 0.4 closer, as we're pushing the scary parts of 0.3.3 into 0.4.1 and 0.4.2</p>
-14:25 < jrandom> i dont think it'll change the 1.0 dates, just moving things around before it</p>
-14:26 < jrandom> the sim has shown our main problem with tunnel diversification can be easily remedied by active peer testing</p>
-14:26 < jrandom> we had some of this in the pre 0.2.3 revs, but stopped that since it seemed to add too much overhead</p>
-14:27 < jrandom> (when in fact lots of shit was just plain broken, causing the overhead)</p>
-14:27 < deer> &lt;cervantes&gt; what does active peer testing involve?</p>
-14:29 < jrandom> it just means we'll build some secondary tunnels through peers we wouldnt normally use - specifically, i'm going to have it pull random peers from the 'reliable' set who arent in the 'fast+reliable' set</p>
-14:29 < jrandom> (and if that intersection is too small, extend it to the 'not failing' set)</p>
-14:29 < jrandom> i dont know how many tunnels or peers to test yet, we'll probably keep that as a tunable parameter</p>
-14:30 < jrandom> the issue manifests itself in the peer profiles - you'll see lots of values for your favorite peers, but lots of 0s or other low numbers for other peers</p>
-14:30 < jrandom> (which may be due to them being shitty, or more likely due to them not being tested)</p>
-14:31 < jrandom> ok, anything else on 0.4?  or should we move on to 4) 1.0?</p>
-14:32 < duckie> yes</p>
-14:33 < jrandom> 4) 1.0</p>
-14:33 < jrandom> i dont see 1.0 as a big scary asymptotically approached release.  its just a release where things work and people can use it</p>
-14:34 < jrandom> that said, anyone have any concerns / ideas / suggestions/ questions wrt whats in the mail?</p>
-14:35 < dm> The rate at which the versioning is increasing would indeed indicate that it is an asymptotically approached 1.0</p>
-14:36 < dm> We're gonna need some big jumps!</p>
-14:36 < jrandom> 0.4--&gt; 1.0</p>
-14:36 < dm> Sweeeeeeeet....</p>
-14:36 < jrandom> and we're only a few weeks from 0.4</p>
-14:37 < jrandom> but, of course, we could use some help to get things moving faster :)</p>
-14:37 < dm> Are we happy with stability then?</p>
-14:37 < jrandom> no, stability right now sucks</p>
-14:37 < cervantes> myi2p could be a fairly hefty bit of development to get implemented properly, since it ideally relies on other projects coming to fruition</p>
-14:37 < dm> Okay, haven't been following closely.</p>
-14:38 < cervantes> such as DHT and datagrams etc</p>
-14:38 < jrandom> agreed cervantes, but if we just have it with the address book and distributed blogging, that'll be good enough for me.</p>
-14:38 < cervantes> right</p>
-14:38 < jrandom> nightblade is working on a dht that we can plug in whenever its ready, or we could add hooks for referencing freenet:CHK@ or SSK@</p>
-14:39 < cervantes> private messaging is just a small hop from the syndicated address book too</p>
-14:39 < jrandom> right, its all doable</p>
-14:40 < cervantes> live streaming cam girl desktop might take longer...</p>
-14:40 -!- Irssi: #i2p: Total of 21 nicks [0 ops, 0 halfops, 0 voices, 21 normal]</p>
-14:40 < jrandom> heh</p>
-14:40 < jrandom> actually, as I mentioned to Sonium before the meeting, one of the things people can help out with is the documentation front -</p>
-14:41 < jrandom> defining what docs we will need, starting to do some outlines of how those docs will fit together, and perhaps even tossing open an editor and writing 'em</p>
-14:42 < cervantes> ah I meant to enquire earlier about enhancing the console GUI too</p>
-14:42 < jrandom> docs are an essential part of the releases, both for tech docs (since without good tech docs, no devs will get involved) and for user docs (since without good user docs, users will leave)</p>
-14:42 < jrandom> that we'll want for the 0.4 release, and will be jsp/servlet driven</p>
-14:43 < jrandom> i havent done any mockups or workflows for that even, so if someone wants to jump on that, we could use the help</p>
-14:43 < Nightblade> console GUI?  what is that - SVGALIB? :)</p>
-14:43 < jrandom> heh</p>
-14:43 < mihi> Nightblade: TWIN / curses</p>
-14:43 < cervantes> is the data set the same or are there new and improved stats for 0.4</p>
-14:44 < dm> I want a console gui in WIN32/MFC</p>
-14:44 < Nightblade> the http console on 7655 right</p>
-14:44 < cervantes> ie the duration that elephants stay on the moon, and whether they return freuqently</p>
-14:44 < cervantes> yup</p>
-14:44 < jrandom> all of the things on the console now reflect data that can be made available to a 0.4 console, but we should totally throw out its existing design</p>
-14:45 < jrandom> (e.g. no one cares what the base64 of a routerIdentity's public key is)</p>
-14:45 < cervantes> although I suggest that info should still be available</p>
-14:46 < jrandom> yeah, i think we may keep the existing console as an option - no need to throw it away</p>
-14:46 < jrandom> (but it'd be something like http://localhost:7655/uglyConsole/)</p>
-14:46 < cervantes> ./forlynxusers/</p>
-14:47 < jrandom> the new admin console should work for lynx users too</p>
-14:47 < dm> Does anyone really use lynx?</p>
-14:47 < cervantes> eeew cross browser compatibility</p>
-14:47 < jrandom> i do</p>
-14:47 < jrandom> (at times)</p>
-14:47 < dm> but.... why?</p>
-14:47 < fvw> for things like brief config edits, definately.</p>
-14:47 < cervantes> dm: if you're stuck at a command prompt you don't have much choice</p>
-14:47 < fvw> it's quick and you don't need X</p>
-14:48 < Nightblade> i use it for web browsing on headless servers</p>
-14:48 < deer> &lt;Pseudonym&gt; I use links browser</p>
-14:48 < jrandom> well, yeah, links is preferable to lynx</p>
-14:48 < mihi> anyone using w3m?</p>
-14:48 < dm> I use INTERNET EXPLORER FROM MICROSOFT</p>
-14:48 < dm> It's quite cool.</p>
-14:48 < jrandom> good point - anything else wrt i2p 1.0?</p>
-14:49 < dm> Won the browser war of 1992-1998</p>
-14:49 < jrandom> or moving on to 5) other activites?</p>
-14:49 < dm> 3 medals of honor.</p>
-14:49 < Nightblade> yes</p>
-14:49 < Nightblade> I am hoping to release a new version of libsam tomorrow but my home computer is broke so I don't know</p>
-14:49 < Nightblade> I am going to also upload Nickster's threading library</p>
-14:49 < jrandom> awesome!/doh!</p>
-14:50 < jrandom> nice!</p>
-14:50 < Nightblade> which he said was public domain - i am just going to upload it exactly as he sent it - i haven't had time to do much with it</p>
-14:50 < jrandom> once 0.3.1.5 is out, i'll start running the cvs server on i2p as well</p>
-14:50 < jrandom> cool</p>
-14:51 < jrandom> (so nickster will be able to make edits/updates to his code in cvs without exposing his ip)</p>
-14:51 < jrandom> whats new in the next rev of libsam?</p>
-14:51 < Nightblade> some fixes to datagram send/receive which were broken</p>
-14:51 < Nightblade> and some other stuff i don't remember</p>
-14:51 < Nightblade> it iwll be in the changelog</p>
-14:51 < jrandom> cool, sounds good</p>
-14:52 < jrandom> btw, if you want a mailing list for libsam (-announce,-dev,-users,etc) lemmie know</p>
-14:52 < jrandom> (but posting on i2p@i2p is fine too)</p>
-14:52 < Nightblade> overkill</p>
-14:52 < jrandom> hehe</p>
-14:53 < jrandom> yeah prolly</p>
-14:53 < cervantes> he can have a section in i2pforum</p>
-14:53  * cervantes moves smoothly onto his agenda</p>
-14:53 < Nightblade> maybe once I get that DHT working - but that is a long way off, and today and yesterday I hvane't had time to do much with it</p>
-14:53 < Nightblade> cervantes: there is already an application development forum or somethihng like that iirc</p>
-14:53 < Nightblade> also Connelly needs an account on i2p.net if someone has gotten him one yet</p>
-14:53 < cervantes> specifically in relation to i2p?</p>
-14:54 < Nightblade> http://www.i2p.net/forum/3</p>
-14:54 < jrandom> oh, i havent added an account for connelly, i'll chat with 'im next time i see him</p>
-14:54 < fvw> dang, got to run. See you all next week, keep up the good work.</p>
-14:54 < jrandom> ugh, yeah, i dont know about the www.i2p.net/forum/s</p>
-14:54 < cervantes> ah...drupal...</p>
-14:55 < jrandom> cool fvw, glad you could make it</p>
-14:56 < cervantes> the i2pforum is pretty much set up</p>
-14:56 < cervantes> it basically just needs content/users to fill it :)</p>
-14:56 < jrandom> i'm not sure about the drupal forums, or whether they really fit with what i see the website being.  i kind of like the idea of a seperate site thats dedicated to being a user/dev forum</p>
-14:57 < jrandom> cool cervantes - is that as an eepsite, website, or both?</p>
-14:57 < cervantes> I've picked arbitrary forum topics/sections so if people have any ideas or want to write stuff for FAQs etc them that would be appreciated</p>
-14:57 < cervantes> it's both</p>
-14:58 < cervantes> currently I have the i2p tunnel offline while my router is so unstable</p>
-14:58 < jrandom> cant say i blame you :)</p>
-14:58 < Nightblade> what is the url</p>
-14:58 < cervantes> but people can start playing on outweb</p>
-14:59 < cervantes> currenlty you'll have to add an entry to /etc/hosts c:/windows/system32/drivers/etc/hosts</p>
-14:59 < cervantes> 212.113.22.104 i2pforum.cervantes.not2p</p>
-14:59 < jrandom> heh</p>
-15:00 < cervantes> I'll configure it with a proper hostname soon</p>
-15:00 < cervantes> or if someone wants to add a subdomain pointer to the php.net domain record...that would be better</p>
-15:00 < jrandom> lemmie know if you want something under the i2p.net domain or if you're going with another domain thats cool</p>
-15:00 < cervantes> blah</p>
-15:00 < cervantes> i2p.net</p>
-15:00 < cervantes> &lt;-- php on the brain</p>
-15:01 < jrandom> do you want that to be e.g. forum.i2p.net?</p>
-15:01 < cervantes> that would be cool ;-)</p>
-15:01 < jrandom> w3rd, i'll update the records tonight</p>
-15:01 < cervantes> I've tweaked standard phpbb2 code so it doesn't require a valid email to become a member</p>
-15:01 < dm> "The site you requested is no longer hosted here"</p>
-15:02 < cervantes> if you forget your pass then you have to contact an admin</p>
-15:02 < cervantes> dm: did you enter that into your hosts file or are you just browsing to the IP</p>
-15:03 < dm>                                   Invalid URI in request GET i2pforum.cervantes.</p>
-15:03 < dm> not2p/&lt;P&gt;</p>
+14:00 < jrandom> 0) hi
+14:00 < jrandom> 1) status update
+14:00 < jrandom> 2) cvs HEAD
+14:00 < jrandom> 3) 0.4
+14:00 < jrandom> 4) 1.0
+14:00 < jrandom> 5) other activities
+14:00 < jrandom> 6) ???
+14:00 < jrandom> 0) hi
+14:00 < dm> 7) Profit!!
+14:00 < mihi> hi
+14:00 < cervantes> hello
+14:00 < dm> hi
+14:00 < fvw> hi dr nick
+14:01 < jrandom> for all those playing at home, we've got the status notes up @ http://dev.i2p.net/pipermail/i2p/2004-June/000286.html
+14:01 < jrandom> as we've done in the past, that contains the actual content - we get all meta here and discuss stuff
+14:01  * dm is playing at home. WINK WINK WINK.
+14:01 < jrandom> BrianR: this is where the LART comes in handy
+14:02 < jrandom> anyway, jumping into 1) status update
+14:02 < thecrypto> let's see if i can connect to an eepsite
+14:03 < jrandom> the other day we had a larger than usual # of routers jumping off the network, which i'm hoping is because a lot of the services on the network were b0rked due to my stupid bugs
+14:03  * mihi fires up his router
+14:03 < thecrypto> yah!
+14:03 < jrandom> if people are taking down their router for another reason (bugs, cpu/memory usage, etc) i'd really love to hear about it
+14:04 < dm> ok
+14:05 < BrianR> I must say, i2p is currently more well behaved than freenet on my machine... Both in bandwidth hogging and cpu/ram hogging.
+14:05 < jrandom> there's a really bad bug in cvs at the moment, but fixed locally - i'll have that committed later tonight (not sure if i'll do so before or after getting my new machine together)
+14:05 < jrandom> ah wikked
+14:06 < jrandom> well, to be fair, i2p does a lot less than freenet - once we have thousands of routers we'll see how it goes
+14:06 < dm> Why don't operating system's have per-application bandwidth limiting built-in? Is it a hard task?
+14:06 < BrianR> I'd like to do some stress testing with i2p's built in bandwidth limiting stuff though. How far along is that?
+14:06 < dm> All these projects wasting time implementing their own bandwidth limiting, seems silly.
+14:06 < fvw> dm: Linux does it, as does freebsd no doubt.
+14:07 < dm> Do they?
+14:07 < cervantes> netlimiter on windoze does it
+14:07 < BrianR> dm: It's not a hard task. There's lots of system level bandwidth limiting stuff available, for 'doze, linux, *bsd...
+14:07 < dm> Makes sense to put it in the OS if you ask me.
+14:07 < fvw> dm iptables marking + tc under linux; Using it right now, works like a charm.
+14:07 < jrandom> BrianR: its in pretty good shape - it'll be in the next 0.3.1.5 release (which i'm hoping to have out this week)
+14:07 < dm> But anyway...
+14:07 < BrianR> thing is, it often makes more sense to do limiting at the application level so you can make intelligent decisions about where to spend bandwidth first
+14:08 < jrandom> exactly
+14:08 < dm> That's a different problem.
+14:08 < jrandom> with bandwidth limiting within i2p, we know when we're saturating our limit and can refuse to participate in tunnels (etc)
+14:08 < BrianR> At the application level you have no idea which one of your TCP connections is going to lose a packet when you're above the system imposed TX limit.
+14:08 < fvw> actually, best would be to have the OS give proper feedback; But that's not relevant for i2p right now.
+14:09 < jrandom> true fvw, once we integrate i2p with tun/tap ;)
+14:09 < BrianR> fvw: You do get some feedback in terms of backpressure.. But it's hard to tell if backpressure is due to the remote side's link being slow or the local side..
+14:09 < dm> Put a bounty on patching windows to have per-application bandwidth limiting. Thanks.
+14:09 < jrandom> heh
+14:09 < fvw> "my stuff isn't arriving" and "this connection is being throttled now" are two entirely different things.
+14:09 < fvw> they sometimes overlap ofcourse.
+14:10 < dm> (extra $20 for having a small graph with bandwidth usage of each window in the window title bar... Next to the minimize buttons, etc)
+14:11 < jrandom> ok does anyone else have any network status related things to bring up?
+14:12 < BrianR> Oh.. That IRC connection monitoring thing..
+14:12 < duckie> I appologize for updating to cvs
+14:12 < jrandom> hehe
+14:12 < BrianR> Is there a MRTG graph of that or logs or something somewhere?
+14:12 < jrandom> bogobot right?  duck.i2p/bogo/ iirc?
+14:13 < duckie> something like that
+14:13 < jrandom> (its linked to off duck.i2p, my routers are down atm so i cant check)
+14:13 < duckie> linked to on http://duck.i2p/ uder the stats section
+14:13 < duckie> http://duck.i2p/bogobotlogs/
+14:14 < BrianR> it might be useful to extend that thing to act as a general reachability survey tool..
+14:15 < dm> You guys type reaaaaaaaaaaaaaaaally slowly.
+14:15 < deer> <cervantes> hypercubus has some enhancements on the backburner, but he's pretty busy with installer stuff atm
+14:16 < jrandom> BrianR: bogobot is just for passive irc tracking, but someone could modify i2ptunnel's ping command to support periodic checking?
+14:16 < jrandom> or someone could whip up a perl/SAM script ;)
+14:16 < BrianR> maybe some sort of script that produces a MRTG graph of endpoint reachability....
+14:16 < BrianR> jrandom: speaking of perl/sam, bring that up again when we get to the appropriate number in the agenda
+14:16 < duckie> doesnt the heartbeat thing do that?
+14:17 < BrianR> If it does, I couldn't make it work :(
+14:17 < jrandom> kind of - heartbeat tests heartbeat servers, not generic apps
+14:18 < BrianR> Yes... Like I want to see if I can successfully do a "GET /" on duck.i2p, and how long it took.
+14:18 < jrandom> but yes, once the net is in good shape, lots of people can run a heartbeat server and people can ping each other to measure network performance
+14:18 < Nightblade> pingflood too
+14:18 < dm> Is there a limit on GET strings?
+14:18 < dm> like if you have a really long URL, because of cgi parameters?
+14:19 < cervantes> 2047 characters iirc
+14:19 < jrandom> that wouldnt be too hard to put together
+14:19 < BrianR> dm: Depends on the web server... I think the RFC also specifies a minimum which must be suported.
+14:19 < jrandom> (er, an http tester)
+14:19 < dm> cervantes: thanks
+14:19 < dm> (just realized it might affect something I've been working on)
+14:20 < cervantes> you run into 2 problems, webserver support and client support
+14:20 < BrianR> have we stumbled off topic?
+14:20 < cervantes> both IE and Mozilla are 2047
+14:20 < cervantes> eer yep :)
+14:21 < dm> I got my answer, we can move on :)
+14:21 < jrandom> ok, i think that covers 1), now briefly to 2) cvs HEAD
+14:21 < jrandom> there's a nasty bug in there currently, and i apologize for not fixing it sooner
+14:22 < jrandom> in general, if you try out cvs HEAD and it doesnt work well, just roll back (download jars / pull from the tag)
+14:22 < jrandom> anyway, 'nuff 'bout that
+14:23 < jrandom> jumping forward to 3) 0.4
+14:23 < jrandom> the email has my viewpoint / rational for the release - anyone have any concerns / questions / ideas / suggestions?
+14:24 < Nightblade> looks good to me
+14:24 < duckie> how does it change the time estimates?
+14:24  * fvw nods. Sane and everything.
+14:25 < jrandom> it actually moves 0.4 closer, as we're pushing the scary parts of 0.3.3 into 0.4.1 and 0.4.2
+14:25 < jrandom> i dont think it'll change the 1.0 dates, just moving things around before it
+14:26 < jrandom> the sim has shown our main problem with tunnel diversification can be easily remedied by active peer testing
+14:26 < jrandom> we had some of this in the pre 0.2.3 revs, but stopped that since it seemed to add too much overhead
+14:27 < jrandom> (when in fact lots of shit was just plain broken, causing the overhead)
+14:27 < deer> <cervantes> what does active peer testing involve?
+14:29 < jrandom> it just means we'll build some secondary tunnels through peers we wouldnt normally use - specifically, i'm going to have it pull random peers from the 'reliable' set who arent in the 'fast+reliable' set
+14:29 < jrandom> (and if that intersection is too small, extend it to the 'not failing' set)
+14:29 < jrandom> i dont know how many tunnels or peers to test yet, we'll probably keep that as a tunable parameter
+14:30 < jrandom> the issue manifests itself in the peer profiles - you'll see lots of values for your favorite peers, but lots of 0s or other low numbers for other peers
+14:30 < jrandom> (which may be due to them being shitty, or more likely due to them not being tested)
+14:31 < jrandom> ok, anything else on 0.4?  or should we move on to 4) 1.0?
+14:32 < duckie> yes
+14:33 < jrandom> 4) 1.0
+14:33 < jrandom> i dont see 1.0 as a big scary asymptotically approached release.  its just a release where things work and people can use it
+14:34 < jrandom> that said, anyone have any concerns / ideas / suggestions/ questions wrt whats in the mail?
+14:35 < dm> The rate at which the versioning is increasing would indeed indicate that it is an asymptotically approached 1.0
+14:36 < dm> We're gonna need some big jumps!
+14:36 < jrandom> 0.4--> 1.0
+14:36 < dm> Sweeeeeeeet....
+14:36 < jrandom> and we're only a few weeks from 0.4
+14:37 < jrandom> but, of course, we could use some help to get things moving faster :)
+14:37 < dm> Are we happy with stability then?
+14:37 < jrandom> no, stability right now sucks
+14:37 < cervantes> myi2p could be a fairly hefty bit of development to get implemented properly, since it ideally relies on other projects coming to fruition
+14:37 < dm> Okay, haven't been following closely.
+14:38 < cervantes> such as DHT and datagrams etc
+14:38 < jrandom> agreed cervantes, but if we just have it with the address book and distributed blogging, that'll be good enough for me.
+14:38 < cervantes> right
+14:38 < jrandom> nightblade is working on a dht that we can plug in whenever its ready, or we could add hooks for referencing freenet:CHK@ or SSK@
+14:39 < cervantes> private messaging is just a small hop from the syndicated address book too
+14:39 < jrandom> right, its all doable
+14:40 < cervantes> live streaming cam girl desktop might take longer...
+14:40 -!- Irssi: #i2p: Total of 21 nicks [0 ops, 0 halfops, 0 voices, 21 normal]
+14:40 < jrandom> heh
+14:40 < jrandom> actually, as I mentioned to Sonium before the meeting, one of the things people can help out with is the documentation front -
+14:41 < jrandom> defining what docs we will need, starting to do some outlines of how those docs will fit together, and perhaps even tossing open an editor and writing 'em
+14:42 < cervantes> ah I meant to enquire earlier about enhancing the console GUI too
+14:42 < jrandom> docs are an essential part of the releases, both for tech docs (since without good tech docs, no devs will get involved) and for user docs (since without good user docs, users will leave)
+14:42 < jrandom> that we'll want for the 0.4 release, and will be jsp/servlet driven
+14:43 < jrandom> i havent done any mockups or workflows for that even, so if someone wants to jump on that, we could use the help
+14:43 < Nightblade> console GUI?  what is that - SVGALIB? :)
+14:43 < jrandom> heh
+14:43 < mihi> Nightblade: TWIN / curses
+14:43 < cervantes> is the data set the same or are there new and improved stats for 0.4
+14:44 < dm> I want a console gui in WIN32/MFC
+14:44 < Nightblade> the http console on 7655 right
+14:44 < cervantes> ie the duration that elephants stay on the moon, and whether they return freuqently
+14:44 < cervantes> yup
+14:44 < jrandom> all of the things on the console now reflect data that can be made available to a 0.4 console, but we should totally throw out its existing design
+14:45 < jrandom> (e.g. no one cares what the base64 of a routerIdentity's public key is)
+14:45 < cervantes> although I suggest that info should still be available
+14:46 < jrandom> yeah, i think we may keep the existing console as an option - no need to throw it away
+14:46 < jrandom> (but it'd be something like http://localhost:7655/uglyConsole/)
+14:46 < cervantes> ./forlynxusers/
+14:47 < jrandom> the new admin console should work for lynx users too
+14:47 < dm> Does anyone really use lynx?
+14:47 < cervantes> eeew cross browser compatibility
+14:47 < jrandom> i do
+14:47 < jrandom> (at times)
+14:47 < dm> but.... why?
+14:47 < fvw> for things like brief config edits, definately.
+14:47 < cervantes> dm: if you're stuck at a command prompt you don't have much choice
+14:47 < fvw> it's quick and you don't need X
+14:48 < Nightblade> i use it for web browsing on headless servers
+14:48 < deer> <Pseudonym> I use links browser
+14:48 < jrandom> well, yeah, links is preferable to lynx
+14:48 < mihi> anyone using w3m?
+14:48 < dm> I use INTERNET EXPLORER FROM MICROSOFT
+14:48 < dm> It's quite cool.
+14:48 < jrandom> good point - anything else wrt i2p 1.0?
+14:49 < dm> Won the browser war of 1992-1998
+14:49 < jrandom> or moving on to 5) other activites?
+14:49 < dm> 3 medals of honor.
+14:49 < Nightblade> yes
+14:49 < Nightblade> I am hoping to release a new version of libsam tomorrow but my home computer is broke so I don't know
+14:49 < Nightblade> I am going to also upload Nickster's threading library
+14:49 < jrandom> awesome!/doh!
+14:50 < jrandom> nice!
+14:50 < Nightblade> which he said was public domain - i am just going to upload it exactly as he sent it - i haven't had time to do much with it
+14:50 < jrandom> once 0.3.1.5 is out, i'll start running the cvs server on i2p as well
+14:50 < jrandom> cool
+14:51 < jrandom> (so nickster will be able to make edits/updates to his code in cvs without exposing his ip)
+14:51 < jrandom> whats new in the next rev of libsam?
+14:51 < Nightblade> some fixes to datagram send/receive which were broken
+14:51 < Nightblade> and some other stuff i don't remember
+14:51 < Nightblade> it iwll be in the changelog
+14:51 < jrandom> cool, sounds good
+14:52 < jrandom> btw, if you want a mailing list for libsam (-announce,-dev,-users,etc) lemmie know
+14:52 < jrandom> (but posting on i2p@i2p is fine too)
+14:52 < Nightblade> overkill
+14:52 < jrandom> hehe
+14:53 < jrandom> yeah prolly
+14:53 < cervantes> he can have a section in i2pforum
+14:53  * cervantes moves smoothly onto his agenda
+14:53 < Nightblade> maybe once I get that DHT working - but that is a long way off, and today and yesterday I hvane't had time to do much with it
+14:53 < Nightblade> cervantes: there is already an application development forum or somethihng like that iirc
+14:53 < Nightblade> also Connelly needs an account on i2p.net if someone has gotten him one yet
+14:53 < cervantes> specifically in relation to i2p?
+14:54 < Nightblade> http://www.i2p.net/forum/3
+14:54 < jrandom> oh, i havent added an account for connelly, i'll chat with 'im next time i see him
+14:54 < fvw> dang, got to run. See you all next week, keep up the good work.
+14:54 < jrandom> ugh, yeah, i dont know about the www.i2p.net/forum/s
+14:54 < cervantes> ah...drupal...
+14:55 < jrandom> cool fvw, glad you could make it
+14:56 < cervantes> the i2pforum is pretty much set up
+14:56 < cervantes> it basically just needs content/users to fill it :)
+14:56 < jrandom> i'm not sure about the drupal forums, or whether they really fit with what i see the website being.  i kind of like the idea of a seperate site thats dedicated to being a user/dev forum
+14:57 < jrandom> cool cervantes - is that as an eepsite, website, or both?
+14:57 < cervantes> I've picked arbitrary forum topics/sections so if people have any ideas or want to write stuff for FAQs etc them that would be appreciated
+14:57 < cervantes> it's both
+14:58 < cervantes> currently I have the i2p tunnel offline while my router is so unstable
+14:58 < jrandom> cant say i blame you :)
+14:58 < Nightblade> what is the url
+14:58 < cervantes> but people can start playing on outweb
+14:59 < cervantes> currenlty you'll have to add an entry to /etc/hosts c:/windows/system32/drivers/etc/hosts
+14:59 < cervantes> 212.113.22.104 i2pforum.cervantes.not2p
+14:59 < jrandom> heh
+15:00 < cervantes> I'll configure it with a proper hostname soon
+15:00 < cervantes> or if someone wants to add a subdomain pointer to the php.net domain record...that would be better
+15:00 < jrandom> lemmie know if you want something under the i2p.net domain or if you're going with another domain thats cool
+15:00 < cervantes> blah
+15:00 < cervantes> i2p.net
+15:00 < cervantes> <-- php on the brain
+15:01 < jrandom> do you want that to be e.g. forum.i2p.net?
+15:01 < cervantes> that would be cool ;-)
+15:01 < jrandom> w3rd, i'll update the records tonight
+15:01 < cervantes> I've tweaked standard phpbb2 code so it doesn't require a valid email to become a member
+15:01 < dm> "The site you requested is no longer hosted here"
+15:02 < cervantes> if you forget your pass then you have to contact an admin
+15:02 < cervantes> dm: did you enter that into your hosts file or are you just browsing to the IP
+15:03 < dm>                                   Invalid URI in request GET i2pforum.cervantes.
+15:03 < dm> not2p/<P>
 
-15:03 < dm> I don't use browsers, I'm using telnet.</p>
-15:04 < jrandom> i did it through telnet just now.  works fine.</p>
-15:04 < dm> hmm forgot the HTTP 1.1 I think.</p>
-15:04 < jrandom> GET / HTTP/1.1\nHost: i2pforum.cervantes.not2p\n\n</p>
-15:04 < jrandom> anyway</p>
-15:04 < jrandom> BrianR: ping</p>
-15:05 < dm> That worked. Your telnetting skills are sharp, young one.</p>
-15:07 -!- Irssi: #i2p: Total of 19 nicks [0 ops, 0 halfops, 0 voices, 19 normal]</p>
-15:07 < jrandom> ok, anyone else working on i2p related projects they want to discuss?</p>
-15:07 < jrandom> if not, 6) ???</p>
-15:07 < dm> cum!</p>
-15:07  * wern put a hand in the air</p>
-15:07 < jrandom> hi^2, que tal?</p>
-15:08  * jrandom calls on wilde</p>
-15:08 -!- wern is now known as wilde</p>
-15:08 < wilde> I just want to thank our new sponsors, cervantes and hypercubus</p>
-15:08 < wilde> :)</p>
-15:09 < wilde> we got two generous donations to the general fund</p>
-15:09 < cervantes> wilde: did they convert ok?</p>
-15:09 < dm> how much?</p>
-15:09 < wilde> cervantes: will exchange them tomorrow</p>
-15:09 < cervantes> ah</p>
-15:09 < wilde> (hopefully)</p>
-15:10 < cervantes> so there still might be a runner-up prize ;-)</p>
-15:10 < jrandom> awesome, thanks cervantes &amp; hypercubus :)</p>
-15:10 < cervantes> heh...well save praise until the money is in the bank I think ;-)</p>
-15:11 < dm> twas a good meeting. I'm off to bed.</p>
-15:11 < dm> Nite!</p>
-15:11 < jrandom> 'night dm</p>
-15:11 < wilde> yeah, I'll do the full praising next time</p>
-15:11 < jrandom> ok, anything else to add wilde, or someone else?</p>
-15:11 < wilde> yeah</p>
-15:12 < wilde> I'll take the i2p.net site down tomorrow for a while (intentionally this time ;)</p>
-15:12 < wilde> to switch servers</p>
-15:12 < jrandom> heh ok cool</p>
-15:12 < wilde> hold on to your posts, they may disappear</p>
-15:12 < jrandom> will we have the same IP, or should I update the records?</p>
-15:12 < dm> can you make it seamless?</p>
-15:12 < wilde> if you post tomorrow that is</p>
-15:13 < wilde> dm: no way ;)</p>
-15:13 < wilde> not me</p>
-15:13 < dm> okay.</p>
-15:13 < wilde> jrandom: same IP</p>
-15:13 < jrandom> ok cool</p>
-15:13 < jrandom> wilde++</p>
-15:13 < wilde> over and out</p>
-15:14 < jrandom> ok, anyone else have something they'd like to discuss?</p>
-15:14  * cervantes puts on his metal "ming the merciless" skullcap</p>
-15:14 < jrandom> in that case</p>
-15:15  * jrandom winds up</p>
-15:15  * jrandom *baf*s cervantes on the head, closing the meeting</p>
-</div>
-{% endblock %}
+15:03 < dm> I don't use browsers, I'm using telnet.
+15:04 < jrandom> i did it through telnet just now.  works fine.
+15:04 < dm> hmm forgot the HTTP 1.1 I think.
+15:04 < jrandom> GET / HTTP/1.1\nHost: i2pforum.cervantes.not2p\n\n
+15:04 < jrandom> anyway
+15:04 < jrandom> BrianR: ping
+15:05 < dm> That worked. Your telnetting skills are sharp, young one.
+15:07 -!- Irssi: #i2p: Total of 19 nicks [0 ops, 0 halfops, 0 voices, 19 normal]
+15:07 < jrandom> ok, anyone else working on i2p related projects they want to discuss?
+15:07 < jrandom> if not, 6) ???
+15:07 < dm> cum!
+15:07  * wern put a hand in the air
+15:07 < jrandom> hi^2, que tal?
+15:08  * jrandom calls on wilde
+15:08 -!- wern is now known as wilde
+15:08 < wilde> I just want to thank our new sponsors, cervantes and hypercubus
+15:08 < wilde> :)
+15:09 < wilde> we got two generous donations to the general fund
+15:09 < cervantes> wilde: did they convert ok?
+15:09 < dm> how much?
+15:09 < wilde> cervantes: will exchange them tomorrow
+15:09 < cervantes> ah
+15:09 < wilde> (hopefully)
+15:10 < cervantes> so there still might be a runner-up prize ;-)
+15:10 < jrandom> awesome, thanks cervantes &amp; hypercubus :)
+15:10 < cervantes> heh...well save praise until the money is in the bank I think ;-)
+15:11 < dm> twas a good meeting. I'm off to bed.
+15:11 < dm> Nite!
+15:11 < jrandom> 'night dm
+15:11 < wilde> yeah, I'll do the full praising next time
+15:11 < jrandom> ok, anything else to add wilde, or someone else?
+15:11 < wilde> yeah
+15:12 < wilde> I'll take the i2p.net site down tomorrow for a while (intentionally this time ;)
+15:12 < wilde> to switch servers
+15:12 < jrandom> heh ok cool
+15:12 < wilde> hold on to your posts, they may disappear
+15:12 < jrandom> will we have the same IP, or should I update the records?
+15:12 < dm> can you make it seamless?
+15:12 < wilde> if you post tomorrow that is
+15:13 < wilde> dm: no way ;)
+15:13 < wilde> not me
+15:13 < dm> okay.
+15:13 < wilde> jrandom: same IP
+15:13 < jrandom> ok cool
+15:13 < jrandom> wilde++
+15:13 < wilde> over and out
+15:14 < jrandom> ok, anyone else have something they'd like to discuss?
+15:14  * cervantes puts on his metal "ming the merciless" skullcap
+15:14 < jrandom> in that case
+15:15  * jrandom winds up
+15:15  * jrandom *baf*s cervantes on the head, closing the meeting

@@ -1,228 +1,222 @@
-{% extends "_layout.html" %}
-{% block title %}I2P Development Meeting 158{% endblock %}
-{% block content %}<h3>I2P dev meeting, November 29, 2005</h3>
-<div class="irclog">
-15:25 < jrandom> 0) hi</p>
-15:25 < jrandom> 1) Net status and 0.6.1.6</p>
-15:25 < jrandom> 2) Syndie</p>
-15:25 < jrandom> 3) I2P Rufus 0.0.4</p>
-15:25 < jrandom> 4) ???</p>
-15:25 < jrandom> 0) hi</p>
-15:25  * jrandom waves</p>
-15:25 < jrandom> weekly status notes up @ http://dev.i2p.net/pipermail/i2p/2005-November/001234.html</p>
-15:26  * bar hands jrandom a baf</p>
-15:26 < c3rvantes> not yet!</p>
-15:26  * jrandom winds up</p>
-15:26 < jrandom> er...</p>
-15:26 < jrandom> lets hit the first few agenda items first :)  1) Net status and 0.6.1.6</p>
-15:27 < jrandom> lots of things have been updated in the last few releases, but the network still seems reasonably stable.  </p>
-15:28 < jrandom> we've had some serious spikes in router participation on a few routers, though thats pretty harmless</p>
-15:28 <+legion> cool, I agree net status is getting better. Also yeah why not drop tcp for 0.6.1.7</p>
-15:28 < jrandom> (er, spikes in tunnel participation, that is)</p>
-15:29 <@cervantes> you're not kidding</p>
-15:29 < jrandom> not sure legion.  there may be some users out there limited to tcp only, but i seem to recall that there was only one or maybe two of those</p>
-15:29 <+legion> well I've noticed with 0.6.1.5 the router would sometimes restart on its own.</p>
-15:29 <+Complication> Mine's been swinging withint reasonable limits, 100 to 250 participating tunnels</p>
-15:29 < jrandom> I can't think of any great reason to keep it, and I can think of a few to drop it</p>
-15:30 < jrandom> cool Complication</p>
-15:30 < jrandom> (those numbers are fairly average, according to stats.i2p/, but remember, numbers like that can damage anonymity, so shouldn't really be given out, especially not in logged meetings ;)</p>
-15:30 <+Complication> My old Celeron is still auto-restarting every 10 hours or so</p>
-15:30 <+Complication> Otherwise it's better connected than ever before</p>
-15:30 < Pseudonym> what are the reasons to drop it?</p>
-15:31 <+Complication> TCP is expensive</p>
-15:31 <@cervantes> my router is shagged out</p>
-15:31 <+Complication> In terms of threads per connections</p>
-15:31 <@cervantes> Complication: multiply that by 10 and you get my router's current range ;-)</p>
-15:31 <+legion> Mines been swinging within 200-400 participating tunnels, so it seems better than ever.</p>
-15:32 <+Complication> cervantes: ouchie ouchie</p>
-15:32 <+Complication> I've seen a freak accident which caused 2000 participating tunnels, but that was in Summer</p>
-15:32 < jrandom> Pseudonym: performance (cpu/memory, better scheduling due to our semireliable requirements), maintainability, more effective shitlisting</p>
-15:32 <+Complication> A single spike which never repeated again</p>
-15:32 <+legion> yeah, with some past versions there were such spikes</p>
-15:32 < jrandom> Complication: we've had &gt; 2000 tunnel spikes with this last rev</p>
-15:33 < jrandom> but hopefully 0.6.1.7 will take care of that</p>
-15:33 <+legion> Well those are some good reasons to drop tcp :)</p>
-15:33 < jrandom> but, again, the spikes in tunnel participation is fine, as most of them aren't used</p>
-15:34 <@cervantes> Pseudonym: there only seems to be one or two routers still using tcp on the network</p>
-15:34 < jrandom> it may also be a good idea to drop tcp in this rev too, since it doesn't have other major changes.  that way we can see how it affects things pretty clearly</p>
-15:34 < jrandom> (and can reenable it if necessary)</p>
-15:35 < Pseudonym> if there are only two routers using it, I can't imagine it would have much effect either way</p>
-15:35 < Pseudonym> (except for there being two less routers on the network)</p>
-15:35 <@cervantes> 2 disgruntled customers</p>
-15:35 < jrandom> well, the transport does show up in some odd situations, which is one of the reasons i want to disable it :)</p>
-15:35 <+Complication> I hope they won't take it very personally</p>
-15:36 <+Complication> It's really nasty of certain ISP's to filter UDP.</p>
-15:36 <+Complication> Nasty, and completely senseless.</p>
-15:36 < jrandom> (e.g. when a router is hosed, people mark their SSU transport as failing, and as such, they fall back on the tcp transport)</p>
-15:36  * Pseudonym loves his ISP.  no restrictions</p>
-15:37 <+Complication> So without TCP, one would see how UDP handles it alone?</p>
-15:37 <+Complication> "with no auxiliary wheels" :P</p>
-15:37 <+legion> huh so how do we get around such nasty filtering without tcp?</p>
-15:38 < jrandom> exactly Complication :)</p>
-15:38 < jrandom> legion: we don't</p>
-15:38 < jrandom> (restricted routes)</p>
-15:38 <+Complication> Well, aren't there a number of useful apps besides file-sharing programs, which also use UDP packets sized above DNS packets?</p>
-15:39 <+legion> :( doesn't sound good</p>
-15:39 <+Complication> Sized similarly to the smallest packet size I2P uses?</p>
-15:39 < jrandom> eh legion, its not a problem</p>
-15:39 < jrandom> Complication: streaming protocols</p>
-15:39 <+Complication> One cannot block UDP directly, ever, without crippling DNS.</p>
-15:39 <+Complication> One can limit the packet size.</p>
-15:40 <+legion> ok, it did sound like it could be</p>
-15:40 <+Complication> VoIP?</p>
-15:40 < jrandom> it'd be a problem if it were widespread - if the internet community in general banned udp</p>
-15:40 <+Complication> Hmm, does VoIP use big or small packets?</p>
-15:40 < jrandom> but if its just a few isps, we can treat them like restricted routes</p>
-15:40 <+Complication> Or did you mean more like... video spreaming?</p>
-15:40 <+legion> I'd think it'd use a mix of both</p>
-15:41 < jrandom> both Complication, RTSP runs over UDP, and real runs over RTSP iirc</p>
-15:41 <+Complication> s/p/s</p>
-15:42 <+legion> So on to the next item?</p>
-15:42 <+Complication> cat /etc/services | grep -c udp</p>
-15:42 <+Complication> 227</p>
-15:43 < jrandom> I'm still not sure if we'll drop tcp in 0.6.1.7, but probably.  </p>
-15:43 < jrandom> aye, anyone have anything else on 1)?  if not, lets jump on to 2) Syndie</p>
-15:43 <+Complication> Meaning, there are at least 227 apps (some possibly obsolete or LAN apps) which use UDP</p>
-15:44 < jrandom> bah, this is the intarweb.  all you need is proxied HTTP access</p>
-15:44 < jrandom> I don't have much to add to 2) beyond whats in the mail (and whats on Syndie)</p>
-15:44 <+legion> I'm convinced, yeah drop it. :)</p>
-15:44 < jrandom> anyone have anything re: syndie they want to bring up?</p>
-15:45 <+legion> I've nothing to say about 2) either.</p>
-15:45  * Complication is reading "how Syndie works"</p>
-15:46 <+Complication> One little UI effect, keeps surprising me. :D</p>
-15:46 <+Complication> When I expand a thread of messages, it always gets me by surprise that the active message moves to become the topmost in the list. :P</p>
-15:47 <+Complication> But you can proabably safely ignore that. I'm just very picky, and a creature of habit. :P</p>
-15:47 <@cervantes> the threading model is something that's being discussed at length</p>
-15:47 <@cervantes> ;-)</p>
-15:47 <+Complication> I'll get used to it. :)</p>
-15:48 <+Complication> cervantes: in Syndie? I gotta find that thread. :)</p>
-15:48 <@cervantes> I don't like that either - but it could well change</p>
-15:48 < jrandom> yeah, thats kind of kooky I suppose</p>
-15:48 <+legion> yeah</p>
-15:48 <@cervantes> "subject: syndie threading"</p>
-15:49 <+Complication> Besides, if the expanded message were the bottom-most, it *would* have to move anyway.</p>
-15:49 <+Complication> 'Cause otherwise it'd be stuck there.</p>
-15:50 < jrandom> well, the nav at the bottom shows 10 *threads* at a time, not 10 messages.  so it could expand the bottom thread</p>
-15:50  * cervantes is testing some different threading UI style implementations atm</p>
-15:51 < jrandom> wikked</p>
-15:51 < jrandom> yeah, ideally we'll be able to switch them around in css, or if not, on the server side</p>
-15:52 <@cervantes> or rather "threading navigation styles"</p>
-15:53 <@cervantes> hmm my tests use pure html nested unnordered lists by default</p>
-15:53 <@cervantes> you can layer on as much css and javascript as your need or want</p>
-15:53 < jrandom> any eta on when we can see some mockups?</p>
-15:53 <@cervantes> (however it's only a proof of concept, not an actual ui implementation)</p>
-15:54 <@cervantes> I do most of my coding during I2P meetings ;-)</p>
-15:54 < jrandom> heh</p>
-15:54 <@cervantes> perhaps the first mockup will be ready this evening</p>
-15:54  * jrandom schedules daily meetings</p>
-15:54 < jrandom> wikked</p>
-15:54 <@cervantes> curses :)</p>
-15:55 < jrandom> ok, anyone have anything else for 2) syndie?</p>
-15:55 < jrandom> if not, lets move on to 3) I2P Rufus 0.0.4</p>
-15:56 < jrandom> I don't have much to add beyond whats in the mail - Rawn/defnax, y'all around?</p>
-15:56 <+legion> so how good is 0.0.4? What problems remain if any?</p>
-15:57  * jrandom hasn't a clue</p>
-15:58 <+legion> Maybe one of its users can answer. Does it seem good and stable?</p>
-15:58 < jrandom> ok, seems Rawn and defnax are away atm.  if anyone has any questions/comments/concerns regarding I2P Rufus, swing on by the forum and post 'em away</p>
-15:58 <+legion> darn, guess we'll have to.</p>
-15:59 <+legion> on to 4)?</p>
-15:59 < jrandom> aye, so it seems.  ok, 4) ??? </p>
-15:59 <+Complication> I haven't tried I2P Rufus, unfortunately.</p>
-16:00 < jrandom> anyone have anything else they want to bring up?</p>
-16:00 < jrandom> (c'mon, we've got to drag this out so cervantes can do some more work!)</p>
-16:00 <+legion> yeah, what sort of interesting stuff is coming down the pipe?</p>
-16:00 <+bar> is there anywhere i could read more about "restricted routes"?</p>
-16:00 <+bar> (i *have* searched)</p>
-16:01 <+legion> Maybe we could even discuss i2phex?</p>
-16:01 < jrandom> http://dev.i2p.net/cgi-bin/cvsweb.cgi/i2p/router/doc/techintro.html?rev=HEAD</p>
-16:01  * cervantes poises his mouse over the close button</p>
-16:01 < jrandom> er, #future.restricted</p>
-16:02 < jrandom> plus the how_* pages & todo</p>
-16:02 < jrandom> (on the web)</p>
-16:02 <+Complication> Heh, I2P seems to have skipped a build :D</p>
-16:02 <+Complication> :D</p>
-16:02 <+bar> thanks</p>
-16:02 <+Complication> -    public final static long BUILD = 1;</p>
-16:02 <+Complication> +    public final static long BUILD = 3;</p>
-16:03 < jrandom> legion: some hacking on the netDb, performance mods, restricted routes, streaming improvements, eepproxy improvements, tunnel improvements, etc.  lots of stuff, but nothing ready yet</p>
-16:03 <+legion> huh, odd</p>
-16:03 < jrandom> anything to bring up re: i2phex legion?</p>
-16:03 < jrandom> Complication: yeah, intended.  I forgot to increase it for BUILD = 2</p>
-16:03 <+Complication> (not that it matters for anything, just wondering if I've seen this rare occasion before :)</p>
-16:04 <+legion> sweet, sounds great, thanks!</p>
-16:04 < jrandom> oh, that reminds me... it'd be cool if someone wanted to dig into looking at revamping our webpage</p>
-16:05  * jrandom doesnt want to think about it, but its got to be done sooner or later</p>
-16:05 <+legion> yeah, there is</p>
-16:05 <+legion> would it be worthwhile to update i2phex at this point to the latest phex cvs code?</p>
-16:06 <+Complication> Not sure, I haven't heard from Redzara recently</p>
-16:06 < jrandom> last I recall, redzara was waiting on gregorz's updates to phex</p>
-16:06 < jrandom> (so we could have a fairly clean update/extension)</p>
-16:08 <+legion> huh, then why have i2phex?</p>
-16:08 <+Complication> Just in case?</p>
-16:08 < jrandom> hmm?</p>
-16:08 < jrandom> i2phex is an extension to phex</p>
-16:08 <+legion> Seems like they wanted there to just be phex with a i2p extension</p>
-16:09 < jrandom> extension, as in, modification to a very small number of bits</p>
-16:09 < jrandom> er, s/bits/components/.  so we can easily update the code whenever the phex devs fix things</p>
-16:10 <+legion> if so then it shouldn't take much work for me to update it to the latest cvs code, though I know it will.</p>
-16:10 < jrandom> last I heard in the forum was that the plan is to have I2Phex and Phex be separate applications, but they'd share a majority of code</p>
-16:10 < jrandom> aye legion, that'd be great, but last I heard, Gregor hadn't finished the modifications to Phex yet</p>
-16:11 < jrandom> (which is what redzara was waiting on)</p>
-16:11 <+legion> ah I see</p>
-16:11 < jrandom> so, the alternative is to either help Gregor out or continue modifying the existing I2Phex codebase</p>
-16:12 <+legion> well then if I don't wait and just update i2phex with new code, there would be no need for redzara continue</p>
-16:12 < jrandom> well, not really. </p>
-16:12 < jrandom> updating I2Phex to the current Phex code would be great, yes</p>
-16:13 < jrandom> but as soon as the Phex developers update their Phex code, we're out of sync again</p>
-16:13 <+legion> ok, I'll probably get to it sometime tonight or within a couple days.</p>
-16:13 < jrandom> wikked</p>
-16:13 <+legion> That is fine.</p>
-16:14 <+legion> Really I'm not looking to have i2phex remain in sync with phex code, it's just that it sounds like the cvs contains fixes which i2phex could certainly use.</p>
-16:15 <+legion> Also I'm really looking to drop out any phex code and features which i2phex doesn't need.</p>
-16:15 < jrandom> cool</p>
-16:16 <+legion> As to any new features and fixing anything that is still not working like the upload queues... Well I've already looked into getting the webcaches working, but have much more to do.</p>
-16:17 < jrandom> word.  yeah, phex used to have working gwebcache support, but sirup disabled it, as it wasn't necessary at first</p>
-16:17 <+legion> I do plan on adding jeti to i2phex eventually.</p>
-16:17 < jrandom> neat</p>
-16:18  * jrandom has never used jeti, and I hope it stays an optional component, but supporting more things is cool</p>
-16:18 <+legion> Yeah it can be optionally, users will be able to download a jeti2phex ;)</p>
-16:19 < jrandom> word</p>
-16:19 <+legion> There still is much we can do with i2phex, though it is working great as it is.</p>
-16:20 <+legion> So far keeping a client connected, up and running for 24/7 is possible and easy.</p>
-16:21 < jrandom> yeah, I've had some good success with it... "backing up my licensed recordings"</p>
-16:21 <+legion> heh :)</p>
-16:22 < jrandom> ok, anyone else have anything for the meeting?</p>
-16:23  * cervantes wheels in the chinese gong</p>
-16:23 <+legion> Seems like I'm forgetting something... hmm</p>
-16:24 <+legion> Oh yeah, any ideas on how we can reduce the amount of memory i2p and i2phex consumes?</p>
-16:25 <+Complication> Well, the TCP transport takes a bit</p>
-16:25 < jrandom> one could run both in the same jvm</p>
-16:25 <+Complication> If that is going, it will free a bit</p>
-16:26 <@cervantes> take some ramsticks out of your machine</p>
-16:26 < cat-a-puss> anyone with any experence with javolution know if it would help? http://javolution.org/</p>
-16:26 < jrandom> (clients.config in the i2p install dir defines the main class and arguments to launch clients)</p>
-16:26 <+legion> So if we ran both in the same jvm and when tcp goes, could we bring it down to under 50mb?</p>
-16:27 < jrandom> no idea legion.  depends on what you mean by 50MB as well.  RSS/VSS/etc</p>
-16:27 < jrandom> I really wouldn't recommend running both in one JVM though, unless you keep both running all the time, since shutting down one would kill the other</p>
-16:27 <@cervantes> legion: limiting bandwith and capping participants might also help</p>
-16:27 < jrandom> aye, what cervantes said</p>
-16:28 < cat-a-puss> it would seem to me that if we know exactly how many of some type of object we are eventually likely to use, it would help prevent overzellous jvm allocation</p>
-16:28 <+Complication> Right, it makes those different allocations, which I've never really managed to make sense of</p>
-16:28 < jrandom> aye, we do some of that cat-a-puss (see net.i2p.util.ByteCache)</p>
-16:29 <+Complication> (but as said, Java is a very new thing to me)</p>
-16:29 < jrandom> I've glanced at javolution before, but it seems to have made a lot of progress.  i'll give 'er another look</p>
-16:30 < cat-a-puss> jrandom:I know some people at my work use it and are happy with it, though they don't care about memory allocation</p>
-16:31 < jrandom> well, it really wouldn't save any memory, but would help cut down on GC churn</p>
-16:31 <+legion> Well I personally don't care much about memory allocation, however many people do.</p>
-16:31 < jrandom> ooh, and its BSD licensed too</p>
-16:31 < cat-a-puss> right</p>
-16:31 < jrandom> legion: memory allocation means performance</p>
-16:32 <+legion> er, oh, memory consumption then</p>
-16:33 <+legion> Many people are so very happy with utorrent because of it's very small memory footprint.</p>
-16:33 < jrandom> ah, oh, yeah.  we can tweak it down the line, but since i2p runs within the default jvm sizes, i'm not too worried (as we've got lots of room for tweaking)</p>
-16:34 < jrandom> ok, anyone have anything else for the meeting?</p>
-16:35 <+legion> nah I'm good...</p>
-16:37  * jrandom winds up</p>
-16:37  * jrandom *baf*s the meeting closed</p>
-</div>
-{% endblock %}
+15:25 < jrandom> 0) hi
+15:25 < jrandom> 1) Net status and 0.6.1.6
+15:25 < jrandom> 2) Syndie
+15:25 < jrandom> 3) I2P Rufus 0.0.4
+15:25 < jrandom> 4) ???
+15:25 < jrandom> 0) hi
+15:25  * jrandom waves
+15:25 < jrandom> weekly status notes up @ http://dev.i2p.net/pipermail/i2p/2005-November/001234.html
+15:26  * bar hands jrandom a baf
+15:26 < c3rvantes> not yet!
+15:26  * jrandom winds up
+15:26 < jrandom> er...
+15:26 < jrandom> lets hit the first few agenda items first :)  1) Net status and 0.6.1.6
+15:27 < jrandom> lots of things have been updated in the last few releases, but the network still seems reasonably stable.  
+15:28 < jrandom> we've had some serious spikes in router participation on a few routers, though thats pretty harmless
+15:28 <+legion> cool, I agree net status is getting better. Also yeah why not drop tcp for 0.6.1.7
+15:28 < jrandom> (er, spikes in tunnel participation, that is)
+15:29 <@cervantes> you're not kidding
+15:29 < jrandom> not sure legion.  there may be some users out there limited to tcp only, but i seem to recall that there was only one or maybe two of those
+15:29 <+legion> well I've noticed with 0.6.1.5 the router would sometimes restart on its own.
+15:29 <+Complication> Mine's been swinging withint reasonable limits, 100 to 250 participating tunnels
+15:29 < jrandom> I can't think of any great reason to keep it, and I can think of a few to drop it
+15:30 < jrandom> cool Complication
+15:30 < jrandom> (those numbers are fairly average, according to stats.i2p/, but remember, numbers like that can damage anonymity, so shouldn't really be given out, especially not in logged meetings ;)
+15:30 <+Complication> My old Celeron is still auto-restarting every 10 hours or so
+15:30 <+Complication> Otherwise it's better connected than ever before
+15:30 < Pseudonym> what are the reasons to drop it?
+15:31 <+Complication> TCP is expensive
+15:31 <@cervantes> my router is shagged out
+15:31 <+Complication> In terms of threads per connections
+15:31 <@cervantes> Complication: multiply that by 10 and you get my router's current range ;-)
+15:31 <+legion> Mines been swinging within 200-400 participating tunnels, so it seems better than ever.
+15:32 <+Complication> cervantes: ouchie ouchie
+15:32 <+Complication> I've seen a freak accident which caused 2000 participating tunnels, but that was in Summer
+15:32 < jrandom> Pseudonym: performance (cpu/memory, better scheduling due to our semireliable requirements), maintainability, more effective shitlisting
+15:32 <+Complication> A single spike which never repeated again
+15:32 <+legion> yeah, with some past versions there were such spikes
+15:32 < jrandom> Complication: we've had > 2000 tunnel spikes with this last rev
+15:33 < jrandom> but hopefully 0.6.1.7 will take care of that
+15:33 <+legion> Well those are some good reasons to drop tcp :)
+15:33 < jrandom> but, again, the spikes in tunnel participation is fine, as most of them aren't used
+15:34 <@cervantes> Pseudonym: there only seems to be one or two routers still using tcp on the network
+15:34 < jrandom> it may also be a good idea to drop tcp in this rev too, since it doesn't have other major changes.  that way we can see how it affects things pretty clearly
+15:34 < jrandom> (and can reenable it if necessary)
+15:35 < Pseudonym> if there are only two routers using it, I can't imagine it would have much effect either way
+15:35 < Pseudonym> (except for there being two less routers on the network)
+15:35 <@cervantes> 2 disgruntled customers
+15:35 < jrandom> well, the transport does show up in some odd situations, which is one of the reasons i want to disable it :)
+15:35 <+Complication> I hope they won't take it very personally
+15:36 <+Complication> It's really nasty of certain ISP's to filter UDP.
+15:36 <+Complication> Nasty, and completely senseless.
+15:36 < jrandom> (e.g. when a router is hosed, people mark their SSU transport as failing, and as such, they fall back on the tcp transport)
+15:36  * Pseudonym loves his ISP.  no restrictions
+15:37 <+Complication> So without TCP, one would see how UDP handles it alone?
+15:37 <+Complication> "with no auxiliary wheels" :P
+15:37 <+legion> huh so how do we get around such nasty filtering without tcp?
+15:38 < jrandom> exactly Complication :)
+15:38 < jrandom> legion: we don't
+15:38 < jrandom> (restricted routes)
+15:38 <+Complication> Well, aren't there a number of useful apps besides file-sharing programs, which also use UDP packets sized above DNS packets?
+15:39 <+legion> :( doesn't sound good
+15:39 <+Complication> Sized similarly to the smallest packet size I2P uses?
+15:39 < jrandom> eh legion, its not a problem
+15:39 < jrandom> Complication: streaming protocols
+15:39 <+Complication> One cannot block UDP directly, ever, without crippling DNS.
+15:39 <+Complication> One can limit the packet size.
+15:40 <+legion> ok, it did sound like it could be
+15:40 <+Complication> VoIP?
+15:40 < jrandom> it'd be a problem if it were widespread - if the internet community in general banned udp
+15:40 <+Complication> Hmm, does VoIP use big or small packets?
+15:40 < jrandom> but if its just a few isps, we can treat them like restricted routes
+15:40 <+Complication> Or did you mean more like... video spreaming?
+15:40 <+legion> I'd think it'd use a mix of both
+15:41 < jrandom> both Complication, RTSP runs over UDP, and real runs over RTSP iirc
+15:41 <+Complication> s/p/s
+15:42 <+legion> So on to the next item?
+15:42 <+Complication> cat /etc/services | grep -c udp
+15:42 <+Complication> 227
+15:43 < jrandom> I'm still not sure if we'll drop tcp in 0.6.1.7, but probably.  
+15:43 < jrandom> aye, anyone have anything else on 1)?  if not, lets jump on to 2) Syndie
+15:43 <+Complication> Meaning, there are at least 227 apps (some possibly obsolete or LAN apps) which use UDP
+15:44 < jrandom> bah, this is the intarweb.  all you need is proxied HTTP access
+15:44 < jrandom> I don't have much to add to 2) beyond whats in the mail (and whats on Syndie)
+15:44 <+legion> I'm convinced, yeah drop it. :)
+15:44 < jrandom> anyone have anything re: syndie they want to bring up?
+15:45 <+legion> I've nothing to say about 2) either.
+15:45  * Complication is reading "how Syndie works"
+15:46 <+Complication> One little UI effect, keeps surprising me. :D
+15:46 <+Complication> When I expand a thread of messages, it always gets me by surprise that the active message moves to become the topmost in the list. :P
+15:47 <+Complication> But you can proabably safely ignore that. I'm just very picky, and a creature of habit. :P
+15:47 <@cervantes> the threading model is something that's being discussed at length
+15:47 <@cervantes> ;-)
+15:47 <+Complication> I'll get used to it. :)
+15:48 <+Complication> cervantes: in Syndie? I gotta find that thread. :)
+15:48 <@cervantes> I don't like that either - but it could well change
+15:48 < jrandom> yeah, thats kind of kooky I suppose
+15:48 <+legion> yeah
+15:48 <@cervantes> "subject: syndie threading"
+15:49 <+Complication> Besides, if the expanded message were the bottom-most, it *would* have to move anyway.
+15:49 <+Complication> 'Cause otherwise it'd be stuck there.
+15:50 < jrandom> well, the nav at the bottom shows 10 *threads* at a time, not 10 messages.  so it could expand the bottom thread
+15:50  * cervantes is testing some different threading UI style implementations atm
+15:51 < jrandom> wikked
+15:51 < jrandom> yeah, ideally we'll be able to switch them around in css, or if not, on the server side
+15:52 <@cervantes> or rather "threading navigation styles"
+15:53 <@cervantes> hmm my tests use pure html nested unnordered lists by default
+15:53 <@cervantes> you can layer on as much css and javascript as your need or want
+15:53 < jrandom> any eta on when we can see some mockups?
+15:53 <@cervantes> (however it's only a proof of concept, not an actual ui implementation)
+15:54 <@cervantes> I do most of my coding during I2P meetings ;-)
+15:54 < jrandom> heh
+15:54 <@cervantes> perhaps the first mockup will be ready this evening
+15:54  * jrandom schedules daily meetings
+15:54 < jrandom> wikked
+15:54 <@cervantes> curses :)
+15:55 < jrandom> ok, anyone have anything else for 2) syndie?
+15:55 < jrandom> if not, lets move on to 3) I2P Rufus 0.0.4
+15:56 < jrandom> I don't have much to add beyond whats in the mail - Rawn/defnax, y'all around?
+15:56 <+legion> so how good is 0.0.4? What problems remain if any?
+15:57  * jrandom hasn't a clue
+15:58 <+legion> Maybe one of its users can answer. Does it seem good and stable?
+15:58 < jrandom> ok, seems Rawn and defnax are away atm.  if anyone has any questions/comments/concerns regarding I2P Rufus, swing on by the forum and post 'em away
+15:58 <+legion> darn, guess we'll have to.
+15:59 <+legion> on to 4)?
+15:59 < jrandom> aye, so it seems.  ok, 4) ??? 
+15:59 <+Complication> I haven't tried I2P Rufus, unfortunately.
+16:00 < jrandom> anyone have anything else they want to bring up?
+16:00 < jrandom> (c'mon, we've got to drag this out so cervantes can do some more work!)
+16:00 <+legion> yeah, what sort of interesting stuff is coming down the pipe?
+16:00 <+bar> is there anywhere i could read more about "restricted routes"?
+16:00 <+bar> (i *have* searched)
+16:01 <+legion> Maybe we could even discuss i2phex?
+16:01 < jrandom> http://dev.i2p.net/cgi-bin/cvsweb.cgi/i2p/router/doc/techintro.html?rev=HEAD
+16:01  * cervantes poises his mouse over the close button
+16:01 < jrandom> er, #future.restricted
+16:02 < jrandom> plus the how_* pages & todo
+16:02 < jrandom> (on the web)
+16:02 <+Complication> Heh, I2P seems to have skipped a build :D
+16:02 <+Complication> :D
+16:02 <+bar> thanks
+16:02 <+Complication> -    public final static long BUILD = 1;
+16:02 <+Complication> +    public final static long BUILD = 3;
+16:03 < jrandom> legion: some hacking on the netDb, performance mods, restricted routes, streaming improvements, eepproxy improvements, tunnel improvements, etc.  lots of stuff, but nothing ready yet
+16:03 <+legion> huh, odd
+16:03 < jrandom> anything to bring up re: i2phex legion?
+16:03 < jrandom> Complication: yeah, intended.  I forgot to increase it for BUILD = 2
+16:03 <+Complication> (not that it matters for anything, just wondering if I've seen this rare occasion before :)
+16:04 <+legion> sweet, sounds great, thanks!
+16:04 < jrandom> oh, that reminds me... it'd be cool if someone wanted to dig into looking at revamping our webpage
+16:05  * jrandom doesnt want to think about it, but its got to be done sooner or later
+16:05 <+legion> yeah, there is
+16:05 <+legion> would it be worthwhile to update i2phex at this point to the latest phex cvs code?
+16:06 <+Complication> Not sure, I haven't heard from Redzara recently
+16:06 < jrandom> last I recall, redzara was waiting on gregorz's updates to phex
+16:06 < jrandom> (so we could have a fairly clean update/extension)
+16:08 <+legion> huh, then why have i2phex?
+16:08 <+Complication> Just in case?
+16:08 < jrandom> hmm?
+16:08 < jrandom> i2phex is an extension to phex
+16:08 <+legion> Seems like they wanted there to just be phex with a i2p extension
+16:09 < jrandom> extension, as in, modification to a very small number of bits
+16:09 < jrandom> er, s/bits/components/.  so we can easily update the code whenever the phex devs fix things
+16:10 <+legion> if so then it shouldn't take much work for me to update it to the latest cvs code, though I know it will.
+16:10 < jrandom> last I heard in the forum was that the plan is to have I2Phex and Phex be separate applications, but they'd share a majority of code
+16:10 < jrandom> aye legion, that'd be great, but last I heard, Gregor hadn't finished the modifications to Phex yet
+16:11 < jrandom> (which is what redzara was waiting on)
+16:11 <+legion> ah I see
+16:11 < jrandom> so, the alternative is to either help Gregor out or continue modifying the existing I2Phex codebase
+16:12 <+legion> well then if I don't wait and just update i2phex with new code, there would be no need for redzara continue
+16:12 < jrandom> well, not really. 
+16:12 < jrandom> updating I2Phex to the current Phex code would be great, yes
+16:13 < jrandom> but as soon as the Phex developers update their Phex code, we're out of sync again
+16:13 <+legion> ok, I'll probably get to it sometime tonight or within a couple days.
+16:13 < jrandom> wikked
+16:13 <+legion> That is fine.
+16:14 <+legion> Really I'm not looking to have i2phex remain in sync with phex code, it's just that it sounds like the cvs contains fixes which i2phex could certainly use.
+16:15 <+legion> Also I'm really looking to drop out any phex code and features which i2phex doesn't need.
+16:15 < jrandom> cool
+16:16 <+legion> As to any new features and fixing anything that is still not working like the upload queues... Well I've already looked into getting the webcaches working, but have much more to do.
+16:17 < jrandom> word.  yeah, phex used to have working gwebcache support, but sirup disabled it, as it wasn't necessary at first
+16:17 <+legion> I do plan on adding jeti to i2phex eventually.
+16:17 < jrandom> neat
+16:18  * jrandom has never used jeti, and I hope it stays an optional component, but supporting more things is cool
+16:18 <+legion> Yeah it can be optionally, users will be able to download a jeti2phex ;)
+16:19 < jrandom> word
+16:19 <+legion> There still is much we can do with i2phex, though it is working great as it is.
+16:20 <+legion> So far keeping a client connected, up and running for 24/7 is possible and easy.
+16:21 < jrandom> yeah, I've had some good success with it... "backing up my licensed recordings"
+16:21 <+legion> heh :)
+16:22 < jrandom> ok, anyone else have anything for the meeting?
+16:23  * cervantes wheels in the chinese gong
+16:23 <+legion> Seems like I'm forgetting something... hmm
+16:24 <+legion> Oh yeah, any ideas on how we can reduce the amount of memory i2p and i2phex consumes?
+16:25 <+Complication> Well, the TCP transport takes a bit
+16:25 < jrandom> one could run both in the same jvm
+16:25 <+Complication> If that is going, it will free a bit
+16:26 <@cervantes> take some ramsticks out of your machine
+16:26 < cat-a-puss> anyone with any experence with javolution know if it would help? http://javolution.org/
+16:26 < jrandom> (clients.config in the i2p install dir defines the main class and arguments to launch clients)
+16:26 <+legion> So if we ran both in the same jvm and when tcp goes, could we bring it down to under 50mb?
+16:27 < jrandom> no idea legion.  depends on what you mean by 50MB as well.  RSS/VSS/etc
+16:27 < jrandom> I really wouldn't recommend running both in one JVM though, unless you keep both running all the time, since shutting down one would kill the other
+16:27 <@cervantes> legion: limiting bandwith and capping participants might also help
+16:27 < jrandom> aye, what cervantes said
+16:28 < cat-a-puss> it would seem to me that if we know exactly how many of some type of object we are eventually likely to use, it would help prevent overzellous jvm allocation
+16:28 <+Complication> Right, it makes those different allocations, which I've never really managed to make sense of
+16:28 < jrandom> aye, we do some of that cat-a-puss (see net.i2p.util.ByteCache)
+16:29 <+Complication> (but as said, Java is a very new thing to me)
+16:29 < jrandom> I've glanced at javolution before, but it seems to have made a lot of progress.  i'll give 'er another look
+16:30 < cat-a-puss> jrandom:I know some people at my work use it and are happy with it, though they don't care about memory allocation
+16:31 < jrandom> well, it really wouldn't save any memory, but would help cut down on GC churn
+16:31 <+legion> Well I personally don't care much about memory allocation, however many people do.
+16:31 < jrandom> ooh, and its BSD licensed too
+16:31 < cat-a-puss> right
+16:31 < jrandom> legion: memory allocation means performance
+16:32 <+legion> er, oh, memory consumption then
+16:33 <+legion> Many people are so very happy with utorrent because of it's very small memory footprint.
+16:33 < jrandom> ah, oh, yeah.  we can tweak it down the line, but since i2p runs within the default jvm sizes, i'm not too worried (as we've got lots of room for tweaking)
+16:34 < jrandom> ok, anyone have anything else for the meeting?
+16:35 <+legion> nah I'm good...
+16:37  * jrandom winds up
+16:37  * jrandom *baf*s the meeting closed

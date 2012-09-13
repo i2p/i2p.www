@@ -1,88 +1,82 @@
-{% extends "_layout.html" %}
-{% block title %}I2P Development Meeting 205{% endblock %}
-{% block content %}<h3>I2P dev meeting, April 3, 2007</h3>
-<div class="irclog">
-16:01 < jrandom> 0) hi</p>
-16:01 < jrandom> 1) net status</p>
-16:01 < jrandom> 2) syndie dev status</p>
-16:01 < jrandom> 3) ???</p>
-16:01 < jrandom> 0) hi</p>
-16:01  * jrandom waves</p>
-16:01 < jrandom> weekly status notes are not up yet, but there wasn't much in 'em so we can cover it inline here</p>
-16:01 < jrandom> jumping into 1) net status</p>
-16:01 < jrandom> things seem to be doing pretty well, no major problems atm.  there were some troubles on the irc servers earlier, but the hardware issues have been resolved (thanks cervantes and postman!)</p>
-16:01 < jrandom> there's been some more discussion on zzz's blog regarding the ssu/ntcp ideas - check that out for more info</p>
-16:01 < jrandom> i don't have much to add on that... anyone have anything to bring up on 1) net status?</p>
-16:04 < jrandom> if not, lets move on to 2) syndie dev status</p>
-16:04 < jrandom> some good progress on the desktop gui lately, with a few components propagated back into the tabbed gui as well</p>
-16:04 < jrandom> we've still got some work to do, but i use the desktop gui for most everything atm. </p>
-16:04 < jrandom> mk has brought up some more ideas and concerns regarding the desktop gui as well, and as always, read the Syndie dev forum to follow the planning and implementation</p>
-16:04 <+Complication> indeed, I can also confirm higher IRC sessions persistence</p>
-16:04 < jrandom> w3wt</p>
-16:06 <+Complication> Seems like testing it again might be scheduled then (during my last test, I found it a bit... intimidating)</p>
-16:07 < jrandom> ah yeah, i added labels to most of the buttons now ;)</p>
-16:07 < jrandom> though if you're on windows it still does the vertical button labels wrong (need to write a custom layout for that)</p>
-16:07 <+Complication> (especially the lack of labels on the many components)</p>
-16:08 < jrandom> but its still not ready for alpha... i can use it because i know what everything does/is suposed to do</p>
-16:08 <+Complication> over here it's Linux, but good to know, I guess</p>
-16:08 < jrandom> but hopefully in the next week or so</p>
-16:09 <+Complication> on the Syndie side, I've been wondering about one issue: could the new syncing code is being overzealous, like attempting too many transfers concurrently?</p>
-16:09 <+Complication> s/is being/be</p>
-16:09 < jrandom> it'll try 5 concurrent fetches per archive</p>
-16:10 < jrandom> (and one async import thread)</p>
-16:10 <+Complication> Over here, its failure rate against most archives has seen a dramatic rise from earlier times</p>
-16:10 < jrandom> hmm</p>
-16:10 <+Complication> It could be that more people are syncing too,  but I'd still hope it possible to hit a spare moment when the archive ain't busy</p>
-16:10 <+Complication> "hitting a spare moment" and getting a quality sync done, seems to generally not happen, though</p>
-16:10 < jrandom> so various fetches fail saying "connection reset" or other tcp-like error message?</p>
-16:11 <+Complication> "socket closed" and whatnot</p>
-16:11 < jrandom> ah ok</p>
-16:11 <+Complication> I haven't really counted them</p>
-16:11 <+Complication> This is of course entirely via I2P</p>
-16:11 < jrandom> the servers arent currently that hefty (i think they have very limited handling capacity), and that should get imporved</p>
-16:12 < jrandom> also, as you and $nymFormerlyKnownAsAnonymous said, we should retry those kinds of failures</p>
-16:12 <+Complication> right, that might help too</p>
-16:12 < tapeworm> What are the servers based on?</p>
-16:12 < jrandom> but we definitely need that to be rock solid and transparent, of course</p>
-16:13 < jrandom> tapeworm: homebrew</p>
-16:13 <+Complication> though when I mesured "eepget" performance a while back, comparatively to Syndie, eepget got great performance and reliability</p>
-16:13 < jrandom> (about a dozen lines of code)</p>
-16:13 <+Complication> it pulled 2 x 9 MB from dev.i2p.net while archive.syndie.i2p kept failing on tiny little messages</p>
-16:13 < jrandom> oh, thats not really a fair test though</p>
-16:14 <+Complication> different boxes?</p>
-16:14 < jrandom> and syndie actually /uses/ eepget to fetch</p>
-16:14 < jrandom> fetching from apache is pretty different from fetching lots of small files from a homebrew webserver ;)</p>
-16:14 <+Complication> hmm... I should probably log overzealously while syncing then</p>
-16:15 <+Complication> indeed, and the difference between servers too</p>
-16:17 <+Complication> heh, it seems I managed to initiate a sync in the desktop UI</p>
-16:17 <+Complication> a task which proved too hard last time :)</p>
-16:17 < jrandom> w3wt :)</p>
-16:18 < jrandom> ok, anyone have anything else for 2?  if not, lets jump on over to 3) ???</p>
-16:18 <+Complication> I do have the habits of a heavy taskbar user, though, so it will likely take some getting used to</p>
-16:18 <+Complication> (I usually have the taskbar on auto-hide)</p>
-16:19 < jrandom> well, there's a compile time option to put the desktop gui in a shell rather than fullscreen - we can make that a command line switch instead </p>
-16:19 <+Complication> is the desktop gui, in principle, capable of having a "minimize" button?</p>
-16:19 < jrandom> its trouble to make it a runtime change though, as swt doesn't allow gui component reparenting (reliably), and you cant change a shell's trim</p>
-16:20 < jrandom> oh, yes, definitely possible - good idea</p>
-16:20 <+Complication> which would send it to background without affecting the order in which other windows below it are arranged?</p>
-16:20 < jrandom> we can toss that into the control menu (top left) or the task menu (top right)</p>
-16:20 <+Complication> Because using alt+tab tends to change that</p>
-16:21 <+Complication> (something... like the "show desktop" button I typically like to have on the taskbar near the KDE / Start button)</p>
-16:21 <+Complication> (another location may prove better, but something of this effect)</p>
-16:22 < jrandom> yeah, we can hide it the same wayt the tabbed gui's minimize works (or we can iconize it like the normal windowing minimize button)</p>
-16:22 <+Complication> Even if admittedly, minimize and show desktop are different things - now that I consider more, minimize seems a bit more logical.</p>
-16:24 <+Complication> As for syncing errors, I currently have 1 instance of HTTP 504, and 4 instances of "socket closed"</p>
-16:24 <+Complication> 2 successes</p>
-16:24  * TrevorReznik encounters like 70% socket closed</p>
-16:24 < jrandom> zounds</p>
-16:24 < jrandom> ok, ill look into that and get an update in there asap</p>
-16:27 < jrandom> ok, in 3) ??? - anyone have anything else for the meeting?</p>
-16:27 <+Complication> I wish I had, but not yet - webcache app still incomplete, since real life ran me over a little</p>
-16:28 < jrandom> damn that reality!</p>
-16:28  * Complication will try to get the 15 annoying things sorted out of the way</p>
-16:32 < jrandom> wr0d</p>
-16:32 < jrandom> ok, if there isn't anything else for the meeting...</p>
-16:32  * jrandom winds up</p>
-16:33  * jrandom *baf*s the meeting closed</p>
-</div>
-{% endblock %}
+16:01 < jrandom> 0) hi
+16:01 < jrandom> 1) net status
+16:01 < jrandom> 2) syndie dev status
+16:01 < jrandom> 3) ???
+16:01 < jrandom> 0) hi
+16:01  * jrandom waves
+16:01 < jrandom> weekly status notes are not up yet, but there wasn't much in 'em so we can cover it inline here
+16:01 < jrandom> jumping into 1) net status
+16:01 < jrandom> things seem to be doing pretty well, no major problems atm.  there were some troubles on the irc servers earlier, but the hardware issues have been resolved (thanks cervantes and postman!)
+16:01 < jrandom> there's been some more discussion on zzz's blog regarding the ssu/ntcp ideas - check that out for more info
+16:01 < jrandom> i don't have much to add on that... anyone have anything to bring up on 1) net status?
+16:04 < jrandom> if not, lets move on to 2) syndie dev status
+16:04 < jrandom> some good progress on the desktop gui lately, with a few components propagated back into the tabbed gui as well
+16:04 < jrandom> we've still got some work to do, but i use the desktop gui for most everything atm. 
+16:04 < jrandom> mk has brought up some more ideas and concerns regarding the desktop gui as well, and as always, read the Syndie dev forum to follow the planning and implementation
+16:04 <+Complication> indeed, I can also confirm higher IRC sessions persistence
+16:04 < jrandom> w3wt
+16:06 <+Complication> Seems like testing it again might be scheduled then (during my last test, I found it a bit... intimidating)
+16:07 < jrandom> ah yeah, i added labels to most of the buttons now ;)
+16:07 < jrandom> though if you're on windows it still does the vertical button labels wrong (need to write a custom layout for that)
+16:07 <+Complication> (especially the lack of labels on the many components)
+16:08 < jrandom> but its still not ready for alpha... i can use it because i know what everything does/is suposed to do
+16:08 <+Complication> over here it's Linux, but good to know, I guess
+16:08 < jrandom> but hopefully in the next week or so
+16:09 <+Complication> on the Syndie side, I've been wondering about one issue: could the new syncing code is being overzealous, like attempting too many transfers concurrently?
+16:09 <+Complication> s/is being/be
+16:09 < jrandom> it'll try 5 concurrent fetches per archive
+16:10 < jrandom> (and one async import thread)
+16:10 <+Complication> Over here, its failure rate against most archives has seen a dramatic rise from earlier times
+16:10 < jrandom> hmm
+16:10 <+Complication> It could be that more people are syncing too,  but I'd still hope it possible to hit a spare moment when the archive ain't busy
+16:10 <+Complication> "hitting a spare moment" and getting a quality sync done, seems to generally not happen, though
+16:10 < jrandom> so various fetches fail saying "connection reset" or other tcp-like error message?
+16:11 <+Complication> "socket closed" and whatnot
+16:11 < jrandom> ah ok
+16:11 <+Complication> I haven't really counted them
+16:11 <+Complication> This is of course entirely via I2P
+16:11 < jrandom> the servers arent currently that hefty (i think they have very limited handling capacity), and that should get imporved
+16:12 < jrandom> also, as you and $nymFormerlyKnownAsAnonymous said, we should retry those kinds of failures
+16:12 <+Complication> right, that might help too
+16:12 < tapeworm> What are the servers based on?
+16:12 < jrandom> but we definitely need that to be rock solid and transparent, of course
+16:13 < jrandom> tapeworm: homebrew
+16:13 <+Complication> though when I mesured "eepget" performance a while back, comparatively to Syndie, eepget got great performance and reliability
+16:13 < jrandom> (about a dozen lines of code)
+16:13 <+Complication> it pulled 2 x 9 MB from dev.i2p.net while archive.syndie.i2p kept failing on tiny little messages
+16:13 < jrandom> oh, thats not really a fair test though
+16:14 <+Complication> different boxes?
+16:14 < jrandom> and syndie actually /uses/ eepget to fetch
+16:14 < jrandom> fetching from apache is pretty different from fetching lots of small files from a homebrew webserver ;)
+16:14 <+Complication> hmm... I should probably log overzealously while syncing then
+16:15 <+Complication> indeed, and the difference between servers too
+16:17 <+Complication> heh, it seems I managed to initiate a sync in the desktop UI
+16:17 <+Complication> a task which proved too hard last time :)
+16:17 < jrandom> w3wt :)
+16:18 < jrandom> ok, anyone have anything else for 2?  if not, lets jump on over to 3) ???
+16:18 <+Complication> I do have the habits of a heavy taskbar user, though, so it will likely take some getting used to
+16:18 <+Complication> (I usually have the taskbar on auto-hide)
+16:19 < jrandom> well, there's a compile time option to put the desktop gui in a shell rather than fullscreen - we can make that a command line switch instead 
+16:19 <+Complication> is the desktop gui, in principle, capable of having a "minimize" button?
+16:19 < jrandom> its trouble to make it a runtime change though, as swt doesn't allow gui component reparenting (reliably), and you cant change a shell's trim
+16:20 < jrandom> oh, yes, definitely possible - good idea
+16:20 <+Complication> which would send it to background without affecting the order in which other windows below it are arranged?
+16:20 < jrandom> we can toss that into the control menu (top left) or the task menu (top right)
+16:20 <+Complication> Because using alt+tab tends to change that
+16:21 <+Complication> (something... like the "show desktop" button I typically like to have on the taskbar near the KDE / Start button)
+16:21 <+Complication> (another location may prove better, but something of this effect)
+16:22 < jrandom> yeah, we can hide it the same wayt the tabbed gui's minimize works (or we can iconize it like the normal windowing minimize button)
+16:22 <+Complication> Even if admittedly, minimize and show desktop are different things - now that I consider more, minimize seems a bit more logical.
+16:24 <+Complication> As for syncing errors, I currently have 1 instance of HTTP 504, and 4 instances of "socket closed"
+16:24 <+Complication> 2 successes
+16:24  * TrevorReznik encounters like 70% socket closed
+16:24 < jrandom> zounds
+16:24 < jrandom> ok, ill look into that and get an update in there asap
+16:27 < jrandom> ok, in 3) ??? - anyone have anything else for the meeting?
+16:27 <+Complication> I wish I had, but not yet - webcache app still incomplete, since real life ran me over a little
+16:28 < jrandom> damn that reality!
+16:28  * Complication will try to get the 15 annoying things sorted out of the way
+16:32 < jrandom> wr0d
+16:32 < jrandom> ok, if there isn't anything else for the meeting...
+16:32  * jrandom winds up
+16:33  * jrandom *baf*s the meeting closed

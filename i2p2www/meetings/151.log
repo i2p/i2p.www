@@ -1,240 +1,234 @@
-{% extends "_layout.html" %}
-{% block title %}I2P Development Meeting 151{% endblock %}
-{% block content %}<h3>I2P dev meeting, October 11, 2005</h3>
-<div class="irclog">
-16:29 < jrandom> 0) hi</p>
-16:29 < jrandom> 1) 0.6.1.2</p>
-16:29 < jrandom> 2) I2PTunnelIRCClient</p>
-16:29 < jrandom> 3) Syndie</p>
-16:29 < jrandom> 4) I2Phex</p>
-16:29 < jrandom> 5) Stego and darknets (re: flamewar)</p>
-16:29 < jrandom> 5) ???</p>
-16:29 < jrandom> 0) hi</p>
-16:29 <@cervantes> (6)</p>
-16:29 <+postman> you mean 6)?</p>
-16:29 < jrandom> yeah, i can't count ;)</p>
-16:30  * postman high-fives cervantes </p>
-16:30 < jrandom> weekly status notes posted up @ http://dev.i2p.net/pipermail/i2p/2005-October/000990.html</p>
-16:30 < wiht> Questions should be item 6.</p>
-16:30 < jrandom> since i'm 30 minutes late, y'all have already read through those notes, I'm sure, so lets get this underway ;)</p>
-16:31 < jrandom> 1) 0.6.1.2</p>
-16:31 <@cervantes> 6) Discuss jrandom's roommate's poor judgement in timing</p>
-16:31 < jrandom> *cough* ;)</p>
-16:31 < jrandom> ok, as mentioned in the email, the 0.6.1.2 release seems to be doing pretty well</p>
-16:32 < jrandom> we've found the bug that had kept the irc servers back on an older build, and they're now up to date too (w00t!)</p>
-16:32 <+postman> :)</p>
-16:32 < wiht> Speaking of that, in the netDB on the router console, would it be possible to list the table with routers and their versions at the top of the page?</p>
-16:33 < jrandom> the number of routers per version, right?  sure, that could be done pretty easy, maybe integrate it into the peers.jsp table (showing per-peer version) and a new table at the bottom?</p>
-16:34 < jrandom> its kind of nice seeing 9 versions playing well together, though of course newer ones work best</p>
-16:35 < jrandom> ok, anyone else have something to bring up regarding 1) 0.6.1.2?</p>
-16:35 <+postman> one of my routers shows 1080 known</p>
-16:35 < jrandom> zounds</p>
-16:35 <+postman> i think this is a bit off track?</p>
-16:35 < jrandom> is that on 0.6.1.2?</p>
-16:35 <+postman> yeah, think so</p>
-16:36 < jrandom> hmm, yeah, thats a... bit high.  i'm seeing about half that many right now</p>
-16:36 <+Complication> Sustainably 400-ish here</p>
-16:37 <+bar> same here</p>
-16:37 < wiht> I see 260 known routers.</p>
-16:37 < jrandom> postman: perhaps we can dig into whats going on in that router after the meeting (could you tar.bz2 me netDb/routerInfo-*?)</p>
-16:38 <+postman> jrandom: yeah thanks</p>
-16:38 < jrandom> gracias</p>
-16:38 < jrandom> yeah, not everyone will see every netDb reference, so thats normal for there to be fluctuation</p>
-16:40 < jrandom> ok, if there's nothing else on 1) 0.6.1.2, lets swing on over to 2) I2PTunnelIRCClient</p>
-16:40 <@cervantes> nice one dust</p>
-16:40 < jrandom> as mentioned in the email, we've got a new IRC-protocol-specific filter available in CVS, and it should be rolled out as the default in the next rev</p>
-16:41 <+postman> cool</p>
-16:41 < jrandom> yeah, this is very cool, people have been asking for something like it for ages</p>
-16:41 <+Myo9> Jrandom, you have become more open recently, we have learned about your ex, and now your room mate, etc. Do recall: http://www.navysecurity.navy.mil/st031204.jpg</p>
-16:41 < jrandom> *cough*</p>
-16:42 < dust> if you wish to see what your client send you can add net.i2p.i2ptunnel.I2PTunnelIRCClient=INFO and then look at the logs to see it all</p>
-16:43 < dust> i've tested some clients but there are many..</p>
-16:43 < jrandom> yeah, i've been watching it for a lil bit, but the filtering seems sound</p>
-16:44 < jrandom> there are some neat things we may be able to do in the future too - e.g. PING/PONG locally, to cut down on network activity</p>
-16:44 <+Complication> dust: thanks for the "info" :)</p>
-16:44 <+bar> awsome dust, thanks a lot</p>
-16:44 < wiht> Does this mean we don't need to set up an extra IRC tunnel?</p>
-16:44 < jrandom> wiht: no, you'll need an irc tunnel, but it can replace the one you use already</p>
-16:45 <+Complication> wiht: just worry less about our IRC client giving away our ass</p>
-16:45 < jrandom> postman/cervantes: any thoughts on increasing or removing the server ping/pong timeouts?  </p>
-16:45 < wiht> That explains it, thanks.</p>
-16:46 <+postman> mmh, i would not remove them, my client completely freaked when i played around with it</p>
-16:46 < jrandom> postman: well, i'm thinking if it responded to them locally, so the client would get a really, really fast PING/PONG</p>
-16:46 <@cervantes> postman: the proxy could respond to pings</p>
-16:46 < jrandom> (but the ping/pong wouldn't need to go over the network)</p>
-16:47 < jrandom> i don't know the impact, but it may be worth looking into.</p>
-16:47 <@cervantes> but I'm not sure how the servers would react, you might end up with a bunch of zombie clients</p>
-16:47 <+postman> jrandom: well</p>
-16:47 < jrandom> well, the streaming lib's keepalive should handle that</p>
-16:47  * Complication has occasionally experienced zombification</p>
-16:47 < jrandom> Complication: recently?</p>
-16:47 <+postman> jrandom: if the proxy pings for the client, the proxy must ping/pong to the client as well</p>
-16:48 <+Complication> A week ago, I think.</p>
-16:48 < jrandom> postman: a PING from the client to the proxy would have the proxy respond directly to the client with a PONG without sending anything over i2p</p>
-16:48 <+Complication> But my "copy" was dropped eventually.</p>
-16:48 <@cervantes> jrandom: the connection would be held open...the servers would need to lower their threshold for deciding at what point a client is stale and need ejecting</p>
-16:48 < jrandom> Complication: ah, the irc servers weren't up to date back then, shouldn't happen anymore</p>
-16:49 <+Complication> Without me using "ghost". Recent uses of the ghost command have been due to operating with many nodes.</p>
-16:49 <+postman> jrandom: and the lag measurement?</p>
-16:49 < jrandom> cervantes: right.  and/or if necessary, the proxy could inject an extra PING message to the server if it /needs/ one. </p>
-16:49 <+postman> i find it quite useful to know if i am lagged or not</p>
-16:49 < jrandom> postman: i do too, but you can always /msg yourself</p>
-16:50 < dust> you could perhaps reduce the number of pings</p>
-16:50 < jrandom> it would save a substantial amount of bandwidth, since tunnel messages are 1024byte blocks, sent over 2*k+1 hops</p>
-16:50 < jrandom> that too</p>
-16:50 < jrandom> i don't know, just an idea.  what we have now is kick ass regardless </p>
-16:51 <+postman> ok, i would try to patch a testserver</p>
-16:51 <@cervantes> perhaps we could look into reducing the number...but I think we should still send some real pings do determine if the clients are still alive</p>
-16:51 <+postman> maybe it works</p>
-16:51 < jrandom> seems reasonable cervantes.  i don't think it'd need any patching on the server, i hope?</p>
-16:52 <+postman> jrandom: to deactivate maybe - but lowering the interval is conf parameter</p>
-16:53  * postman chews on the ircd documentation ( again )</p>
-16:53 < jrandom> cool, no rush.  just something we can look into sometime</p>
-16:53 <@cervantes> class servers</p>
-16:53 <@cervantes> {</p>
-16:53 <@cervantes>     pingfreq   120;</p>
-16:54 <@cervantes> class clients { pingfreq 90 }</p>
-16:54 <@cervantes> that's my current config</p>
-16:54 <+postman> cervantes: yes, i know  - the question is if it can be deactivated at all</p>
-16:54 <@cervantes> I wouldn't deactivate them...just look into reducing them</p>
-16:55 <+postman> ok, let's start with that</p>
-16:55 <+postman> cervantes: how about 180 secs?</p>
-16:56 <@cervantes> in at the deep end with 240</p>
-16:56 <@cervantes> but perhaps we should ge tthe ircproxy side of things ready first</p>
-16:57 <@cervantes> *discuss after meeting*</p>
-16:57 <+postman> agreed</p>
-16:57 < jrandom> w3rd.  ok, anything else on 2) I2PTunnelIRCClient, or shall we move on to 3) Syndie?</p>
-16:57 <@cervantes> anything to reduce my current 40kb/sec average router traffic ;-)</p>
-16:58 < jrandom> heh, for some reason i doubt thats all irc ;)</p>
-16:58 < jrandom> ok, movin' on</p>
-16:59  * cervantes hides is pony video downloads he's been leeching from jrandom all week</p>
-16:59 <@cervantes> is=the</p>
-16:59 <+postman> LOL</p>
-16:59 < jrandom> as mentioned in the mail, there's some pretty cool stuff going on with syndie</p>
-16:59 < jrandom> the cli is trivial, but dust's new Sucker looks really promising</p>
-16:59 < jrandom> dust: wanna give us a rundown?</p>
-17:00 < dust> oh,</p>
-17:01 < dust> well, it uses rome for parsing the feeds and then converts it to sml, like described in jrandoms blog</p>
-17:02 < dust> it's not what you'd call robust yet, but it's only two days old :)</p>
-17:02 < dust> i've got some dilbert in my syndie..</p>
-17:02 < dust> :)</p>
-17:02 < dust> .</p>
-17:02 < jrandom> nice</p>
-17:03 < jrandom> ok, what are your thoughts on where its going - should we toss it into the syndie source and expose it as a cli, or keep it separate and distribute it independently, or something else?</p>
-17:04  * dust don't know, you decide</p>
-17:04 < dust> the less separate tools the better</p>
-17:04 < jrandom> yeah, probably easier to bundle it all together, that way everyone knows they can use it</p>
-17:05 < jrandom> we'd then be able to do things like integrate it into the web interface, and maybe into Ragnarok's scheduler (syndicating with other nodes and pulling from rss/atom/etc)</p>
-17:07 < jrandom> ok, anyone have any questions/comments/concerns on 3) Syndie?</p>
-17:07 < wiht> If you keep integrating software into I2P, it may become a bloated software package.</p>
-17:07 < wiht> Of course, I can turn off Syndie if I am not using it.</p>
-17:08 < jrandom> the i2p sdk 13KLOC</p>
-17:08 < jrandom> and the i2p router is only 22KLOC</p>
-17:08 < jrandom> but yeah, there is an impact on download times of the install</p>
-17:09 < jrandom> if someone wanted, they could build a stripped down router with no client apps, using just the router.jar, jbigi.jar, and i2p.jar</p>
-17:09 < wiht> Yes, I was referring to the download.</p>
-17:09 < jrandom> (but its much more useful when there's a web interface to control it, and i2ptunnel, and the streaming lib, etc ;)</p>
-17:11 < jrandom> smeghead was working on a distribution system (like emerge, for java), and there's the jpackage folks too</p>
-17:11 < jrandom> if someone wants to look into a seamless and reliable way to manage the apps without bundling, it'd be pretty cool</p>
-17:12 < jrandom> ok, if there's nothing else on that, lets jump on over to 4) I2Phex</p>
-17:13 < jrandom> I don't really have much to add beyond whats in the status notes</p>
-17:13 < jrandom> redzara: you around?</p>
-17:13 <+redzara> yes i'm</p>
-17:13 <+redzara> I'm already working on the next version, while waiting for the meeting with Gregor.</p>
-17:13 < jrandom> ah great</p>
-17:13 <+redzara> Work, for the moment, primarily consists in identifying the differences and the needs related to the use of I2P such as for example tcp/udp vs i2p, management of the parameters specific to I2P (and management of the update of these same parameters at the time of the next versions, ...) port of GWebCache to I2P, use RSS or not, use push or not... </p>
-17:14 <+redzara> I have much documentation and code to read</p>
-17:15 < jrandom> wow, yeah, sounds like a lot.  let me know if you've got any questions regarding i2p integration, or if you just want someone to bounce ideas off</p>
-17:16 < jrandom> getting the I2Phex part into a plugin for the mainline Phex would be really kickass</p>
-17:17 < jrandom> ok, anyone else have anything for 4) I2Phex?</p>
-17:18 <+redzara> I would need certainly assistance for the petname part</p>
-17:19 <+redzara> and maybe too for fine tunning tunnels's parameters</p>
-17:19 < jrandom> cool, the naming is pretty easy - at a basic level, you could even get by without using names at all (this is how I2Phex does it now)</p>
-17:20 < jrandom> tunnel config shouldn't be a problem either, though that brings up the idea that maybe Phex would need an "advanced configuration" section for plugins</p>
-17:20 < jrandom> (we'd obviously want to have good defaults anyway)</p>
-17:21 <+redzara> maybe something like ircclient, an filter to be sure</p>
-17:22 <@cervantes> better to get the app in shape imho</p>
-17:22 < jrandom> that might work, though dealing with arbitrary byte sequences may be tough</p>
-17:23 < jrandom> though, a proxy like ircclient might be able to allow any gnutella client to use it.  but it'd be a bunch of work.</p>
-17:23 <+redzara> humm, it's just an idea ;)</p>
-17:23  * jrandom doesn't know the protocol well enough to say what the best approach is, so suggest going with the simplest thing that could possibly work :)</p>
-17:25 < jrandom> ok, if there's isn't anything else, perhaps we can swing through 5) stego and darknets briefly</p>
-17:26 < jrandom> i'm not sure if there's anything i have to add beyond whats being said on the list (and major discussion should probably continue there)</p>
-17:27 < jrandom> that said, is there anything people want to bring up about the issues raised?</p>
-17:27 < wiht> Freenet version 0.5 and 0.7 were mentioned in the discussion. Is there a version 0.6 for Freenet?</p>
-17:27 < jrandom> 0.6 is their current "unstable" branch of the network</p>
-17:27 < jrandom> afaik</p>
-17:27 <+postman> ohh and i thought it has been stolen by alien forces</p>
-17:28 < jrandom> while blaming the aliens is usually a safe bet, this is one of the few instances where they're not at fault</p>
-17:28 <+postman> :)</p>
-17:28 < wiht> Toad was talking about being able to harvest the IP addresses of I2P or FreeNet nodes, right?</p>
-17:28 < jrandom> among other things</p>
-17:29 < wiht> Just wanted to clarify that, thanks.</p>
-17:29 < jrandom> np.  ok, anyone else have anything on 5), or shall we move on over to the good ol' fashioned 6) ???</p>
-17:30 <+postman> ok, i got one for 6)</p>
-17:30 < jrandom> consider us moved.</p>
-17:30 < jrandom> whats up postman?</p>
-17:30 <+postman> we all have seen that protocol specific filter capable proxies are good and needed</p>
-17:31 <+postman> would it be feasable to invest thinking in a generic proxy</p>
-17:31 <+postman> that can be fed with a protocol description</p>
-17:31 <+redzara> I would like to have an application like cron using beanshell to run code java code dynamically</p>
-17:31 <+postman> along with stuff to watch for/filter/disguise</p>
-17:31 <+postman> like a filter/sanitize xml description </p>
-17:32 <+postman> so that we dont need new source but just a new filter file/profile</p>
-17:32 <+postman> (just a question if its worth to think about it)</p>
-17:32 < jrandom> very, very complicated postman.  it'd be possible to use a lexer like javacc to build input languages and an app to translate that language into the output format</p>
-17:32 <@cervantes> it's catching the stuff that deviates from the protocol that's tricky</p>
-17:33 <+postman> it was just an idea to trigger a process of brainstorming</p>
-17:33 <+postman> imho something like a generic proxy with modeled filter/parser is very usable</p>
-17:33 < wiht> Has anyone been able to connect to eepsites.i2p? I have tried several times over the past week, but was always unsuccessful.</p>
-17:33 < jrandom> wiht: i loaded it once, its the same as eepsites.com</p>
-17:34 < jrandom> (or is it .net?  or .org?  i forget)</p>
-17:34  * wiht visits eepsites.com</p>
-17:34 < jrandom> postman: if someone could come up with something that'd work, that'd kick ass</p>
-17:34 <+postman> jrandom: ok, i'll do some thinking together with susi</p>
-17:34 < jrandom> w3wt</p>
-17:34 <+postman> jrandom: maybe we'll drop it next week </p>
-17:35 < wiht> It is eepsites.com, and it is a search engine for eepsites.</p>
-17:35 <+postman> but i had a dream that it worked</p>
-17:35 <+postman> :]</p>
-17:35 < jrandom> :)</p>
-17:36  * Complication suspects that descibing all the subtleties which occur in protocols... requires code, and nothing less than code</p>
-17:36 <+Complication> (for most protocols, at least)</p>
-17:36 <@cervantes> nah just some eeevul regex</p>
-17:36 <+postman> Complication: maybe this suspicion is the reason that keeps us from further investigation</p>
-17:37 <+postman> Complication: i am not yet sure, but suspicion alone will not put me to rest on that matter</p>
-17:37 < jrandom> well, an important point here is something dust demonstrated for us -</p>
-17:37  * Complication fears a regex capable of such things</p>
-17:37 < jrandom> code isn't necessarily that scary.</p>
-17:37 <+postman> see? :)</p>
-17:37 <+postman> a good filter modelling language will do the same</p>
-17:38 <+postman> :)</p>
-17:38 <@cervantes> tcl? :)</p>
-17:38 <+Complication> It would have to be good.</p>
-17:38  * jrandom sees that you've got your own flying ponies too postman ;)</p>
-17:38  * dust also felt bad about duplicating code here and there</p>
-17:38 <+postman> jrandom: no cows :)</p>
-17:38 < jrandom> working code &gt;&gt;&gt; theoretical improvements in code </p>
-17:39 <+postman> mmh</p>
-17:40 <+postman> one thing i learned from i2p</p>
-17:40 < wiht> &gt;&gt;&gt; means "much, much better?"</p>
-17:40 <+postman> do not give up on first looks</p>
-17:40 < jrandom> true enough postman </p>
-17:40 < jrandom> yes wiht </p>
-17:41 < jrandom> it would be really cool</p>
-17:41 < jrandom> ok, anyone else have something to bring up for the meeting?</p>
-17:41 <+bar> well, how's the IMAP working, postman? (i read about it in the forums but haven't tried it yet myself)</p>
-17:41 <+postman> bar: try it yourself - i have no user reports yet</p>
-17:41  * cervantes rolls in the pony shaped gong</p>
-17:42 <+bar> ok, will do :)</p>
-17:42 <+postman> bar: and for me it works FINE :)</p>
-17:42 < jrandom> nice</p>
-17:42 <+bar> cool</p>
-17:42 <+postman> cervantes: you're fixated</p>
-17:42 <@cervantes> me?!</p>
-17:42 <@cervantes> :)</p>
-17:43 < jrandom> ok, before we reach the 90 minute mark</p>
-17:43  * jrandom winds up</p>
-17:43  * jrandom *baf*s the meeting closed</p>
-</div>
-{% endblock %}
+16:29 < jrandom> 0) hi
+16:29 < jrandom> 1) 0.6.1.2
+16:29 < jrandom> 2) I2PTunnelIRCClient
+16:29 < jrandom> 3) Syndie
+16:29 < jrandom> 4) I2Phex
+16:29 < jrandom> 5) Stego and darknets (re: flamewar)
+16:29 < jrandom> 5) ???
+16:29 < jrandom> 0) hi
+16:29 <@cervantes> (6)
+16:29 <+postman> you mean 6)?
+16:29 < jrandom> yeah, i can't count ;)
+16:30  * postman high-fives cervantes 
+16:30 < jrandom> weekly status notes posted up @ http://dev.i2p.net/pipermail/i2p/2005-October/000990.html
+16:30 < wiht> Questions should be item 6.
+16:30 < jrandom> since i'm 30 minutes late, y'all have already read through those notes, I'm sure, so lets get this underway ;)
+16:31 < jrandom> 1) 0.6.1.2
+16:31 <@cervantes> 6) Discuss jrandom's roommate's poor judgement in timing
+16:31 < jrandom> *cough* ;)
+16:31 < jrandom> ok, as mentioned in the email, the 0.6.1.2 release seems to be doing pretty well
+16:32 < jrandom> we've found the bug that had kept the irc servers back on an older build, and they're now up to date too (w00t!)
+16:32 <+postman> :)
+16:32 < wiht> Speaking of that, in the netDB on the router console, would it be possible to list the table with routers and their versions at the top of the page?
+16:33 < jrandom> the number of routers per version, right?  sure, that could be done pretty easy, maybe integrate it into the peers.jsp table (showing per-peer version) and a new table at the bottom?
+16:34 < jrandom> its kind of nice seeing 9 versions playing well together, though of course newer ones work best
+16:35 < jrandom> ok, anyone else have something to bring up regarding 1) 0.6.1.2?
+16:35 <+postman> one of my routers shows 1080 known
+16:35 < jrandom> zounds
+16:35 <+postman> i think this is a bit off track?
+16:35 < jrandom> is that on 0.6.1.2?
+16:35 <+postman> yeah, think so
+16:36 < jrandom> hmm, yeah, thats a... bit high.  i'm seeing about half that many right now
+16:36 <+Complication> Sustainably 400-ish here
+16:37 <+bar> same here
+16:37 < wiht> I see 260 known routers.
+16:37 < jrandom> postman: perhaps we can dig into whats going on in that router after the meeting (could you tar.bz2 me netDb/routerInfo-*?)
+16:38 <+postman> jrandom: yeah thanks
+16:38 < jrandom> gracias
+16:38 < jrandom> yeah, not everyone will see every netDb reference, so thats normal for there to be fluctuation
+16:40 < jrandom> ok, if there's nothing else on 1) 0.6.1.2, lets swing on over to 2) I2PTunnelIRCClient
+16:40 <@cervantes> nice one dust
+16:40 < jrandom> as mentioned in the email, we've got a new IRC-protocol-specific filter available in CVS, and it should be rolled out as the default in the next rev
+16:41 <+postman> cool
+16:41 < jrandom> yeah, this is very cool, people have been asking for something like it for ages
+16:41 <+Myo9> Jrandom, you have become more open recently, we have learned about your ex, and now your room mate, etc. Do recall: http://www.navysecurity.navy.mil/st031204.jpg
+16:41 < jrandom> *cough*
+16:42 < dust> if you wish to see what your client send you can add net.i2p.i2ptunnel.I2PTunnelIRCClient=INFO and then look at the logs to see it all
+16:43 < dust> i've tested some clients but there are many..
+16:43 < jrandom> yeah, i've been watching it for a lil bit, but the filtering seems sound
+16:44 < jrandom> there are some neat things we may be able to do in the future too - e.g. PING/PONG locally, to cut down on network activity
+16:44 <+Complication> dust: thanks for the "info" :)
+16:44 <+bar> awsome dust, thanks a lot
+16:44 < wiht> Does this mean we don't need to set up an extra IRC tunnel?
+16:44 < jrandom> wiht: no, you'll need an irc tunnel, but it can replace the one you use already
+16:45 <+Complication> wiht: just worry less about our IRC client giving away our ass
+16:45 < jrandom> postman/cervantes: any thoughts on increasing or removing the server ping/pong timeouts?  
+16:45 < wiht> That explains it, thanks.
+16:46 <+postman> mmh, i would not remove them, my client completely freaked when i played around with it
+16:46 < jrandom> postman: well, i'm thinking if it responded to them locally, so the client would get a really, really fast PING/PONG
+16:46 <@cervantes> postman: the proxy could respond to pings
+16:46 < jrandom> (but the ping/pong wouldn't need to go over the network)
+16:47 < jrandom> i don't know the impact, but it may be worth looking into.
+16:47 <@cervantes> but I'm not sure how the servers would react, you might end up with a bunch of zombie clients
+16:47 <+postman> jrandom: well
+16:47 < jrandom> well, the streaming lib's keepalive should handle that
+16:47  * Complication has occasionally experienced zombification
+16:47 < jrandom> Complication: recently?
+16:47 <+postman> jrandom: if the proxy pings for the client, the proxy must ping/pong to the client as well
+16:48 <+Complication> A week ago, I think.
+16:48 < jrandom> postman: a PING from the client to the proxy would have the proxy respond directly to the client with a PONG without sending anything over i2p
+16:48 <+Complication> But my "copy" was dropped eventually.
+16:48 <@cervantes> jrandom: the connection would be held open...the servers would need to lower their threshold for deciding at what point a client is stale and need ejecting
+16:48 < jrandom> Complication: ah, the irc servers weren't up to date back then, shouldn't happen anymore
+16:49 <+Complication> Without me using "ghost". Recent uses of the ghost command have been due to operating with many nodes.
+16:49 <+postman> jrandom: and the lag measurement?
+16:49 < jrandom> cervantes: right.  and/or if necessary, the proxy could inject an extra PING message to the server if it /needs/ one. 
+16:49 <+postman> i find it quite useful to know if i am lagged or not
+16:49 < jrandom> postman: i do too, but you can always /msg yourself
+16:50 < dust> you could perhaps reduce the number of pings
+16:50 < jrandom> it would save a substantial amount of bandwidth, since tunnel messages are 1024byte blocks, sent over 2*k+1 hops
+16:50 < jrandom> that too
+16:50 < jrandom> i don't know, just an idea.  what we have now is kick ass regardless 
+16:51 <+postman> ok, i would try to patch a testserver
+16:51 <@cervantes> perhaps we could look into reducing the number...but I think we should still send some real pings do determine if the clients are still alive
+16:51 <+postman> maybe it works
+16:51 < jrandom> seems reasonable cervantes.  i don't think it'd need any patching on the server, i hope?
+16:52 <+postman> jrandom: to deactivate maybe - but lowering the interval is conf parameter
+16:53  * postman chews on the ircd documentation ( again )
+16:53 < jrandom> cool, no rush.  just something we can look into sometime
+16:53 <@cervantes> class servers
+16:53 <@cervantes> {
+16:53 <@cervantes>     pingfreq   120;
+16:54 <@cervantes> class clients { pingfreq 90 }
+16:54 <@cervantes> that's my current config
+16:54 <+postman> cervantes: yes, i know  - the question is if it can be deactivated at all
+16:54 <@cervantes> I wouldn't deactivate them...just look into reducing them
+16:55 <+postman> ok, let's start with that
+16:55 <+postman> cervantes: how about 180 secs?
+16:56 <@cervantes> in at the deep end with 240
+16:56 <@cervantes> but perhaps we should ge tthe ircproxy side of things ready first
+16:57 <@cervantes> *discuss after meeting*
+16:57 <+postman> agreed
+16:57 < jrandom> w3rd.  ok, anything else on 2) I2PTunnelIRCClient, or shall we move on to 3) Syndie?
+16:57 <@cervantes> anything to reduce my current 40kb/sec average router traffic ;-)
+16:58 < jrandom> heh, for some reason i doubt thats all irc ;)
+16:58 < jrandom> ok, movin' on
+16:59  * cervantes hides is pony video downloads he's been leeching from jrandom all week
+16:59 <@cervantes> is=the
+16:59 <+postman> LOL
+16:59 < jrandom> as mentioned in the mail, there's some pretty cool stuff going on with syndie
+16:59 < jrandom> the cli is trivial, but dust's new Sucker looks really promising
+16:59 < jrandom> dust: wanna give us a rundown?
+17:00 < dust> oh,
+17:01 < dust> well, it uses rome for parsing the feeds and then converts it to sml, like described in jrandoms blog
+17:02 < dust> it's not what you'd call robust yet, but it's only two days old :)
+17:02 < dust> i've got some dilbert in my syndie..
+17:02 < dust> :)
+17:02 < dust> .
+17:02 < jrandom> nice
+17:03 < jrandom> ok, what are your thoughts on where its going - should we toss it into the syndie source and expose it as a cli, or keep it separate and distribute it independently, or something else?
+17:04  * dust don't know, you decide
+17:04 < dust> the less separate tools the better
+17:04 < jrandom> yeah, probably easier to bundle it all together, that way everyone knows they can use it
+17:05 < jrandom> we'd then be able to do things like integrate it into the web interface, and maybe into Ragnarok's scheduler (syndicating with other nodes and pulling from rss/atom/etc)
+17:07 < jrandom> ok, anyone have any questions/comments/concerns on 3) Syndie?
+17:07 < wiht> If you keep integrating software into I2P, it may become a bloated software package.
+17:07 < wiht> Of course, I can turn off Syndie if I am not using it.
+17:08 < jrandom> the i2p sdk 13KLOC
+17:08 < jrandom> and the i2p router is only 22KLOC
+17:08 < jrandom> but yeah, there is an impact on download times of the install
+17:09 < jrandom> if someone wanted, they could build a stripped down router with no client apps, using just the router.jar, jbigi.jar, and i2p.jar
+17:09 < wiht> Yes, I was referring to the download.
+17:09 < jrandom> (but its much more useful when there's a web interface to control it, and i2ptunnel, and the streaming lib, etc ;)
+17:11 < jrandom> smeghead was working on a distribution system (like emerge, for java), and there's the jpackage folks too
+17:11 < jrandom> if someone wants to look into a seamless and reliable way to manage the apps without bundling, it'd be pretty cool
+17:12 < jrandom> ok, if there's nothing else on that, lets jump on over to 4) I2Phex
+17:13 < jrandom> I don't really have much to add beyond whats in the status notes
+17:13 < jrandom> redzara: you around?
+17:13 <+redzara> yes i'm
+17:13 <+redzara> I'm already working on the next version, while waiting for the meeting with Gregor.
+17:13 < jrandom> ah great
+17:13 <+redzara> Work, for the moment, primarily consists in identifying the differences and the needs related to the use of I2P such as for example tcp/udp vs i2p, management of the parameters specific to I2P (and management of the update of these same parameters at the time of the next versions, ...) port of GWebCache to I2P, use RSS or not, use push or not... 
+17:14 <+redzara> I have much documentation and code to read
+17:15 < jrandom> wow, yeah, sounds like a lot.  let me know if you've got any questions regarding i2p integration, or if you just want someone to bounce ideas off
+17:16 < jrandom> getting the I2Phex part into a plugin for the mainline Phex would be really kickass
+17:17 < jrandom> ok, anyone else have anything for 4) I2Phex?
+17:18 <+redzara> I would need certainly assistance for the petname part
+17:19 <+redzara> and maybe too for fine tunning tunnels's parameters
+17:19 < jrandom> cool, the naming is pretty easy - at a basic level, you could even get by without using names at all (this is how I2Phex does it now)
+17:20 < jrandom> tunnel config shouldn't be a problem either, though that brings up the idea that maybe Phex would need an "advanced configuration" section for plugins
+17:20 < jrandom> (we'd obviously want to have good defaults anyway)
+17:21 <+redzara> maybe something like ircclient, an filter to be sure
+17:22 <@cervantes> better to get the app in shape imho
+17:22 < jrandom> that might work, though dealing with arbitrary byte sequences may be tough
+17:23 < jrandom> though, a proxy like ircclient might be able to allow any gnutella client to use it.  but it'd be a bunch of work.
+17:23 <+redzara> humm, it's just an idea ;)
+17:23  * jrandom doesn't know the protocol well enough to say what the best approach is, so suggest going with the simplest thing that could possibly work :)
+17:25 < jrandom> ok, if there's isn't anything else, perhaps we can swing through 5) stego and darknets briefly
+17:26 < jrandom> i'm not sure if there's anything i have to add beyond whats being said on the list (and major discussion should probably continue there)
+17:27 < jrandom> that said, is there anything people want to bring up about the issues raised?
+17:27 < wiht> Freenet version 0.5 and 0.7 were mentioned in the discussion. Is there a version 0.6 for Freenet?
+17:27 < jrandom> 0.6 is their current "unstable" branch of the network
+17:27 < jrandom> afaik
+17:27 <+postman> ohh and i thought it has been stolen by alien forces
+17:28 < jrandom> while blaming the aliens is usually a safe bet, this is one of the few instances where they're not at fault
+17:28 <+postman> :)
+17:28 < wiht> Toad was talking about being able to harvest the IP addresses of I2P or FreeNet nodes, right?
+17:28 < jrandom> among other things
+17:29 < wiht> Just wanted to clarify that, thanks.
+17:29 < jrandom> np.  ok, anyone else have anything on 5), or shall we move on over to the good ol' fashioned 6) ???
+17:30 <+postman> ok, i got one for 6)
+17:30 < jrandom> consider us moved.
+17:30 < jrandom> whats up postman?
+17:30 <+postman> we all have seen that protocol specific filter capable proxies are good and needed
+17:31 <+postman> would it be feasable to invest thinking in a generic proxy
+17:31 <+postman> that can be fed with a protocol description
+17:31 <+redzara> I would like to have an application like cron using beanshell to run code java code dynamically
+17:31 <+postman> along with stuff to watch for/filter/disguise
+17:31 <+postman> like a filter/sanitize xml description 
+17:32 <+postman> so that we dont need new source but just a new filter file/profile
+17:32 <+postman> (just a question if its worth to think about it)
+17:32 < jrandom> very, very complicated postman.  it'd be possible to use a lexer like javacc to build input languages and an app to translate that language into the output format
+17:32 <@cervantes> it's catching the stuff that deviates from the protocol that's tricky
+17:33 <+postman> it was just an idea to trigger a process of brainstorming
+17:33 <+postman> imho something like a generic proxy with modeled filter/parser is very usable
+17:33 < wiht> Has anyone been able to connect to eepsites.i2p? I have tried several times over the past week, but was always unsuccessful.
+17:33 < jrandom> wiht: i loaded it once, its the same as eepsites.com
+17:34 < jrandom> (or is it .net?  or .org?  i forget)
+17:34  * wiht visits eepsites.com
+17:34 < jrandom> postman: if someone could come up with something that'd work, that'd kick ass
+17:34 <+postman> jrandom: ok, i'll do some thinking together with susi
+17:34 < jrandom> w3wt
+17:34 <+postman> jrandom: maybe we'll drop it next week 
+17:35 < wiht> It is eepsites.com, and it is a search engine for eepsites.
+17:35 <+postman> but i had a dream that it worked
+17:35 <+postman> :]
+17:35 < jrandom> :)
+17:36  * Complication suspects that descibing all the subtleties which occur in protocols... requires code, and nothing less than code
+17:36 <+Complication> (for most protocols, at least)
+17:36 <@cervantes> nah just some eeevul regex
+17:36 <+postman> Complication: maybe this suspicion is the reason that keeps us from further investigation
+17:37 <+postman> Complication: i am not yet sure, but suspicion alone will not put me to rest on that matter
+17:37 < jrandom> well, an important point here is something dust demonstrated for us -
+17:37  * Complication fears a regex capable of such things
+17:37 < jrandom> code isn't necessarily that scary.
+17:37 <+postman> see? :)
+17:37 <+postman> a good filter modelling language will do the same
+17:38 <+postman> :)
+17:38 <@cervantes> tcl? :)
+17:38 <+Complication> It would have to be good.
+17:38  * jrandom sees that you've got your own flying ponies too postman ;)
+17:38  * dust also felt bad about duplicating code here and there
+17:38 <+postman> jrandom: no cows :)
+17:38 < jrandom> working code >>> theoretical improvements in code 
+17:39 <+postman> mmh
+17:40 <+postman> one thing i learned from i2p
+17:40 < wiht> >>> means "much, much better?"
+17:40 <+postman> do not give up on first looks
+17:40 < jrandom> true enough postman 
+17:40 < jrandom> yes wiht 
+17:41 < jrandom> it would be really cool
+17:41 < jrandom> ok, anyone else have something to bring up for the meeting?
+17:41 <+bar> well, how's the IMAP working, postman? (i read about it in the forums but haven't tried it yet myself)
+17:41 <+postman> bar: try it yourself - i have no user reports yet
+17:41  * cervantes rolls in the pony shaped gong
+17:42 <+bar> ok, will do :)
+17:42 <+postman> bar: and for me it works FINE :)
+17:42 < jrandom> nice
+17:42 <+bar> cool
+17:42 <+postman> cervantes: you're fixated
+17:42 <@cervantes> me?!
+17:42 <@cervantes> :)
+17:43 < jrandom> ok, before we reach the 90 minute mark
+17:43  * jrandom winds up
+17:43  * jrandom *baf*s the meeting closed

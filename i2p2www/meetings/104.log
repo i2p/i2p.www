@@ -1,422 +1,416 @@
-{% extends "_layout.html" %}
-{% block title %}I2P Development Meeting 104{% endblock %}
-{% block content %}<h3>I2P dev meeting, August 24, 2004</h3>
-<div class="irclog">
-14:01 < jrandom> 0) hi</p>
-14:01 < jrandom> 1) 0.3.4.3 status</p>
-14:01 < jrandom> 1.1) timestamper</p>
-14:02 < jrandom> 1.2) new router console authentication</p>
-14:02 < jrandom> 2) 0.4 status</p>
-14:02 < jrandom> 2.1) service &amp; systray integration</p>
-14:02 < jrandom> 2.2) jbigi &amp; jcpuid</p>
-14:02 < jrandom> 2.3) i2paddresshelper</p>
-14:02 < jrandom> 3) AMOC vs. restricted routes</p>
-14:02 < jrandom> 4) stasher</p>
-14:02 < jrandom> 5) pages of note</p>
-14:02 < jrandom> 6) ???</p>
-14:02 < jrandom> 0) hi</p>
-14:02  * jrandom waves</p>
-14:02 < deer> &lt;ugha2p&gt; Hi.</p>
-14:02 < jrandom> weekly notes posted (waaay early) at http://dev.i2p.net/pipermail/i2p/2004-August/000419.html</p>
-14:03 < jrandom> so i expect you've all done your homework and have read them diligently</p>
-14:03 < jrandom> (or something)</p>
-14:03 < jrandom> ok, 1) 0.3.4.3 status</p>
-14:04 < kaji> (late hi)</p>
-14:04 < jrandom> there are a few things adjusted since the 0.3.4.3 release came out last friday, but overall the rev seems pretty stable, from what i can tell</p>
-14:04 < deer> &lt;luckypunk&gt; huh. whats going on?</p>
-14:04 < deer> &lt;luckypunk&gt; Oh.  Nm.  sorry, i usually sleep thorugh the meeting though.  Hi :)</p>
-14:05 < jrandom> what are people's experiences with 0.3.4.3 with regards to eepsites / squid / etc?</p>
-14:05 < luckypunk> very quick.</p>
-14:05 < jrandom> (i can tell what people are seeing with irc)</p>
-14:05 < luckypunk> Under 3 seconds page loading sometimes.</p>
-14:06 < deer> &lt;oOo&gt; Jrandom do kick squid's router too often ;)</p>
-14:06 < jrandom> cool lucky</p>
-14:06 < deer> &lt;mule&gt; working well</p>
-14:06 < luckypunk> i can open up 10 pages of things through the squid and I2P keeps up, pretty slowly though, on my 350 mhz.</p>
-14:06 < deer> &lt;hypercubus&gt; snappiest it's ever been</p>
-14:06 < jrandom> yeah, i do oOo, but thats why we have www1.squid.i2p :)</p>
-14:06 < jrandom> r0x0r</p>
-14:06 < jrandom> i've heard a few reports of excessive CPU usage - is that hitting people often?</p>
-14:07 < deer> &lt;hypercubus&gt; not i... i suspect it's just the people with 386s *cough*lucky*cough*</p>
-14:07 < deer> &lt;oOo&gt; Some very rare peaks here. Related to another erro, I might trace it back one day :p</p>
-14:07 < deer> &lt;mule&gt; not here</p>
-14:07 < luckypunk> I think, if its affecting all platforms and stuff, i would feel it hard, and no not really.  Only when its serving the new config pages or downloading a lot of stuff does I2P pin my processor.</p>
-14:08 < jrandom> ok cool.  there are a few scenarios where i2p will be a bitch wrt CPU, but hopefully those are few and far between</p>
-14:08 < jrandom> actually, that leads us in to 1.1) timestamper :)</p>
-14:09 < jrandom> (one of the problems can occur when the timestamper gets goofy / loses track of the correct time)</p>
-14:10 < jrandom> the whole timestamping stuff has been revamped and integrated into the router, thanks to Adam Buckley being kickass and releasing his work under the BSD license</p>
-14:10 < jrandom> (yay Adam)</p>
-14:11 < jrandom> we had previously used the SNTP code as a standalone client app, but we are not doing that anymore - instead we have a tight integration with the router</p>
-14:11 < jrandom> (so people may need to update their config files as mentioned in the email)</p>
-14:11 < jrandom> SNTP alone is only a part of the solution though</p>
-14:12 < jrandom> long term we need some better (read: NTP) synchronization, as SNTP is prone to flux</p>
-14:12 < jrandom> (especially in light of high network congestion)</p>
-14:12 < jrandom> Adam sent me some code he has for dealing with it, but i dont really have the time to work through that side of things atm</p>
-14:13 < deer> &lt;oOo&gt; Using SNTP only ?</p>
-14:13 < jrandom> i dont recall - i think it may be ntp-esque via sntp queries</p>
-14:13 < deer> &lt;oOo&gt; Ok, thanks</p>
-14:14 < luckypunk> uh</p>
-14:14 < luckypunk> i have a suggestion about that..</p>
-14:14 < jrandom> anyway, if anyone ever feels bored and wants to do some crazy ntp hacking, that'd Rule</p>
-14:14 < luckypunk> Maybe it's wrong though.</p>
-14:14 < jrandom> mmhmm lucky?</p>
-14:14 < luckypunk> use ntpdate -q</p>
-14:14 < luckypunk> get the offset.</p>
-14:14 < jrandom> ntpdate -q == SNTP</p>
-14:14 < luckypunk> or something similar.</p>
-14:14 < deer> &lt;oOo&gt; That is what the current code do, more or less ;)</p>
-14:14  * cervantes catches up what he's mised</p>
-14:14 < luckypunk> oh.</p>
-14:15 < luckypunk> sorry.</p>
-14:15 < cervantes> missed</p>
-14:15 < deer> &lt;oOo&gt; But we need variable seconds length &amp; co ;)</p>
-14:15 < cervantes> cpu usuage on my system is the lowest it's ever been....</p>
-14:15 < jrandom> nice</p>
-14:15 < cervantes> but I've got 700 odd java threads now and rising</p>
-14:15 < jrandom> yeah oOo, and the skew detection / candidate selection</p>
-14:16 < luckypunk> yes, last time i ran it, about a month ago, it seriously affected my usability of my box, now i don't even notice if I2P is running.</p>
-14:16 < jrandom> yeah i've been looking into that cervantes</p>
-14:16 < deer> &lt;oOo&gt; True, even if it's a weak part of the whole stuff ;)</p>
-14:16 < luckypunk> i have about 200 threads.</p>
-14:16 < luckypunk> 219, to be precise.</p>
-14:16 < jrandom> cervantes: i've tracked down the threads to the transport layer (we do some *uuugly* stuff to get timeouts), and we can do some better cleanup later</p>
-14:16 -!- TheCrypto__ is now known as thecrypto</p>
-14:18 < jrandom> basically some oddities are occurring with the increased # of peers on the network &amp; the churn.  all workable, but it can be annoying</p>
-14:18 < jrandom> anyway, thats it for 1.1, now 1.2) new router console authentication :)</p>
-14:19 < jrandom> (no one probably cares about this, but we have basic http authentication working.  see the email for more info)</p>
-14:19 < cervantes> cool</p>
-14:19 < cervantes> despite that though the memory handling rocks... haven't had an oom in ages</p>
-14:19 < jrandom> ah wikked</p>
-14:20 < jrandom> actually, that gets us towards 2) 0.4 status</p>
-14:22 < luckypunk> Yes.  If I2P were a MS product, we'd be ready for 1.0 :)</p>
-14:22 < jrandom> arggg, damn net connection dropped</p>
-14:22 < jrandom> (screen++)</p>
-14:23 < jrandom> ok, anyway, there has been a lot going on, and there are still a few more back end things left to do (some client tunnel pool management, as oOo is seeing, and some peer selection testing, as is in cvs)</p>
-14:24 < jrandom> there's also been a lot of progress on the installer / service / systray side of things </p>
-14:24 < jrandom> hypercubus: want to give us an update?</p>
-14:24 < deer> &lt;hypercubus&gt; sure</p>
-14:25 < deer> &lt;hypercubus&gt; the service wrapper installation is nearing completion, perhaps today or tomorrow... the service wrapper takes care of OOMs by automatically restarting the i2p router</p>
-14:25 < jrandom> (yay)</p>
-14:25 < deer> &lt;hypercubus&gt; so it covers our butts there somewhat</p>
-14:26 < deer> &lt;hypercubus&gt; systray integration is complete and works great... it's only for Win32 currently, since the systray4j lib seems to have some bugs in its KDE implementation</p>
-14:26 < deer> &lt;hypercubus&gt; i'll be tracking the KDE progress and hopefully we'll have that in the near future</p>
-14:27 < deer> &lt;hypercubus&gt; the installer is almost complete as well, all that remains to be added are post-installation tasks</p>
-14:27 < deer> &lt;hypercubus&gt; i expect that will be done by the weekend</p>
-14:27 < deer> &lt;hypercubus&gt; (as it depends on the complete integration of the service wrapper)</p>
-14:28 < jrandom> r0x0r</p>
-14:28 < deer> &lt;hypercubus&gt; i'll be making available a pre-0.4 installer package for people to test</p>
-14:28 < deer> &lt;hypercubus&gt; so i will let you all know when that's ready</p>
-14:28 < luckypunk> What about GNOME?</p>
-14:28 < cervantes> increment(hypercubus)</p>
-14:28 < deer> &lt;hypercubus&gt; the systray4j project hasn't taken on gnome yet</p>
-14:29 < deer> &lt;hypercubus&gt; we'll be adding additional desktop environments as becomes available with systray4j</p>
-14:29 < luckypunk> well, no biggie, i'mm gonna switch once/if KDE compiles.</p>
-14:30 < deer> &lt;hypercubus&gt; the systray icon is only for launching the router console in your browser anyhow</p>
-14:30 < deer> &lt;hypercubus&gt; so its main use will be by windows users ;-)</p>
-14:30 < jrandom> yeah, we expect *nix users to know how to bookmark ;)</p>
-14:30 < deer> &lt;hypercubus&gt; but we will of course cater to the lazy *nix users when we can ;-)</p>
-14:30 < deer> &lt;oOo&gt; N/C...</p>
-14:30 < luckypunk> Oh, I have a link in my firefox link hings like, with slashdot and BSD Google.</p>
-14:31 < deer> &lt;hypercubus&gt; but the icon does also serve as a convenient status indicator</p>
-14:31 < jrandom> agreed</p>
-14:31 < deer> &lt;hypercubus&gt; i.e. if the icon is gone, your router is gone too ;-)</p>
-14:31 < deer> &lt;hypercubus&gt; unless of course you chose to hide the icon from your router console</p>
-14:32 < deer> &lt;hypercubus&gt; which you can do, and it works great</p>
-14:32 < deer> &lt;hypercubus&gt; ok, i think that's all, unless there are any questions</p>
-14:33 < protok0l> whats a good PDA that runs linux well?</p>
-14:33 < jrandom> word hyper</p>
-14:33 < jrandom> proto: #i2p-chat (or after the meeting)</p>
-14:33 < protok0l> oops</p>
-14:33 < deer> &lt;hypercubus&gt; *snicker*</p>
-14:33 < jrandom> ok, movin' on to 2.2) jbigi &amp; jcpuid</p>
-14:34 < jrandom> iakin has put together some kickass JNI/asm code to detect the exact CPU architecture used (on x86 boxen), and he has jbigi rigged up for freenet to auto-select the right .so/.dll based on that</p>
-14:35 < jrandom> he has also released that work into the public domain, and we've snagged a copy and integrated it back into i2p</p>
-14:35 < luckypunk> So we won't have to chose which jbigi to download?  Won't that make the install somewhat larger?</p>
-14:35 < jrandom> correct</p>
-14:35 < jrandom> yeah, it adds a few hundred KB</p>
-14:36 < jrandom> but, well, the new install is, um, larger than the old one</p>
-14:36 < luckypunk> oh, i thought it would be more than a few hundred kb.</p>
-14:36 < luckypunk> Yea, between the new console...I'm guessing 6 - 10 mb?</p>
-14:36 < deer> * Myo9 has only got 99 mb left on this drive.</p>
-14:36 < deer> &lt;Myo9&gt; ;)</p>
-14:36 < jrandom> (especially since i'm being an ass and insisting on .war support rather than direct servlets, requiring xerces, which weighs in at 800KB)</p>
-14:36 < jrandom> the new install is looking ~4-6MB</p>
-14:37 < jrandom> but the good thing is, only ~1MB of that is i2p specific, so updates will be lightweight ;)</p>
-14:38 < deer> &lt;Myo9&gt; I2P hasn't got much publication has it?</p>
-14:38 < deer> &lt;Myo9&gt; Compared to freenet and TOR?</p>
-14:38 < jrandom> correct, we're staying fairly quiet</p>
-14:38 < protok0l> is download size a real consern? most people have broadband</p>
-14:38 < protok0l> i'm use it if it were 100megs</p>
-14:38 < luckypunk> protok0l, most people don't, actually.  Most people that'd use I2P do.  though i think I2P still supports dialup (sort of)</p>
-14:38 < deer> &lt;mule&gt; for i2p users it shouldn't</p>
-14:39 < jrandom> in my view, the development effort is best served with gradual adoption after sufficient testing goes on at different crititcal points</p>
-14:39 < luckypunk> yes.  I2P isn't ready for 500 slashdot users :)</p>
-14:39 < jrandom> though our recent growth has been good, helping to poke different parts of the system</p>
-14:40 < jrandom> as we launch the 0.4 rev, we will want to move towards the 100-router mark</p>
-14:40 < deer> &lt;mule&gt; ok, i'll set up another 50 :)</p>
-14:40 < jrandom> plus, that'll give more incentive for client app devs to build client apps ;)</p>
-14:40 < jrandom> lol mule :)</p>
-14:41 < deer> &lt;ugha2p&gt; Arr.</p>
-14:41 < cervantes> at the rate of adoption we could probably reach 100 in about a month</p>
-14:41 < cervantes> without evangelising</p>
-14:41 < jrandom> that would be a good rate of growth</p>
-14:42 < jrandom> but anyway, back to the agenda :)</p>
-14:42 < protok0l> i cant wait to evangelize</p>
-14:42 < jrandom> jbigi + jcpuid == integrated (and see the mailing list if you want to run CVS HEAD) :)</p>
-14:42 < jrandom> heh we can tell proto ;)</p>
-14:42 < deer> &lt;hypercubus&gt; lucky: more than half of US internet users have broadband... report was released the other day</p>
-14:43 < jrandom> and less than 1/10th of the world is in the us ;)</p>
-14:43 < deer> &lt;oOo&gt; Who mind about the USA ? ^^</p>
-14:43 < jrandom> but moving on to 2.3) i2paddresshelper</p>
-14:44 < jrandom> oOo has put together yet another patch, this one letting people hit eepsites with linked pages without editing hosts.txt</p>
-14:45 < jrandom> the details are listed in the weekly status notes</p>
-14:45 < jrandom> oOo - is there anything you want to add?</p>
-14:45 < deer> &lt;oOo&gt; Hum... Let's the eepsites number grow fast and Cervantes add his promised support :p</p>
-14:46 < jrandom> ah, cervantes has already added the "Try it [i2p]" link :)</p>
-14:46 < jrandom> (only people on CVS HEAD can use it, until 0.4 is out)</p>
-14:46 < cervantes> :o)</p>
-14:46 < jrandom> ((works great, btw))</p>
-14:46 < deer> &lt;oOo&gt; Great ^^  Will play with it as soon as I manage to get my router back online ;)</p>
-14:47 < kaji> you could password the client download and roll it gmail style</p>
-14:47 < jrandom> hmm?</p>
-14:48 < kaji> small base + invitation only</p>
-14:48 < kaji> but that would take work</p>
-14:48 < jrandom> oh, for 0.4 release?  </p>
-14:48 < kaji> oh, for the 1.0</p>
-14:48 < jrandom> no, not worth the effort atm.  if we get flooded with new users we may want to look at using certificates, etc</p>
-14:48 < deer> &lt;oOo&gt; 1.0 is for mass audience :p</p>
-14:49 < jrandom> well, for 1.0 we're going to be up past the 1000 user mark already</p>
-14:49 < jrandom> (at least, thats my hope ;)</p>
-14:49  * kaji thinks it would be fun to watch i2p go from 50 to 5000 node in 3 hours</p>
-14:49 < jrandom> heh</p>
-14:49 < deer> &lt;oOo&gt; And then down to 100 ;)</p>
-14:49 < luckypunk> hypercubus, whoo hoo for americans!  they're catching up ;)</p>
-14:49 < jrandom> heh, thats one way to test churn ;)</p>
-14:50 < cervantes> if aum gets stasher working...and hyper increases his goatse library then you'll see it jump 50 to 5000 is less than 3 hours ;-)</p>
-14:50 < kaji> and then 50100 as the nsa brings their node onlin</p>
-14:50 < jrandom> actually that kind of brings us forward to 3) AMOC vs. restricted routes</p>
-14:51 < jrandom> one of the interesting aspects of restricted routes is the ability to mount a 'sybil' attack really, really, really easily.</p>
-14:51 < jrandom> while mule was just mentioning a few minutes ago installing 50 new nodes, it'd be possible to bring online a significant number </p>
-14:52 < jrandom> one of the ways to address this is through a certificate authority, limiting the introduction of new routerIdentity certificates</p>
-14:52 < jrandom> another is through hashcash</p>
-14:52 < jrandom> another is through morphmix/tarzan style ip prefix detection</p>
-14:53 < jrandom> but, yet another is to say "fuck it" and hope we get sufficient 'good' peers to outnumber the 'bad' ones</p>
-14:53 < fvw> I think that's ok for the time being yes.</p>
-14:54 < protok0l> heres an idea</p>
-14:54 < jrandom> yeah, its the simplest thing to do, and adding artificial barriers to join a p2p network at this stage seems... foolish</p>
-14:54 < fvw> I think perhaps a mix of hashcash and ip-based would be nice to have for 1.0, but all in all you can't defend against a powerful enough adversary.</p>
-14:54 < protok0l> cut off the inital noderef access</p>
-14:54 < protok0l> if someone wants on, we can give them your noderefs</p>
-14:54 < protok0l> *uor</p>
-14:54 < fvw> and how would that help?</p>
-14:55 < jrandom> right fvw, and we might be able to put it off until after 1.0, as well</p>
-14:55 < fvw> depends on your definition of 1.0 :)</p>
-14:55 < jrandom> proto: i'm not sure that'd help much</p>
-14:55 < jrandom> heh fvw, we're not like freenet ;)</p>
-14:56 < jrandom> 1.0 == functional, secure, [sufficiently] anonymous, and scalable</p>
-14:56 < deer> &lt;oOo&gt; and well documented ;)</p>
-14:56 < jrandom> documentation is a prerequisite to secure :)</p>
-14:56 < deer> &lt;Myo9&gt; Are all users added to the noderef at the moment?</p>
-14:57 < jrandom> Myo9: yes - http://dev.i2p.net/i2pdb/ is just a link into one of my router's netDb/ dir</p>
-14:57 < jrandom> (so it will list everyone my router has a reference for, at any time)</p>
-14:58 < jrandom> ((and everyone has a ref for people they talk to, which, at our current scale, is everyone))</p>
-14:58 < jrandom> ok, but back to 3) AMOC vs. restricted routes</p>
-14:59 < deer> &lt;Myo9&gt; Ok.</p>
-14:59 < jrandom> as mentioned in the email, mule's ideas might be able to get us to drop the 0.4.2 AMOC transport and instead implement basic restricted route support, treating people behind NATs/firewalls as simply being behind a restricted route</p>
-15:00 < fvw> it would be kind of cool</p>
-15:00 < jrandom> yeah, and save us from writing yet another transport protocol</p>
-15:01 < deer> &lt;ugha2p&gt; But how would make performing sybil attack that much easier?</p>
-15:01 < jrandom> s/writing/designing,implementing,reviewing,debugging,deploying,debugging,debugging,debugging,debugging.../</p>
-15:01 < deer> &lt;ugha2p&gt; how would it make*</p>
-15:02 < jrandom> ugha2p: there is no way to tell how many *real* routers are behind a restricted route - all we know about them is that they have a unique router identity and are reachable through a certain router</p>
-15:02 < deer> &lt;ugha2p&gt; Ah.</p>
-15:03 < jrandom> that certain router could in fact be one sim instance, running 100 other routers in the same JVM, each pretending to be behind firwalls</p>
-15:03 < deer> &lt;ugha2p&gt; Right.</p>
-15:03 < deer> &lt;oOo&gt; They could as easily been using 100 ports on the same host...</p>
-15:03 < fvw> however assuming you're willing to spend a few 100 euros on your attack, you can get a large number of spread out IPs anyway.</p>
-15:03 < jrandom> agreed fvw</p>
-15:04 < jrandom> oOo: true, though ports cost memory (and some CPU)</p>
-15:04 < deer> &lt;ugha2p&gt; I don't think that presumption is going to stop more powerful enemies though.</p>
-15:04 < jrandom> (which is why when i do larger sims, i need to switch from the TCP comm system to the VM comm system)</p>
-15:04 < jrandom> agreed ugha2p</p>
-15:04 < jrandom> it just makes it easier</p>
-15:05 < fvw> I think we're going to have to assume that anybody with more than a bored-sunday-afternoon desire to attack the system is going to be able to get at least 10^3 nodes on the network easy.</p>
-15:05 < deer> &lt;oOo&gt; Not *that* much</p>
-15:05 < jrandom> right fvw</p>
-15:05 < deer> &lt;oOo&gt; (+ easier)</p>
-15:05 < fvw> and at that order of magnitude, nothing apart from central certification is going to stop them.</p>
-15:06 < deer> &lt;ugha2p&gt; 100 open ports on one single host would be trivial to detect, but 100 restricted routes behind a machine might not be.</p>
-15:06 < jrandom> well, thats open to debate fvw, but yeah, sybil is a bitch</p>
-15:06 < deer> &lt;oOo&gt; 100 zombies are tricky to detect ;)</p>
-15:06 < fvw> which means we ideally need a 10^4 network.</p>
-15:06 < jrandom> definitely oOo</p>
-15:06 < fvw> (loose estimates)</p>
-15:07 < deer> &lt;ugha2p&gt; We'll ideally have a 10^4+ network.</p>
-15:07 < jrandom> fvw: i'd go higher than that - imho we need to grow this into the millions</p>
-15:07 < deer> &lt;oOo&gt; Ideally would be more then half available IPs ;)</p>
-15:07 < jrandom> heh oOo</p>
-15:07 < fvw> It'd be nice if we could yeah.</p>
-15:08 < jrandom> (but, of course, to grow it into hte millions we need sufficient reason to do so.  i think we will be able to make the case for that eventually though)</p>
-15:08 < deer> &lt;ugha2p&gt; I'm not sure if Kademlia could be held in one piece for that long. ;)</p>
-15:08 < fvw> at which point beating people up would definately become the low-cost attack. Which, unintuitively enough, would be a good thing.</p>
-15:08 < jrandom> heh</p>
-15:08 < deer> &lt;DrWoo&gt; jrandom: millions would need serious useability and benefit</p>
-15:09 < jrandom> agreed DrWoo</p>
-15:09 < fvw> luckily, a lot of (non-nice) people are working very hard on that now.</p>
-15:09 < deer> &lt;oOo&gt; Pr0n for masses :p</p>
-15:10 < deer> &lt;jrandom&gt; which is why imho we need a kickass filesharing app</p>
-15:10 < deer> &lt;oOo&gt; "One human, One goatse", which lead us to stasher :p</p>
-15:10 < cervantes> download-&gt;install-&gt;share musi</p>
-15:10 < deer> &lt;DrWoo&gt; jrandom: it would have to be order of an anonymous kazza, luckily the motivation is being taken care of by the RIAA &amp; co.</p>
-15:10 < fvw> pr0n is already easy to get (see usenet and such). I think big record company assocs and such are going to crack down a lot harder on p2p than pornographers ever could.</p>
-15:10 < cervantes> music</p>
-15:10 < fvw> but once again we drift offtopic.</p>
-15:11 < fvw> "4) stasher"?</p>
-15:11 < deer> &lt;oOo&gt; Yeah ! 4) !</p>
-15:11 < jrandom> agreed - we can all think up some reasons to justify use, but first we need to get it *working* :)</p>
-15:11 < cervantes> ah for once a non-tenuous link into the next item</p>
-15:11 < jrandom> movin' to 4) stasher</p>
-15:12 < jrandom> aum: you awake yet?</p>
-15:12  * hypercubus chants auuuuuummmmmmmmm</p>
-15:12 < jrandom> well, in case he isn't, i know he's been doing a lot of work on adding CHK and SVK support to stasher</p>
-15:13 < jrandom> which is Cool</p>
-15:13 < deer> &lt;oOo&gt; And splitfiles</p>
-15:13 < jrandom> yeah, the splitfile support is interesting</p>
-15:13 < fvw> in the 'interesting times' sense? </p>
-15:14 < jrandom> thats one of the differences between freenet and stasher, in that stasher already has a fixed 31KB max size per key</p>
-15:14 < deer> &lt;oOo&gt; "Useful, great, don't need anything from user application"</p>
-15:14 < jrandom> (since afaik stasher uses SAM datagrams)</p>
-15:14 < luckypunk> can't you impliment lik..split files?</p>
-15:15 < jrandom> ooohhh!  i just realized what bug he was running into wrt reliability!  </p>
-15:15 < jrandom> (fixed the other day in cvs, significantly killing the bug)</p>
-15:15 < jrandom> yeah lucky</p>
-15:15 < jrandom> but the splitfile implementation is inherently different from how freenet splitfiles work, due to max keysize limitations</p>
-15:15 < deer> &lt;oOo&gt; So Stasher over-I2P just be healthy again ? ^^</p>
-15:16 < jrandom> (if you read freenet devl or tech lately, you'll hear toad and hobx talking it over)</p>
-15:16 < deer> &lt;oOo&gt; *should</p>
-15:16 < jrandom> oOo: with HEAD, yeah</p>
-15:16  * jrandom hasnt heard any reports of people even trying it since 0.3.4.3 came out (or was it 0.3.4.2)</p>
-15:16 < jrandom> but anyway, he is planning on another new test build by end of the week</p>
-15:17 < jrandom> anyone have anything to mention / discuss wrt stasher?</p>
-15:17 < jrandom> (other than yay!  go aum!)</p>
-15:18 < deer> &lt;oOo&gt; Yeah, there is an urge to find non-goatse contents there ;)</p>
-15:18 < jrandom> heh</p>
-15:18 < deer> &lt;oOo&gt; ex-Freeneter, start your engines ;)</p>
-15:18 < jrandom> yeah splitfile support should definitely help with that, as would ssk &amp; fcp support</p>
-15:19 < fvw> I'd like to second the 'go aum!' if I may.</p>
-15:19 < deer> &lt;oOo&gt; yay !</p>
-15:19 < jrandom> motion is seconded, and thirded :)</p>
-15:19 < jrandom> ok, swingin' forward to 5) pages of note</p>
-15:20 < jrandom> i just wanted to point out three new pages</p>
-15:20 < jrandom> DrWoo's safe browsing guide gives a pretty good rundown on the dangers of eepsites &amp; the outproxies</p>
-15:20 < jrandom> the problems can be addressed in code, but we just havent had time to do it yet, so its Good to be informed</p>
-15:21 < jrandom> lucky has also put together a good doc on the freebsd+java side of things as well</p>
-15:21  * jrandom hasnt tried too many jvms on fbsd, just kaffe, so nag him if you have questions :)</p>
-15:22 < jrandom> hyper has also put together the doc for upgrading to the 0.4 dev code, which he'll likely be updating once we want more people to test it ;)</p>
-15:22 < hypercubus> my post on the forum covers installation of the service wrapper... the howto for the new router console is here --&gt; http://files.hypercubus.i2p/New_I2P_Router_Console_Howto.txt</p>
-15:23 < jrandom> wr0d</p>
-15:23 < jrandom> oh, there's also a new pretty picture &amp; some new text @ http://www.i2p.net/how_intro (hopefully making things a bit more clear)</p>
-15:24 < fvw> ooh, that looks pretty. Who did that? Good work.</p>
-15:25 < hypercubus> it was actually copied directly from a crop circle</p>
-15:25  * fvw tries not to mention the resemblence between jrandom and Dave but fails miserably.</p>
-15:25 < jrandom> heh</p>
-15:25 < fvw> ah, that explains jrandom's feelers.</p>
-15:25 < jrandom> the pic was beautified by our anonymous designer</p>
-15:25 < jrandom> (thankfully so, my ms paint skills suck :)</p>
-15:26 < hypercubus> we're still trying to decipher the significane of Charlie's long chin</p>
-15:26 < deer> &lt;ugha2p&gt; Arr, this sucks.</p>
-15:26 < jrandom> how about alice's skewed eyes?  ;)</p>
-15:26 < hypercubus> heh</p>
-15:26 < deer> &lt;jrandom&gt; yeah, it'll be nice when we get irc.duck.i2p upgraded (if it hasnt been already..)</p>
-15:27 < fvw> never mind that, she looks like she's doing a double alien-bursting-from-stomach-scene with her cheeks.</p>
-15:27 < jrandom> lol</p>
-15:27 < jrandom> *thats* why she is talking to dave</p>
-15:27 < jrandom> well, anyway, i think this leads us to 6) ???</p>
-15:27 < fvw> haha</p>
-15:27 < jrandom> anyone have anything they want to bring up?</p>
-15:28 < deer> &lt;oOo&gt; Can't you build the skeleton of certificates' stuff in I2P and let *others* fill it and have fun ? (Or his this already done ? :p)</p>
-15:28 < deer> &lt;oOo&gt; Or is this absolutely useless ?</p>
-15:28 < deer> &lt;oOo&gt; (for now)</p>
-15:28 < jrandom> hmm?  </p>
-15:28 < jrandom> the hashcash / etc certificate stuff?</p>
-15:28 < deer> &lt;oOo&gt; Ok, nevermind ^^</p>
-15:28 < deer> &lt;oOo&gt; Yes</p>
-15:29 < jrandom> ok yes, we already have the infrastructure for that</p>
-15:29 < jrandom> (though things like libSAM will need to be modified to interpret the destination properly, since iirc nightblade assumed 384bytes always ;)</p>
-15:30 < jrandom> but the router will handle different types of certificates transparently</p>
-15:30 < deer> &lt;oOo&gt; The code is ready for this ? Just missing some 'content' ?</p>
-15:31 < jrandom> yes - the RouterIdentity created currently always attaches a NullCertificate (certificate type == 0)</p>
-15:31 < jrandom> if it attaches another type, another type of certificate is attached </p>
-15:31 < jrandom> e.g. hashcash cert, CA signed cert, etc</p>
-15:31 < jrandom> verification infrastructure is there as well (RouterInfo.verify)</p>
-15:32 < deer> &lt;oOo&gt; Oh, great :)</p>
-15:32 < deer> &lt;oOo&gt; So someone may play with this code and adding hashcash and stuff in advance ?</p>
-15:32 < jrandom> if we had a flash flood i could probably lock down the net in a day or two</p>
-15:32 < jrandom> right</p>
-15:33 < jrandom> (though i think fvw is right in that it wont be pressing for at least a little while)</p>
-15:33 < deer> &lt;oOo&gt; Ok. I don't volunteer ;)  But someone might :p</p>
-15:33 < Nightblade> on i2p.net, the aug 24 meeting log link is pointed at the aug 17 log</p>
-15:33 < jrandom> right, sorry, meeting isn't over yet :)</p>
-15:33 < Nightblade> oh haha</p>
-15:34 < jrandom> so, anyone have anything else they want to bring up?  :)</p>
-15:34 < hypercubus> new rule... whoever edits the website: no smokin' the funny stuff while editing!</p>
-15:34 < jrandom> uh oh...</p>
-15:34 < jrandom> what'd i do?</p>
-15:34 < hypercubus> i was referring to broken links ;-)</p>
-15:34 < jrandom> oh</p>
-15:35 < hypercubus> we need a full time web editor... i nominate lucky</p>
-15:35 < jrandom> well, yeah, i updated the link to this weeks weekly status notes before the meeting, in case anyone went to the page ;)</p>
-15:35 < jrandom> we certainly do need someone to keep track of the web site and poke people when things are funky</p>
-15:36 < luckypunk> me?  web enditor?</p>
-15:36 < luckypunk> enditor haha</p>
-15:36 < luckypunk> i dunno</p>
-15:36 < Nightblade> spelchek reqwired</p>
-15:36 < luckypunk> i'll probably be pretyt busy once school start.s</p>
-15:36 < jrandom> bah, drop out!  work on i2p fulltime!</p>
-15:36 < luckypunk> if i drop out</p>
-15:37 < luckypunk> my parents will make me get a job</p>
-15:37 < deer> &lt;hypercubus&gt; excuses excuses ;-)</p>
-15:37 < luckypunk> and i'm still busy</p>
-15:37 < deer> &lt;hypercubus&gt; amen</p>
-15:37 < deer> * oOo will happily renovate the English used on the website ;)</p>
-15:37 < luckypunk> anyway, i don't think i'm gonna be allowed to drop out</p>
-15:38 < luckypunk> they're raising the legal dropout age to 18</p>
-15:38 < luckypunk> or high school diploma</p>
-15:38 < luckypunk> whatever comes first.  (usually the latter)</p>
-15:38 < hypercubus> er</p>
-15:38 < Nightblade> haha "legal dropout age" - what will they come up with next?</p>
-15:38 < luckypunk> it's 16 now.</p>
-15:38 < luckypunk> You can't leave school before that, else they'll arrest you.</p>
-15:38 < jrandom> actually, thats a good point.. as we move towards 1.0 it'd be good to offer different translations of various pages</p>
-15:39  * luckypunk can make a vague translation intro french, if absolutely required.</p>
-15:39 < Nightblade> I'll do the Klingon and Ebonics translations</p>
-15:39 < deer> &lt;oOo&gt; Yeah, Klingon translation of the website :p</p>
-15:39 < hypercubus> yes, we can offer English, B0rk, and oOo-fried English</p>
-15:39 < deer> &lt;oOo&gt; Damned, same idea &gt;&lt;</p>
-15:39 < Nightblade> ooo, a mindreader</p>
-15:39 < luckypunk> (with the theory that babelfish aided with a human is better than no translation at all.)</p>
-15:39 < jrandom> i think we might be able to scam jar into updating his French translation lucky, but thanks ;)</p>
-15:39 < deer> &lt;oOo&gt; hyper: will gladly for free like in beer :p</p>
-15:40 < jrandom> thats actually one of the big things post 0.4 - getting the docs solid</p>
-15:40 < luckypunk> hey, my french is completely intelligible to a french speaker</p>
-15:40 < luckypunk> Though i probabxly sound equivilent to godmode0</p>
-15:40 < hypercubus> the installer already has native language packs btw</p>
-15:40 < jrandom> (perhaps a whitepaper or two on various aspects)</p>
-15:40 < jrandom> w3rd hyper</p>
-15:40 < deer> * oOo suspect we can master quite some language with the people online here ;)</p>
-15:40 < jrandom> (yeah, it'll be tough to translate the paragraph license ;)</p>
-15:40 < hypercubus> i could just make it throw up the panel to choose a language</p>
-15:40 < jrandom> agreed oOo</p>
-15:40 < hypercubus> heheh... libre: </p>
-15:40 < jrandom> gratis:</p>
-15:41 < luckypunk> gratis and libre</p>
-15:41 < luckypunk> damn french and their ability to have two words.</p>
-15:41 < jrandom> ok, anything else?</p>
-15:41 < hypercubus> we have 10 words for everything</p>
-15:41 < luckypunk> though libre also means free beer in quebec french.  =(</p>
-15:41 < luckypunk> so much for that theory.</p>
-15:42 < jrandom> ok... if there's nothing else...</p>
-15:42  * jrandom winds up</p>
-15:42  * jrandom *baf*s the meeting closed</p>
-</div>
-{% endblock %}
+14:01 < jrandom> 0) hi
+14:01 < jrandom> 1) 0.3.4.3 status
+14:01 < jrandom> 1.1) timestamper
+14:02 < jrandom> 1.2) new router console authentication
+14:02 < jrandom> 2) 0.4 status
+14:02 < jrandom> 2.1) service &amp; systray integration
+14:02 < jrandom> 2.2) jbigi &amp; jcpuid
+14:02 < jrandom> 2.3) i2paddresshelper
+14:02 < jrandom> 3) AMOC vs. restricted routes
+14:02 < jrandom> 4) stasher
+14:02 < jrandom> 5) pages of note
+14:02 < jrandom> 6) ???
+14:02 < jrandom> 0) hi
+14:02  * jrandom waves
+14:02 < deer> <ugha2p> Hi.
+14:02 < jrandom> weekly notes posted (waaay early) at http://dev.i2p.net/pipermail/i2p/2004-August/000419.html
+14:03 < jrandom> so i expect you've all done your homework and have read them diligently
+14:03 < jrandom> (or something)
+14:03 < jrandom> ok, 1) 0.3.4.3 status
+14:04 < kaji> (late hi)
+14:04 < jrandom> there are a few things adjusted since the 0.3.4.3 release came out last friday, but overall the rev seems pretty stable, from what i can tell
+14:04 < deer> <luckypunk> huh. whats going on?
+14:04 < deer> <luckypunk> Oh.  Nm.  sorry, i usually sleep thorugh the meeting though.  Hi :)
+14:05 < jrandom> what are people's experiences with 0.3.4.3 with regards to eepsites / squid / etc?
+14:05 < luckypunk> very quick.
+14:05 < jrandom> (i can tell what people are seeing with irc)
+14:05 < luckypunk> Under 3 seconds page loading sometimes.
+14:06 < deer> <oOo> Jrandom do kick squid's router too often ;)
+14:06 < jrandom> cool lucky
+14:06 < deer> <mule> working well
+14:06 < luckypunk> i can open up 10 pages of things through the squid and I2P keeps up, pretty slowly though, on my 350 mhz.
+14:06 < deer> <hypercubus> snappiest it's ever been
+14:06 < jrandom> yeah, i do oOo, but thats why we have www1.squid.i2p :)
+14:06 < jrandom> r0x0r
+14:06 < jrandom> i've heard a few reports of excessive CPU usage - is that hitting people often?
+14:07 < deer> <hypercubus> not i... i suspect it's just the people with 386s *cough*lucky*cough*
+14:07 < deer> <oOo> Some very rare peaks here. Related to another erro, I might trace it back one day :p
+14:07 < deer> <mule> not here
+14:07 < luckypunk> I think, if its affecting all platforms and stuff, i would feel it hard, and no not really.  Only when its serving the new config pages or downloading a lot of stuff does I2P pin my processor.
+14:08 < jrandom> ok cool.  there are a few scenarios where i2p will be a bitch wrt CPU, but hopefully those are few and far between
+14:08 < jrandom> actually, that leads us in to 1.1) timestamper :)
+14:09 < jrandom> (one of the problems can occur when the timestamper gets goofy / loses track of the correct time)
+14:10 < jrandom> the whole timestamping stuff has been revamped and integrated into the router, thanks to Adam Buckley being kickass and releasing his work under the BSD license
+14:10 < jrandom> (yay Adam)
+14:11 < jrandom> we had previously used the SNTP code as a standalone client app, but we are not doing that anymore - instead we have a tight integration with the router
+14:11 < jrandom> (so people may need to update their config files as mentioned in the email)
+14:11 < jrandom> SNTP alone is only a part of the solution though
+14:12 < jrandom> long term we need some better (read: NTP) synchronization, as SNTP is prone to flux
+14:12 < jrandom> (especially in light of high network congestion)
+14:12 < jrandom> Adam sent me some code he has for dealing with it, but i dont really have the time to work through that side of things atm
+14:13 < deer> <oOo> Using SNTP only ?
+14:13 < jrandom> i dont recall - i think it may be ntp-esque via sntp queries
+14:13 < deer> <oOo> Ok, thanks
+14:14 < luckypunk> uh
+14:14 < luckypunk> i have a suggestion about that..
+14:14 < jrandom> anyway, if anyone ever feels bored and wants to do some crazy ntp hacking, that'd Rule
+14:14 < luckypunk> Maybe it's wrong though.
+14:14 < jrandom> mmhmm lucky?
+14:14 < luckypunk> use ntpdate -q
+14:14 < luckypunk> get the offset.
+14:14 < jrandom> ntpdate -q == SNTP
+14:14 < luckypunk> or something similar.
+14:14 < deer> <oOo> That is what the current code do, more or less ;)
+14:14  * cervantes catches up what he's mised
+14:14 < luckypunk> oh.
+14:15 < luckypunk> sorry.
+14:15 < cervantes> missed
+14:15 < deer> <oOo> But we need variable seconds length &amp; co ;)
+14:15 < cervantes> cpu usuage on my system is the lowest it's ever been....
+14:15 < jrandom> nice
+14:15 < cervantes> but I've got 700 odd java threads now and rising
+14:15 < jrandom> yeah oOo, and the skew detection / candidate selection
+14:16 < luckypunk> yes, last time i ran it, about a month ago, it seriously affected my usability of my box, now i don't even notice if I2P is running.
+14:16 < jrandom> yeah i've been looking into that cervantes
+14:16 < deer> <oOo> True, even if it's a weak part of the whole stuff ;)
+14:16 < luckypunk> i have about 200 threads.
+14:16 < luckypunk> 219, to be precise.
+14:16 < jrandom> cervantes: i've tracked down the threads to the transport layer (we do some *uuugly* stuff to get timeouts), and we can do some better cleanup later
+14:16 -!- TheCrypto__ is now known as thecrypto
+14:18 < jrandom> basically some oddities are occurring with the increased # of peers on the network &amp; the churn.  all workable, but it can be annoying
+14:18 < jrandom> anyway, thats it for 1.1, now 1.2) new router console authentication :)
+14:19 < jrandom> (no one probably cares about this, but we have basic http authentication working.  see the email for more info)
+14:19 < cervantes> cool
+14:19 < cervantes> despite that though the memory handling rocks... haven't had an oom in ages
+14:19 < jrandom> ah wikked
+14:20 < jrandom> actually, that gets us towards 2) 0.4 status
+14:22 < luckypunk> Yes.  If I2P were a MS product, we'd be ready for 1.0 :)
+14:22 < jrandom> arggg, damn net connection dropped
+14:22 < jrandom> (screen++)
+14:23 < jrandom> ok, anyway, there has been a lot going on, and there are still a few more back end things left to do (some client tunnel pool management, as oOo is seeing, and some peer selection testing, as is in cvs)
+14:24 < jrandom> there's also been a lot of progress on the installer / service / systray side of things 
+14:24 < jrandom> hypercubus: want to give us an update?
+14:24 < deer> <hypercubus> sure
+14:25 < deer> <hypercubus> the service wrapper installation is nearing completion, perhaps today or tomorrow... the service wrapper takes care of OOMs by automatically restarting the i2p router
+14:25 < jrandom> (yay)
+14:25 < deer> <hypercubus> so it covers our butts there somewhat
+14:26 < deer> <hypercubus> systray integration is complete and works great... it's only for Win32 currently, since the systray4j lib seems to have some bugs in its KDE implementation
+14:26 < deer> <hypercubus> i'll be tracking the KDE progress and hopefully we'll have that in the near future
+14:27 < deer> <hypercubus> the installer is almost complete as well, all that remains to be added are post-installation tasks
+14:27 < deer> <hypercubus> i expect that will be done by the weekend
+14:27 < deer> <hypercubus> (as it depends on the complete integration of the service wrapper)
+14:28 < jrandom> r0x0r
+14:28 < deer> <hypercubus> i'll be making available a pre-0.4 installer package for people to test
+14:28 < deer> <hypercubus> so i will let you all know when that's ready
+14:28 < luckypunk> What about GNOME?
+14:28 < cervantes> increment(hypercubus)
+14:28 < deer> <hypercubus> the systray4j project hasn't taken on gnome yet
+14:29 < deer> <hypercubus> we'll be adding additional desktop environments as becomes available with systray4j
+14:29 < luckypunk> well, no biggie, i'mm gonna switch once/if KDE compiles.
+14:30 < deer> <hypercubus> the systray icon is only for launching the router console in your browser anyhow
+14:30 < deer> <hypercubus> so its main use will be by windows users ;-)
+14:30 < jrandom> yeah, we expect *nix users to know how to bookmark ;)
+14:30 < deer> <hypercubus> but we will of course cater to the lazy *nix users when we can ;-)
+14:30 < deer> <oOo> N/C...
+14:30 < luckypunk> Oh, I have a link in my firefox link hings like, with slashdot and BSD Google.
+14:31 < deer> <hypercubus> but the icon does also serve as a convenient status indicator
+14:31 < jrandom> agreed
+14:31 < deer> <hypercubus> i.e. if the icon is gone, your router is gone too ;-)
+14:31 < deer> <hypercubus> unless of course you chose to hide the icon from your router console
+14:32 < deer> <hypercubus> which you can do, and it works great
+14:32 < deer> <hypercubus> ok, i think that's all, unless there are any questions
+14:33 < protok0l> whats a good PDA that runs linux well?
+14:33 < jrandom> word hyper
+14:33 < jrandom> proto: #i2p-chat (or after the meeting)
+14:33 < protok0l> oops
+14:33 < deer> <hypercubus> *snicker*
+14:33 < jrandom> ok, movin' on to 2.2) jbigi &amp; jcpuid
+14:34 < jrandom> iakin has put together some kickass JNI/asm code to detect the exact CPU architecture used (on x86 boxen), and he has jbigi rigged up for freenet to auto-select the right .so/.dll based on that
+14:35 < jrandom> he has also released that work into the public domain, and we've snagged a copy and integrated it back into i2p
+14:35 < luckypunk> So we won't have to chose which jbigi to download?  Won't that make the install somewhat larger?
+14:35 < jrandom> correct
+14:35 < jrandom> yeah, it adds a few hundred KB
+14:36 < jrandom> but, well, the new install is, um, larger than the old one
+14:36 < luckypunk> oh, i thought it would be more than a few hundred kb.
+14:36 < luckypunk> Yea, between the new console...I'm guessing 6 - 10 mb?
+14:36 < deer> * Myo9 has only got 99 mb left on this drive.
+14:36 < deer> <Myo9> ;)
+14:36 < jrandom> (especially since i'm being an ass and insisting on .war support rather than direct servlets, requiring xerces, which weighs in at 800KB)
+14:36 < jrandom> the new install is looking ~4-6MB
+14:37 < jrandom> but the good thing is, only ~1MB of that is i2p specific, so updates will be lightweight ;)
+14:38 < deer> <Myo9> I2P hasn't got much publication has it?
+14:38 < deer> <Myo9> Compared to freenet and TOR?
+14:38 < jrandom> correct, we're staying fairly quiet
+14:38 < protok0l> is download size a real consern? most people have broadband
+14:38 < protok0l> i'm use it if it were 100megs
+14:38 < luckypunk> protok0l, most people don't, actually.  Most people that'd use I2P do.  though i think I2P still supports dialup (sort of)
+14:38 < deer> <mule> for i2p users it shouldn't
+14:39 < jrandom> in my view, the development effort is best served with gradual adoption after sufficient testing goes on at different crititcal points
+14:39 < luckypunk> yes.  I2P isn't ready for 500 slashdot users :)
+14:39 < jrandom> though our recent growth has been good, helping to poke different parts of the system
+14:40 < jrandom> as we launch the 0.4 rev, we will want to move towards the 100-router mark
+14:40 < deer> <mule> ok, i'll set up another 50 :)
+14:40 < jrandom> plus, that'll give more incentive for client app devs to build client apps ;)
+14:40 < jrandom> lol mule :)
+14:41 < deer> <ugha2p> Arr.
+14:41 < cervantes> at the rate of adoption we could probably reach 100 in about a month
+14:41 < cervantes> without evangelising
+14:41 < jrandom> that would be a good rate of growth
+14:42 < jrandom> but anyway, back to the agenda :)
+14:42 < protok0l> i cant wait to evangelize
+14:42 < jrandom> jbigi + jcpuid == integrated (and see the mailing list if you want to run CVS HEAD) :)
+14:42 < jrandom> heh we can tell proto ;)
+14:42 < deer> <hypercubus> lucky: more than half of US internet users have broadband... report was released the other day
+14:43 < jrandom> and less than 1/10th of the world is in the us ;)
+14:43 < deer> <oOo> Who mind about the USA ? ^^
+14:43 < jrandom> but moving on to 2.3) i2paddresshelper
+14:44 < jrandom> oOo has put together yet another patch, this one letting people hit eepsites with linked pages without editing hosts.txt
+14:45 < jrandom> the details are listed in the weekly status notes
+14:45 < jrandom> oOo - is there anything you want to add?
+14:45 < deer> <oOo> Hum... Let's the eepsites number grow fast and Cervantes add his promised support :p
+14:46 < jrandom> ah, cervantes has already added the "Try it [i2p]" link :)
+14:46 < jrandom> (only people on CVS HEAD can use it, until 0.4 is out)
+14:46 < cervantes> :o)
+14:46 < jrandom> ((works great, btw))
+14:46 < deer> <oOo> Great ^^  Will play with it as soon as I manage to get my router back online ;)
+14:47 < kaji> you could password the client download and roll it gmail style
+14:47 < jrandom> hmm?
+14:48 < kaji> small base + invitation only
+14:48 < kaji> but that would take work
+14:48 < jrandom> oh, for 0.4 release?  
+14:48 < kaji> oh, for the 1.0
+14:48 < jrandom> no, not worth the effort atm.  if we get flooded with new users we may want to look at using certificates, etc
+14:48 < deer> <oOo> 1.0 is for mass audience :p
+14:49 < jrandom> well, for 1.0 we're going to be up past the 1000 user mark already
+14:49 < jrandom> (at least, thats my hope ;)
+14:49  * kaji thinks it would be fun to watch i2p go from 50 to 5000 node in 3 hours
+14:49 < jrandom> heh
+14:49 < deer> <oOo> And then down to 100 ;)
+14:49 < luckypunk> hypercubus, whoo hoo for americans!  they're catching up ;)
+14:49 < jrandom> heh, thats one way to test churn ;)
+14:50 < cervantes> if aum gets stasher working...and hyper increases his goatse library then you'll see it jump 50 to 5000 is less than 3 hours ;-)
+14:50 < kaji> and then 50100 as the nsa brings their node onlin
+14:50 < jrandom> actually that kind of brings us forward to 3) AMOC vs. restricted routes
+14:51 < jrandom> one of the interesting aspects of restricted routes is the ability to mount a 'sybil' attack really, really, really easily.
+14:51 < jrandom> while mule was just mentioning a few minutes ago installing 50 new nodes, it'd be possible to bring online a significant number 
+14:52 < jrandom> one of the ways to address this is through a certificate authority, limiting the introduction of new routerIdentity certificates
+14:52 < jrandom> another is through hashcash
+14:52 < jrandom> another is through morphmix/tarzan style ip prefix detection
+14:53 < jrandom> but, yet another is to say "fuck it" and hope we get sufficient 'good' peers to outnumber the 'bad' ones
+14:53 < fvw> I think that's ok for the time being yes.
+14:54 < protok0l> heres an idea
+14:54 < jrandom> yeah, its the simplest thing to do, and adding artificial barriers to join a p2p network at this stage seems... foolish
+14:54 < fvw> I think perhaps a mix of hashcash and ip-based would be nice to have for 1.0, but all in all you can't defend against a powerful enough adversary.
+14:54 < protok0l> cut off the inital noderef access
+14:54 < protok0l> if someone wants on, we can give them your noderefs
+14:54 < protok0l> *uor
+14:54 < fvw> and how would that help?
+14:55 < jrandom> right fvw, and we might be able to put it off until after 1.0, as well
+14:55 < fvw> depends on your definition of 1.0 :)
+14:55 < jrandom> proto: i'm not sure that'd help much
+14:55 < jrandom> heh fvw, we're not like freenet ;)
+14:56 < jrandom> 1.0 == functional, secure, [sufficiently] anonymous, and scalable
+14:56 < deer> <oOo> and well documented ;)
+14:56 < jrandom> documentation is a prerequisite to secure :)
+14:56 < deer> <Myo9> Are all users added to the noderef at the moment?
+14:57 < jrandom> Myo9: yes - http://dev.i2p.net/i2pdb/ is just a link into one of my router's netDb/ dir
+14:57 < jrandom> (so it will list everyone my router has a reference for, at any time)
+14:58 < jrandom> ((and everyone has a ref for people they talk to, which, at our current scale, is everyone))
+14:58 < jrandom> ok, but back to 3) AMOC vs. restricted routes
+14:59 < deer> <Myo9> Ok.
+14:59 < jrandom> as mentioned in the email, mule's ideas might be able to get us to drop the 0.4.2 AMOC transport and instead implement basic restricted route support, treating people behind NATs/firewalls as simply being behind a restricted route
+15:00 < fvw> it would be kind of cool
+15:00 < jrandom> yeah, and save us from writing yet another transport protocol
+15:01 < deer> <ugha2p> But how would make performing sybil attack that much easier?
+15:01 < jrandom> s/writing/designing,implementing,reviewing,debugging,deploying,debugging,debugging,debugging,debugging.../
+15:01 < deer> <ugha2p> how would it make*
+15:02 < jrandom> ugha2p: there is no way to tell how many *real* routers are behind a restricted route - all we know about them is that they have a unique router identity and are reachable through a certain router
+15:02 < deer> <ugha2p> Ah.
+15:03 < jrandom> that certain router could in fact be one sim instance, running 100 other routers in the same JVM, each pretending to be behind firwalls
+15:03 < deer> <ugha2p> Right.
+15:03 < deer> <oOo> They could as easily been using 100 ports on the same host...
+15:03 < fvw> however assuming you're willing to spend a few 100 euros on your attack, you can get a large number of spread out IPs anyway.
+15:03 < jrandom> agreed fvw
+15:04 < jrandom> oOo: true, though ports cost memory (and some CPU)
+15:04 < deer> <ugha2p> I don't think that presumption is going to stop more powerful enemies though.
+15:04 < jrandom> (which is why when i do larger sims, i need to switch from the TCP comm system to the VM comm system)
+15:04 < jrandom> agreed ugha2p
+15:04 < jrandom> it just makes it easier
+15:05 < fvw> I think we're going to have to assume that anybody with more than a bored-sunday-afternoon desire to attack the system is going to be able to get at least 10^3 nodes on the network easy.
+15:05 < deer> <oOo> Not *that* much
+15:05 < jrandom> right fvw
+15:05 < deer> <oOo> (+ easier)
+15:05 < fvw> and at that order of magnitude, nothing apart from central certification is going to stop them.
+15:06 < deer> <ugha2p> 100 open ports on one single host would be trivial to detect, but 100 restricted routes behind a machine might not be.
+15:06 < jrandom> well, thats open to debate fvw, but yeah, sybil is a bitch
+15:06 < deer> <oOo> 100 zombies are tricky to detect ;)
+15:06 < fvw> which means we ideally need a 10^4 network.
+15:06 < jrandom> definitely oOo
+15:06 < fvw> (loose estimates)
+15:07 < deer> <ugha2p> We'll ideally have a 10^4+ network.
+15:07 < jrandom> fvw: i'd go higher than that - imho we need to grow this into the millions
+15:07 < deer> <oOo> Ideally would be more then half available IPs ;)
+15:07 < jrandom> heh oOo
+15:07 < fvw> It'd be nice if we could yeah.
+15:08 < jrandom> (but, of course, to grow it into hte millions we need sufficient reason to do so.  i think we will be able to make the case for that eventually though)
+15:08 < deer> <ugha2p> I'm not sure if Kademlia could be held in one piece for that long. ;)
+15:08 < fvw> at which point beating people up would definately become the low-cost attack. Which, unintuitively enough, would be a good thing.
+15:08 < jrandom> heh
+15:08 < deer> <DrWoo> jrandom: millions would need serious useability and benefit
+15:09 < jrandom> agreed DrWoo
+15:09 < fvw> luckily, a lot of (non-nice) people are working very hard on that now.
+15:09 < deer> <oOo> Pr0n for masses :p
+15:10 < deer> <jrandom> which is why imho we need a kickass filesharing app
+15:10 < deer> <oOo> "One human, One goatse", which lead us to stasher :p
+15:10 < cervantes> download->install->share musi
+15:10 < deer> <DrWoo> jrandom: it would have to be order of an anonymous kazza, luckily the motivation is being taken care of by the RIAA &amp; co.
+15:10 < fvw> pr0n is already easy to get (see usenet and such). I think big record company assocs and such are going to crack down a lot harder on p2p than pornographers ever could.
+15:10 < cervantes> music
+15:10 < fvw> but once again we drift offtopic.
+15:11 < fvw> "4) stasher"?
+15:11 < deer> <oOo> Yeah ! 4) !
+15:11 < jrandom> agreed - we can all think up some reasons to justify use, but first we need to get it *working* :)
+15:11 < cervantes> ah for once a non-tenuous link into the next item
+15:11 < jrandom> movin' to 4) stasher
+15:12 < jrandom> aum: you awake yet?
+15:12  * hypercubus chants auuuuuummmmmmmmm
+15:12 < jrandom> well, in case he isn't, i know he's been doing a lot of work on adding CHK and SVK support to stasher
+15:13 < jrandom> which is Cool
+15:13 < deer> <oOo> And splitfiles
+15:13 < jrandom> yeah, the splitfile support is interesting
+15:13 < fvw> in the 'interesting times' sense? 
+15:14 < jrandom> thats one of the differences between freenet and stasher, in that stasher already has a fixed 31KB max size per key
+15:14 < deer> <oOo> "Useful, great, don't need anything from user application"
+15:14 < jrandom> (since afaik stasher uses SAM datagrams)
+15:14 < luckypunk> can't you impliment lik..split files?
+15:15 < jrandom> ooohhh!  i just realized what bug he was running into wrt reliability!  
+15:15 < jrandom> (fixed the other day in cvs, significantly killing the bug)
+15:15 < jrandom> yeah lucky
+15:15 < jrandom> but the splitfile implementation is inherently different from how freenet splitfiles work, due to max keysize limitations
+15:15 < deer> <oOo> So Stasher over-I2P just be healthy again ? ^^
+15:16 < jrandom> (if you read freenet devl or tech lately, you'll hear toad and hobx talking it over)
+15:16 < deer> <oOo> *should
+15:16 < jrandom> oOo: with HEAD, yeah
+15:16  * jrandom hasnt heard any reports of people even trying it since 0.3.4.3 came out (or was it 0.3.4.2)
+15:16 < jrandom> but anyway, he is planning on another new test build by end of the week
+15:17 < jrandom> anyone have anything to mention / discuss wrt stasher?
+15:17 < jrandom> (other than yay!  go aum!)
+15:18 < deer> <oOo> Yeah, there is an urge to find non-goatse contents there ;)
+15:18 < jrandom> heh
+15:18 < deer> <oOo> ex-Freeneter, start your engines ;)
+15:18 < jrandom> yeah splitfile support should definitely help with that, as would ssk &amp; fcp support
+15:19 < fvw> I'd like to second the 'go aum!' if I may.
+15:19 < deer> <oOo> yay !
+15:19 < jrandom> motion is seconded, and thirded :)
+15:19 < jrandom> ok, swingin' forward to 5) pages of note
+15:20 < jrandom> i just wanted to point out three new pages
+15:20 < jrandom> DrWoo's safe browsing guide gives a pretty good rundown on the dangers of eepsites &amp; the outproxies
+15:20 < jrandom> the problems can be addressed in code, but we just havent had time to do it yet, so its Good to be informed
+15:21 < jrandom> lucky has also put together a good doc on the freebsd+java side of things as well
+15:21  * jrandom hasnt tried too many jvms on fbsd, just kaffe, so nag him if you have questions :)
+15:22 < jrandom> hyper has also put together the doc for upgrading to the 0.4 dev code, which he'll likely be updating once we want more people to test it ;)
+15:22 < hypercubus> my post on the forum covers installation of the service wrapper... the howto for the new router console is here --> http://files.hypercubus.i2p/New_I2P_Router_Console_Howto.txt
+15:23 < jrandom> wr0d
+15:23 < jrandom> oh, there's also a new pretty picture &amp; some new text @ http://www.i2p.net/how_intro (hopefully making things a bit more clear)
+15:24 < fvw> ooh, that looks pretty. Who did that? Good work.
+15:25 < hypercubus> it was actually copied directly from a crop circle
+15:25  * fvw tries not to mention the resemblence between jrandom and Dave but fails miserably.
+15:25 < jrandom> heh
+15:25 < fvw> ah, that explains jrandom's feelers.
+15:25 < jrandom> the pic was beautified by our anonymous designer
+15:25 < jrandom> (thankfully so, my ms paint skills suck :)
+15:26 < hypercubus> we're still trying to decipher the significane of Charlie's long chin
+15:26 < deer> <ugha2p> Arr, this sucks.
+15:26 < jrandom> how about alice's skewed eyes?  ;)
+15:26 < hypercubus> heh
+15:26 < deer> <jrandom> yeah, it'll be nice when we get irc.duck.i2p upgraded (if it hasnt been already..)
+15:27 < fvw> never mind that, she looks like she's doing a double alien-bursting-from-stomach-scene with her cheeks.
+15:27 < jrandom> lol
+15:27 < jrandom> *thats* why she is talking to dave
+15:27 < jrandom> well, anyway, i think this leads us to 6) ???
+15:27 < fvw> haha
+15:27 < jrandom> anyone have anything they want to bring up?
+15:28 < deer> <oOo> Can't you build the skeleton of certificates' stuff in I2P and let *others* fill it and have fun ? (Or his this already done ? :p)
+15:28 < deer> <oOo> Or is this absolutely useless ?
+15:28 < deer> <oOo> (for now)
+15:28 < jrandom> hmm?  
+15:28 < jrandom> the hashcash / etc certificate stuff?
+15:28 < deer> <oOo> Ok, nevermind ^^
+15:28 < deer> <oOo> Yes
+15:29 < jrandom> ok yes, we already have the infrastructure for that
+15:29 < jrandom> (though things like libSAM will need to be modified to interpret the destination properly, since iirc nightblade assumed 384bytes always ;)
+15:30 < jrandom> but the router will handle different types of certificates transparently
+15:30 < deer> <oOo> The code is ready for this ? Just missing some 'content' ?
+15:31 < jrandom> yes - the RouterIdentity created currently always attaches a NullCertificate (certificate type == 0)
+15:31 < jrandom> if it attaches another type, another type of certificate is attached 
+15:31 < jrandom> e.g. hashcash cert, CA signed cert, etc
+15:31 < jrandom> verification infrastructure is there as well (RouterInfo.verify)
+15:32 < deer> <oOo> Oh, great :)
+15:32 < deer> <oOo> So someone may play with this code and adding hashcash and stuff in advance ?
+15:32 < jrandom> if we had a flash flood i could probably lock down the net in a day or two
+15:32 < jrandom> right
+15:33 < jrandom> (though i think fvw is right in that it wont be pressing for at least a little while)
+15:33 < deer> <oOo> Ok. I don't volunteer ;)  But someone might :p
+15:33 < Nightblade> on i2p.net, the aug 24 meeting log link is pointed at the aug 17 log
+15:33 < jrandom> right, sorry, meeting isn't over yet :)
+15:33 < Nightblade> oh haha
+15:34 < jrandom> so, anyone have anything else they want to bring up?  :)
+15:34 < hypercubus> new rule... whoever edits the website: no smokin' the funny stuff while editing!
+15:34 < jrandom> uh oh...
+15:34 < jrandom> what'd i do?
+15:34 < hypercubus> i was referring to broken links ;-)
+15:34 < jrandom> oh
+15:35 < hypercubus> we need a full time web editor... i nominate lucky
+15:35 < jrandom> well, yeah, i updated the link to this weeks weekly status notes before the meeting, in case anyone went to the page ;)
+15:35 < jrandom> we certainly do need someone to keep track of the web site and poke people when things are funky
+15:36 < luckypunk> me?  web enditor?
+15:36 < luckypunk> enditor haha
+15:36 < luckypunk> i dunno
+15:36 < Nightblade> spelchek reqwired
+15:36 < luckypunk> i'll probably be pretyt busy once school start.s
+15:36 < jrandom> bah, drop out!  work on i2p fulltime!
+15:36 < luckypunk> if i drop out
+15:37 < luckypunk> my parents will make me get a job
+15:37 < deer> <hypercubus> excuses excuses ;-)
+15:37 < luckypunk> and i'm still busy
+15:37 < deer> <hypercubus> amen
+15:37 < deer> * oOo will happily renovate the English used on the website ;)
+15:37 < luckypunk> anyway, i don't think i'm gonna be allowed to drop out
+15:38 < luckypunk> they're raising the legal dropout age to 18
+15:38 < luckypunk> or high school diploma
+15:38 < luckypunk> whatever comes first.  (usually the latter)
+15:38 < hypercubus> er
+15:38 < Nightblade> haha "legal dropout age" - what will they come up with next?
+15:38 < luckypunk> it's 16 now.
+15:38 < luckypunk> You can't leave school before that, else they'll arrest you.
+15:38 < jrandom> actually, thats a good point.. as we move towards 1.0 it'd be good to offer different translations of various pages
+15:39  * luckypunk can make a vague translation intro french, if absolutely required.
+15:39 < Nightblade> I'll do the Klingon and Ebonics translations
+15:39 < deer> <oOo> Yeah, Klingon translation of the website :p
+15:39 < hypercubus> yes, we can offer English, B0rk, and oOo-fried English
+15:39 < deer> <oOo> Damned, same idea ><
+15:39 < Nightblade> ooo, a mindreader
+15:39 < luckypunk> (with the theory that babelfish aided with a human is better than no translation at all.)
+15:39 < jrandom> i think we might be able to scam jar into updating his French translation lucky, but thanks ;)
+15:39 < deer> <oOo> hyper: will gladly for free like in beer :p
+15:40 < jrandom> thats actually one of the big things post 0.4 - getting the docs solid
+15:40 < luckypunk> hey, my french is completely intelligible to a french speaker
+15:40 < luckypunk> Though i probabxly sound equivilent to godmode0
+15:40 < hypercubus> the installer already has native language packs btw
+15:40 < jrandom> (perhaps a whitepaper or two on various aspects)
+15:40 < jrandom> w3rd hyper
+15:40 < deer> * oOo suspect we can master quite some language with the people online here ;)
+15:40 < jrandom> (yeah, it'll be tough to translate the paragraph license ;)
+15:40 < hypercubus> i could just make it throw up the panel to choose a language
+15:40 < jrandom> agreed oOo
+15:40 < hypercubus> heheh... libre: 
+15:40 < jrandom> gratis:
+15:41 < luckypunk> gratis and libre
+15:41 < luckypunk> damn french and their ability to have two words.
+15:41 < jrandom> ok, anything else?
+15:41 < hypercubus> we have 10 words for everything
+15:41 < luckypunk> though libre also means free beer in quebec french.  =(
+15:41 < luckypunk> so much for that theory.
+15:42 < jrandom> ok... if there's nothing else...
+15:42  * jrandom winds up
+15:42  * jrandom *baf*s the meeting closed
