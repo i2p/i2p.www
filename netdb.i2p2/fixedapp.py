@@ -190,6 +190,7 @@ def application(environ, start_response):
             #
             # zap badness from path
             #
+            print "path given is" + path
             chkpath = path.replace("'","").replace("/","")
             # check to see if we have this entry in the database at all.
             cur.execute("select * from entry where wht = ?",  chkpath)
