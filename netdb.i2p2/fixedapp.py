@@ -36,9 +36,9 @@ import pyodbc
 
 # db format
 #
-#  table client ipaddress, time of access, file list index
+#  table client ipaddress, time of access
 #
-#  table html index, time of creation, html
+#  table html index, time of creation
 
 
 #
@@ -52,15 +52,13 @@ def checkdatabase():
     try:
         cur.execute("select * from client")
     except pyodbc.Error:
-        #cur.execute("create table peer (ip string, time string, index string)")
-        print ("Creating new table 'client'")
+        #print ("Creating new table 'client'")
         cur.execute("create table client (ip string, whn float)")
         cnxn.commit()
     try:
         cur.execute("select * from entry")
     except pyodbc.Error:
-        #cur.execute("create table peer (ip string, time string, index string)")
-        print ("Creating new table 'entry'")
+        #print ("Creating new table 'entry'")
         cur.execute("create table entry (whn float, wht string)")
         cnxn.commit()
     cnxn.close()
