@@ -280,7 +280,7 @@ def blog_entry(slug):
 
     if parts:
         # now just pass to simple template file and we are done
-        return render_template('blog/entry.html', parts=parts, title=parts['title'], body=parts['fragment'])
+        return render_template('blog/entry.html', parts=parts, title=parts['title'], body=parts['fragment'], slug=slug)
     else:
         abort(404)
 
