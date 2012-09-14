@@ -190,13 +190,14 @@ def application(environ, start_response):
             #
             # zap badness from path
             #
-            print "path given is" + path
+            #print "path given is " + repr(path)
+
             chkpath = path.replace("'","").replace("/","")
             # check to see if we have this entry in the database at all.
             cur.execute("select * from entry where wht = ?",  chkpath)
             chk = cur.fetchall()
             if len(chk) == 0:
-                resp = Response("Do you not have anything better to do?", status=400, mimetype='text/plain')
+                resp = Response("Do you not have anything better to do?\nRequested file "+repr(path)+"\nchk "+repr(chkpath)+"\n", status=400, mimetype='text/plain')
             else:
                 try:
                     # load file
