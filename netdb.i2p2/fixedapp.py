@@ -90,7 +90,7 @@ class Response(BaseResponse, ETagResponseMixin):
     """Subclass of base response that has a default mimetype of text/html."""
     default_mimetype = 'text/html'
 
-def app(environ, start_response):
+def application(environ, start_response):
     """The WSGI application that connects all together."""
     req = Request(environ)
     remote = req.remote_addr
@@ -200,4 +200,4 @@ checkdatabase()
 
 if __name__ == '__main__':
     from werkzeug import run_simple
-    run_simple('localhost', 5007, app)
+    run_simple('localhost', 5007, application)
