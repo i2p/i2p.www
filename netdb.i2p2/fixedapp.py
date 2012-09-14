@@ -129,21 +129,29 @@ def application(environ, start_response):
             # tag the ip as new
             cur.execute("insert into client values (?, ?)", (remote, now))
             # see if we have a list already, and use that
-            # generate links
-            entries = os.listdir(netdbdir)
-            if len(entries) > 150:
-                # select some randomly
-                new = []
-                for i in range(100):
-                    while True:
-                        sel = choice(entries)
-                        if not sel.startswith('routerInfo-'):
-                            continue
-                        if sel not in new:
-                            new.append(sel)
-                            cur.execute("insert into entry values (?, ?)", (nowtag, sel))
-                            break
-                entries = new
+            cur.execute("select * from entry where whn = ?", nowtag)
+            stuff = cur.fetchall()
+            if (len(stuff) == 0):
+                # generate links
+                entries = os.listdir(netdbdir)
+                if len(entries) > 150:
+                    # select some randomly
+                    new = []
+                    for i in range(100):
+                        while True:
+                            sel = choice(entries)
+                            if not sel.startswith('routerInfo-'):
+                                continue
+                            if sel not in new:
+                                new.append(sel)
+                                cur.execute("insert into entry values (?, ?)", (nowtag, sel))
+                                break
+                    entries = new
+            else:
+                # Use what we already generated
+                entries = []
+                for junk,sel in stuff:
+                    entries.append(sel)
         else:
             # use old list based on date in database, i.e. sends the same as before.
             junk, last = info[0]
