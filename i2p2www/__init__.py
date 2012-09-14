@@ -233,6 +233,7 @@ def get_blog_index():
                 continue
             entries.append(safe_join(slugbase, f[:-4]))
     entries.sort()
+    entries.reverse()
     return entries
 
 def get_date_from_slug(slug):
