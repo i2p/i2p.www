@@ -90,6 +90,7 @@ class Response(BaseResponse, ETagResponseMixin):
 
 def application(environ, start_response):
     """The WSGI application that connects all together."""
+    checkdatabase()
     req = Request(environ)
     remote = req.remote_addr
     now = time()
@@ -197,7 +198,7 @@ def application(environ, start_response):
             cur.execute("select * from entry where wht = ?",  chkpath)
             chk = cur.fetchall()
             if len(chk) == 0:
-                resp = Response("Do you not have anything better to do?\nRequested file "+repr(path)+"\nchk "+repr(chkpath)+"\n", status=400, mimetype='text/plain')
+                resp = Response("Do you not have anything better to do?", status=400, mimetype='text/plain')
             else:
                 try:
                     # load file
@@ -207,12 +208,10 @@ def application(environ, start_response):
                     resp.add_etag()
                 except IOError:
                     # 404
-                    resp = Response("Owch! Could not find file!", status=404, mimetype='text/plain')
+                    resp = Response("Owch! Could not find file! It got deleted before you could get a copy, sorry.", status=404, mimetype='text/plain')
     cnxn.commit()
     cnxn.close()
     return resp(environ, start_response)
-
-checkdatabase()
 
 if __name__ == '__main__':
     from werkzeug import run_simple
