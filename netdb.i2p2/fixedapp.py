@@ -134,10 +134,10 @@ def application(environ, start_response):
             if (len(stuff) == 0):
                 # generate links
                 entries = os.listdir(netdbdir)
+                new = []
                 if len(entries) > 150:
                     # select some randomly
-                    new = []
-                    for i in range(100):
+                    for i in xrange(100):
                         while True:
                             sel = choice(entries)
                             if not sel.startswith('routerInfo-'):
@@ -146,7 +146,14 @@ def application(environ, start_response):
                                 new.append(sel)
                                 cur.execute("insert into entry values (?, ?)", (nowtag, sel))
                                 break
-                    entries = new
+                else:
+                    for sel in entries:
+                        if not sel.startswith('routerInfo-'):
+                            continue
+                        if sel not in new:
+                            new.append(sel)
+                            cur.execute("insert into entry values (?, ?)", (nowtag, sel))
+                entries = new
             else:
                 # Use what we already generated
                 entries = []
@@ -165,8 +172,9 @@ def application(environ, start_response):
 
         res = ''
         for entry in entries:
-            if not entry.startswith('routerInfo-'):
-                continue
+            # Already sanitized above.
+            #if not entry.startswith('routerInfo-'):
+            #    continue
             res += '<li><a href="%s">%s</a></li>' % (entry, entry)
         resp = Response(page % res, mimetype='text/html')
         resp.add_etag()
