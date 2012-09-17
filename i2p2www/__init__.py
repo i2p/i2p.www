@@ -55,6 +55,10 @@ def pull_lang(endpoint, values):
 def set_lang(endpoint, values):
     if not values:
         return
+    if endpoint == 'static':
+        # Static urls shouldn't have a lang flag
+        # (causes complete reload on lang change)
+        return
     if 'lang' in values:
         return
     if hasattr(g, 'lang'):
