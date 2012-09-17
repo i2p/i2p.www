@@ -1,5 +1,6 @@
 from jinja2 import Environment, FileSystemLoader, environmentfilter
 from flask import Flask, request, session, g, redirect, url_for, abort, render_template, flash, send_from_directory, safe_join
+from flaskext.babel import Babel
 from docutils.core import publish_parts
 import os.path
 import os
@@ -15,6 +16,20 @@ MEETINGS_DIR = os.path.join(os.path.dirname(__file__), 'meetings')
 
 app = application = Flask('i2p2www', template_folder=TEMPLATE_DIR, static_url_path='/_static', static_folder=STATIC_DIR)
 app.debug =  bool(os.environ.get('APP_DEBUG', 'False'))
+babel = Babel(app)
+
+
+#################
+# Babel selectors
+
+@babel.localeselector
+def get_locale():
+    # If the language is already set from the url, use that
+    if hasattr(g, 'lang'):
+        return g.lang
+    # otherwise try to guess the language from the user accept
+    # header the browser transmits. The best match wins.
+    return request.accept_languages.best_match(['en', 'es', 'zh', 'de', 'fr', 'it', 'nl', 'ru', 'sv', 'cs', 'ar'])
 
 
 ##########################
