@@ -310,7 +310,8 @@ def blog_index(page=0):
     entries= []
     for slug in slugs:
         date = get_date_from_slug(slug)
-        title = slug.rsplit('/', 1)[1]
+        titlepart = slug.rsplit('/', 1)[1]
+        title = ' '.join(titlepart.split('_'))
         entries.append((slug, date, title))
 
     return render_template('blog/index.html', entries=entries)
