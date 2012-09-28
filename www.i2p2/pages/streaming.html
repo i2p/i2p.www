@@ -1,7 +1,7 @@
 {% extends "_layout.html" %}
 {% block title %}Streaming Library{% endblock %}
 {% block content %}
-Updated June 2012, current as of router version 0.9.1
+Updated September 2012, current as of router version 0.9.2
 <h2>Overview</h2>
 
 <p>
@@ -107,6 +107,9 @@ Note that higher-layer APIs, such as
 <a href="i2ptunnel.html">I2PTunnel</a>,
 may override these defaults with their own defaults.
 Also note that many options only apply to servers listening for incoming connections.
+</p><p>
+As of release 0.9.1, most, but not all, options may be changed on an active socket manager or session.
+See the javadocs for details.
 </p>
 
 
@@ -122,6 +125,12 @@ Also note that many options only apply to servers listening for incoming connect
 </td><td>Use the access list as a blacklist for incoming connections
       As of release 0.7.13.
 </td></tr><tr><td>i2p.streaming.answerPings</td><td>true</td><td>Whether to respond to incoming pings
+</td></tr><tr><td>i2p.streaming.blacklist</td><td>null</td><td>Comma- or space-separated list of Base64 peer Hashes to be
+      blacklisted for incoming connections to ALL destinations in the context.
+      This option must be set in the context properties, NOT in the createManager() options argument.
+      Note that setting this in the router context will not affect clients outside the
+      router in a separate JVM and context.
+      As of release 0.9.3.
 </td></tr><tr><td>i2p.streaming.bufferSize</td><td>64K</td><td>
       How much transmit data (in bytes) will be accepted that hasn't been written out yet.
 </td></tr><tr><td>i2p.streaming.congestionAvoidanceGrowthRateFactor</td><td>1
@@ -279,14 +288,17 @@ Bit order: 15....0 (15 is MSB)
 <tr><th>Bit<th>Flag<th>Option Data<th>Function
 <tr><td>0<td>SYNCHRONIZE<td align="center">--<td>
 Similar to TCP SYN. Set in the initial packet and in the first response.
+FROM_INCLUDED and SIGNATURE_INCLUDED must be set also.
 <tr><td>1<td>CLOSE<td align="center">--<td>
 Similar to TCP FIN. If the response to a SYNCHRONIZE fits in a single message, the response
 will contain both SYNCHRONIZE and CLOSE.
+SIGNATURE_INCLUDED must be set also.
 <tr><td>2<td>RESET<td align="center">--<td>
 Abnormal close.
+SIGNATURE_INCLUDED must be set also.
 <tr><td>3<td>SIGNATURE_INCLUDED<td>40 byte <a href="common_structures_spec.html#type_Signature">DSA Signature</a>
 <td>
-Currently sent only with SYNCHRONIZE and CLOSE, where it is required.
+Currently sent only with SYNCHRONIZE, CLOSE, and RESET, where it is required.
 The signature uses the Destination's <a href="common_structures_spec.html#type_SigningPublicKey">DSA signing keys</a> 
 to sign the entire header and payload with the 40-byte space in the option data field 
 for the signature being set to all zeroes.
