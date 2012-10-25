@@ -102,74 +102,103 @@ leases εξουσιοδοτούνται και παλιά λήγουν.
 για τις τωρινές πληροφορίες.
 </p>
 
-<p>To deal with a wide range of attacks, I2P is fully distributed with no centralized resources - and 
-hence there are no directory servers keeping statistics regarding the performance and reliability of 
-routers within the network. As such, each router must keep and maintain profiles of various routers 
-and is responsible for selecting appropriate peers to meet the anonymity, performance, and reliability 
-needs of the users, as described in the <a href="how_peerselection">peer selection</a> page.</p>
-
-<p>The network itself makes use of a significant number of <a href="how_cryptography">cryptographic techniques and algorithms</a> - 
-a full laundry list includes 2048bit ElGamal encryption, 256bit AES in CBC mode with PKCS#5 padding, 
-1024bit DSA signatures, SHA256 hashes, 2048bit Diffie-Hellman negotiated connections with station to 
-station authentication, and <a href="how_elgamalaes">ElGamal / AES+SessionTag</a>.</p>
-
-<p>Content sent over I2P is encrypted through three layers garlic encryption (used to verify the delivery of the message to 
-the recipient), tunnel encryption (all messages passing through a tunnel is encrypted by the tunnel 
-gateway to the tunnel endpoint), and inter router transport layer encryption (e.g. the TCP transport 
-uses AES256 with ephemeral keys):</p>
-<p>End-to-end (I2CP) encryption (client application to server application) was disabled in I2P release 0.6; 
-end-to-end (garlic) encryption (I2P client router to I2P server router) from Alice's router "a" to Bob's router "h" remains.
-Notice the different use of terms! All data from a to h is end-to-end encrypted, but the I2CP connection
-between the I2P router and the applications is not end-to-end encrypted!
-A and h are the routers of Alice and Bob, while Alice and Bob in following chart are the applications running atop of I2P.</p>
-
-<div class="box" style="text-align:center;"><img src="_static/images/endToEndEncryption.png" alt="End to end layered encryption" title="End to end layered encryption." /></div>
-
-<p>The specific use of these algorithms are outlined <a href="how_cryptography">elsewhere</a>.</p>
-
-<p>The two main mechanisms for allowing people who need strong anonymity to use the network are 
-explicitly delayed garlic routed messages and more comprehensive tunnels to include support for pooling 
-and mixing messages. These are currently planned for release 3.0, but garlic routed messages with no 
-delays and FIFO tunnels are currently in place. Additionally, the 2.0 release will allow people to set 
-up and operate behind restricted routes (perhaps with trusted peers), as well as the deployment of more 
-flexible and anonymous transports.</p>
-
-<p>Some questions have been raised with regards to the scalability of I2P, and reasonably so. There 
-will certainly be more analysis over time, but peer lookup and integration should be bounded by 
-<code>O(log(N))</code> due to the <a href="how_networkdatabase">network database</a>'s algorithm, while end to end 
-messages should be <code>O(1)</code> (scale free), since messages go out K hops through the outbound 
-tunnel and another K hops through the inbound tunnel, with K no longer than 3.
-The size of the network (N) bears no impact.</p>
-
-<h2>When?</h2>
-<p>I2P initially began in Feb 2003 as a proposed modification to 
-<a href="http://freenetproject.org">Freenet</a> to allow it to use alternate transports, such as 
-<a href="http://java.sun.com/products/jms/index.jsp">JMS</a>, then grew into its own as an 
-'anonCommFramework' in April 2003, turning into I2P in July, with code being written in earnest starting in August '03.
-I2P is currently under development, following
-the <a href="roadmap">roadmap</a>.</p>
-
-<h2>Who?</h2>
-<p>We have a small <a href="team">team</a> spread around several continents, working to advance different 
-aspects of the project.  We are very open to other developers who want to get involved and anyone else 
-who would like to contribute in other ways, such as critiques, peer review, testing, writing I2P enabled 
-applications, or documentation. The entire system is open source - the router and most of the SDK are 
-outright public domain with some BSD and Cryptix licensed code, while some applications like I2PTunnel 
-and I2PSnark are GPL. Almost everything is written in Java (1.5+), though some third party applications 
-are being written in Python and other languages. The code works on <a href="http://java.com/en/">Sun Java SE</a> and other Java Virtual Machines.
+<p>
+Για να αντιμετωπιστεί μία ευρεία γκάμα επιθέσεων, το I2P είναι πλήρως κατανεμημένο χωρίς κεντρικούς
+πόρους - συνεπώς δεν υπάρχει κάποια κεντρική υπηρεσία που να κρατάει στατιστικά για την απόδοση και
+την αξιοπιστία των routers στο δίκτυο. Επομένως, κάθε router θα πρέπει να διατηρεί προφίλ διάφορων
+routers και είναι υπεύθυνο για την επιλογή των κατάλληλων κόμβων για να επιτύχει την ανωνυμία, την
+απόδοση και την αξιοπιστία που χρειάζονται οι χρήστες, όπως περιγράφονται στη σελίδα
+<a href="how_peerselection">επιλογής κόμβων</a>.
 </p>
 
-<h2>Where?</h2>
-<p>Anyone interested should
-join us on the IRC channel #i2p (hosted concurrently on irc.freenode.net, irc.postman.i2p, irc.freshcoffee.i2p, irc.welterde.i2p and irc.einirc.de).
-There are currently no scheduled development meetings, however
-<a href="meetings">archives are available</a>.</p>
-
-<p>The current source is available in <a href="monotone.html">monotone</a>.</p>
-
-<h2>Additional Information</h2>
 <p>
-See <a href="how.html">the Index to Technical Documentation</a>
+Το δίκτυο κάνει μεγάλη χρήση <a href="how_cryptography">κρυπτογραφικών τεχνικών και αλγορίθμων</a> - 
+μία πλήρης λίστα περιλαμβάνει 2048bit ElGamal κρυπτογράφηση, 256bit AES σε CBC λειτουργία με
+PKCS#5 padding, 1024bit DSA υπογραφές, SHA256 συνάρτηση κατακερματισμού, 2048bit Diffie-Hellman
+για την διαπραγμάτευση των συνδέσεων με πιστοποίηση από άκρο σε άκρο, και
+<a href="how_elgamalaes">ElGamal / AES+SessionTag</a>.
+</p>
+
+<p>
+Το περιεχόμενο που στέλνεται στο I2P κρυπτογραφείται από τρία επίπεδα garlic κρυπτογράφησης (χρησιμοποιείται
+για την πιστοποίηση της αποστολής του μηνύματος στον παραλήπτη), tunnel κρυπτογράφησης (όλα τα μηνύματα
+που περνάνε μέσα από ένα tunnel κρυπτογραφούνται από το gateway μέχρι το τέλος του tunnel) και
+κρυπτογράφηση μέσα στο router από το επίπεδο μεταφοράς (π.χ. το TCP επίπεδο μεταφοράς χρησιμοποιεί
+AES256 με εφήμερα κλειδιά).
+</p>
+
+<p>
+Η κρυπτογράφηση από άκρη σε άκρη (I2CP) (εφαρμογή-πελάτη με εφαρμογή-εξυπηρετητή) απενεργοποιήθηκε
+στην έκδοση 0.6; η κρυπτογράφηση από άκρη σε άκρη (garlic) (I2P router πελάτη με I2P router εξυπηρετητή)
+από το router της Alice "a" μέχρι το router του Bob "h" παραμένει. Προσέξτε τους διαφορετικούς όρους χρήσης!
+Όλα τα δεδομένα από το a μέχρι το h είναι κρυπτογραφημένη από άκρη σε άκρη, αλλά η I2CP σύνδεση μεταξύ του
+I2P router και των εφαρμογών δεν είναι κρυπτογραφημένη από άκρη σε άκρη! Τα a και h είναι τα routers των
+Alice και Bob, ενώ οι Alice και Bob στο παρακάτω γράφημα είναι οι εφαρμογές που τρέχουν πάνω από το I2P.
+</p>
+
+<div class="box" style="text-align:center;"><img src="_static/images/endToEndEncryption.png" alt="End to end layered encryption" title="Κρυπτογράφηση επιπέδων από άκρη σε άκρη." /></div>
+
+<p>
+Η συγκεκριμένη χρήση αυτών των αλγορίθμων περιγράφονται <a href="how_cryptography">αλλού</a>.
+</p>
+
+<p>
+Οι δύο κύριοι μηχανισμοί που επιτρέπουν τη χρήση του δικτύου από άτομα που χρειάζονται ισχυρή ανωνυμία
+είναι garlic routed μηνύματα με ρητή καθυστέρηση και πιο περιεκτικά tunnels για την υποστήριξη pooling
+και mixing των μηνυμάτων. Αυτά προς το παρών είναι προγραμματισμένα για την έκδοση 3.0, αλλά garlic
+routed μηνύματα χωρίς καθυστερήσεις και FIFO tunnels είναι ήδη διαθέσιμα. Επιπλέον, η έκδοση 2.0 του
+I2P θα επιτρέπει στους χρήστες να το ρυθμίσουν και να το χρησιμοποιούν πίσω από περιορισμένες
+δρομολογήσεις (μάλλον με έμπιστους κόμβους), όπως επίσης και την ανάπτυξη πιο ευέλικτων και ανώνυμων
+μεταφορών.
+</p>
+
+<p>
+Ευλόγως υπάρχουν κάποια θέματα σχετικά με την επεκτασιμότητα του I2P. Θα υπάρξει σίγουρα
+ανάλυση στο μέλλον, αλλά η αναζήτηση κόμβων και η ενσωμάτωσή τους στο δίκτυο περιορίζεται
+σε <code>O(log(N))</code> λόγω του αλγορίθμου της <a href="how_networkdatabase">δικτυακής βάσης δεδομένων</a>,
+ενώ η ανταλλαγή μηνυμάτων από άκρη σε άκρη θα πρέπει να είναι <code>O(1)</code> (ελεύθερο κλίμακας),
+καθώς τα μηνύματα φεύγουν σε K βήματα από το outbound tunnel και χρειάζονται άλλα K βήματα
+για το inbound tunnel, με το K να μην είναι μεγαλύτερο από 3. Το μέγεθος του δικτύου (N) δεν έχει
+κάποια επίπτωση.
+</p>
+
+<h2>Πότε;</h2>
+<p>Το I2P αρχικά ξεκίνησε τον Φεβρουάριο του 2003 ως μία τροποποίηση του 
+<a href="http://freenetproject.org">Freenet</a> που θα επέτρεπε τη χρήση διαφορετικών μεταγωγών, όπως το 
+<a href="http://java.sun.com/products/jms/index.jsp">JMS</a>, έπειτα συνέχισε σαν αυτόνομο έργο ως 
+'anonCommFramework' τον Απρίλιο του 2003, καταλήγοντας σε I2P τον Ιούλιο, ξεκινώντας την σημαντική
+υλοποίησή του τον Αύγουστο του 2003. Το I2P είναι προς το παρόν υπό ανάπτυξη, ακολουθώντας το
+<a href="roadmap">roadmap</a>.
+</p>
+
+<h2>Ποιος;</h2>
+<p>
+Είμαστε μία μικρή <a href="team">ομάδα</a> που εκτείνεται σε αρκετές ηπείρους, δουλεύοντας πάνω
+σε διαφορετικά μέρη του έργου. Είμαστε πολύ ανοιχτοί σε άλλους developers που θέλουν να
+ασχοληθούν και άλλους που θέλουν να συνεισφέρουν με διάφορους τρόπους, όπως κριτικές, αξιολόγηση,
+δοκιμή, την ανάπτυξη εφαρμογών για το I2P ή τεκμηρίωση. Ολόκληρο το έργο είναι ανοιχτό λογισμικό - το
+router και το μεγαλύτερο μέρος του SDK είναι διαθέσιμα σε public domain άδεια με κάποιο μέρος του
+κώδικα να είναι υπό την άδεια BSD και Cryptix, ενώ μερικές εφαρμογές όπως το I2PTunnel και το
+I2PSnark είναι GPL. Σχεδόν τα πάντα είναι γραμμένα σε Java (1.5+), αν ορισμένες τρίτες εφαρμογές
+είναι γραμμένες σε Python και άλλες γλώσσες. Ο κώδικας δουλεύει σε <a href="http://java.com/en/">Sun Java SE</a>
+και άλλα Java Virtual Machines.
+</p>
+
+<h2>Που;</h2>
+<p>
+Όποιος ενδιαφέρεται θα πρέπει να μας βρει το κανάλι #i2p στο IRC (φιλοξενείται παράλληλα στα
+irc.freenode.net, irc.postman.i2p, irc.freshcoffee.i2p, irc.welterde.i2p και irc.einirc.de).
+Προς το παρόν δεν υπάρχουν κανονισμένες συναντήσεις για την ανάπτυξη, ωστόσο
+<a href="meetings">υπάρχει ιστορικό διαθέσιμο</a>.
+</p>
+
+<p>
+Ο τρέχοντας πηγαίος κώδικας είναι διαθέσιμος στο <a href="monotone.html">monotone</a>.
+</p>
+
+<h2>Επιπλέον Πληροφορίες</h2>
+<p>
+Δείτε το <a href="how_el.html">ευρετήριο της Τεχνικής Τεκμηρίωσης</a>
 </p>
 
 {% endblock %}
