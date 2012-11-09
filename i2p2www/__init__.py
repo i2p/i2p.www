@@ -166,8 +166,14 @@ def site_show(page='index'):
             # bah! those damn users all the time!
             abort(404)
 
+    options = {
+        'page': page,
+        }
+    if (page == 'index'):
+        options['blog_entries'] = get_blog_entries(8)
+
     # hah!
-    return render_template(name, page=page)
+    return render_template(name, **options)
 
 
 ##################
@@ -258,12 +264,25 @@ def downloads_redirect(protocol, file, mirror=None):
 #####################
 # Blog helper methods
 
-def get_blog_index():
+def get_blog_entries(num=0):
     """
-    Returns list of valid slugs sorted by date
+    Returns the latest #num valid entries sorted by date, or all slugs if num=0.
+    """
+    slugs = get_blog_slugs(num)
+    entries= []
+    for slug in slugs:
+        date = get_date_from_slug(slug)
+        titlepart = slug.rsplit('/', 1)[1]
+        title = ' '.join(titlepart.split('_'))
+        entries.append((slug, date, title))
+    return entries
+
+def get_blog_slugs(num=0):
+    """
+    Returns the latest #num valid slugs sorted by date, or all slugs if num=0.
     """
     # list of slugs
-    entries=[]
+    slugs=[]
     # walk over all directories/files
     for v in os.walk(BLOG_DIR):
         # iterate over all files
@@ -272,10 +291,12 @@ def get_blog_index():
             # ignore all non-.rst files
             if not f.endswith('.rst'):
                 continue
-            entries.append(safe_join(slugbase, f[:-4]))
-    entries.sort()
-    entries.reverse()
-    return entries
+            slugs.append(safe_join(slugbase, f[:-4]))
+    slugs.sort()
+    slugs.reverse()
+    if (num > 0):
+        return slugs[:num]
+    return slugs
 
 def get_date_from_slug(slug):
     parts = slug.split('/')
@@ -306,13 +327,7 @@ def render_blog_entry(slug):
 @app.route('/<string:lang>/blog/')
 @app.route('/<string:lang>/blog/page/<int:page>')
 def blog_index(page=0):
-    slugs = get_blog_index()
-    entries= []
-    for slug in slugs:
-        date = get_date_from_slug(slug)
-        titlepart = slug.rsplit('/', 1)[1]
-        title = ' '.join(titlepart.split('_'))
-        entries.append((slug, date, title))
+    entries = get_blog_entries()
 
     return render_template('blog/index.html', entries=entries)
 
