@@ -1,0 +1,145 @@
+15:36 < jrandom> 0) hi
+15:36 < jrandom> 1) Net status
+15:36 < jrandom> 2) _PRE net progress
+15:36 < jrandom> 3) I2Phex 0.1.1.37
+15:36 < jrandom> 4) ???
+15:36 < jrandom> 0) hi
+15:37  * jrandom waves
+15:37 < jrandom> weekly status notes posted up @ http://dev.i2p.net/pipermail/i2p/2006-February/001258.html
+15:37 < bar> hello
+15:38 < jrandom> while y'all dig through that oh-so-exciting material, lets jump on in to 1) Net status
+15:38 < jrandom> there hasn't been much changed on the live net in the last week, from an i2p perspective, so I don't really have much to add here
+15:39 < jrandom> anyone have anything they want to bring up regarding the current net status?
+15:39 < KBlup> I have seen terrible spikes of failing clients when running i2p for long... dunno if thats fits to 1)
+15:39 < jrandom> KBlup: does that correlate to high cpu load or bandwidth consumption?
+15:40 < KBlup> resuluts in msg-delay > 10000ms :-/
+15:40 < jrandom> ah, very likely one of the causes of the _PRE net being developed :)
+15:40 < KBlup> I think it then tries to establish new tunnels and fails constantly, which results in 300+ jobs some times...
+15:41 < KBlup> my maschine is quite strong but overloaded with that...
+15:41 < jrandom> aye, thats all been reworked along the way for 0.6.1.10, hang tight until thats ready
+15:43 < jrandom> ok, anything else on 1), or shall we mosey on over to 2) _PRE net progress
+15:43 <+Complication> 0.6.1.10 seems to contain substantial changed indeed
+15:45 < jrandom> yeah, there's a lot of meat under here.  The current state is that the new creation code is in place and seems to be working properly, but now I'm using this opportunity to debug some of the underlying issues further
+15:46 <+Complication> You mentioned having to cough up a lot of CPU time in advance
+15:47 <+Complication> Would this cost now be associated with building any sort of a tunnel?
+15:48 <+Complication> (meaning, before the construction, during a short while, you'd have to perform a batch of heavy crypto)
+15:48 < jrandom> yes, all tunnel build requests will need to do k heavy crypto operations (where k = number of hops in the tunnel being built)
+15:49 <+Complication> Whad I wanted to ask... is the interval just tighter than before, or the amount bigger too?
+15:50 < jrandom> the amount is both bigger, smaller, and tighter.  tighter, in that they're all done upfront.  bigger, in that we can't short circuit and not do the encryption for a hop if an earlier hop rejects it, and smaller in that earlier hops fail a lot less
+15:51 < jrandom> in addition, however, unlike earlier releases, we're no longer using ElGamal/AES+SessionTag for the tunnel requests - we use (fairly) straight ElGamal
+15:52 <+Complication> ...and it couldn't be pre-calculated, unless one knew the final set that's going to succeed?
+15:52 < jrandom> that means that while we used to be able to cheat without an asymmetric operation, we don't try to cheat anymore (as the cheating itself exposed a class of attacks)
+15:53 <+Complication> (set of peers)
+15:53 < jrandom> hmm, it could certainly be precalculated, assuming you know who the peers in the tunnel that are going to be asked
+15:54 < jrandom> the new tunnel creation process is done on a separate thread, so it doesn't bog down the main job queue under load, and so that it can throttle itself better
+15:54 <+Complication> Could one also assume that, barring change in available knowledge, one knows a few whom one is going to ask from, if attempts fail?
+15:54 < jrandom> hmm, not entirely sure I follow
+15:55 <+Complication> Or is knowing them already useless, since the struct must be redone from scratch?
+15:56 <+Complication> (meaning: the ElGamals redone from scratch, at least)
+15:56 < jrandom> ah, the structure is http://dev.i2p.net/cgi-bin/cvsweb.cgi/i2p/router/doc/tunnel-alt-creation.html?rev=HEAD#tunnelCreate.requestRecord
+15:56 < jrandom> so, yes, if the next hop changes, the ElGamal must be redone
+15:56 < jrandom> (if you precompute)
+15:56 <+Complication> Right, I wasn't sure enough about that instantly
+15:57 <+Complication> Now I realize it, though
+15:57 < jrandom> otoh, we're really trying to get our build success rate up, and the new build process should be able to adapt to minimize unnecessary creations
+15:58 <+Complication> How does it seem doing in reality?
+15:58 < jrandom> (oh, that structure has been slightly modified on the _PRE branch: http://dev.i2p.net/cgi-bin/cvsweb.cgi/~checkout~/i2p/router/doc/tunnel-alt-creation.html?rev=1.1.2.1;content-type=text%2Fhtml#tunnelCreate.requestRecord )
+15:59 <+Complication> I noticed the detail about ElGamal encrypts taking a leap towards quickness...
+15:59 < jrandom> well, the build success rate is much much higher than it is on the live net, but that may just be due to the small _PRE net size
+16:00 < jrandom> yeah, creating a 2 hop structure, for instance, takes an average of 44ms over 1120 runs, as compared to the live net's ElGamal encryption time of 542ms (over 1344 runs)
+16:02 < jrandom> (on the same box)
+16:02 <+Complication> Would this 542 include retries on failure too, or just the pure building?
+16:02 <+Complication> If it's pure building, I need to find my lower jaw... it's on the floor somewhere. :P
+16:02 < KBlup> about that change of the exponent : at what scale does that affect anonymity?
+16:02 < jrandom> no, thats the pure elGamal stat, since the live net doesn't build the new _PRE net structure
+16:04 < jrandom> KBlup: anonymity?  none.  security?  according to what I've read, 228 bits is more than enough to match 2048bit ElGamal
+16:04  * Complication doesn't know much about ElGamal's x and y
+16:04 <+Complication> Not enough to comment meaninfully
+16:06 <+Complication> If serious researchers consider the shorter x hard enough, and those crypto wonks didn't run away screaming...
+16:06 <@cervantes> well not only that, but the implications of dropping to 1024/160
+16:07 < KBlup> i guess i have to read the paper later ;)
+16:07 <+Complication> cervantes: yes, it's better than that, for sure
+16:08 <+Complication> Besides, what is the foremost attack this cipher must repel, and how long is the attack viable?
+16:09 <+Complication> Could it be something which benefits you only if you break it quick, or also benefits if you break it eventually?
+16:11 <+Complication> If I understand right, the immediate secret it guards is the next tunnel participant, right?
+16:11 <+Complication> (or more precisely, the next-to-next one)
+16:11 <@modulus> meeting ongoing?
+16:11 <+Complication> (which only the next one may know)
+16:11 <@cervantes> modulus: ayre
+16:11 <@cervantes> -r
+16:11 < jrandom> for a practical (yet insanely powerful) adversary, breaking it during the tunnel lifetime would be necessary.  breaking it after that tunnel lifetime would only help if you logged all network traffic and broke all tunnels (that is, after breaking the ephemeral transport layer crypto and working on the tunnel layer crypto)
+16:11 < jrandom> so, we're talking on the order of minutes here, not decades
+16:12 < jrandom> (so 1024bit is probably even overkill)
+16:12 <@cervantes> is there a way to measure the risk in a meaningful way?
+16:13 <+Complication> Besides, for a tunnel with more hops, the adversary would have to break several, right?
+16:13 <+Complication> (though the builder would have to build several too)
+16:13 <@cervantes> if we need no more than 1024 bits, then is it really necessary to use more? 
+16:14 <@cervantes> we can always use a stronger algo in 3 years time when we've got vastly more powerful quantum computers
+16:14 <@modulus> jrandom: if the adversary would know that at time hh:mm something important is going to be tunneled is it likely they could break it somehow by logging?
+16:14 < jrandom> Complication: right, they'd have to break several (and the DH keys protecting the transport layer)
+16:14 <@modulus> afaik 1024bit is break()able with a lot of power
+16:15 < jrandom> a lot of power and a decade
+16:15 < jrandom> (or three)
+16:15 <@cervantes> jrandom: is it difficult to try the weaker cipher?
+16:15 <@modulus> i was under the impression that 1024bit composits were factorizable these days in a few months.
+16:15 <@cervantes> could we roll out to the pre net 
+16:15 <@cervantes> and see whether it actually offers much benefit
+16:16 <@cervantes> modulus: yes but they'd need to break several
+16:16 <@modulus> if this is based on discrete log domain and all that stuff then i don't know anything
+16:16 <@modulus> cervantes: aha
+16:16 < jrandom> cervantes: it requires changes to a lot of structures, since we currently use 512byte slots.  though, perhaps we could just fill the first 256 bytes with 0x00 for testing
+16:17 < jrandom> modulus: ElGamal is based on discrete log
+16:17 <@cervantes> jrandom: worthy of testing?
+16:17 <@modulus> right right, i was imagining RSA
+16:17 <@cervantes> or better to focus on other things and return to it if necessary
+16:18 < jrandom> definitely worth testing, though for the moment I'm hacking away at some transport layer evaluations
+16:18 <+Complication> I guess it depends on how their calculation can be handled in real life.
+16:18 < jrandom> (and the 44ms encryption time is good enough for the moment, though a 4ms encryption time would be even better :)
+16:19 <+Complication> If it holds together with current computers, it will improve with newer machines.
+16:19 <@modulus> especially if there comes crypto hw, as it is starting to come in some
+16:19 < jrandom> but, of course, changing this parameter will not be done lightly or immediately.  but if someone has a good reason to avoid it, please get in touch
+16:21 < jrandom> modulus: I've heard of dedicated AES and RSA chips, but nothing on DH/ElGamal.  otoh, when one looks to the NSA/etc as an adversary, where they can build their own, its possible
+16:22 <@cervantes> they have crypto machines built on ring sprinkled donut technology
+16:23  * Complication is willing to upgrade the Celeron 300 to Athlon 600, if it holds the tide of ring-sprinkled donuts :D
+16:23 < tethra> heheh
+16:24 < jrandom> mmMMmm donuts
+16:25 < jrandom> ok, anyone have anything else on 2) _PRE net progress?
+16:25 < jrandom> if not, lets jump on over to 3) I2Phex 0.1.1.37
+16:26 < jrandom> Complication: wanna give us the skinny?
+16:26 <+Complication> Well, it seems to work. :)
+16:26 <+Complication> There is hope of getting more webcaches for extra redundancy soon.
+16:27 < jrandom> word
+16:27 < jrandom> hmm, do you think we need more webcaches?  don't we just need one to be up?  not that more hurts, of course
+16:27 <+Complication> (if legion manages to solve the mysteries which haunted his initial try)
+16:27 <+Complication> There's also a mystery bug in there, but it doesn't byte hard, and I'm trying to find it.
+16:28 <+Complication> One up is enough
+16:28 <+Complication> More just increases the chances that one is up
+16:28 < jrandom> cool
+16:28 <+Complication> Because at current stage, it will never drop webcaches as bad. Too few of them altogether.
+16:29 <+Complication> (that routine will activate if there exist more than 10)
+16:29 <+Complication> (if I remember correctly)
+16:29 <+Complication> As for the bug: after a long time operating, the webcache subsystem sometimes stalls
+16:30 <+Complication> Likely because a httpclient's GET request can't be aborted successfully
+16:31 <@modulus> so it needs to die from time to time?
+16:31 <+Complication> It's safe, and never seems to bite freshly joined machines
+16:31 < jrandom> hmm, what does that mean, functionally?  after a while, it will stop registering with the webcache, so new people won't be given references to them?
+16:31 <+Complication> If it bites a machine already well integrated, that machine can get enough peers from the peers it's already connected to
+16:31 <+Complication> So currently the impact seems close to 0
+16:31 <@modulus> cool
+16:32 <+Complication> It's curious, just
+16:32 <@modulus> no rule about when it will fail or anything?
+16:32 <+Complication> modulus: generally not before 20 hours
+16:33 <+Complication> And since I have no way of forcing it to occur, debugging is a bit slow
+16:33 <@modulus> :_)
+16:34 <+Complication> Either way, should I find it, I'll fix it, and should I not find it, I'll find other stuff to tinker with :)
+16:34 < jrandom> :)
+16:34 < jrandom> sounds like its just a symptom of some bugs we've seen in the streaming lib / eepproxy, so fixing those should fix this
+16:35 <+Complication> Could be
+16:38 < jrandom> ok great, nice work Complication
+16:38 < jrandom> anyone have anything else on 3) I2Phex 0.1.1.37, or shall we jump on over to the catch-all, 4) ???
+16:41 < jrandom> (consider us jumped)
+16:41 < jrandom> ok, anyone have anything else for the meeting?
+16:42 < tmp> Or forever hold your breath?
+16:43 < jrandom> and ever and ever
+16:43  * jrandom winds up
+16:43  * jrandom *baf*s the meeting closed
