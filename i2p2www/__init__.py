@@ -252,6 +252,8 @@ def downloads_list():
 @app.route('/<string:lang>/download/<path:file>')
 def downloads_select(file):
     # TODO: implement
+    if (file == 'debian'):
+        return render_template('downloads/debian.html')
     pass
 
 @app.route('/download/<string:protocol>/any/<path:file>')
