@@ -106,27 +106,33 @@ def restructuredtext(value):
     parts = publish_parts(source=value, writer_name="html")
     return parts['html_body']
 
-# Convert an I2P url to an equivalent clearnet one
-i2ptoclear = {
-    'www.i2p2.i2p': 'www.i2p2.de',
-    'forum.i2p': 'forum.i2p2.de',
-    'trac.i2p2.i2p': 'trac.i2p2.de',
-    }
-@app.template_filter('i2pconv')
-def convert_url_to_clearnet(value):
-    if not value.endswith('.i2p'):
-        # The url being passed in isn't an I2P url, so just return it
-        return value
-    if request.headers.get('X-I2P-Desthash') and not request.headers.get('X-Forwarded-Server'):
-        # The request is from within I2P, so use I2P url
-        return value
-    # The request is either directly from clearnet or through an inproxy
-    try:
-        # Return the known clearnet url corresponding to the I2P url
-        return i2ptoclear[value]
-    except KeyError:
-        # The I2P site has no known clearnet address, so use an inproxy
-        return value + '.to'
+
+####################
+# Context processors
+
+@app.context_processor
+def utility_processor():
+    # Convert an I2P url to an equivalent clearnet one
+    i2ptoclear = {
+        'www.i2p2.i2p': 'www.i2p2.de',
+        'forum.i2p': 'forum.i2p2.de',
+        'trac.i2p2.i2p': 'trac.i2p2.de',
+        }
+    def convert_url_to_clearnet(value):
+        if not value.endswith('.i2p'):
+            # The url being passed in isn't an I2P url, so just return it
+            return value
+        if request.headers.get('X-I2P-Desthash') and not request.headers.get('X-Forwarded-Server'):
+            # The request is from within I2P, so use I2P url
+            return value
+        # The request is either directly from clearnet or through an inproxy
+        try:
+            # Return the known clearnet url corresponding to the I2P url
+            return i2ptoclear[value]
+        except KeyError:
+            # The I2P site has no known clearnet address, so use an inproxy
+            return value + '.to'
+    return dict(i2pconv=convert_url_to_clearnet)
 
 
 ################
