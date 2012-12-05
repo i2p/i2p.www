@@ -1,6 +1,7 @@
 from jinja2 import Environment, FileSystemLoader, environmentfilter
 from flask import Flask, request, session, g, redirect, url_for, abort, render_template, flash, send_from_directory, safe_join
 from flaskext.babel import Babel
+from werkzeug.contrib.atom import AtomFeed
 from docutils.core import publish_parts
 import os.path
 import os
@@ -390,7 +391,6 @@ def blog_entry(slug):
     else:
         abort(404)
 
-
 @app.route('/feed/blog/rss')
 def blog_rss():
     # TODO: implement
@@ -399,7 +399,15 @@ def blog_rss():
 @app.route('/feed/blog/atom')
 def blog_atom():
     # TODO: implement
-    pass
+    feed = AtomFeed('I2P Blog', feed_url=request.url, url=request.url_root)
+    entries = get_blog_entries(15)
+    for entry in entries:
+        feed.add(entry[2], unicode('foo'),
+                 content_type='html',
+                 url=url_for('blog_entry', slug=entry[0]),
+                 updated=entry[1],
+                 published=entry[1])
+    return feed.getResponse()
 
 
 ##############
