@@ -3,6 +3,7 @@ from flask import Flask, request, session, g, redirect, url_for, abort, render_t
 from flaskext.babel import Babel
 from werkzeug.contrib.atom import AtomFeed
 from docutils.core import publish_parts
+import datetime
 import os.path
 import os
 import fileinput
@@ -313,6 +314,20 @@ def downloads_redirect(protocol, file, mirror=None):
 #####################
 # Blog helper methods
 
+def get_blog_feed_items(num=0):
+    entries = get_blog_entries(num)
+    items = []
+    for entry in entries:
+        parts = render_blog_entry(entry[0])
+        if parts:
+            a = {}
+            a['title'] = parts['title']
+            a['content'] = parts['fragment']
+            a['url'] = url_for('blog_entry', lang=g.lang, slug=entry[0])
+            a['updated'] = datetime.datetime.strptime(entry[1], '%Y-%m-%d')
+            items.append(a)
+    return items
+
 def get_blog_entries(num=0):
     """
     Returns the latest #num valid entries sorted by date, or all slugs if num=0.
@@ -396,18 +411,18 @@ def blog_rss():
     # TODO: implement
     pass
 
-@app.route('/feed/blog/atom')
+@app.route('/<string:lang>/feed/blog/atom')
 def blog_atom():
-    # TODO: implement
+    # TODO: Only output beginning of each blog entry
     feed = AtomFeed('I2P Blog', feed_url=request.url, url=request.url_root)
-    entries = get_blog_entries(15)
-    for entry in entries:
-        feed.add(entry[2], unicode('foo'),
+    items = get_blog_feed_items(10)
+    for item in items:
+        feed.add(item['title'],
+                 item['content'],
                  content_type='html',
-                 url=url_for('blog_entry', slug=entry[0]),
-                 updated=entry[1],
-                 published=entry[1])
-    return feed.getResponse()
+                 url=item['url'],
+                 updated=item['updated'])
+    return feed.get_response()
 
 
 ##############
