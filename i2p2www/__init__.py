@@ -406,7 +406,7 @@ def blog_entry(slug):
     else:
         abort(404)
 
-@app.route('/feed/blog/rss')
+@app.route('/<string:lang>/feed/blog/rss')
 def blog_rss():
     # TODO: implement
     pass
