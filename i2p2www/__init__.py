@@ -6,6 +6,11 @@ import os.path
 import os
 import fileinput
 import codecs
+from random import randint
+try:
+    import json
+except ImportError:
+    import simplejson as json
 
 
 TEMPLATE_DIR = os.path.join(os.path.dirname(__file__), 'pages')
@@ -13,6 +18,8 @@ STATIC_DIR = os.path.join(os.path.dirname(__file__), 'static')
 
 BLOG_DIR = os.path.join(os.path.dirname(__file__), 'blog')
 MEETINGS_DIR = os.path.join(os.path.dirname(__file__), 'meetings')
+
+MIRRORS_FILE = os.path.join(TEMPLATE_DIR, 'downloads/mirrors')
 
 app = application = Flask('i2p2www', template_folder=TEMPLATE_DIR, static_url_path='/_static', static_folder=STATIC_DIR)
 app.debug =  bool(os.environ.get('APP_DEBUG', 'False'))
@@ -248,6 +255,26 @@ def meetings_show_rst(id):
 ###################
 # Download handlers
 
+# Read in mirrors from file
+def read_mirrors():
+    file = open(MIRRORS_FILE, 'r')
+    dat = file.read()
+    file.close()
+    lines=dat.split('\n')
+    ret={}
+    for line in lines:
+        try:
+            obj=json.loads(line)
+        except ValueError:
+            continue
+        if 'protocol' not in obj:
+            continue
+        protocol=obj['protocol']
+        if protocol not in ret:
+            ret[protocol]=[]
+        ret[protocol].append(obj)
+    return ret
+
 # List of downloads
 @app.route('/<string:lang>/download')
 def downloads_list():
@@ -257,16 +284,29 @@ def downloads_list():
 # Specific file downloader
 @app.route('/<string:lang>/download/<path:file>')
 def downloads_select(file):
-    # TODO: implement
     if (file == 'debian'):
         return render_template('downloads/debian.html')
-    pass
+    mirrors=read_mirrors()
+    obj=[]
+    for protocol in mirrors.keys():
+        a={}
+        a['name']=protocol
+        a['mirrors']=mirrors[protocol]
+        for mirror in a['mirrors']:
+            mirror['url']=mirror['url'] % file
+        obj.append(a)
+    return render_template('downloads/select.html', mirrors=obj, file=file)
 
 @app.route('/download/<string:protocol>/any/<path:file>')
-@app.route('/download/<string:protocol>/<string:mirror>/<path:file>')
+@app.route('/download/<string:protocol>/<int:mirror>/<path:file>')
 def downloads_redirect(protocol, file, mirror=None):
-    # TODO: implement
-    pass
+    mirrors=read_mirrors()
+    if not protocol in mirrors:
+        abort(404)
+    mirrors=mirrors[protocol]
+    if mirror:
+        return redirect(mirrors[mirror]['url'] % file)
+    return redirect(mirrors[randint(0, len(mirrors) - 1)]['url'] % file)
 
 
 #####################
