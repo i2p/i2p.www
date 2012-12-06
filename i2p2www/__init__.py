@@ -198,21 +198,35 @@ def get_meetings_feed_items(num=0):
     meetings = get_meetings(num)
     items = []
     for meeting in meetings:
-        parts = render_meeting_rst(meeting)
-        if parts:
-            try:
-                updated = datetime.datetime.strptime(parts['title'], 'I2P dev meeting, %B %d, %Y &#64; %H:%M %Z')
-            except ValueError:
-                updated = datetime.datetime.strptime(parts['title'], 'I2P dev meeting, %B %d, %Y')
-            a = {}
-            a['title'] = parts['title']
-            a['content'] = parts['fragment']
-            a['url'] = url_for('meetings_show', lang=g.lang, id=meeting)
-            a['updated'] = updated
-            items.append(a)
+        a = {}
+        a['title'] = meeting['parts']['title']
+        a['content'] = meeting['parts']['fragment']
+        a['url'] = url_for('meetings_show', lang=g.lang, id=meeting['id'])
+        a['updated'] = (meeting['date'] if meeting['date'] else datetime.datetime(0))
+        items.append(a)
     return items
 
 def get_meetings(num=0):
+    meetings_ids = get_meetings_ids(num)
+    meetings = []
+    for id in meetings_ids:
+        parts = render_meeting_rst(id)
+        if parts:
+            try:
+                date = datetime.datetime.strptime(parts['title'], 'I2P dev meeting, %B %d, %Y &#64; %H:%M %Z')
+            except ValueError:
+                try:
+                    date = datetime.datetime.strptime(parts['title'], 'I2P dev meeting, %B %d, %Y')
+                except ValueError:
+                    date = None
+            a = {}
+            a['id'] = id
+            a['date'] = date
+            a['parts'] = parts
+            meetings.append(a)
+    return meetings
+
+def get_meetings_ids(num=0):
     """
     Returns the latest #num valid meetings, or all meetings if num=0.
     """
@@ -252,7 +266,9 @@ def render_meeting_rst(id):
 # Meeting index
 @app.route('/<string:lang>/meetings/')
 def meetings_index():
-    return render_template('meetings/index.html')
+    meetings = get_meetings()
+
+    return render_template('meetings/index.html', meetings=meetings)
 
 # Renderer for specific meetings
 @app.route('/<string:lang>/meetings/<int:id>')
