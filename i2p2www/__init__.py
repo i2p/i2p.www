@@ -191,6 +191,61 @@ def site_show(page='index'):
     return render_template(name, **options)
 
 
+########################
+# Meeting helper methods
+
+def get_meetings_feed_items(num=0):
+    meetings = get_meetings(num)
+    items = []
+    for meeting in meetings:
+        parts = render_meeting_rst(meeting)
+        if parts:
+            try:
+                updated = datetime.datetime.strptime(parts['title'], 'I2P dev meeting, %B %d, %Y &#64; %H:%M %Z')
+            except ValueError:
+                updated = datetime.datetime.strptime(parts['title'], 'I2P dev meeting, %B %d, %Y')
+            a = {}
+            a['title'] = parts['title']
+            a['content'] = parts['fragment']
+            a['url'] = url_for('meetings_show', lang=g.lang, id=meeting)
+            a['updated'] = updated
+            items.append(a)
+    return items
+
+def get_meetings(num=0):
+    """
+    Returns the latest #num valid meetings, or all meetings if num=0.
+    """
+    # list of meetings
+    meetings=[]
+    # walk over all directories/files
+    for v in os.walk(MEETINGS_DIR):
+        # iterate over all files
+        for f in v[2]:
+            # ignore all non-.rst files
+            if not f.endswith('.rst'):
+                continue
+            meetings.append(int(f[:-4]))
+    meetings.sort()
+    meetings.reverse()
+    if (num > 0):
+        return meetings[:num]
+    return meetings
+
+def render_meeting_rst(id):
+    # check if that file actually exists
+    name = str(id) + '.rst'
+    path = safe_join(MEETINGS_DIR, name)
+    if not os.path.exists(path):
+        abort(404)
+
+    # read file
+    with codecs.open(path, encoding='utf-8') as fd:
+        content = fd.read()
+
+    return publish_parts(source=content, source_path=MEETINGS_DIR, writer_name="html")
+
+
 ##################
 # Meeting handlers
 
@@ -252,6 +307,19 @@ def meetings_show_log(id):
 @app.route('/<string:lang>/meetings/<int:id>.rst')
 def meetings_show_rst(id):
     return meetings_show(id, rst=True)
+
+@app.route('/<string:lang>/feed/meetings/atom')
+def meetings_atom():
+    feed = AtomFeed('I2P Meetings', feed_url=request.url, url=request.url_root)
+    items = get_meetings_feed_items(10)
+    for item in items:
+        feed.add(item['title'],
+                 item['content'],
+                 title_type='html',
+                 content_type='html',
+                 url=item['url'],
+                 updated=item['updated'])
+    return feed.get_response()
 
 
 ###################
