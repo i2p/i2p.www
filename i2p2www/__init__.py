@@ -509,6 +509,18 @@ def blog_atom():
     return feed.get_response()
 
 
+############
+# Root files
+
+@app.route('/hosts.txt')
+def hosts():
+    return send_from_directory(STATIC_DIR, 'hosts.txt', mimetype='text/plain')
+
+@app.route('/robots.txt')
+def robots():
+    return send_from_directory(STATIC_DIR, 'robots.txt', mimetype='text/plain')
+
+
 ##############
 # Legacy paths
 
