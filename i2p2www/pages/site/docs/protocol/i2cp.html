@@ -1,4 +1,4 @@
-{% extends "_layout.html" %}
+{% extends "global/layout.html" %}
 {% block title %}I2CP{% endblock %}
 {% block content %}
 Updated November 2012, current as of router version 0.9.3
@@ -25,14 +25,14 @@ router itself and the router-side of I2CP.
 <p>
 While implementing the client side of I2CP in a non-Java language is certainly feasible,
 a non-Java client would also have to implement the
-<a href="streaming.html">streaming library</a> for TCP-style connections.
+<a href="{{ site_url('docs/api/streaming') }}">streaming library</a> for TCP-style connections.
 Together, implementing I2CP and the streaming library would be a sizable task.
 </p>
 
 <p>
 Applications can take advantage of the base I2CP plus the 
-<a href="ministreaming">streaming</a> and <a href="datagrams">datagram</a> libraries
-by using the <a href="sam">Simple Anonymous Messaging</a> or <a href="bob.html">BOB</a> protocols,
+<a href="{{ site_url('docs/api/ministreaming') }}">streaming</a> and <a href="{{ site_url('docs/specs/datagrams') }}">datagram</a> libraries
+by using the <a href="{{ site_url('docs/api/sam') }}">Simple Anonymous Messaging</a> or <a href="{{ site_url('docs/api/bob') }}">BOB</a> protocols,
 which do not require clients to deal with any sort of cryptography.
 Also, clients may access the network by one of several proxies -
 HTTP, CONNECT, and SOCKS 4/4a/5.
@@ -42,11 +42,12 @@ So there are several options for both Java and non-Java applications.
 
 <p>Client-side end-to-end encryption (encrypting the data over the I2CP connection)
 was disabled in I2P release 0.6,
-leaving in place the <a href="how_elgamalaes.html">ElGamal/AES end-to-end encryption</a>
+leaving in place the <a href="{{ site_url('docs/how/elgamalaes') }}">ElGamal/AES end-to-end encryption</a>
 which is implemented in the router.
 The only cryptography that client libraries must still implement is
-<a href="how_cryptography.html#DSA">DSA public/private key signing</a>
-for <a href="i2cp_spec.html#msg_CreateLeaseSet">LeaseSets</a> and <a href="i2cp_spec.html#type_SessionConfig">Session Configurations</a>, and management of those keys.
+<a href="{{ site_url('docs/how/cryptography') }}#DSA">DSA public/private key signing</a>
+for <a href="{{ site_url('docs/specs/i2cp') }}#msg_CreateLeaseSet">LeaseSets</a> and
+<a href="{{ site_url('docs/specs/i2cp') }}#type_SessionConfig">Session Configurations</a>, and management of those keys.
 </p>
 
 <p>In a standard I2P installation, port 7654 is used by external java clients to communicate
@@ -60,23 +61,23 @@ through an internal JVM interface.
 <h2>I2CP Protocol Specification</h2>
 <p>
 Now on the
-<a href="i2cp_spec.html">I2CP Specification page</a>.
+<a href="{{ site_url('docs/specs/i2cp') }}">I2CP Specification page</a>.
 </p>
 
 
 <h2>I2CP Initialization</h2>
 <p>
 When a client connects to the router, it first sends a single protocol version byte (0x2A).
-Then it sends a <a href="i2cp_spec.html#msg_GetDate">GetDate Message</a> and waits for the <a href="i2cp_spec.html#msg_GetDate">SetDate Message</a> response.
-Next, it sends a <a href="i2cp_spec.html#msg_GetDate">CreateSession Message</a> containing the session configuration.
-It next awaits a <a href="i2cp_spec.html#msg_GetDate">RequestLeaseSet Message</a> from the router, indicating that inbound tunnels
+Then it sends a <a href="{{ site_url('docs/specs/i2cp') }}#msg_GetDate">GetDate Message</a> and waits for the <a href="{{ site_url('docs/specs/i2cp') }}#msg_GetDate">SetDate Message</a> response.
+Next, it sends a <a href="{{ site_url('docs/specs/i2cp') }}#msg_GetDate">CreateSession Message</a> containing the session configuration.
+It next awaits a <a href="{{ site_url('docs/specs/i2cp') }}#msg_GetDate">RequestLeaseSet Message</a> from the router, indicating that inbound tunnels
 have been built, and responds with a CreateLeaseSetMessage containing the signed LeaseSet.
 The client may now initiate or receive connections from other I2P destinations.
 
 <h2 id="options">I2CP Options</h2>
 <p>
 The following options are traditionally passed to the router via
-a <a href="i2cp_spec.html#type_SessionConfig">SessionConfig</a> contained in a <a href="i2cp_spec.html#msg_CreateSession">CreateSession Message</a> or a <a href="i2cp_spec.html#msg_ReconfigureSession">ReconfigureSession Message</a>.
+a <a href="{{ site_url('docs/specs/i2cp') }}#type_SessionConfig">SessionConfig</a> contained in a <a href="{{ site_url('docs/specs/i2cp') }}#msg_CreateSession">CreateSession Message</a> or a <a href="{{ site_url('docs/specs/i2cp') }}#msg_ReconfigureSession">ReconfigureSession Message</a>.
 <p>
 <table border=1>
 <tr><th colspan="5">Router-side Options</th></tr>
@@ -196,9 +197,9 @@ All option names are case-sensitive.
 <h2 id="format">I2CP Payload Data Format and Multiplexing</h2>
 <p>
 The end-to-end messages handled by I2CP (i.e. the data sent by the client in a
-<a href="i2cp_spec.html#msg_SendMessage">SendMessageMessage</a>
+<a href="{{ site_url('docs/specs/i2cp') }}#msg_SendMessage">SendMessageMessage</a>
 and received by the client in a
-<a href="i2cp_spec.html#msg_MessagePayload">MessagePayloadMessage</a>)
+<a href="{{ site_url('docs/specs/i2cp') }}#msg_MessagePayload">MessagePayloadMessage</a>)
 are gzipped with a standard 10-byte gzip
 header beginning with 0x1F 0x8B 0x08 as
 specified by <a href="http://www.ietf.org/rfc/rfc1952.txt">RFC 1952</a>.
@@ -239,10 +240,10 @@ are they really required? Revocation is unimplemented.
 </li><li>
 Some improvements may be able to use messages previously defined but not implemented.
 For reference, here is the
-<a href="/_static/pdf/I2CP_spec.pdf">I2CP Protocol Specification Version 0.9</a>
+<a href="{{ url_for('static', filename='pdf/I2CP_spec.pdf') }}">I2CP Protocol Specification Version 0.9</a>
 (PDF) dated August 28, 2003.
 That document also references the
-<a href="/_static/pdf/datastructures.pdf">Common Data Structures Specification Version 0.9</a>.
+<a href="{{ url_for('static', filename='pdf/datastructures.pdf') }}">Common Data Structures Specification Version 0.9</a>.
 </li></ul>
 
 
