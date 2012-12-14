@@ -265,7 +265,8 @@ def render_meeting_rst(id):
 
 # Meeting index
 @app.route('/<string:lang>/meetings/')
-def meetings_index():
+@app.route('/<string:lang>/meetings/page/<int:page>')
+def meetings_index(page=0):
     meetings = get_meetings()
 
     return render_template('meetings/index.html', meetings=meetings)
