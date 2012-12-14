@@ -165,9 +165,9 @@ def main_index():
     return redirect(url_for('site_show', lang='en'))
 
 # Site pages
-@app.route('/<string:lang>/site/')
+@app.route('/<string:lang>/site/', defaults={'page': 'index'})
 @app.route('/<string:lang>/site/<path:page>')
-def site_show(page='index'):
+def site_show(page):
     if page.endswith('.html'):
         return redirect(url_for('site_show', page=page[:-5]))
     name = 'site/%s.html' % page
@@ -264,9 +264,9 @@ def render_meeting_rst(id):
 # Meeting handlers
 
 # Meeting index
-@app.route('/<string:lang>/meetings/')
+@app.route('/<string:lang>/meetings/', defaults={'page': 1})
 @app.route('/<string:lang>/meetings/page/<int:page>')
-def meetings_index(page=0):
+def meetings_index(page):
     meetings = get_meetings()
 
     return render_template('meetings/index.html', meetings=meetings)
@@ -384,9 +384,9 @@ def downloads_select(file):
         obj.append(a)
     return render_template('downloads/select.html', mirrors=obj, file=file)
 
-@app.route('/download/<string:protocol>/any/<path:file>')
+@app.route('/download/<string:protocol>/any/<path:file>', defaults={'mirror': None})
 @app.route('/download/<string:protocol>/<int:mirror>/<path:file>')
-def downloads_redirect(protocol, file, mirror=None):
+def downloads_redirect(protocol, file, mirror):
     mirrors=read_mirrors()
     if not protocol in mirrors:
         abort(404)
@@ -473,9 +473,9 @@ def render_blog_entry(slug):
 ###############
 # Blog handlers
 
-@app.route('/<string:lang>/blog/')
+@app.route('/<string:lang>/blog/', defaults={'page': 1})
 @app.route('/<string:lang>/blog/page/<int:page>')
-def blog_index(page=0):
+def blog_index(page):
     entries = get_blog_entries()
 
     return render_template('blog/index.html', entries=entries)
