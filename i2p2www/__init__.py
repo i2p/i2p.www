@@ -14,12 +14,16 @@ try:
 except ImportError:
     import simplejson as json
 
+from helpers import Pagination
 
 TEMPLATE_DIR = os.path.join(os.path.dirname(__file__), 'pages')
 STATIC_DIR = os.path.join(os.path.dirname(__file__), 'static')
 
 BLOG_DIR = os.path.join(os.path.dirname(__file__), 'blog')
 MEETINGS_DIR = os.path.join(os.path.dirname(__file__), 'meetings')
+
+BLOG_ENTRIES_PER_PAGE = 20
+MEETINGS_PER_PAGE = 20
 
 MIRRORS_FILE = os.path.join(TEMPLATE_DIR, 'downloads/mirrors')
 
@@ -141,7 +145,15 @@ def utility_processor():
         except KeyError:
             # The I2P site has no known clearnet address, so use an inproxy
             return value + '.to'
-    return dict(i2pconv=convert_url_to_clearnet)
+
+    # Convert a paginated URL to that of another page
+    def url_for_other_page(page):
+        args = request.view_args.copy()
+        args['page'] = page
+        return url_for(request.endpoint, **args)
+
+    return dict(i2pconv=convert_url_to_clearnet,
+                url_for_other_page=url_for_other_page)
 
 
 ################
@@ -154,6 +166,15 @@ def page_not_found(error):
 @app.errorhandler(500)
 def server_error(error):
     return render_template('global/error_500.html'), 500
+
+
+########################
+# General helper methods
+
+def get_for_page(items, page, per_page):
+    from_item = (page-1)*per_page
+    to_item = page*per_page
+    return items[from_item:to_item]
 
 
 #######################
@@ -267,9 +288,12 @@ def render_meeting_rst(id):
 @app.route('/<string:lang>/meetings/', defaults={'page': 1})
 @app.route('/<string:lang>/meetings/page/<int:page>')
 def meetings_index(page):
-    meetings = get_meetings()
-
-    return render_template('meetings/index.html', meetings=meetings)
+    all_meetings = get_meetings()
+    meetings = get_for_page(all_meetings, page, MEETINGS_PER_PAGE)
+    if not meetings and page != 1:
+        abort(404)
+    pagination = Pagination(page, MEETINGS_PER_PAGE, len(all_meetings))
+    return render_template('meetings/index.html', pagination=pagination, meetings=meetings)
 
 # Renderer for specific meetings
 @app.route('/<string:lang>/meetings/<int:id>')
@@ -476,9 +500,12 @@ def render_blog_entry(slug):
 @app.route('/<string:lang>/blog/', defaults={'page': 1})
 @app.route('/<string:lang>/blog/page/<int:page>')
 def blog_index(page):
-    entries = get_blog_entries()
-
-    return render_template('blog/index.html', entries=entries)
+    all_entries = get_blog_entries()
+    entries = get_for_page(all_entries, page, BLOG_ENTRIES_PER_PAGE)
+    if not entries and page != 1:
+        abort(404)
+    pagination = Pagination(page, BLOG_ENTRIES_PER_PAGE, len(all_entries))
+    return render_template('blog/index.html', pagination=pagination, entries=entries)
 
 @app.route('/<string:lang>/blog/entry/<path:slug>')
 def blog_entry(slug):
