@@ -89,7 +89,7 @@ def detect_theme():
         theme = request.cookies['style']
     if 'theme' in request.args.keys():
         theme = request.args['theme']
-    if not os.path.isfile(safe_join('static/styles', '%s.css' % theme)):
+    if not os.path.isfile(safe_join(safe_join(STATIC_DIR, 'styles'), '%s.css' % theme)):
         theme = 'duck'
     g.theme = theme
     @after_this_request
