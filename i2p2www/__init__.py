@@ -153,8 +153,15 @@ def utility_processor():
         args['page'] = page
         return url_for(request.endpoint, **args)
 
+    # Change the theme of the current page
+    def change_theme(theme):
+        args = request.view_args.copy()
+        args['theme'] = theme
+        return url_for(request.endpoint, **args)
+
     return dict(i2pconv=convert_url_to_clearnet,
-                url_for_other_page=url_for_other_page)
+                url_for_other_page=url_for_other_page,
+                change_theme=change_theme)
 
 
 ################
