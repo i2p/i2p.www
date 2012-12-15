@@ -128,7 +128,7 @@ def utility_processor():
     # Convert an I2P url to an equivalent clearnet one
     i2ptoclear = {
         'www.i2p2.i2p': 'www.i2p2.de',
-        'forum.i2p': 'forum.i2p2.de',
+        #'forum.i2p': 'forum.i2p2.de',
         'trac.i2p2.i2p': 'trac.i2p2.de',
         }
     def convert_url_to_clearnet(value):
