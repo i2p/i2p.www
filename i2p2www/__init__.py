@@ -130,6 +130,7 @@ def utility_processor():
         'www.i2p2.i2p': 'www.i2p2.de',
         #'forum.i2p': 'forum.i2p2.de',
         'trac.i2p2.i2p': 'trac.i2p2.de',
+        'mail.i2p': 'i2pmail.org',
         }
     def convert_url_to_clearnet(value):
         if not value.endswith('.i2p'):
