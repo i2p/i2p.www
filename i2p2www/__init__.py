@@ -16,6 +16,8 @@ except ImportError:
 
 from helpers import Pagination
 
+CURRENT_I2P_VERSION = '0.9.4'
+
 TEMPLATE_DIR = os.path.join(os.path.dirname(__file__), 'pages')
 STATIC_DIR = os.path.join(os.path.dirname(__file__), 'static')
 
@@ -406,13 +408,17 @@ def downloads_select(file):
     if (file == 'debian'):
         return render_template('downloads/debian.html')
     mirrors=read_mirrors()
+    data = {
+        'version': CURRENT_I2P_VERSION,
+        'file': file,
+        }
     obj=[]
     for protocol in mirrors.keys():
         a={}
         a['name']=protocol
         a['mirrors']=mirrors[protocol]
         for mirror in a['mirrors']:
-            mirror['url']=mirror['url'] % file
+            mirror['url']=mirror['url'] % data
         obj.append(a)
     return render_template('downloads/select.html', mirrors=obj, file=file)
 
@@ -423,9 +429,13 @@ def downloads_redirect(protocol, file, mirror):
     if not protocol in mirrors:
         abort(404)
     mirrors=mirrors[protocol]
+    data = {
+        'version': CURRENT_I2P_VERSION,
+        'file': file,
+        }
     if mirror:
-        return redirect(mirrors[mirror]['url'] % file)
-    return redirect(mirrors[randint(0, len(mirrors) - 1)]['url'] % file)
+        return redirect(mirrors[mirror]['url'] % data)
+    return redirect(mirrors[randint(0, len(mirrors) - 1)]['url'] % data)
 
 
 #####################
