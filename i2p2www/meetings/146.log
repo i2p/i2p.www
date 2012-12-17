@@ -1,0 +1,212 @@
+13:04 < jrandom> 0) hi
+13:04 < jrandom> 1) Net status
+13:04 < jrandom> 2) Syndie status
+13:04 < jrandom> 3) susidns
+13:04 < jrandom> 4) ???
+13:04 < jrandom> 0) hi
+13:04  * jrandom waves
+13:04 <+bar> salaam aleikum
+13:04 < jrandom> status notes up @ http://dev.i2p.net/pipermail/i2p/2005-September/000888.html
+13:04 <+Ragnarok> hi
+13:04  * cervantes tips his hat
+13:04 <+fox> * adamta waves back across the Irc2p/Freenode bridge
+13:05 < jrandom> :)  ok, movin' in to 1) net status
+13:05 <@cervantes> *** Disconnected
+13:05 < jrandom> things seem to be going reasonably well from what i can see
+13:05 < jrandom> heh
+13:06  * cervantes concurs...only one netsplit in a few days
+13:06 < jrandom> i know we do still have some problems when one's net con is heavily congested (causing messages to back up and fail, resulting in more elGamal and higher CPU usage)
+13:06 <@cervantes> and my irc connection uptime is as long as my routers'
+13:06 <+Ragnarok> same as usual for me.  Slow, but usable, with intermittent unreliability
+13:07 < jrandom> nice, i have been seeing that too cervantes 
+13:07 < jrandom> Ragnarok: unreliability with eepsites, irc, i2pbt, i2phex, mail, all of the above?  with 0.6.0.5 or earlier?
+13:08 <+Ragnarok> mostly in the form of irc disconnects every few hours. 
+13:08 <+Ragnarok> don't use a whole lot else, so I don't have much more information
+13:08 < jrandom> hmm, do you have the bw limiter set?
+13:08 <+Ragnarok> yeah
+13:08 < jrandom> (as a reminder, -1 now means 16KBps)
+13:09 <+Ragnarok> it's set to more than the default
+13:09 < jrandom> ok cool, is it hitting that limit at all, and/or is that limit appropriate for your real net capacity?
+13:09 <+Ragnarok> the limit is well below my real capacity, since setting it high seems to kill my wireless router
+13:10 < jrandom> heh ok
+13:10 <+Ragnarok> but my router doesn't seem to hit the limit anyway
+13:11 <+Ragnarok> I can try to stress test it a bit, and keep better track
+13:11 < jrandom> does the peak bw usage hit it though (per oldstats.jsp)?  i2p is pretty bursty, and congestion on a burst might cause an irc discon
+13:11 < jrandom> cool, that'd be great.  i can only locally test so many situations, so any reports are appreciated
+13:11 <+Ragnarok> which number am I looking for.  oldstats is pretty dense...
+13:12 <+Ragnarok> s/./?/
+13:12 < jrandom> heh, sorry - oldstats.jsp#bw.sendBps the 60s peak (the second number on the line)
+13:14 <+Ragnarok> what are the units?  The number seems highly improbable
+13:14 < jrandom> KBps, sorry
+13:14 < jrandom> (its improperly named)
+13:15 < Pseudonym> bits or bytes?
+13:15 < jrandom> bytes
+13:15 <+Ragnarok> unfortuneately, it must be wrong then
+13:15 <+Ragnarok> the peak number is a small fraction of the limit, and of the current usage of the router
+13:15 < jrandom> hmm, its pretty specific, counting sizeof(messages received)
+13:16 < jrandom> (though the bw limiter itself works at a lower level, counting sizeof(packets received or sent)
+13:16 <+Ragnarok> how bad is it if I cut & paste the line? :)
+13:16 < jrandom> might be safer to msg it to me 
+13:17 <+Ragnarok> wait, I was looking at the 60 m rate.  It still looks low, but at least it's higher than the current usage.
+13:17 <+Ragnarok> sorry
+13:17 <+Ragnarok> I'll /msg you more info
+13:17 <@cervantes> Ragnarok: we'd instantly be able to determin your name, address and credit details from the netDB
+13:17 < jrandom> heh
+13:18 < jrandom> cervantes: thats why the netDb bw publishes only the *current* rate, not the peak ;)
+13:18 < jrandom> (but yeah, giving out one's bw usage can be dangerous to an adversary)
+13:19 < jrandom> ok, anyone else have anything to bring up wrt net status?
+13:21 < jrandom> if not, moving on to 2) syndie status
+13:22 < jrandom> lots of syndie progress, as outlined in the email and on my blog.  rather than repeating it here, anyone have anything to bring up on that front?
+13:22 <@cervantes> Officiali2pApps++
+13:23 <+fox> <adamta> I'm modifying the JSP files to use more structured/semantic markup so that it can be more flexibly styled with CSS.
+13:23 <+fox> <adamta> I don't have anything to show yet, but I'll post on the mailing list when I have something ready.
+13:23 <+Ragnarok> maybe a small description on what you think the common use case for syndie is might be nice.  I'm still a little unsure as to what it is, aside from a blog CMS
+13:23 < jrandom> cool adamta - be sure to work with the latest codebase, as I went through and css'ed everything last night
+13:24 < jrandom> (at a rought level, that is)
+13:24 <+fox> <adamta> jrandom: Oops... I'd been working on an earlier version.
+13:24 <+fox> <adamta> I'll `cvs update` and see what's changed, then.
+13:24  * Ragnarok , asking for user docs.  Oh the hypocrisy
+13:24 < jrandom> good call Ragnarok.  the use case is essentially '$myI2P.getUseCases()'
+13:25 < jrandom> safe syndication and publication of content, rather than using eepsites
+13:25 < jrandom> (as eepsites don't allow safe syndication, require more skill for publication, and require high availability of the operating node)
+13:25 <+Ragnarok> how is it syndicated, though?
+13:26 < jrandom> a good intro to syndie's aims is in the post http://syndiemedia.i2p/index.jsp?blog=ovpBy2mpO1CQ7deYhQ1cDGAwI6pQzLbWOm1Sdd0W06c=&entry=1124496000001&images=false&expand=true
+13:27 < jrandom> syndication, right now, is done through http with explicitly specified syndication peers (either apache archives, other syndie instances, or freesites with syndie archives)
+13:27  * cervantes just pulled apart the syndie css... it's sufficiently classes to do a varied amount of styling, but the markup itself isn't good for working in new themes
+13:27 <+Ragnarok> oh, nice.  I don't think I've seen that
+13:27 <@cervantes> *classes=classed
+13:27 <@cervantes> adamta: I'd be interested in seeing what you come up with
+13:28 < jrandom> cervantes: i'm no css wonk, so anyone inspired to improve upon it, restructure it, or revamp how the whole css/frontend works is very much appreciated :)
+13:28 <@cervantes> just get rid of those damn tables :)
+13:28 < jrandom> heh
+13:30 <+fox> <adamta> cervantes+jrandom: Indeed. There's enough there for basic styling, like changing the colour scheme, but I'm trying to modify it to get rid of the tables and to provide enough semantic markup (nested <div>s for sections, header tags, and so forth, all with classes and IDs when it would be useful) so that a stylesheet can completely change the appearance to the user's liking.
+13:30 <@cervantes> cool
+13:30 < jrandom> kickass adamta!
+13:31  * jrandom will not touch that side of things for a bit (i've got plenty to work on in the router :)
+13:31 <@cervantes> on a semi related note the new routerconsole themes have been somewhat delayed by arcturus' *ahem* disappearence
+13:31 < jrandom> heh d'oh
+13:31 <@cervantes> I'm trying to pick up where he left off with some of the workflow tweaks
+13:32 <@cervantes> but I don't have the JSP skills to do anything radical like fix the broken tunnel config screens
+13:33 < jrandom> ah cool, any progress is good, and if you need help with anything in particular, i'm 'round
+13:33 < jrandom> adamta: one thing to keep in mind is the multiple-style thing (using the author-selected but locally hosted style) ((check my recent blog posts for more info))
+13:33 <@cervantes> having said that the new alternative theme is looking ok
+13:33 < jrandom> nice
+13:34 <+fox> <adamta> The new color scheme is definitely nicer, if that's what you're referring to (?).
+13:35 <@cervantes> adamta: it would be cool if the author's can select a complete style from a set of templates for their particular blog
+13:35 < jrandom> cervantes: do you think we should deploy those jsp/css changes arcturus bounced me before, or would you prefer to hold off until you've finished some more pieces of it?
+13:36 <@cervantes> jrandom: I'm not sure what he gave you
+13:36 <@cervantes> if you can sling them over to me I can compare...I have made additional markup changes since I last discussed things with him
+13:37 < jrandom> cervantes: individual blog posts can now have per-blog style applied (causing e.g. class="s_detail_addressLink ss_minimal_detail_addressLink" to be used in the html, assuming the style specified is "minimal")
+13:37 < jrandom> cool, i'll bounce 'em your way cervantes 
+13:37 <@cervantes> ta
+13:38 < jrandom> cervantes: a per-blog theme is a bit tougher - the LJ folks had to deal with it too, and came up with the compromise saying the list containing multiple blogs uses the reader's style preferences, while the list containing just one blog's posts uses the author's style preferences
+13:38 < jrandom> we could publish a 'DefaultStyle: minimal' in the blog's metadata to allow the later
+13:39 <@cervantes> yeah that was what I was imagining
+13:39 <+susi23> (readers preferences should always override others)
+13:39 <+susi23> (but thats an opinion :)
+13:39 < jrandom> right, when the reader has explicit preferences
+13:39 <@cervantes>  /ignore susi23
+13:39 <@cervantes> sheet it didn't work
+13:41 <@cervantes> if we make filter by blog more distinct form of navigation
+13:42 <@cervantes> such as a side list
+13:42 < jrandom> at the moment, the user's preferences are kind of integrated into the workflow, rather than off in a separate prefs page (e.g. a link to bookmark a blog, or ignore them, or hide/show images).  perhaps when we have multiple local styles, it'd be good to have a 'view style' drop down at the top
+13:42 <@cervantes> then it will make style changes more pallatable
+13:42 < jrandom> hmm yeah ,interblog navigation is going to be interesting
+13:43 < jrandom> so you like how it was originally, with that list of blogs on the left hand side, rather than the drop down?
+13:43 < jrandom> http://syndiemedia.i2p/viewattachment.jsp?blog=ovpBy2mpO1CQ7deYhQ1cDGAwI6pQzLbWOm1Sdd0W06c=&entry=1124769600000&attachment=0
+13:44 <@cervantes> <bluesky>well that could be a template preference perhaps?</bluesky>
+13:44 < jrandom> hmm, i dont know if stylesheets can turn a list into a drop down, can it?
+13:44 <@cervantes> navigation type: dropdown|sidelist|hierarchy  
+13:44 <@cervantes> no
+13:45 < jrandom> ok, yeah, that can be done in jsp & user preference though, no problem
+13:45 < jrandom> (hierarchy?)
+13:45 <+susi23> (sure, you can give the select a rows parameter)
+13:45 <@cervantes> but if you abstract the markup into templates then you can have multiple user preference layouts
+13:45 < jrandom> ah, true, as a multivalued list
+13:45 < jrandom> (rather than an html list of links)
+13:46 <@cervantes> (I was blueskying though)
+13:46 < jrandom> right right cervantes (though it'd be nice if we can do as much templating as possible through css, since thats easier to deploy themes for)
+13:46 < jrandom> ((especially with the new docs/syndie_standard.css))
+13:46 <@cervantes> you might want to save that until version 2 and concentrate on more important aspects
+13:47 <+susi23> (you could put all three variants in the html source and the users decides which divs we want to hide)
+13:47 <@cervantes> right, if adamta sorts out the markup then you can probably do quite dramatic variations
+13:47 < jrandom> aye, but i'm open for ideas for the default.  if there's a better way to nav, it'd be better to deploy that
+13:47 < jrandom> good call susi23 
+13:47 <+susi23> (k, not very elegant way ;)
+13:47 <@cervantes> as in http://www.csszengarden.copm
+13:48 <@cervantes> * http://www.csszengarden.com
+13:48  * jrandom is glad i implemented ArchiveIndex as a separate object from Archive, so all this stuff is essentially just churning through the archive.txt textfile :)
+13:49 < jrandom> ok, anyone have any further questions/comments/concerns wrt syndie?
+13:50 < jrandom> (one thing to note is that the new petname stuff has a one-click export to the user's userhosts.txt file, dumping any i2p addresses there [but it doesn't import yet])
+13:50 <@cervantes> nice work
+13:50 < jrandom> gracias cervantes 
+13:50 <@cervantes> you going to ever do anything on i2p core again? :)
+13:50 < jrandom> heh
+13:51  * jrandom has a pair of killer changes to the router coming up, giving us lots of capabilities
+13:51 < jrandom> (but more on those when they're tested and ready for deployment)
+13:51 <@cervantes> i2pponies.ar
+13:51 <@cervantes> i2ponies.war
+13:52 <@cervantes> hmm vnc refresh is slow tonight
+13:52 <+susi23> (pony wars? poor ponies...)
+13:52 < jrandom> heh
+13:52 < jrandom> ok, moving on to 3) susidns
+13:52 < jrandom> susi23: wanna give us a rundown?
+13:52 <+susi23> well
+13:53 <+susi23> there is not much to say... susidns is a very simple webapp giving you access to addressbook configuration and subscriptions files
+13:53 <+susi23> and to your "addressbooks" namely hosts.txt, userhosts.txt and (if existing) your published addressbook
+13:54 <+susi23> I added an introduction page and some explanations how addressbook works
+13:54 <+susi23> (ok, how I think addressbok works ;)
+13:54 < jrandom> w00t :)
+13:54 <+bar> userhosts.txt?
+13:54 <+susi23> as there've been user questions about this in the last weeks
+13:54 <+Ragnarok> I'll send feedback, once I try it out :)
+13:54 <@cervantes> cool, how ready is it?
+13:54 <+susi23> sure
+13:54 <+susi23> usable
+13:55 < ardvark> i use addressbook, but have no userhosts.txt, or is userhosts.txt my personal/private eepsites?
+13:55 < jrandom> ardvark: userhosts is for user specified custom overrides (it doesnt exist by default)
+13:55 <+susi23> userhosts.txt is a 2nd hosts.txt file which is read by the NamingService
+13:55 < ardvark> ok
+13:55 <+Ragnarok> userhosts.txt is the one you can edit without fear of dataloss via race conditions :)
+13:55 <+susi23> and yes people used this for private keys
+13:56 <+susi23> (which is a bit dangerous now when you activate addressbook publication)
+13:57 <+susi23> well, no magic here... thats all
+13:57 <+Ragnarok> adding a privatehosts.txt or something, which is read by the NamingService but not addressbook would be trivial
+13:57 <+susi23> true
+13:57 <@cervantes> I would like to see that ;-)
+13:58  * cervantes clutches his private keys ;-)
+13:58 < jrandom> ooh, susidns intro page is nice :)
+13:58 < jrandom> (cervantes/susi/ragnarok/et al: see the syndie pet name web interface too [you need to log in to see it])
+13:58 <+susi23> as addressbooks publication is turned off by default there is no danger for normal people
+13:58 < jrandom> right right
+13:59 <+Ragnarok> I've asked this before, but is there anything I can do to make life easier for people writing addressbook frontends?
+13:59  * cervantes has forgotten his login
+13:59 < jrandom> cervantes: you can register again ;)
+13:59 <+Ragnarok> so have I, probably
+14:00 <@cervantes> wouldn't sushidns be a better name?
+14:00  * cervantes ducks
+14:00 <+susi23> ragnarok: how about a function to interupt the sleeping thread for immediate (user triggered) subscription update?
+14:01 < jrandom> ooh, or a manual "fetch now" capabiliy
+14:01  * susi23 slaps cervantes with a large trout.
+14:01 <+susi23> yes, calling it dns is ridiculous here...but thats a historic name :)
+14:01 <@cervantes> raw trout!
+14:01  * cervantes grabs the soya sauce
+14:01 <+susi23> (pervert!)
+14:02 <+susi23> k, back to topic please ;)
+14:02 <+Ragnarok> ok, I'll look into that
+14:02 <+susi23> (don't drink at meetings!)
+14:02  * jrandom hides my drink
+14:03  * susi23 pings jrandom
+14:03 < jrandom> ok cool, thanks susi, looks v.nice
+14:03 < jrandom> ok, moving on to 4) ???
+14:03 < jrandom> anyone have anything else they want to bring up for the meeting?
+14:04 <@cervantes> if anyone has been experiencing any issues with irc2p please let the admins know
+14:06 <@cervantes> #irc2p is the support channel
+14:06 <@cervantes> or post to the forum
+14:06 <@cervantes> jrandom: do you want a syndie forum btw? (or is that redundant)
+14:07 <@cervantes> susi23: you're welcome to have one too, for you plethora of i2p apps ;-)
+14:07 < jrandom> atm, i think we're ok without one, thanks though
+14:07 < jrandom> the susiworld forum
+14:09 < jrandom> ok, if there's nothing else
+14:09  * jrandom winds up
+14:09  * jrandom *baf*s the meeting closed

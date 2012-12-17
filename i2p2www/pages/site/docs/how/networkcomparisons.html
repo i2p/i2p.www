@@ -1,0 +1,198 @@
+{% extends "global/layout.html" %}
+{% block title %}I2P Compared to Tor and Freenet{% endblock %}
+{% block content %}<p>There are a great many other applications and projects working on anonymous 
+communication and I2P has been inspired by much of their efforts.  This is not 
+a comprehensive list of anonymity resources - both freehaven's 
+<a href="http://freehaven.net/anonbib/topic.html">Anonymity Bibliography</a>
+and GNUnet's <a href="https://www.gnunet.org/links/">related projects</a>
+serve that purpose well.  That said, a few systems stand out for further
+comparison. The following are discussed on this page:</p>
+<ul>
+<li>Tor / Onion Routing</li>
+<li>Freenet</li>
+</ul>
+<p>The following are discussed on the <a href="{{ site_url('docs/how/othernetworks') }}">other networks page:</a></p>
+<ul>
+<li>Morphmix and Tarzan</li>
+<li>Mixminion / Mixmaster</li>
+<li>JAP</li>
+<li>MUTE / AntsP2P</li>
+<li>Haystack</li>
+</ul>
+
+<p>The content of this page is subject to update, discussion and dispute, and we welcome comments and additions.
+You may contribute an analysis by entering a
+<a href="http://trac.i2p2.de/report/1">new ticket on trac.i2p2.de</a>.
+</p>
+
+<h2>Tor / Onion Routing</h2>
+<i><a href="http://www.torproject.org/">[Tor]</a> 
+   <a href="http://www.onion-router.net">[Onion Routing]</a></i>
+<p>Tor and Onion Routing are both anonymizing proxy networks, 
+allowing people to tunnel out through their low latency mix 
+network. The two primary differences between Tor / 
+Onion-Routing and I2P are again related to differences in 
+the threat model and the out-proxy design (though Tor
+supports hidden services as well).  In addition, Tor
+takes the directory-based approach - providing a 
+centralized point to manage the overall 'view' of the 
+network, as well as gather and report statistics, as 
+opposed to I2P's distributed <a href="{{ site_url('docs/how/networkdatabase') }}">network 
+database</a> and <a href="{{ site_url('docs/how/peerselection') }}">peer selection</a>.</p>
+
+<p>The I2P/Tor outproxy functionality does have a few 
+substantial weaknesses against certain attackers - 
+once the communication leaves the mixnet, global passive
+adversaries can more easily mount traffic analysis.  In 
+addition, the outproxies have access to the cleartext 
+of the data transferred in both directions, and 
+outproxies are prone to abuse, along with all of the 
+other security issues we've come to know and love with 
+normal Internet traffic.</p>
+
+<p>However, many people don't need to worry about those 
+situations, as they are outside their threat model.  It
+is, also, outside I2P's (formal) functional scope (if people want
+to build outproxy functionality on top of an anonymous
+communication layer, they can).  In fact, some I2P users
+currently take advantage of Tor to outproxy.</p>
+<!--
+<p>See also the
+<a href="http://wiki.noreply.org/noreply/TheOnionRouter/TorFAQ#ComparisonI2P">the Tor FAQ</a>
+for a Tor/I2P comparison from the Tor perspective.</p>
+-->
+
+<h3>Comparison of Tor and I2P Terminology</h3>
+While Tor and I2P are similar in many ways, much of the terminology is different.
+<table>
+<tr><th align="left">Tor<th align="left">I2P
+<tr><td>Cell<td>Message
+<tr><td>Client<td>Router or Client
+<tr><td>Circuit<td>Tunnel
+<tr><td>Directory<td>NetDb
+<tr><td>Directory Server<td>Floodfill Router
+<tr><td>Entry Guards<td>Fast Peers
+<tr><td>Entry Node<td>Inproxy
+<tr><td>Exit Node<td>Outproxy
+<tr><td>Hidden Service<td>Eepsite or Destination
+<tr><td>Hidden Service Descriptor<td>LeaseSet
+<tr><td>Introduction point<td>Inbound Gateway
+<tr><td>Node<td>Router
+<tr><td>Onion Proxy<td>I2PTunnel Client (more or less)
+<tr><td>Relay<td>Router
+<tr><td>Rendezvous Point<td>somewhat like Inbound Gateway + Outbound Endpoint
+<tr><td>Router Descriptor<td>RouterInfo
+<tr><td>Server<td>Router
+</table>
+
+<h3>Benefits of Tor over I2P</h3>
+<ul>
+ <li>Much bigger user base; much more visibility in the academic and hacker communities; benefits from
+     formal studies of anonymity, resistance, and performance;
+     has a non-anonymous, visible, university-based leader</li>
+ <li>Has already solved some scaling issues I2P has yet to address</li>
+ <li>Has significant funding</li>
+ <li>Has more developers, including several that are funded</li>
+ <li>More resistant to state-level blocking due to TLS transport layer and bridges
+     (I2P has proposals for "full restricted routes" but these are not yet implemented)</li>
+ <li>Big enough that it has had to adapt to blocking and DOS attempts</li>
+ <li>Designed and optimized for exit traffic, with a large number of exit nodes</li>
+ <li>Better documentation, has formal papers and specifications, better website, many more translations</li>
+ <li>More efficient with memory usage</li>
+ <li>Tor client nodes have very low bandwidth overhead</li>
+ <li>Centralized control reduces the complexity at each
+     node and can efficiently address Sybil attacks</li>
+ <li>A core of high capacity nodes provides higher
+     throughput and lower latency</li>
+ <li>C, not Java (ewww)</li>
+</ul>
+
+<h3>Benefits of I2P over Tor</h3>
+<ul>
+ <li>Designed and optimized for hidden services, which are much faster than in Tor</li>
+ <li>Fully distributed and self organizing</li>
+ <li>Peers are selected by continuously profiling and ranking performance,
+     rather than trusting claimed capacity</li>
+ <li>Floodfill peers ("directory servers") are varying and untrusted,
+     rather than hardcoded</li>
+ <li>Small enough that it hasn't been blocked or DOSed much, or at all</li>
+ <li>Peer-to-peer friendly</li>
+ <li>Packet switched instead of circuit switched
+  <ul>
+   <li>implicit transparent load balancing of messages 
+      across multiple peers, rather than a single path</li>
+   <li>resilience vs. failures by running multiple 
+       tunnels in parallel, plus rotating tunnels</li>
+   <li>scale each client's connections at O(1) instead 
+       of O(N) (Alice has e.g. 2 inbound tunnels that are 
+       used by all of the peers Alice is talking with, 
+       rather than a circuit for each)</li>
+  </ul></li>
+ <li>Unidirectional tunnels instead of bidirectional
+    circuits, doubling the number of nodes a peer has to
+    compromise to get the same information.</li>
+ <li>Protection against detecting client activity, even
+     when an attacker is participating in the tunnel, as
+     tunnels are used for more than simply passing end 
+     to end messages (e.g. netDb, tunnel management, 
+     tunnel testing)</li>
+ <li>Tunnels in I2P are short lived, decreasing the number
+     of samples that an attacker can use to mount an 
+     active attack with, unlike circuits in Tor, which are
+     typically long lived.</li>
+ <li>I2P APIs are designed specifically for anonymity and
+     security, while SOCKS is designed for functionality.</li>
+ <li>Essentially all peers participate in routing for others</li>
+ <li>The bandwidth overhead of being a full peer is low, 
+     while in Tor, while client nodes don't require much
+     bandwidth, they don't fully participate in the mixnet.</li>
+ <li>Integrated automatic update mechanism</li>
+ <li>Both TCP and UDP transports</li>
+ <li>Java, not C (ewww)</li>
+</ul>
+
+<h3>Other potential benefits of I2P but not yet implemented</h3>
+<p>...and may never be implemented, so don't count on them!</p>
+<ul>
+ <li>Defense vs. message count analysis by garlic wrapping 
+     multiple messages</li>
+ <li>Defense vs. long term intersection by adding delays 
+     at various hops (where the delays are not discernible
+     by other hops)</li>
+ <li>Various mixing strategies at the tunnel level (e.g.
+     create a tunnel that will handle 500 messages / minute,
+     where the endpoint will inject dummy messages if there
+     are insufficient messages, etc)</li>
+</ul>
+
+
+<h2>Freenet</h2>
+<i><a href="http://freenetproject.org/">[Freenet]</a></i>
+
+<p>Freenet is a fully distributed, peer to peer anonymous publishing network, offering 
+secure ways to store data, as well as some approaches attempting to address the loads
+of a flash flood.  While Freenet is designed as a distributed data store, people have
+built applications on top of it to do more generic anonymous communication, such as 
+static websites and message boards.</p>
+
+<p>Compared to I2P, Freenet offers some substantial benefits - it is a distributed data
+store, while I2P is not, allowing people to retrieve the content published by others 
+even when the publisher is no longer online.  In addition, it should be able to 
+distribute popular data fairly efficiently.  I2P itself does not and will not provide 
+this functionality.  On the other hand, there is overlap for users who simply want to 
+communicate with each other anonymously through websites, message boards, file sharing
+programs, etc.  There have also been some attempts to develop a distributed data 
+store to run on top of I2P,
+(most recently a port of <a href="http://tahoe-lafs.org/trac/tahoe-lafs">Tahoe-LAFS</a>)
+but nothing is yet ready for general use.</p>
+
+<p>However, even ignoring any implementations issues, there are some concerns 
+about Freenet's algorithms from both a scalability and anonymity perspective, owing 
+largely to Freenet's heuristic driven routing.  The interactions of various techniques 
+certainly may successfully deter various attacks, and perhaps some aspects of the 
+routing algorithms will provide the hoped for scalability.  Unfortunately, not much
+analysis of the algorithms involved has resulted in positive results, but there is still
+hope.  At the very least, Freenet does provide substantial anonymity against an attacker
+who does not have the resources necessary to analyze it further.</p>
+
+{% endblock %}

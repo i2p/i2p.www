@@ -1,0 +1,39 @@
+{%- from "global/macros" import site_url, change_lang, ver with context -%}
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <title>{% block title %}{% endblock %} - I2P</title>
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='styles/' + g.theme + '.css') }}" title="{{ g.theme }}" />
+    <link rel="shortcut icon" type="image/x-icon" href="{{ url_for('static', filename='favicon.ico') }}" />
+    <meta name="robots" content="NOODP" />
+    {%- block headextra %}{% endblock %}
+  </head>
+  <body>
+    <div class="hide"><a href="#content" title="Skip navigation" accesskey="2">{{ _('Skip navigation') }}</a></div>
+    <div id="branding">
+      <h1 id="logo"><a href="{{ site_url() }}"><img src="{{ url_for('static', filename='images/logo_medium.png') }}" alt="I2P" /></a></h1>
+      <div class="title">{{ self.title() }}</div>
+    </div>
+    <div class="navigation">
+      {% include "global/nav.html" %}
+    </div>
+    <div id="content">
+      {% block content_outer %}
+      <div class="inner">
+        {%- if self.lastupdated() or self.accuratefor() -%}
+        <div class="lastupdated">
+          This page {% if self.lastupdated() %}was last updated in {% block lastupdated %}{% endblock %}{% endif -%}
+        {% if self.lastupdated() and self.accuratefor() %} and {% endif -%}
+        {% if self.accuratefor() %}is accurate for router version {% block accuratefor %}{% endblock %}{% endif %}.
+        </div>
+        {% endif %}
+      {% block content %}{% endblock %}
+      </div>
+      {% endblock %}
+    </div>
+    <div id="footer">
+      {% include "global/footer.html" %}
+    </div>
+  </body>
+</html>
