@@ -1,13 +1,10 @@
 from jinja2 import Environment, FileSystemLoader, environmentfilter
 from flask import Flask, request, session, g, redirect, url_for, abort, render_template, flash, send_from_directory, safe_join
 from flaskext.babel import Babel
-from werkzeug.contrib.atom import AtomFeed
 from docutils.core import publish_parts
-import datetime
 import os.path
 import os
 import fileinput
-import codecs
 from random import randint
 try:
     import json
@@ -52,6 +49,13 @@ url('/<string:lang>/blog/page/<int:page>', 'blog.views.blog_index')
 url('/<string:lang>/blog/entry/<path:slug>', 'blog.views.blog_entry')
 url('/<string:lang>/feed/blog/rss', 'blog.views.blog_rss')
 url('/<string:lang>/feed/blog/atom', 'blog.views.blog_atom')
+
+url('/<string:lang>/meetings/', 'meetings.views.meetings_index', defaults={'page': 1})
+url('/<string:lang>/meetings/page/<int:page>', 'meetings.views.meetings_index')
+url('/<string:lang>/meetings/<int:id>', 'meetings.views.meetings_show')
+url('/<string:lang>/meetings/<int:id>.log', 'meetings.views.meetings_show_log')
+url('/<string:lang>/meetings/<int:id>.rst', 'meetings.views.meetings_show_rst')
+url('/<string:lang>/feed/meetings/atom', 'meetings.views.meetings_atom')
 
 
 #################
@@ -202,157 +206,6 @@ def page_not_found(error):
 @app.errorhandler(500)
 def server_error(error):
     return render_template('global/error_500.html'), 500
-
-
-########################
-# Meeting helper methods
-
-def get_meetings_feed_items(num=0):
-    meetings = get_meetings(num)
-    items = []
-    for meeting in meetings:
-        a = {}
-        a['title'] = meeting['parts']['title']
-        a['content'] = meeting['parts']['fragment']
-        a['url'] = url_for('meetings_show', lang=g.lang, id=meeting['id'])
-        a['updated'] = (meeting['date'] if meeting['date'] else datetime.datetime(0))
-        items.append(a)
-    return items
-
-def get_meetings(num=0):
-    meetings_ids = get_meetings_ids(num)
-    meetings = []
-    for id in meetings_ids:
-        parts = render_meeting_rst(id)
-        if parts:
-            try:
-                date = datetime.datetime.strptime(parts['title'], 'I2P dev meeting, %B %d, %Y &#64; %H:%M %Z')
-            except ValueError:
-                try:
-                    date = datetime.datetime.strptime(parts['title'], 'I2P dev meeting, %B %d, %Y')
-                except ValueError:
-                    date = None
-            a = {}
-            a['id'] = id
-            a['date'] = date
-            a['parts'] = parts
-            meetings.append(a)
-    return meetings
-
-def get_meetings_ids(num=0):
-    """
-    Returns the latest #num valid meetings, or all meetings if num=0.
-    """
-    # list of meetings
-    meetings=[]
-    # walk over all directories/files
-    for v in os.walk(MEETINGS_DIR):
-        # iterate over all files
-        for f in v[2]:
-            # ignore all non-.rst files
-            if not f.endswith('.rst'):
-                continue
-            meetings.append(int(f[:-4]))
-    meetings.sort()
-    meetings.reverse()
-    if (num > 0):
-        return meetings[:num]
-    return meetings
-
-def render_meeting_rst(id):
-    # check if that file actually exists
-    name = str(id) + '.rst'
-    path = safe_join(MEETINGS_DIR, name)
-    if not os.path.exists(path):
-        abort(404)
-
-    # read file
-    with codecs.open(path, encoding='utf-8') as fd:
-        content = fd.read()
-
-    return publish_parts(source=content, source_path=MEETINGS_DIR, writer_name="html")
-
-
-##################
-# Meeting handlers
-
-# Meeting index
-@app.route('/<string:lang>/meetings/', defaults={'page': 1})
-@app.route('/<string:lang>/meetings/page/<int:page>')
-def meetings_index(page):
-    all_meetings = get_meetings()
-    meetings = get_for_page(all_meetings, page, MEETINGS_PER_PAGE)
-    if not meetings and page != 1:
-        abort(404)
-    pagination = Pagination(page, MEETINGS_PER_PAGE, len(all_meetings))
-    return render_template('meetings/index.html', pagination=pagination, meetings=meetings)
-
-# Renderer for specific meetings
-@app.route('/<string:lang>/meetings/<int:id>')
-def meetings_show(id, log=False, rst=False):
-    """
-    Render the meeting X.
-    Either display the raw IRC .log or render as html and include .rst as header if it exists
-    """
-    # generate file name for the raw meeting file(and header)
-    lname = str(id) + '.log'
-    hname = str(id) + '.rst'
-    lfile = safe_join(MEETINGS_DIR, lname)
-    hfile = safe_join(MEETINGS_DIR, hname)
-
-    # check if meeting file exists and throw error if it does not..
-    if not os.path.exists(lfile):
-        abort(404)
-
-    # if the user just wanted the .log
-    if log:
-        # hmm... maybe replace with something non-render_template like?
-        #        return render_template('meetings/show_raw.html', log=log)
-        return send_from_directory(MEETINGS_DIR, lname, mimetype='text/plain')
-
-    log=''
-    header=None
-
-    # try to load header if that makes sense
-    if os.path.exists(hfile):
-        # if the user just wanted the .rst...
-        if rst:
-            return send_from_directory(MEETINGS_DIR, hname, mimetype='text/plain')
-
-        # open the file as utf-8 file
-        with codecs.open(hfile, encoding='utf-8') as fd:
-            header = fd.read()
-    elif rst:
-        abort(404)
-
-    # load log
-    with codecs.open(lfile, encoding='utf-8') as fd:
-        log = fd.read()
-
-    return render_template('meetings/show.html', log=log, header=header, id=id)
-
-# Just return the raw .log for the meeting
-@app.route('/<string:lang>/meetings/<int:id>.log')
-def meetings_show_log(id):
-    return meetings_show(id, log=True)
-
-# Just return the raw .rst for the meeting
-@app.route('/<string:lang>/meetings/<int:id>.rst')
-def meetings_show_rst(id):
-    return meetings_show(id, rst=True)
-
-@app.route('/<string:lang>/feed/meetings/atom')
-def meetings_atom():
-    feed = AtomFeed('I2P Meetings', feed_url=request.url, url=request.url_root)
-    items = get_meetings_feed_items(10)
-    for item in items:
-        feed.add(item['title'],
-                 item['content'],
-                 title_type='html',
-                 content_type='html',
-                 url=item['url'],
-                 updated=item['updated'])
-    return feed.get_response()
 
 
 ###################

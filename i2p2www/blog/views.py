@@ -1,4 +1,4 @@
-from flask import request, abort, render_template
+from flask import abort, render_template, request
 from werkzeug.contrib.atom import AtomFeed
 
 from i2p2www import BLOG_ENTRIES_PER_PAGE
