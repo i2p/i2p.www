@@ -24,7 +24,7 @@ TEMPLATE_DIR = os.path.join(os.path.dirname(__file__), 'pages')
 STATIC_DIR = os.path.join(os.path.dirname(__file__), 'static')
 
 BLOG_DIR = os.path.join(os.path.dirname(__file__), 'blog')
-MEETINGS_DIR = os.path.join(os.path.dirname(__file__), 'meetings')
+MEETINGS_DIR = os.path.join(os.path.dirname(__file__), 'meetings/logs')
 
 BLOG_ENTRIES_PER_PAGE = 20
 MEETINGS_PER_PAGE = 20
