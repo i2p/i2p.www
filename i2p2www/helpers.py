@@ -1,6 +1,18 @@
 from math import ceil
 from werkzeug import import_string, cached_property
 
+########################
+# General helper methods
+
+def get_for_page(items, page, per_page):
+    from_item = (page-1)*per_page
+    to_item = page*per_page
+    return items[from_item:to_item]
+
+
+########################
+# General helper classes
+
 class LazyView(object):
     def __init__(self, import_name):
         self.__module__, self.__name__ = import_name.rsplit('.', 1)

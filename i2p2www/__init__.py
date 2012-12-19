@@ -14,7 +14,7 @@ try:
 except ImportError:
     import simplejson as json
 
-from helpers import Pagination
+from helpers import LazyView, Pagination
 
 CURRENT_I2P_VERSION = '0.9.4'
 
@@ -34,6 +34,24 @@ MIRRORS_FILE = os.path.join(TEMPLATE_DIR, 'downloads/mirrors')
 app = application = Flask('i2p2www', template_folder=TEMPLATE_DIR, static_url_path='/_static', static_folder=STATIC_DIR)
 app.debug =  bool(os.environ.get('APP_DEBUG', 'False'))
 babel = Babel(app)
+
+
+######
+# URLs
+
+def url(url_rule, import_name, **options):
+    view = LazyView('i2p2www.' + import_name)
+    app.add_url_rule(url_rule, view_func=view, **options)
+
+url('/', 'views.main_index')
+url('/<string:lang>/', 'views.site_show', defaults={'page': 'index'})
+url('/<string:lang>/<path:page>', 'views.site_show')
+
+url('/<string:lang>/blog/', 'blog.views.blog_index', defaults={'page': 1})
+url('/<string:lang>/blog/page/<int:page>', 'blog.views.blog_index')
+url('/<string:lang>/blog/entry/<path:slug>', 'blog.views.blog_entry')
+url('/<string:lang>/feed/blog/rss', 'blog.views.blog_rss')
+url('/<string:lang>/feed/blog/atom', 'blog.views.blog_atom')
 
 
 #################
@@ -184,50 +202,6 @@ def page_not_found(error):
 @app.errorhandler(500)
 def server_error(error):
     return render_template('global/error_500.html'), 500
-
-
-########################
-# General helper methods
-
-def get_for_page(items, page, per_page):
-    from_item = (page-1)*per_page
-    to_item = page*per_page
-    return items[from_item:to_item]
-
-
-#######################
-# General page handlers
-
-# Index - redirects to en homepage
-@app.route('/')
-def main_index():
-    return redirect(url_for('site_show', lang='en'))
-
-# Site pages
-@app.route('/<string:lang>/', defaults={'page': 'index'})
-@app.route('/<string:lang>/<path:page>')
-def site_show(page):
-    if page.endswith('.html'):
-        return redirect(url_for('site_show', page=page[:-5]))
-    name = 'site/%s.html' % page
-    page_file = safe_join(TEMPLATE_DIR, name)
-
-    if not os.path.exists(page_file):
-        # Could be a directory, so try index.html
-        name = 'site/%s/index.html' % page
-        page_file = safe_join(TEMPLATE_DIR, name)
-        if not os.path.exists(page_file):
-            # bah! those damn users all the time!
-            abort(404)
-
-    options = {
-        'page': page,
-        }
-    if (page == 'index'):
-        options['blog_entries'] = get_blog_entries(8)
-
-    # hah!
-    return render_template(name, **options)
 
 
 ########################
@@ -444,123 +418,6 @@ def downloads_redirect(protocol, file, mirror):
     if mirror:
         return redirect(mirrors[mirror]['url'] % data)
     return redirect(mirrors[randint(0, len(mirrors) - 1)]['url'] % data)
-
-
-#####################
-# Blog helper methods
-
-def get_blog_feed_items(num=0):
-    entries = get_blog_entries(num)
-    items = []
-    for entry in entries:
-        parts = render_blog_entry(entry[0])
-        if parts:
-            a = {}
-            a['title'] = parts['title']
-            a['content'] = parts['fragment']
-            a['url'] = url_for('blog_entry', lang=g.lang, slug=entry[0])
-            a['updated'] = datetime.datetime.strptime(entry[1], '%Y-%m-%d')
-            items.append(a)
-    return items
-
-def get_blog_entries(num=0):
-    """
-    Returns the latest #num valid entries sorted by date, or all slugs if num=0.
-    """
-    slugs = get_blog_slugs(num)
-    entries= []
-    for slug in slugs:
-        date = get_date_from_slug(slug)
-        titlepart = slug.rsplit('/', 1)[1]
-        title = ' '.join(titlepart.split('_'))
-        entries.append((slug, date, title))
-    return entries
-
-def get_blog_slugs(num=0):
-    """
-    Returns the latest #num valid slugs sorted by date, or all slugs if num=0.
-    """
-    # list of slugs
-    slugs=[]
-    # walk over all directories/files
-    for v in os.walk(BLOG_DIR):
-        # iterate over all files
-        slugbase = os.path.relpath(v[0], BLOG_DIR)
-        for f in v[2]:
-            # ignore all non-.rst files
-            if not f.endswith('.rst'):
-                continue
-            slugs.append(safe_join(slugbase, f[:-4]))
-    slugs.sort()
-    slugs.reverse()
-    if (num > 0):
-        return slugs[:num]
-    return slugs
-
-def get_date_from_slug(slug):
-    parts = slug.split('/')
-    return "%s-%s-%s" % (parts[0], parts[1], parts[2])
-
-def render_blog_entry(slug):
-    """
-    Render the blog entry
-    TODO:
-    - caching
-    - move to own file
-    """
-    # check if that file actually exists
-    path = safe_join(BLOG_DIR, slug + ".rst")
-    if not os.path.exists(path):
-        abort(404)
-
-    # read file
-    with codecs.open(path, encoding='utf-8') as fd:
-        content = fd.read()
-
-    return publish_parts(source=content, source_path=BLOG_DIR, writer_name="html")
-
-
-###############
-# Blog handlers
-
-@app.route('/<string:lang>/blog/', defaults={'page': 1})
-@app.route('/<string:lang>/blog/page/<int:page>')
-def blog_index(page):
-    all_entries = get_blog_entries()
-    entries = get_for_page(all_entries, page, BLOG_ENTRIES_PER_PAGE)
-    if not entries and page != 1:
-        abort(404)
-    pagination = Pagination(page, BLOG_ENTRIES_PER_PAGE, len(all_entries))
-    return render_template('blog/index.html', pagination=pagination, entries=entries)
-
-@app.route('/<string:lang>/blog/entry/<path:slug>')
-def blog_entry(slug):
-    # try to render that blog entry.. throws 404 if it does not exist
-    parts = render_blog_entry(slug)
-
-    if parts:
-        # now just pass to simple template file and we are done
-        return render_template('blog/entry.html', parts=parts, title=parts['title'], body=parts['fragment'], slug=slug)
-    else:
-        abort(404)
-
-@app.route('/<string:lang>/feed/blog/rss')
-def blog_rss():
-    # TODO: implement
-    pass
-
-@app.route('/<string:lang>/feed/blog/atom')
-def blog_atom():
-    # TODO: Only output beginning of each blog entry
-    feed = AtomFeed('I2P Blog', feed_url=request.url, url=request.url_root)
-    items = get_blog_feed_items(10)
-    for item in items:
-        feed.add(item['title'],
-                 item['content'],
-                 content_type='html',
-                 url=item['url'],
-                 updated=item['updated'])
-    return feed.get_response()
 
 
 ############
