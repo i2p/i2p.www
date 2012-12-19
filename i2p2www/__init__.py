@@ -88,6 +88,10 @@ url('/<string:f>_<lang:lang>.html', 'legacy.legacy_show')
 url('/<string:f>/', 'legacy.legacy_show')
 url('/<string:f>.html', 'legacy.legacy_show')
 
+url('/hosts.txt', 'views.hosts')
+url('/robots.txt', 'views.robots')
+url('/favicon.ico', 'views.favicon')
+
 
 #################
 # Babel selectors
@@ -336,23 +340,6 @@ def downloads_redirect(protocol, file, mirror):
     if mirror:
         return redirect(mirrors[mirror]['url'] % data)
     return redirect(mirrors[randint(0, len(mirrors) - 1)]['url'] % data)
-
-
-############
-# Root files
-
-@app.route('/hosts.txt')
-def hosts():
-    return send_from_directory(STATIC_DIR, 'hosts.txt', mimetype='text/plain')
-
-@app.route('/robots.txt')
-def robots():
-    return send_from_directory(STATIC_DIR, 'robots.txt', mimetype='text/plain')
-
-@app.route('/favicon.ico')
-def favicon():
-    return send_from_directory(os.path.join(app.root_path, 'static'),
-                               'favicon.ico', mimetype='image/vnd.microsoft.icon')
 
 if __name__ == '__main__':
     app.run(debug=True)
