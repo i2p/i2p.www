@@ -178,6 +178,16 @@ def restructuredtext(value):
 
 @app.context_processor
 def utility_processor():
+    # Shorthand for getting a site url
+    def get_site_url(path=None):
+        lang = 'en'
+        if hasattr(g, 'lang') and g.lang:
+            lang = g.lang
+        if path:
+            return url_for('site_show', lang=lang, page=path)
+        else:
+            return url_for('site_show', lang=lang)
+
     # Provide the canonical link to the current page
     def get_canonical_link():
         protocol = request.url.split('//')[0]
@@ -220,6 +230,7 @@ def utility_processor():
     return dict(i2pconv=convert_url_to_clearnet,
                 url_for_other_page=url_for_other_page,
                 change_theme=change_theme,
+                site_url=get_site_url,
                 canonical=get_canonical_link)
 
 
