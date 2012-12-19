@@ -81,7 +81,7 @@ url('/status-<int:year>-<int:month>-<int:day>', 'legacy.legacy_status')
 url('/status-<int:year>-<int:month>-<int:day>.html', 'legacy.legacy_status')
 url('/<string:f>_<lang:lang>', 'legacy.legacy_show')
 url('/<string:f>_<lang:lang>.html', 'legacy.legacy_show')
-url('/<string:f>', 'legacy.legacy_show')
+url('/<string:f>/', 'legacy.legacy_show')
 url('/<string:f>.html', 'legacy.legacy_show')
 
 
