@@ -40,12 +40,18 @@ babel = Babel(app)
 class LangConverter(BaseConverter):
     def __init__(self, url_map):
         super(LangConverter, self).__init__(url_map)
-        self.regex = '(?:[a-z]{2})'
+        self.regex = '(?:[a-z]{2})(-[a-z]{2})?'
 
     def to_python(self, value):
+        parts = value.split('-')
+        if len(parts) == 2:
+            return parts[0] + '_' + parts[1].upper()
         return value
 
     def to_url(self, value):
+        parts = value.split('_')
+        if len(parts) == 2:
+            return parts[0] + '-' + parts[1].lower()
         return value
 
 app.url_map.converters['lang'] = LangConverter
