@@ -192,6 +192,22 @@ def utility_processor():
         else:
             return url_for('site_show', lang=lang)
 
+    # Shorthand for getting a language-specific url
+    def get_url_with_lang(endpoint, **args):
+        lang = 'en'
+        if hasattr(g, 'lang') and g.lang:
+            lang = g.lang
+        return url_for(endpoint, lang=lang, **args)
+
+    # Get a specific language flag, or the flag for the current language
+    def get_flag(lang=None):
+        if not lang:
+            if hasattr(g, 'lang') and g.lang:
+                lang = g.lang
+            else:
+                lang = 'en'
+        return url_for('static', filename='images/flags/'+lang+'.png')
+
     # Provide the canonical link to the current page
     def get_canonical_link():
         protocol = request.url.split('//')[0]
@@ -235,6 +251,8 @@ def utility_processor():
                 url_for_other_page=url_for_other_page,
                 change_theme=change_theme,
                 site_url=get_site_url,
+                get_url=get_url_with_lang,
+                get_flag=get_flag,
                 canonical=get_canonical_link)
 
 
