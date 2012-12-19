@@ -1,6 +1,7 @@
 from jinja2 import Environment, FileSystemLoader, environmentfilter
 from flask import Flask, request, session, g, redirect, url_for, abort, render_template, flash, send_from_directory, safe_join
 from flaskext.babel import Babel
+from werkzeug.routing import BaseConverter
 from docutils.core import publish_parts
 import os.path
 import os
@@ -33,6 +34,23 @@ app.debug =  bool(os.environ.get('APP_DEBUG', 'False'))
 babel = Babel(app)
 
 
+#######################
+# Custom URL converters
+
+class LangConverter(BaseConverter):
+    def __init__(self, url_map):
+        super(LangConverter, self).__init__(url_map)
+        self.regex = '(?:[a-z]{2})'
+
+    def to_python(self, value):
+        return value
+
+    def to_url(self, value):
+        return value
+
+app.url_map.converters['lang'] = LangConverter
+
+
 ######
 # URLs
 
@@ -41,28 +59,28 @@ def url(url_rule, import_name, **options):
     app.add_url_rule(url_rule, view_func=view, **options)
 
 url('/', 'views.main_index')
-url('/<string:lang>/', 'views.site_show', defaults={'page': 'index'})
-url('/<string:lang>/<path:page>', 'views.site_show')
+url('/<lang:lang>/', 'views.site_show', defaults={'page': 'index'})
+url('/<lang:lang>/<path:page>', 'views.site_show')
 
-url('/<string:lang>/blog/', 'blog.views.blog_index', defaults={'page': 1})
-url('/<string:lang>/blog/page/<int:page>', 'blog.views.blog_index')
-url('/<string:lang>/blog/entry/<path:slug>', 'blog.views.blog_entry')
-url('/<string:lang>/feed/blog/rss', 'blog.views.blog_rss')
-url('/<string:lang>/feed/blog/atom', 'blog.views.blog_atom')
+url('/<lang:lang>/blog/', 'blog.views.blog_index', defaults={'page': 1})
+url('/<lang:lang>/blog/page/<int:page>', 'blog.views.blog_index')
+url('/<lang:lang>/blog/entry/<path:slug>', 'blog.views.blog_entry')
+url('/<lang:lang>/feed/blog/rss', 'blog.views.blog_rss')
+url('/<lang:lang>/feed/blog/atom', 'blog.views.blog_atom')
 
-url('/<string:lang>/meetings/', 'meetings.views.meetings_index', defaults={'page': 1})
-url('/<string:lang>/meetings/page/<int:page>', 'meetings.views.meetings_index')
-url('/<string:lang>/meetings/<int:id>', 'meetings.views.meetings_show')
-url('/<string:lang>/meetings/<int:id>.log', 'meetings.views.meetings_show_log')
-url('/<string:lang>/meetings/<int:id>.rst', 'meetings.views.meetings_show_rst')
-url('/<string:lang>/feed/meetings/atom', 'meetings.views.meetings_atom')
+url('/<lang:lang>/meetings/', 'meetings.views.meetings_index', defaults={'page': 1})
+url('/<lang:lang>/meetings/page/<int:page>', 'meetings.views.meetings_index')
+url('/<lang:lang>/meetings/<int:id>', 'meetings.views.meetings_show')
+url('/<lang:lang>/meetings/<int:id>.log', 'meetings.views.meetings_show_log')
+url('/<lang:lang>/meetings/<int:id>.rst', 'meetings.views.meetings_show_rst')
+url('/<lang:lang>/feed/meetings/atom', 'meetings.views.meetings_atom')
 
 url('/meeting<int:id>', 'legacy.legacy_meeting')
 url('/meeting<int:id>.html', 'legacy.legacy_meeting')
 url('/status-<int:year>-<int:month>-<int:day>', 'legacy.legacy_status')
 url('/status-<int:year>-<int:month>-<int:day>.html', 'legacy.legacy_status')
-url('/<string:f>_<string:lang>', 'legacy.legacy_show')
-url('/<string:f>_<string:lang>.html', 'legacy.legacy_show')
+url('/<string:f>_<lang:lang>', 'legacy.legacy_show')
+url('/<string:f>_<lang:lang>.html', 'legacy.legacy_show')
 url('/<string:f>', 'legacy.legacy_show')
 url('/<string:f>.html', 'legacy.legacy_show')
 
@@ -241,13 +259,13 @@ def read_mirrors():
     return ret
 
 # List of downloads
-@app.route('/<string:lang>/download')
+@app.route('/<lang:lang>/download')
 def downloads_list():
     # TODO: read mirror list or list of available files
     return render_template('downloads/list.html')
 
 # Specific file downloader
-@app.route('/<string:lang>/download/<path:file>')
+@app.route('/<lang:lang>/download/<path:file>')
 def downloads_select(file):
     if (file == 'debian'):
         return render_template('downloads/debian.html')
