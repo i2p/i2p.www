@@ -18,6 +18,8 @@ from helpers import Pagination
 
 CURRENT_I2P_VERSION = '0.9.4'
 
+CANONICAL_DOMAIN = 'www.i2p2.de'
+
 TEMPLATE_DIR = os.path.join(os.path.dirname(__file__), 'pages')
 STATIC_DIR = os.path.join(os.path.dirname(__file__), 'static')
 
@@ -127,6 +129,11 @@ def restructuredtext(value):
 
 @app.context_processor
 def utility_processor():
+    # Provide the canonical link to the current page
+    def get_canonical_link():
+        protocol = request.url.split('//')[0]
+        return protocol + '//' + CANONICAL_DOMAIN + request.path
+
     # Convert an I2P url to an equivalent clearnet one
     i2ptoclear = {
         'www.i2p2.i2p': 'www.i2p2.de',
@@ -163,7 +170,8 @@ def utility_processor():
 
     return dict(i2pconv=convert_url_to_clearnet,
                 url_for_other_page=url_for_other_page,
-                change_theme=change_theme)
+                change_theme=change_theme,
+                canonical=get_canonical_link)
 
 
 ################
