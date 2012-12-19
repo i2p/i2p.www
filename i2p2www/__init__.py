@@ -243,9 +243,14 @@ def utility_processor():
 
     # Change the theme of the current page
     def change_theme(theme):
-        args = request.view_args.copy()
+        args = {}
+        if request.view_args:
+            args = request.view_args.copy()
         args['theme'] = theme
-        return url_for(request.endpoint, **args)
+        if request.endpoint:
+            return url_for(request.endpoint, **args)
+        # Probably a 404 error page
+        return url_for('main_index', **args)
 
     return dict(i2pconv=convert_url_to_clearnet,
                 url_for_other_page=url_for_other_page,
