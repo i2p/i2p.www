@@ -127,6 +127,3 @@ def server_error(error):
 # Import these to ensure they get loaded
 import templatevars
 import urls
-
-if __name__ == '__main__':
-    app.run(debug=True)
