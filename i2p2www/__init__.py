@@ -1,11 +1,9 @@
-from jinja2 import Environment, FileSystemLoader, environmentfilter
-from flask import Flask, request, session, g, redirect, url_for, abort, render_template, flash, send_from_directory, safe_join
+from flask import Flask, request, g, redirect, url_for, abort, render_template, send_from_directory, safe_join
 from flaskext.babel import Babel
 from werkzeug.routing import BaseConverter
 from docutils.core import publish_parts
 import os.path
 import os
-import fileinput
 from random import randint
 try:
     import json
