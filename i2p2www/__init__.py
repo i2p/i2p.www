@@ -4,11 +4,6 @@ from werkzeug.routing import BaseConverter
 from docutils.core import publish_parts
 import os.path
 import os
-from random import randint
-try:
-    import json
-except ImportError:
-    import simplejson as json
 
 from helpers import LazyView, Pagination
 
@@ -78,6 +73,11 @@ url('/<lang:lang>/meetings/<int:id>', 'meetings.views.meetings_show')
 url('/<lang:lang>/meetings/<int:id>.log', 'meetings.views.meetings_show_log')
 url('/<lang:lang>/meetings/<int:id>.rst', 'meetings.views.meetings_show_rst')
 url('/<lang:lang>/feed/meetings/atom', 'meetings.views.meetings_atom')
+
+url('/<lang:lang>/download', 'downloads.downloads_list')
+url('/<lang:lang>/download/<path:file>', 'downloads.downloads_select')
+url('/download/<string:protocol>/any/<path:file>', 'downloads.downloads_redirect', defaults={'mirror': None})
+url('/download/<string:protocol>/<int:mirror>/<path:file>', 'downloads.downloads_redirect')
 
 url('/meeting<int:id>', 'legacy.legacy_meeting')
 url('/meeting<int:id>.html', 'legacy.legacy_meeting')
@@ -275,71 +275,6 @@ def page_not_found(error):
 @app.errorhandler(500)
 def server_error(error):
     return render_template('global/error_500.html'), 500
-
-
-###################
-# Download handlers
-
-# Read in mirrors from file
-def read_mirrors():
-    file = open(MIRRORS_FILE, 'r')
-    dat = file.read()
-    file.close()
-    lines=dat.split('\n')
-    ret={}
-    for line in lines:
-        try:
-            obj=json.loads(line)
-        except ValueError:
-            continue
-        if 'protocol' not in obj:
-            continue
-        protocol=obj['protocol']
-        if protocol not in ret:
-            ret[protocol]=[]
-        ret[protocol].append(obj)
-    return ret
-
-# List of downloads
-@app.route('/<lang:lang>/download')
-def downloads_list():
-    # TODO: read mirror list or list of available files
-    return render_template('downloads/list.html')
-
-# Specific file downloader
-@app.route('/<lang:lang>/download/<path:file>')
-def downloads_select(file):
-    if (file == 'debian'):
-        return render_template('downloads/debian.html')
-    mirrors=read_mirrors()
-    data = {
-        'version': CURRENT_I2P_VERSION,
-        'file': file,
-        }
-    obj=[]
-    for protocol in mirrors.keys():
-        a={}
-        a['name']=protocol
-        a['mirrors']=mirrors[protocol]
-        for mirror in a['mirrors']:
-            mirror['url']=mirror['url'] % data
-        obj.append(a)
-    return render_template('downloads/select.html', mirrors=obj, file=file)
-
-@app.route('/download/<string:protocol>/any/<path:file>', defaults={'mirror': None})
-@app.route('/download/<string:protocol>/<int:mirror>/<path:file>')
-def downloads_redirect(protocol, file, mirror):
-    mirrors=read_mirrors()
-    if not protocol in mirrors:
-        abort(404)
-    mirrors=mirrors[protocol]
-    data = {
-        'version': CURRENT_I2P_VERSION,
-        'file': file,
-        }
-    if mirror:
-        return redirect(mirrors[mirror]['url'] % data)
-    return redirect(mirrors[randint(0, len(mirrors) - 1)]['url'] % data)
 
 if __name__ == '__main__':
     app.run(debug=True)
