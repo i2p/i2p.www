@@ -57,6 +57,15 @@ url('/<string:lang>/meetings/<int:id>.log', 'meetings.views.meetings_show_log')
 url('/<string:lang>/meetings/<int:id>.rst', 'meetings.views.meetings_show_rst')
 url('/<string:lang>/feed/meetings/atom', 'meetings.views.meetings_atom')
 
+url('/meeting<int:id>', 'legacy.legacy_meeting')
+url('/meeting<int:id>.html', 'legacy.legacy_meeting')
+url('/status-<int:year>-<int:month>-<int:day>', 'legacy.legacy_status')
+url('/status-<int:year>-<int:month>-<int:day>.html', 'legacy.legacy_status')
+url('/<string:f>_<string:lang>', 'legacy.legacy_show')
+url('/<string:f>_<string:lang>.html', 'legacy.legacy_show')
+url('/<string:f>', 'legacy.legacy_show')
+url('/<string:f>.html', 'legacy.legacy_show')
+
 
 #################
 # Babel selectors
@@ -283,37 +292,6 @@ def hosts():
 @app.route('/robots.txt')
 def robots():
     return send_from_directory(STATIC_DIR, 'robots.txt', mimetype='text/plain')
-
-
-##############
-# Legacy paths
-
-@app.route('/meeting<int:id>')
-@app.route('/meeting<int:id>.html')
-def legacy_meeting(id):
-    return redirect(url_for('meetings_show', id=id, lang='en'))
-
-@app.route('/status-<int:year>-<int:month>-<int:day>')
-@app.route('/status-<int:year>-<int:month>-<int:day>.html')
-def legacy_status(year, month, day):
-    return redirect(url_for('blog_entry', lang='en', slug=('%s/%s/%s/status' % (year, month, day))))
-
-LEGACY_MAP={
-    'download': 'downloads_list'
-}
-
-@app.route('/<string:f>_<string:lang>')
-@app.route('/<string:f>_<string:lang>.html')
-@app.route('/<string:f>')
-@app.route('/<string:f>.html')
-def legacy_show(f):
-    lang = 'en'
-    if hasattr(g, 'lang') and g.lang:
-        lang = g.lang
-    if f in LEGACY_MAP:
-        return redirect(url_for(LEGACY_MAP[f], lang=lang))
-    else:
-        return redirect(url_for('site_show', lang=lang, page=f))
 
 @app.route('/favicon.ico')
 def favicon():
