@@ -204,8 +204,8 @@ def main_index():
     return redirect(url_for('site_show', lang='en'))
 
 # Site pages
-@app.route('/<string:lang>/site/', defaults={'page': 'index'})
-@app.route('/<string:lang>/site/<path:page>')
+@app.route('/<string:lang>/', defaults={'page': 'index'})
+@app.route('/<string:lang>/<path:page>')
 def site_show(page):
     if page.endswith('.html'):
         return redirect(url_for('site_show', page=page[:-5]))
