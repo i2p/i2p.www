@@ -1,6 +1,6 @@
 from flask import g, request, url_for
 
-from i2p2www import CANONICAL_DOMAIN, app
+from i2p2www import CANONICAL_DOMAIN, CURRENT_I2P_VERSION, app
 
 I2P_TO_CLEAR = {
     'www.i2p2.i2p': 'www.i2p2.de',
@@ -79,10 +79,16 @@ def utility_processor():
         # Probably a 404 error page
         return url_for('main_index', **args)
 
+    def get_current_version(string=None):
+        if string:
+            return string % CURRENT_I2P_VERSION
+        return CURRENT_I2P_VERSION
+
     return dict(i2pconv=convert_url_to_clearnet,
                 url_for_other_page=url_for_other_page,
                 change_theme=change_theme,
                 site_url=get_site_url,
                 get_url=get_url_with_lang,
                 get_flag=get_flag,
+                ver=get_current_version,
                 canonical=get_canonical_link)
