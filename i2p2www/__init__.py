@@ -4,20 +4,26 @@ from docutils.core import publish_parts
 import os.path
 import os
 
+
+###########
+# Constants
+
 CURRENT_I2P_VERSION = '0.9.4'
 
 CANONICAL_DOMAIN = 'www.i2p2.de'
 
-TEMPLATE_DIR = os.path.join(os.path.dirname(__file__), 'pages')
-STATIC_DIR = os.path.join(os.path.dirname(__file__), 'static')
-
-BLOG_DIR = os.path.join(os.path.dirname(__file__), 'blog')
-MEETINGS_DIR = os.path.join(os.path.dirname(__file__), 'meetings/logs')
-
 BLOG_ENTRIES_PER_PAGE = 20
 MEETINGS_PER_PAGE = 20
 
+TEMPLATE_DIR = os.path.join(os.path.dirname(__file__), 'pages')
+STATIC_DIR = os.path.join(os.path.dirname(__file__), 'static')
+BLOG_DIR = os.path.join(os.path.dirname(__file__), 'blog')
+MEETINGS_DIR = os.path.join(os.path.dirname(__file__), 'meetings/logs')
 MIRRORS_FILE = os.path.join(TEMPLATE_DIR, 'downloads/mirrors')
+
+
+###################
+# Application setup
 
 app = application = Flask('i2p2www', template_folder=TEMPLATE_DIR, static_url_path='/_static', static_folder=STATIC_DIR)
 app.debug =  bool(os.environ.get('APP_DEBUG', 'False'))
