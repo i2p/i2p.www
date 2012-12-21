@@ -87,6 +87,11 @@ def detect_theme():
         theme = request.cookies['style']
     if 'theme' in request.args.keys():
         theme = request.args['theme']
+        # TEMPORARY: enable external themes
+        # TODO: Remove this (and the corresponding lines in global/layout.html
+        if theme[:7] == 'http://':
+            g.exttheme = theme
+            theme = 'duck'
     if not os.path.isfile(safe_join(safe_join(STATIC_DIR, 'styles'), '%s.css' % theme)):
         theme = 'duck'
     g.theme = theme
