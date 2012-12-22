@@ -13,7 +13,7 @@
     {%- block headextra %}{% endblock %}
   </head>
   <body>
-{%- if g.theme == "duck" %}
+{%- if g.theme != "danimoth" %}
     <div class="hide"><a href="#content" title="Skip navigation" accesskey="2">{{ _('Skip navigation') }}</a></div>
     <div id="branding">
       <h1 id="logo"><a href="{{ site_url() }}"><img src="{{ url_for('static', filename='images/logo_medium.png') }}" alt="I2P" /></a></h1>
@@ -55,24 +55,25 @@
 
     <div class="container-fluid">
       <div class="sidebar">
+        {%- if not self.content() %}
         <div class="alert-message block-message warning news">
           <h2>{% trans %}News &amp; Updates{% endtrans %}</h2>
             {% include "blog/latest.html" %}
         </div>
+        {%- endif %}
 
         <div class="well">
           {% include "global/nav.html" %}
         </div>
       </div>
-      <div class="content well">
+      <div class="content{% if not self.content() %} well{% endif %}">
         {%- if self.content() %}
         {{ self.content() }}
         {%- else %}
         {{ self.content_outer() }}
         {%- endif %}
-        <footer>
-          <p>{{ _("See <a href=\"licenses.html\">license") }}</a>.</p>
-
+        <footer class="row">
+          {% include "global/footer.html" %}
         </footer>
       </div>
     </div>
