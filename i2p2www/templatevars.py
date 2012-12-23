@@ -83,8 +83,6 @@ def utility_processor():
     # Shorthand for getting the logo for the current theme
     def get_logo_for_theme():
         logo = 'styles/' + g.theme + '/images/i2plogo.png'
-        print logo
-        print safe_join(STATIC_DIR, logo)
         if not os.path.isfile(safe_join(STATIC_DIR, logo)):
             logo = 'images/i2plogo.png'
         return logo
