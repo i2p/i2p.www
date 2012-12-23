@@ -14,48 +14,49 @@
   </head>
   <body>
     <div class="hide"><a href="#content" title="Skip navigation" accesskey="2">{{ _('Skip navigation') }}</a></div>
-    <div id="topbar">
-      <a id="logo" href="{{ site_url() }}"><img src="{{ url_for('static', filename=logo_url()) }}" alt="I2P Logo" title="Invisible Internet Project (I2P)" /></a>
-      <div class="title">
-        <h1>{{ self.title() }}</h1>
-        {% include "global/lang.html" %}
-      </div>
-    </div>
-{%- if g.theme != "danimoth" %}
-    <div class="navigation">
-      {% include "global/nav.html" %}
-    </div>
-    <div id="content">
-      {% block content_outer %}
-      <div class="inner">
-        {%- if self.lastupdated() or self.accuratefor() -%}
-        <div class="lastupdated">
-          This page {% if self.lastupdated() %}was last updated in {% block lastupdated %}{% endblock %}{% endif -%}
-        {% if self.lastupdated() and self.accuratefor() %} and {% endif -%}
-        {% if self.accuratefor() %}is accurate for router version {% block accuratefor %}{% endblock %}{% endif %}.
+    <header>
+      <div id="topbar">
+        <a id="logo" href="{{ site_url() }}"><img src="{{ url_for('static', filename=logo_url()) }}" alt="I2P Logo" title="Invisible Internet Project (I2P)" /></a>
+        <div class="title">
+          <h1>{{ self.title() }}</h1>
+          <div class="lang">
+            {% include "global/lang.html" %}
+          </div>
         </div>
-        {% endif %}
-      {% block content %}{% endblock %}
       </div>
-      {% endblock %}
-    </div>
-    <div id="footer">
-      {% include "global/footer.html" %}
-    </div>
-{%- else %}
+
+      <nav class="navigation">
+        {% include "global/nav.html" %}
+      </nav>
+    </header>
     <div class="container-fluid">
-      <div class="sidebar">
-        {%- if not self.content() %}
+        {%- if not self.content() and g.theme == 'danimoth' %}
+      <aside>
         <div class="alert-message block-message warning news">
           <h2>{% trans %}News &amp; Updates{% endtrans %}</h2>
             {% include "blog/latest.html" %}
         </div>
+      </aside>
         {%- endif %}
-
-        <div class="well">
-          {% include "global/nav.html" %}
+{%- if g.theme != "danimoth" %}
+      <div id="content">
+        {% block content_outer %}
+        <div class="inner">
+          {%- if self.lastupdated() or self.accuratefor() -%}
+          <div class="lastupdated">
+            This page {% if self.lastupdated() %}was last updated in {% block lastupdated %}{% endblock %}{% endif -%}
+          {% if self.lastupdated() and self.accuratefor() %} and {% endif -%}
+          {% if self.accuratefor() %}is accurate for router version {% block accuratefor %}{% endblock %}{% endif %}.
+          </div>
+          {% endif %}
+        {% block content %}{% endblock %}
         </div>
+      {% endblock %}
       </div>
+      <footer>
+        {% include "global/footer.html" %}
+      </footer>
+{%- else %}
       <div class="content{% if not self.content() %} well{% endif %}">
         {%- if self.content() %}
         {{ self.content() }}
@@ -66,7 +67,7 @@
           {% include "global/footer.html" %}
         </footer>
       </div>
-    </div>
 {%- endif %}
+    </div>
   </body>
 </html>
