@@ -1,6 +1,7 @@
-from flask import g, request, url_for
+from flask import g, request, safe_join, url_for
+import os.path
 
-from i2p2www import CANONICAL_DOMAIN, CURRENT_I2P_VERSION, app
+from i2p2www import CANONICAL_DOMAIN, CURRENT_I2P_VERSION, STATIC_DIR, app
 
 I2P_TO_CLEAR = {
     'www.i2p2.i2p': 'www.i2p2.de',
@@ -79,6 +80,15 @@ def utility_processor():
         # Probably a 404 error page
         return url_for('main_index', **args)
 
+    # Shorthand for getting the logo for the current theme
+    def get_logo_for_theme():
+        logo = 'styles/' + g.theme + '/images/i2plogo.png'
+        print logo
+        print safe_join(STATIC_DIR, logo)
+        if not os.path.isfile(safe_join(STATIC_DIR, logo)):
+            logo = 'images/i2plogo.png'
+        return logo
+
     def get_current_version(string=None):
         if string:
             return string % CURRENT_I2P_VERSION
@@ -87,6 +97,7 @@ def utility_processor():
     return dict(i2pconv=convert_url_to_clearnet,
                 url_for_other_page=url_for_other_page,
                 change_theme=change_theme,
+                logo_url=get_logo_for_theme,
                 site_url=get_site_url,
                 get_url=get_url_with_lang,
                 get_flag=get_flag,
