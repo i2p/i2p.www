@@ -1,0 +1,122 @@
+{% extends "global/layout.html" %}
+{% block title %}jbigi{% endblock %}
+{% block lastupdated %}August 2011{% endblock %}
+{% block accuratefor %}0.8.7{% endblock %}
+{% block content %}
+<h2>Overview</h2>
+<p>Using JNI (Java Native Interface), a bit of C code (thanks ugha!), a little
+manual work and a piece of chewing gum we have made several
+cryptography operations quite a bit faster.</p>
+
+<p>
+The speedup comes from the super-fast
+<a href="http://gmplib.org/">GNU MP Bignum library (libgmp)</a>.
+We use a single function from libgmp -
+<a href="http://gmplib.org/manual-4.3.2/Integer-Exponentiation.html#Integer-Exponentiation">mpz_powm()</a>
+as a replacement for the
+<a href="http://download.oracle.com/javase/1.5.0/docs/api/java/math/BigInteger.html#modPow%28java.math.BigInteger,%20java.math.BigInteger%29">Java Math library's BigInteger modPow()</a>.
+As modPow() is a significant computational portion of many crypto operations, this is of significant benefit.
+</p>
+
+<p>
+The standard I2P installation includes about 20 versions of the library for different platforms,
+each about 50KB, inside the jbigi.jar file.
+The initialization of the JBigI library, including CPU identification, selection, and extraction
+of the correct loadable module, is handled by the
+<a href="http://docs.i2p-projekt.de/javadoc/net/i2p/util/NativeBigInteger.html">NativeBigInteger class</a>.
+If no module is available for the current platform, the standard
+<a href="http://download.oracle.com/javase/1.5.0/docs/api/java/math/BigInteger.html#modPow%28java.math.BigInteger,%20java.math.BigInteger%29">Java Math library's BigInteger modPow()</a>
+is used.
+</p>
+
+
+<h2>Rebuilding and Testing JBigI</h2>
+Following are the instructions to build a new jbigi library for your own platform
+and testing its performance.
+
+<h3>Requirements</h3>
+<p>This works on Linux, and with a few changes in build.sh probably also on
+other platforms. FreeBSD has also been reported to work too. On Kaffee the
+speedup is very small, because it already uses native BitInteger internally.
+Blackdown seems to cause strange errors. Because you are going to do
+compilation, you need JDK; JRE won't work.</p>
+<p>The required code is available in monotone database and the latest source tarball.</p>
+<p>The GNU MP Bignum library (libgmp) needs to be installed, if it isn't
+included in your OS / distribution or installed already, it can be received from
+<a href="http://gmplib.org/#DOWNLOAD">http://gmplib.org/#DOWNLOAD</a>. Even if you
+have already installed it as binary, it might still be worth a try to compile
+GMP yourself, since then it will be able to use the specific instructions of
+your processor. The latest GMP may also
+be used instead of GMP 5.0.2, but it hasn't been tested by us.
+</p>
+
+<h3>Step-by-step instructions</h3>
+<ol>
+<li>Look at <a href="http://localhost:7657/logs.jsp">your running environment on the logs.jsp page</a>.
+There should be one of two status messages for JBigI - either
+<tt>
+Locally optimized native BigInteger loaded from the library path
+</tt>
+or
+<tt>
+Native BigInteger library jbigi not loaded - using pure java</tt>.
+If the native BitInteger library was NOT loaded, you definitely need to
+compile your own.
+Certain platforms, such as OS X, OpenSolaris, and 64-bit systems,
+may require you to compile your own library.
+If the BigInteger library was loaded, do at least the next step to see
+what your performance is.
+</li>
+<li>Look on <a href="http://localhost:7657/stats.jsp">http://localhost:7657/stats.jsp</a>
+to see what the lifetime average values for <code>crypto.elGamal.decrypt</code> and
+<code>crypto.elGamal.encrypt</code> are. The numbers are times in milliseconds. Copy these somewhere so you can compare
+them later on.
+The network average for encrypt time is about 20ms.
+If your encrypt time is less than 50ms for a relatively new processor, or less than 100ms
+for an older processor, and the native BigInteger library was loaded, you are probably fine.
+</li>
+<li>Get the latest released source code of I2P from
+<a href="{{ url_for('downloads_list', lang=g.lang) }}">the download page</a>, or get the cutting-edge source
+out of the monotone database mtn.i2p2.de</li>
+<li>Inside the source tree change directory to: <code>core/c/jbigi</code></li>
+<li>Read the README file.
+If you have a /usr/lib/libgmp.so file, you do not have to download GMP.
+Use the 'dynamic' argument to build.sh.
+Otherwise, you must download GMP version 5.0.2 from
+from <a href="http://gmplib.org/#DOWNLOAD">http://gmplib.org/#DOWNLOAD</a>, saving it to gmp-5.0.2.tar.bz2.
+If you decide to use a newer version, change the VER= line in <code>core/c/jbigi/build.sh</code>.
+<li>Take a look at <code>build.sh</code>, if your <code>JAVA_HOME</code>
+environment variable is set and you are using Linux then it might just work.
+Otherwise change the settings. Remember, you need the Java SDK installed.</li>
+<li>Run <code>build.sh</code> (if you downloaded GMP) or
+ <code>build.sh dynamic</code> (if you have /usr/lib/libgmp.so).<br/>
+Maybe the build spewed out some errors of missing jni.h and jni_md.h files.
+Either copy these files from your java install into the core/c/jbigi/jbigi/include/ directory,
+or fix $JAVA_HOME.<br>
+You can run the <code>build.sh</code> from the <code>core/c/</code> directory which will
+build all available jbigi libs into a jbigi.jar.</br>
+A file named <code>libjbigi.so</code> should be created in the current
+directory. If this doesn't happen and/or you get errors then please report
+them.</li>
+<li>Follow the instructions in core/c/README to install the library and run
+the speed test.
+Read the final lines of the speed test's output for some additional
+info, it will be something like this:
+<pre>
+native run time:  5842ms ( 57ms each)
+java run time:   41072ms (406ms each)
+native = 14.223802103622907% of pure java time
+</pre>
+If the native is indeed 5-7x faster (or more) then it looks all good. If not, please
+report.</li>
+<li>Copy <code>libjbigi.so</code> to your i2p directory</li>
+<li>Restart your I2P programs.</li>
+<li>On
+<a href="http://localhost:7657/stats.jsp">http://localhost:7657/stats.jsp</a>
+the <code>crypto.elGamal.decrypt</code> and <code>crypto.elGamal.encrypt</code>
+should be a lot faster.</li>
+</ol>
+
+
+
+{% endblock %}

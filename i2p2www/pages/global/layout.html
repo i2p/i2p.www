@@ -1,0 +1,52 @@
+{%- from "global/macros" import change_lang with context -%}
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <title>{% block title_outer %}{% block title %}{% endblock %} - I2P{% endblock %}</title>
+    <link rel="canonical" href="{{ canonical() }}" />
+    {% if g.exttheme %}<link rel="stylesheet" type="text/css" href="{{ g.exttheme }}" title="External theme" />{% else -%}
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='styles/' + g.theme + '.css') }}" title="{{ g.theme }}" />
+    {%- endif %}
+    <link rel="shortcut icon" type="image/x-icon" href="{{ url_for('static', filename='favicon.ico') }}" />
+    <meta name="robots" content="NOODP" />
+    {%- block headextra %}{% endblock %}
+  </head>
+  <body>
+    <div class="hide"><a href="#content" title="Skip navigation" accesskey="2">{{ _('Skip navigation') }}</a></div>
+    <header>
+      <div id="topbar">
+        <a id="logo" href="{{ site_url() }}"><img src="{{ url_for('static', filename=logo_url()) }}" alt="I2P Logo" title="Invisible Internet Project (I2P)" /></a>
+        <div class="title">
+          <h1>{{ self.title() }}</h1>
+          <div class="lang">
+            {% include "global/lang.html" %}
+          </div>
+        </div>
+      </div>
+
+      <nav class="navigation">
+        {% include "global/nav.html" %}
+      </nav>
+    </header>
+    <div class="container-fluid{% if not self.content() %} well{% endif %}">
+      <div id="content">
+        {% block content_outer %}
+        <article class="inner">
+          {%- if self.lastupdated() or self.accuratefor() -%}
+          <div class="lastupdated">
+            This page {% if self.lastupdated() %}was last updated in {% block lastupdated %}{% endblock %}{% endif -%}
+          {% if self.lastupdated() and self.accuratefor() %} and {% endif -%}
+          {% if self.accuratefor() %}is accurate for router version {% block accuratefor %}{% endblock %}{% endif %}.
+          </div>
+          {% endif %}
+        {% block content %}{% endblock %}
+        </article>
+      {% endblock %}
+      </div>
+      <footer>
+        {% include "global/footer.html" %}
+      </footer>
+    </div>
+  </body>
+</html>
