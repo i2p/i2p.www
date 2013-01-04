@@ -6,7 +6,8 @@ from flask import g, redirect, url_for
 
 LEGACY_FUNCTIONS_MAP={
     'announcements': 'blog_index',
-    'download': 'downloads_list',
+    'download':      'downloads_list',
+    'statusnotes':   'blog_index',
 }
 
 LEGACY_PAGES_MAP={
