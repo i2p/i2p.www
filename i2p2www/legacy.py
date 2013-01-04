@@ -12,6 +12,7 @@ LEGACY_FUNCTIONS_MAP={
 
 LEGACY_PAGES_MAP={
     'applications':           'volunteer/develop/applications',
+    'benchmarks':             'misc/benchmarks',
     'bittorrent':             'docs/applications/bittorrent',
     'blockfile':              'docs/spec/blockfile',
     'bob':                    'docs/api/bob',
