@@ -15,10 +15,26 @@ CANONICAL_DOMAIN = 'www.i2p2.de'
 BLOG_ENTRIES_PER_PAGE = 20
 MEETINGS_PER_PAGE = 20
 
+SUPPORTED_LANGS = [
+    'en',
+    'es',
+    'zh',
+    'de',
+    'fr',
+    'it',
+    'nl',
+    'ru',
+    'sv',
+    'cs',
+    'ar',
+    'el',
+    ]
+
 TEMPLATE_DIR = os.path.join(os.path.dirname(__file__), 'pages')
 STATIC_DIR = os.path.join(os.path.dirname(__file__), 'static')
 BLOG_DIR = os.path.join(os.path.dirname(__file__), 'blog')
 MEETINGS_DIR = os.path.join(os.path.dirname(__file__), 'meetings/logs')
+SITE_DIR = os.path.join(TEMPLATE_DIR, 'site')
 MIRRORS_FILE = os.path.join(TEMPLATE_DIR, 'downloads/mirrors')
 
 

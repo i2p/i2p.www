@@ -68,3 +68,6 @@ url('/<string:f>.html', 'legacy.legacy_show')
 url('/hosts.txt', 'views.hosts')
 url('/robots.txt', 'views.robots')
 url('/favicon.ico', 'views.favicon')
+
+url('/sitemap_index.xml', 'sitemap.render_sitemap_index')
+url('/<lang:lang>/sitemap.xml', 'sitemap.render_sitemap')
