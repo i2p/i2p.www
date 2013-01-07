@@ -5,9 +5,10 @@ from flask import g, redirect, url_for
 # Legacy paths
 
 LEGACY_FUNCTIONS_MAP={
-    'announcements': 'blog_index',
-    'download':      'downloads_list',
-    'statusnotes':   'blog_index',
+    'announcements': {'function': 'blog_index',       'params': {}},
+    'debian':        {'function': 'downloads_select', 'params': {'file': 'debian'}},
+    'download':      {'function': 'downloads_list',   'params': {}},
+    'statusnotes':   {'function': 'blog_index',       'params': {}},
 }
 
 LEGACY_PAGES_MAP={
@@ -121,7 +122,7 @@ def legacy_show(f):
     if hasattr(g, 'lang') and g.lang:
         lang = g.lang
     if f in LEGACY_FUNCTIONS_MAP:
-        return redirect(url_for(LEGACY_FUNCTIONS_MAP[f], lang=lang))
+        return redirect(url_for(LEGACY_FUNCTIONS_MAP[f]['function'], lang=lang, **LEGACY_FUNCTIONS_MAP[f]['params']))
     elif f in LEGACY_PAGES_MAP:
         return redirect(url_for('site_show', lang=lang, page=LEGACY_PAGES_MAP[f]))
     else:
