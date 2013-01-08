@@ -8,6 +8,14 @@ import os.path
 from i2p2www import BLOG_DIR
 
 
+SUPPORTED_METATAGS = {
+    'author': u'I2P devs',
+    'category': None,
+    'date': u'1970-01-01',
+    'excerpt': u'',
+    }
+
+
 #####################
 # Blog helper methods
 
@@ -15,14 +23,14 @@ def get_blog_feed_items(num=0):
     entries = get_blog_entries(num)
     items = []
     for entry in entries:
-        parts = render_blog_entry(entry[0])
-        if parts:
-            a = {}
-            a['title'] = parts['title']
-            a['content'] = parts['fragment']
-            a['url'] = url_for('blog_entry', lang=g.lang, slug=entry[0])
-            a['updated'] = datetime.datetime.strptime(entry[1], '%Y-%m-%d')
-            items.append(a)
+        meta = entry[3]
+        parts = entry[4]
+        a = {}
+        a['title'] = parts['title']
+        a['content'] = meta['excerpt'] if len(meta['excerpt']) > 0 else parts['fragment']
+        a['url'] = url_for('blog_entry', lang=g.lang, slug=entry[0])
+        a['updated'] = datetime.datetime.strptime(meta['date'], '%Y-%m-%d')
+        items.append(a)
     return items
 
 def get_blog_entries(num=0):
@@ -32,10 +40,13 @@ def get_blog_entries(num=0):
     slugs = get_blog_slugs(num)
     entries= []
     for slug in slugs:
-        date = get_date_from_slug(slug)
-        titlepart = slug.rsplit('/', 1)[1]
-        title = ' '.join(titlepart.split('_'))
-        entries.append((slug, date, title))
+        parts = render_blog_entry(slug)
+        if parts:
+            meta = get_metadata_from_meta(parts['meta'])
+            date = get_date_from_slug(slug)
+            titlepart = slug.rsplit('/', 1)[1]
+            title = ' '.join(titlepart.split('_'))
+            entries.append((slug, date, title, meta, parts))
     return entries
 
 def get_blog_slugs(num=0):
@@ -80,3 +91,11 @@ def render_blog_entry(slug):
         content = fd.read()
 
     return publish_parts(source=content, source_path=BLOG_DIR, writer_name="html")
+
+def get_metadata_from_meta(meta):
+    metaLines = meta.split('\n')
+    ret = {}
+    for metaTag in SUPPORTED_METATAGS:
+        metaLine = [s for s in metaLines if 'name="%s"' % metaTag in s]
+        ret[metaTag] = metaLine[0].split('content="')[1].split('"')[0] if len(metaLine) > 0 else SUPPORTED_METATAGS[metaTag]
+    return ret
