@@ -20,34 +20,34 @@ SUPPORTED_METATAGS = {
 # Blog helper methods
 
 def get_blog_feed_items(num=0):
-    entries = get_blog_entries(num)
+    posts = get_blog_posts(num)
     items = []
-    for entry in entries:
-        meta = entry[3]
-        parts = entry[4]
+    for post in posts:
+        meta = post[3]
+        parts = post[4]
         a = {}
         a['title'] = parts['title']
         a['content'] = meta['excerpt'] if len(meta['excerpt']) > 0 else parts['fragment']
-        a['url'] = url_for('blog_entry', lang=g.lang, slug=entry[0])
+        a['url'] = url_for('blog_post', lang=g.lang, slug=post[0])
         a['updated'] = datetime.datetime.strptime(meta['date'], '%Y-%m-%d')
         items.append(a)
     return items
 
-def get_blog_entries(num=0):
+def get_blog_posts(num=0):
     """
-    Returns the latest #num valid entries sorted by date, or all slugs if num=0.
+    Returns the latest #num valid posts sorted by date, or all slugs if num=0.
     """
     slugs = get_blog_slugs(num)
-    entries= []
+    posts= []
     for slug in slugs:
-        parts = render_blog_entry(slug)
+        parts = render_blog_post(slug)
         if parts:
             meta = get_metadata_from_meta(parts['meta'])
             date = get_date_from_slug(slug)
             titlepart = slug.rsplit('/', 1)[1]
             title = ' '.join(titlepart.split('_'))
-            entries.append((slug, date, title, meta, parts))
-    return entries
+            posts.append((slug, date, title, meta, parts))
+    return posts
 
 def get_blog_slugs(num=0):
     """
@@ -74,9 +74,9 @@ def get_date_from_slug(slug):
     parts = slug.split('/')
     return "%s-%s-%s" % (parts[0], parts[1], parts[2])
 
-def render_blog_entry(slug):
+def render_blog_post(slug):
     """
-    Render the blog entry
+    Render the blog post
     TODO:
     - caching
     - move to own file

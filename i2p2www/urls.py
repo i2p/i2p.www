@@ -40,7 +40,7 @@ url('/<lang:lang>/<path:page>', 'views.site_show')
 
 url('/<lang:lang>/blog/', 'blog.views.blog_index', defaults={'page': 1})
 url('/<lang:lang>/blog/page/<int:page>', 'blog.views.blog_index')
-url('/<lang:lang>/blog/entry/<path:slug>', 'blog.views.blog_entry')
+url('/<lang:lang>/blog/post/<path:slug>', 'blog.views.blog_post')
 url('/<lang:lang>/feed/blog/rss', 'blog.views.blog_rss')
 url('/<lang:lang>/feed/blog/atom', 'blog.views.blog_atom')
 

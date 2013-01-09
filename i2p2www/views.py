@@ -2,7 +2,7 @@ from flask import abort, redirect, render_template, safe_join, send_from_directo
 import os.path
 
 from i2p2www import STATIC_DIR, TEMPLATE_DIR
-from i2p2www.blog.helpers import get_blog_entries
+from i2p2www.blog.helpers import get_blog_posts
 
 
 #######################
@@ -31,7 +31,7 @@ def site_show(page):
         'page': page,
         }
     if (page == 'index'):
-        options['blog_entries'] = get_blog_entries(8)
+        options['blog_posts'] = get_blog_posts(8)
 
     # hah!
     return render_template(name, **options)
