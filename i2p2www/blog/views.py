@@ -2,7 +2,7 @@ from flask import abort, render_template, request
 from werkzeug.contrib.atom import AtomFeed
 
 from i2p2www import BLOG_POSTS_PER_PAGE
-from i2p2www.blog.helpers import get_blog_posts, get_blog_feed_items, get_metadata_from_meta, render_blog_post
+from i2p2www.blog.helpers import get_blog_posts, get_blog_feed_items, get_date_from_slug, get_metadata_from_meta, render_blog_post
 from i2p2www.helpers import Pagination, get_for_page
 
 
@@ -23,6 +23,7 @@ def blog_post(slug):
 
     if parts:
         meta = get_metadata_from_meta(parts['meta'])
+        meta['date'] = meta['date'] if meta['date'] else get_date_from_slug(slug)
         # now just pass to simple template file and we are done
         return render_template('blog/post.html', parts=parts, title=parts['title'], body=parts['fragment'], slug=slug, meta=meta)
     else:

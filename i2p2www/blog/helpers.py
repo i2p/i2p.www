@@ -11,7 +11,7 @@ from i2p2www import BLOG_DIR
 SUPPORTED_METATAGS = {
     'author': u'I2P devs',
     'category': None,
-    'date': u'1970-01-01',
+    'date': None,
     'excerpt': u'',
     }
 
@@ -20,11 +20,11 @@ SUPPORTED_METATAGS = {
 # Blog helper methods
 
 def get_blog_feed_items(num=0):
-    posts = get_blog_posts(num)
+    posts = get_blog_posts(num, True)
     items = []
     for post in posts:
-        meta = post[3]
-        parts = post[4]
+        meta = post[1]
+        parts = post[2]
         a = {}
         a['title'] = parts['title']
         a['content'] = meta['excerpt'] if len(meta['excerpt']) > 0 else parts['fragment']
@@ -33,7 +33,7 @@ def get_blog_feed_items(num=0):
         items.append(a)
     return items
 
-def get_blog_posts(num=0):
+def get_blog_posts(num=0, return_parts=False):
     """
     Returns the latest #num valid posts sorted by date, or all slugs if num=0.
     """
@@ -43,10 +43,13 @@ def get_blog_posts(num=0):
         parts = render_blog_post(slug)
         if parts:
             meta = get_metadata_from_meta(parts['meta'])
-            date = get_date_from_slug(slug)
+            meta['date'] = meta['date'] if meta['date'] else get_date_from_slug(slug)
             titlepart = slug.rsplit('/', 1)[1]
-            title = ' '.join(titlepart.split('_'))
-            posts.append((slug, date, title, meta, parts))
+            meta['title'] = ' '.join(titlepart.split('_'))
+            if return_parts:
+                posts.append((slug, meta, parts))
+            else:
+                posts.append((slug, meta))
     return posts
 
 def get_blog_slugs(num=0):
