@@ -1,5 +1,6 @@
 from flask import Flask, request, g, redirect, url_for, abort, render_template, send_from_directory, safe_join
 from flaskext.babel import Babel
+from flask.ext.cache import Cache
 from docutils.core import publish_parts
 import os.path
 import os
@@ -44,6 +45,10 @@ MIRRORS_FILE = os.path.join(TEMPLATE_DIR, 'downloads/mirrors')
 app = application = Flask('i2p2www', template_folder=TEMPLATE_DIR, static_url_path='/_static', static_folder=STATIC_DIR)
 app.debug =  bool(os.environ.get('APP_DEBUG', 'False'))
 babel = Babel(app)
+cache = Cache(app, config={
+    'CACHE_DEFAULT_TIMEOUT': 600,
+    #'CACHE_TYPE': '', # See http://packages.python.org/Flask-Cache/#configuring-flask-cache
+    })
 
 
 #################
