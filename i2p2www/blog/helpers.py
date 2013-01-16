@@ -1,7 +1,7 @@
 import codecs
 import datetime
 from docutils.core import publish_parts
-from flask import abort, g, safe_join, url_for
+from flask import abort, g, render_template_string, safe_join, url_for
 import os
 import os.path
 
@@ -93,7 +93,11 @@ def render_blog_post(slug):
     with codecs.open(path, encoding='utf-8') as fd:
         content = fd.read()
 
-    return publish_parts(source=content, source_path=BLOG_DIR, writer_name="html")
+    # render the post with Jinja2 to handle URLs etc.
+    rendered_content = render_template_string(content)
+
+    # publish the post with docutils
+    return publish_parts(source=rendered_content, source_path=BLOG_DIR, writer_name="html")
 
 def get_metadata_from_meta(meta):
     metaLines = meta.split('\n')
