@@ -3,7 +3,7 @@ from flask import abort, render_template, request, safe_join
 import os.path
 from werkzeug.contrib.atom import AtomFeed
 
-from i2p2www import MEETINGS_DIR, MEETINGS_PER_PAGE
+from i2p2www import MEETINGS_DIR, MEETINGS_PER_PAGE, cache
 from i2p2www.helpers import Pagination, get_for_page
 from i2p2www.meetings.helpers import get_meetings, get_meetings_feed_items
 
@@ -12,6 +12,7 @@ from i2p2www.meetings.helpers import get_meetings, get_meetings_feed_items
 # Meeting handlers
 
 # Meeting index
+@cache.memoize(600)
 def meetings_index(page):
     all_meetings = get_meetings()
     meetings = get_for_page(all_meetings, page, MEETINGS_PER_PAGE)
@@ -21,6 +22,7 @@ def meetings_index(page):
     return render_template('meetings/index.html', pagination=pagination, meetings=meetings)
 
 # Renderer for specific meetings
+@cache.memoize(600)
 def meetings_show(id, log=False, rst=False):
     """
     Render the meeting X.
@@ -71,6 +73,7 @@ def meetings_show_log(id):
 def meetings_show_rst(id):
     return meetings_show(id, rst=True)
 
+@cache.cached(600)
 def meetings_atom():
     feed = AtomFeed('I2P Meetings', feed_url=request.url, url=request.url_root)
     items = get_meetings_feed_items(10)
