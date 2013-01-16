@@ -30,7 +30,7 @@ def get_blog_feed_items(num=0):
         meta = post[1]
         parts = post[2]
         a = {}
-        a['title'] = parts['title']
+        a['title'] = meta['title']
         a['content'] = meta['excerpt'] if len(meta['excerpt']) > 0 else parts['fragment']
         a['url'] = url_for('blog_post', lang=g.lang, slug=post[0])
         a['updated'] = datetime.datetime.strptime(meta['date'], '%Y-%m-%d')
@@ -48,8 +48,7 @@ def get_blog_posts(num=0, return_parts=False):
         if parts:
             meta = get_metadata_from_meta(parts['meta'])
             meta['date'] = meta['date'] if meta['date'] else get_date_from_slug(slug)
-            titlepart = slug.rsplit('/', 1)[1]
-            meta['title'] = ' '.join(titlepart.split('_'))
+            meta['title'] = parts['title']
             if return_parts:
                 posts.append((slug, meta, parts))
             else:
