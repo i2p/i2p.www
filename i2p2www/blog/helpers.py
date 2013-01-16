@@ -109,6 +109,6 @@ def get_metadata_from_meta(meta):
     for metaTag in SUPPORTED_METATAGS:
         metaLine = [s for s in metaLines if 'name="%s"' % metaTag in s]
         ret[metaTag] = metaLine[0].split('content="')[1].split('"')[0] if len(metaLine) > 0 else SUPPORTED_METATAGS[metaTag]
-        if metaTag in LIST_METATAGS:
+        if metaTag in LIST_METATAGS and ret[metaTag]:
             ret[metaTag] = [s.strip() for s in ret[metaTag].split(',')]
     return ret
