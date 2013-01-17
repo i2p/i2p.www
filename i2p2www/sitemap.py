@@ -79,6 +79,9 @@ def render_sitemap():
     urls.append({
         'path': '/download',
         })
+    urls.append({
+        'path': '/download/debian',
+        })
 
     # Render and return the sitemap
     response = make_response(render_template('global/sitemap.xml', url_root=url_root, langs=SUPPORTED_LANGS, urls=urls))
