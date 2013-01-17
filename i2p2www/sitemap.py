@@ -1,7 +1,7 @@
 from flask import make_response, render_template, request, safe_join
 import os.path
 
-from i2p2www import SITE_DIR, SUPPORTED_LANGS
+from i2p2www import SITE_DIR, SUPPORTED_LANGS, cache
 from i2p2www.blog.helpers import get_blog_slugs
 from i2p2www.meetings.helpers import get_meetings_ids
 
@@ -9,6 +9,10 @@ from i2p2www.meetings.helpers import get_meetings_ids
 ##########
 # Sitemaps
 
+def get_sitemap_cache_key():
+    return 'view/%s/%s' % (request.url_root, request.path)
+
+@cache.cached(600, get_sitemap_cache_key)
 def render_sitemap_index():
     # Include the / at the end, so the language can be
     # sandwiched between url_root and /sitemap.xml in
@@ -20,6 +24,7 @@ def render_sitemap_index():
     response.headers['Content-Type'] = 'application/xml'
     return response
 
+@cache.cached(600, get_sitemap_cache_key)
 def render_sitemap():
     # Include the / at the end, so the language can be
     # sandwiched between url_root and url.path in the
