@@ -19,7 +19,7 @@
     <div class="hide"><a href="#content" title="Skip navigation" accesskey="2">{{ _('Skip navigation') }}</a></div>
     <header>
       <div id="topbar">
-        <a id="logo" href="{{ site_url() }}"><img src="{{ url_for('static', filename=logo_url()) }}" alt="I2P Logo" title="Invisible Internet Project (I2P)" /></a>
+        <a id="logo" href="{{ site_url() }}"><img src="{{ url_for('static', filename=logo_url()) }}" alt="{{ _('I2P Logo') }}" title="{{ _('Invisible Internet Project (I2P)') }}" /></a>
         <div class="title">
           <h1>{{ self.title() }}</h1>
           <div class="lang">
@@ -36,13 +36,27 @@
       <div id="content">
         {% block content_outer %}
         <article class="inner">
-          {%- if self.lastupdated() or self.accuratefor() -%}
+          {% if self.lastupdated() or self.accuratefor() -%}
           <div class="lastupdated">
-            This page {% if self.lastupdated() %}was last updated in {% block lastupdated %}{% endblock %}{% endif -%}
-          {% if self.lastupdated() and self.accuratefor() %} and {% endif -%}
-          {% if self.accuratefor() %}is accurate for router version {% block accuratefor %}{% endblock %}{% endif %}.
+            <!--
+            {% block lastupdated %}{% endblock %}
+            {% block accuratefor %}{% endblock %}
+            -->
+            {% if self.lastupdated() and self.accuratefor() -%}
+            {% trans lastupdated=self.lastupdated(), accuratefor=self.accuratefor() -%}
+            This page was last updated in {{ lastupdated}} and is accurate for router version {{ accuratefor }}.
+            {%- endtrans %}
+            {%- else %}{% if self.lastupdated() -%}
+            {% trans lastupdated=self.lastupdated() -%}
+            This page was last updated in {{ lastupdated}}.
+            {%- endtrans %}
+            {%- else %}{% if self.accuratefor() -%}
+            {% trans accuratefor=self.accuratefor() -%}
+            This page is accurate for router version {{ accuratefor }}.
+            {%- endtrans %}
+            {%- endif %}{% endif %}{% endif %}
           </div>
-          {% endif %}
+          {%- endif %}
         {% block content %}{% endblock %}
         </article>
       {% endblock %}
