@@ -1,0 +1,47 @@
+{% extends "global/layout.html" %}
+{% block title %}Ministreaming Library{% endblock %}
+{% block content %}
+
+<h2>Note</h2>
+The ministreaming library has been enhanced and extended by the
+"full" <a href="{{ site_url('docs/api/streaming') }}">streaming library</a>.
+Ministreaming is deprecated and is incompatible with today's applications.
+The following documentation is old.
+Also note that streaming extends ministreaming in the same Java package (net.i2p.client.streaming),
+so the current
+<a href="http://docs.i2p-projekt.de/javadoc/net/i2p/client/streaming/package-summary.html">API documentation</a>
+contains both.
+Obsolete ministreaming classes and methods are clearly marked as deprecated in the Javadocs.
+
+<h2>Ministreaming Library</h2>
+
+<p>The ministreaming library is a layer on top of the core 
+<a href="i2cp">I2CP</a> that allows reliable, in order, and authenticated streams
+of messages to operate across an unreliable, unordered, and unauthenticated 
+message layer.  Just like the TCP to IP relationship, this streaming 
+functionality has a whole series of tradeoffs and optimizations available, but
+rather than embed that functionality into the base I2P code, it has been factored
+off into its own library both to keep the TCP-esque complexities separate and to
+allow alternative optimized implementations.</p>
+
+<p>The ministreaming library was written by mihi as a part of his 
+<a href="{{ site_url('docs/api/i2ptunnel') }}">I2PTunnel</a> application and then factored out and released
+under the BSD license.  It is called the "mini"streaming library because it makes
+some simplifications in the implementation, while a more robust streaming library
+could be further optimized for operation over I2P.  The two main issues with 
+the ministreaming library are its use of the traditional TCP two phase 
+establishment protocol and the current fixed window size of 1.  The establishment
+issue is minor for long lived streams, but for short ones, such as quick HTTP
+requests, the impact can be <a href="minwww">significant</a>.  As for the window
+size, the ministreaming library doesn't maintain any ID or ordering within the 
+messages sent (or include any application level ACK or SACK), so it must wait 
+on average twice the time it takes to send a message before sending another.</p>
+
+<p>Even with those issues, the ministreaming library performs quite well in many
+situations, and its <a href="http://docs.i2p-projekt.de/javadoc/net/i2p/client/streaming/package-summary.html">API</a>
+is both quite simple and capable of remaining unchanged as different streaming
+implementations are introduced.  The library is deployed in its own 
+ministreaming.jar.
+Developers in Java who would like to use it can
+access the API directly, while developers in other languages can use it through
+<a href="{{ site_url('docs/api/samv3') }}">SAM</a>'s streaming support.</p>{% endblock %}

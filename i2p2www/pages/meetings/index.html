@@ -1,0 +1,19 @@
+{% extends "global/layout.html" %}
+{% block title %}Meetings{% endblock %}
+{% block headextra %}
+    <link href="{{ url_for('meetings_atom', lang=g.lang) }}" type="application/atom+xml" rel="alternate" title="I2P Meetings ATOM Feed" />
+{%- endblock %}
+{% block content %}
+<h1>Logs of past I2P meetings</h1>
+<p>If you have something to discuss, please find the developers on IRC in #i2p-dev.
+<a href="{{ url_for('blog_index', lang=g.lang) }}">Status updates</a> from developers are also available.
+</p><div class="underline"></div>
+<ul class="infolist">
+{%- macro meeting_url(m_id) -%}{{ url_for('meetings_show', lang=g.lang, id=m_id) }}{%- endmacro %}
+{% for meeting in meetings %}
+<li><a href="{{ meeting_url(meeting['id']) }}">Meeting {{ meeting['id'] }}</a>{% if meeting['date'] %} - {{ meeting['date'].strftime("%B %d, %Y") }}{% endif %}</li>
+{% endfor %}
+</ul>
+{%- from "global/macros" import render_pagination with context -%}
+{{ render_pagination(pagination) | safe }}
+{% endblock %}
