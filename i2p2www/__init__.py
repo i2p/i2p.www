@@ -113,7 +113,7 @@ def detect_theme():
         if theme[:7] == 'http://':
             g.exttheme = theme
             theme = 'duck'
-    if not os.path.isfile(safe_join(safe_join(STATIC_DIR, 'styles'), '%s.css' % theme)):
+    if not os.path.isfile(safe_join(safe_join(STATIC_DIR, 'styles'), '%s/style.css' % theme)):
         theme = 'duck'
     g.theme = theme
     @after_this_request
