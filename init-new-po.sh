@@ -1,4 +1,5 @@
-source ./translation.vars
+#!/bin/sh
+. ./translation.vars
 
 if [ $# -ge 1 ]
 then
