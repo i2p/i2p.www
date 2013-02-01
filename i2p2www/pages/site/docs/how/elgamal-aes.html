@@ -10,52 +10,52 @@ ElGamal/AES+SessionTags is used for end-to-end encryption.
 
 <p>{% trans -%}
 As an unreliable, unordered, message based system, I2P uses a simple combination 
-    of asymmetric and symmetric encryption algorithms to provide data confidentiality 
-    and integrity to garlic messages. As a whole, the combination is referred 
-    to as ElGamal/AES+SessionTags, but that is an excessively verbose way to describe 
-    the use of 2048bit ElGamal, AES256, SHA256, and 32 byte nonces.
+of asymmetric and symmetric encryption algorithms to provide data confidentiality 
+and integrity to garlic messages. As a whole, the combination is referred 
+to as ElGamal/AES+SessionTags, but that is an excessively verbose way to describe 
+the use of 2048bit ElGamal, AES256, SHA256, and 32 byte nonces.
 {%- endtrans %}</p>
 
 <p>{% trans -%}
 The first time a router wants to encrypt a garlic message to another router, 
-    they encrypt the keying material for an AES256 session key with ElGamal and 
-    append the AES256/CBC encrypted payload after that encrypted ElGamal block. 
-    In addition to the encrypted payload, the AES encrypted section contains the 
-    payload length, the SHA256 hash of the unencrypted payload, as well as a number 
-    of "session tags" - random 32 byte nonces. The next time the sender wants 
-    to encrypt a garlic message to another router, rather than ElGamal encrypt 
-    a new session key they simply pick one of the previously delivered session 
-    tags and AES encrypt the payload like before, using the session key used with 
-    that session tag, prepended with the session tag itself. When a router receives 
-    a garlic encrypted message, they check the first 32 bytes to see if it matches 
-    an available session tag - if it does, they simply AES decrypt the message, 
-    but if it does not, they ElGamal decrypt the first block.
+they encrypt the keying material for an AES256 session key with ElGamal and 
+append the AES256/CBC encrypted payload after that encrypted ElGamal block. 
+In addition to the encrypted payload, the AES encrypted section contains the 
+payload length, the SHA256 hash of the unencrypted payload, as well as a number 
+of "session tags" - random 32 byte nonces. The next time the sender wants 
+to encrypt a garlic message to another router, rather than ElGamal encrypt 
+a new session key they simply pick one of the previously delivered session 
+tags and AES encrypt the payload like before, using the session key used with 
+that session tag, prepended with the session tag itself. When a router receives 
+a garlic encrypted message, they check the first 32 bytes to see if it matches 
+an available session tag - if it does, they simply AES decrypt the message, 
+but if it does not, they ElGamal decrypt the first block.
 {%- endtrans %}</p>
 
 <p>{% trans -%}
 Each session tag can be used only once so as to prevent internal adversaries 
-    from unnecessarily correlating different messages as being between the same 
-    routers. The sender of an ElGamal/AES+SessionTag encrypted message chooses 
-    when and how many tags to deliver, prestocking the recipient with enough tags 
-    to cover a volley of messages. Garlic messages may detect the successful tag 
-    delivery by bundling a small additional message as a clove (a "delivery status 
-    message") - when the garlic message arrives at the intended recipient and 
-    is decrypted successfully, this small delivery status message is one of the 
-    cloves exposed and has instructions for the recipient to send the clove back 
-    to the original sender (through an inbound tunnel, of course). When the original 
-    sender receives this delivery status message, they know that the session tags 
-    bundled in the garlic message were successfully delivered.
+from unnecessarily correlating different messages as being between the same 
+routers. The sender of an ElGamal/AES+SessionTag encrypted message chooses 
+when and how many tags to deliver, prestocking the recipient with enough tags 
+to cover a volley of messages. Garlic messages may detect the successful tag 
+delivery by bundling a small additional message as a clove (a "delivery status 
+message") - when the garlic message arrives at the intended recipient and 
+is decrypted successfully, this small delivery status message is one of the 
+cloves exposed and has instructions for the recipient to send the clove back 
+to the original sender (through an inbound tunnel, of course). When the original 
+sender receives this delivery status message, they know that the session tags 
+bundled in the garlic message were successfully delivered.
 {%- endtrans %}</p>
 
 <p>{% trans -%}
 Session tags themselves have a short lifetime, after which they are 
-    discarded if not used. In addition, the quantity stored for each key is limited, 
-    as are the number of keys themselves - if too many arrive, either new or old 
-    messages may be dropped. The sender keeps track whether messages using session 
-    tags are getting through, and if there isn't sufficient communication it may 
-    drop the ones previously assumed to be properly delivered, reverting back 
-    to the full expensive ElGamal encryption.
-    A session will continue to exist until all its tags are exhausted or expire.
+discarded if not used. In addition, the quantity stored for each key is limited, 
+as are the number of keys themselves - if too many arrive, either new or old 
+messages may be dropped. The sender keeps track whether messages using session 
+tags are getting through, and if there isn't sufficient communication it may 
+drop the ones previously assumed to be properly delivered, reverting back 
+to the full expensive ElGamal encryption.
+A session will continue to exist until all its tags are exhausted or expire.
 {%- endtrans %}</p>
 
 <p>{% trans -%}
