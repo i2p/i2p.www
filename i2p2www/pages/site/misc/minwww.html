@@ -1,9 +1,10 @@
 {% extends "global/layout.html" %}
 {% block title %}minwww{% endblock %}
-{% block content %}<p>{% trans -%}
-Here's an outline and rationale for a minimal WWW proxy app for use over
-I2P.
+{% block content %}
+<p>{% trans -%}
+Here's an outline and rationale for a minimal WWW proxy app for use over I2P.
 {%- endtrans %}</p>
+
 <p>{% trans -%}
 HTTP operation over I2P using I2PTunnel.  When the base SocketLibrary
 is out, the only significant difference will be the 'wrapRequest' and
@@ -42,6 +43,7 @@ skipped)
 26:                         receiveACK               receiveClose
 27:            sentSuccess
 </pre>
+
 <p>{% trans -%}
 An optimized form, designed to handle only 128KB [1] files and pages, can
 operate significantly faster:
@@ -65,6 +67,7 @@ operate significantly faster:
 15: closeCon
 16:            closed
 </pre>
+
 <p>{% trans -%}
 The difference in network load and latency is significant - this is
 essentially a UDP version of HTTP.  On the normal web, we can't really do that,
@@ -76,6 +79,7 @@ DataMessage with a DeliveryStatusMessage to provide guaranteed delivery), the
 MinWWW proxy deals with resends (if necessary - in I2PTunnel today, there are no
 resends).
 {%- endtrans %}</p>
+
 <p>{% trans -%}
 The data that the MinWWW proxy and server need to wrap is trivial - when the
 proxy wants to send "GET /", it prepends it with the I2P Destination sending
@@ -85,6 +89,7 @@ response, and sends a reply to the MinWWW proxy containing the response,
 prefixed with the original request ID.  That response is taken and passed back
 to the browser and the connection is closed.
 {%- endtrans %}</p>
+
 <p>{% trans -%}
 In addition, the MinWWW proxy can choose the MinWWW server to use from a
 list, going through some round robin or other algorithm, so that there are
@@ -92,6 +97,7 @@ multiple outproxies merged transparently.  The bandwidth required for running
 one of these outproxies is also greatly reduced, since it will only handle 128KB
 files (aka no one is going to be downloading porn, warez, etc).
 {%- endtrans %}</p>
+
 <p>{% trans -%}
 The functionality /is/ limited, but 128KB of data is a lot for a single HTTP
 request or response.  The above diagrams are also unrealistic in their hops -
@@ -103,6 +109,7 @@ entire tunnel path (4+ remote hops each time when tunnels are 2 remote hops
 in each stretch), leaving MinWWW with only two full traversals (one for the
 request, one for the response), instead of 10.
 {%- endtrans %}</p>
+
 <p>{% trans -%}
 Implementing the MinWWW proxy and server should be fairly easy - read an HTTP
 request from the client fully (perhaps only start out with HTTP GET, leaving
@@ -111,6 +118,7 @@ in turn simply needs to parse the request to either open a socket or URL,
 send the request, wait for the response, and send it back through the network.
 If someone were to implement this, it would be Good :)
 {%- endtrans %}</p>
+
 <p>{% trans -%}
 [1] Why 128KB files?  Currently I2CP allows functionally arbitrary message
 size, but that's going to be going away since it involves either excessive memory

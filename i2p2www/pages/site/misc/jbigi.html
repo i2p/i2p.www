@@ -1,6 +1,6 @@
 {% extends "global/layout.html" %}
 {% block title %}jbigi{% endblock %}
-{% block lastupdated %}August 2011{% endblock %}
+{% block lastupdated %}{% trans %}August 2011{% endtrans %}{% endblock %}
 {% block accuratefor %}0.8.7{% endblock %}
 {% block content %}
 <h2>{% trans %}Overview{% endtrans %}</h2>
@@ -10,24 +10,27 @@ manual work and a piece of chewing gum we have made several
 cryptography operations quite a bit faster.
 {%- endtrans %}</p>
 
-<p>{% trans -%}
+<p>{% trans gmplib='http://gmplib.org/',
+func='http://gmplib.org/manual-4.3.2/Integer-Exponentiation.html#Integer-Exponentiation',
+bigint='http://download.oracle.com/javase/1.5.0/docs/api/java/math/BigInteger.html#modPow%28java.math.BigInteger,%20java.math.BigInteger%29' -%}
 The speedup comes from the super-fast
-<a href="http://gmplib.org/">GNU MP Bignum library (libgmp)</a>.
+<a href="{{ gmplib }}">GNU MP Bignum library (libgmp)</a>.
 We use a single function from libgmp -
-<a href="http://gmplib.org/manual-4.3.2/Integer-Exponentiation.html#Integer-Exponentiation">mpz_powm()</a>
+<a href="{{ func }}">mpz_powm()</a>
 as a replacement for the
-<a href="http://download.oracle.com/javase/1.5.0/docs/api/java/math/BigInteger.html#modPow%28java.math.BigInteger,%20java.math.BigInteger%29">Java Math library's BigInteger modPow()</a>.
+<a href="{{ bigint }}">Java Math library's BigInteger modPow()</a>.
 As modPow() is a significant computational portion of many crypto operations, this is of significant benefit.
 {%- endtrans %}</p>
 
-<p>{% trans -%}
+<p>{% trans nativebigint='http://docs.i2p-projekt.de/javadoc/net/i2p/util/NativeBigInteger.html',
+bigint='http://download.oracle.com/javase/1.5.0/docs/api/java/math/BigInteger.html#modPow%28java.math.BigInteger,%20java.math.BigInteger%29' -%}
 The standard I2P installation includes about 20 versions of the library for different platforms,
 each about 50KB, inside the jbigi.jar file.
 The initialization of the JBigI library, including CPU identification, selection, and extraction
 of the correct loadable module, is handled by the
-<a href="http://docs.i2p-projekt.de/javadoc/net/i2p/util/NativeBigInteger.html">NativeBigInteger class</a>.
+<a href="{{ nativebigint }}">NativeBigInteger class</a>.
 If no module is available for the current platform, the standard
-<a href="http://download.oracle.com/javase/1.5.0/docs/api/java/math/BigInteger.html#modPow%28java.math.BigInteger,%20java.math.BigInteger%29">Java Math library's BigInteger modPow()</a>
+<a href="{{ bigint }}">Java Math library's BigInteger modPow()</a>
 is used.
 {%- endtrans %}</p>
 
@@ -81,12 +84,12 @@ The network average for encrypt time is about 20ms.
 If your encrypt time is less than 50ms for a relatively new processor, or less than 100ms
 for an older processor, and the native BigInteger library was loaded, you are probably fine.
 {%- endtrans %}</li>
-<li>{% trans -%}
+<li>{% trans downloads=get_url('downloads_list') -%}
 Get the latest released source code of I2P from
-<a href="{{ url_for('downloads_list', lang=g.lang) }}">the download page</a>, or get the cutting-edge source
+<a href="{{ downloads }}">the download page</a>, or get the cutting-edge source
 out of the monotone database mtn.i2p2.de
 {%- endtrans %}</li>
-<li>{$ trans %}Inside the source tree change directory to: <code>core/c/jbigi</code>{% endtrans %}</li>
+<li>{% trans %}Inside the source tree change directory to: <code>core/c/jbigi</code>{% endtrans %}</li>
 <li>{% trans -%}
 Read the README file.
 If you have a /usr/lib/libgmp.so file, you do not have to download GMP.
@@ -102,7 +105,7 @@ Otherwise change the settings. Remember, you need the Java SDK installed.
 {%- endtrans %}</li>
 <li>{% trans -%}
 Run <code>build.sh</code> (if you downloaded GMP) or
- <code>build.sh dynamic</code> (if you have /usr/lib/libgmp.so).<br/>
+<code>build.sh dynamic</code> (if you have /usr/lib/libgmp.so).<br/>
 Maybe the build spewed out some errors of missing jni.h and jni_md.h files.
 Either copy these files from your java install into the core/c/jbigi/jbigi/include/ directory,
 or fix $JAVA_HOME.<br>
@@ -122,16 +125,13 @@ native run time:  5842ms ( 57ms each)
 java run time:   41072ms (406ms each)
 native = 14.223802103622907% of pure java time
 </pre>
-{% trans %}If the native is indeed 5-7x faster (or more) then it looks all good. If not, please
-report.{% endtrans %}</li>
+{% trans %}If the native is indeed 5-7x faster (or more) then it looks all good. If not, please report.{% endtrans %}</li>
 <li>{% trans %}Copy <code>libjbigi.so</code> to your i2p directory{% endtrans %}</li>
 <li>{% trans %}Restart your I2P programs.{% endtrans %}</li>
-<li>{% trans %}On{% endtrans %}
-{% trans %}<a href="http://localhost:7657/stats.jsp">http://localhost:7657/stats.jsp</a>
+<li>{% trans -%}
+On <a href="http://localhost:7657/stats.jsp">http://localhost:7657/stats.jsp</a>
 the <code>crypto.elGamal.decrypt</code> and <code>crypto.elGamal.encrypt</code>
-should be a lot faster.</li>{% endtrans %}
+should be a lot faster.
+{%- endtrans %}</li>
 </ol>
-
-
-
 {% endblock %}

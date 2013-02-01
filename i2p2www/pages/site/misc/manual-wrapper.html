@@ -1,55 +1,68 @@
 {% extends "global/layout.html" %}
-{% block title %}Manually Installing the Java Wrapper{% endblock %}
+{% block title %}{% trans %}Manually Installing the Java Wrapper{% endtrans %}{% endblock %}
 {% block content %}
 <h1>{% trans %}Manually Installing the Java Wrapper{% endtrans %}</h1>
 
-<p>{% trans -%}
-The installation package for the <a href="{{ url_for('downloads_list', lang=g.lang) }}">I2P router</a> comes
+<p>{% trans downloads=get_url('downloads_list') -%}
+The installation package for the <a href="{{ downloads }}">I2P router</a> comes
 with a Java wrapper for the most common architectures. If your system is not
 supported by our installer&mdash;or if you want to update the wrapper to a
 newer version&mdash;the following steps describe installing the wrapper manually.
 {%- endtrans %}</p>
 
 <ul>
-  <li>{% trans %}Check Tanuki Software's <a href="http://wrapper.tanukisoftware.com/doc/english/download.jsp#stable">download page</a>
-       for your platform. Is your platform listed? If so, you're in
-       luck! Download the most recent version of the Community Edition for your OS and
-       CPU and move to <a href="#packaged">the next step</a>{% endtrans %}</li>
-  <li>{% trans %}If your platform does not have an already compiled wrapper available, you
-      may be able to compile it yourself. If you are willing to have a go at it, move
-      on to <a href="#compiling">compiling</a> the wrapper for your system.{% endtrans %}</li>
+  <li>{% trans -%}
+Check Tanuki Software's <a href="http://wrapper.tanukisoftware.com/doc/english/download.jsp#stable">download page</a>
+for your platform. Is your platform listed? If so, you're in
+luck! Download the most recent version of the Community Edition for your OS and
+CPU and move to <a href="#packaged">the next step</a>.
+{%- endtrans %}</li>
+  <li>{% trans -%}
+If your platform does not have an already compiled wrapper available, you
+may be able to compile it yourself. If you are willing to have a go at it, move
+on to <a href="#compiling">compiling</a> the wrapper for your system.
+{%- endtrans %}</li>
 </ul>
+
 <h2 id="packaged">{% trans %}Using existing binaries{% endtrans %}</h2>
-{% trans %}In the steps below, $I2P means <em>the location I2P was installed to</em>.{% endtrans %}
+<p>{% trans -%}
+In the steps below, $I2P means <em>the location I2P was installed to</em>.
+{%- endtrans %}</p>
 <ol>
   <li><code>tar xzf wrapper-*.tar.gz</code></li>
   <li><code>cp wrapper*/bin/wrapper $I2P/i2psvc</code></li>
   <li><code>cp wrapper*/lib/wrapper.jar $I2P/lib</code></li>
   <li><code>cp wrapper*/lib/libwrapper.so $I2P/lib</code></li>
-  <li>{% trans %}Try to start I2P using {% endtrans %}<code>$I2P/i2prouter start</code></li>
-  <li><code>tail -f /tmp/wrapper.log</code> and look for any problems.</li></ol>
-{% trans %}If this did not work you'll need to use <code>runplain.sh</code> to start I2P.{% endtrans %}
+  <li>{% trans %}Try to start I2P using <code>$I2P/i2prouter start</code>{% endtrans %}</li>
+  <li>{% trans %}<code>tail -f /tmp/wrapper.log</code> and look for any problems.{% endtrans %}</li>
+</ol>
+<p>{% trans -%}
+If this did not work you'll need to use <code>runplain.sh</code> to start I2P.
+{%- endtrans %}</p>
+
 <h2 id="compiling">{% trans %}Compiling from source{% endtrans %}</h2>
-{% trans %}These steps worked to compile the wrapper for use on a mipsel system running Debian. The steps <strong>will</strong> need to be altered for your system.{% endtrans %}
+<p>{% trans -%}
+These steps worked to compile the wrapper for use on a mipsel system running Debian. The steps <strong>will</strong> need to be altered for your system.
+{%- endtrans %}</p>
 <ol>
   <li>{% trans %}Download the source archive for the community version of the wrapper from <a href="http://wrapper.tanukisoftware.com/downloads">wrapper download page</a>.{% endtrans %}</li>
   <li>{% trans %}Extract the tarball{% endtrans %}<br />
 &nbsp;&nbsp;&nbsp;&nbsp;<code>tar xzf wrapper_3.5.13_src.tar.gz</code></li>
-  <li>Set environment variables ANT_HOME and JAVA_HOME. In Debian, one can<br />
+  <li>{% trans %}Set environment variables <code>ANT_HOME</code> and <code>JAVA_HOME</code>. For example, in Debian:{% endtrans %}<br />
 &nbsp;&nbsp;&nbsp;&nbsp;<code>export ANT_HOME=/usr/share/ant</code><br />
 &nbsp;&nbsp;&nbsp;&nbsp;<code>export JAVA_HOME=/usr/lib/jvm/default-java</code></li>
-  <li>Since there isn't a Makefile for Mipsel, we'll make a copy of an already existing makefile<br />
+  <li>{% trans %}Since there isn't a Makefile for Mipsel, we'll make a copy of an already existing makefile:{% endtrans %}<br />
 &nbsp;&nbsp;&nbsp;&nbsp;<code>cp src/c/Makefile-linux-x86-32.make src/c/Makefile-linux-mipsel-32.make</code></li>
-  <li>Now we can attempt to compile the wrapper<br />
-&nbsp;&nbsp;&nbsp;&nbsp;<code>./build32.sh</code>   (use <code>./build64.sh</code> if you have a 64bit CPU and JVM)</li>
-  <li>Copy the wrapper into its proper place:
+  <li>{% trans %}Now we can attempt to compile the wrapper:{% endtrans %}<br />
+&nbsp;&nbsp;&nbsp;&nbsp;<code>./build32.sh</code>   ({% trans %}use <code>./build64.sh</code> if you have a 64bit CPU and JVM{% endtrans %})</li>
+  <li>{% trans %}Copy the wrapper into its proper place:{% endtrans %}
   <ul>
     <li><code>cp bin/wrapper $I2P/i2psvc</code></li>
     <li><code>cp lib/wrapper.jar $I2P/lib</code></li>
     <li><code>cp lib/libwrapper.so $I2P/lib</code></li>
   </ul></li>
   <li>{% trans %}Try to start I2P using <code>$I2P/i2prouter start</code>{% endtrans %}</li>
-  <li><code>tail -f /tmp/wrapper.log</code> and look for any problems.</li>
+  <li>{% trans %}<code>tail -f /tmp/wrapper.log</code> and look for any problems.{% endtrans %}</li>
 </ol>
-{% trans %}If this did not work you'll need to use <code>runplain.sh</code> to start I2P.{% endtrans %}
+<p>{% trans %}If this did not work you'll need to use <code>runplain.sh</code> to start I2P.{% endtrans %}</p>
 {% endblock %}
