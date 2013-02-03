@@ -1,7 +1,7 @@
 from flask import abort, render_template, request
 from werkzeug.contrib.atom import AtomFeed
 
-from i2p2www import BLOG_POSTS_PER_PAGE, cache
+from i2p2www import BLOG_POSTS_PER_FEED, BLOG_POSTS_PER_PAGE, cache
 from i2p2www.blog.helpers import get_blog_posts, get_blog_feed_items, get_date_from_slug, get_metadata_from_meta, render_blog_post
 from i2p2www.helpers import Pagination, get_for_page
 
@@ -44,7 +44,7 @@ def blog_atom(category=None):
     if category:
         feed_title = 'I2P Blog Category: %s' % category
     feed = AtomFeed(feed_title, feed_url=request.url, url=request.url_root)
-    items = get_blog_feed_items(10, category=category)
+    items = get_blog_feed_items(BLOG_POSTS_PER_FEED, category=category)
     for item in items:
         feed.add(item['title'],
                  item['content'],
