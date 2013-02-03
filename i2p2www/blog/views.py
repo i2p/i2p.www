@@ -19,6 +19,16 @@ def blog_index(page):
     return render_template('blog/index.html', pagination=pagination, posts=posts)
 
 @cache.memoize(600)
+def blog_category(category, page):
+    posts = get_blog_posts()
+    category_posts = [(slug, post) for (slug, post) in posts if post['category'] and category in post['category']]
+    posts = get_for_page(category_posts, page, BLOG_POSTS_PER_PAGE)
+    if not posts and page != 1:
+        abort(404)
+    pagination = Pagination(page, BLOG_POSTS_PER_PAGE, len(category_posts))
+    return render_template('blog/category.html', pagination=pagination, posts=posts, category=category)
+
+@cache.memoize(600)
 def blog_post(slug):
     # try to render that blog post.. throws 404 if it does not exist
     parts = render_blog_post(slug)
