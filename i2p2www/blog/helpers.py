@@ -37,7 +37,7 @@ def get_blog_feed_items(num=0):
         items.append(a)
     return items
 
-def get_blog_posts(num=0, return_parts=False):
+def get_blog_posts(num=0, return_parts=False, category=None):
     """
     Returns the latest #num valid posts sorted by date, or all slugs if num=0.
     """
@@ -49,10 +49,11 @@ def get_blog_posts(num=0, return_parts=False):
             meta = get_metadata_from_meta(parts['meta'])
             meta['date'] = meta['date'] if meta['date'] else get_date_from_slug(slug)
             meta['title'] = parts['title']
-            if return_parts:
-                posts.append((slug, meta, parts))
-            else:
-                posts.append((slug, meta))
+            if not category or (meta['category'] and category in meta['category']):
+                if return_parts:
+                    posts.append((slug, meta, parts))
+                else:
+                    posts.append((slug, meta))
     return posts
 
 def get_blog_slugs(num=0):
