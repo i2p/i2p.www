@@ -23,8 +23,8 @@ LIST_METATAGS = [
 #####################
 # Blog helper methods
 
-def get_blog_feed_items(num=0):
-    posts = get_blog_posts(num, True)
+def get_blog_feed_items(num=0, category=None):
+    posts = get_blog_posts(num, True, category=category)
     items = []
     for post in posts:
         meta = post[1]

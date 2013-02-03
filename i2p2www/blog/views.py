@@ -45,10 +45,12 @@ def blog_rss():
     pass
 
 @cache.cached(600)
-def blog_atom():
-    # TODO: Only output beginning of each blog post
-    feed = AtomFeed('I2P Blog', feed_url=request.url, url=request.url_root)
-    items = get_blog_feed_items(10)
+def blog_atom(category=None):
+    feed_title = 'I2P Blog'
+    if category:
+        feed_title = 'I2P Blog Category: %s' % category
+    feed = AtomFeed(feed_title, feed_url=request.url, url=request.url_root)
+    items = get_blog_feed_items(10, category=category)
     for item in items:
         feed.add(item['title'],
                  item['content'],
