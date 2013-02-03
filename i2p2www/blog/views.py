@@ -10,22 +10,16 @@ from i2p2www.helpers import Pagination, get_for_page
 # Blog views
 
 @cache.memoize(600)
-def blog_index(page):
-    all_posts = get_blog_posts()
+def blog_index(page, category=None):
+    all_posts = get_blog_posts(category=category)
     posts = get_for_page(all_posts, page, BLOG_POSTS_PER_PAGE)
     if not posts and page != 1:
         abort(404)
     pagination = Pagination(page, BLOG_POSTS_PER_PAGE, len(all_posts))
-    return render_template('blog/index.html', pagination=pagination, posts=posts)
-
-@cache.memoize(600)
-def blog_category(category, page):
-    category_posts = get_blog_posts(category=category)
-    posts = get_for_page(category_posts, page, BLOG_POSTS_PER_PAGE)
-    if not posts and page != 1:
-        abort(404)
-    pagination = Pagination(page, BLOG_POSTS_PER_PAGE, len(category_posts))
-    return render_template('blog/category.html', pagination=pagination, posts=posts, category=category)
+    if category:
+        return render_template('blog/category.html', pagination=pagination, posts=posts, category=category)
+    else:
+        return render_template('blog/index.html', pagination=pagination, posts=posts)
 
 @cache.memoize(600)
 def blog_post(slug):

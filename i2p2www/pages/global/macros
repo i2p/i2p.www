@@ -1,6 +1,9 @@
 {%- macro change_lang(lang) -%}
 {%- if request.endpoint == 'site_show' -%}{{ url_for('site_show', lang=lang, page=page) }}
-{%- elif request.endpoint == 'blog_category' -%}{{ url_for('blog_category', lang=lang, category=category) }}
+{%- elif request.endpoint == 'blog_index' -%}
+  {%- if category -%}{{ url_for('blog_index', lang=lang, category=category) }}
+  {%- else -%}{{ url_for('blog_index', lang=lang) }}
+  {%- endif -%}
 {%- elif request.endpoint == 'blog_post' -%}{{ url_for('blog_post', lang=lang, slug=slug) }}
 {%- elif request.endpoint == 'meetings_show' -%}{{ url_for('meetings_show', lang=lang, id=id) }}
 {%- elif request.endpoint == 'downloads_select' -%}{{ url_for('downloads_select', lang=lang, file=file) }}
@@ -35,7 +38,7 @@
 
 {%- macro render_categories(categories) -%}
 {%- if categories and categories|length %}
-{%- for category in categories %}<a href="{{ get_url('blog_category', category=category) }}">{{ category }}</a>{% if not loop.last %}, {% endif %}{% endfor %}
+{%- for category in categories %}<a href="{{ get_url('blog_index', category=category) }}">{{ category }}</a>{% if not loop.last %}, {% endif %}{% endfor %}
 {%- else %}{{ _('None') }}
 {%- endif %}
 {%- endmacro %}
