@@ -1,11 +1,14 @@
-#!/usr/bin/env bash
+#!/bin/sh
 set -e
-source ./project.vars
+. ./project.vars
 
-if [ ! -d $venv_dir ] ; then
-    $venv --distribute $venv_dir
+if [ ! $venv ]; then
+    echo "ERROR: virtualenv not found!" >&2
+else
+    if [ ! -d $venv_dir ] ; then
+        $venv --distribute $venv_dir
+    fi
+
+    . $venv_dir/bin/activate
+    pip install -r reqs.txt
 fi
-
-source $venv_dir/bin/activate
-
-pip install -r reqs.txt
