@@ -1,9 +1,10 @@
 {% extends "global/layout.html" %}
 {% block title %}I2CP{% endblock %}
-{% block lastupdated %}November 2012{% endblock %}
+{% block lastupdated %}{% trans %}November 2012{% endtrans %}{% endblock %}
 {% block accuratefor %}0.9.3{% endblock %}
 {% block content %}
-<p>The I2P Client Protocol (I2CP) exposes a strong separation of concerns between
+<p>{% trans -%}
+The I2P Client Protocol (I2CP) exposes a strong separation of concerns between
 the router and any client that wishes to communicate over the network.  It enables
 secure and asynchronous messaging by sending and receiving messages over a 
 single TCP socket, yet never exposing any private keys and authenticating itself
@@ -12,194 +13,580 @@ router who they are (their "destination"), what anonymity, reliability, and
 latency tradeoffs to make, and where to send messages.  In turn the router uses
 I2CP to tell the client when any messages have arrived, and to request authorization
 for some tunnels to be used.
-</p>
+{%- endtrans %}</p>
 
-<p>
+<p>{% trans url='http://docs.i2p-projekt.de/javadoc/net/i2p/client/package-summary.html' -%}
 The protocol itself has only been implemented in Java, to provide the
-<a href="http://docs.i2p-projekt.de/javadoc/net/i2p/client/package-summary.html">Client SDK</a>.
+<a href="{{ url }}">Client SDK</a>.
 This SDK is exposed in the i2p.jar package, which implements the client-side of I2CP.
 Clients should never need to access the router.jar package, which contains the
 router itself and the router-side of I2CP.
-</p>
+{%- endtrans %}</p>
 
-<p>
+<p>{% trans streaming=site_url('docs/api/streaming') -%}
 While implementing the client side of I2CP in a non-Java language is certainly feasible,
 a non-Java client would also have to implement the
-<a href="{{ site_url('docs/api/streaming') }}">streaming library</a> for TCP-style connections.
+<a href="{{ streaming }}">streaming library</a> for TCP-style connections.
 Together, implementing I2CP and the streaming library would be a sizable task.
-</p>
+{%- endtrans %}</p>
 
-<p>
+<p>{% trans streaming=site_url('docs/api/streaming'), datagrams=site_url('docs/spec/datagrams'),
+sam=site_url('docs/api/sam'), bob=site_url('docs/api/bob') -%}
 Applications can take advantage of the base I2CP plus the 
-<a href="{{ site_url('docs/api/ministreaming') }}">streaming</a> and <a href="{{ site_url('docs/specs/datagrams') }}">datagram</a> libraries
-by using the <a href="{{ site_url('docs/api/sam') }}">Simple Anonymous Messaging</a> or <a href="{{ site_url('docs/api/bob') }}">BOB</a> protocols,
+<a href="{{ streaming }}">streaming</a> and <a href="{{ datagrams }}">datagram</a> libraries
+by using the <a href="{{ sam }}">Simple Anonymous Messaging</a> or <a href="{{ bob }}">BOB</a> protocols,
 which do not require clients to deal with any sort of cryptography.
 Also, clients may access the network by one of several proxies -
 HTTP, CONNECT, and SOCKS 4/4a/5.
 Alternatively, Java clients may access those libraries in ministreaming.jar and streaming.jar.
 So there are several options for both Java and non-Java applications.
-</p>
+{%- endtrans %}</p>
 
-<p>Client-side end-to-end encryption (encrypting the data over the I2CP connection)
+<p>{% trans elgamalaes=site_url('docs/how/elgamal-aes'),
+cryptography=site_url('docs/how/cryptography'),
+i2cp=site_url('docs/spec/i2cp') -%}
+Client-side end-to-end encryption (encrypting the data over the I2CP connection)
 was disabled in I2P release 0.6,
-leaving in place the <a href="{{ site_url('docs/how/elgamalaes') }}">ElGamal/AES end-to-end encryption</a>
+leaving in place the <a href="{{ elgamalaes }}">ElGamal/AES end-to-end encryption</a>
 which is implemented in the router.
 The only cryptography that client libraries must still implement is
-<a href="{{ site_url('docs/how/cryptography') }}#DSA">DSA public/private key signing</a>
-for <a href="{{ site_url('docs/specs/i2cp') }}#msg_CreateLeaseSet">LeaseSets</a> and
-<a href="{{ site_url('docs/specs/i2cp') }}#type_SessionConfig">Session Configurations</a>, and management of those keys.
-</p>
+<a href="{{ cryptography }}#DSA">DSA public/private key signing</a>
+for <a href="{{ i2cp }}#msg_CreateLeaseSet">LeaseSets</a> and
+<a href="{{ i2cp }}#struct_SessionConfig">Session Configurations</a>, and management of those keys.
+{%- endtrans %}</p>
 
-<p>In a standard I2P installation, port 7654 is used by external java clients to communicate
+<p>{% trans -%}
+In a standard I2P installation, port 7654 is used by external java clients to communicate
 with the local router via I2CP.
 By default, the router binds to address 127.0.0.1. To bind to 0.0.0.0, set the
 router advanced configuration option <tt>i2cp.tcp.bindAllInterfaces=true</tt> and restart.
 Clients in the same JVM as the router pass messages directly to the router
 through an internal JVM interface.
-</p>
+{%- endtrans %}</p>
 
-<h2>I2CP Protocol Specification</h2>
-<p>
-Now on the
-<a href="{{ site_url('docs/specs/i2cp') }}">I2CP Specification page</a>.
-</p>
+<h2>{% trans %}I2CP Protocol Specification{% endtrans %}</h2>
+<p>{% trans i2cp=site_url('docs/spec/i2cp') -%}
+Now on the <a href="{{ i2cp }}">I2CP Specification page</a>.
+{%- endtrans %}</p>
 
 
-<h2>I2CP Initialization</h2>
-<p>
+<h2>{% trans %}I2CP Initialization{% endtrans %}</h2>
+<p>{% trans i2cp=site_url('docs/spec/i2cp') -%}
 When a client connects to the router, it first sends a single protocol version byte (0x2A).
-Then it sends a <a href="{{ site_url('docs/specs/i2cp') }}#msg_GetDate">GetDate Message</a> and waits for the <a href="{{ site_url('docs/specs/i2cp') }}#msg_GetDate">SetDate Message</a> response.
-Next, it sends a <a href="{{ site_url('docs/specs/i2cp') }}#msg_GetDate">CreateSession Message</a> containing the session configuration.
-It next awaits a <a href="{{ site_url('docs/specs/i2cp') }}#msg_GetDate">RequestLeaseSet Message</a> from the router, indicating that inbound tunnels
+Then it sends a <a href="{{ i2cp }}#msg_GetDate">GetDate Message</a> and waits for the <a href="{{ i2cp }}#msg_SetDate">SetDate Message</a> response.
+Next, it sends a <a href="{{ i2cp }}#msg_CreateSession">CreateSession Message</a> containing the session configuration.
+It next awaits a <a href="{{ i2cp }}#msg_RequestLeaseSet">RequestLeaseSet Message</a> from the router, indicating that inbound tunnels
 have been built, and responds with a CreateLeaseSetMessage containing the signed LeaseSet.
 The client may now initiate or receive connections from other I2P destinations.
+{%- endtrans %}</p>
 
-<h2 id="options">I2CP Options</h2>
-<p>
+<h2 id="options">{% trans %}I2CP Options{% endtrans %}</h2>
+<p>{% trans i2cp=site_url('docs/spec/i2cp') -%}
 The following options are traditionally passed to the router via
-a <a href="{{ site_url('docs/specs/i2cp') }}#type_SessionConfig">SessionConfig</a> contained in a <a href="{{ site_url('docs/specs/i2cp') }}#msg_CreateSession">CreateSession Message</a> or a <a href="{{ site_url('docs/specs/i2cp') }}#msg_ReconfigureSession">ReconfigureSession Message</a>.
-<p>
+a <a href="{{ i2cp }}#struct_SessionConfig">SessionConfig</a> contained in a <a href="{{ i2cp }}#msg_CreateSession">CreateSession Message</a> or a <a href="{{ i2cp }}#msg_ReconfigureSession">ReconfigureSession Message</a>.
+{%- endtrans %}</p>
 <table border=1>
-<tr><th colspan="5">Router-side Options</th></tr>
-<tr><th>Option <th>Recommended Arguments <th>Allowable Range<th>Default<th>Description
-<tr><td>inbound.quantity <td>number from 1 to 3 <td>1 to 16<td>2<td>Number of tunnels in.
-     Limit was increased from 6 to 16 in release 0.9; however, numbers higher than 6 are not
-     currently recommended, as this is untested and is incompatible with older releases.
-<tr><td>outbound.quantity <td>number from 1 to 3 <td>No limit<td>2<td>Number of tunnels out
-<tr><td>inbound.length <td>number from 0 to 3 <td>0 to 7<td>2<td>Length of  tunnels in
-<tr><td>outbound.length <td>number from 0 to 3 <td>0 to 7<td>2<td>Length of tunnels out
-<tr><td>inbound.lengthVariance <td>number from -1 to 2 <td>-7 to 7<td>0<td>Random amount to add or subtract to the length of tunnels in.
-     A positive number x means add a random amount from 0 to x inclusive.
-     A negative number -x means add a random amount from -x to x inclusive.
-     The router will limit the total length of the tunnel to 0 to 7 inclusive.
-     The default variance was 1 prior to release 0.7.6.
-<tr><td>outbound.lengthVariance <td>number from -1 to 2 <td>-7 to 7<td>0<td>Random amount to add or subtract to the length of tunnels out.
-     A positive number x means add a random amount from 0 to x inclusive.
-     A negative number -x means add a random amount from -x to x inclusive.
-     The router will limit the total length of the tunnel to 0 to 7 inclusive.
-     The default variance was 1 prior to release 0.7.6.
-<tr><td>inbound.backupQuantity <td>number from 0 to 3 <td>No limit<td>0<td>Number of redundant fail-over for tunnels in
-<tr><td>outbound.backupQuantity <td>number from 0 to 3 <td>No limit<td>0<td>Number of redundant fail-over for tunnels out
-<tr><td>inbound.nickname <td>string<td>&nbsp;<td>&nbsp;<td>Name of tunnel - generally used in routerconsole, which will
-     use the first few characters of the Base64 hash of the destination by default.
-<tr><td>outbound.nickname <td>string<td>&nbsp;<td>&nbsp;<td>Name of tunnel - generally ignored unless inbound.nickname is unset.
-<tr><td>inbound.allowZeroHop <td>true, false<td>&nbsp;<td>true<td>If incoming zero hop tunnel is allowed
-<tr><td>outbound.allowZeroHop <td>true, false<td>&nbsp;<td>true<td>If outgoing zero hop tunnel is allowed
-<tr><td>inbound.IPRestriction <td>number from 0 to 4 <td>0 to 4<td>2<td>Number of IP bytes to match to determine if
-     two routers should not be in the same tunnel. 0 to disable.
-<tr><td>outbound.IPRestriction <td>number from 0 to 4 <td>0 to 4<td>2<td>Number of IP bytes to match to determine if
-     two routers should not be in the same tunnel. 0 to disable.
-<tr><td>outbound.priority<td>number from -25 to 25 <td>-25 to 25<td>0<td>Priority adjustment for outbound messages.
-     Higher is higher priority. As of 0.9.4.
-<tr><td>i2cp.dontPublishLeaseSet <td>true, false<td>&nbsp;<td>false<td>Should generally be set to true for clients
-     and false for servers
-<tr><td>i2cp.messageReliability <td>&nbsp;<td>BestEffort, None<td>BestEffort<td>Guaranteed is disabled;
-     None implemented in 0.8.1; the streaming lib default is None as of 0.8.1, the client side default is None as of 0.9.4
-<tr><td>i2cp.fastReceive<td>&nbsp;<td>true, false<td>false<td>If true, the router just sends the MessagePayload instead
-     of sending a MessageStatus and awaiting a ReceiveMessageBegin.
-     As of 0.9.4
-<tr><td>explicitPeers<td>&nbsp;<td>&nbsp;<td>null<td>Comma-separated list of Base 64 Hashes of peers to build tunnels through; for debugging only
-<tr><td>i2cp.username<td>string<td>&nbsp;<td>&nbsp;<td>For authorization, if required by the router (since 0.8.2).
-        If the client is running in the same JVM as a router, this option is not required.
-<tr><td>i2cp.password<td>string<td>&nbsp;<td>&nbsp;<td>For authorization, if required by the router (since 0.8.2).
-        If the client is running in the same JVM as a router, this option is not required.
-<tr><td>crypto.tagsToSend<td>&nbsp;<td>1-128<td>40<td>Number of ElGamal/AES Session Tags to send at a time (since 0.9.2).
-        For clients with relatively low bandwidth per-client-pair (IRC, some UDP apps), this may be set lower.
-<tr><td>crypto.lowTagThreshold<td>&nbsp;<td>1-128<td>30<td>Minimum number of ElGamal/AES Session Tags before we send more (since 0.9.2).
-        Recommended: approximately tagsToSend * 2/3
-<tr><td>shouldBundleReplyInfo<td>true, false<td>&nbsp;<td>true<td>Set to false to disable ever bundling a reply LeaseSet (since 0.9.2).
-      For clients that do not publish their LeaseSet, this option must be true
-      for any reply to be possible. "true" is also recommended for multihomed servers
-      with long connection times.
+<tr>
+<th colspan="6">{% trans %}Router-side Options{% endtrans %}</th>
+</tr>
+
+<tr>
+<th>{% trans %}Option{% endtrans %}</th>
+<th>{% trans %}As Of Release{% endtrans %}</th>
+<th>{% trans %}Recommended Arguments{% endtrans %}</th>
+<th>{% trans %}Allowable Range{% endtrans %}</th>
+<th>{% trans %}Default{% endtrans %}</th>
+<th>{% trans %}Description{% endtrans %}</th>
+</tr>
+
+<tr>
+<td>inbound.quantity</td>
+<td>&nbsp;</td>
+<td>{% trans from=1, to=3 %}number from {{ from }} to {{ to }}{% endtrans %}</td>
+<td>{% trans from=1, to=16 %}{{ from }} to {{ to }}{% endtrans %}</td>
+<td>2</td>
+<td>{% trans -%}
+Number of tunnels in.
+Limit was increased from 6 to 16 in release 0.9; however, numbers higher than 6 are not
+currently recommended, as this is untested and is incompatible with older releases.
+{%- endtrans %}</td>
+</tr>
+
+<tr>
+<td>outbound.quantity
+<td>&nbsp;</td>
+<td>{% trans from=1, to=3 %}number from {{ from }} to {{ to }}{% endtrans %}</td>
+<td>{% trans %}No limit{% endtrans %}</td>
+<td>2
+<td>{% trans %}Number of tunnels out{% endtrans %}</td>
+</tr>
+
+<tr>
+<td>inbound.length
+<td>&nbsp;</td>
+<td>{% trans from=0, to=3 %}number from {{ from }} to {{ to }}{% endtrans %}</td>
+<td>{% trans from=0, to=7 %}{{ from }} to {{ to }}{% endtrans %}</td>
+<td>2
+<td>{% trans %}Length of tunnels in{% endtrans %}</td>
+</tr>
+
+<tr>
+<td>outbound.length
+<td>&nbsp;</td>
+<td>{% trans from=0, to=3 %}number from {{ from }} to {{ to }}{% endtrans %}</td>
+<td>{% trans from=0, to=7 %}{{ from }} to {{ to }}{% endtrans %}</td>
+<td>2
+<td>{% trans %}Length of tunnels out{% endtrans %}</td>
+</tr>
+
+<tr>
+<td>inbound.lengthVariance
+<td>&nbsp;</td>
+<td>{% trans from=-1, to=2 %}number from {{ from }} to {{ to }}{% endtrans %}</td>
+<td>{% trans from=-7, to=7 %}{{ from }} to {{ to }}{% endtrans %}</td>
+<td>0
+<td>{% trans -%}
+Random amount to add or subtract to the length of tunnels in.
+A positive number x means add a random amount from 0 to x inclusive.
+A negative number -x means add a random amount from -x to x inclusive.
+The router will limit the total length of the tunnel to 0 to 7 inclusive.
+The default variance was 1 prior to release 0.7.6.
+{%- endtrans %}</td>
+</tr>
+
+<tr>
+<td>outbound.lengthVariance
+<td>&nbsp;</td>
+<td>{% trans from=-1, to=2 %}number from {{ from }} to {{ to }}{% endtrans %}</td>
+<td>{% trans from=-7, to=7 %}{{ from }} to {{ to }}{% endtrans %}</td>
+<td>0
+<td>{% trans -%}
+Random amount to add or subtract to the length of tunnels out.
+A positive number x means add a random amount from 0 to x inclusive.
+A negative number -x means add a random amount from -x to x inclusive.
+The router will limit the total length of the tunnel to 0 to 7 inclusive.
+The default variance was 1 prior to release 0.7.6.
+{%- endtrans %}</td>
+</tr>
+
+<tr>
+<td>inbound.backupQuantity
+<td>&nbsp;</td>
+<td>{% trans from=0, to=3 %}number from {{ from }} to {{ to }}{% endtrans %}</td>
+<td>{% trans %}No limit{% endtrans %}</td>
+<td>0
+<td>{% trans %}Number of redundant fail-over for tunnels in{% endtrans %}</td>
+</tr>
+
+<tr>
+<td>outbound.backupQuantity
+<td>&nbsp;</td>
+<td>{% trans from=0, to=3 %}number from {{ from }} to {{ to }}{% endtrans %}</td>
+<td>{% trans %}No limit{% endtrans %}</td>
+<td>0
+<td>{% trans %}Number of redundant fail-over for tunnels out{% endtrans %}</td>
+</tr>
+
+<tr>
+<td>inbound.nickname
+<td>&nbsp;</td>
+<td>string
+<td>&nbsp;
+<td>&nbsp;
+<td>{% trans -%}
+Name of tunnel - generally used in routerconsole, which will
+use the first few characters of the Base64 hash of the destination by default.
+{%- endtrans %}</td>
+</tr>
+
+<tr>
+<td>outbound.nickname
+<td>&nbsp;</td>
+<td>string
+<td>&nbsp;
+<td>&nbsp;
+<td>{% trans %}Name of tunnel - generally ignored unless inbound.nickname is unset.{% endtrans %}</td>
+</tr>
+
+<tr>
+<td>inbound.allowZeroHop
+<td>&nbsp;</td>
+<td>true, false
+<td>&nbsp;
+<td>true
+<td>{% trans %}If incoming zero hop tunnel is allowed{% endtrans %}</td>
+</tr>
+
+<tr>
+<td>outbound.allowZeroHop
+<td>&nbsp;</td>
+<td>true, false
+<td>&nbsp;
+<td>true
+<td>{% trans %}If outgoing zero hop tunnel is allowed{% endtrans %}</td>
+</tr>
+
+<tr>
+<td>inbound.IPRestriction
+<td>&nbsp;</td>
+<td>{% trans from=0, to=4 %}number from {{ from }} to {{ to }}{% endtrans %}</td>
+<td>{% trans from=0, to=4 %}{{ from }} to {{ to }}{% endtrans %}</td>
+<td>2
+<td>{% trans -%}
+Number of IP bytes to match to determine if
+two routers should not be in the same tunnel. 0 to disable.
+{%- endtrans %}</td>
+</tr>
+
+<tr>
+<td>outbound.IPRestriction
+<td>&nbsp;</td>
+<td>{% trans from=0, to=4 %}number from {{ from }} to {{ to }}{% endtrans %}</td>
+<td>{% trans from=0, to=4 %}{{ from }} to {{ to }}{% endtrans %}</td>
+<td>2
+<td>{% trans -%}
+Number of IP bytes to match to determine if
+two routers should not be in the same tunnel. 0 to disable.
+{%- endtrans %}</td>
+</tr>
+
+<tr>
+<td>outbound.priority
+<td>0.9.4</td>
+<td>{% trans from=-25, to=25 %}number from {{ from }} to {{ to }}{% endtrans %}</td>
+<td>{% trans from=-25, to=25 %}{{ from }} to {{ to }}{% endtrans %}</td>
+<td>0
+<td>{% trans -%}
+Priority adjustment for outbound messages.
+Higher is higher priority.
+{%- endtrans %}</td>
+</tr>
+
+<tr>
+<td>i2cp.dontPublishLeaseSet
+<td>&nbsp;</td>
+<td>true, false
+<td>&nbsp;
+<td>false
+<td>{% trans %}Should generally be set to true for clients and false for servers{% endtrans %}</td>
+</tr>
+
+<tr>
+<td>i2cp.messageReliability
+<td>&nbsp;</td>
+<td>&nbsp;
+<td>BestEffort, None
+<td>BestEffort
+<td>{% trans -%}
+Guaranteed is disabled;
+None implemented in 0.8.1; the streaming lib default is None as of 0.8.1, the client side default is None as of 0.9.4
+{%- endtrans %}</td>
+</tr>
+
+<tr>
+<td>i2cp.fastReceive
+<td>0.9.4</td>
+<td>&nbsp;
+<td>true, false
+<td>false
+<td>{% trans -%}
+If true, the router just sends the MessagePayload instead
+of sending a MessageStatus and awaiting a ReceiveMessageBegin.
+{%- endtrans %}</td>
+</tr>
+
+<tr>
+<td>explicitPeers
+<td>&nbsp;</td>
+<td>&nbsp;
+<td>&nbsp;
+<td>null
+<td>{% trans %}Comma-separated list of Base 64 Hashes of peers to build tunnels through; for debugging only{% endtrans %}</td>
+</tr>
+
+<tr>
+<td>i2cp.username
+<td>0.8.2</td>
+<td>string
+<td>&nbsp;
+<td>&nbsp;
+<td>{% trans -%}
+For authorization, if required by the router.
+If the client is running in the same JVM as a router, this option is not required.
+{%- endtrans %}</td>
+</tr>
+
+<tr>
+<td>i2cp.password
+<td>0.8.2</td>
+<td>string
+<td>&nbsp;
+<td>&nbsp;
+<td>{% trans -%}
+For authorization, if required by the router.
+If the client is running in the same JVM as a router, this option is not required.
+{%- endtrans %}</td>
+</tr>
+
+<tr>
+<td>crypto.tagsToSend
+<td>0.9.2</td>
+<td>&nbsp;
+<td>1-128
+<td>40
+<td>{% trans -%}
+Number of ElGamal/AES Session Tags to send at a time.
+For clients with relatively low bandwidth per-client-pair (IRC, some UDP apps), this may be set lower.
+{%- endtrans %}</td>
+</tr>
+
+<tr>
+<td>crypto.lowTagThreshold
+<td>0.9.2</td>
+<td>&nbsp;
+<td>1-128
+<td>30
+<td>{% trans -%}
+Minimum number of ElGamal/AES Session Tags before we send more.
+Recommended: approximately tagsToSend * 2/3
+{%- endtrans %}</td>
+</tr>
+
+<tr>
+<td>shouldBundleReplyInfo
+<td>0.9.2</td>
+<td>true, false
+<td>&nbsp;
+<td>true
+<td>{% trans -%}
+Set to false to disable ever bundling a reply LeaseSet.
+For clients that do not publish their LeaseSet, this option must be true
+for any reply to be possible. "true" is also recommended for multihomed servers
+with long connection times.
+{%- endtrans %}
      
-  <p> Setting to "false" may save significant outbound bandwidth, especially if
-      the client is configured with a large number of inbound tunnels (Leases).
-      If replies are still required, this may shift the bandwidth burden to
-      the far-end client and the floodfill.
-      There are several cases where "false" may be appropriate:
-     <ul><li>
-      Unidirectional communication, no reply required
-      <li>
-      LeaseSet is published and higher reply latency is acceptable
-      <li>
-     LeaseSet is published, client is a "server", all connections are inbound
-      so the connecting far-end destination obviously has the leaseset already.
-      Connections are either short, or it is acceptable for latency on a long-lived
-      connection to temporarily increase while the other end re-fetches the LeaseSet
-      after expiration.
-      HTTP servers may fit these requirements.
-      </li></ul>
-<tr><td>inbound.*<td>&nbsp;<td>&nbsp;<td>&nbsp;<td>Any other options prefixed with "inbound." are stored
-        in the "unknown options" properties of the inbound tunnel pool's settings.
-<tr><td>outbound.*<td>&nbsp;<td>&nbsp;<td>&nbsp;<td>Any other options prefixed with "outbound." are stored
-        in the "unknown options" properties of the outbound tunnel pool's settings.
+<p>{% trans -%}
+Setting to "false" may save significant outbound bandwidth, especially if
+the client is configured with a large number of inbound tunnels (Leases).
+If replies are still required, this may shift the bandwidth burden to
+the far-end client and the floodfill.
+There are several cases where "false" may be appropriate:
+{%- endtrans %}</p>
+<ul>
+<li>{% trans %}Unidirectional communication, no reply required{% endtrans %}</li>
+<li>{% trans %}LeaseSet is published and higher reply latency is acceptable{% endtrans %}</li>
+<li>{% trans -%}
+LeaseSet is published, client is a "server", all connections are inbound
+so the connecting far-end destination obviously has the leaseset already.
+Connections are either short, or it is acceptable for latency on a long-lived
+connection to temporarily increase while the other end re-fetches the LeaseSet
+after expiration.
+HTTP servers may fit these requirements.
+{%- endtrans %}</li>
+</ul>
+</td>
+</tr>
+
+<tr>
+<td>inbound.*
+<td>&nbsp;</td>
+<td>&nbsp;
+<td>&nbsp;
+<td>&nbsp;
+<td>{% trans -%}
+Any other options prefixed with "inbound." are stored
+in the "unknown options" properties of the inbound tunnel pool's settings.
+{%- endtrans %}</td>
+</tr>
+
+<tr>
+<td>outbound.*
+<td>&nbsp;</td>
+<td>&nbsp;
+<td>&nbsp;
+<td>&nbsp;
+<td>{% trans -%}
+Any other options prefixed with "outbound." are stored
+in the "unknown options" properties of the outbound tunnel pool's settings.
+{%- endtrans %}</td>
+</tr>
 </table>
-<p>
+
+<p>{% trans -%}
 Note: Large quantity, length, or variance settings may cause significant performance or reliability problems.
-<p>
+{%- endtrans %}</p>
+
+<p>{% trans -%}
 Note: As of release 0.7.7, option names and values must use UTF-8 encoding.
 This is primarily useful for nicknames.
 Prior to that release, options with multi-byte characters were corrupted.
+{%- endtrans %}</p>
 
-<p>
+<p>{% trans -%}
 The following options are interpreted on the client side,
 and will be interpreted if passed to the I2PSession via the I2PClient.createSession() call.
 The streaming lib should also pass these options through to I2CP.
 Other implementations may have different defaults.
-<p>
+{%- endtrans %}</p>
 <table border=1>
-<tr><th colspan="6">Client-side Options</th></tr>
-<tr><th>Option <th>As Of Release<th>Recommended Arguments <th>Allowable Range<th>Default<th>Description
-<tr><td>i2cp.tcp.host <td>&nbsp;<td>&nbsp;<td>&nbsp;<td>127.0.0.1<td>Router hostname.
-        If the client is running in the same JVM as a router, this option is ignored, and the client connects to that router internally.
-<tr><td>i2cp.tcp.port <td>&nbsp;<td>&nbsp;<td>1-65535<td>7654<td>Router I2CP port.
-        If the client is running in the same JVM as a router, this option is ignored, and the client connects to that router internally.
-<tr><td>i2cp.SSL<td>0.8.3<td>true, false<td>&nbsp;<td>false<td>Connect to the router using SSL.
-        If the client is running in the same JVM as a router, this option is ignored, and the client connects to that router internally.
-<tr><td>i2cp.gzip<td>0.6.5<td>true, false <td>&nbsp;<td>true<td>Gzip outbound data
-<tr><td>i2cp.reduceOnIdle<td>0.7.1<td>true, false <td>&nbsp;<td>false<td>Reduce tunnel quantity when idle
-<tr><td>i2cp.closeOnIdle<td>0.7.1<td>true, false <td>&nbsp;<td>false<td>Close I2P session when idle
-<tr><td>i2cp.reduceIdleTime<td>0.7.1<td>1200000<td>300000 minimum<td>&nbsp;<td>(ms) Idle time required (default 20 minutes, minimum 5 minutes)
-<tr><td>i2cp.closeIdleTime<td>0.7.1<td>1800000<td>300000 minimum<td>&nbsp;<td>(ms) Idle time required (default 30 minutes)
-<tr><td>i2cp.reduceQuantity<td>0.7.1<td>1<td>1 to 5<td>1<td>Tunnel quantity when reduced (applies to both inbound and outbound)
-<tr><td>i2cp.encryptLeaseSet<td>0.7.1<td>true, false <td>&nbsp;<td>false<td>Encrypt the lease
-<tr><td>i2cp.leaseSetKey<td>0.7.1<td>&nbsp;<td>&nbsp;<td>&nbsp;<td>Base64 SessionKey (44 characters)
-<tr><td>i2cp.messageReliability<td>&nbsp;<td>&nbsp;<td>BestEffort, None<td>None<td>Guaranteed is disabled;
-     None implemented in 0.8.1; None is the default as of 0.9.4
-<tr><td>i2cp.fastReceive<td>0.9.4<td>&nbsp;<td>true, false<td>true<td>If true, the router just sends the MessagePayload instead
-     of sending a MessageStatus and awaiting a ReceiveMessageBegin.
+<tr>
+<th colspan="6">{% trans %}Client-side Options{% endtrans %}</th></tr>
+</tr>
+
+<tr>
+<th>{% trans %}Option{% endtrans %}</th>
+<th>{% trans %}As Of Release{% endtrans %}</th>
+<th>{% trans %}Recommended Arguments{% endtrans %}</th>
+<th>{% trans %}Allowable Range{% endtrans %}</th>
+<th>{% trans %}Default{% endtrans %}</th>
+<th>{% trans %}Description{% endtrans %}</th>
+</tr>
+
+<tr>
+<td>i2cp.tcp.host
+<td>&nbsp;
+<td>&nbsp;
+<td>&nbsp;
+<td>127.0.0.1
+<td>{% trans -%}
+Router hostname.
+If the client is running in the same JVM as a router, this option is ignored, and the client connects to that router internally.
+{%- endtrans %}</td>
+</tr>
+
+<tr>
+<td>i2cp.tcp.port
+<td>&nbsp;
+<td>&nbsp;
+<td>1-65535
+<td>7654
+<td>{% trans -%}
+Router I2CP port.
+If the client is running in the same JVM as a router, this option is ignored, and the client connects to that router internally.
+{%- endtrans %}</td>
+</tr>
+
+<tr>
+<td>i2cp.SSL
+<td>0.8.3
+<td>true, false
+<td>&nbsp;
+<td>false
+<td>{% trans -%}
+Connect to the router using SSL.
+If the client is running in the same JVM as a router, this option is ignored, and the client connects to that router internally.
+{%- endtrans %}</td>
+</tr>
+
+<tr>
+<td>i2cp.gzip
+<td>0.6.5
+<td>true, false
+<td>&nbsp;
+<td>true
+<td>{% trans %}Gzip outbound data{% endtrans %}</td>
+</tr>
+
+<tr>
+<td>i2cp.reduceOnIdle
+<td>0.7.1
+<td>true, false
+<td>&nbsp;
+<td>false
+<td>{% trans %}Reduce tunnel quantity when idle{% endtrans %}</td>
+</tr>
+
+<tr>
+<td>i2cp.closeOnIdle
+<td>0.7.1
+<td>true, false
+<td>&nbsp;
+<td>false
+<td>{% trans %}Close I2P session when idle{% endtrans %}</td>
+</tr>
+
+<tr>
+<td>i2cp.reduceIdleTime
+<td>0.7.1
+<td>1200000
+<td>{% trans num=300000 %}{{ num }} minimum{% endtrans %}
+<td>&nbsp;
+<td>{% trans %}(ms) Idle time required (default 20 minutes, minimum 5 minutes){% endtrans %}</td>
+</tr>
+
+<tr>
+<td>i2cp.closeIdleTime
+<td>0.7.1
+<td>1800000
+<td>{% trans num=300000 %}{{ num }} minimum{% endtrans %}
+<td>&nbsp;
+<td>{% trans %}(ms) Idle time required (default 30 minutes){% endtrans %}</td>
+</tr>
+
+<tr>
+<td>i2cp.reduceQuantity
+<td>0.7.1
+<td>1
+<td>{% trans from=1, to=5 %}{{ from }} to {{ to }}{% endtrans %}</td>
+<td>1
+<td>{% trans %}Tunnel quantity when reduced (applies to both inbound and outbound){% endtrans %}</td>
+</tr>
+
+<tr>
+<td>i2cp.encryptLeaseSet
+<td>0.7.1
+<td>true, false
+<td>&nbsp;
+<td>false
+<td>{% trans %}Encrypt the lease{% endtrans %}</td>
+</tr>
+
+<tr>
+<td>i2cp.leaseSetKey
+<td>0.7.1
+<td>&nbsp;
+<td>&nbsp;
+<td>&nbsp;
+<td>{% trans %}Base64 SessionKey (44 characters){% endtrans %}</td>
+</tr>
+
+<tr>
+<td>i2cp.messageReliability
+<td>&nbsp;
+<td>&nbsp;
+<td>BestEffort, None
+<td>None
+<td>{% trans -%}
+Guaranteed is disabled;
+None implemented in 0.8.1; None is the default as of 0.9.4
+{%- endtrans %}</td>
+</tr>
+
+<tr>
+<td>i2cp.fastReceive
+<td>0.9.4
+<td>&nbsp;
+<td>true, false
+<td>true
+<td>{% trans -%}
+If true, the router just sends the MessagePayload instead
+of sending a MessageStatus and awaiting a ReceiveMessageBegin.
+{%- endtrans %}</td>
+</tr>
 </table>
-<p>
+
+<p>{% trans -%}
 Note: All arguments, including numbers, are strings. True/false values are case-insensitive strings.
 Anything other than case-insensitive "true" is interpreted as false.
 All option names are case-sensitive.
+{%- endtrans %}</p>
 
-<h2 id="format">I2CP Payload Data Format and Multiplexing</h2>
-<p>
+<h2 id="format">{% trans %}I2CP Payload Data Format and Multiplexing{% endtrans %}</h2>
+<p>{% trans i2cp=site_url('docs/spec/i2cp') -%}
 The end-to-end messages handled by I2CP (i.e. the data sent by the client in a
-<a href="{{ site_url('docs/specs/i2cp') }}#msg_SendMessage">SendMessageMessage</a>
+<a href="{{ i2cp }}#msg_SendMessage">SendMessageMessage</a>
 and received by the client in a
-<a href="{{ site_url('docs/specs/i2cp') }}#msg_MessagePayload">MessagePayloadMessage</a>)
+<a href="{{ i2cp }}#msg_MessagePayload">MessagePayloadMessage</a>)
 are gzipped with a standard 10-byte gzip
 header beginning with 0x1F 0x8B 0x08 as
 specified by <a href="http://www.ietf.org/rfc/rfc1952.txt">RFC 1952</a>.
@@ -207,44 +594,83 @@ As of release 0.7.1, I2P uses ignored portions of the gzip header to include
 protocol, from-port, and to-port information, thus supporting streaming and
 datagrams on the same destination, and allowing query/response using datagrams
 to work reliably in the presence of multiple channels.
-<p>
+{%- endtrans %}</p>
+
+<p>{% trans -%}
 The gzip function cannot be completely turned off, however setting i2cp.gzip=false
 turns the gzip effort setting to 0, which may save a little CPU.
-<p>
+{%- endtrans %}</p>
 <table border=1>
-<tr><th>Bytes<th>Content
-<tr><td>0-2<td>Gzip header 0x1F 0x8B 0x08
-<tr><td>3<td>Gzip flags
-<tr><td>4-5<td>I2P Source port (Gzip mtime)
-<tr><td>6-7<td>I2P Destination port (Gzip mtime)
-<tr><td>8<td>Gzip xflags
-<tr><td>9<td>I2P Protocol (6 = Streaming, 17 = Datagram, 18 = Raw Datagrams) (Gzip OS)
+<tr>
+<th>{% trans %}Bytes{% endtrans %}</th>
+<th>{% trans %}Content{% endtrans %}</th>
+</tr>
+
+<tr>
+<td>0-2
+<td>{% trans %}Gzip header{% endtrans %} 0x1F 0x8B 0x08</th>
+</tr>
+
+<tr>
+<td>3
+<td>{% trans %}Gzip flags{% endtrans %}</td>
+</tr>
+
+<tr>
+<td>4-5
+<td>{% trans %}I2P Source port (Gzip mtime){% endtrans %}</td>
+</tr>
+
+<tr>
+<td>6-7
+<td>{% trans %}I2P Destination port (Gzip mtime){% endtrans %}</td>
+</tr>
+
+<tr>
+<td>8
+<td>{% trans %}Gzip xflags{% endtrans %}</td>
+</tr>
+
+<tr>
+<td>9
+<td>{% trans %}I2P Protocol (6 = Streaming, 17 = Datagram, 18 = Raw Datagrams) (Gzip OS){% endtrans %}</td>
+</tr>
 </table>
 
-<p>
+<p>{% trans -%}
 Data integrity is verified with the standard gzip CRC-32 as
 specified by <a href="http://www.ietf.org/rfc/rfc1952.txt">RFC 1952</a>.
-</p>
+{%- endtrans %}</p>
 
 
-<h2 id="future">Future Work</h2>
-<ul><li>
+<h2 id="future">{% trans %}Future Work{% endtrans %}</h2>
+<ul>
+<li>{% trans -%}
 Implement I2CP and the streaming library in another programming language.
-</li><li>
+{%- endtrans %}</li>
+
+<li>{% trans -%}
 Is the initial Get Date / Set Date handshake required?
-</li><li>
+{%- endtrans %}</li>
+
+<li>{% trans -%}
 The current authorization mechanism could be modified to use hashed passwords.
-</li><li>
+{%- endtrans %}</li>
+
+<li>{% trans -%}
 Private Keys are included in the Create Lease Set message,
 are they really required? Revocation is unimplemented.
-</li><li>
+{%- endtrans %}</li>
+
+<li>{% trans pdf1=url_for('static', filename='pdf/I2CP_spec.pdf'), pdf2=url_for('static', filename='pdf/datastructures.pdf') -%}
 Some improvements may be able to use messages previously defined but not implemented.
 For reference, here is the
-<a href="{{ url_for('static', filename='pdf/I2CP_spec.pdf') }}">I2CP Protocol Specification Version 0.9</a>
+<a href="{{ pdf1 }}">I2CP Protocol Specification Version 0.9</a>
 (PDF) dated August 28, 2003.
 That document also references the
-<a href="{{ url_for('static', filename='pdf/datastructures.pdf') }}">Common Data Structures Specification Version 0.9</a>.
-</li></ul>
+<a href="{{ pdf2 }}">Common Data Structures Specification Version 0.9</a>.
+{%- endtrans %}</li>
+</ul>
 
 
 

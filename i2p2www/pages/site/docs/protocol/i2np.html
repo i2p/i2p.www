@@ -1,24 +1,26 @@
 {% extends "global/layout.html" %}
 {% block title %}I2NP{% endblock %}
-{% block lastupdated %}August 2010{% endblock %}
+{% block lastupdated %}{% trans %}August 2010{% endtrans %}{% endblock %}
 {% block accuratefor %}0.8{% endblock %}
 {% block content %}
-<h2>I2P Network Protocol (I2NP)</h2>
-<p>
+<h2>{% trans %}I2P Network Protocol{% endtrans %} (I2NP)</h2>
+<p>{% trans -%}
 The I2P Network Protocol (I2NP),
 which is sandwiched between I2CP and the various I2P transport protocols, manages the
 routing and mixing of messages between routers, as well as the selection of what
 transports to use when communicating with a peer for which there are multiple
 common transports supported.
-</p>
+{%- endtrans %}</p>
 
-<h3>I2NP Definition</h3>
-<p>
+<h3>{% trans %}I2NP Definition{% endtrans %}</h3>
+<p>{% trans -%}
 I2NP (I2P Network Protocol) messages can be used for one-hop, router-to-router, point-to-point messages.
 By encrypting and wrapping messages in other messages, they can be sent in a secure way
 through multiple hops to the ultimate destination.
 Priority is only used locally at the origin, i.e. when queuing for outbound delivery.
-<p>
+{%- endtrans %}</p>
+
+<p>{% trans -%}
 Both the NTCP and UDP transports implement priority transmission,
 but in quite different manners.
 UDP has complex code with queues for each priority, however it treats
@@ -28,42 +30,49 @@ These are global queues for all peers.
 NTCP has a trivial linear search for the highest priority within
 each buffer for a particular peer.
 This is much less effective.
+{%- endtrans %}</p>
 
-<h3>Message Format</h3>
-<p>
+<h3>{% trans %}Message Format{% endtrans %}</h3>
 
 <table border=1>
-<tr><th>Field<th>Bytes
-<tr><td>Unique ID<td>4
-<tr><td>Expiration<td>8
-<tr><td>Payload Length<td>2
-<tr><td>Checksum<td>1
-<tr><td>Payload<td>0 - 61.2KB
+<tr><th>{% trans %}Field{% endtrans %}</th><th>{% trans %}Bytes{% endtrans %}</th></tr>
+<tr><td>{% trans %}Unique ID{% endtrans %}</td><td>4</td></tr>
+<tr><td>{% trans %}Expiration{% endtrans %}</td><td>8</td></tr>
+<tr><td>{% trans %}Payload Length{% endtrans %}</td><td>2</td></tr>
+<tr><td>{% trans %}Checksum{% endtrans %}</td><td>1</td></tr>
+<tr><td>{% trans %}Payload{% endtrans %}</td><td>0 - 61.2KB</td></tr>
 </table>
 
-<p>
+<p>{% trans tunnelimpl=site_url('docs/tunnels/implementation') -%}
 While the maximum payload size is nominally 64KB, the size is further constrained by the
-method of fragmenting I2NP messages into multiple 1KB tunnel messages as described in
-<a href="tunnel-alt.html">tunnel-alt.html</a>.
+method of fragmenting I2NP messages into multiple 1KB tunnel messages as described on
+<a href="{{ tunnelimpl }}">the tunnel implementation page</a>.
 The maximum number of fragments is 64, and the message may not be perfectly aligned,
 So the message must nominally fit in 63 fragments.
-<p>
+{%- endtrans %}</p>
+
+<p>{% trans -%}
 The maximum size of an initial fragment is 956 bytes (assuming TUNNEL delivery mode);
 the maximum size of a follow-on fragment is 996 bytes.
 Therefore the maximum size is approximately 956 + (62 * 996) = 62708 bytes, or 61.2 KB.
-</p>
-<p>
+{%- endtrans %}</p>
+
+<p>{% trans -%}
 In addition, the transports may have additional restrictions.
 NTCP currently limits to 16KB - 6 = 16378 bytes but this will be increased in a future release.
 The SSU limit is approximately 32 KB.
-<p>
+{%- endtrans %}</p>
+
+<p>{% trans -%}
 Note that these are not the limits for datagrams that the client sees, as the
 router may bundle a reply leaseset and/or session tags together with the client message
 in a garlic message. The leaseset and tags together may add about 5.5KB.
 Therefore the current datagram limit is about 10KB. This limit will be
 increased in a future release.
+{%- endtrans %}</p>
 
-<h3>Message Types</h3>
+<h3>{% trans %}Message Types{% endtrans %}</h3>
+<p>{% trans -%}
 Higher-numbered priority is higher priority.
 The majority of traffic is TunnelDataMessages (priority 400),
 so anything above 400 is essentially high priority, and
@@ -72,115 +81,162 @@ Note also that many of the messages are generally routed
 through exploratory tunnels, not client tunnels, and
 therefore may not be in the same queue unless the
 first hops happen to be on the same peer.
-<p>
+{%- endtrans %}</p>
+
+<p>{% trans -%}
 Also, not all message types are sent unencrypted.
 For example, when testing a tunnel, the router wraps a
 DeliveryStatusMessage, which is wrapped in a GarlicMessage,
 which is wrapped in a DataMessage.
-<p>
+{%- endtrans %}</p>
 
 
 <table border=1>
-<tr><th>Message<th>Type<th>Payload Length<th>Priority<th>Comments
+<tr>
+<th>{% trans %}Message{% endtrans %}</th>
+<th>{% trans %}Type{% endtrans %}</th>
+<th>{% trans %}Payload Length{% endtrans %}</th>
+<th>{% trans %}Priority{% endtrans %}</th>
+<th>{% trans %}Comments{% endtrans %}</th>
+</tr>
+
 <tr><td>
 DatabaseLookupMessage
 <td align=right>2
 <td>&nbsp;
 <td align=right>100/400
-<td>400 normally; 100 if from HarvesterJob and sent directly;
+<td>{% trans -%}
+400 normally; 100 if from HarvesterJob and sent directly;
 400 for a router lookup
+{%- endtrans %}</td>
+</tr>
+
 <tr><td>
 DatabaseSearchReplyMessage
 <td align=right>3
 <td align=right>Typ. 161
 <td align=right>300
-<td>Size is 65 + 32*(number of hashes) where typically, the hashes for
+<td>{% trans -%}
+Size is 65 + 32*(number of hashes) where typically, the hashes for
 three floodfill routers are returned.
+{%- endtrans %}</td>
+</tr>
+
 <tr><td>
 DatabaseStoreMessage
 <td align=right>1
-<td align=right>Varies
+<td align=right>{% trans %}Varies{% endtrans %}</td>
 <td align=right>100/400
-<td>Usually 100 (why?)
+<td>{% trans -%}
+Usually 100 (why?)
 Size is 898 bytes for a typical 2-lease leaseSet.
 RouterInfo structures are compressed, and size varies; however
 there is a continuing effort to reduce the amount of data published in a RouterInfo
 as we approach release 1.0.
+{%- endtrans %}</td>
+</tr>
+
 <tr><td>
 DataMessage
 <td align=right>20
 <td align=right>4 - 62080
 <td align=right>400
 <td>
+</tr>
+
 <tr><td>
 DeliveryStatusMessage
 <td align=right>10
 <td align=right>12
 <td>&nbsp;
-<td>Used for message replies, and for testing tunnels - generally wrapped in a GarlicMessage
+<td>{% trans %}Used for message replies, and for testing tunnels - generally wrapped in a GarlicMessage{% endtrans %}</td>
+</tr>
+
 <tr><td>
-<a href="{{ site_url('docs/how/techintro') }}#op.garlic">GarlicMessage</a>
+<a href="{{ site_url('docs/how/tech-intro') }}#op.garlic">GarlicMessage</a>
 <td align=right>11
 <td>&nbsp;
 <td>&nbsp;
-<td>Generally wrapped in a DataMessage -
+<td>{% trans -%}
+Generally wrapped in a DataMessage -
 but when unwrapped, given a priority of 100 by the forwarding router
+{%- endtrans %}</td>
+</tr>
+
 <tr><td>
-<a href="tunnel-alt-creation.html#tunnelCreate.requestRecord">TunnelBuildMessage</a>
+<a href="{{ site_url('docs/spec/tunnel-creation') }}#tunnelCreate.requestRecord">TunnelBuildMessage</a>
 <td align=right>21
 <td align=right>4224
 <td align=right>300/500
-<td>Usually 500 (why?)
+<td>{% trans %}Usually 500 (why?){% endtrans %}</td>
+</tr>
+
 <tr><td>
-<a href="tunnel-alt-creation.html#tunnelCreate.replyRecord">TunnelBuildReplyMessage</a>
+<a href="{{ site_url('docs/spec/tunnel-creation') }}#tunnelCreate.replyRecord">TunnelBuildReplyMessage</a>
 <td align=right>22
 <td align=right>4224
 <td align=right>300
 <td>
+</tr>
+
 <tr><td>
 TunnelDataMessage
 <td align=right>18
 <td align=right>1028
 <td align=right>400
-<td>The most common message. Priority for tunnel participants, outbound endpoints, and inbound gateways was
-    reduced to 200 as of release 0.6.1.33.
-    Outbound gateway messages (i.e. those originated locally) remains at 400.
+<td>{% trans -%}
+The most common message. Priority for tunnel participants, outbound endpoints, and inbound gateways was
+reduced to 200 as of release 0.6.1.33.
+Outbound gateway messages (i.e. those originated locally) remains at 400.
+{%- endtrans %}</td>
+</tr>
+
 <tr><td>
 TunnelGatewayMessage
 <td align=right>19
 <td>&nbsp;
 <td align=right>300/400
 <td>
+</tr>
+
 <tr><td>
 VariableTunnelBuildMessage
 <td align=right>23
 <td align=right>1057 - 4225
 <td align=right>300/500
-<td>Shorter TunnelBuildMessage as of 0.7.12
+<td>{% trans %}Shorter TunnelBuildMessage as of 0.7.12{% endtrans %}</td>
+</tr>
+
 <tr><td>
 VariableTunnelBuildReplyMessage
 <td align=right>24
 <td align=right>1057 - 4225
 <td align=right>300
-<td>Shorter TunnelBuildReplyMessage as of 0.7.12
-<tr><td>
-Others listed in
-<a href="{{ url_for('static', filename='pdf/I2NP_spec.pdf') }}">2003 Spec</a>
+<td>{% trans %}Shorter TunnelBuildReplyMessage as of 0.7.12{% endtrans %}</td>
+</tr>
+
+<tr><td>{% trans pdf=url_for('static', filename='pdf/I2NP_spec.pdf') -%}
+Others listed in <a href="{{ pdf }}">2003 Spec</a>
+{%- endtrans %}
 <td>0,4-9,12
 <td>&nbsp;
 <td>&nbsp;
-<td>Obsolete, Unused
+<td>{% trans %}Obsolete, Unused{% endtrans %}
+</tr>
 </table>
 
-<h3>Full Protocol Specification</h3>
-<a href="{{ site_url('docs/specs/i2np') }}">On the I2NP Specification page</a>.
+<h3>{% trans %}Full Protocol Specification{% endtrans %}</h3>
+<p>{% trans i2npspec=site_url('docs/specs/i2np'), commonstructures=site_url('docs/specs/common-structures') -%}
+<a href="{{ i2npspec }}">On the I2NP Specification page</a>.
 See also the
-<a href="{{ site_url('docs/specs/common_structures') }}">Common Data Structure Specification page</a>.
+<a href="{{ commonstructures }}">Common Data Structure Specification page</a>.
+{%- endtrans %}</p>
 
-<h3>Future Work</h3>
-<p>
+<h3>{% trans %}Future Work{% endtrans %}</h3>
+<p>{% trans -%}
 It isn't clear whether the current priority scheme is generally effective,
 and whether the priorities for various messages should be adjusted further.
 This is a topic for further research, analysis and testing.
+{%- endtrans %}</p>
 
 {% endblock %}
