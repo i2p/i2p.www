@@ -1,17 +1,17 @@
 {% extends "global/layout.html" %}
-{% block title %}I2P Blockfile Specification{% endblock %}
-{% block lastupdated %}January 2012{% endblock %}
+{% block title %}{% trans %}I2P Blockfile Specification{% endtrans %}{% endblock %}
+{% block lastupdated %}{% trans %}January 2012{% endtrans %}{% endblock %}
 {% block accuratefor %}0.8.12{% endblock %}
 {% block content %}
-<h2>
-Blockfile and Hosts Database Specification
-</h2>
-<h3>Overview</h3>
-<p> 
+<h2>{% trans %}Blockfile and Hosts Database Specification{% endtrans %}</h2>
+<h3>{% trans %}Overview{% endtrans %}</h3>
+<p>{% trans naming=site_url('docs/naming') -%} 
 This document specifies
 the I2P blockfile file format
-and the tables in the hostsdb.blockfile used by the Blockfile <a href="naming.html">Naming Service</a>.
-</p><p>
+and the tables in the hostsdb.blockfile used by the Blockfile <a href="{{ naming }}">Naming Service</a>.
+{%- endtrans %}</p>
+
+<p>{% trans -%}
 The blockfile provides fast Destination lookup in a compact format. While the blockfile page overhead is substantial,
 the destinations are stored in binary rather than in Base 64 as in the hosts.txt format.
 In addition, the blockfile provides the capability of arbitrary metadata storage
@@ -19,30 +19,37 @@ In addition, the blockfile provides the capability of arbitrary metadata storage
 The metadata may be used in the future to provide advanced addressbook features.
 The blockfile storage requirement is a modest increase over the hosts.txt format, and the blockfile provides
 approximately 10x reduction in lookup times.
-</p><p>
+{%- endtrans %}</p>
+
+<p>{% trans url='http://www.metanotion.net/software/sandbox/block.html' -%}
 A blockfile is simply on-disk storage of multiple sorted maps (key-value pairs),
 implemented as skiplists.
 The blockfile format is adopted from the
-<a href="http://www.metanotion.net/software/sandbox/block.html">Metanotion Blockfile Database</a>.
+<a href="{{ url }}">Metanotion Blockfile Database</a>.
 First we will define the file format, then the use of that format by the BlockfileNamingService.
+{%- endtrans %}</p>
 
-<h3>Blockfile Format</h3>
-<p>
+<h3>{% trans %}Blockfile Format{% endtrans %}</h3>
+<p>{% trans -%}
 The original blockfile spec was modified to add magic numbers to each page.
 The file is structured in 1024-byte pages. Pages are numbered starting from 1.
 The "superblock" is always at page 1, i.e. starting at byte 0 in the file.
 The metaindex skiplist is always at page 2, i.e. starting at byte 1024 in the file.
-</p><p>
+{%- endtrans %}</p>
+
+<p>{% trans -%}
 All 2-byte integer values are unsigned.
 All 4-byte integer values (page numbers) are signed and negative values are illegal.
-</p><p>
+{%- endtrans %}</p>
+
+<p>{% trans -%}
 The database is designed to be opened and accessed by a single thread.
 The BlockfileNamingService provides synchronization.
-</p>
+{%- endtrans %}</p>
 
-<p>
+<p>{% trans -%}
 Superblock format:
-</p>
+{%- endtrans %}</p>
 <pre>
 Byte	Contents
 0-5	Magic number	0x3141de493250 ("1A" 0xde "I2P")
@@ -55,9 +62,9 @@ Byte	Contents
 24-1023	unused
 </pre>
 
-<p>
+<p>{% trans -%}
 Skip list block page format:
-</p>
+{%- endtrans %}</p>
 <pre>
 Byte	Contents
 0-7	Magic number	0x536b69704c697374 "SkipList"
@@ -70,10 +77,10 @@ Byte	Contents
 </pre>
 
 
-<p>
+<p>{% trans -%}
 Skip level block page format is as follows.
 All levels have a span. Not all spans have levels.
-</p>
+{%- endtrans %}</p>
 <pre>
 Byte	Contents
 0-7	Magic number	0x42534c6576656c73 "BSLevels"
@@ -85,12 +92,12 @@ remaining bytes unused
 </pre>
 
 
-<p>
+<p>{% trans -%}
 Skip span block page format is as follows.
 Key/value structures are sorted by key within each span and across all spans.
 Key/value structures are sorted by key within each span.
 Spans other than the first span may not be empty.
-</p>
+{%- endtrans %}</p>
 <pre>
 Byte	Contents
 0-3	Magic number	0x5370616e "Span"
@@ -102,9 +109,9 @@ Byte	Contents
 20-1023	key/value structures
 </pre>
 
-<p>
+<p>{% trans -%}
 Span Continuation block page format:
-</p>
+{%- endtrans %}</p>
 <pre>
 Byte	Contents
 0-3	Magic number	0x434f4e54 "CONT"
@@ -113,14 +120,14 @@ Byte	Contents
 </pre>
 
 
-<p>
+<p>{% trans -%}
 Key/value structure format is as follows.
 Key and value lengths must not be split across pages, i.e. all 4 bytes must be on the same page.
 If there is not enough room the last 1-3 bytes of a page are unused and the lengths will
 be at offset 8 in the continuation page.
 Key and value data may be split across pages.
 Max key and value lengths are 65535 bytes.
-</p>
+{%- endtrans %}</p>
 <pre>
 Byte	Contents
 0-1	key length in bytes
@@ -129,9 +136,9 @@ Byte	Contents
 	value data
 </pre>
 
-<p>
+<p>{% trans -%}
 Free list block page format:
-</p>
+{%- endtrans %}</p>
 <pre>
 Byte	Contents
 0-7	Magic number	0x2366724c69737423 "#frList#"
@@ -141,32 +148,32 @@ Byte	Contents
 </pre>
 
 
-<p>
+<p>{% trans -%}
 Free page block format:
-</p>
+{%- endtrans %}</p>
 <pre>
 Byte	Contents
 0-7	Magic number	0x7e2146524545217e "~!FREE!~"
 8-1023	unused
 </pre>
 
-<p>
+<p>{% trans -%}
 The metaindex (located at page 2) is a mapping of US-ASCII strings to 4-byte integers.
 The key is the name of the skiplist and the value is the page index of the skiplist.
-</p>
+{%- endtrans %}</p>
 
-<h3>Blockfile Naming Service Tables</h3>
-<p>
+<h3>{% trans %}Blockfile Naming Service Tables{% endtrans %}</h3>
+<p>{% trans -%}
 The tables created and used by the BlockfileNamingService are as follows.
 The maximum number of entries per span is 16.
-</p>
+{%- endtrans %}</p>
 
-<h4>Properties Skiplist</h4>
-<p>
-"%%__INFO__%%" is the master database skiplist with  String/Properties key/value entries containing only one entry:
-</p>
+<h4>{% trans %}Properties Skiplist{% endtrans %}</h4>
+<p>{% trans -%}
+"%%__INFO__%%" is the master database skiplist with String/Properties key/value entries containing only one entry:
+{%- endtrans %}</p>
 <pre>
-    "info": a Properties (UTF-8 String/String Map), serialized as a <a href="{{ site_url('docs/spec/common_structures') }}#type_Mapping">Mapping</a>:
+    "info": a Properties (UTF-8 String/String Map), serialized as a <a href="{{ site_url('docs/spec/common-structures') }}#type_Mapping">Mapping</a>:
             "version":   "2"
             "created":   Java long time (ms)
             "upgraded":  Java long time (ms) (as of database version 2)
@@ -174,14 +181,14 @@ The maximum number of entries per span is 16.
                          searched in-order for lookups. Almost always "privatehosts.txt,userhosts.txt,hosts.txt".
 </pre>
 
-<h4>Reverse Lookup Skiplist</h4>
-<p>
+<h4>{% trans %}Reverse Lookup Skiplist{% endtrans %}</h4>
+<p>{% trans -%}
 "%%__REVERSE__%%" is the reverse lookup skiplist with Integer/Properties key/value entries
     (as of database version 2):
-</p>
+{%- endtrans %}</p>
 <pre>
     The skiplist keys are 4-byte Integers, the first 4 bytes of the hash of the Destination.
-    The skiplist values are each a Properties (a UTF-8 String/String Map) serialized as a <a href="{{ site_url('docs/spec/common_structures') }}#type_Mapping">Mapping</a>
+    The skiplist values are each a Properties (a UTF-8 String/String Map) serialized as a <a href="{{ site_url('docs/spec/common-structures') }}#type_Mapping">Mapping</a>
         There may be multiple entries in the properties, each one is a reverse mapping,
            as there may be more than one hostname for a given destination,
            or there could be collisions with the same first 4 bytes of the hash.
@@ -189,28 +196,30 @@ The maximum number of entries per span is 16.
         Each property value is the empty string.
 </pre>
 
-<h4>hosts.txt, userhosts.txt, and privatehosts.txt Skiplists</h4>
-<p>
+<h4>{% trans %}hosts.txt, userhosts.txt, and privatehosts.txt Skiplists{% endtrans %}</h4>
+<p>{% trans -%}
 For each host database, there is a skiplist containing
 the hosts for that database.
 The keys/values in these skiplists are as follows:
-</p>
+{%- endtrans %}</p>
 <pre>
      key:    a UTF-8 String (the hostname)
-     value:  a DestEntry, which is a Properties (a UTF-8 String/String Map) serialized as a <a href="{{ site_url('docs/spec/common_structures') }}#type_Mapping">Mapping</a>
-             followed by a binary Destination (serialized <a href="{{ site_url('docs/spec/common_structures') }}#struct_Destination">as usual</a>).
+     value:  a DestEntry, which is a Properties (a UTF-8 String/String Map) serialized as a <a href="{{ site_url('docs/spec/common-structures') }}#type_Mapping">Mapping</a>
+             followed by a binary Destination (serialized <a href="{{ site_url('docs/spec/common-structures') }}#struct_Destination">as usual</a>).
 </pre>
 
-<p>
+<p>{% trans -%}
 The DestEntry Properties typically contains:
-</p>
+{%- endtrans %}</p>
 <pre>
             "a":     The time added (Java long time in ms)
             "s":     The original source of the entry (typically a file name or subscription URL)
             others:  TBD
 </pre>
-<p>
+
+<p>{% trans -%}
 Hostname keys are stored in lower-case and always end in ".i2p".
+{%- endtrans %}</p>
 
 
 {% endblock %}

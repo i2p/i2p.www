@@ -1,71 +1,85 @@
 {% extends "global/layout.html" %}
-{% block title %}I2P Software Update Specification{% endblock %}
-{% block lastupdated %}November 2011{% endblock %}
+{% block title %}{% trans %}I2P Software Update Specification{% endtrans %}{% endblock %}
+{% block lastupdated %}{% trans %}November 2011{% endtrans %}{% endblock %}
 {% block accuratefor %}0.8.12{% endblock %}
 {% block content %}
-<h3>Overview</h3>
-<p> 
+<h3>{% trans %}Overview{% endtrans %}</h3>
+<p>{% trans -%}
 I2P uses a simple, yet secure, system for automated software update.
 The router console periodically pulls a news file from a configurable I2P URL.
 There is a hardcoded backup URL pointing to the project website, in case
 the default project news host goes down.
-</p><p>
+{%- endtrans %}</p>
+
+<p>{% trans -%}
 The contents of the news file are displayed on the home page of the router console.
 In addition, the news file contains the most recent version number of the software.
 If the version is higher than the router's version number, it will
 display an indication to the user that an update is available.
-</p><p>
+{%- endtrans %}</p>
+
+<p>{% trans -%}
 The router may optionally download, or download and install, the new version
 if configured to do so.
-</p>
+{%- endtrans %}</p>
 
-<h3>News File Specification</h3>
-<p>
+<h3>{% trans %}News File Specification{% endtrans %}</h3>
+<p>{% trans -%}
 The news.xml file may contain the following elements:
-</p>
+{%- endtrans %}</p>
 <pre>
 &lt;i2p.news date="$Date: 2010-01-22 00:00:00 $" /&gt;
 &lt;i2p.release version="0.7.14" date="2010/01/22" minVersion="0.6" /&gt;
 </pre>
 
-<p>
+<p>{% trans -%}
 The elements may be included inside XML comments to prevent interpretation by browsers.
 The i2p.release element and version are required. All others are optional and are
 currently unused.
-</p><p>
+{%- endtrans %}</p>
+
+<p>{% trans -%}
 The news source is trusted only to indicate that a new version is available.
 It does not specify the URL of the update, the checksum, or any other information.
-</p>
+{%- endtrans %}</p>
 
 
-<h3>Update File Specification</h3>
-<p>
+<h3>{% trans %}Update File Specification{% endtrans %}</h3>
+<p>{% trans -%}
 The signed update file, traditionally named i2pupdate.sud,
 is simply a zip file with a prepended 56 byte header.
 The header contains:
+{%- endtrans %}</p>
 <ul>
-<li>
-A 40-byte <a href="{{ site_url('docs/spec/common_structures') }}#type_signature">DSA signature</a>
-</li><li>
+<li>{% trans commonstructures=site_url('docs/spec/common-structures') -%}
+A 40-byte <a href="{{ commonstructures }}#type_signature">DSA signature</a>
+{%- endtrans %}</li>
+<li>{% trans -%}
 A 16-byte I2P version in UTF-8, padded with trailing zeroes if necessary
-</li></ul>
-</p><p>
+{%- endtrans %}</li>
+</ul>
+
+<p>{% trans commonstructures=site_url('docs/spec/common-structures') -%}
 The signature covers only the zip archive - not the prepended version.
-The signature must match one of the <a href="{{ site_url('docs/spec/common_structures') }}#type_SigningPublicKey">DSA public keys</a> configured into the router,
+The signature must match one of the <a href="{{ commonstructures }}#type_SigningPublicKey">DSA public keys</a> configured into the router,
 which has a hardcoded default list of keys of the current project release managers.
-</p><p>
+{%- endtrans %}</p>
+
+<p>{% trans -%}
 For version comparison purposes, version fields contain [0-9]*, field separators are
 '-', '_', and '.', and all other characters are ignored.
-</p><p>
+{%- endtrans %}</p>
+
+<p>{% trans -%}
 As of version 0.8.8, the version must also be specified as a zip file comment in UTF-8,
 without the trailing zeroes.
 The updating router verifes that the version in the header (not covered by the signature)
 matches the version in the zip file comment, which is covered by the signature.
 This prevents spoofing of the version number in the header.
-</p>
+{%- endtrans %}</p>
 
-<h3>Download and Installation</h3>
-<p>
+<h3>{% trans %}Download and Installation{% endtrans %}</h3>
+<p>{% trans -%}
 The router first downloads the header of the update file from one in a configurable list of I2P URLs,
 using the built-in HTTP client and proxy,
 and checks that the version is newer.
@@ -74,45 +88,58 @@ The router then downloads the full update file.
 The router verifies that the update file version is newer before installation.
 It also, of course, verifies the signature, and
 verifes that the zip file comment matches the header version, as explained above.
-</p><p>
+{%- endtrans %}</p>
+
+<p>{% trans -%}
 The zip file is extracted in the base $I2P installation directory.
-</p><p>
+{%- endtrans %}</p>
+
+<p>{% trans -%}
 As of release 0.7.12, the router supports Pack200 decompression.
 Files inside the zip archive with a .jar.pack or .war.pack suffix
 are transparently decompressed to a .jar or .war file.
 Update files containing .pack files are traditionally named with a '.su2' suffix.
 Pack200 shrinks the update files by about 60%.
-</p><p>
+{%- endtrans %}</p>
+
+<p>{% trans -%}
 As of release 0.8.7, the router will delete the libjbigi.so and libjcpuid.so files
 if the zip archive contains a lib/jbigi.jar file, so that the new files will
 be extracted from jbigi.jar.
-</p><p>
+{%- endtrans %}</p>
+
+<p>{% trans -%}
 As of release 0.8.12, if the zip archive contains a file deletelist.txt, the router will
 delete the files listed there. The format is:
-<ul><li>
-One file name per line
-</li><li>
-All file names are relative to the installation directory; no absolute file names allowed, no files starting with ".."
-</li><li>
-Comments start with '#'
-</li></ul>
+{%- endtrans %}</p>
+<ul>
+<li>{% trans %}One file name per line{% endtrans %}</li>
+<li>{% trans %}All file names are relative to the installation directory; no absolute file names allowed, no files starting with ".."{% endtrans %}</li>
+<li>{% trans %}Comments start with '#'{% endtrans %}</li>
+</ul>
+
+<p>{% trans -%}
 The router will then delete the deletelist.txt file.
-</p>
+{%- endtrans %}</p>
 
 
-<h3>Future Work</h3>
-<ul><li>
+<h3>{% trans %}Future Work{% endtrans %}</h3>
+<ul>
+<li>{% trans -%}
 When a new update file specification is defined, it should use a larger
 DSA signature, and the signature should cover the version.
 A file format version number might be a good idea too.
-</li><li>
+{%- endtrans %}</li>
+<li>{% trans -%}
 The network will eventually grow too large for update over HTTP.
 The built-in BitTorrent client, i2psnark, may be used as a distributed update method.
 This development effort was started in 2009 but is on hold until it is required.
-</li><li>
+{%- endtrans %}</li>
+<li>{% trans -%}
 The router update mechanism is part of the web router console.
 There is currently no provision for updates of an embedded router lacking the router console.
-</li></ul>
+{%- endtrans %}</li>
+</ul>
 
 
 
