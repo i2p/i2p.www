@@ -34,7 +34,7 @@ LEGACY_PAGES_MAP={
     'configuration':          'docs/spec/configuration',
     'contact':                'about/contact',
     'cvs':                    'misc/cvs',
-    'datagrams':              'docs/spec/datagrams',
+    'datagrams':              'docs/api/datagrams',
     'dev-guidelines':         'volunteer/guides/dev-guidelines',
     'developerskeys':         'volunteer/develop/developers-keys',
     'donate':                 'volunteer/donate',
