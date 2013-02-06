@@ -39,7 +39,7 @@ def downloads_list():
 # Specific file downloader
 def downloads_select(file):
     if (file == 'debian'):
-        return render_template('downloads/debian.html')
+        return render_template('downloads/debian.html', file=file)
     mirrors=read_mirrors()
     data = {
         'version': CURRENT_I2P_VERSION,
