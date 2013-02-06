@@ -1,0 +1,135 @@
+{% extends "global/layout.html" %}
+{% block title %}{% trans %}Streaming Library Specification{% endtrans %}{% endblock %}
+{% block lastupdated %}{% trans %}November 2012{% endtrans %}{% endblock %}
+{% block accuratefor %}0.9.3{% endblock %}
+{% block content %}
+<p><a href="{{ site_url('docs/api/streaming') }}">{% trans -%}
+See the Streaming page for an overview of the Streaming Library.
+{%- endtrans %}</a></p>
+
+<h2>{% trans %}Protocol Specification{% endtrans %}</h2>
+<h3>{% trans %}Packet Format{% endtrans %}</h3>
+<p>{% trans -%}
+The format of a single packet in the streaming protocol is:
+{%- endtrans %}</p>
+<pre>
+
++----+----+----+----+----+----+----+----+
+| send Stream ID    | rcv Stream ID     |
++----+----+----+----+----+----+----+----+
+| sequence  Num     | ack Through       |
++----+----+----+----+----+----+----+----+
+| nc |   NACKs ...
++----+----+----+----+----+----+----+----+
+     | rd |  flags  | opt size| opt data
++----+----+----+----+----+----+----+----+
+   ...                                  |
++----+----+----+----+----+----+----+----+
+|   payload ...
++----+----+----+----//
+
+
+</pre>
+
+<table>
+<tr><th>{{ _('Field') }}<th>{{ _('Length') }}<th>{{ _('Contents') }}
+<tr><td>sendStreamId <td>4 byte <a href="common_structures_spec.html#type_Integer">Integer</a><td>Random number selected by the connection recipient
+and constant for the life of the connection.
+0 in the SYN message sent by the originator, and in subsequent messages, until a SYN reply is received,
+containing the peer's stream ID.
+
+<tr><td>receiveStreamId <td>4 byte <a href="common_structures_spec.html#type_Integer">Integer</a><td>Random number selected by the connection originator
+and constant for the life of the connection. May be 0 if unknown, for example in a RESET packet.
+
+<tr><td>sequenceNum <td>4 byte <a href="common_structures_spec.html#type_Integer">Integer</a><td>
+The sequence for this message, starting at 0 in the SYN message,
+and incremented by 1 in each message except for plain ACKs and retransmissions.
+If the sequenceNum is 0 and the SYN flag is not set, this is a plain ACK 
+packet that should not be ACKed.
+
+<tr><td>ackThrough <td>4 byte <a href="common_structures_spec.html#type_Integer">Integer</a><td>
+The highest packet sequence number that was received
+on the receiveStreamId.  This field is ignored on the initial
+connection packet (where receiveStreamId is the unknown id) or
+if the NO_ACK flag set.
+All packets up to and including this sequence number are ACKed,
+EXCEPT for those listed in NACKs below.
+
+<tr><td>NACK count<td>1 byte <a href="common_structures_spec.html#type_Integer">Integer</a><td>
+The number of 4-byte NACKs in the next field
+
+<tr><td>NACKs <td>n * 4 byte <a href="common_structures_spec.html#type_Integer">Integers</a><td>
+Sequence numbers less than ackThrough that are not yet received.
+Two NACKs of a packet is a request for a 'fast retransmit' of that packet.
+
+<tr><td>resendDelay<td>1 byte <a href="common_structures_spec.html#type_Integer">Integer</a><td>
+How long is the creator of this packet going to wait before
+resending this packet (if it hasn't yet been ACKed).  The 
+value is seconds since the packet was created.
+Currently ignored on receive.
+
+<tr><td>flags <td>2 byte value<td>
+See below.
+
+<tr><td>option size<td>2 byte <a href="common_structures_spec.html#type_Integer">Integer</a><td>
+The number of bytes in the next field
+
+<tr><td>option data<td>0 or more bytes<td>
+As specified by the flags. See below.
+
+<tr><td>payload <td>remaining packet size<td>
+</table>
+
+<h3>{% trans %}Flags and Option Data Fields{% endtrans %}</h3>
+<p>{% trans -%}
+The flags field above specifies some metadata about the packet, and in
+turn may require certain additional data to be included.  The flags are
+as follows. Any data structures specified must be added to the options area
+in the given order.
+{%- endtrans %}</p>
+
+<p>
+Bit order: 15....0 (15 is MSB)
+</p>
+<table>
+<tr><th>Bit<th>Flag<th>Option Data<th>Function
+<tr><td>0<td>SYNCHRONIZE<td align="center">--<td>
+Similar to TCP SYN. Set in the initial packet and in the first response.
+FROM_INCLUDED and SIGNATURE_INCLUDED must be set also.
+<tr><td>1<td>CLOSE<td align="center">--<td>
+Similar to TCP FIN. If the response to a SYNCHRONIZE fits in a single message, the response
+will contain both SYNCHRONIZE and CLOSE.
+SIGNATURE_INCLUDED must be set also.
+<tr><td>2<td>RESET<td align="center">--<td>
+Abnormal close.
+SIGNATURE_INCLUDED must be set also.
+<tr><td>3<td>SIGNATURE_INCLUDED<td>40 byte <a href="common_structures_spec.html#type_Signature">DSA Signature</a>
+<td>
+Currently sent only with SYNCHRONIZE, CLOSE, and RESET, where it is required.
+The signature uses the Destination's <a href="common_structures_spec.html#type_SigningPublicKey">DSA signing keys</a> 
+to sign the entire header and payload with the 40-byte space in the option data field 
+for the signature being set to all zeroes.
+<tr><td>4<td>SIGNATURE_REQUESTED<td align="center">--<td>
+Unused. Requests every packet in the other direction to have SIGNATURE_INCLUDED
+<tr><td>5<td>FROM_INCLUDED<td>387+ byte <a href="common_structures_spec.html#struct_Destination">Destination</a>
+<td>
+Currently sent only with SYNCHRONIZE, where it is required.
+<tr><td>6<td>DELAY_REQUESTED<td>2 byte <a href="common_structures_spec.html#type_Integer">Integer</a><td>
+Optional delay.
+How many milliseconds the sender of this packet wants the recipient
+to wait before sending any more data.
+A value greater than 60000 indicates choking.
+<tr><td>7<td>MAX_PACKET_SIZE_INCLUDED<td>2 byte <a href="common_structures_spec.html#type_Integer">Integer</a><td>
+Currently sent with SYNCHRONIZE only.
+Was also sent in retransmitted packets until release 0.9.1.
+<tr><td>8<td>PROFILE_INTERACTIVE<td align="center">--<td>
+Unused or ignored; the interactive profile is unimplemented.
+<tr><td>9<td>ECHO<td align="center">--<td>
+Unused except by ping programs
+<tr><td>10<td>NO_ACK<td align="center">--<td>
+This flag simply tells the recipient to ignore the ackThrough field in the header.
+Currently unused, the ackThrough field is always valid.
+<tr><td>11-15<td>unused<td><td>
+</table>
+
+{% endblock %}
