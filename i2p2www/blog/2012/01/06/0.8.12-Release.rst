@@ -1,6 +1,90 @@
 ==============
 0.8.12 Release
 ==============
+.. meta::
+   :date: 2012-01-06
+   :category: release
+   :excerpt: The 0.8.12 release fixes several message corruption bugs, some present since 2005. It also contains a redesign of the router's congestion control, and continued optimization of CPU and memory usage. We are hopeful that these changes will improve network performance.
 
-.. raw:: html
-   :file: blog/2012/01/06/release-0.8.12.html
+The 0.8.12 release fixes several message corruption bugs, some present since 2005. It also contains a redesign of the router's congestion control, and continued optimization of CPU and memory usage. We are hopeful that these changes will improve network performance.
+Upgrading is recommended.
+
+{% trans -%}
+Files are available on the `download page`_.
+{%- endtrans %}
+
+.. _{% trans %}`download page`{% endtrans %}: {{ get_url('downloads_list') }}
+
+**{% trans %}RELEASE DETAILS{% endtrans %}**
+
+This release contains several big changes that should help network reliability and performance.
+
+The first two changes are fixes for major UDP packet transmission bugs, described below. The third change
+is fixes to the decompressor. Fixing these should eliminate a big source of message delivery failures.
+
+Also, the release contains a rewrite of the router's participating traffic congestion control. It should
+now more accurately measure current participating bandwidth, handle bursts better, drop messages less, and
+drop the right messages if dropping is required.
+
+Also, the release reduces the amount of processing that routers do for messages they pass down the tunnel.
+These messages do not need to be completely parsed and validated since the gateway is simply passing them through.
+This will help performance of all routers but the improvement will probably not be noticeable except on high-traffic routers.
+
+We're optimistic that these changes will help, and of course eliminating sources of message corruption is sure to help.
+However the extend of the improvement won't be apparent until the majority of the network upgrades.
+
+The release also contains some updates to the router console light theme. You may need to do a shift-reload
+or control-reload in your browser to force a reload of the CSS.
+
+**{% trans %}Major changes{% endtrans %}**
+
+- Instead of fully parsing and validating messages received at the inbound gateway, simply pass them down the tunnel
+- Don't verify I2NP checksums in most cases, as message corruption is caught at other layers
+- Don't recalculate I2NP checksums on messages passed through unchanged
+- Several NTCP pumper optimizations, to hopefully fix NTCP pumper high CPU usage on fast routers
+- Rewrite participating tunnel congestion control, to drop less, more accurately measure traffic, and handle bursts better
+
+**{% trans %}Wrapper Update{% endtrans %}**
+
+New installs include wrapper version 3.5.13 which fixes a heap corruption with very long log lines.
+See http://wrapper.tanukisoftware.com/doc/english/release-notes.html
+for additional information. I2P PPA package users should have received this update in the last week of December.
+If you do not use our PPA package and would like to update your wrapper manually, follow the instructions at
+http://www.i2p2.de/manualwrapper .
+
+**{% trans %}Bug Fixes{% endtrans %}**
+
+- Fix major SSU MTU bug introduced in 0.8.9.The router sometimes sent UDP packets that exceeded the maximum
+  size that routers would accept on the receive side. This resulted in a lot of dropped packets, tunnel build problems,
+  and connection problems. One thing that contributed to us missing the problem was that 0.8.9 was released in the
+  middle of the huge network expansion in early October, when network performance was already deteriorating rapidly.
+- Fix major SSU fragmentation bug present since 2005. UDP corrupted transmit messages when the message size
+  was an exact multiple of the fragmentation size.
+- Fix major decompression bugs present since 2005 that caused message corruption and data loss at multiple protocol layers.
+- Snark doesn't always delete directories
+- Fix all character case conversion (Turkish four i problem)
+- Whitelist more IRC commands
+- Remove expired reseed cert
+
+**{% trans %}Other{% endtrans %}**
+
+- Speed up the inefficient GeoIP lookup
+- Optimize several heavily-used utility functions
+- Don't drop the transport connection when receiving an invalid message, it isn't necessary and could be an attack vector
+- Console light theme update
+- Move the complex network configuration stuff to a new console page
+- Add a link to hide the news in the console
+- Allow numerous additional IRC commands through the IRC filter
+- Several other cleanups, optimizations, and object caches added
+- New Estonian translation (thanks ajutine)
+- Spanish, Swedish, Ukrainian translation updates
+
+**{% trans %}SHA256 Checksums:{% endtrans %}**
+
+::
+
+    7a05b96c535f565b06aeec3b83fca6245b1159003d4e2da2149374ba0f476847  i2pinstall_0.8.12.exe
+    019d6018e7093650cf67fd883b0cf0f12aa2f4f0cddc5ef6a08e6147af07f142  i2psource_0.8.12.tar.bz2
+    a9556998b136d47b124749f426d86514e7128094308f03085b889f34bbdf8dc0  i2pupdate_0.8.12.zip
+    bb7be1dc9bdcc9b2db2587988325b4ea7c81e9eeb542ebcb17e0d6de29fc98d3  i2pupdate.su2
+    491722ef1a641512fc3bbaf825d5d1671b701e32b1298572f2820ab7fbf9851d  i2pupdate.sud
