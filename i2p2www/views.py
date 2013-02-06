@@ -48,3 +48,10 @@ def robots():
 
 def favicon():
     return send_from_directory(STATIC_DIR, 'favicon.ico', mimetype='image/vnd.microsoft.icon')
+
+
+#######################################
+# Verification pages for search engines
+
+def google():
+    return send_from_directory(STATIC_DIR, 'googleadcf8b9c9f4ff24f.html')

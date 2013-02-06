@@ -72,5 +72,7 @@ url('/hosts.txt', 'views.hosts')
 url('/robots.txt', 'views.robots')
 url('/favicon.ico', 'views.favicon')
 
+url('/googleadcf8b9c9f4ff24f.html', 'views.google')
+
 url('/sitemap_index.xml', 'sitemap.render_sitemap_index')
 url('/<lang:lang>/sitemap.xml', 'sitemap.render_sitemap')
