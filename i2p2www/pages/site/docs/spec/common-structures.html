@@ -1,0 +1,726 @@
+{% extends "global/layout.html" %}
+{% block title %}{% trans %}Common structure Specification{% endtrans %}{% endblock %}
+{% block lastupdated %}{% trans %}March 2012{% endtrans %}{% endblock %}
+{% block accuratefor %}0.8.13{% endblock %}
+{% block content %}
+<h1>{% trans %}Data types Specification{% endtrans %}</h1>
+<p>{% trans i2np=site_url('docs/protocol/i2np'),
+i2cp=site_url('docs/protocol/i2cp'),
+ssu=site_url('docs/transport/ssu') -%}
+This document describes some data types common to all I2P protocols, like
+<a href="{{ i2np }}">I2NP</a>, <a href="{{ i2cp }}">I2CP</a>,
+<a href="{{ ssu }}">SSU</a>, etc.
+{%- endtrans %}</p>
+
+<h2 id="type_Integer">Integer</h2>
+<h4>{% trans %}Description{% endtrans %}</h4>
+<p>{% trans -%}
+Represents a non-negative integer.
+{% endtrans %}</p>
+<h4>{% trans %}Contents{% endtrans %}</h4>
+<p>{% trans -%}
+1 to 8 bytes in network byte order representing an unsigned integer
+{% endtrans %}</p>
+
+<h2 id="type_Date">Date</h2>
+<h4>{% trans %}Description{% endtrans %}</h4>
+<p>{% trans -%}
+The number of milliseconds since midnight on January 1, 1970 in the GMT timezone.
+If the number is 0, the date is undefined or null.
+{% endtrans %}</p>
+<h4>{% trans %}Contents{% endtrans %}</h4>
+<p>{% trans -%}
+8 byte <a href="#type_Integer">Integer</a>
+{% endtrans %}</p>
+
+<h2 id="type_String">String</h2>
+<h4>{% trans %}Description{% endtrans %}</h4>
+<p>{% trans -%}
+Represents a UTF-8 encoded string.
+{% endtrans %}</p>
+<h4>{% trans %}Contents{% endtrans %}</h4>
+<p>{% trans -%}
+1 or more bytes where the first byte is the number of bytes (not characters!)
+in the string and the remaining 0-255 bytes are the non-null terminated UTF-8 encoded character array.
+Length limit is 255 bytes (not characters). Length may be 0.
+{% endtrans %}</p>
+
+<h2 id="type_Boolean">Boolean</h2>
+<h4>{% trans %}Description{% endtrans %}</h4>
+<p>{% trans -%}
+A boolean value, supporting null/unknown representation
+0=false, 1=true, 2=unknown/null
+{% endtrans %}</p>
+<h4>{% trans %}Contents{% endtrans %}</h4>
+<p>{% trans -%}
+1 byte <a href="#type_Integer">Integer</a>
+{% endtrans %}</p>
+<h4>{% trans %}Notes{% endtrans %}</h4>
+<p>{% trans -%}
+Deprecated - unused
+{% endtrans %}</p>
+
+<h2 id="type_PublicKey">PublicKey</h2>
+<h4>{% trans %}Description{% endtrans %}</h4>
+<p>{% trans cryptography=site_url('docs/how/cryptography') -%}
+This structure is used in ElGamal encryption, representing only the exponent, not the primes, which are constant and defined in
+<a href="{{ cryptography }}#elgamal">the cryptography specification</a>.
+{% endtrans %}</p>
+<h4>{% trans %}Contents{% endtrans %}</h4>
+<p>{% trans -%}
+256 bytes
+{% endtrans %}</p>
+
+<h4><a href="http://docs.i2p-projekt.de/javadoc/net/i2p/data/PublicKey.html">Javadoc</a></h4>
+
+<h2 id="type_PrivateKey">PrivateKey</h2>
+<h4>{% trans %}Description{% endtrans %}</h4>
+<p>{% trans cryptography=site_url('docs/how/cryptography') -%}
+This structure is used in ElGamal decryption, representing only the exponent, not the primes which are constant and defined in
+<a href="{{ cryptography }}#elgamal">the cryptography specification</a>.
+{% endtrans %}</p>
+<h4>{% trans %}Contents{% endtrans %}</h4>
+<p>{% trans -%}
+256 bytes
+{% endtrans %}</p>
+
+<h4><a href="http://docs.i2p-projekt.de/javadoc/net/i2p/data/PrivateKey.html">Javadoc</a></h4>
+
+<h2 id="type_SessionKey">SessionKey</h2>
+<h4>{% trans %}Description{% endtrans %}</h4>
+<p>{% trans -%}
+This structure is used for AES256 encryption and decryption.
+{% endtrans %}</p>
+<h4>{% trans %}Contents{% endtrans %}</h4>
+<p>{% trans -%}
+32 bytes
+{% endtrans %}</p>
+
+<h4><a href="http://docs.i2p-projekt.de/javadoc/net/i2p/data/SessionKey.html">Javadoc</a></h4>
+
+<h2 id="type_SigningPublicKey">SigningPublicKey</h2>
+<h4>{% trans %}Description{% endtrans %}</h4>
+<p>{% trans cryptography=site_url('docs/how/cryptography') -%}
+This structure is used for verifying <a href="{{ cryptography }}#DSA">DSA</a> signatures.
+{% endtrans %}</p>
+<h4>{% trans %}Contents{% endtrans %}</h4>
+<p>{% trans -%}
+128 bytes
+{% endtrans %}</p>
+
+<h4><a href="http://docs.i2p-projekt.de/javadoc/net/i2p/data/SigningPublicKey.html">Javadoc</a></h4>
+
+<h2 id="type_SigningPrivateKey">SigningPrivateKey</h2>
+<h4>{% trans %}Description{% endtrans %}</h4>
+<p>{% trans cryptography=site_url('docs/how/cryptography') -%}
+This structure is used for creating <a href="{{ cryptography }}#DSA">DSA</a> signatures.
+{% endtrans %}</p>
+<h4>{% trans %}Contents{% endtrans %}</h4>
+<p>{% trans -%}
+20 bytes
+{% endtrans %}</p>
+
+<h4><a href="http://docs.i2p-projekt.de/javadoc/net/i2p/data/SigningPrivateKey.html">Javadoc</a></h4>
+
+<h2 id="type_Signature">Signature</h2>
+<h4>{% trans %}Description{% endtrans %}</h4>
+<p>{% trans cryptography=site_url('docs/how/cryptography') -%}
+This structure represents the <a href="{{ cryptography }}#DSA">DSA</a> signature of some data.
+{% endtrans %}</p>
+<h4>{% trans %}Contents{% endtrans %}</h4>
+<p>{% trans -%}
+40 bytes
+{% endtrans %}</p>
+
+<h4><a href="http://docs.i2p-projekt.de/javadoc/net/i2p/data/Signature.html">Javadoc</a></h4>
+
+<h2 id="type_Hash">Hash</h2>
+<h4>{% trans %}Description{% endtrans %}</h4>
+<p>{% trans -%}
+Represents the SHA256 of some data.
+{% endtrans %}</p>
+<h4>{% trans %}Contents{% endtrans %}</h4>
+<p>{% trans -%}
+32 bytes
+{% endtrans %}</p>
+
+<h4><a href="http://docs.i2p-projekt.de/javadoc/net/i2p/data/Hash.html">Javadoc</a></h4>
+
+<h2 id="type_SessionTag">Session Tag</h2>
+<h4>{% trans %}Description{% endtrans %}</h4>
+<p>{% trans -%}
+A random number
+{% endtrans %}</p>
+<h4>{% trans %}Contents{% endtrans %}</h4>
+<p>{% trans -%}
+32 bytes
+{% endtrans %}</p>
+
+<h4><a href="http://docs.i2p-projekt.de/javadoc/net/i2p/data/SessionTag.html">Javadoc</a></h4>
+
+<h2 id="type_TunnelId">TunnelId</h2>
+<h4>{% trans %}Description{% endtrans %}</h4>
+<p>{% trans -%}
+Defines an identifier that is unique to each router in a tunnel.
+{% endtrans %}</p>
+<h4>{% trans %}Contents{% endtrans %}</h4>
+<p>{% trans -%}
+4 byte <a href="#type_Integer">Integer</a>
+{% endtrans %}</p>
+
+<h4><a href="http://docs.i2p-projekt.de/javadoc/net/i2p/data/TunnelID.html">Javadoc</a></h4>
+
+<h2 id="type_Certificate">Certificate</h2>
+<h4>{% trans %}Description{% endtrans %}</h4>
+<p>{% trans -%}
+A certificate is a container for various receipts or proof of works used throughout the I2P network.
+{% endtrans %}</p>
+<h4>{% trans %}Contents{% endtrans %}</h4>
+<p>{% trans -%}
+1 byte <a href="#type_Integer">Integer</a> specifying certificate type, followed by a 2 <a href="#type_Integer">Integer</a> specifying the size of the certificate payload, then that many bytes.
+{% endtrans %}</p>
+<pre>
+{% filter escape %}
++----+----+----+----+----+--//
+|type| length  | payload
++----+----+----+----+----+--//
+
+type :: Integer
+        length -> 1 byte
+
+        case 0 -> NULL
+        case 1 -> HASHCASH
+        case 2 -> HIDDEN
+        case 3 -> SIGNED
+        case 4 -> MULTIPLE
+
+length :: Integer
+          length -> 2 bytes
+
+payload :: data
+           length -> $length bytes
+{% endfilter %}
+</pre>
+
+<h4>{% trans %}Notes{% endtrans %}</h4>
+<ul>
+<li>{% trans -%}
+For <a href="#struct_RouterIdentity">Router Identities</a>, the Certificate is always NULL, no others are currently implemented.
+{%- endtrans %}</li>
+
+<li>{% trans i2np=site_url('docs/spec/i2np') -%}
+For <a href="{{ i2np }}#struct_GarlicClove">Garlic Cloves</a>, the Certificate is always NULL, no others are currently implemented.
+{%- endtrans %}</li>
+
+<li>{% trans i2np=site_url('docs/spec/i2np') -%}
+For <a href="{{ i2np }}#msg_Garlic">Garlic Messages</a>, the Certificate is always NULL, no others are currently implemented.
+{%- endtrans %}</li>
+
+<li>{% trans -%}
+For <a href="#struct_Destination">Destinations</a>, the Certificate may be non-NULL,
+however non-NULL certs are not widely used, and any checking is left to the application-level.
+{%- endtrans %}</li>
+</ul>
+
+<h4><a href="http://docs.i2p-projekt.de/javadoc/net/i2p/data/Certificate.html">Javadoc</a></h4>
+
+
+<h2 id="type_Mapping">Mapping</h2>
+<h4>{% trans %}Description{% endtrans %}</h4>
+<p>{% trans -%}
+A set of key/value mappings or properties
+{% endtrans %}</p>
+<h4>{% trans %}Contents{% endtrans %}</h4>
+<p>{% trans -%}
+A 2-byte size Integer followed by a series of String=String; pairs
+{% endtrans %}</p>
+<pre>
+{% filter escape %}
++----+----+----+----+----+----+----+----+
+|  size   |key string (len + data) | =  |
++----+----+----+----+----+----+----+----+
+| val string (len + data)     | ;  | ...
++----+----+----+----+----+----+----+
+size :: Integer
+        length -> 2 bytes
+        Total number of bytes that follow
+
+key string :: String
+              A string (one byte length followed by UTF-8 encoded characters)
+
+= :: A single byte containing '='
+
+val string :: String
+              A string (one byte length followed by UTF-8 encoded characters)
+
+; :: A single byte containing ';'
+
+{% endfilter %}
+</pre>
+
+<h4>{% trans %}Notes{% endtrans %}</h4>
+<ul>
+<li>{% trans -%}
+The encoding isn't optimal - we either need the '=' and ';' characters, or the string lengths, but not both
+{%- endtrans %}</li>
+
+<li>{% trans -%}
+Some documentation says that the strings may not include '=' or ';' but this encoding supports them
+{%- endtrans %}</li>
+
+<li>{% trans -%}
+Strings are defined to be UTF-8 but in the current implementation, I2CP uses UTF-8 but I2NP does not.
+For example,
+UTF-8 strings in a RouterInfo options mapping in a I2NP Database Store Message will be corrupted.
+{%- endtrans %}</li>
+
+<li>{% trans -%}
+Mappings contained in I2NP messages (i.e. in a RouterAddress or RouterInfo)
+must be sorted by key so that the signature will be invariant.
+{%- endtrans %}</li>
+
+<li>{% trans -%}
+Key and value string length limits are 255 bytes (not characters) each, plus the length byte. Length byte may be 0.
+{%- endtrans %}</li>
+
+<li>{% trans -%}
+Total length limit is 65535 bytes, plus the 2 byte size field, or 65537 total.
+{%- endtrans %}</li>
+</ul>
+
+<h4><a href="http://docs.i2p-projekt.de/javadoc/net/i2p/data/DataHelper.html">Javadoc</a></h4>
+
+
+
+<h1>{% trans %}Common structure specification{% endtrans %}</h1>
+
+<h2 id="struct_RouterIdentity">RouterIdentity</h2>
+<h4>{% trans %}Description{% endtrans %}</h4>
+<p>{% trans -%}
+Defines the way to uniquely identify a particular router
+{% endtrans %}</p>
+<h4>{% trans %}Contents{% endtrans %}</h4>
+<p>{% trans -%}
+<a href="#type_PublicKey">PublicKey</a> followed by <a href="#type_SigningPublicKey">SigningPublicKey</a> and then a <a href="#type_Certificate">Certificate</a>
+{% endtrans %}</p>
+<pre>
+{% filter escape %}
++----+----+----+----+----+----+----+----+
+| public_key                            |
++                                       +
+|                                       |
+~                                       ~
+
+~                                       ~
+|                                       |
++----+----+----+----+----+----+----+----+
+| signing_key                           |
++                                       +
+|                                       |
+~                                       ~
+
+~                                       ~
+|                                       |
++----+----+----+----+----+----+----+----+
+| certificate                           |
++----+----+----+--//
+
+public_key :: PublicKey
+              length -> 256 bytes
+
+signing_key :: SigningPublicKey
+               length -> 128 bytes
+
+certificate :: Certificate
+               length -> >= 3 bytes
+
+Total length: 387+ bytes
+{% endfilter %}
+</pre>
+
+<h4>{% trans %}Notes{% endtrans %}</h4>
+<p>{% trans -%}
+The certificate for a RouterIdentity is currently unused and is always NULL.
+{%- endtrans %}</p>
+
+<h4><a href="http://docs.i2p-projekt.de/javadoc/net/i2p/data/RouterIdentity.html">Javadoc</a></h4>
+
+<h2 id="struct_Destination">Destination</h2>
+<h4>{% trans %}Description{% endtrans %}</h4>
+<p>{% trans -%}
+A Destination defines a particular endpoint to which messages can be directed for secure delivery.
+{% endtrans %}</p>
+<h4>{% trans %}Contents{% endtrans %}</h4>
+<p>{% trans -%}
+<a href="#type_PublicKey">PublicKey</a> followed by a <a href="#type_SigningPublicKey">SigningPublicKey</a> and then a <a href="#type_Certificate">Certificate</a>
+{% endtrans %}</p>
+<pre>
+{% filter escape %}
++----+----+----+----+----+----+----+----+
+| public_key                            |
++                                       +
+|                                       |
+~                                       ~
+
+~                                       ~
+|                                       |
++----+----+----+----+----+----+----+----+
+| signing_public_key                    |
++                                       +
+|                                       |
+~                                       ~
+
+~                                       ~
+|                                       |
++----+----+----+----+----+----+----+----+
+| certificate                           
++---//
+
+public_key :: PublicKey
+              length -> 256 bytes
+
+signing_public_key :: SigningPublicKey
+                      length -> 128 bytes
+
+certificate :: Certificate
+               length -> >= 3 bytes
+
+Total length: 387+ bytes
+{% endfilter %}
+</pre>
+
+<h4><a href="http://docs.i2p-projekt.de/javadoc/net/i2p/data/Destination.html">Javadoc</a></h4>
+
+<h2 id="struct_Lease">Lease</h2>
+<h4>{% trans %}Description{% endtrans %}</h4>
+<p>{% trans -%}
+Defines the authorization for a particular tunnel to receive messages targeting a <a href="#struct_Destination">Destination</a>.
+{% endtrans %}</p>
+<h4>{% trans %}Contents{% endtrans %}</h4>
+<p>{% trans -%}
+SHA256 <a href="#type_Hash">Hash</a> of the
+<a href="#struct_RouterIdentity">RouterIdentity</a> of the gateway router, then the <a href="#type_TunnelId">TunnelId</a>, and finally an end <a href="#type_Date">Date</a>
+{% endtrans %}</p>
+<pre>
+{% filter escape %}
++----+----+----+----+----+----+----+----+
+| tunnel_gw                             |
++                                       +
+|                                       |
++                                       +
+|                                       |
++                                       +
+|                                       |
++----+----+----+----+----+----+----+----+
+|     tunnel_id     |      end_date
++----+----+----+----+----+----+----+----+
+                    |
++----+----+----+----+
+
+tunnel_gw :: Hash of the RouterIdentity of the tunnel gateway
+             length -> >= 32 bytes
+
+tunnel_id :: TunnelId
+             length -> 4 bytes
+
+end_date :: Date
+            length -> 8 bytes
+{% endfilter %}
+</pre>
+
+<h4>{% trans %}Notes{% endtrans %}</h4>
+<ul>
+<li>{% trans -%}
+Total size: 44 bytes
+{%- endtrans %}</li>
+</ul>
+
+
+<h4><a href="http://docs.i2p-projekt.de/javadoc/net/i2p/data/Lease.html">Javadoc</a></h4>
+
+<h2 id="struct_LeaseSet">LeaseSet</h2>
+<h4>{% trans %}Description{% endtrans %}</h4>
+<p>{% trans -%}
+Contains all of the currently authorized <a href="#struct_Lease">Lease</a>s for a particular <a href="#struct_Destination">Destination</a>, the <a href="#type_PublicKey">PublicKey</a> to which garlic messages can be encrypted,
+and then the <a href="#type_SigningPublicKey">public key</a> that can be used to revoke this particular version of the structure. The <a href="#struct_LeaseSet">LeaseSet</a> is one of the two structures stored in the network database(
+the other being <a href="#struct_RouterInfo">RouterInfo</a>), and is keyed under the SHA256 of the contained <a href="#struct_Destination">Destination</a>.
+{% endtrans %}</p>
+<h4>{% trans %}Contents{% endtrans %}</h4>
+<p>{% trans -%}
+<a href="#struct_Destination">Destination</a>, followed by a <a href="#type_PublicKey">PublicKey</a> for encryption, then a <a href="#type_SigningPublicKey">SigningPublicKey</a> which can be used to revoke this version of the <a href="#struct_LeaseSet">LeaseSet</a>,
+then a 1 byte <a href="#type_Integer">Integer</a> specifying how many <a href="#struct_Lease">Lease</a> structures are in the set, followed by the actual <a href="#struct_Lease">Lease</a> structures and finally a <a href="#type_Signature">Signature</a>  of the previous
+bytes signed by the <a href="#struct_Destination">Destination's</a> <a href="#type_SigningPrivateKey">SigningPrivateKey</a>
+{%- endtrans %}</p>
+<pre>
+{% filter escape %}
++----+----+----+----+----+----+----+----+
+| destination                           |
++                                       +
+|                                       |
+~                                       ~
+
+~                                       ~
+|                                       |
++----+----+----+----+----+----+----+----+
+| encryption_key                        |
++                                       +
+|                                       |
+~                                       ~
+
+~                                       ~
+|                                       |
++----+----+----+----+----+----+----+----+
+| signing_key                           |
++                                       +
+|                                       |
+~                                       ~
+
+~                                       ~
+|                                       |
++----+----+----+----+----+----+----+----+
+|num | Lease 0                          |
++----+                                  +
+|                                       |
+~                                       ~
+
+~                                       ~
+|                                       |
++----+----+----+----+----+----+----+----+
+| Lease 1                               |
++                                       +
+|                                       |
+~                                       ~
+
+~                                       ~
+~                                       ~
+
+~                                       ~
+|                                       |
++----+----+----+----+----+----+----+----+
+| Lease ($num-1)                        |
++                                       +
+|                                       |
+~                                       ~
+
+~                                       ~
+|                                       |
++----+----+----+----+----+----+----+----+
+| signature                             |
++                                       +
+|                                       |
++                                       +
+|                                       |
++                                       +
+|                                       |
++                                       +
+|                                       |
++----+----+----+----+----+----+----+----+
+
+destination :: Destination
+               length -> >= 387 bytes
+
+encryption_key :: PublicKey
+                  length -> 256 bytes
+
+signing_key :: SigningPublicKey
+               length -> 128 bytes
+
+num :: Integer
+       length -> 1 byte
+       value: 0 <= num <= 16
+
+leases :: [Lease]
+          length -> >= $num*44 bytes
+
+signature :: Signature
+             length -> 40 bytes
+
+{% endfilter %}
+</pre>
+
+<h4>{% trans %}Notes{% endtrans %}</h4>
+<ul>
+<li>{% trans -%}
+The public key of the destination was used for the old i2cp-to-i2cp encryption
+which was disabled in version 0.6, it is currently unused?
+{%- endtrans %}</li>
+
+<li>{% trans elgamalaes=site_url('docs/how/elgamal-aes') -%}
+The encryption key is used for end-to-end <a href="{{ elgamalaes }}">ElGamal/AES+SessionTag</a> encryption.
+It is currently generated anew at every router startup, it is not persistent.
+{%- endtrans %}</li>
+
+<li>{% trans -%}
+The signature may be verified using the signing public key of the destination.
+{%- endtrans %}</li>
+
+<li>{% trans -%}
+The signing_key is currently unused. It was intended for LeaseSet revocation, which is unimplemented.
+It is currently generated anew at every router startup, it is not persistent.
+{%- endtrans %}</li>
+</ul>
+
+<h4><a href="http://docs.i2p-projekt.de/javadoc/net/i2p/data/LeaseSet.html">Javadoc</a></h4>
+
+
+
+<h2 id="struct_RouterAddress">RouterAddress</h2>
+<h4>{% trans %}Description{% endtrans %}</h4>
+<p>{% trans -%}
+This structure defines the means to contact a router through a transport protocol.
+{% endtrans %}</p>
+<h4>{% trans %}Contents{% endtrans %}</h4>
+<p>{% trans -%}
+1 byte <a href="#type_Integer">Integer</a> defining the relative cost of using the address, where 0 is free and 255 is expensive, followed by the expiration <a href="#type_Date">Date</a> after which the address should not be used, or if null, the address never expires.
+After that comes a <a href="#type_String">String</a> defining the transport protocol this router address uses. Finally there is a <a href="#type_Mapping">Mapping</a> containing all of the transport specific options necessary to establish the connection, such as
+IP address, port number, email address, URL, etc.
+{% endtrans %}</p>
+<pre>
+{% filter escape %}
++----+
+|cost|
++----+----+----+----+----+----+----+----+
+| expiration                            |
++----+----+----+----+--//+----+----+----+
+| transport_style                       |
++----+----+----+----+--//+----+----+----+
+| options                               |
++----+----+----+----+--//+----+----+----+
+
+cost :: Integer
+        length -> 1 byte
+
+        case 0 -> free
+        case 255 -> expensive
+
+expiration :: Date
+              length -> 8 bytes
+
+              case null -> never expires
+
+transport_style :: String
+                   length -> 1-256 bytes
+
+options :: Mapping
+{% endfilter %}
+</pre>
+
+<h4>{% trans %}Notes{% endtrans %}</h4>
+<ul>
+<li>{% trans -%}
+Cost is typically 5 or 6 for SSU, and 10 or 11 for NTCP.
+{%- endtrans %}</li>
+
+<li>{% trans -%}
+Expiration is currently unused, always null (all zeroes))
+{%- endtrans %}</li>
+</ul>
+
+
+<h4><a href="http://docs.i2p-projekt.de/javadoc/net/i2p/data/RouterAddress.html">Javadoc</a></h4>
+
+<h2 id="struct_RouterInfo">RouterInfo</h2>
+<h4>{% trans %}Description{% endtrans %}</h4>
+<p>{% trans -%}
+Defines all of the data that a router wants to publish for the network to see. The <a href="#struct_RouterInfo">RouterInfo</a> is one of two structures stored in the network database(the other being <a href="#struct_LeaseSet">LeaseSet</a>, and is keyed under the SHA256 of
+the contained <a href="#struct_RouterIdentity">RouterIdentity</a>.
+{% endtrans %}</p>
+<h4>{% trans %}Contents{% endtrans %}</h4>
+<p>{% trans -%}
+<a href="#struct_RouterIdentity">RouterIdentity</a> followed by the <a href="#type_Date">Date</a>, when the entry was published
+{% endtrans %}</p>
+<pre>
+{% filter escape %}
++----+----+----+----+----+----+----+----+
+| router_ident                          |
++                                       +
+|                                       |
+~                                       ~
+
+~                                       ~
+|                                       |
++----+----+----+----+----+----+----+----+
+| published                             |
++----+----+----+----+----+----+----+----+
+|size| RouterAddress 0                  |
++----+                                  +
+|                                       |
+~                                       ~
+
+~                                       ~
+|                                       |
++----+----+----+----+----+----+----+----+
+| RouterAddress 1                       |
++                                       +
+|                                       |
+~                                       ~
+~                                       ~
+
+~                                       ~
+~                                       ~
+|                                       |
++----+----+----+----+----+----+----+----+
+| RouterAddress ($size-1)               |
++                                       +
+|                                       |
+~                                       ~
+
+~                                       ~
+|                                       |
++----+----+----+----+-//-+----+----+----+
+|psiz| options                          |
++----+----+----+----+-//-+----+----+----+
+| signature                             |
++                                       +
+|                                       |
++                                       +
+|                                       |
++                                       +
+|                                       |
++                                       +
+|                                       |
++----+----+----+----+----+----+----+----+
+
+router_ident :: RouterIdentity
+                length -> >= 387 bytes
+
+published :: Date
+             length -> 8 bytes
+
+size :: Integer
+        length -> 1 byte
+
+addresses :: [RouterAddress]
+             length -> >= $size*267 bytes
+
+peer_size :: Integer
+             length -> 1 byte
+
+             value -> 0
+
+options :: Mapping
+
+signature :: Signature
+             length -> 40 bytes
+
+{% endfilter %}
+</pre>
+
+<h4>{% trans %}Notes{% endtrans %}</h4>
+<p>{% trans -%}
+The peer_size Integer may be followed by a list of that many router hashes.
+This is currently unused. It was intended for a form of restricted routes, which is unimplemented.
+{% endtrans %}</p>
+
+<p>{% trans -%}
+The signature may be verified using the signing public key of the router_ident.
+{% endtrans %}</p>
+
+<h4><a href="http://docs.i2p-projekt.de/javadoc/net/i2p/data/RouterInfo.html">Javadoc</a></h4>
+
+
+<h2 id="struct_DeliveryInstructions">Delivery Instructions</h2>
+<p>{% trans tunnelmessage=site_url('docs/spec/tunnel-message') -%}
+Defined in the <a href="{{ tunnelmessage }}#delivery">Tunnel Message Specification</a>.
+{% endtrans %}</p>
+{% endblock %}

@@ -1,0 +1,78 @@
+{%- from "global/macros" import change_lang with context -%}
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <title>{% block title_outer %}{% block title %}{% endblock %} - I2P{% endblock %}</title>
+    {%- if self.metadesc() %}
+    <meta name="description" content="{% block metadesc %}{% endblock %}">
+    {%- endif %}
+    <link rel="canonical" href="{{ canonical() }}" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=2.0, user-scalable=yes" />
+    {% if g.exttheme %}<link rel="stylesheet" type="text/css" href="{{ g.exttheme }}" title="External theme" />{% else -%}
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='styles/' + g.theme + '/default.css') }}" media="screen, handheld, print, projection" />
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='styles/' + g.theme + '/mobile.css') }}" media="screen and (min-device-width:320px) and (max-width:767px)" />
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='styles/' + g.theme + '/desktop.css') }}" title="{{ g.theme }}" media="screen and (min-device-width:768px) and (min-width:768px), print, projection" />
+    <!--[if IEMobile]>
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='styles/' + g.theme + '/mobile.css') }}" media="screen" />
+    <![endif]-->
+    <!--[if lt IE 9]>
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='styles/' + g.theme + '/desktop.css') }}" title="{{ g.theme }}" media="all" />
+    <![endif]-->
+    {%- endif %}
+    <link rel="shortcut icon" type="image/x-icon" href="{{ url_for('static', filename='favicon.ico') }}" />
+    <meta name="robots" content="NOODP" />
+    {%- block headextra %}{% endblock %}
+  </head>
+  <body>
+    <div class="hide"><a href="#content" title="Skip navigation" accesskey="2">{{ _('Skip navigation') }}</a></div>
+    <header>
+      <div id="topbar">
+        <a id="logo" href="{{ site_url() }}"><img src="{{ url_for('static', filename=logo_url()) }}" alt="{{ _('I2P Logo') }}" title="{{ _('The Invisible Internet Project') }} (I2P)" /></a>
+        <div class="title">
+          <h1>{{ self.title() }}</h1>
+          <div class="lang">
+            {% include "global/lang.html" %}
+          </div>
+        </div>
+      </div>
+
+      <nav class="navigation">
+        {% include "global/nav.html" %}
+      </nav>
+    </header>
+    <div class="container-fluid{% if not self.content() %} well{% endif %}">
+      <div id="content">
+        {% block content_outer %}
+        <article class="inner">
+          {% if self.lastupdated() or self.accuratefor() -%}
+          <div class="lastupdated">
+            <!--
+            {% block lastupdated %}{% endblock %}
+            {% block accuratefor %}{% endblock %}
+            -->
+            {% if self.lastupdated() and self.accuratefor() -%}
+            {% trans lastupdated=self.lastupdated(), accuratefor=self.accuratefor() -%}
+            This page was last updated in {{ lastupdated}} and is accurate for router version {{ accuratefor }}.
+            {%- endtrans %}
+            {%- else %}{% if self.lastupdated() -%}
+            {% trans lastupdated=self.lastupdated() -%}
+            This page was last updated in {{ lastupdated}}.
+            {%- endtrans %}
+            {%- else %}{% if self.accuratefor() -%}
+            {% trans accuratefor=self.accuratefor() -%}
+            This page is accurate for router version {{ accuratefor }}.
+            {%- endtrans %}
+            {%- endif %}{% endif %}{% endif %}
+          </div>
+          {%- endif %}
+        {% block content %}{% endblock %}
+        </article>
+      {% endblock %}
+      </div>
+      <footer id="global-footer">
+        {% include "global/footer.html" %}
+      </footer>
+    </div>
+  </body>
+</html>

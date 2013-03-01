@@ -1,0 +1,299 @@
+{% extends "global/layout.html" %}
+{% block title %}{% trans %}Tunnel Overview{% endtrans %}{% endblock %}
+{% block lastupdated %}{% trans %}July 2011{% endtrans %}{% endblock %}
+{% block accuratefor %}0.8.7{% endblock %}
+{% block content %}
+<h2>{% trans %}Tunnel Overview{% endtrans %}</h2>
+<p>{% trans -%}
+This page contains an overview of I2P tunnel terminology and operation, with
+links to more technical pages, details, and specifications.
+{%- endtrans %}</p>
+
+<p>{% trans intro=site_url('docs/how/intro') -%}
+As briefly explained in the <a href="{{ intro }}">introduction</a>, I2P builds virtual "tunnels" -
+temporary and unidirectional paths through a sequence of routers.  These 
+tunnels are classified as either inbound tunnels (where everything 
+given to it goes towards the creator of the tunnel) or outbound tunnels
+(where the tunnel creator shoves messages away from them).  When Alice
+wants to send a message to Bob, she will (typically) send it out one of
+her existing outbound tunnels with instructions for that tunnel's endpoint
+to forward it to the gateway router for one of Bob's current inbound 
+tunnels, which in turn passes it to Bob.
+{%- endtrans %}</p>
+
+<p style="text-align:center;">
+<img src="{{ url_for('static', filename='images/tunnelSending.png') }}" alt="{{ _('Alice connecting through her outbound tunnel to Bob via his inbound tunnel') }}" title="{{ _('Alice connecting through her outbound tunnel to Bob via his inbound tunnel') }}" />
+<pre>
+A: {% trans %}Outbound Gateway{% endtrans %} (Alice)
+B: {% trans %}Outbound Participant{% endtrans %}
+C: {% trans %}Outbound Endpoint{% endtrans %}
+D: {% trans %}Inbound Gateway{% endtrans %}
+E: {% trans %}Inbound Participant{% endtrans %}
+F: {% trans %}Inbound Endpoint{% endtrans %} (Bob)
+</pre>
+</p>
+
+<h2>{% trans %}Tunnel vocabulary{% endtrans %}</h2>
+<ul>
+<li class="gap">{% trans netdb=site_url('docs/how/network-database') -%}
+<b>Tunnel gateway</b> - the first router in a tunnel.  For inbound tunnels,
+this is the one mentioned in the LeaseSet published in the
+<a href="{{ netdb }}">network database</a>.  For outbound tunnels, the
+gateway is the originating router.  (e.g. both A and D above)
+{%- endtrans %}</li>
+<li class="gap">{% trans %}<b>Tunnel endpoint</b> - the last router in a tunnel.  (e.g. both C and F above){% endtrans %}</li>
+<li class="gap">{% trans -%}
+<b>Tunnel participant</b> - all routers in a tunnel except for the gateway or
+endpoint (e.g. both B and E above)
+{%- endtrans %}</li>
+<li>{% trans %}<b>n-Hop tunnel</b> - a tunnel with a specific number of inter-router jumps, e.g.:{% endtrans %}
+  <ul>
+  <li>{% trans %}<b>0-hop tunnel</b> - a tunnel where the gateway is also the endpoint{% endtrans %}</li>
+  <li>{% trans %}<b>1-hop tunnel</b> - a tunnel where the gateway talks directly to the endpoint{% endtrans %}</li>
+  <li>{% trans -%}
+<b>2-(or more)-hop tunnel</b> - a tunnel where there is at least one intermediate
+tunnel participant. (the above diagram includes two 2-hop tunnels - one
+outbound from Alice, one inbound to Bob)
+{%- endtrans %}</li>
+</ul>
+</li>
+<li class="gap">{% trans commonstructures=site_url('docs/spec/common-structures') -%}
+<b>Tunnel ID</b> - A <a href="{{ commonstructures }}#type_TunnelId">4 byte integer</a>
+different for each hop in a tunnel, and unique among all tunnels on a router.
+Chosen randomly by the tunnel creator.
+{%- endtrans %}</li>
+</ul>
+
+<h2>{% trans %}Tunnel Build Information{% endtrans %}</h2>
+<p>{% trans tunnelcreation=site_url('docs/spec/tunnel-creation') -%}
+Routers performing the three roles (gateway, participant, endpoint) are given
+different pieces of data in the initial
+<a href="{{ tunnelcreation }}">Tunnel Build Message</a>
+to accomplish their tasks:
+{%- endtrans %}</p>
+<ul>
+<li class="gap"><b>{% trans %}The tunnel gateway gets:{% endtrans %}</b>
+  <ul>
+  <li>{% trans commonstructures=site_url('docs/spec/common-structures') -%}
+<b>tunnel encryption key</b> - an <a href="{{ commonstructures }}#type_SessionKey">AES private key</a> for encrypting
+messages and instructions to the next hop
+{%- endtrans %}</li>
+  <li>{% trans commonstructures=site_url('docs/spec/common-structures') -%}
+<b>tunnel IV key</b> - an <a href="{{ commonstructures }}#type_SessionKey">AES private key</a> for double-encrypting
+the IV to the next hop
+{%- endtrans %}</li>
+  <li>{% trans commonstructures=site_url('docs/spec/common-structures') -%}
+<b>reply key</b> - an <a href="{{ commonstructures }}#type_SessionKey">AES public key</a> for encrypting
+the reply to the tunnel build request
+{%- endtrans %}</li>
+  <li>{% trans %}<b>reply IV</b> - the IV for encrypting the reply to the tunnel build request{% endtrans %}</li>
+  <li>{% trans %}<b>tunnel id</b> - 4 byte integer (inbound gateways only){% endtrans %}</li>
+  <li>{% trans %}<b>next hop</b> - what router is the next one in the path (unless this is a 0-hop tunnel, and the gateway is also the endpoint){% endtrans %}</li>
+  <li>{% trans %}<b>next tunnel id</b> - The tunnel ID on the next hop{% endtrans %}</li>
+  </ul>
+</li>
+<li class="gap"><b>{% trans %}All intermediate tunnel participants get:{% endtrans %}</b>
+  <ul>
+  <li>{% trans commonstructures=site_url('docs/spec/common-structures') -%}
+<b>tunnel encryption key</b> - an <a href="{{ commonstructures }}#type_SessionKey">AES private key</a> for encrypting
+messages and instructions to the next hop
+{%- endtrans %}</li>
+  <li>{% trans commonstructures=site_url('docs/spec/common-structures') -%}
+<b>tunnel IV key</b> - an <a href="{{ commonstructures }}#type_SessionKey">AES private key</a> for double-encrypting
+the IV to the next hop
+{%- endtrans %}</li>
+  <li>{% trans commonstructures=site_url('docs/spec/common-structures') -%}
+<b>reply key</b> - an <a href="{{ commonstructures }}#type_SessionKey">AES public key</a> for encrypting
+the reply to the tunnel build request
+{%- endtrans %}</li>
+  <li>{% trans %}<b>reply IV</b> - the IV for encrypting the reply to the tunnel build request{% endtrans %}</li>
+  <li>{% trans %}<b>tunnel id</b> - 4 byte integer{% endtrans %}</li>
+  <li>{% trans %}<b>next hop</b> - what router is the next one in the path{% endtrans %}</li>
+  <li>{% trans %}<b>next tunnel id</b> - The tunnel ID on the next hop{% endtrans %}</li>
+  </ul>
+</li>
+<li class="gap"> <b>{% trans %}The tunnel endpoint gets:{% endtrans %}</b>
+  <ul>
+  <li>{% trans commonstructures=site_url('docs/spec/common-structures') -%}
+<b>tunnel encryption key</b> - an <a href="{{ commonstructures }}#type_SessionKey">AES private key</a> for encrypting
+messages and instructions to the the endpoint (itself)
+{%- endtrans %}</li>
+  <li>{% trans commonstructures=site_url('docs/spec/common-structures') -%}
+<b>tunnel IV key</b> - an <a href="{{ commonstructures }}#type_SessionKey">AES private key</a> for double-encrypting
+the IV to the endpoint (itself)
+{%- endtrans %}</li>
+  <li>{% trans commonstructures=site_url('docs/spec/common-structures') -%}
+<b>reply key</b> - an <a href="{{ commonstructures }}#type_SessionKey">AES public key</a> for encrypting
+the reply to the tunnel build request (outbound endpoints only)
+{%- endtrans %}</li>
+  <li>{% trans %}<b>reply IV</b> - the IV for encrypting the reply to the tunnel build request (outbound endpoints only){% endtrans %}</li>
+  <li>{% trans %}<b>tunnel id</b> - 4 byte integer (outbound endpoints only){% endtrans %}</li>
+  <li>{% trans %}<b>reply router</b> - the inbound gateway of the tunnel to send the reply through (outbound endpoints only){% endtrans %}</li>
+  <li>{% trans %}<b>reply tunnel id</b> - The tunnel ID of the reply router (outbound endpoints only){% endtrans %}</li>
+  </ul>
+</li>
+</ul>
+
+<p>{% trans tunnelcreation=site_url('docs/spec/tunnel-creation') -%}
+Details are in the
+<a href="{{ tunnelcreation }}">tunnel creation specification</a>.
+{%- endtrans %}</p>
+
+<h2>{% trans %}Tunnel pooling{% endtrans %}</h2>
+<p>{% trans tunnelimpl=site_url('docs/tunnels/implementation') -%}
+Several tunnels for a particular purpose may be grouped into a "tunnel pool",
+as described in the
+<a href="{{ tunnelimpl }}#tunnel.pooling">tunnel specification</a>.
+This provides redundancy and additional bandwidth.
+The pools used by the router itself are called "exploratory tunnels".
+The pools used by applications are called "client tunnels".
+{%- endtrans %}</p>
+
+
+
+<h2 id="length">{% trans %}Tunnel length{% endtrans %}</h2>
+<p>{% trans i2cp=site_url('docs/protocol/i2cp') -%}
+As mentioned above, each client requests that their router provide tunnels to
+include at least a certain number of hops.
+The decision as to how many routers
+to have in one's outbound and inbound tunnels has an important effect upon the
+latency, throughput, reliability, and anonymity provided by I2P - the more peers
+that messages have to go through, the longer it takes to get there and the more
+likely that one of those routers will fail prematurely.  The less routers in a
+tunnel, the easier it is for an adversary to mount traffic analysis attacks and
+pierce someone's anonymity.
+Tunnel lengths are specified by clients via
+<a href="{{ i2cp }}#options">I2CP options</a>.
+The maximum number of hops in a tunnel is 7.
+{%- endtrans %}</p>
+
+
+<h3>{% trans %}0-hop tunnels{% endtrans %}</h3>
+<p>{% trans -%}
+With no remote routers in a tunnel, the user has very basic plausible
+deniability (since no one knows for sure that the peer that sent them the
+message wasn't simply just forwarding it on as part of the tunnel). However, it
+would be fairly easy to mount a statistical analysis attack and notice that
+messages targeting a specific destination are always sent through a single
+gateway.  Statistical analysis against outbound 0-hop tunnels are more complex,
+but could show similar information (though would be slightly harder to mount).
+{%- endtrans %}</p>
+
+<h3>{% trans %}1-hop tunnels{% endtrans %}</h3>
+<p>{% trans threatmodel=site_url('docs/how/threat-model') -%}
+With only one remote router in a tunnel, the user has both plausible
+deniability and basic anonymity, as long as they are not up against an internal
+adversary (as described on <a href="{{ threatmodel }}">threat model</a>). However,
+if the adversary ran a sufficient number of routers such that the single remote
+router in the tunnel is often one of those compromised ones, they would be able
+to mount the above statistical traffic analysis attack.
+{%- endtrans %}</p>
+
+<h3>{% trans %}2-hop tunnels{% endtrans %}</h3>
+<p>{% trans -%}
+With two or more remote routers in a tunnel, the costs of mounting the traffic
+analysis attack increases, since many remote routers would have to be compromised
+to mount it.
+{%- endtrans %}</p>
+
+<h3>{% trans %}3-hop (or more) tunnels{% endtrans %}</h3>
+<p>{% trans url='http://blog.torproject.org/blog/one-cell-enough' -%}
+To reduce the susceptibility to <a href="{{ url }}">some attacks</a>,
+3 or more hops are recommended for the highest level of protection.
+<a href="{{ url }}">Recent studies</a>
+also conclude that more than 3 hops does not provide additional protection.
+{%- endtrans %}</p>
+
+
+<h3>{% trans %}Tunnel default lengths{% endtrans %}</h3>
+<p>{% trans i2cp=site_url('docs/protocol/i2cp') -%}
+The router uses 2-hop tunnels by default for its exploratory tunnels.
+Client tunnel defaults are set by the application, using
+<a href="{{ i2cp }}#options">I2CP options</a>.
+Most applications use 2 or 3 hops as their default.
+{%- endtrans %}</p>
+
+
+
+<h2 id="testing">{% trans %}Tunnel testing{% endtrans %}</h2>
+<p>{% trans peerselection=site_url('docs/how/peer-selection') -%}
+All tunnels are periodically tested by their creator by sending a
+DeliveryStatusMessage out an outbound tunnel and bound for another inbound tunnel
+(testing both tunnels at once).  If either fails a number of consecutive tests, it is marked as no longer
+functional. If it was used for a client's inbound tunnel, a new leaseSet
+is created.
+Tunnel test failures are also reflected in the
+<a href="{{ peerselection }}#capacity">capacity rating in the peer profile</a>.
+{%- endtrans %}</p>
+
+
+<h2>{% trans %}Tunnel creation{% endtrans %}</h2>
+<p>{% trans garlicrouting=site_url('docs/how/garlic-routing'),
+tunnelcreation=site_url('docs/spec/tunnel-creation') -%}
+Tunnel creation is handled by <a href="{{ garlicrouting }}">garlic routing</a>
+a Tunnel Build Message to a router, requesting that they participate in the
+tunnel (providing them with all of the appropriate information, as above, along
+with a certificate, which right now is a 'null' cert, but will support hashcash
+or other non-free certificates when necessary).
+That router forwards the message to the next hop in the tunnel.
+Details are in the
+<a href="{{ tunnelcreation }}">tunnel creation specification</a>.
+{%- endtrans %}</p>
+
+
+<h2>Tunnel encryption</h2>
+<p>{% trans garlicrouting=site_url('docs/how/garlic-routing'),
+tunnelimpl=site_url('docs/tunnels/implementation') -%}
+Multi-layer encryption is handled by <a href="{{ garlicrouting }}">garlic encryption</a>
+of tunnel messages.
+Details are in the
+<a href="{{ tunnelimpl }}">tunnel specification</a>.
+The IV of each hop is encrypted with a separate key as explained there.
+{%- endtrans %}</p>
+
+
+<h2>{% trans %}Future Work{% endtrans %}</h2>
+<ul>
+<li>{% trans -%}
+Other tunnel test techniques could be used, such as
+garlic wrapping a number of tests into cloves, testing individual tunnel
+participants separately, etc.
+{%- endtrans %}</li>
+
+<li>{% trans -%}
+Move to 3-hop exploratory tunnels defaults.
+{%- endtrans %}</li>
+
+<li>{% trans -%}
+In a distant future release,
+options specifying the pooling, mixing, and chaff generation settings may be implemented.
+{%- endtrans %}</li>
+
+<li>{% trans -%}
+In a distant future release,
+limits on the quantity and size of messages allowed during the
+tunnel's lifetime may be implemented (e.g. no more than 300 messages or
+1MB per minute).
+{%- endtrans %}</li>
+</ul>
+
+
+<h2>{% trans %}See Also{% endtrans %}</h2>
+<ul>
+<li>
+<a href="{{ site_url('docs/tunnels/implementation') }}">{% trans %}Tunnel specification{% endtrans %}</a>
+</li><li>
+<a href="{{ site_url('docs/spec/tunnel-creation') }}">{% trans %}Tunnel creation specification{% endtrans %}</a>
+</li><li>
+<a href="{{ site_url('docs/tunnels/unidirectional') }}">{% trans %}Unidirectional tunnels{% endtrans %}</a>
+</li><li>
+<a href="{{ site_url('docs/spec/tunnel-message') }}">{% trans %}Tunnel message specification{% endtrans %}</a>
+</li><li>
+<a href="{{ site_url('docs/how/garlic-routing') }}">{% trans %}Garlic routing{% endtrans %}</a>
+</li><li>
+<a href="{{ site_url('docs/how/elgamal-aes') }}">{% trans %}ElGamal/AES+SessionTag{% endtrans %}</a>
+</li><li>
+<a href="{{ site_url('docs/protocol/i2cp') }}#options">{% trans %}I2CP options{% endtrans %}</a>
+</li>
+</ul>
+{% endblock %}
