@@ -20,16 +20,16 @@ MEETINGS_PER_PAGE = 20
 SUPPORTED_LANGS = [
     'en',
     'es',
-    'zh',
+#    'zh',
     'de',
     'fr',
-    'it',
-    'nl',
-    'ru',
+#    'it',
+#    'nl',
+#    'ru',
     'sv',
-    'cs',
-    'ar',
-    'el',
+#    'cs',
+#    'ar',
+#    'el',
     ]
 
 TEMPLATE_DIR = os.path.join(os.path.dirname(__file__), 'pages')
