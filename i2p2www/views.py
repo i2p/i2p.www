@@ -55,3 +55,6 @@ def favicon():
 
 def google():
     return send_from_directory(STATIC_DIR, 'googleadcf8b9c9f4ff24f.html')
+
+def bing():
+    return send_from_directory(STATIC_DIR, 'BingSiteAuth.xml', mimetype='application/xml')
