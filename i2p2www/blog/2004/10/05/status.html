@@ -1,0 +1,167 @@
+<pre>-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA1
+
+Hi y'all, its weekly update time
+
+* Index:
+1) 0.4.1.1 status
+2) Pretty pictures
+3) 0.4.1.2 and 0.4.2
+4) Bundled eepserver
+5) ???
+
+* 1) 0.4.1.1 status
+
+After a pretty bumpy 0.4.1 release (and subsequent rapid 0.4.1.1
+update), the net seems to be back to normal - 50-something peers
+actrive at the moment, and both irc and eepsites are reachable.  Most
+of the pain was caused by insufficient testing of the new transport
+outside lab conditions (e.g. sockets breaking at strange times,
+excessive delays, etc).  Next time we need to make changes at that
+layer, we'll be sure to test it more widely prior to release.
+
+* 2) Pretty pictures
+
+Over the last few days there have been a large number of updates
+going on in CVS, and one of the new things added was a new stat
+logging component, allowing us to simply pull out the raw stat data
+as its being generated, rather than deal with the crude averages
+gathered on /stats.jsp.  With it, I've been monitoring a few key
+stats on a few routers, and we're getting closer to tracking down the
+remaining stability issues.  The raw stats are fairly bulky (a
+20-hour run on duck's box generated almost 60MB of data), but thats
+why we've got pretty pictures - <a  rel="nofollow" href="http://dev.i2p.net/~jrandom/stats/">http://dev.i2p.net/~jrandom/stats/</a>
+
+The Y axis on most of those is milliseconds, while the X axis is
+seconds.  There are a few interesting things to note.  First,
+client.sendAckTime.png is a pretty good approximation of a single
+round trip delay, as the ack message is sent with the payload and
+then returns the full path of the tunnel - as such, the vast majority
+of the nearly 33,000 successful messages sent had a round trip time
+under 10 seconds.  If we then review the client.sendsPerFailure.png
+along side client.sendAttemptAverage.png, we see that the 563 failed
+sends were almost all sent the maximum number of retries we allow (5
+with a 10s soft timeout per try and 60s hard timeout) while most of
+the other attempts succeeded on the first or second try.
+
+Another interesting image is client.timeout.png which sheds much
+doubt on a hypothesis I had - that the message send failures were
+correlated with some sort of local congestion.  The plotted data
+shows that the inbound bandwidth usage varied widely when failures
+occurred, there were no consistent spikes in local send processing
+time, and seemingly no pattern whatsoever with tunnel test latency.
+
+The files dbResponseTime.png and dbResponseTime2.png are similar to
+the client.sendAckTime.png, except they correspond to netDb messages
+instead of end to end client messages.
+
+The transport.sendMessageFailedLifetime.png shows how long we sit on
+a message locally before failing it for some reason (for instance,
+due to its expiration being reached or the peer it is targetting
+being unreachable).  Some failures are unavoidable, but this image
+shows a significant number failing right after the local send timeout
+(10s).  There are a few things we can do to address this:
+ - first, we can make the shitlist more adaptive- exponentially
+increasing the period a peer is shitlisted for, rather than a flat 4
+minutes each.  (this has already been committed to CVS)
+ - second, we can preemptively fail messages when it looks like
+they'd fail anyway.  To do this, we have each connection keep track
+of its send rate and whenever a new message is added to its queue, if
+the number of bytes already queued up divided by the send rate
+exceeds the time left until expiration, fail the message immediately.
+ We may also be able to use this metric when determining whether to
+accept any more tunnel requests through a peer.
+
+Anyway, on to the next pretty picture -
+transport.sendProcessingTime.png.  In this you see that this
+particular machine is rarely responsible for much lag - typically
+10-100ms, though some spikes to 1s or more.
+
+Each point plotted in the tunnel.participatingMessagesProcessed.png
+represents how many messages were passed along a tunnel that router
+participated in.  Combining this with the average message size gives
+us an estimated network load that the peer takes on for other people.
+
+The last image is the tunnel.testSuccessTime.png, showing how long it
+takes to send a message out a tunnel and back home again through
+another inbound tunnel, giving us an estimage of how good our tunnels
+are.
+
+Ok, thats enough pretty pictures for now.  You can generate the data
+yourself with any release after 0.4.1.1-6 by setting the router
+config property &quot;stat.logFilters&quot; to a comma seperated list of stat
+names (grab the names from the /stats.jsp page).  That is dumped to
+stats.log which you can process with
+  java -cp lib/i2p.jar net.i2p.stat.StatLogFilter stat.log
+which splits it up into seperate files for each stat, suitable for
+loading into your favorite tool (e.g. gnuplot).
+
+3) 0.4.1.2 and 0.4.2
+
+There have been lots of updates since the 0.4.1.1 release (see the
+history [1] for a full list), but no critical fixes yet.  We'll be
+rolling them out in the next 0.4.1.2 patch release later this week
+after some outstanding bugs relating to IP autodetection are
+addressed.
+
+The next major task at that point will be to hit 0.4.2, which is
+currently slated [2] as a major revamp to the tunnel processing.  Its
+going to be a lot of work, revising the encryption and message
+processing as well as the tunnel pooling, but its pretty critical, as
+an attacker could fairly easily mount some statistical attacks on the
+tunnels right now (e.g. predecessor w/ random tunnel ordering or
+netDb harvesting).
+
+dm raised the question however as to whether it'd make sense to do
+the streaming lib first (currently planned for the 0.4.3 release).
+The benefit of that would be the network would become both more
+reliable and have better throughput, encouraging other developers to
+get hacking on client apps.  After that's in place, I could then
+return to the tunnel revamp and address the (non-user-visible)
+security issues.
+
+Technically, the two tasks planned for 0.4.2 and 0.4.3 are
+orthogonal, and they're both going to get done anyway, so there
+doesn't seem to be much of a downside to switching those around.  I'm
+inclined to agree with dm, and unless someone can come up with some
+reasons to keep 0.4.2 as the tunnel update and 0.4.3 as the streaming
+lib, we'll switch 'em.
+
+[1] <a  rel="nofollow" href="http://dev.i2p.net/cgi-bin/cvsweb.cgi/i2p/history.txt?rev=HEAD">http://dev.i2p.net/cgi-bin/cvsweb.cgi/i2p/history.txt?rev=HEAD</a>
+[2] <a  rel="nofollow" href="http://www.i2p.net/roadmap">http://www.i2p.net/roadmap</a>
+
+* 4) Bundled eepserver
+
+As was mentioned in the 0.4.1 release notes [3], we've bunded the
+software and configuration necessary for running an eepsite out of
+the box - you can simply drop a file in the ./eepsite/docroot/
+directory and share the I2P destination found on the router console.
+
+A few people called me on my zeal for .war files though - most apps
+unfortunately need a little more work than simply dropping a file in
+the ./eepsite/webapps/ dir.  I've put together a brief tutorial [4]
+on running the blojsom [5] blogging engine, and you can see what that
+looks like on detonate's site [6].
+
+[3] <a  rel="nofollow" href="http://dev.i2p.net/pipermail/i2p/2004-September/000456.html">http://dev.i2p.net/pipermail/i2p/2004-September/000456.html</a>
+[4] <a  rel="nofollow" href="http://www.i2p.net/howto_blojsom">http://www.i2p.net/howto_blojsom</a>
+[5] <a  rel="nofollow" href="http://wiki.blojsom.com/wiki/display/blojsom/About+blojsom">http://wiki.blojsom.com/wiki/display/blojsom/About+blojsom</a>
+[6] <a  rel="nofollow" href="http://detonate.i2p/">http://detonate.i2p/</a>
+
+* 5) ???
+
+Thats about all I've got at the moment - swing on by the meeting in
+90 minutes if you want to discuss things.
+
+=jr
+
+-----BEGIN PGP SIGNATURE-----
+Version: PGP 8.1
+
+iQA/AwUBQWL3MxpxS9rYd+OGEQLk1gCfeMpSoYfbIlPWobks3i7lr8MjwDkAoOMS
+vkNuIUa6ZwkKMVJWhoZdWto4
+=hCGS
+-----END PGP SIGNATURE-----
+
+
+</pre>
