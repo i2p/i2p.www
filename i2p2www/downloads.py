@@ -65,5 +65,5 @@ def downloads_redirect(protocol, file, mirror):
         'file': file,
         }
     if mirror:
-        return redirect(mirrors[mirror]['url'] % data)
+        return redirect(mirrors[mirror-1]['url'] % data)
     return redirect(mirrors[randint(0, len(mirrors) - 1)]['url'] % data)
