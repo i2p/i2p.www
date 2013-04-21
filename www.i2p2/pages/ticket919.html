@@ -1,0 +1,58 @@
+{% extends "_layout.html" %}
+{% block title %}Ticket 919/920 fix{% endblock %}
+{% block content %}
+
+The issue described on this page only affects Windows systems that originally installed I2P
+with version 0.9.5. Other operating systems are not affected.
+
+<h2>Background</h2>
+<p>A change was introduced during the 0.9.5 cycle to allow I2P's configuration files to be edited with the standard
+   Windows text editor, <code>Notepad</code>.  This change had the unfortunate side-effect of causing our eepsite migration code to
+   fail to run on Windows systems, leading to eepsites being served from the installation directory. Consequently:
+</p>
+<ul>
+   <li>depending upon how I2P is started, the eepsite may not be accessible; and</li>
+   <li>confusion ensues&mdash;all documentation states that eepsites are served from the profile path; and</li>
+   <li>the update to Jetty 7, included in the 0.9.6 release, will fail.</li>
+</ul>
+<p>While no action is required for users that are not hosting an eepsite (or are not using the included Jetty to host an eepsite), it is
+recommended to follow this procedure to avoid issues in case you decide to run a Jetty-hosted eepsite in the future. If you are running an
+eepsite it is important to follow this procedure prior to upgrading to 0.9.6.
+</p>
+
+<p>
+   Tickets <a href="http://trac.i2p2.de/ticket/919">919</a> &amp; <a href="http://trac.i2p2.de/ticket/920">920</a> correspond to this issue.
+</p>
+
+<h2>Fixing the configuration</h2>
+<p>Because this issue causes the migration code to not run, the path in <code>%APPDATA%\I2P\clients.config</code> isn't
+   updated to use an absolute path for the Jetty config file, requiring the path to be set manually. Experienced users
+   can set the correct path in <code>clients.config</code> directly and restart I2P, but this page will explain how to
+   correct the problem from within the router console.
+</p>
+
+<ol>
+   <li>From the Home page of the I2P Router Console, click the I2P logo in the upper-left corner.
+       <a href="/_static/images/ticket919/home.png">
+       <img alt="" style="padding:10px;margin-left:auto;margin-right:auto;display:block" src="/_static/images/ticket919/home.png"></a>
+   </li>
+   <li>Click the <a href="http://127.0.0.1:7657/configclient">I2P Services</a> link.
+       <a href="/_static/images/ticket919/i2p-services.png">
+       <img alt="" style="padding:10px;margin-left:auto;margin-right:auto;display:block" src="/_static/images/ticket919/i2p-services.png"></a>
+       You should see something like the following:
+       <a href="/_static/images/ticket919/paths.png">
+       <img alt="" style="padding:10px;margin-left:auto;margin-right:auto;display:block" src="/_static/images/ticket919/paths.png"></a>
+       If the path at number 1 in the image above is set to <code>eepsite/jetty.xml</code>, the path needs to be updated.
+   </li>
+   <li>Click the <code>Edit</code> button next to <em>I2P webserver (eepsite)</em>. The page will reload to allow the path to be edited as shown below:
+       <a href="/_static/images/ticket919/edit.png">
+       <img alt="" style="padding:10px;margin-left:auto;margin-right:auto;display:block" src="/_static/images/ticket919/edit.png"></a>
+       Insert the full path to your I2P configuration directory <em>before</em> the text "eepsite/jetty.xml" as shown above,
+       then click Click the <code>Save Client Configuration</code> button.
+   </li>
+   <li> If you're hosting an eepsite, move its contents to its proper home at <code>%APPDATA%\I2P\eepsite\docroot</code>.
+   </li>
+   <li>At this point you should restart your I2P router.</li>
+</ol>
+
+{% endblock %}
