@@ -28,22 +28,38 @@ class HighlightExtension(Extension):
     def parse(self, parser):
         lineno = parser.stream.next().lineno
 
-        # TODO:
-        # add support to show line numbers
-
         # extract the language if available
-        if not parser.stream.current.test('block_end'):
-            lang = parser.parse_expression()
-        else:
+        # Any additional parameters are passed to HtmlFormatter
+        lang = None
+        parameters = []
+        while parser.stream.current.type != 'block_end':
+            if lang or parameters:
+                parser.stream.expect('comma')
+
+            name = parser.stream.expect('name')
+            if name.value in parameters or (name.value == 'lang' and lang):
+                parser.fail('parameter %r defined twice.' %
+                            name.value, name.lineno,
+                            exc=TemplateAssertionError)
+
+            if parser.stream.current.type == 'assign':
+                next(parser.stream)
+                if name.value == 'lang':
+                    lang = parser.parse_expression()
+                else:
+                    parameters.append(nodes.Pair(nodes.Const(name.value), parser.parse_expression()))
+
+        if lang == None:
             lang = nodes.Const(None)
+        parameters = nodes.Dict(parameters)
 
         # body of the block
         body = parser.parse_statements(['name:endhighlight'], drop_needle=True)
 
-        return nodes.CallBlock(self.call_method('_highlight', [lang]),
+        return nodes.CallBlock(self.call_method('_highlight', [lang, parameters]),
                                [], [], body).set_lineno(lineno)
 
-    def _highlight(self, lang, caller=None):
+    def _highlight(self, lang, parameters, caller=None):
         # highlight code using Pygments
         body = caller()
         try:
@@ -55,7 +71,7 @@ class HighlightExtension(Extension):
             print(e)
             sys.exit(1)
 
-        formatter = HtmlFormatter()
+        formatter = HtmlFormatter(**parameters)
         code = highlight(Markup(body).unescape(), lexer, formatter)
         return code
 
