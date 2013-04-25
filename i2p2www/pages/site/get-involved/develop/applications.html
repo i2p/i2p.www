@@ -303,25 +303,25 @@ In addition, we will ask the I2PSocketManager for an I2PSession, so we can find 
 {%- endtrans %}</p>
 <div class="box">
 {% highlight lang='java' %}
-    package i2p.echoserver;
+package i2p.echoserver;
 
-    import net.i2p.client.I2PSession;
-    import net.i2p.client.streaming.I2PServerSocket;
-    import net.i2p.client.streaming.I2PSocketManager;
-    import net.i2p.client.streaming.I2PSocketManagerFactory;
+import net.i2p.client.I2PSession;
+import net.i2p.client.streaming.I2PServerSocket;
+import net.i2p.client.streaming.I2PSocketManager;
+import net.i2p.client.streaming.I2PSocketManagerFactory;
 
-    public class Main {
+public class Main {
 
-        public static void main(String[] args) {
-            //Initialize application
-            I2PSocketManager manager = I2PSocketManagerFactory.createManager();
-            I2PServerSocket serverSocket = manager.getServerSocket();
-            I2PSession session = manager.getSession();
-            System.out.println(session.getMyDestination().toBase64()); //Print the base64 string, the regular string would look like garbage.
-            //The additional main method code comes here...
-        }
-
+    public static void main(String[] args) {
+        //Initialize application
+        I2PSocketManager manager = I2PSocketManagerFactory.createManager();
+        I2PServerSocket serverSocket = manager.getServerSocket();
+        I2PSession session = manager.getSession();
+        System.out.println(session.getMyDestination().toBase64()); //Print the base64 string, the regular string would look like garbage.
+        //The additional main method code comes here...
     }
+
+}
 {% endhighlight %}
     <p style="text-align:center">{{ _('Code example 1: initializing the server application.') }}</p>
 </div>
@@ -336,75 +336,75 @@ The bold code is the new code we add.
 <div class="box">
 {% highlight lang='java',
 hl_lines=[3,4,5,6,7,8,9,10,25,26,27,28,29,32,34,35,36,38,39,40,41,42,43,44,45,46,47,48,49,50,51,52,53,54,55,56,57,58,59,60,61,62,63,65,67] %}
-    package i2p.echoserver;
+package i2p.echoserver;
 
-    import java.io.IOException;
-    import java.io.InputStream;
-    import java.io.OutputStream;
-    import java.net.ConnectException;
-    import java.net.SocketTimeoutException;
-    import net.i2p.I2PException;
-    import net.i2p.client.streaming.I2PSocket;
-    import net.i2p.util.I2PThread;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.net.ConnectException;
+import java.net.SocketTimeoutException;
+import net.i2p.I2PException;
+import net.i2p.client.streaming.I2PSocket;
+import net.i2p.util.I2PThread;
 
-    import net.i2p.client.I2PSession;
-    import net.i2p.client.streaming.I2PServerSocket;
-    import net.i2p.client.streaming.I2PSocketManager;
-    import net.i2p.client.streaming.I2PSocketManagerFactory;
+import net.i2p.client.I2PSession;
+import net.i2p.client.streaming.I2PServerSocket;
+import net.i2p.client.streaming.I2PSocketManager;
+import net.i2p.client.streaming.I2PSocketManagerFactory;
 
-    public class Main {
+public class Main {
 
-        public static void main(String[] args) {
-            I2PSocketManager manager = I2PSocketManagerFactory.createManager();
-            I2PServerSocket serverSocket = manager.getServerSocket();
-            I2PSession session = manager.getSession();
-            System.out.println(session.getMyDestination().toBase64()); //Print the base64 string, the regular string would look like garbage.
+    public static void main(String[] args) {
+        I2PSocketManager manager = I2PSocketManagerFactory.createManager();
+        I2PServerSocket serverSocket = manager.getServerSocket();
+        I2PSession session = manager.getSession();
+        System.out.println(session.getMyDestination().toBase64()); //Print the base64 string, the regular string would look like garbage.
 
-            //Create socket to handle clients
-            I2PThread t = new I2PThread(new ClientHandler(serverSocket));
-            t.setName("clienthandler1");
-            t.setDaemon(false);
-            t.start();
+        //Create socket to handle clients
+        I2PThread t = new I2PThread(new ClientHandler(serverSocket));
+        t.setName("clienthandler1");
+        t.setDaemon(false);
+        t.start();
+    }
+
+    private static class ClientHandler implements Runnable {
+
+        public ClientHandler(I2PServerSocket socket) {
+            this.socket = socket;
         }
 
-        private static class ClientHandler implements Runnable {
-
-            public ClientHandler(I2PServerSocket socket) {
-                this.socket = socket;
-            }
-
-            public void run() {
-                while(true) {
-                    try {
-                        I2PSocket sock = this.socket.accept();
-                        if(sock != null) {
-                            BufferedReader br = new BufferedReader(new InputStreamReader(sock.getInputStream())); //Receive from clients
-                            BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(sock.getOutputStream())); //Send to clients
-                            String line = br.readLine();
-                            if(line != null) {
-                                System.out.println("Received from client: " + line);
-                                bw.write(line);
-                                bw.flush(); //Flush to make sure everything got sent
-                            }
-                            sock.close();
+        public void run() {
+            while(true) {
+                try {
+                    I2PSocket sock = this.socket.accept();
+                    if(sock != null) {
+                        BufferedReader br = new BufferedReader(new InputStreamReader(sock.getInputStream())); //Receive from clients
+                        BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(sock.getOutputStream())); //Send to clients
+                        String line = br.readLine();
+                        if(line != null) {
+                            System.out.println("Received from client: " + line);
+                            bw.write(line);
+                            bw.flush(); //Flush to make sure everything got sent
                         }
-                    } catch (I2PException ex) {
-                        System.out.println("General I2P exception!");
-                    } catch (ConnectException ex) {
-                        System.out.println("Error connecting!");
-                    } catch (SocketTimeoutException ex) {
-                        System.out.println("Timeout!");
-                    } catch (IOException ex) {
-                        System.out.println("General read/write-exception!");
+                        sock.close();
                     }
+                } catch (I2PException ex) {
+                    System.out.println("General I2P exception!");
+                } catch (ConnectException ex) {
+                    System.out.println("Error connecting!");
+                } catch (SocketTimeoutException ex) {
+                    System.out.println("Timeout!");
+                } catch (IOException ex) {
+                    System.out.println("General read/write-exception!");
                 }
             }
-
-            private I2PServerSocket socket;
-
         }
 
+        private I2PServerSocket socket;
+
     }
+
+}
 {% endhighlight %}
     <p style="text-align:center">{{ _('Code example 2: accepting connections from clients and handling messages.') }}</p>
 </div>
@@ -438,76 +438,76 @@ Once we have an I2PSocket, we can start sending and receiving data to and from t
 {%- endtrans %}</p>
 <div class="box">
 {% highlight lang='java' %}
-    package i2p.echoclient;
+package i2p.echoclient;
 
-    import java.io.BufferedReader;
-    import java.io.BufferedWriter;
-    import java.io.IOException;
-    import java.io.InputStreamReader;
-    import java.io.InterruptedIOException;
-    import java.io.OutputStream;
-    import java.io.OutputStreamWriter;
-    import java.net.ConnectException;
-    import java.net.NoRouteToHostException;
-    import java.util.logging.Level;
-    import java.util.logging.Logger;
-    import net.i2p.I2PException;
-    import net.i2p.client.streaming.I2PSocket;
-    import net.i2p.client.streaming.I2PSocketManager;
-    import net.i2p.client.streaming.I2PSocketManagerFactory;
-    import net.i2p.data.DataFormatException;
-    import net.i2p.data.Destination;
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.InterruptedIOException;
+import java.io.OutputStream;
+import java.io.OutputStreamWriter;
+import java.net.ConnectException;
+import java.net.NoRouteToHostException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import net.i2p.I2PException;
+import net.i2p.client.streaming.I2PSocket;
+import net.i2p.client.streaming.I2PSocketManager;
+import net.i2p.client.streaming.I2PSocketManagerFactory;
+import net.i2p.data.DataFormatException;
+import net.i2p.data.Destination;
 
-    public class Main {
+public class Main {
 
-        public static void main(String[] args) {
-            I2PSocketManager manager = I2PSocketManagerFactory.createManager();
-            System.out.println("Please enter a Destination:");
-            BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
-            String destinationString = null;
-            try {
-                destinationString = br.readLine();
-            } catch (IOException ex) {
-                System.out.println("Failed to get a Destination string.");
-                return;
-            }
-            Destination destination = null;
-            try {
-                destination = new Destination(destinationString);
-            } catch (DataFormatException ex) {
-                System.out.println("Destination string incorrectly formatted.");
-                return;
-            }
-            I2PSocket socket = null;
-            try {
-                socket = manager.connect(destination);
-            } catch (I2PException ex) {
-                System.out.println("General I2P exception occurred!");
-            } catch (ConnectException ex) {
-                System.out.println("Failed to connect!");
-            } catch (NoRouteToHostException ex) {
-                System.out.println("Couldn't find host!");
-            } catch (InterruptedIOException ex) {
-                System.out.println("Sending/receiving was interrupted!");
-            }
-            try {
-                //Write to server
-                BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()));
-                bw.write("Hello I2P!\n");
-                bw.flush(); //Flush to make sure everything got sent
-                //Read from server
-                BufferedReader br2 = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-                String s = null;
-                while ((s = br2.readLine()) != null) {
-                    System.out.println("Received from server: " + s);
-                }
-                socket.close();
-            } catch (IOException ex) {
-                System.out.println("Error occurred while sending/receiving!");
-            }
+    public static void main(String[] args) {
+        I2PSocketManager manager = I2PSocketManagerFactory.createManager();
+        System.out.println("Please enter a Destination:");
+        BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
+        String destinationString = null;
+        try {
+            destinationString = br.readLine();
+        } catch (IOException ex) {
+            System.out.println("Failed to get a Destination string.");
+            return;
         }
-
+        Destination destination = null;
+        try {
+            destination = new Destination(destinationString);
+        } catch (DataFormatException ex) {
+            System.out.println("Destination string incorrectly formatted.");
+            return;
+        }
+        I2PSocket socket = null;
+        try {
+            socket = manager.connect(destination);
+        } catch (I2PException ex) {
+            System.out.println("General I2P exception occurred!");
+        } catch (ConnectException ex) {
+            System.out.println("Failed to connect!");
+        } catch (NoRouteToHostException ex) {
+            System.out.println("Couldn't find host!");
+        } catch (InterruptedIOException ex) {
+            System.out.println("Sending/receiving was interrupted!");
+        }
+        try {
+            //Write to server
+            BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()));
+            bw.write("Hello I2P!\n");
+            bw.flush(); //Flush to make sure everything got sent
+            //Read from server
+            BufferedReader br2 = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+            String s = null;
+            while ((s = br2.readLine()) != null) {
+                System.out.println("Received from server: " + s);
+            }
+            socket.close();
+        } catch (IOException ex) {
+            System.out.println("Error occurred while sending/receiving!");
+        }
     }
+
+}
 {% endhighlight %}
     <p style="text-align:center">{{ _('Code example 3: starting the client and connecting it to the server application.') }}</p>
 </div>
