@@ -30,7 +30,7 @@ def app(environ, start_response):
         if len(entries) > 150:
             # select some randomly
             new = []
-            for i in range(100):
+            for i in range(50):
                 while True:
                     sel = choice(entries)
                     if not sel.startswith('routerInfo-'):
