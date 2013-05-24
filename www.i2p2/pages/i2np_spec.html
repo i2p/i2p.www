@@ -553,7 +553,19 @@ data:
 |                                  |    |
 +----+----+----+----+----+----+----+    +
 | SHA256 of $key2 to exclude            |
-....
++                                       +
+~                                       ~
++                                  +----+
+|                                  |    |
++----+----+----+----+----+----+----+    +
+|                                       |
++                                       +
+|   Reply key if reply encryption       |
++   was requested                       +
+|                                       |
++                                  +----+
+|                                  |
++----+----+----+----+----+----+----+
 {% endfilter %}
 </pre>
 
@@ -566,22 +578,28 @@ key:
 
 from:
      32 bytes
-     If flag == 0, the SHA256 hash of the routerInfo entry this request came from (and to which the reply should be sent)
-     If flag == 1, the SHA256 hash of the reply tunnel gateway (to which the reply should be sent)
+     If deliveryFlag == 0, the SHA256 hash of the routerInfo entry this request came from (and to which the reply should be sent)
+     If deliveryFlag == 1, the SHA256 hash of the reply tunnel gateway (to which the reply should be sent)
 
-flag:
+flags:
      1 byte
      bit order: 76543210
-     bit 0:
-             0  FALSE => send reply directly
-             1  TRUE  => send reply to some tunnel
-     bits 7-1:
+     bit 0: deliveryFlag
+             0  => send reply directly
+             1  => send reply to some tunnel
+     bit 1: encryptionFlag
+             Through release 0.9.5, must be set to 0
+             As of release 0.9.6, ignored
+             As of release 0.9.7:
+             0  => send unencrypted reply
+             1  => send encrypted reply using enclosed key
+     bits 7-2:
              Through release 0.9.5, must be set to 0
              As of release 0.9.6, ignored, set to 0 for compatibility with future uses and with older routers
 
 reply tunnelId:
                4 byte Tunnel ID
-               only included if flag==TRUE
+               only included if deliveryFlag == 1
                tunnelId of the tunnel to send the reply to
 
 size:
@@ -590,22 +608,25 @@ size:
      number of peers to exclude from the Database Search Reply Message
 
 excludedPeers:
-              Rest of the message are $size SHA256 hashes of 32 bytes each (total $size*32 bytes)
+              $size SHA256 hashes of 32 bytes each (total $size*32 bytes)
               If the lookup fails, these peers are requested to be excluded from the list in
               the Database Search Reply Message.
               If excludedPeers includes a hash of all zeroes, the request is exploratory, and
               the Database Search Reply Message is requested to list non-floodfill routers only.
 
+reply key:
+     32 bytes
+     Only included if encryptionFlag == 1
+
 {% endfilter %}
 </pre>
 
 <h4>Notes</h4>
-<p>
- To do:
- Use a bit of the flag field to request an AES-encrypted response.
- Use parts of this message as the key and IV? Add a message ID also?
- Backward compatibility?
-</p>
+<ul><li>
+Encryption flag and reply key are preliminary, not yet implemented.
+</li><li>
+Encrypted replies are only useful when the response is through a tunnel.
+</li></ul>
 
 
 <h3 id="msg_DatabaseSearchReply">DatabaseSearchReply</h3>
