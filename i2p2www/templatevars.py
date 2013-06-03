@@ -87,8 +87,10 @@ def utility_processor():
             logo = 'images/i2plogo.png'
         return logo
 
-    def get_current_version(string=None):
+    def get_current_version(string=None, ver=None):
         if string:
+            if ver:
+                return string % ver
             return string % CURRENT_I2P_VERSION
         return CURRENT_I2P_VERSION
 
