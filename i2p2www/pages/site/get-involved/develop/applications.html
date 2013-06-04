@@ -1,5 +1,7 @@
 {% extends "global/layout.html" %}
 {% block title %}{{ _('Application Development') }}{% endblock %}
+{% block lastupdated %}{% trans %}May 2013{% endtrans %}{% endblock %}
+{% block accuratefor %}0.9.6{% endblock %}
 {% block content %}
 <h1>{{ _('Application Development Guide') }}</h1>
 
@@ -51,6 +53,44 @@ by using (best effort) datagrams without having to worry about MTU detection or
 fragmentation of messages under 32KB.
 {%- endtrans %}</p>
 
+<p>{% trans i2ptunnel=site_url('docs/api/i2ptunnel') -%}
+There are multiple ways to use applications in I2P.
+Using <a href="{{ i2ptunnel }}">I2PTunnel</a>,
+you can use regular applications without needing to program explicit I2P support.
+This is very effective for client-server scenario's,
+where you need to connect to a single website.
+You can simply create a tunnel using I2PTunnel to connect to that website, as shown in <a href="#tunnel.serverclient">Figure 1</a>.
+{%- endtrans %}</p>
+<p>{% trans -%}
+If your application is distributed, it will require connections to a large amount of peers.
+Using I2PTunnel, you will need to create a new tunnel for each peer you want to contact,
+as shown in <a href="#tunnel.peertopeer">Figure 2</a>.
+This process can of course be automated, but running a lot of I2PTunnel instances creates a large amount of overhead.
+In addition, with many protocols you will need to force everyone to 
+use the same set of ports for all peers - e.g. if you want to reliably run DCC 
+chat, everyone needs to agree that port 10001 is Alice, port 10002 is Bob, port 
+10003 is Charlie, and so on, since the protocol includes TCP/IP specific information
+(host and port).
+{%- endtrans %}</p>
+<p>{% trans -%}
+General network applications often send a lot of additional data that could be used to identify users.
+Hostnames, port numbers, time zones, character sets, etc. are often sent without informing the user.
+As such, designing the network protocol specifically with anonymity in mind
+can avoid compromising user identities.
+{%- endtrans %}</p>
+<p>{% trans -%}
+There are also efficiency considerations to review when determining how to 
+interact on top of I2P. The streaming library and things built on top of it
+operate with handshakes similar to TCP, while the core I2P protocols (I2NP and I2CP)
+are strictly message based (like UDP or in some instances raw IP).  The important
+distinction is that with I2P, communication is operating over a long fat network - 
+each end to end message will have nontrivial latencies, but may contain payloads 
+of up to several KB. An application that needs a simple request and response can get rid
+of any state and drop the latency incurred by the startup and teardown handshakes
+by using (best effort) datagrams without having to worry about MTU detection or 
+fragmentation of messages.
+{%- endtrans %}</p>
+   
         <div class="box" id="tunnel.serverclient" style="text-align:center">
         <img src="{{ url_for('static', filename='images/i2ptunnel_serverclient.png') }}" alt="{{ _('Creating a server-client connection using I2PTunnel only requires creating a single tunnel.') }}" title="{{ _('Creating a server-client connection using I2PTunnel only requires creating a single tunnel.') }}" />
         <br /><br />
@@ -85,6 +125,12 @@ on I2P, which is a network with a much higher latency.
 </ul>
 
 
+<p>{% trans plugins=site_url('docs/plugins') -%}
+I2P supports a standard <a href="{{ plugins }}">plugins interface</a> for developers
+so that applications may be easily integrated and distributed.
+{%- endtrans %}</p>
+
+
 <p>{% trans -%}
 Applications written in Java and accessible/runnable
 using an HTML interface via the standard webapps/app.war
@@ -114,23 +160,23 @@ location of the end point signed as if there were universal deployment of DNSSEC
 {%- endtrans %}</li>
 <li>{% trans -%}
 I2P destinations are mobile identifiers - they can be moved from one I2P router
-to another (or with some special software, it can even operate on multiple routers at
+to another (or it can even "multihome" - operate on multiple routers at
 once).  This is quite different from the TCP or UDP world where a single end point (port)
 must stay on a single host.
 {%- endtrans %}</li>
 <li>
 <p>{% trans -%}
-I2P destinations are ugly and large - behind the scenes, they contain a 2048bit ElGamal
-public key for encryption, a 1024bit DSA public key for signing, and a variable size 
+I2P destinations are ugly and large - behind the scenes, they contain a 2048 bit ElGamal
+public key for encryption, a 1024 bit DSA public key for signing, and a variable size 
 certificate, which may contain proof of work or blinded data.
 {%- endtrans %}</p>
 <p>{% trans naming=site_url('docs/naming') -%}
 There are existing ways to refer to these large and ugly destinations by short
-and pretty names (e.g. "irc.duck.i2p"), but at the moment those techniques do not guarantee
-globally uniqueness (since they're stored locally at each person's machine as "hosts.txt")
-and the current mechanism is not especially scalable nor secure (updates to one host file are
-manually managed within Monotone, and as such, anyone with commit rights on the repository can
-change the destinations).  There may be some secure, human readable, scalable, and globally 
+and pretty names (e.g. "irc.duck.i2p"), but those techniques do not guarantee
+globally uniqueness (since they're stored locally in a database on each person's machine)
+and the current mechanism is not especially scalable nor secure (updates to the host list are
+managed using "subscriptions" to naming services).
+There may be some secure, human readable, scalable, and globally 
 unique, naming system some day, but applications shouldn't depend upon it being in place,
 since there are those who don't think such a beast is possible.
 <a href="{{ naming }}">Further information on the naming system</a> is available.
@@ -138,17 +184,26 @@ since there are those who don't think such a beast is possible.
 </li>
 </ul>
 
+<p>{% trans datagrams=site_url('docs/api/datagrams') -%}
+While most applications do not need to distinguish protocols and ports,
+I2P <em>does</em> support them. Complex applications may specify a protocol,
+from port, and to port, on a per-message basis, to multiplex traffic on
+a single destination.
+See the <a href="{{ datagrams }}">datagram page</a> for details.
+Simple applications operate by listening for "all protocols" on "all ports" of a destination.
+{%- endtrans %}</p>
+
 <h3>{{ _('Anonymity and confidentiality') }}</h3>
 
 <p>{% trans -%}
-A useful thing to remember is that I2P has transparent end to end encryption
+I2P has transparent end to end encryption
 and authentication for all data passed over the network - if Bob sends to Alice's destination,
 only Alice's destination can receive it, and if Bob is using the datagrams or streaming 
 library, Alice knows for certain that Bob's destination is the one who sent the data.
 {%- endtrans %}</p>
 
 <p>{% trans -%}
-Of course, another useful thing to remember is that I2P transparently anonymizes the
+Of course, I2P transparently anonymizes the
 data sent between Alice and Bob, but it does nothing to anonymize the content of what they
 send.  For instance, if Alice sends Bob a form with her full name, government IDs, and 
 credit card numbers, there is nothing I2P can do.  As such, protocols and applications should 
@@ -156,13 +211,16 @@ keep in mind what information they are trying to protect and what information th
 to expose.
 {%- endtrans %}</p>
 
-<h3>{{ _('I2P datagrams can be up to 32KB') }}</h3>
+<h3>{{ _('I2P datagrams can be up to several KB') }}</h3>
 
 <p>{% trans -%}
 Applications that use I2P datagrams (either raw or repliable ones) can essentially be thought
 of in terms of UDP - the datagrams are unordered, best effort, and connectionless - but unlike
-UDP, applications don't need to worry about MTU detection and can simply fire off 32KB datagrams
-(31KB when using the repliable kind).  For many applications, 32KB of data is sufficient for an
+UDP, applications don't need to worry about MTU detection and can simply fire off large datagrams.
+While the upper limit is nominally 32 KB, the message is fragmented for transport, thus dropping
+the reliability of the whole. Datagrams over about 10 KB are not currently recommended.
+See the <a href="datagrams">datagram page</a> for details.
+For many applications, 10 KB of data is sufficient for an
 entire request or response, allowing them to transparently operate in I2P as a UDP-like 
 application without having to write fragmentation, resends, etc.
 {%- endtrans %}</p>
@@ -194,7 +252,7 @@ found at this <a href="http://{{ boburl }}/">eepsite</a>.
 
 <h3>SAM, SAM V2, SAM V3</h3>
 
-<p><i>{{ _('SAM is not recommended. SAM V2 is okay, SAM V3 is beta.') }}</i></p>
+<p><i>{{ _('SAM is not recommended. SAM V2 is okay, SAM V3 is recommended.') }}</i></p>
 <p>{% trans sam=site_url('docs/api/sam') -%}
 SAM is the <a href="{{ sam }}">Simple Anonymous Messaging</a> protocol, allowing an
 application written in any language to talk to a SAM bridge through a plain TCP socket and have
@@ -234,21 +292,28 @@ The I2PTunnel application allows applications to build specific TCP-like tunnels
 by creating either I2PTunnel 'client' applications (which listen on a specific port and connect
 to a specific I2P destination whenever a socket to that port is opened) or I2PTunnel 'server'
 applications (which listen to a specific I2P destination and whenever it gets a new I2P 
-connection it outproxies to a specific TCP host/port).  These streams are 8bit clean and are
+connection it outproxies to a specific TCP host/port).  These streams are 8-bit clean, and are
 authenticated and secured through the same streaming library that SAM uses, but there is a 
 nontrivial overhead involved with creating multiple unique I2PTunnel instances, since each have
 their own unique I2P destination and their own set of tunnels, keys, etc.
 {%- endtrans %}</p>
 
+<h3>SOCKS</h3>
+<p>
+I2P supports a SOCKS V4 and V5 proxy.
+Outbound connections work well. Inbound (server) and UDP functionality may be incomplete
+and untested.
+</p>
+
 <h3>Ministreaming</h3>
-<p><i>{{ _('Not recommended') }}</i></p>
+<p><i>{{ _('Removed') }}</i></p>
 <p>{% trans -%}
-It was possible to write I2P applications in Java using the ministreaming library.
-However, the Streaming library has superceded this, and provides better functionality.
+There used to be a simple "ministreaming" library,
+but now ministreaming.jar contains only the interfaces for the full streaming library.
 {%- endtrans %}</p>
 
 <h3>{{ _('Datagrams') }}</h3>
-<p><i>{{ _('Not recommended') }}</i></p>
+<p><i>{{ _('Recommended for UDP-like applications') }}</i></p>
 <p>{% trans datagrams=site_url('docs/spec/datagrams') -%}
 The <a href="{{ datagrams }}">Datagram library</a> allows sending UDP-like packets.
 It's possible to use:
@@ -283,12 +348,17 @@ Using another programming language, SAM or BOB can be used.
 <h3 id="start.streaming">{{ _('Developing with the streaming library') }}</h3>
 
 <p>{% trans -%}
-Development using the streaming library requires the following libraries in your classpath:
+The following example shows how to create TCP-like client and server applications
+using the streaming library.
+{%- endtrans %}</p>
+
+<p>{% trans -%}
+This will require the following libraries in your classpath:
 {%- endtrans %}</p>
 <ul>
-    <li>$I2P/lib/streaming.jar: {{ _('the streaming library itself.') }}</li>
-    <li>$I2P/lib/mstreaming.jar: {{ _('the ministreaming library is used as the base for the streaming library.') }}</li>
-    <li>$I2P/lib/i2p.jar: {{ _('some standard I2P classes (like the Destination class) are very convenient when developing.') }}</li>
+    <li>$I2P/lib/streaming.jar: {{ _('The streaming library itself') }}</li>
+    <li>$I2P/lib/mstreaming.jar: {{ _('Factory and interfaces for the streaming library') }}</li>
+    <li>$I2P/lib/i2p.jar: {{ _('Standard I2P classes, data structures, API, and utilities') }}</li>
 </ul>
 
 <p>{% trans -%}
@@ -299,7 +369,10 @@ who will print the messages and send them back to the client. In other words, th
 <p>{% trans -%}
 We will start by initializing the server application. This requires getting an I2PSocketManager
 and creating an I2PServerSocket.
-In addition, we will ask the I2PSocketManager for an I2PSession, so we can find out the Destination we use.
+We will not provide the I2PSocketManagerFactory with the saved keys for an existing Destination,
+so it will create a new Destination for us.
+So we will ask the I2PSocketManager for an I2PSession, so we can find out the Destination that
+was created, as we will need to copy and paste that information later so the client can connect to us.
 {%- endtrans %}</p>
 <div class="box">
 {% highlight lang='java' %}
@@ -317,7 +390,8 @@ public class Main {
         I2PSocketManager manager = I2PSocketManagerFactory.createManager();
         I2PServerSocket serverSocket = manager.getServerSocket();
         I2PSession session = manager.getSession();
-        System.out.println(session.getMyDestination().toBase64()); //Print the base64 string, the regular string would look like garbage.
+        //Print the base64 string, the regular string would look like garbage.
+        System.out.println(session.getMyDestination().toBase64());
         //The additional main method code comes here...
     }
 
@@ -335,7 +409,7 @@ The bold code is the new code we add.
 {%- endtrans %}</p>
 <div class="box">
 {% highlight lang='java',
-hl_lines=[3,4,5,6,7,8,9,10,25,26,27,28,29,32,34,35,36,38,39,40,41,42,43,44,45,46,47,48,49,50,51,52,53,54,55,56,57,58,59,60,61,62,63,65,67] %}
+hl_lines=[3,4,5,6,7,8,9,10,26,27,28,29,30,33,35,36,37,39,40,41,42,43,44,45,46,47,48,49,50,51,52,53,54,55,56,57,58,59,60,61,62,63,64,65,66,68,70] %}
 package i2p.echoserver;
 
 import java.io.IOException;
@@ -358,7 +432,8 @@ public class Main {
         I2PSocketManager manager = I2PSocketManagerFactory.createManager();
         I2PServerSocket serverSocket = manager.getServerSocket();
         I2PSession session = manager.getSession();
-        System.out.println(session.getMyDestination().toBase64()); //Print the base64 string, the regular string would look like garbage.
+        //Print the base64 string, the regular string would look like garbage.
+        System.out.println(session.getMyDestination().toBase64());
 
         //Create socket to handle clients
         I2PThread t = new I2PThread(new ClientHandler(serverSocket));
@@ -378,8 +453,10 @@ public class Main {
                 try {
                     I2PSocket sock = this.socket.accept();
                     if(sock != null) {
-                        BufferedReader br = new BufferedReader(new InputStreamReader(sock.getInputStream())); //Receive from clients
-                        BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(sock.getOutputStream())); //Send to clients
+                        //Receive from clients
+                        BufferedReader br = new BufferedReader(new InputStreamReader(sock.getInputStream()));
+                        //Send to clients
+                        BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(sock.getOutputStream()));
                         String line = br.readLine();
                         if(line != null) {
                             System.out.println("Received from client: " + line);
@@ -449,8 +526,6 @@ import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.net.ConnectException;
 import java.net.NoRouteToHostException;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import net.i2p.I2PException;
 import net.i2p.client.streaming.I2PSocket;
 import net.i2p.client.streaming.I2PSocketManager;
@@ -464,37 +539,42 @@ public class Main {
         I2PSocketManager manager = I2PSocketManagerFactory.createManager();
         System.out.println("Please enter a Destination:");
         BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
-        String destinationString = null;
+        String destinationString;
         try {
             destinationString = br.readLine();
         } catch (IOException ex) {
             System.out.println("Failed to get a Destination string.");
             return;
         }
-        Destination destination = null;
+        Destination destination;
         try {
             destination = new Destination(destinationString);
         } catch (DataFormatException ex) {
             System.out.println("Destination string incorrectly formatted.");
             return;
         }
-        I2PSocket socket = null;
+        I2PSocket socket;
         try {
             socket = manager.connect(destination);
         } catch (I2PException ex) {
             System.out.println("General I2P exception occurred!");
+            return;
         } catch (ConnectException ex) {
             System.out.println("Failed to connect!");
+            return;
         } catch (NoRouteToHostException ex) {
             System.out.println("Couldn't find host!");
+            return;
         } catch (InterruptedIOException ex) {
             System.out.println("Sending/receiving was interrupted!");
+            return;
         }
         try {
             //Write to server
             BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()));
             bw.write("Hello I2P!\n");
-            bw.flush(); //Flush to make sure everything got sent
+            //Flush to make sure everything got sent
+            bw.flush();
             //Read from server
             BufferedReader br2 = new BufferedReader(new InputStreamReader(socket.getInputStream()));
             String s = null;
@@ -521,9 +601,9 @@ The client will then send 'Hello I2P!' (along with a newline) to the server, who
 Congratulations, you have successfully communicated over I2P!
 {%- endtrans %}</p>
 
-<h2>{{ _('Existing Applications in Development') }}</h2>
+<h2>{{ _('Existing Applications') }}</h2>
 <p>{% trans -%}
-Contact us if you would like to help.
+Contact us if you would like to contribute.
 {%- endtrans %}</p>
 <ul>
 <li>
@@ -533,11 +613,16 @@ Contact us if you would like to help.
 </li><li>
 <a href="http://{{ i2pconv('www.imule.i2p') }}/">IMule</a>
 </li><li>
-<a href="http://{{ i2pconv('forum.i2p') }}/viewforum.php?f=25">I2Phex</a> - contact Complication
-</li><li>I2PRufus - contact codevoid
-</li><li>I2P-BT - contact sponge
-</li><li><a href="http://{{ i2pconv('bob.i2p') }}">BOB</a> - contact sponge
+<a href="http://{{ i2pconv('forum.i2p') }}/viewforum.php?f=25">I2Phex</a>
 </li></ul>
+<p>
+See also all the plugins on <a href="http://plugins.i2p/">plugins.i2p</a>,
+the applications and source code listed on <a href="http://echelon.i2p/">echelon.i2p</a>,
+and the application code hosted on <a href="http://git.repo.i2p/">git.repo.i2p</a>.
+</p><p>
+See also the bundled applications in the I2P distribution - SusiMail and I2PSnark.
+</p>
+
 
 <h2>{{ _('Application Ideas') }}</h2>
 <ul>
@@ -551,14 +636,7 @@ Jabber server - there have been some in the past, and there is one at the moment
 PGP Key server and/or proxy
 {%- endtrans %}</li>
   <li>{% trans -%}
-Download manager / eepget scheduler -
-We use eepget to fetch lots of things reliably over i2p, and there's already an
-implementation of a sequential download manager (net.i2p.util.EepGetScheduler),
-but there isn't any sort of user interface to it.  A web based UI would be
-great.
-{%- endtrans %}</li>
-  <li>{% trans feedspace=i2pconv('feedspace.i2p') -%}
-Content Distribution / DHT applications - help out with <a href="http://{{ feedspace }}">feedspace</a>,
+Content Distribution / DHT applications - resurrect feedspace,
 port dijjer, look for alternatives
 {%- endtrans %}</li>
   <li>{% trans -%}
@@ -570,8 +648,8 @@ applications such as blogs, pastebins, storage, tracking, feeds, etc.
 Any web or CGI technology such as Perl, PHP, Python, or Ruby will work.
 {%- endtrans %}</li>
   <li>{% trans -%}
-Resurrect some old apps - in the i2p source package -
-bogobot, pants, proxyscript, q, stasher, socks proxy, i2ping
+Resurrect some old apps, several previously in the i2p source package -
+bogobot, pants, proxyscript, q, stasher, socks proxy, i2ping, feedspace
 {%- endtrans %}</li>
 </ul>
 

@@ -1,7 +1,7 @@
 {% extends "global/layout.html" %}
 {% block title %}{% trans %}The Network Database{% endtrans %}{% endblock %}
-{% block lastupdated %}{% trans %}June 2012{% endtrans %}{% endblock %}
-{% block accuratefor %}0.9{% endblock %}
+{% block lastupdated %}{% trans %}June 2013{% endtrans %}{% endblock %}
+{% block accuratefor %}0.9.6{% endblock %}
 {% block content %}
 <h2>{% trans %}Overview{% endtrans %}</h2>
 
@@ -406,15 +406,17 @@ containing a list of other floodfill routers close to the key.
 {%- endtrans %}</p>
 
 <p>{% trans -%}
-Lookups are not encrypted and thus are vulnerable to snooping by the outbound endpoint
-(OBEP) of the client tunnel.
+LeaseSet lookups are garlic encrypted end-to-end as of release 0.9.5.
+RouterInfo lookups are not encrypted and thus are vulnerable to snooping by the outbound endpoint
+(OBEP) of the client tunnel. This is due to the expense of the ElGamal encryption.
+RouterInfo lookup encryption may be enabled in a future release.
 {%- endtrans %}</p>
 
 <p>{% trans -%}
-As the requesting router does not reveal itself, there is no recipient public key for the floodfill router to
-encrypt the reply with. Therefore, the reply is exposed to the inbound gateway (IBGW)
-of the inbound exploratory tunnel.
-An appropriate method of encrypting the reply is a topic for future work.
+As of release 0.9.7, replies to a LeaseSet lookup (a DatabaseStoreMessage or a DatabaseSearchReplyMessage)
+will be encrypted by including the session key and tag in the lookup.
+This hides the reply from the inbound gateway (IBGW) of the reply tunnel.
+Responses to RouterInfo lookups will be encrypted if we enable the lookup encryption.
 {%- endtrans %}</p>
 
 <p>{% trans pdf='http://www-users.cs.umn.edu/~hopper/hashing_it_out.pdf' -%}
@@ -474,11 +476,9 @@ The replies are specified to return via one of the client's inbound tunnels.
 {%- endtrans %}</p>
 
 <p>{% trans -%}
-As for regular lookups, the reply is unencrypted,
-thus exposing the reply to the inbound gateway (IBGW) of the reply tunnel, and
-an appropriate method of encrypting the reply is a topic for future work.
-As the IBGW for the reply is one of the gateways published in the LeaseSet,
-the exposure is minimal.
+As of release 0.9.7, replies for both RouterInfo and LeaseSet lookups (a DatabaseStoreMessage or a DatabaseSearchReplyMessage)
+will be encrypted,
+to hide the reply from the inbound gateway (IBGW) of the reply tunnel.
 {%- endtrans %}</p>
 
 

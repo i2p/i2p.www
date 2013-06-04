@@ -1,7 +1,7 @@
 {% extends "global/layout.html" %}
 {% block title %}{% trans %}I2P Software Update Specification{% endtrans %}{% endblock %}
-{% block lastupdated %}{% trans %}November 2011{% endtrans %}{% endblock %}
-{% block accuratefor %}0.8.12{% endblock %}
+{% block lastupdated %}{% trans %}May 2013{% endtrans %}{% endblock %}
+{% block accuratefor %}0.9.6{% endblock %}
 {% block content %}
 <h3>{% trans %}Overview{% endtrans %}</h3>
 <p>{% trans -%}
@@ -123,17 +123,108 @@ The router will then delete the deletelist.txt file.
 {%- endtrans %}</p>
 
 
+<h3>{% trans %}New "su3" Update File Specification{% endtrans %}</h3>
+
+<p>{% trans -%}
+This specification is preliminary and is not yet implemented.
+{%- endtrans %}</p>
+
+<h4>{% trans %}Issues with existing .sud/.su2 format:{% endtrans %}</h4>
+<ul>
+<li>{% trans -%}
+No magic number or flags
+{%- endtrans %}</li>
+<li>{% trans -%}
+No way to specify compression, pack200 or not, or signing algo
+{%- endtrans %}</li>
+<li>{% trans -%}
+Version is not covered by signature, so it is enforced by requiring it
+to be in the zip file comment (for router files) or in the plugin.config
+file (for plugins)
+{%- endtrans %}</li>
+<li>{% trans -%}
+Signer not specified so verifier must try all known keys
+{%- endtrans %}</li>
+<li>{% trans -%}
+Signature-before-data format requires two passes to generate file
+{%- endtrans %}</li>
+</ul>
+
+
+<h4>{% trans %}Goals:{% endtrans %}</h4>
+
+<ul>
+<li>{% trans -%}
+Fix above problems
+{%- endtrans %}</li>
+<li>{% trans -%}
+Migrate to more secure signature algorithm
+{%- endtrans %}</li>
+<li>{% trans -%}
+Keep version info in same format and offset for compatibility with
+existing version checkers
+{%- endtrans %}</li>
+</ul>
+
+<h4>{% trans %}Specification:{% endtrans %}</h4>
+
+<table><tr>
+<th>Bytes<th>Contents
+<tr><td>
+0-5	<td>Magic number "I2Psu3"
+<tr><td>
+6	<td>unused = 0
+<tr><td>
+7	<td>su3 file format version = 0
+<tr><td>
+8	<td>unused
+<tr><td>
+9	<td>Version length (in bytes not chars, including padding)
+        must be at least 16 (0x10) for compatibility
+<tr><td>
+10	<td>unused
+<tr><td>
+11	<td>Signer ID length (in bytes not chars)
+<tr><td>
+12-19	<td>Compressed content length (not including header or sig)
+<tr><td>
+20	<td>unused
+<tr><td>
+21	<td>Compressed type 0x00 = zip
+<tr><td>
+22	<td>unused
+<tr><td>
+23	<td>Content type 0x00 = router w/o pack200, 0x01 = router w/ pack200, 0x02 = plugin
+<tr><td>
+24	<td>unused
+<tr><td>
+25	<td>Signature type 0x00 = DSA-160, 0x01 = new algo
+<tr><td>
+26-27	<td>Signature length 40 (0x0028) = DSA-160
+<tr><td>
+28-39	<td>unused
+<tr><td>
+40-55+	<td>Version, UTF-8 padded with trailing 0x00, 16 bytes min.
+<tr><td>
+xx+	<td>ID of signer, (e.g. "zzz@mail.i2p") UTF-8, not padded
+<tr><td>
+xx+	<td>Compressed content, length and format specified in header
+        No requirement on the zip file comment since the sig covers the version.
+<tr><td>
+xx+	<td>Signature, length specified in header, covers everything starting at byte 0
+</table>
+
+<p>{% trans -%}
+All unused fields must be set to 0 for compatibility with future versions.
+{%- endtrans %}</p>
+
+
 <h3>{% trans %}Future Work{% endtrans %}</h3>
 <ul>
 <li>{% trans -%}
-When a new update file specification is defined, it should use a larger
-DSA signature, and the signature should cover the version.
-A file format version number might be a good idea too.
-{%- endtrans %}</li>
-<li>{% trans -%}
 The network will eventually grow too large for update over HTTP.
 The built-in BitTorrent client, i2psnark, may be used as a distributed update method.
-This development effort was started in 2009 but is on hold until it is required.
+This development effort is ongoing and should be completed by late 2013.
 {%- endtrans %}</li>
 <li>{% trans -%}
 The router update mechanism is part of the web router console.
