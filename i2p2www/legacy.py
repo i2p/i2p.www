@@ -24,6 +24,7 @@ LEGACY_PAGES_MAP={
     'bounty_debpack':         'get-involved/bounties/deb-pack',
     'bounty_i2phex':          'get-involved/bounties/i2phex',
     'bounty_ipv6':            'get-involved/bounties/ipv6',
+    'bounty_netdb':           'get-involved/bounties/netdb',
     'bounty_rutrans':         'get-involved/bounties/russian-trans',
     'bounty_silc':            'get-involved/bounties/silc',
     'bounty_syndie2012':      'get-involved/bounties/syndie-2012',
