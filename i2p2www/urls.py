@@ -55,9 +55,9 @@ url('/<lang:lang>/meetings/<int:id>.rst', 'meetings.views.meetings_show_rst')
 url('/<lang:lang>/feed/meetings/atom', 'meetings.views.meetings_atom')
 
 url('/<lang:lang>/download', 'downloads.downloads_list')
-url('/<lang:lang>/download/<path:file>', 'downloads.downloads_select')
-url('/download/<string:protocol>/any/<path:file>', 'downloads.downloads_redirect', defaults={'mirror': None})
-url('/download/<string:protocol>/<int:mirror>/<path:file>', 'downloads.downloads_redirect')
+url('/<lang:lang>/download/<string:version>/<path:file>', 'downloads.downloads_select')
+url('/download/<string:version>/<string:protocol>/any/<path:file>', 'downloads.downloads_redirect', defaults={'mirror': None})
+url('/download/<string:version>/<string:protocol>/<int:mirror>/<path:file>', 'downloads.downloads_redirect')
 
 url('/meeting<int:id>', 'legacy.legacy_meeting')
 url('/meeting<int:id>.html', 'legacy.legacy_meeting')
