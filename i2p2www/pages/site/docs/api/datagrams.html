@@ -40,6 +40,8 @@ The application designer should carefully consider the tradeoff of repliable vs.
 datagrams. Also, the datagram size will affect reliability, due to tunnel fragmentation into 1KB
 tunnel messages. The more message fragments, the more likely that one of them will be dropped
 by an intermediate hop. Messages larger than a few KB are not recommended.
+Over about 10 KB, the delivery probablility drops dramatically.
+Messages over 16 KB cannot be delivered over NTCP, dropping delivery chances even more.
 {%- endtrans %}</p>
 
 <p>{% trans elgamalaes=site_url('docs/how/elgamal-aes') -%}
@@ -54,7 +56,8 @@ the ElGamal Session Tag parameters.
 
 <h3>{% trans %}I2CP Protocol Number and Ports{% endtrans %}</h3>
 <p>{% trans -%}
-The standard I2CP protocol number for datagrams is 17. Applications may or may not choose to set the
+The standard I2CP protocol number for datagrams is PROTO_DATAGRAM (17).
+Applications may or may not choose to set the
 protocol in the I2CP header. It is not set by default.
 It must be set to demultiplex datagram and streaming traffic received on the same Destination.
 {%- endtrans %}</p>
@@ -67,11 +70,16 @@ Applications may add 'from' and 'to' ports to the I2CP (gzip) header as describe
 the <a href="{{ i2cp }}#format">I2CP page</a>.
 {%- endtrans %}</p>
 
-<p>{% trans -%}
+<p>{% trans i2psession='http://docs.i2p-projekt.de/javadoc/net/i2p/client/I2PSession.html' -%}
 There is no method within the datagram API to specify whether it is non-repliable (raw)
 or repliable. The application should be designed to expect the appropriate type.
-The I2CP protocol number or port could also be used by the application to
+The I2CP protocol number or port should be used by the application to
 indicate datagram type.
+The I2CP protocol numbers PROTO_DATAGRAM (signed) and PROTO_DATAGRAM_RAW are defined in the
+<a href="{{ i2psession }}">I2PSession API</a>
+for this purpose. A common design pattern in client/server datagram applications is to
+use signed datagrams for a request which includes a nonce, and use a raw datagram
+for the reply, returning the nonce from the request.
 {%- endtrans %}</p>
 
 <p>{% trans i2psession='http://docs.i2p-projekt.de/javadoc/net/i2p/client/I2PSession.html',
