@@ -41,6 +41,7 @@ LEGACY_PAGES_MAP={
     'donate':                 'get-involved/donate',
     'faq':                    'support/faq',
     'getinvolved':            'get-involved',
+    'geoip':                  'docs/spec/geoip',
     'glossary':               'support/glossary',
     'halloffame':             'about/hall-of-fame',
     'how':                    'docs',
