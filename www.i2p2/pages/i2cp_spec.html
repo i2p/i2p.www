@@ -1,7 +1,7 @@
 {% extends "_layout.html" %}
 {% block title %}I2CP Specification{% endblock %}
 {% block content %}
-Updated April 2013, current as of router version 0.9.5
+Updated June 2013, current as of router version 0.9.6
 
 <h1>I2P Control Protocol (I2CP) Specification</h1>
 <h2>Overview</h2>
@@ -266,7 +266,7 @@ See also the
 <a href="http://docs.i2p-projekt.de/javadoc/net/i2p/data/i2cp/package-summary.html">I2CP Javadocs</a>.
 <h3 id="types">Message Types</h3>
 <table border=1>
-<tr><th>Message<th>Direction<th>Type
+<tr><th>Message<th>Direction<th>Type<th>Since
 <tr><td>
 <a href="#msg_BandwidthLimits">
 BandwidthLimitsMessage
@@ -274,120 +274,147 @@ BandwidthLimitsMessage
 </a>
 <td align="center">R-&gt;C
 <td align=right>23
+<td align="center">0.7.2
 <tr><td>
 <a href="#msg_CreateLeaseSet">
 CreateLeaseSetMessage
 </a>
 <td align="center">C-&gt;R
 <td align=right>4
+<td>&nbsp;
 <tr><td>
 <a href="#msg_CreateSession">
 CreateSessionMessage
 </a>
 <td align="center">C-&gt;R
 <td align=right>1
+<td>&nbsp;
 <tr><td>
 <a href="#msg_DestLookup">
 DestLookupMessage
 </a>
 <td align="center">C-&gt;R
 <td align=right>34
+<td align="center">0.7
 <tr><td>
 <a href="#msg_DestReply">
 DestReplyMessage
 </a>
 <td align="center">R-&gt;C
 <td align=right>35
+<td align="center">0.7
 <tr><td>
 <a href="#msg_DestroySession">
 DestroySessionMessage
 </a>
 <td align="center">C-&gt;R
 <td align=right>3
+<td>&nbsp;
 <tr><td>
 <a href="#msg_Disconnect">
 DisconnectMessage
 </a>
 <td align="center">bidir.
 <td align=right>30
+<td>&nbsp;
 <tr><td>
 <a href="#msg_GetBandwidthLimits">
 GetBandwidthLimitsMessage
 </a>
 <td align="center">C-&gt;R
 <td align=right>8
+<td align="center">0.7.2
 <tr><td>
 <a href="#msg_GetDate">
 GetDateMessage
 </a>
 <td align="center">C-&gt;R
 <td align=right>32
+<td>&nbsp;
 <tr><td>
 <a href="#msg_MessagePayload">
 MessagePayloadMessage
 </a>
 <td align="center">R-&gt;C
 <td align=right>31
+<td>&nbsp;
 <tr><td>
 <a href="#msg_MessageStatus">
 MessageStatusMessage
 </a>
 <td align="center">R-&gt;C
 <td align=right>22
+<td>&nbsp;
 <tr><td>
 <a href="#msg_ReceiveMessageBegin">
 ReceiveMessageBeginMessage
 </a>
 <td align="center">C-&gt;R
 <td align=right>6
+<td>&nbsp;
 <tr><td>
 <a href="#msg_ReceiveMessageEnd">
 ReceiveMessageEndMessage
 </a>
 <td align="center">C-&gt;R
 <td align=right>7
+<td>&nbsp;
 <tr><td>
 <a href="#msg_ReconfigureSession">
 ReconfigureSessionMessage
 </a>
 <td align="center">C-&gt;R
 <td align=right>2
+<td align="center">0.7.1
 <tr><td>
 <a href="#msg_ReportAbuse">
 ReportAbuseMessage
 </a>
 <td align="center">bidir.
 <td align=right>29
+<td>&nbsp;
 <tr><td>
 <a href="#msg_RequestLeaseSet">
 RequestLeaseSetMessage
 </a>
 <td align="center">R-&gt;C
 <td align=right>21
+<td>&nbsp;
+<tr><td>
+<a href="#msg_RequestVariableLeaseSet">
+RequestVariableLeaseSetMessage
+</a>
+<td align="center">R-&gt;C
+<td align=right>37
+<td align="center">0.9.7
 <tr><td>
 <a href="#msg_SendMessage">
 SendMessageMessage
 </a>
 <td align="center">C-&gt;R
 <td align=right>5
+<td>&nbsp;
 <tr><td>
 <a href="#msg_SendMessageExpires">
 SendMessageExpiresMessage
 </a>
 <td align="center">C-&gt;R
 <td align=right>36
+<td align="center">0.7.1
 <tr><td>
 <a href="#msg_SessionStatus">
 SessionStatusMessage
 </a>
 <td align="center">R-&gt;C
 <td align=right>20
+<td>&nbsp;
 <tr><td>
 <a href="#msg_SetDate">
 SetDateMessage
 </a>
 <td align="center">R-&gt;C
 <td align=right>33
+<td>&nbsp;
 </table>
 
 
@@ -792,7 +819,7 @@ but neither has a handler for the message when received.
 <p>
 Request that a client authorize the inclusion of a particular set of inbound tunnels.
 Sent from Router to Client.
-The client responds with a <a href="#msg_SessionStatus">Create LeaseSet Message</a>.
+The client responds with a <a href="#msg_CreateLeaseSet">Create LeaseSet Message</a>.
 </p>
 <h4>Contents</h4>
 <ol><li>
@@ -812,6 +839,36 @@ End <a href="common_structures_spec#type_Date">Date</a>
 
 <h4>Notes</h4>
 <p>
+This requests a LeaseSet with all Leases set to expire at the same time.
+For client versions 0.9.7 or higher, RequestVariableLeaseSet is preferred.
+</p>
+
+
+
+
+
+<h3 id="msg_RequestVariableLeaseSet">Request Variable LeaseSet</h3>
+<h4>Description</h4>
+<p>
+Request that a client authorize the inclusion of a particular set of inbound tunnels.
+Sent from Router to Client.
+The client responds with a <a href="#msg_CreateLeaseSet">Create LeaseSet Message</a>.
+</p>
+<h4>Contents</h4>
+<ol><li>
+<a href="#struct_SessionId">Session ID</a>
+</li><li>
+1 byte <a href="common_structures_spec#type_Integer">Integer</a> number of tunnels
+</li><li>
+  That many
+  <a href="common_structures_spec#struct_Lease">Leases</a>
+</li></ol>
+
+<h4>Notes</h4>
+<p>
+This requests a LeaseSet with an individual expiration time for each Lease.
+As of release 0.9.7.
+For clients before that release, use RequestLeaseSet.
 </p>
 
 

@@ -2,7 +2,7 @@
 {% block title %}I2NP Specification{% endblock %}
 {% block content %}
 
-Updated April 2013, current as of router version 0.9.5
+Updated June 2013, current as of router version 0.9.6
 
 <h1>I2P Network Protocol (I2NP) Specification</h1>
 <p>
@@ -522,6 +522,13 @@ data:
      If type == 1, data is an uncompressed LeaseSet.
 </pre>
 
+<h4>Notes</h4>
+<ul><li>
+For security, the reply fields are ignored if the message is received down a tunnel.
+</li></ul>
+
+
+
 <h3 id="msg_DatabaseLookup">DatabaseLookup</h3>
 <pre>
 {% filter escape %}
@@ -564,16 +571,16 @@ data:
 +   was requested                       +
 |                                       |
 +                                  +----+
-|                                  |    |
-+----+----+----+----+----+----+----+    +
+|                                  |tags|
++----+----+----+----+----+----+----+----+
 |                                       |
 +                                       +
-|   Session tag if reply encryption     |
+|   Session tags if reply encryption    |
 +   was requested                       +
 |                                       |
-+                                  +----+
-|                                  |
-+----+----+----+----+----+----+----+
++                                       +
+|                                       |
++----+----+----+----+----+----+----+----+
 {% endfilter %}
 </pre>
 
@@ -626,8 +633,14 @@ reply key:
      32 byte SessionKey
      Only included if encryptionFlag == 1
 
-reply tag:
-     32 byte SessionTag
+tags:
+     1 byte Integer
+     valid range: 1-32 (typically 1)
+     The number of reply tags that follow
+     Only included if encryptionFlag == 1
+
+reply tags:
+     One or more 32 byte SessionTags (typically one)
      Only included if encryptionFlag == 1
 
 {% endfilter %}
@@ -635,9 +648,12 @@ reply tag:
 
 <h4>Notes</h4>
 <ul><li>
-Encryption flag and reply key are preliminary, not yet implemented.
+Encryption flag, reply key, and reply tags are preliminary, not yet implemented.
 </li><li>
 Encrypted replies are only useful when the response is through a tunnel.
+</li><li>
+The number of included tags could be greater than one if alternative DHT lookup strategies
+(for example, recursive lookups) are implemented.
 </li></ul>
 
 

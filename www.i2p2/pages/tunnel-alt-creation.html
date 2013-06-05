@@ -3,7 +3,7 @@
 {% block content %}
 
 This page documents the current tunnel build implementation.
-Updated August 2010 for release 0.8
+Updated June 2013, current as of router version 0.9.6
 
 <h2 id="tunnelCreate.overview">Tunnel Creation Specification</h2>
 
@@ -78,7 +78,7 @@ message ID that the message (or reply) should use.</p>
  bit 7: if set, allow messages from anyone
  bit 6: if set, allow messages to anyone, and send the reply to the
         specified next hop in a Tunnel Build Reply Message
- bits 5-0: Undefined
+ bits 5-0: Undefined, must set to 0 for compatibility with future options
 </pre>
 
 Bit 7 indicates that the hop will be an inbound gateway (IBGW).
@@ -320,6 +320,12 @@ Further analysis of possible tagging and timing attacks described in the above n
 The Bloom filter rotation time should be evaluated.
 </li><li>
 Use only VTBM; do not select old peers that don't support it.
+</li><li>
+The Build Request Record does not specify a tunnel lifetime or expiration;
+each hop expires the tunnel after 10 minutes, which is a network-wide hardcoded constant.
+We could use a bit in the flag field
+and take 4 (or 8) bytes out of the padding to specify a lifetime or expiration.
+The requestor would only specify this option if all participants supported it.
 </li></ul>
 
 
