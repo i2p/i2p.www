@@ -47,50 +47,12 @@ operate with handshakes similar to TCP, while the core I2P protocols (I2NP and I
 are strictly message based (like UDP or in some instances raw IP).  The important
 distinction is that with I2P, communication is operating over a long fat network - 
 each end to end message will have nontrivial latencies, but may contain payloads 
-of up to 32KB.  An application that needs a simple request and response can get rid
-of any state and drop the latency incurred by the startup and teardown handshakes
-by using (best effort) datagrams without having to worry about MTU detection or 
-fragmentation of messages under 32KB.
-{%- endtrans %}</p>
-
-<p>{% trans i2ptunnel=site_url('docs/api/i2ptunnel') -%}
-There are multiple ways to use applications in I2P.
-Using <a href="{{ i2ptunnel }}">I2PTunnel</a>,
-you can use regular applications without needing to program explicit I2P support.
-This is very effective for client-server scenario's,
-where you need to connect to a single website.
-You can simply create a tunnel using I2PTunnel to connect to that website, as shown in <a href="#tunnel.serverclient">Figure 1</a>.
-{%- endtrans %}</p>
-<p>{% trans -%}
-If your application is distributed, it will require connections to a large amount of peers.
-Using I2PTunnel, you will need to create a new tunnel for each peer you want to contact,
-as shown in <a href="#tunnel.peertopeer">Figure 2</a>.
-This process can of course be automated, but running a lot of I2PTunnel instances creates a large amount of overhead.
-In addition, with many protocols you will need to force everyone to 
-use the same set of ports for all peers - e.g. if you want to reliably run DCC 
-chat, everyone needs to agree that port 10001 is Alice, port 10002 is Bob, port 
-10003 is Charlie, and so on, since the protocol includes TCP/IP specific information
-(host and port).
-{%- endtrans %}</p>
-<p>{% trans -%}
-General network applications often send a lot of additional data that could be used to identify users.
-Hostnames, port numbers, time zones, character sets, etc. are often sent without informing the user.
-As such, designing the network protocol specifically with anonymity in mind
-can avoid compromising user identities.
-{%- endtrans %}</p>
-<p>{% trans -%}
-There are also efficiency considerations to review when determining how to 
-interact on top of I2P. The streaming library and things built on top of it
-operate with handshakes similar to TCP, while the core I2P protocols (I2NP and I2CP)
-are strictly message based (like UDP or in some instances raw IP).  The important
-distinction is that with I2P, communication is operating over a long fat network - 
-each end to end message will have nontrivial latencies, but may contain payloads 
-of up to several KB. An application that needs a simple request and response can get rid
+of up to several KB.  An application that needs a simple request and response can get rid
 of any state and drop the latency incurred by the startup and teardown handshakes
 by using (best effort) datagrams without having to worry about MTU detection or 
 fragmentation of messages.
 {%- endtrans %}</p>
-   
+
         <div class="box" id="tunnel.serverclient" style="text-align:center">
         <img src="{{ url_for('static', filename='images/i2ptunnel_serverclient.png') }}" alt="{{ _('Creating a server-client connection using I2PTunnel only requires creating a single tunnel.') }}" title="{{ _('Creating a server-client connection using I2PTunnel only requires creating a single tunnel.') }}" />
         <br /><br />
@@ -213,13 +175,13 @@ to expose.
 
 <h3>{{ _('I2P datagrams can be up to several KB') }}</h3>
 
-<p>{% trans -%}
+<p>{% trans datagrams=site_url('docs/api/datagrams') -%}
 Applications that use I2P datagrams (either raw or repliable ones) can essentially be thought
 of in terms of UDP - the datagrams are unordered, best effort, and connectionless - but unlike
 UDP, applications don't need to worry about MTU detection and can simply fire off large datagrams.
 While the upper limit is nominally 32 KB, the message is fragmented for transport, thus dropping
 the reliability of the whole. Datagrams over about 10 KB are not currently recommended.
-See the <a href="datagrams">datagram page</a> for details.
+See the <a href="{{ datagrams }}">datagram page</a> for details.
 For many applications, 10 KB of data is sufficient for an
 entire request or response, allowing them to transparently operate in I2P as a UDP-like 
 application without having to write fragmentation, resends, etc.
@@ -299,11 +261,11 @@ their own unique I2P destination and their own set of tunnels, keys, etc.
 {%- endtrans %}</p>
 
 <h3>SOCKS</h3>
-<p>
+<p>{% trans -%}
 I2P supports a SOCKS V4 and V5 proxy.
 Outbound connections work well. Inbound (server) and UDP functionality may be incomplete
 and untested.
-</p>
+{%- endtrans %}</p>
 
 <h3>Ministreaming</h3>
 <p><i>{{ _('Removed') }}</i></p>
@@ -622,7 +584,6 @@ and the application code hosted on <a href="http://git.repo.i2p/">git.repo.i2p</
 </p><p>
 See also the bundled applications in the I2P distribution - SusiMail and I2PSnark.
 </p>
-
 
 <h2>{{ _('Application Ideas') }}</h2>
 <ul>
