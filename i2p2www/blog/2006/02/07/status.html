@@ -1,0 +1,94 @@
+<pre>-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA1
+
+Hi y'all, tuesday rolls around again
+
+* Index
+1) Net status
+2) _PRE net progress
+3) I2Phex 0.1.1.37
+4) ???
+
+* 1) Net status
+
+There haven't been any substantial changes on the live net over the
+last week, so the live net status hasn't changed much.  On the other
+hand...
+
+* 2) _PRE net progress
+
+Last week I started committing backwards incompatible code for the
+0.6.1.10 release onto a separate branch in CVS (i2p_0_6_1_10_PRE),
+and a cadre of volunteers have helped test this out.  This new _PRE
+network cannot talk to the live net, and doesn't have any meaningful
+anonymity (since there are under 10 peers).  With the pen register
+logs from those routers, a few substantial bugs in both the new and
+old code have been tracked down and swatted, though further testing
+and improvement continues.
+
+One aspect of the new tunnel creation crypto is that the creator
+must do the heavy asymmetric encryption for each hop up front, while
+the old tunnel creation did the encryption only if the previous hop
+agreed to participate in the tunnel.  This encryption could take
+400-1000ms or more, depending both on the local CPU performance and
+on the tunnel length (it does a full ElGamal encryption for each
+hop).  One optimization currently in use on the _PRE net is the use
+of a short exponent [1] - rather than using a 2048bit 'x' as the
+ElGamal key, we use a 228bit 'x', which is the suggested length to
+match the work of the discrete log problem.  This has dropped the
+per-hop encryption time by an order of magnitude, though doesn't
+affect the decryption time.
+
+There are a lot of conflicting views of the use of short exponents,
+and in the general case it is not safe, but from what I've been able
+to gather, since we use a fixed safe prime (Oakley group 14 [2]),
+the order of q should be fine.  If anyone has any further thoughts
+in this vein, however, I'd love to hear more.
+
+The one big alternative is to switch to 1024bit encryption (in which
+we could then use a 160bit short exponent, perhaps).  This may be
+appropriate regardless, and if things are too painful with 2048bit
+encryption on the _PRE net, we may make the jump within the _PRE
+net.  Otherwise, we may wait until the 0.6.1.10 release, when there
+is a wider deployment of the new crypto to see if its necessary.
+Much more info will be forthcoming if such a switch looks likely.
+
+[1] &quot;On Diffie-Hellman Key Agreement with Short Exponents&quot; -
+    van Oorschot, Weiner at EuroCrypt 96.  mirrored at
+    <a  rel="nofollow" href="http://dev.i2p.net/~jrandom/Euro96-DH.ps">http://dev.i2p.net/~jrandom/Euro96-DH.ps</a>
+[2] <a  rel="nofollow" href="http://www.ietf.org/rfc/rfc3526.txt">http://www.ietf.org/rfc/rfc3526.txt</a>
+
+In any case, lots of progress on the _PRE net, with most
+communication about it being done within the #i2p_pre channel on
+irc2p.
+
+* 3) I2Phex 0.1.1.37
+
+Complication has merged and patched the latest I2Phex code to
+support gwebcaches, compatible with Rawn's pycache port.  This means
+users can download I2Phex, install it, hit &quot;Connect to the network&quot;,
+and after a minute or two, it'll grab some references to existing
+I2Phex peers and jump on the net.  No more hassles with manually
+managing i2phex.hosts files, or sharing keys manually (w00t)!  There
+are two gwebcaches by default, but they can be changed or a third
+added by modifying i2pGWebCache0, i2pGWebCache1, or i2pGWebCache2
+properties in i2phex.cfg.
+
+Nice work Complication and Rawn!
+
+* 4) ???
+
+Thats about it for the moment, which is a good thing too, since I'm
+already late for the meeting :)  See y'all in #i2p shortly
+
+=jr
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.1 (GNU/Linux)
+
+iD8DBQFD6P3hWYfZ3rPnHH0RAve/AJ0auNrEkVufLMgVtw8HPq86/jxUlQCfbf+m
+ykoV6oDPbmUhB2CZ05EWnHs=
+=4TbS
+-----END PGP SIGNATURE-----
+
+
+</pre>

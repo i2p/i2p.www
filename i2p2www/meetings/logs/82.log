@@ -1,0 +1,464 @@
+[22:01:22] <jrand0m> agenda:
+[22:01:22] <jrand0m> 0) Hi
+[22:01:22] <jrand0m> 1) Network status
+[22:01:28] <jrand0m> 2) 0.3.1 plan
+[22:01:28] <jrand0m> 3) Web architecture
+[22:01:28] <jrand0m> 4) Administravia
+[22:01:34] <jrand0m> 5) ???
+[22:01:38] <jrand0m> 0) hi
+[22:01:39] <no_dammagE> of yourse
+[22:01:43] <ughabugha> Oh, cool, the meeting. :)
+[22:01:51] <jrand0m> hi, welcome to the weekly dev meeting, number $something
+[22:01:56] <ughabugha> Hi.
+[22:02:02] <jrand0m> weekly status notes up at http://i2p.net/pipermail/i2p/2004-March/000180.html
+[22:02:09] * mihi has joined #i2p
+[22:02:13] <fidd> howdy
+[22:02:32] <jrand0m> we'll see if we can avoid a 2 hour session today ;)
+[22:02:39] <jrand0m> ok, jumping to 1) network status
+[22:02:43] <Masterboy> :P
+[22:02:56] <jrand0m> we got 0.3.0 out on sunday, and its generally functional
+[22:03:12] <Masterboy> yes it is:)
+[22:03:23] <ox> * jrandom waves from i2p#i2p to prove it ;)
+[22:03:43] <jrand0m> there are still some bugs to fix, and a new set of things to be addressed, but ever onwards we go
+[22:04:21] * ion has joined #i2p
+[22:04:22] * ughabugha is reading the status notes.
+[22:04:27] * mrflibble has quit IRC (r eboot time)
+[22:04:35] <jrand0m> in the email i mention a new network monitoring tool duck put together - http://duck.i2p/dot/dot.png (or a snapshot at http://i2p.net/~jrandom/profiles.png)
+[22:05:05] <jrand0m> it basically gives us a view into how the network is doing - how many people are out there, and how well they're finding out about reliable and fast resources
+[22:05:22] <jrand0m> (basically it visualizes the result of the 0.3 peer profiling and selection process)
+[22:05:50] <ox> <duck> nice!
+[22:06:22] <jrand0m> yeah, its nice to see the visual feedback on the algorithms, rather than manually going through the networkDb
+[22:06:37] <ox> <Masterboy> there's a need of cpu usage decreasing..
+[22:06:38] <fidd> :)
+[22:06:48] * jrand0m gives the eepSiteAppOfTheWeek award to duck for dot.png
+[22:06:54] <ughabugha> Yeah, I wonder what would we be doing without duck?
+[22:07:08] <ox> <duck> maybe we can make an audio version too
+[22:07:17] <fidd> haha
+[22:07:20] <jrand0m> :)
+[22:07:22] <human> heheh
+[22:07:34] <fidd> or a smell-one
+[22:07:47] <ughabugha> Yeah, and stream it over jnon's icecast every hour.
+[22:07:51] <no_dammagE> how do I understand the speed column in #transport?
+[22:08:00] <no_dammagE> I mean peer profiles
+[22:08:25] <jrand0m> no_dammagE> good question.  if you read the bottom text below, it explains that the numbers have no correlation with anything - they're strictly relative values.
+[22:08:50] <no_dammagE> ok :)
+[22:09:15] <jrand0m> if you want the *real* answer, see http://i2p.net/cgi-bin/cvsweb.cgi/i2p/code/router/java/src/net/invisiblenet/i2p/router/peermanager/SpeedCalculator.java?rev=1.3&amp;content-type=text/x-cvsweb-markup
+[22:10:07] <jrand0m> the network has also grown to a steady 18-22 routers, which is a good size for the moment
+[22:10:31] <jrand0m> we'll want to grow a bit more once some of the existing bugs are dealt with, and the 0.3.1 phttp code is in place
+[22:10:36] <KyroxX> re
+[22:10:45] <jrand0m> wb KyroxX
+[22:11:03] <jrand0m> ok, that leads us into 2) 0.3.1 plan
+[22:11:16] <no_dammagE> mine will go off in 30 minutes and will go on in ~ 20 hours (or ill make it on the autostart so that it will be started with the PC)
+[22:11:29] <jrand0m> cool no_dammagE, thats fine
+[22:11:33] * fR has quit IRC (Ping timeout)
+[22:12:01] <jrand0m> rather than get the phttp code, the bandwidth limiter, and the new collusion deterrent all in one 0.3.1 release, i'm pushing the collusion deterrent into 0.3.2
+[22:12:19] <jrand0m> roadmap hasn't yet been updated, but things are pretty much the same
+[22:12:45] * fR has joined #i2p
+[22:13:17] <ughabugha> Are you going to release 0.3.0.1?
+[22:13:18] <jrand0m> there's going to be some complex stuff in the phttp revamp, dealing with throttling the connections, but we'll see how it goes
+[22:13:36] * KyroxX has quit IRC (Verlassend)
+[22:13:47] <jrand0m> perhaps, though currently the roadmap lists 0.3.1 as next week
+[22:13:54] <jrand0m> sunday, even.
+[22:14:01] <ox> <baffled> I knew you was in collusion with somebody.
+[22:14:02] <jrand0m> so i'm not sure
+[22:14:03] * Rom|Away|3h has quit IRC (Ping timeout)
+[22:14:04] <Masterboy> how can i limit the cpu usageof my router? why not make : "low" - "normal" - "high" - so you could choose?
+[22:14:10] <jrand0m> heh baff
+[22:14:11] <no_dammagE> why is that critical?:
+[22:14:11] <no_dammagE> 21:55:36.249 CRIT  [I2CP Reader ] et.invisiblenet.i2p.util.Clock: Updating clock
+[22:14:12] <no_dammagE>  offset to 105791ms from 0ms
+[22:14:16] * Romster has joined #i2p
+[22:14:24] * jar has quit IRC (Ping timeout)
+[22:14:38] <jrand0m> Masterboy> the code to work along those lines is planned for the 1.0rc1 release
+[22:14:43] <jrand0m> (router throttling)
+[22:14:48] * KyroxX has joined #i2p
+[22:14:50] <jrand0m> we've got some basics, but its not ready yet.
+[22:15:08] <KyroxX> re
+[22:15:13] <jrand0m> no_dammagE> because it should only occur at most once - if you see it happening a lot, its an issue
+[22:15:14] <Masterboy> oki
+[22:15:21] <jrand0m> (a critical issue)
+[22:15:48] <jrand0m> any other questions / concerns on the 0.3.1 release?
+[22:15:55] <mihi> then it should be debug the first time and then crit...
+[22:16:06] <jrand0m> you're right
+[22:16:09] <KyroxX> whats the topic?
+[22:16:17] <ughabugha> jrand0m: Err.. How can this occur on I2P? Closing Link: [unknown@192.168.0.2] (Ping timeout)
+[22:16:31] <jrand0m> KyroxX> the weekly dev meeting, item 2) 2) 0.3.1 plan
+[22:16:35] <ughabugha> Ah, never mind.
+[22:16:40] <jrand0m> ughabugha> ircd patch
+[22:16:49] <KyroxX> ah
+[22:17:02] <ox> <duck> my ircd is running on nsa.localdomain
+[22:17:06] <jrand0m> hmm
+[22:17:08] <ox> <duck> which has 192.168.0.2 as IP
+[22:17:12] <jrand0m> ah
+[22:17:30] * Romster has quit IRC (Ping timeout)
+[22:17:32] <jrand0m> ok, moving on to 3) Web architecture
+[22:17:49] * ion has quit IRC (Ping timeout)
+[22:17:58] <jrand0m> i know we discussed this last week a bit, and there's been some discussion on the mailing list about it too
+[22:18:02] <mihi> how can i make an account on drupal.i2p.net?
+[22:18:15] * mihi is too stupid for that...
+[22:18:16] <jrand0m> wilde> can you add one for mihi?
+[22:18:31] <jrand0m> (there's no way to register normally)
+[22:18:35] <mihi> jrand0m: you could simply say no, then i know i can stop trying ;)
+[22:18:42] <jrand0m> if wilde isn't around, i'll add one for you momentarily :)
+[22:18:51] * Romster has joined #i2p
+[22:19:04] * Romster is now known as Rom|Away|3h
+[22:19:18] <fidd> i'd like one too if its ok :)
+[22:21:05] <ox> <jmand> /ping jmand
+[22:21:12] <jrand0m> ok, back to the web arch stuff
+[22:22:06] <jrand0m> there are several different aspects of "how we use the web" in i2p, and we can either treat them all as OneBigWebThingy, or we can talk about specializing the components, making things that do their OneThingWell
+[22:22:34] * ion has joined #i2p
+[22:22:44] <jrand0m> mihi brought up some good points that I hadn't been looking at, some valuable features that we'll certainly want
+[22:23:03] <ughabugha> jrand0m: Are you talking about the separation of Squid and I2P web?
+[22:23:11] <ughabugha> Or something deeper?
+[22:23:24] <duck> the 'HTTPTunnel vs. {privoxy,muffin} + HTTPClient' thread
+[22:23:30] <duck> (http://i2p.dnsalias.net/pipermail/i2p/2004-March/)
+[22:23:48] <jrand0m> the seperation of squid and eepsites, as well as the seperation of browser proxies vs. (essentially) cgis
+[22:23:49] <ughabugha> Right.
+[22:24:00] <jrand0m> and, of course, the filters
+[22:24:48] <jrand0m> since we all work in the open source world here, there's no real need to have OneBigThing that deals with all of the different use cases - we can build one to address a need, then reuse its code for another to address another need
+[22:24:56] * jar has joined #i2p
+[22:25:04] <duck> I tend to agree with human's latest post
+[22:25:13] <jrand0m> plus, with mihi's new streaming I2PTunnel api, its fairly easy to build off
+[22:26:42] <jrand0m> as do i, though i don't have the time to work on httptunnel, so its really up to mihi as to what use case he's most interested in addressing first
+[22:26:48] * lucky has joined #i2p
+[22:27:45] * jar has quit IRC (EOF From client)
+[22:27:52] <jrand0m> mihi> any thoughts?
+[22:28:26] <jrand0m> ok or anyone else?  :)
+[22:28:47] <duck> http://i2p.i2p/ looks ugly to me
+[22:28:55] <duck> but even that could be survived
+[22:28:59] <jrand0m> i2p.i2p?
+[22:29:05] <human> ?
+[22:29:27] * ion has quit IRC (Ping timeout)
+[22:29:28] <jrand0m> i could add in a dns entry for eep.i2p.net pointing to 127.0.0.1 for machines that do bad dns things
+[22:30:01] * fR has quit IRC (EOF From client)
+[22:30:20] * human didn't get the latest proposal :-)
+[22:30:27] <duck> I think I did see i2p.i2p mentioned somewhere as replacement for the current http://i2p/keybla
+[22:30:35] <jrand0m> yours was the latest human
+[22:30:54] <jrand0m> oh, right, yeah on irc last night i think jnano was discussing it
+[22:30:55] <human> jrand0m: i mean: "i could add in a dns entry for eep.i2p.net pointing to 127.0.0.1 for machines that do bad dns things"
+[22:31:03] <mihi> duck: you have good eyes. i did this to prevent netbios lookups in Opera.
+[22:31:21] <duck> ah yeah "code/apps/i2ptunnel/java/src/net/invisiblenet/i2p/httptunnel/handler/RootHandler.java"
+[22:31:21] <jrand0m> ah sorry human, i meant that with regards to what mihi just said :)
+[22:31:23] * lucky has quit IRC (Ping timeout)
+[22:31:49] <duck> it is a shame that some browsers need such workarounds
+[22:31:55] <human> wew
+[22:32:15] <jrand0m> human mentioned something about socks4 not requiring that?
+[22:32:15] * KyroxX is now known as wbk
+[22:32:23] <duck> socks4a
+[22:32:29] <jrand0m> ah ok
+[22:32:39] <duck> (socks4 does DNS)
+[22:32:49] <jrand0m> do all browsers support socks4a?
+[22:32:59] <human> jrand0m: socks4 is Evil(TM), but socks4a and socks5 delegate name resolution to the server
+[22:33:00] <duck> s/socks4 does DNS/with socks4 the client does DNS/
+[22:33:06] <mihi> some browsers don't even support socks proxies...
+[22:33:08] <human> jrand0m: yes, AFAIK
+[22:33:27] <jrand0m> right, plus the kiosk issue mihi, certainly
+[22:33:52] <duck> it could be an alternative
+[22:34:04] <duck> httpclient + socksclient + etc
+[22:34:29] <human> jrand0m, mihi: programs that don's support socks could be tsocks'ed
+[22:34:53] <jrand0m> human> unless its a kiosk, where people can't run apps
+[22:35:00] <jrand0m> (or change settings, etc)
+[22:35:19] <human> jrand0m: yes, of course socks tunnels aren't suited for these tasks
+[22:35:31] <duck> (human: though then they'd still call gethostbyname)
+[22:35:39] <jrand0m> would they duck?
+[22:35:55] <human> duck: no, tsocks even inhibits them and forwards them to the proxy server
+[22:36:16] <human> duck: (dunno what happens in the windows world, though)
+[22:36:30] <jrand0m> they BSOD
+[22:36:32] <jrand0m> er..
+[22:36:57] <duck> (not according to /usr/share/doc/tor-0.0.2_pre27/CLIENTS.gz)
+[22:36:57] <human> heheheh
+[22:37:07] <jrand0m> heh duck
+[22:37:18] <human> socks tunnels, however, will not replace www proxies :-)
+[22:37:24] <duck> (( </tortechnotalk> ))
+[22:38:25] <jrand0m> mihi> whats your take on the highest priority use case for httptunnel?  if there's something we can help with?
+[22:38:31] <mihi> http://home.arcor.de/mschierlm/test/nosocks.png (which browser is that?)
+[22:38:31] <human> it's just an add-on to do some neat stuff with tunnelling, chaining etc.
+[22:38:31] <wbk> I2P is the ircd of iip right?
+[22:38:31] <duck> anyway, all solutions need a clientside filter
+[22:38:47] <human> duck: yes, according to man 8 tsocks :-)
+[22:39:14] <jrand0m> dunno mihi, opera?
+[22:39:19] * fR has joined #i2p
+[22:39:19] <duck> wbk: no private msg
+[22:39:19] <jrand0m> wbk> no
+[22:39:30] <mihi_backup> jrand0m: make it work perfectly with post requests &amp;&amp; make it do everything httpclient does
+[22:39:45] <jrand0m> word
+[22:40:08] <ughabugha> mihi: That's Opera.
+[22:40:14] <human> mihi: dunno, but as i wrote above: socks tunnels, however, will not replace www proxies :-)
+[22:40:18] <ughabugha> If you ment that as a question. :)
+[22:41:13] <jrand0m> ok, cool, anyone have anything else to bring up for web stuff, or are we ready for 4) Administravia?
+[22:42:23] <jrand0m> ok, just some notes -
+[22:42:24] * Rom|Away|3h is now known as Rom|Away|4h
+[22:42:51] <jrand0m> the drupal site is back online, so anyone who wants to help out with that, or see the latest progress, please hit drupal.i2p.net :)
+[22:44:02] <jrand0m> on it, you'll find the other two administravia points - the team roster [http://drupal.i2p.net/team] and the draft of a new license policy [http://drupal.i2p.net/node/view/85]
+[22:44:26] <duck> I was looking at the license policy...
+[22:44:35] <duck> AFAIK Cryptix == BSD
+[22:44:43] <jrand0m> right
+[22:44:52] <duck> (but with Cryptix team as copyrightor instead of regents of massachusets or something)
+[22:44:52] <jrand0m> but, strictly, its the Cryptix license ;)
+[22:45:05] <duck> what is MIT?
+[22:45:13] <jrand0m> mit is == bsd 2 clause
+[22:45:16] <jrand0m> == x
+[22:45:19] <duck> what code is MIT I mean
+[22:45:25] <jrand0m> nothing
+[22:45:29] <human> == x < 4.4.0
+[22:45:36] <jrand0m> i just list it as "if you want to use MIT, great"
+[22:45:42] <jrand0m> right human :/
+[22:45:49] <duck> the amount of licenses is already quite a few
+[22:45:56] <duck> I was wondering if that could be restricted
+[22:46:07] <duck> for example changing the GPL code into BSD or even pubdomain
+[22:46:31] <duck> was wondering what the author(s) of that part(s) did think about that
+[22:46:32] <ox> <no_dammagE> so, chatroom, ill go sleep now. Good code @ Devteam, good time of day to all others. Till tomorrow.
+[22:46:40] <duck> bye no_dammagE 
+[22:46:41] <jrand0m> i would love if the i2ptunnel streaming lib / naming lib or even the full i2ptunnel were licensed under a bsd-like license
+[22:46:51] <jrand0m> later no_dammagE
+[22:46:55] <no_dammagE> cu
+[22:46:58] * no_dammagE has quit IRC
+[22:47:19] * jar_backup has joined #i2p
+[22:47:50] <jrand0m> but, of course, GPL is fine, t'is mihi's right :)
+[22:48:06] <mihi> for streaming/naming lib that would be okay for me (or BSD or LGPL). but I'd like to keep GPL for the core I2PTunnel
+[22:48:07] <ughabugha> Well, whatever the license is, it should be GPL-compatible.
+[22:48:36] <ughabugha> (Ie, it shouldn't be more restrictive than GPL)
+[22:48:42] <human> i'm a GNU GPL advocate, but i think that the best license to disseminate new protocols and formats is something BSD-style (e.g. see how the OGG Vorbis guys relicensed everything from LGPL do MIT-X11)
+[22:49:05] <jrand0m> mihi> the streaming and naming lib are funcional without dependency upon i2ptunnel itself, right?
+[22:49:14] <ughabugha> Yeah, reference implementation shouldn't be GPL.
+[22:49:25] <mihi> they should be. if not, it's a bug.
+[22:49:30] <jrand0m> BSD 2 clause on those would be fantastic
+[22:49:40] <human> yup!
+[22:49:45] <mihi> you can have naming lib public domain if you include it into core ;)
+[22:50:02] * ion has joined #i2p
+[22:50:03] <jrand0m> absolutely, I'd love to include them in the core sdk
+[22:50:42] <mihi> them? ;) (including streaming lib into core would be a bad idea imho, since it is too less open for other impls)
+[22:51:09] <jrand0m> well, the sdk impl itself makes some nontrivial design assumptions - its just a ref impl
+[22:51:22] <jrand0m> i'd love if people could take i2p.jar and write a streaming app
+[22:51:28] <human> mihi: regarding I2PTunnels &amp; GPL: i'd suggest to add an explicit GNU GPL exception that allows people to link your app with proprietary JVMs (see my comment on http://drupal.i2p.net/node/view/85)
+[22:51:28] * Masterboy has quit IRC (Ping timeout)
+[22:51:59] <duck> human: that brings up the "have to hire a lawyer before I can use it"-problem
+[22:52:01] <jrand0m> (perhaps we can split the current i2ptunnel into i2ptunnel and i2pstreaming, if you'd prefer?)
+[22:52:32] <mihi> jrand0m: that would be okay for me. just change the ant task to build 2 jars ;)
+[22:52:35] <human> duck: i suggest to add the exception just to avoid it
+[22:52:39] <jrand0m> duck> if mihi is willing to BSD the streaming and naming libs, i don't think that'd be too much trouble
+[22:53:30] <mihi> and better make i2pministreaming instead of i2pstreaming
+[22:53:41] <duck> mihistreaming :)
+[22:53:48] <mihi> (note the n in mi4ni)
+[22:54:02] <mihi> duck: that was exactly what i thought ;)
+[22:54:03] <jrand0m> word mihi, so perhaps we can revise the table on http://drupal.i2p.net/node/view/85 to list the I2PTunnel core as GPL (perhaps with the exception human mentions?), plus a seperate I2PMiniStreaming line as BSD?
+[22:54:04] <jrand0m> hehe
+[22:54:10] <jrand0m> i2pmihistreaming is good too :)
+[22:55:25] <duck> ok
+[22:55:40] <duck> next week I'll try to convince you all to move totally to publicdomain
+[22:55:45] <duck> but this is enough for now :)
+[22:55:48] <jrand0m> :)
+[22:55:50] <human> hehe
+[22:56:06] <jrand0m> mihi*=5
+[22:56:14] <mihi> jrandom**=5;
+[22:56:21] <duck> wbk did just offer to help with the webdesign
+[22:56:36] <jrand0m> oh awesome duck
+[22:56:45] <jrand0m> well, briefly before we jump to 5)
+[22:56:58] <jrand0m> do any devs have any qualms with the /policy/ in http://drupal.i2p.net/node/view/85?
+[22:57:05] <duck> so I did do a bureaucratic team-table lookup and delegate him to wilde
+[22:57:25] <human> before jumping... what about the GPL + exception suggestion?
+[22:57:29] <jrand0m> aka "implicitly under $primaryLicense" or "explicitly under $alternate"?
+[22:57:47] <jrand0m> duck++ :)
+[22:58:02] <mihi> human: I'm adding it atm
+[22:58:07] * human agrees with jrand0m's policy
+[22:58:25] <duck> what about copyright owner
+[22:58:28] <human> mihi: ok, thanks
+[22:58:30] * duck did see human adding some new files as GPL
+[22:58:36] <duck> and putting mihi's name on that
+[22:58:45] <ughabugha> Err... I don't think drupal likes passwords which are 32 characters long.
+[22:58:51] <human> duck: i just cut'n'pasted existing files
+[22:59:18] <duck> ok, but what if we have 50 ppl working on it and each putting their own name on the copyrights
+[22:59:20] <jrand0m> for people that add public domain code, there's no copyright, but for people who use copyright, people should copyright it themselves
+[22:59:22] <human> duck: (well, even if i'm forgetting to put copyrights into files...)
+[22:59:25] <duck> then you cant switch license at a later point
+[22:59:29] <jrand0m> thats fine duck, in my opinion
+[22:59:53] <jrand0m> e.g. thecrypto should be the copyright owner of his encryption and SHA routines
+[23:00:03] <human> (i was still observing jrand0m's policy to stick with module licenses, btw)
+[23:00:05] <jrand0m> though since he's released it under BSD 2 clause, we will use it
+[23:00:38] <jrand0m> oh, maybe i'm missing the point - you want to make sure everyone puts their own name on it?
+[23:00:44] <duck> no
+[23:00:49] * jrand0m assigns copyright to richard nixon
+[23:00:56] <human> heheh
+[23:01:34] <human> btw: in my country, "public domain" is just another kind of copyright
+[23:01:46] <jrand0m> hmm.  i2p doesn't have any legal entity to receive copyright (and *never* will)
+[23:02:02] <human> i.e. you (the author) distribute your works without any restrictions
+[23:02:18] <jrand0m> right, a lot of countries have fucked up IP laws
+[23:02:59] <human> jrand0m: just to say that maybe it's better to put something like "i've created this file, and you can use it without any restriction" in each file
+[23:03:13] <jrand0m> that i think is a good idea
+[23:03:47] <human> jrand0m: (it's still happening, of course, but i think it should be a requirement :-)
+[23:03:55] <jrand0m> thats why i included the "jrandom wrote this in $year and releases it into the public domain" ;)
+[23:04:08] <human> jrand0m: yeah :-)
+[23:04:27] <jrand0m> so i'm missing ducks point
+[23:04:37] <fidd> and that thing abouth eating children
+[23:04:37] <duck> I lost it too
+[23:04:43] <jrand0m> :)
+[23:04:44] <human> heheh
+[23:04:47] <duck> lets forget it
+[23:04:58] * lucky has joined #i2p
+[23:05:13] <jrand0m> ok, so I'll add to the commit priv section the suggestion that people make note of their authorship of what they write
+[23:05:22] <jrand0m> (even if they dont copyright it?)
+[23:05:24] <lucky> hi
+[23:05:25] <lucky> :D
+[23:05:39] <jrand0m> s/suggestion/<i>suggestion</i>/
+[23:05:42] <jrand0m> hi lucky
+[23:05:50] <jrand0m> [damn i borked my regexp]
+[23:05:57] <duck> want me to PGP sign a statement?
+[23:06:09] <jrand0m> i'm going to, yes
+[23:06:30] <jrand0m> once the policy is ready and revised, i'll be contacting all prior committers for PGP/GPG auth 
+[23:06:33] <human> jrand0m: yes (in my country it's impossible to refuse copyright, it's seen as an inalienable author's right)
+[23:06:52] <duck> yes, your country is fucked
+[23:06:53] <duck> NEXT
+[23:06:56] <duck> (oops)
+[23:06:58] <jrand0m> :)
+[23:07:19] <fidd> human, what country?
+[23:07:39] <human> jrand0m: so, "this file is not copyrighted" just doesn't make sense - you should *always* explicitly say that you're the author, and that you put no restrictions on your work
+[23:07:47] <human> fidd: somewhere near Europe :-)
+[23:07:54] <fidd> heh, ok
+[23:07:59] <lucky> human: you can later say you don't want the copyright
+[23:08:03] <lucky> and put it in the public domain.
+[23:08:19] <jrand0m> human> with the "implicit release under $primaryLicense", that should address the issue though, right?
+[23:08:24] <duck> human means that that doesnt mean anything in $fuckedcountry
+[23:08:42] <jrand0m> human> since that implicitly means commit == release as $primaryLicense
+[23:08:50] <human> duck: yup, exactly
+[23:09:07] <jrand0m> (so no comment == implicit license by $author, per `cvs log`)
+[23:09:28] <jrand0m> (ah, legalese in code ;)
+[23:09:36] <human> jrand0m: well, i'm not a lawyer... but i think it should work
+[23:09:43] * kaji has joined #i2p
+[23:09:48] <ox> * wilde agrees with the last proposal
+[23:09:57] <jrand0m> w3rd.
+[23:10:05] <jrand0m> ok, i'll see if i can get the eff to review
+[23:10:19] <jrand0m> moving on to 5) ???
+[23:10:21] <human> jrand0m: maybe it's better to have some sort of agreement when ppl are given CVS access
+[23:10:46] <ox> <wilde> when will we see, net.i2p.legal.LicenseManager?
+[23:10:47] <jrand0m> agreed human> explicit agreement with $policy will be a prerequisit for getting commit privs
+[23:10:50] <jrand0m> heh
+[23:10:52] <human> jrand0m: (for example, GPG signing the your policy, and hosting it on the I2P site?)
+[23:11:00] <human> heheh
+[23:11:04] <jrand0m> reasonable enough human.
+[23:11:13] <mihi> jrand0m prefers PGP8 ;)
+[23:11:23] <jrand0m> damn straight.  pgpdisk++
+[23:12:06] * wilde has joined #i2p
+[23:12:14] <duck> hi wilde
+[23:12:36] <jrand0m> ok, does anyone have anything they want to bring up for 5) ??? 
+[23:13:27] <wilde> just an invitation one more time for people to visit drupal and comment, modify, etc
+[23:13:37] <jrand0m> word, yes, thats a good point
+[23:13:41] <duck> http://drupal.i2p.net/
+[23:13:41] <wilde> so we can have good docs for 1.0
+[23:13:41] <mihi> human, jrand0m: is the license in CVS okay now? ;)
+[23:13:55] <jrand0m> on http://drupal.i2p.net/team there are a lot of [vacant] roles.  volunteer!
+[23:14:02] <fidd> i cant get drupal thru squuid :/
+[23:14:17] * mihi volunteers for QS guy cuz of echo server ;)
+[23:14:29] <mihi> s/QS/QA/
+[23:14:33] <jrand0m> woot!
+[23:15:01] <wilde> unit tests for echo server
+[23:15:12] <mihi> wilde rofl no
+[23:15:17] <human> mihi: maybe you should s/XXXX/mihi/ in the GPL exception :-)
+[23:15:20] <ughabugha> jrand0m: Heh, what do you mean by stress testing? :)
+[23:15:34] <mihi> echo server is system test for i2p ;)
+[23:15:38] <mihi> human: oops ;)
+[23:15:56] * Rom|Away|4h has quit IRC (Ping timeout)
+[23:16:08] <jrand0m> ughabugha> it means you smash (aka use) the router and have patience with me to debug it, submitting reports and logs
+[23:16:35] <ox> <wilde> thus stress testing poor jrandom...
+[23:16:40] <ughabugha> jrand0m: Oh, okay. :)
+[23:16:44] <duck> wow, mihi is fast
+[23:16:47] <ughabugha> Hehe.
+[23:17:30] * Romster has joined #i2p
+[23:17:40] <mihi> duck: editor still open and the CVS comment was fast to type as well ;)
+[23:17:40] <jrand0m> mihi> licenses look great - just to be explicit, you're idented here, and you intend to release under the bsd 2 clause [per http://opensource.org/licenses/bsd-license.php], correct?
+[23:17:41] * Romster is now known as Rom|Away|4h
+[23:18:02] <jrand0m> (or you can just add that copyright text into the source)
+[23:19:24] <mihi> hmm, what does idented mean? (yes to your second subclause)
+[23:19:42] <jrand0m> means you've proven to trent that you're mihi :)
+[23:19:50] <duck> authenticated
+[23:19:54] <mihi> ok, identified ;)
+[23:20:01] <jrand0m> w3rd
+[23:20:06] <human> let's try identicated
+[23:20:14] <mihi> it looked to me like "indented" and i thought that my white space was incorrect ;)
+[23:20:20] <jrand0m> hehe
+[23:20:43] <ox> * wilde thinks launches word for find yet another synonym
+[23:21:07] <human> authentified?
+[23:21:22] <duck> anyway...
+[23:21:28] <jrand0m> ok, r0x0r, anyone have anything else to bring up?
+[23:21:44] <ox> <wilde> yeah
+[23:21:50] <ox> <wilde> eep naming 
+[23:22:00] <jrand0m> heh you don't like my pronounciation?
+[23:22:12] * kaji has quit IRC (Ping timeout)
+[23:22:14] <ox> <wilde> of i2p -> eep
+[23:22:14] * Rom|Away|4h has quit IRC (Ping timeout)
+[23:22:21] <jrand0m> oh
+[23:22:30] <jrand0m> you want to rename the whole project "eep" ?
+[23:22:39] <human> lol
+[23:22:48] <ox> * wilde mutters
+[23:22:48] <mihi> envisible enternet project ;)
+[23:23:08] <lucky> envisible
+[23:23:09] <jrand0m> extrordinarily excellent people
+[23:23:15] <lucky> connotates something for me.
+[23:23:46] <mihi> even easier publishing ;)
+[23:23:51] <jrand0m> ooOOoo
+[23:23:51] <lucky> As in its going to be visable, therefore possible. envision maybe?
+[23:23:53] <ughabugha> Come on, stop picking on wilde. :)
+[23:23:54] <ox> <wilde> seriously, do you like the name then it's fun?
+[23:24:06] <ox> <wilde> fine i mean, getting tired
+[23:24:44] <ox> <wilde> new users will not have it easy
+[23:25:03] <jrand0m> oh, i'm not a marketeer.  we went under "eep" because its all i could think of
+[23:25:23] <human> i think it should be forbidden to explain that eep ~= i2p, or users will *really* screw up
+[23:25:25] * ion has quit IRC (Ping timeout)
+[23:25:26] <jrand0m> what should we call websites that people both host and access through i2p?
+[23:25:38] <jrand0m> hehe
+[23:25:42] <duck> i2psites?
+[23:25:44] <ox> <wilde> i2p site?
+[23:25:57] * human likes eepsites without explanations :-)
+[23:26:09] * kaji has joined #i2p
+[23:26:25] * jrand0m asks the http://drupal.i2p.net/team user advocate for their opinion
+[23:26:35] <duck> we got one?
+[23:26:38] <jrand0m> no
+[23:26:43] <jrand0m> ;)
+[23:26:52] <duck> heh
+[23:26:55] <human> anyway... you can change all the naming, as long as the "Shitlist" keeps its current name
+[23:26:56] <ox> * wilde rushes to the browser
+[23:27:01] <jrand0m> heh
+[23:27:06] <mihi> lol human
+[23:27:07] <jrand0m> oh, shitlist is going to stay, for sure ;)
+[23:27:21] <ox> <wilde> i take the role, it should be i2p sites, i resign
+[23:27:21] <duck> I bet that shitlist is a proper english word
+[23:27:24] <jrand0m> i mean, "blacklist" just isn't as fun
+[23:27:26] <jrand0m> hah wilde
+[23:27:29] <human> jrand0m: cool!
+[23:27:56] <ughabugha> But why not stick to the current names?
+[23:28:05] * human was worried that the shitlist was going to be the first victim when I2P goes corporate
+[23:28:06] <jrand0m> ok, i don't really care either way, i2psite is fine, eepsite is fine
+[23:28:09] <ughabugha> I mean we have enough time to consider it on the mailing list until 1.0.
+[23:28:09] <mihi> jrand0m: and the elephants on the moon have to stay too ;)
+[23:28:22] <kaji> so is kaji.i2p up for anyone. i kinda just started it up without testing anything and left it running
+[23:28:31] <jrand0m> human> i think we don't have to worry about that one ;)
+[23:28:35] <ughabugha> kaji: It worked for me.
+[23:28:48] <jrand0m> we have to keep moving the easter eggs mihi :)
+[23:28:48] <ox> <wilde> i don't really care, eepsite is just as boring as i2psite
+[23:29:05] <jrand0m> we can consider them synonyms
+[23:29:23] <ox> <wilde> that the worst decision ;)
+[23:29:44] <duck> wbk: ok, I have to leave for a bit. The meeting is almost over so people can help you in #i2p
+[23:29:44] * jrand0m supposes that now that i've taken on the title of PM i've got to make a decision
+[23:29:48] * ion has joined #i2p
+[23:29:55] * jrand0m kicks self
+[23:30:09] <human> heheh
+[23:30:12] * mihi guesses jrand0m needs some support for that
+[23:30:19] * Trent@anon.iip sets mode: +o mihi
+[23:30:27] * mihi sets mode: +o jrand0m
+[23:30:30] <@jrand0m> ooOOoo
+[23:30:32] * mihi sets mode: -o mihi
+[23:30:49] <ox> <wilde> ok no more questions from me
+[23:30:55] * human sacrifices his pet to the PM
+[23:31:38] * mihi still waits for jrand0m kicking himself...
+[23:31:44] <@jrand0m> i think there's benefit to discussion, as well as some quirkiness.  i also lean in human's direction - there's no need to confuse people by explaining "eep != i2p"
+[23:31:59] * @jrand0m Offically Decides "eepsite"
+[23:32:23] * You were kicked by jrand0m (bastard!)
+Session Close: Tue Mar 23 23:32:23 2004
+Session Start: Tue Mar 23 23:32:30 2004
+[23:32:32] <human> lol
+[23:32:37] <duck> lets quickly baff the meeting closed
+[23:32:40] <duck> oh, too late
+[23:32:42] <jrand0m> heh
+[23:32:48] <human> heheh
+[23:32:56] <jrand0m> ok anything else?  we're at the 92 minute mark
+[23:33:05] * jrand0m winds up...
+[23:33:20] * jrand0m *baf*s the meeting closed

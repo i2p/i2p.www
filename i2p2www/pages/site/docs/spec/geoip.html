@@ -1,0 +1,81 @@
+{% extends "global/layout.html" %}
+{% block title %}{% trans %}GeoIP File Specification{% endtrans %}{% endblock %}
+{% block lastupdated %}{% trans %}May 2013{% endtrans %}{% endblock %}
+{% block accuratefor %}0.9.6{% endblock %}
+{% block content %}
+
+<h2>{% trans %}Overview{% endtrans %}</h2>
+<p>{% trans -%}
+This page specifies the format of the various GeoIP files,
+used by the router to look up a country for an IP.
+{%- endtrans %}</p>
+
+
+<h2>{% trans %}Country Name (countries.txt) Format{% endtrans %}</h2>
+<p>{% trans -%}
+This format is easily generated from data files available from many public sources.
+For example:
+{%- endtrans %}</p>
+<pre>
+# wget http://geolite.maxmind.com/download/geoip/database/GeoIPCountryCSV.zip
+# unzip GeoIPCountryCSV.zip
+# cut -d, -f5,6 < GeoIPCountryWhois.csv |sed 's/"//g' | sort | uniq > countries.txt
+</pre>
+<ul>
+<li>Encoding is UTF-8
+<li>'#' in column 1 specifies a comment line
+<li>Entry lines are CountryCode,CountryName
+<li>CountryCode is the ISO two-letter code, upper case
+<li>CountryName is in English
+</ul>
+
+
+<h2>{% trans %}IPv4 (geoip.txt) Format{% endtrans %}</h2>
+<p>{% trans -%}
+This format is borrowed from Tor and is easily generated from data files available from many public sources.
+For example:
+{%- endtrans %}</p>
+<pre>
+# wget http://geolite.maxmind.com/download/geoip/database/GeoIPCountryCSV.zip
+# unzip GeoIPCountryCSV.zip
+# cut -d, -f3-5 < GeoIPCountryWhois.csv|sed 's/"//g' > geoip.txt
+# cut -d, -f5,6 < GeoIPCountryWhois.csv |sed 's/"//g' | sort | uniq > countries.txt
+</pre>
+<ul>
+<li>Encoding is ASCII
+<li>'#' in column 1 specifies a comment line
+<li>Entry lines are FromIP,ToIP,CountryCode
+<li>FromIP and ToIP are unsigned integer representations of the 4-byte IP
+<li>CountryCode is the ISO two-letter code, upper case
+<li>Entry lines must be sorted by numeric FromIP
+</ul>
+
+
+<h2>{% trans %}IPv6 (geoipv6.dat.gz) Format{% endtrans %}</h2>
+<p>{% trans -%}
+This is a compressed binary format designed for I2P.
+The file is gzipped. Ungzipped format:
+{%- endtrans %}</p>
+<pre>
+   Bytes 0-9: Magic number "I2PGeoIPv6"
+   Bytes 10-11: Version (0x0001)
+   Bytes 12-15 Options (0x00000000) (future use)
+   Bytes 16-23: Creation date (Java long)
+   Bytes 24-xx: Optional comment (UTF-8)
+   Bytes xx-255: null padding
+   Bytes 256-: 18 byte records:
+       8 byte from (/64)
+       8 byte to (/64)
+       2 byte ISO country code LOWER case (ASCII)
+</pre>
+<p>{% trans %}NOTES:{% endtrans %}</p>
+<ul>
+<li>Data must be sorted (SIGNED long twos complement), no overlap.
+So the order is 8000:: ... FFFF:: 0000:: ... 7FFF::
+<li>
+The GeoIPv6.java class contains a program to generate this format from
+public sources such as the Maxmind GeoLite data.
+<li>
+This specification is preliminary; I2P does not yet support IPv6 GeoIP lookup.
+</ul>
+{% endblock %}

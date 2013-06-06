@@ -1,0 +1,77 @@
+< cervantes>  moo: http://dev.i2p.net/pipermail/i2p/2006-May/001289.html
+< cervantes>  0) hi
+< cervantes>  1) jrandom's not here
+< cervantes>  2) ???
+< cervantes>  0) hi
+< cervantes>  hi
+< cervantes>  moving on to 1)
+< cervantes>  jrandom isn't here today, but he'll give us a status update tomorrow
+< cervantes>  2) ???
+< cervantes>  does anyone have anything else to add to the meeting?
+< bar>  i have a question
+< cervantes>  in that case...
+* cervantes winds up
+* cervantes stops winding
+< Complication>  Aha, a question...
+< bar>  the PRNG fix in cvs, will that improve the general performace or is it related to something else?
+< cervantes>  it's uncertain what consequences it might have in general
+< Complication>  I'm personally not aware of its total impact, but it does involve at least two behaviours I'm aware of:
+< cervantes>  but it specifically fixes a symptom with i2ptunnel
+* cervantes lets complication decomplicate 
+< Complication>  tunnel length randomization and IRC server choice (more generically, random selection from a list of I2PTunnel destinations)
+< Complication>  Tunnel length randomization probably has a significant effect on overall network health, since it allows clients who are permitted to compromise on tunnel length to actually do that
+< Complication>  So they won't be holding breath and building 2-hop tunnels, but also try some 1-hop tunnels
+< Complication>  (which on hard times, are much easier to get)
+< cervantes>  also irc connectivity might improve once it's  rolled out. Basically freshcoffee was never getting any client connections because it was second in the list - so with the next release the load should be evenly distributed between both servers
+< bar>  so the bug made people always go for the longer tunnel lengths if available?
+< Complication>  If I understood right, every randomization with smallish integers (e.g. pick 0 or 1) was affected
+< Complication>  I *think* randomizations with bigger integers (e.g. pick an integer between 0 and 100) were less affected
+< Complication>  if you're interested, you should probably ask jranom for details when he's back
+< Complication>  I may get the details wrong.
+< bar>  i see, thanks. good catch
+< Complication>  well, cervantes came here and started complaining about not getting any overload ;P
+< cervantes>  that was my understanding of it too
+< cervantes>  see...you don't get anything in life if you don't grumble :)
+< cervantes>  do any folk have other questions or topics for the meeting?
+< fox>  < duck>  yes
+< Pi>  a question about general net health : i see more and more clients get left behind i2p-version wise (2 still using 0.6.1.11 and so on). won't these clients make monitoring effects of changes to the core more and more harder? (as "fewer" seem to want to update)
+< fox>  * duck repeats above
+* w423412323 suggests a topic change along that line. ;)
+< fox>  < duck>  I was wondering, I have seen some funky tuning commits on the cvs mailinglist. are those more experiments? are they based on observations? are they premature?
+< Complication>  Pi: as long as they aren't present in big numbers, they shouldn't make a big difference
+< Pi>  70 of 300 clients using non-0.6.1.18-version according to my netdb now 
+< Complication>  It's a game of numbers and capacity - if either most routers, or additionally the highest-capacity routers are reasonably updated, some people forgetting that they installed I2P shouldn't matter :)
+< cervantes>  Pi: if the older routers misbehave then the network _should_ adapt and reduce traffice being router via them
+< cervantes>  *being routed
+< cervantes>  Complication: did you see duck's question? 
+< Pi>  and a question about a stat on the i2p-console which appeared some time ago : what does handle backlog mean?
+< Complication>  duck: would you mean the tunnel throttle adjustments? They're tuning in the sense that they won't bring much inherently new, but they should be fairly well-tested now (e.g. they probably won't byte)
+< Complication>  But they might byte a little, if you run an exotic setup which is completely outside the parameters I could think of
+< fox>  < duck>  Complication: I was wondering if '2' instead of '3' thingies really mattered that much
+< fox>  < duck>  but it seemed that the random problem might have been a big baddy
+< fox>  < duck>  (though the relative impact of that towards network unhealth depends on when it was introduced)
+< cervantes>  Pi: handle backlog is the number of pending inbound tunnel join requests (quoted from the changelog)
+< Complication>  If you mean the random nextInteger() problem, and effect on tunnel length randomization, I feel it would have significant effect
+< Complication>  The cost difference of building a 1-hop and 2-hop tunnel is pretty significant
+< Pi>  thx, cervantes :)
+< fox>  < duck>  when was it introduced?
+< Complication>  duck: I think it was introduced with some switchovers to the Fortuna generator, or some modification therein
+< fox>  < duck>  ok; thanks a lot for your input
+< Complication>  Let me check the cvsweb for more detail...
+< cervantes>  Pi: I believe there's code in place now that drops inbound tunnel requests if the queue fills up (to help reduce cpu load)
+< Complication>  Pi: yes, that should be the visible indicator of another parameter used for deciding "do we have enough capacity to participate in another tunnel?"
+< cervantes>  duck: I certainly experience a large change in router behaviour since the fix was introduced. - not all good I have to say :)
+< Complication>  big handle backlog == congestion, no point in trying to join other people's tunnels
+< cervantes>  had a load average of 14 and 12000 participating tunnels the other day
+< Complication>  Handle backlog seems important particularly on high-capacity routers (referring to what cervantes saw)
+< Complication>  Low capacity routers generally throttle their tunnel acceptance for bandwidth reasons
+< Complication>  (or tunnel test time reasons, to be correct)
+< Complication>  (or at least, to try that)
+< cervantes>  wow we've managed half an hour....
+< Complication>  Indeed :D
+< cervantes>  anyone want to bring anything else to the table?
+< cervantes>  in that case...
+* cervantes winds up
+* cervantes *baffs* the meeting closed
+< fox>  < duck>  thx for taking care of the meeting
+< cervantes>  heh I was expecting to baf it closed before anything said anything....but bar ruined that plan :)

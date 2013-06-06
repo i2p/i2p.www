@@ -1,0 +1,235 @@
+15:02 < jrandom> 0) hi
+15:02 < jrandom> 1) Net status
+15:02 < jrandom> 2) Syndie dev status
+15:02 < jrandom> 3) January bug harvesting contest winners!
+15:02 < jrandom> 4) ???
+15:02 < jrandom> 0) hi
+15:02  * jrandom waves
+15:02 < jrandom> weekly status notes posted up at http://dev.i2p.net/pipermail/i2p/2007-February/001333.html
+15:03 < jrandom> hopping on to 1) Net status
+15:03 < jrandom> I don't really have much to add here (as you can probably tell ;)
+15:03 < jrandom> anyone have anything to bring up regarding the network status?
+15:04 <+void> used to be better, somehow...
+15:04 <+void> but not bad
+15:05 < jrandom> its odd, the last wek or so our build rates have been going back up, per stats.i2p
+15:05 < tethrage> is there a long term pattern?
+15:06 < tethrage> (in build rate change)
+15:07 < jrandom> afaics the patterns have been associated with the capacity of high powered routers, but thats only given a very limited view of the network (since i only know whats publicly available, pretty much)
+15:07 < tethrage> i see
+15:08 < tethrage> is there any information that could be provided to help?
+15:08 < tethrage> from just normal routers that is
+15:08 < jrandom> not really, from my point of view
+15:09 < tethrage> i see
+15:09 < jrandom> (basically we just need to implement some code changes before moving forward)
+15:10 < tethrage> i see
+15:11 < jrandom> ok, anyone have anything else for 1) Net status?
+15:12 < jrandom> if not, lets skip on over to 2) Syndie dev status
+15:14 < jrandom> lots going on here, as you can read
+15:14 <+fox> <mk> minor: perhaps changed 'signed by' to 'authorization'? I'm a little edgy on the blurry lines between forums, identities, signatures, and so on
+15:14 <+fox> <mk> -d
+15:15 < jrandom> ah, thats a good idea
+15:16 <+void> mk: a forum is an identity :)
+15:16 <+void> and vice versa
+15:17 < jrandom> aye, though we don't want to confuse people too much by making this odd duality visible
+15:17 <+fox> <mk> I'm aware, but it's still blurry. I grasp it just fine now, but I worry that new users might be confused by the lack of differentiation
+15:18 <+void> ah
+15:18 < jrandom> right - people think of forums differently than they think of identities, so need to make sure we behave as expected
+15:18 <+fox> <mk> something else that might be worth implementing in the forum or identity management is explicit 'post to this forum only under author x authorization y', which would eliminate mixups. you wouldn't even need a dropdown on the new post messages
+15:19 <+fox> <mk> (a dropdown for keys)
+15:20 <+void> i'd prefer a global identity dropdown that was visible at all times
+15:20 <+fox> <mk> like, who you're posting under?
+15:20 < jrandom> hmm
+15:21 <+fox> <mk> perhaps, but there really isn't much of a difference, I think, between having it on top always and having it appear on posts only
+15:22 < jrandom> ok, before we dig too deep into this, there is a side channel not currently addressed in syndie that can link multiple identities
+15:22 <+void> though your identity is not used anywhere else other than posting
+15:22 <+fox> <mk> what do you mean?
+15:23 <+void> pushing new posts?
+15:23 < jrandom> if you need to have completely unlinkable identities, you need to run separate syndie instances - you can sync them off each other, and only use one to pull/push to the other archives, but the local archive contains information that only some of the identities have access to
+15:23 <+fox> <mk> (I agree that we should probably save big discussions for the dev forum, but it is nice to have a bunch of people talking about it at once)
+15:24 <+void> true
+15:24 < jrandom> however, all of the identities on the local archive can acces that information, and if they act on it (post with those keys, etc), they'd leak the linkabiity
+15:25 < jrandom> perhaps we can find a way to accomplish all of that transparently through the gui though
+15:26 < jrandom> (running with multiple archives locally without having to fire up syndie twice)
+15:26 <+fox> <mk> there are many other issues - like marking certain archives exclusive against each other - that could help with anonymity. we should try to define all these scenarios and figure out a way to deal with them in a very usable way
+15:27 < tethrage> syndie doesn't aim for anonymity, just security
+15:27 < tethrage> it is the transport layer it runs on that should deal with that, surely? :/
+15:27 < jrandom> syndie aims for anonymity
+15:27 < tethrage> (correct me if i'm wrong)
+15:28 < jrandom> the transport layer only deals with a small portion of the anonymity - we need to deal with the rest
+15:28 < jrandom> s/small//
+15:28 < tethrage> does it? :/
+15:28 <+fox> <mk> yes, that's right. syndie deals especially with information leaks
+15:29 < jadeSerpent> ip address anonymity vs. identity anonymity
+15:29 < tethrage> i see. i thought you said a while ago syndie was meant as a secure app that employed crypto but wasn't strictly anonymous?
+15:29 < tethrage> (not in the same way as i2p etc, anyway)
+15:29 <+fox> <mk> information security is handled by the redundancy of archives
+15:29 < jrandom> mk: i'm not sure what you mean by marking the archives, but i'd love a post on the syndie dev forum discussing it :)
+15:29 < jrandom> tethra: syndie can be used for things that don't require anonymity
+15:30 < jrandom> but syndie must be usable for things that do
+15:30 < jrandom> (otherwise, there is no point to implement it as part of the i2p project)
+15:31 < tethrage> yeah
+15:31 <+void> jrandom: well, to be fair, there still would be a point if syndie provided anonymity by utilizing i2p
+15:31 <+void> but never mind
+15:31 <+void> c
+15:31 < tethrage> what, other than security against information leaks and dodgy code, does syndie do to keep people anonymous? :/
+15:32 < tethrage> surely unless specified you access the archives directly etc?
+15:32 <+fox> <mk> tethrage, information leaks of all sorts. If you'd like we can go into more detail in a bit
+15:33 < jrandom> tethra: for instance, someone accessing an eepsite with javascript enabled
+15:33 < jadeSerpent> tethrage: there's no guarantee that the posts you push to an archive originated with you, someone might have pushed them to your archive
+15:34 < tethrage> jrandom: yeah, the js can give things away and such. but surely that's more a matter of security than anonymity if you're not using an anonymous network of some variety?
+15:34 < tethrage> then again, i suppose i'm just arguing semantics, so i'll stop
+15:34 < tethrage> :/
+15:34 < jadeSerpent> i would argue running your own publically accessible archive increases your anonymity in that respect
+15:34 <+fox> <mk> jrandom, I'll make that post. Also, I've been playing around with a design for a browser (I don't like opening new tabs for new sections), so I'll try to make a prototype for it, and perhaps post some scribbles to dev
+15:34 < jrandom> "security against information leaks" is the core of anonymity - controlling who knows facts about your identity
+15:35 < jrandom> ah kickass mk, thanks!
+15:35 < jrandom> jadeSerpent: certainly
+15:35 < tethrage> i see
+15:35 < tethrage> point taken
+15:36 < jrandom> mk: if there are better ways to present the syndie ui, i'm 100% for it (only a very small portion of code is bound to these tab-based components)
+15:36 < jrandom> and we are alpha after all
+15:38 <+void> jrandom: i don't suppose it's hard to turn the tabbed interface into a windowed interface?
+15:38 <+fox> <mk> yep. and if some people prefer the tabbed-for-all approach, then there's no problem with using that
+15:38 <+fox> <mk> (alongside of the browser tab)
+15:39 < jadeSerpent> please no mdi, i suggest something halfway between tabbed and mdi, eclipse's perspectives
+15:39 <+void> mdi is bad, i agree
+15:40 < jadeSerpent> netbeans has something like that too, forget what it's called
+15:40 < jadeSerpent> views or workbenches or something, been a while
+15:41 < jrandom> .png sketches appreciated :)
+15:41  * jrandom went with the tab-for-all style because everyone loves firefox (/etc)
+15:42 < jadeSerpent> when i finish the icons i might hack on some of that
+15:42 <+fox> <mk> the 2 week release cycle is a good thing. I like seeing those goals explicit, but I'd also like to see some 'softer' goals listed - dev and later on user documentation, diagrams, and so on
+15:42 < jrandom> wikked
+15:42 < jadeSerpent> tabs are fine for now imo, they're usable
+15:42 < jrandom> mk: http://syndie.i2p.net/roadmap.html ?
+15:42 < jrandom> (though there are no dates on the roadmap)
+15:43 <+fox> <hottuna> nice :=) ... just posted about it to pending tasks :P
+15:44 <+fox> <mk> yeah, though I'm referring to smaller goals. "document the general interactions between classes in syndie.gui", or "write up a doc regarding banning" etc.
+15:44 < jrandom> ah, good point
+15:45 < jrandom> i've been meaning to collate all the small/mid/high level todo items again
+15:45  * jrandom adds that to the todo list
+15:47 < jrandom> ok, anything have anything else to bring up for 2) Syndie dev status?
+15:48 < jrandom> (of course, we've always got the dev forums in syndie, but irc is useful for quick back & forth)
+15:49 < jrandom> if not, lets jump on over to to 3) January bug harvesting contest winners! 
+15:50 < jrandom> congrats Darn, voyde, mk, and Anonymous, and thanks to everyone who helped out
+15:51  * jrandom realizes the contest was originally for the top 3, but the count was so close 
+15:51 < jrandom> there's a new contest on for this month too, same rules as before
+15:51 < jadeSerpent> how do you know "Anonymous" was only one person? ;)
+15:51 <+fox> <mk> 225 (by my count) bugs in total - impressive
+15:51 <+void> :)
+15:52 <+fox> <mk> jade, the key, I would think :)
+15:52 < jrandom> jadeSerpent: urn:syndie:meta:d7:channel44:Ffn4RhCunO6gwMfAYfOoPY7FGwPNDy65dS4DyuyorME=e :)
+15:53 < jrandom> it could be five people sharing that key though
+15:53 < jrandom> but then they've got to share the $50USD ;)
+15:53 < jrandom> (first one with the private key who signs a message to me specifying what egold acct to send it to wins ;)
+15:53 < jadeSerpent> unless one kills the others
+15:54 < jadeSerpent> but that kind of thing would only happen in romania
+15:54 < tethrage> and russia
+15:54 < jrandom> (and britain, and australia, and...)
+15:55 <+fox> <mk> 50usd is a lotta money...
+15:55 < jadeSerpent> in russia they'd all be killed, and the landlord would take the money and pass it on to the mob as protection fee
+15:55 < tethrage> not in gbp ;p
+15:55 <+fox> <mk> I know *I'd* kill for it
+15:55 < tethrage> i suppose asking where you're from wouldn't get an answer, mk?
+15:55 < tethrage> :/
+15:56 <+fox> <dw_g> ok, I'll take it ;)
+15:56 <+fox> <mk> russia originally :D now canada
+15:56 < jadeSerpent> 225 bugs is impressive, how many of those have been closed?
+15:56 < tethrage> ice.
+15:56 < tethrage> +n
+15:57 < jrandom> jadeSerpent: i'd thumb it at maybe 75-80% addressed
+15:57 < jadeSerpent> nice
+15:58 < jrandom> (with maybe another 5-10% invalid/wontfix)
+15:58 < jrandom> but actually, thats one of the higher level todo items - get a real management ui on the bugtracking
+15:58  * jadeSerpent recommends trac
+15:58 < jrandom> (it took me a while to walk through all the posts and count them all up manually)
+15:58 <+fox> <mk> external to syndie?
+15:59 < jrandom> hmm, with a syndie-->track exporting system?
+15:59 < jrandom> s/ck//
+15:59 <+fox> <mk> a nice project would be to hook syndie up to a bug tracker
+15:59 < jadeSerpent> yeah
+15:59  * jrandom bets a few SQL queries & inserts would do the trick
+16:00 < jrandom> it would be quite worthwhile though, at least from a readonly-trac perspective
+16:00 <+void> but syncing updates made to trac back into syndie is bound to be tricky, i think
+16:00 < jrandom> full cycle integration isvery hard
+16:00 < jrandom> right
+16:00 <+fox> <mk> at some point it might be worth considering a 'revision'-type system
+16:00 < jrandom> but being able to query & drill down in trac, and generate reports, etc
+16:01 <+fox> <mk> where posts supercede older ones
+16:01 < jrandom> ah, yeah there are hooks for that, but the Overwrite* headers aren't currently honored
+16:02 < jrandom> wouldnt be too tough though, just a UI toggle to navigate to previous revs of the same post, plus a few lines of code to verify the post is authorized to override the old post
+16:03 < jadeSerpent> i understand the desire to use syndie itself for bug reporting, but its design doesn't involve issue tracking, and it will always be sub-optimal for that task, imo you should use a real issue tracker
+16:04 <+fox> <mk> seeing the number of bugs filed, I agree with jadeSerpent
+16:05 < jrandom> though on the flip sie, how many bugs were discovered by those using syndie to file the bugs?
+16:05  * jrandom is not entirely oposed to a trac or other bug tracking system
+16:05 < jadeSerpent> those kinds of bugs are going to be discovered anyhow
+16:05 <+void> well, severities, components, versions and closing/opening/reopening bugs can be done with syndie tags
+16:05 < jrandom> right
+16:06 <+void> (and most of those already are)
+16:06 < jadeSerpent> like the other day when it froze up on someone who was posting a bug report, it would have frozen on them if they were posting about any subject, didn't matter that it was a bug report
+16:06 < jrandom> it we can feed a real issue tracker via pseudonymously (and authentic) messages, that would be great
+16:06  * jrandom has received a few private bug reports as well, which include sensitive information, - these are protected by syndie's encryption
+16:07 <+fox> <mk> well, why not keep both?
+16:08 < jadeSerpent> i agree that there is however no issue tracker designed with anonymity or more-than-trivial confidentiality in mind
+16:09 <+fox> <mk> it would be nice to have syndie have that sort of bug tracker, but anonymity isn't too great a problem when filing most bug reports
+16:10 < jadeSerpent> maybe trac could be modded to utilize syndie's features there
+16:10 <+fox> <mk> jade, it'd be hard. browsers don't implement signing
+16:12 < jrandom> hmm.  what we have is originally based off: http://syndiemedia.i2p.net:8000/blog.jsp?blog=ovpBy2mpO1CQ7deYhQ1cDGAwI6pQzLbWOm1Sdd0W06c=&entry=ovpBy2mpO1CQ7deYhQ1cDGAwI6pQzLbWOm1Sdd0W06c=/1132012800003
+16:12 < jrandom> plus http://dev.i2p.net/~jrandom/bugsp1.txt and http://dev.i2p.net/~jrandom/bugsp2.txt
+16:13 < jrandom> i agree that we need something better than what we have to track these issues, and i'm open to whatever best moves us forward
+16:13 < jrandom> but i'd like to keep whatever it is minimal if possible, because we're building syndie, not a bug tracker :)
+16:14 < jadeSerpent> yeah well you seem to be managing it for now without one ;)
+16:14 < jrandom> but i'm sure some will fallbetween the cracks, and others will have a harder time finding whats known/etc, and contributing fixes
+16:15 <+fox> <mk> we probably don't even need to implement it through syndie. it's useful there to some extent, but 200+ bugs really is a lot. we should decide on a tracker and make it available through the www and through i2p
+16:16 <+fox> <mk> provide a link to it atop the syndie file a bug screen, and that way we have both options. a bug tracker implementation in syndie isn't something to be using resources on now
+16:17  * jrandom does love having bug tracking integrated (so people don't need to create bug tracking accounts, use fake email addresses, etc), but i'm open to proposals for what solution we should use
+16:17 <+fox> <mk> I think we should keep that, but also have that bug tracker
+16:18 < jadeSerpent> read-only access for the short term would be nice
+16:18 < jadeSerpent> i prefer a more bug-oriented search interface
+16:18 < jrandom> wouldn't be so bad, could perhaps write a one-way syndie-->issue tracker export without much trouble too, of r those who can't dont want to use the web based one
+16:19 < jrandom> s/of r/for/
+16:19 <+fox> <mk> integrated bug submission is a great thing to have, but we shouldn't use the syndie archive to track 200+ bugs
+16:20 < jrandom> though its great for testing our search capabilities :)  [yeah, ok, i'm convinced]
+16:20 < jrandom> so, one vote for trac.  any other votes?  please post to the syndie dev forum, with rationale, of course
+16:21 < jadeSerpent> two votes for trac, unless you've already counted mine ;)
+16:21 < jrandom> aye, thats what i was counting ;)
+16:21 <+fox> <mk> what are the options? I know nothing about trackers
+16:21 < jadeSerpent> i was hoping that was your own vote, but ok
+16:22 < jadeSerpent> i've worked with trac, great third party support
+16:22 < jadeSerpent> bugzilla i would say blah to
+16:22 < jrandom> though, as an aside, if someone is quite familiar with an issue tracker, that'd be helpful for whipping out a syndie-->issue tracker export 
+16:22 < jrandom> yeah, bugzilla is a beast
+16:22 < jadeSerpent> jira is also good, like trac
+16:23 <+void> trac is probably familiar to lots of people, too
+16:23 < jrandom> aye, and good folks too (they gave i2p a license, though we havent used it yet)
+16:23 < jadeSerpent> you have a jira license?
+16:23 < jrandom> aye, jira and fisheye
+16:24 < jadeSerpent> cool, might as well give it a shot
+16:24 < jadeSerpent> btw eclipse's mylar plugin integrates fully into bugzilla, trac, and jira
+16:24 < jadeSerpent> high praises for its interface
+16:25 < jrandom> damn this netbeans/eclipse battle
+16:25 < bar> (bugs are reported automatically when created? ;)
+16:25 < tethrage> (haha)
+16:26 <+fox> <mk> hah, nice
+16:26 < jadeSerpent> jrandom: netbeans support is on the mylar roadmap iirc
+16:26 < jrandom> cool
+16:26 <+fox> <modulus> that's what comes to those who fanatically support sun :-)
+16:27  * jrandom pelts modulus with javabeans
+16:27 < jadeSerpent> even though mylar is offically under the aegis of eclipse foundation
+16:27 <+fox> * mk can't find a live site for trac
+16:27 <+fox> <modulus> http://trac.wordpress.org/
+16:27 < jrandom> mk: http://feedspace.i2p/ atm
+16:28 <+void> http://trac.edgewall.com/
+16:29  * jrandom doesn't want to spend a lot of time evaluating lots of different systems, so if someoe wants to champion a specific system, please do so in the syndie dev forum 
+16:29 < jadeSerpent> http://overlays.gentoo.org/proj/alt/wiki
+16:29 <+void> (^ official meta-trac)
+16:29 <+fox> <mk> yeah, it's all the same to me
+16:30  * jrandom will assume thats it for * 3) January bug harvesting contest winners! and move us on to 4) ???
+16:30 < jrandom> anyone have anything else for the meeting?
+16:30 <+fox> <mk> 'best' is overrated. whoever has the most experience with these things should probably flip a coin
+16:32  * jrandom isn't really looking for a project planning / release planning system, or a source code browser (a free wiki doesnt hurt, but we've got ugha.i2p too)
+16:32 < jrandom> tracking issues is the only feature i care about for that
+16:37 < jrandom> ok, if there isn't anything else for the meeting...
+16:37  * jrandom winds up
+16:37  * void hands jrandom the baffer
+16:37  * jrandom *baf*s the meeting closed
