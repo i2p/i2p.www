@@ -1,7 +1,7 @@
 #!/bin/sh
 . ./translation.vars
 
-TZ=UTC env/bin/pybabel extract --msgid-bugs-address="http://trac.i2p2.de" \
+TZ=UTC ./pybabel extract --msgid-bugs-address="http://trac.i2p2.de" \
                                --project=$PROJECT \
                                --version=$VERSION \
                                -F $BABELCFG \
