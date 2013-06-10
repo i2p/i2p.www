@@ -1,7 +1,7 @@
 {% extends "_layout.html" %}
 {% block title %}Common structure Specification{% endblock %}
 {% block content %}
-Updated March 2012, current as of router version 0.8.13
+Updated June 2013, current as of router version 0.9.6
 <h1>Data types Specification</h1>
 <p>
   This document describes some data types common to all I2P protocols, like
@@ -525,6 +525,17 @@ The signature may be verified using the signing public key of the destination.
 </li><li>
 The signing_key is currently unused. It was intended for LeaseSet revocation, which is unimplemented.
 It is currently generated anew at every router startup, it is not persistent.
+</li><li>
+The earliest expiration of all the Leases is treated as the timestamp or version of the LeaseSet.
+Routers will generally not accept a store of a LeaseSet unless it is "newer" than the current one.
+Take care when publishing a new LeaseSet where the oldest Lease is the same as the oldest Lease
+in the previous LeaseSet. The publishing router should generally increment the expiration
+of the oldest Lease by at least 1 ms in that case.
+</li><li>
+Prior to release 0.9.7, when included in a DatabaseStore Message sent by the originating router,
+the router set all the published leases' expirations to the same value, that of the
+earliest lease. As of release 0.9.7, the router publishes the actual lease expiration for each lease.
+This is an implementation detail and not part of the structures specification.
 </li></ul>
 
 <h4><a href="http://docs.i2p-projekt.de/javadoc/net/i2p/data/LeaseSet.html">Javadoc</a></h4>
