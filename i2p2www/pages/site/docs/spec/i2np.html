@@ -275,6 +275,14 @@ The two padding bytes from the block (the zero bytes at locations 0 and 257) are
 {% highlight %}
 unencrypted:
 +----+----+----+----+----+----+----+----+
+|                                       |
++                                       +
+|                                       |
++   SHA-256 Hash of following bytes     +
+|                                       |
++                                       +
+|                                       |
++----+----+----+----+----+----+----+----+
 | random data...                        |
 ~                                       ~
 |                                       |
@@ -285,8 +293,9 @@ unencrypted:
 <h4>Definition</h4>
 {% highlight %}
 unencrypted:
-bytes 0-526: random data
-byte  527  : reply
+bytes 0-31   : SHA-256 Hash of bytes 32-527
+bytes 32-526 : random data
+byte  527    : reply
 
 encrypted:
 bytes 0-527: AES-encrypted record(note: same size as BuildRequestRecord)
@@ -297,7 +306,7 @@ total length: 528
 
 <h4>Notes</h4>
 <ul><li>
-  The first 527 bytes could, in the future, be used to return congestion or peer connectivity information
+  The random data field could, in the future, be used to return congestion or peer connectivity information
   back to the requestor.
 </li><li>
   See the <a href="{{ site_url('docs/spec/tunnel-creation') }}">tunnel creation specification</a> for details on the reply field.

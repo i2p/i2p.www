@@ -1,7 +1,7 @@
 {% extends "global/layout.html" %}
 {% block title %}{% trans %}Common structure Specification{% endtrans %}{% endblock %}
-{% block lastupdated %}{% trans %}March 2012{% endtrans %}{% endblock %}
-{% block accuratefor %}0.8.13{% endblock %}
+{% block lastupdated %}{% trans %}June 2013{% endtrans %}{% endblock %}
+{% block accuratefor %}0.9.6{% endblock %}
 {% block content %}
 <h1>{% trans %}Data types Specification{% endtrans %}</h1>
 <p>{% trans i2np=site_url('docs/protocol/i2np'),
@@ -545,6 +545,19 @@ The signature may be verified using the signing public key of the destination.
 <li>{% trans -%}
 The signing_key is currently unused. It was intended for LeaseSet revocation, which is unimplemented.
 It is currently generated anew at every router startup, it is not persistent.
+{%- endtrans %}</li>
+<li>{% trans -%}
+The earliest expiration of all the Leases is treated as the timestamp or version of the LeaseSet.
+Routers will generally not accept a store of a LeaseSet unless it is "newer" than the current one.
+Take care when publishing a new LeaseSet where the oldest Lease is the same as the oldest Lease
+in the previous LeaseSet. The publishing router should generally increment the expiration
+of the oldest Lease by at least 1 ms in that case.
+{%- endtrans %}</li>
+<li>{% trans -%}
+Prior to release 0.9.7, when included in a DatabaseStore Message sent by the originating router,
+the router set all the published leases' expirations to the same value, that of the
+earliest lease. As of release 0.9.7, the router publishes the actual lease expiration for each lease.
+This is an implementation detail and not part of the structures specification.
 {%- endtrans %}</li>
 </ul>
 
