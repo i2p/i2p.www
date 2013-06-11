@@ -9,7 +9,7 @@ import os
 ###########
 # Constants
 
-CURRENT_I2P_VERSION = '0.9.5'
+CURRENT_I2P_VERSION = '0.9.6'
 
 CANONICAL_DOMAIN = 'www.i2p2.de'
 
