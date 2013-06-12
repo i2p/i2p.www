@@ -30,11 +30,11 @@ They are not complete messages.
  the length of the message payload, followed by a <a href="{{ site_url('docs/spec/common-structures') }}#type_Hash">Hash</a>,
  which is truncated to the first byte. After that the actual message data follows.
 </p>
-{% highlight %}
+{% highlight lang='dataspec' %}
 Standard (16 bytes):
 
 +----+----+----+----+----+----+----+----+
-|type|      msg-id       |  expiration
+|type|      msg_id       |  expiration
 +----+----+----+----+----+----+----+----+
                          |  size   |chks|
 +----+----+----+----+----+----+----+----+
@@ -42,19 +42,19 @@ Standard (16 bytes):
 Short (SSU, 5 bytes):
 
 +----+----+----+----+----+
-|type| short expiration  |
+|type| short_expiration  |
 +----+----+----+----+----+
 
 {% endhighlight %}
 
 <h4>Definition</h4>
-{% highlight %}
+{% highlight lang='dataspec' %}
 type :: Integer
         length -> 1 byte
         
         purpose -> identifies the message type (see table below)
 
-msg-id :: Integer
+msg_id :: Integer
           length -> 4 bytes
 
           purpose -> uniquely identifies this message (for some time at least)
@@ -63,7 +63,7 @@ expiration :: Date
            8 bytes
            date this message will expire
 
-short expiration :: Integer
+short_expiration :: Integer
            4 bytes
            date this message will expire (seconds since the epoch)
 
@@ -114,7 +114,7 @@ where the far-end router's version is known and checksum generation can be disab
   <a href="{{ site_url('docs/spec/common-structures') }}#type_TunnelId">TunnelId</a> to receive messages on, followed by the <a href="{{ site_url('docs/spec/common-structures') }}#type_Hash">Hash</a> of our <a href="{{ site_url('docs/spec/common-structures') }}#struct_RouterIdentity">RouterIdentity</a>. After that the <a href="{{ site_url('docs/spec/common-structures') }}#type_TunnelId">TunnelId</a> and the <a href="{{ site_url('docs/spec/common-structures') }}#type_Hash">Hash</a> of the next router's <a href="{{ site_url('docs/spec/common-structures') }}#struct_RouterIdentity">RouterIdentity</a> follow.
 </p>
 <h4>Definition</h4>
-{% highlight %}
+{% highlight lang='dataspec' %}
 Cleartext:
 +----+----+----+----+----+----+----+----+
 | receive_tunnel    | our_ident         |
@@ -196,7 +196,7 @@ ElGamal and AES encrypted:
 {% endhighlight %}
 
 <h4>Definition</h4>
-{% highlight %}
+{% highlight lang='dataspec' %}
 unencrypted:
 
 receive_tunnel :: TunnelId
@@ -272,7 +272,7 @@ The two padding bytes from the block (the zero bytes at locations 0 and 257) are
 
 
 <h3 id="struct_BuildResponseRecord">BuildResponseRecord</h3>
-{% highlight %}
+{% highlight lang='dataspec' %}
 unencrypted:
 +----+----+----+----+----+----+----+----+
 |                                       |
@@ -291,7 +291,7 @@ unencrypted:
 +----+----+----+----+----+----+----+----+
 {% endhighlight %}
 <h4>Definition</h4>
-{% highlight %}
+{% highlight lang='dataspec' %}
 unencrypted:
 bytes 0-31   : SHA-256 Hash of bytes 32-527
 bytes 32-526 : random data
@@ -314,7 +314,7 @@ total length: 528
 
 
 <h3 id="struct_GarlicClove">GarlicClove</h3>
-{% highlight %}
+{% highlight lang='dataspec' %}
 unencrypted:
 +----+----+----+----+----+----+----+----+
 | Delivery Instructions                 |
@@ -327,7 +327,7 @@ unencrypted:
 ~                                       ~
 |                                       |
 +----+----+----+----+----+----+----+----+
-|    Clove ID       |     Expiration     
+|    Clove ID       |     Expiration
 +----+----+----+----+----+----+----+----+
                     | Certificate  |
 +----+----+----+----+----+----+----+
@@ -443,7 +443,7 @@ Defined in the <a href="{{ site_url('docs/spec/tunnel-message') }}#delivery">Tun
 <p>
   An uncompressed LeaseSet or a compressed RouterInfo
 </p>
-{% highlight %}
+{% highlight lang='dataspec' %}
 with reply token:
 +----+----+----+----+----+----+----+----+
 | SHA256 Hash as key                    |
@@ -465,7 +465,7 @@ with reply token:
 |                                       |
 +    +----+----+----+----+----+----+----+
 |    | data ...
-+----+--------\\
++----+-//
 
 with reply token == 0:
 +----+----+----+----+----+----+----+----+
@@ -478,7 +478,7 @@ with reply token == 0:
 |                                       |
 +----+----+----+----+----+----+----+----+
 |type|         0         | data ...
-+----+-------------------+---------\\
++----+----+----+----+----+-//
 {% endhighlight %}
 <h4>Definition</h4>
 <pre>
@@ -524,7 +524,7 @@ For security, the reply fields are ignored if the message is received down a tun
 
 
 <h3 id="msg_DatabaseLookup">DatabaseLookup</h3>
-{% highlight %}
+{% highlight lang='dataspec' %}
 +----+----+----+----+----+----+----+----+
 | SHA256 hash as the key to look up     |
 +                                       +
@@ -542,7 +542,7 @@ For security, the reply fields are ignored if the message is received down a tun
 +                                       +
 |                                       |
 +----+----+----+----+----+----+----+----+
-|flag| reply tunnelId    |size     |    |
+|flag| reply_tunnelId    |size     |    |
 +----+----+----+----+----+----+----+    +
 | SHA256 of $key1 to exclude            |
 +                                       +
@@ -577,62 +577,62 @@ For security, the reply fields are ignored if the message is received down a tun
 {% endhighlight %}
 
 <h4>Definition</h4>
-{% highlight %}
-key:
+{% highlight lang='dataspec' %}
+key ::
     32 bytes
     SHA256 hash of the object to lookup
 
-from:
+from ::
      32 bytes
-     If deliveryFlag == 0, the SHA256 hash of the routerInfo entry this request came from (and to which the reply should be sent)
-     If deliveryFlag == 1, the SHA256 hash of the reply tunnel gateway (to which the reply should be sent)
+     if deliveryFlag == 0, the SHA256 hash of the routerInfo entry this request came from (and to which the reply should be sent)
+     if deliveryFlag == 1, the SHA256 hash of the reply tunnel gateway (to which the reply should be sent)
 
-flags:
+flags ::
      1 byte
      bit order: 76543210
      bit 0: deliveryFlag
              0  => send reply directly
              1  => send reply to some tunnel
      bit 1: encryptionFlag
-             Through release 0.9.5, must be set to 0
-             As of release 0.9.6, ignored
-             As of release 0.9.7:
+             through release 0.9.5, must be set to 0
+             as of release 0.9.6, ignored
+             as of release 0.9.7:
              0  => send unencrypted reply
              1  => send AES encrypted reply using enclosed key and tag
      bits 7-2:
-             Through release 0.9.5, must be set to 0
-             As of release 0.9.6, ignored, set to 0 for compatibility with future uses and with older routers
+             through release 0.9.5, must be set to 0
+             as of release 0.9.6, ignored, set to 0 for compatibility with future uses and with older routers
 
-reply tunnelId:
+reply_tunnelId ::
                4 byte Tunnel ID
                only included if deliveryFlag == 1
                tunnelId of the tunnel to send the reply to
 
-size:
+size ::
      2 byte Integer
      valid range: 0-512
-     number of peers to exclude from the Database Search Reply Message
+     number of peers to exclude from the DatabaseSearchReply Message
 
-excludedPeers:
+excludedPeers ::
               $size SHA256 hashes of 32 bytes each (total $size*32 bytes)
-              If the lookup fails, these peers are requested to be excluded from the list in
-              the Database Search Reply Message.
-              If excludedPeers includes a hash of all zeroes, the request is exploratory, and
-              the Database Search Reply Message is requested to list non-floodfill routers only.
+              if the lookup fails, these peers are requested to be excluded from the list in
+              the DatabaseSearchReply Message.
+              if excludedPeers includes a hash of all zeroes, the request is exploratory, and
+              the DatabaseSearchReply Message is requested to list non-floodfill routers only.
 
-reply key:
+reply_key ::
      32 byte SessionKey
-     Only included if encryptionFlag == 1
+     only included if encryptionFlag == 1
 
-tags:
+tags ::
      1 byte Integer
      valid range: 1-32 (typically 1)
-     The number of reply tags that follow
-     Only included if encryptionFlag == 1
+     the number of reply tags that follow
+     only included if encryptionFlag == 1
 
-reply tags:
-     One or more 32 byte SessionTags (typically one)
-     Only included if encryptionFlag == 1
+reply_tags ::
+     one or more 32 byte SessionTags (typically one)
+     only included if encryptionFlag == 1
 
 {% endhighlight %}
 
@@ -656,7 +656,7 @@ The number of included tags could be greater than one if alternative DHT lookup 
 <p>
   A list of router hashes closest to the requested key
 </p>
-{% highlight %}
+{% highlight lang='dataspec' %}
 +----+----+----+----+----+----+----+----+
 | SHA256 hash as query key              |
 +                                       +
@@ -666,7 +666,7 @@ The number of included tags could be greater than one if alternative DHT lookup 
 +                                       +
 |                                       |
 +----+----+----+----+----+----+----+----+
-|num | peer hash $1                     |
+|num | peer_hash $1                     |
 +----+                                  +
 |                                       |
 +                                       +
@@ -675,7 +675,7 @@ The number of included tags could be greater than one if alternative DHT lookup 
 |                                       |
 +    +----+----+----+----+----+----+----+
 |    |                                  |
-+----+.... $num peer hashes
++----+ $num peer_hashes                 +
 
 +    +----+----+----+----+----+----+----+
 |    | from                             |
@@ -693,21 +693,21 @@ The number of included tags could be greater than one if alternative DHT lookup 
 {% endhighlight %}
 
 <h4>Definition</h4>
-{% highlight %}
-key:
+{% highlight lang='dataspec' %}
+key ::
     32 bytes
     SHA256 of the object being searched
 
-num:
+num ::
     1 byte Integer
     number of peer hashes that follow
 
-peer hash:
+peer_hash ::
           32 bytes
           SHA256 of the RouterInfo that the other router thinks are close to the key
           $num entries
 
-from:
+from ::
      32 bytes
      SHA256 of the RouterInfo of the router this reply was sent from
 {% endhighlight %}
@@ -727,19 +727,19 @@ from:
 <p>
   The ID of the delivered message, and the creation or arrival time.
 </p>
-{% highlight %}
+{% highlight lang='dataspec' %}
 +----+----+----+----+----+----+----+----+----+----+----+----+
-|msg-id             |           time stamp                  |
+|msg_id             |           time_stamp                  |
 +----+----+----+----+----+----+----+----+----+----+----+----+
 {% endhighlight %}
 
 <h4>Definition</h4>
-{% highlight %}
-msg-id:
+{% highlight lang='dataspec' %}
+msg_id ::
        4 bytes
        unique ID of the message we deliver the DeliveryStatus for (see common I2NP header for details)
 
-time stamp: Date
+time_stamp :: Date
              8 bytes
              time the message was successfully created or delivered
 {% endhighlight %}
@@ -764,7 +764,7 @@ time stamp: Date
 <p>
   When decrypted, a series of <a href="#struct_GarlicClove">Garlic Cloves</a>.
 </p>
-{% highlight %}
+{% highlight lang='dataspec' %}
 encrypted:
 +----+----+----+----+----+----+----+----+
 |      length       | data              |
@@ -790,35 +790,35 @@ unencrypted data:
 ~                                       ~
 |                                       |
 +----+----+----+----+----+----+----+----+
-| Certificate  |   Message ID      |     
+| Certificate  |   Message_ID      |     
 +----+----+----+----+----+----+----+----+
           Expiration               |
 +----+----+----+----+----+----+----+
 {% endhighlight %}
 
 <h4>Definition</h4>
-{% highlight %}
+{% highlight lang='dataspec' %}
 Encrypted:
 
-length:
+length ::
        4 byte Integer
        number of bytes that follow 0 - 64 KB
 
-data:
+data ::
      $length bytes
      ElGamal encrypted data
 
 
 Unencrypted data:
 
-num:
-     1 byte Integer number of Garlic Cloves to follow
+num ::
+     1 byte Integer number of GarlicCloves to follow
 
-clove:  A Garlic Clove
+clove ::  a GarlicClove
 
-Certificate :: Always NULL in the current implementation (3 bytes total, all zeroes)
+Certificate :: always NULL in the current implementation (3 bytes total, all zeroes)
 
-Message ID :: 4 byte Integer
+Message_ID :: 4 byte Integer
 
 Expiration :: Date (8 bytes)
 
@@ -852,7 +852,7 @@ Expiration :: Date (8 bytes)
 
 
 <h3 id="msg_TunnelData">TunnelData</h3>
-{% highlight %}
+{% highlight lang='dataspec' %}
 +----+----+----+----+----+----+----+----+
 |     tunnnelID     | data              |
 +----+----+----+----+                   |
@@ -866,12 +866,12 @@ Expiration :: Date (8 bytes)
 {% endhighlight %}
 
 <h4>Definition</h4>
-{% highlight %}
-tunnelId:
+{% highlight lang='dataspec' %}
+tunnelId ::
          4 byte Tunnel ID
          identifies the tunnel this message is directed at
 
-data:
+data ::
      1024 bytes
      payload data.. fixed to 1024 bytes
 {% endhighlight %}
@@ -884,23 +884,23 @@ data:
 
 
 <h3 id="msg_TunnelGateway">TunnelGateway</h3>
-{% highlight %}
-+----+----+----+----+----+----+--\\----+
-| tunnelId          | length  | data...|
-+----+----+----+----+----+----+--\\----+
+{% highlight lang='dataspec' %}
++----+----+----+----+----+----+----+-//
+| tunnelId          | length  | data...
++----+----+----+----+----+----+----+-//
 {% endhighlight %}
 
 <h4>Definition</h4>
-{% highlight %}
-tunnelId:
+{% highlight lang='dataspec' %}
+tunnelId ::
          4 byte Tunnel ID
          identifies the tunnel this message is directed at
 
-length:
+length ::
        2 byte Integer
        length of the payload
 
-data:
+data ::
      $length bytes
      actual payload of this message
 {% endhighlight %}
@@ -922,25 +922,25 @@ data:
 <p>
   A length Integer, followed by opaque data.
 </p>
-{% highlight %}
-+----+----+----+----+----+---//--+
-| length            | data...    |
-+----+----+----+----+----+---//--+   
+{% highlight lang='dataspec' %}
++----+----+----+----+----+-//
+| length            | data...
++----+----+----+----+----+-//
 {% endhighlight %}
 
 <h4>Definition</h4>
-{% highlight %}
-length:
+{% highlight lang='dataspec' %}
+length ::
        4 bytes
        length of the payload
 
-data:
+data ::
      $length bytes
      actual payload of this message
 {% endhighlight %}
 
 <h3 id="msg_TunnelBuild">TunnelBuild</h3>
-{% highlight %}
+{% highlight lang='dataspec' %}
 +----+----+----+----+----+----+----+----+
 | Record 0 ...                          |
 
@@ -957,10 +957,10 @@ data:
 {% endhighlight %}
 
 <h4>Definition</h4>
-{% highlight %}
+{% highlight lang='dataspec' %}
 Just 8 Build Request Records attached together
-Record size: 528 bytes
-Total size: 8*528 = 4224 bytes
+record size: 528 bytes
+total size: 8*528 = 4224 bytes
 {% endhighlight %}
 
 <h4>Notes</h4>
@@ -970,7 +970,7 @@ Total size: 8*528 = 4224 bytes
 
 
 <h3 id="msg_TunnelBuildReply">TunnelBuildReply</h3>
-{% highlight %}
+{% highlight lang='dataspec' %}
 same format as TunnelBuild message, with Build Response Records
 {% endhighlight %}
 
@@ -980,22 +980,22 @@ same format as TunnelBuild message, with Build Response Records
 </p>
 
 <h3 id="msg_VariableTunnelBuild">VariableTunnelBuild</h3>
-{% highlight %}
+{% highlight lang='dataspec' %}
 +----+----+----+----+----+----+----+----+
 |num | BuildRequestRecords...
 +----+----+----+----+----+----+----+----+
 {% endhighlight %}
 
 <h4>Definition</h4>
-{% highlight %}
+{% highlight lang='dataspec' %}
 Same format as TunnelBuildMessage, except for the addition of an "num" field in front and $num number of Build Request Records instead of 8
 
-num:
+num ::
        1 byte Integer
        Valid values: 1-8
 
-Record size: 528 bytes
-Total size: 1 + $num*528
+record size: 528 bytes
+total size: 1 + $num*528
 {% endhighlight %}
 
 <h4>Notes</h4>
@@ -1007,7 +1007,7 @@ Total size: 1 + $num*528
 </ul>
 
 <h3 id="msg_VariableTunnelBuildReply">VariableTunnelBuildReply</h3>
-{% highlight %}
+{% highlight lang='dataspec' %}
 +----+----+----+----+----+----+----+----+
 |num | BuildResponseRecords...
 +----+----+----+----+----+----+----+----+

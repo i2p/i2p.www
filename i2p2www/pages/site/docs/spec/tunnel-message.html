@@ -32,16 +32,16 @@ After the tunnel messages are created, they are encrypted as described in
 
 <h2 id="msg_Data">Tunnel Message (Encrypted)</h2>
 These are the contents of a tunnel data message after encryption.
-{% highlight %}
+{% highlight lang='dataspec' %}
 +----+----+----+----+----+----+----+----+
-|    Tunnel ID      |       IV          |
+|    Tunnel_ID      |       IV          |
 +----+----+----+----+                   +
 |                                       |
 +                   +----+----+----+----+
 |                   |                   |
 +----+----+----+----+                   +
 |                                       |
-+           Encrypted Data              +
++           Encrypted_Data              +
 ~                                       ~
 |                                       |
 +                   +-------------------+
@@ -50,29 +50,29 @@ These are the contents of a tunnel data message after encryption.
 {% endhighlight %}
 
 <h4>Definition</h4>
-{% highlight %}
-Tunnel ID:
+{% highlight lang='dataspec' %}
+Tunnel_ID ::
        4 bytes
-       The ID of the next hop
+       the ID of the next hop
 
-IV:
+IV ::
        16 bytes
-       The initialization vector
+       the initialization vector
 
-Encrypted Data
+Encrypted_Data ::
        1008 bytes
-       The encrypted tunnel message
+       the encrypted tunnel message
 
-Total Size: 1028 Bytes
+total size: 1028 Bytes
 
 {% endhighlight %}
 
 
 <h2 id="msg_Data">Tunnel Message (Decrypted)</h2>
 These are the contents of a tunnel data message when decrypted.
-{% highlight %}
+{% highlight lang='dataspec' %}
 +----+----+----+----+----+----+----+----+
-|    Tunnel ID      |       IV          |
+|    Tunnel_ID      |       IV          |
 +----+----+----+----+                   +
 |                                       |
 +                   +----+----+----+----+
@@ -112,36 +112,36 @@ These are the contents of a tunnel data message when decrypted.
 
 <h4>Definition</h4>
 <pre>
-Tunnel ID:
+Tunnel_ID ::
        4 bytes
-       The ID of the next hop
+       the ID of the next hop
 
-IV:
+IV ::
        16 bytes
-       The initialization vector
+       the initialization vector
 
-Checksum:
+Checksum ::
        4 bytes
-       The first 4 bytes of the SHA256 hash of the remaining contents of the message concatenated with the IV
+       the first 4 bytes of the SHA256 hash of the remaining contents of the message concatenated with the IV
 
-Nonzero padding:
+Nonzero_padding ::
        0 or more bytes
-       Random nonzero data for padding
+       random nonzero data for padding
 
-Zero:
+Zero ::
        1 byte
-       The value 0x00
+       the value 0x00
 
-Delivery Instructions:
-       Length varies but is typically 7, 39, 43, or 47 bytes
+Delivery_Instructions ::
+       length varies but is typically 7, 39, 43, or 47 bytes
        Indicates the fragment and the routing for the fragment
        See <a href="#delivery">below</a> for specification
 
-Message Fragment:
+Message_Fragment ::
        1 to 996 bytes, actual maximum depends on delivery instruction size
        A partial or full I2NP Message
 
-Total Size: 1028 Bytes
+total size: 1028 Bytes
 
 </pre>
 
@@ -170,7 +170,7 @@ for more details.
 <h3>First Fragment Delivery Instructions</h3>
 <p>If the MSB of the first byte is 0, this is an initial I2NP message fragment,
 or a complete I2NP message, and the instructions are:</p>
-{% highlight %}
+{% highlight lang='dataspec' %}
 +----+----+----+----+----+----+----+----+
 |flag|  Tunnel ID (opt)  |              |
 +----+----+----+----+----+              +
@@ -251,31 +251,31 @@ Total length: Typical length is:
 
 <h3>Follow-on Fragment Delivery Instructions</h3>
 <p>If the MSB of the first byte is 1, this is a follow-on fragment, and the instructions are:</p>
-{% highlight %}
+{% highlight lang='dataspec' %}
 +----+----+----+----+----+----+----+
-|frag|     Message ID    |  size   |
+|frag|     Message_ID    |  size   |
 +----+----+----+----+----+----+----+
 {% endhighlight %}
 
 <h4>Definition</h4>
-{% highlight %}
-frag:
+{% highlight lang='dataspec' %}
+frag ::
        1 byte
-       Binary 1nnnnnnd
-              The first bit is 1 to indicate this is a follow-on fragment
+       binary 1nnnnnnd
+              the first bit is 1 to indicate this is a follow-on fragment
               nnnnnn is the 6 bit fragment number from 1 to 63
               d is 1 to indicate the last fragment, 0 otherwise
 
-Message ID:
+Message_ID ::
        4 bytes
-       The same ID specified in the first fragment
+       the same ID specified in the first fragment
 
-size:
+size ::
        2 bytes
-       The length of the fragment that follows
-       Valid values: 1 to 996
+       the length of the fragment that follows
+       valid values: 1 to 996
 
-Total length: 7 bytes
+total length: 7 bytes
 
 {% endhighlight %}
 
