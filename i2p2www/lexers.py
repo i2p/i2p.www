@@ -31,12 +31,14 @@ class DataSpecLexer(RegexLexer):
         ],
         'expression': [
             (r'(\s*)(\))', bygroups(Text, Punctuation), '#pop'),
-            (r'(\s*)(\+)', bygroups(Text, Punctuation)),
+            (r'(\s*)([+-])', bygroups(Text, Operator)),
+            (r'(\s*)(\$\w+)', bygroups(Text, Name.Tag)),
             (r'(\s*)(\w+)', bygroups(Text, Name)),
         ],
         'definition': [
             (r'(\s*)([\w=;]+)(\s)(::)(\s)', bygroups(Text, Name.Tag, Text, Operator, Text)),
             (r'(\s*)((?:[A-Z][a-z]+)+)', bygroups(Text, Name.Class)),
+            (r'(\s*)([A-Z]{2,})', bygroups(Text, Name.Constant)),
             (r'(\s*)([\[\]])', bygroups(Text, Punctuation)),
             (r'(\s*)(\$\w+)', bygroups(Text, Name.Tag)),
             (r'(\s*)([0-9]+)(\+)?', bygroups(Text, Number, Punctuation)),
