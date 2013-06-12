@@ -9,6 +9,8 @@ from pygments.lexers import get_lexer_by_name, guess_lexer
 from pygments.formatters import HtmlFormatter
 from pygments.util import ClassNotFound
 
+from i2p2www.lexers import DataSpecLexer
+
 class HighlightExtension(Extension):
     """Highlight code blocks using Pygments
 
@@ -68,8 +70,11 @@ class HighlightExtension(Extension):
             else:
                 lexer = get_lexer_by_name(lang, stripall=False)
         except ClassNotFound as e:
-            print(e)
-            sys.exit(1)
+            if lang == 'dataspec':
+                lexer = DataSpecLexer(stripall=False)
+            else:
+                print(e)
+                sys.exit(1)
 
         formatter = HtmlFormatter(**parameters)
         code = highlight(Markup(body).unescape(), lexer, formatter)
