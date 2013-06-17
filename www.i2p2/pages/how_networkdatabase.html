@@ -291,7 +291,10 @@
   the hash of the router in question to determine closeness.
   A modification to this algorithm is done to increase the costs of <a href="#sybil-partial">Sybil attacks</a>.
   Instead of the SHA256 hash of the key being looked up of stored, the SHA256 hash is taken
-  of the key appended with the date: yyyyMMdd (SHA256(key + yyyyMMdd).
+  of the 32-byte binary key appended with the UTC date represented as an 8-byte ASCII string yyyyMMdd, i.e. SHA256(key + yyyyMMdd).
+  This is called the "routing key", and it changes every day at midnight UTC.
+  The daily transformation of the DHT is sometimes called "keyspace rotation",
+  although it isn't strictly a rotation.
 </p>
 
 
@@ -315,6 +318,26 @@
   by bundling them in a garlic message along with normal traffic from the related Destination.
   This allows an initial response, and later responses, to be sent to an appropriate Lease,
   without requiring any LeaseSet lookups, or requiring the communicating Destinations to have published LeaseSets at all.
+</p>
+
+<h3>Floodfill Selection</h3>
+<p>
+The DatabaseStoreMessage should be sent to the floodfill that is closest
+to the current routing key for the RouterInfo or LeaseSet being stored.
+Currently, the closest floodfill is found by a search in the local database.
+Even if that floodfill is not actually closest, it will flood it "closer" by
+sending it to multiple other floodfills.
+This provides a high degree of fault-tolerance.
+</p><p>
+In traditional Kademlia, a peer would do a "find-closest" search before inserting
+an item in the DHT to the closest target. As the verify operation will tend to
+discover closer floodfills if they are present, a router will quickly improve
+its knowledge of the DHT "neighborhood" for the RouterInfo and LeaseSets it regularly publishes.
+While I2NP does not define a "find-closest" message, if it becomes necessary,
+a router may simply do an iterative search for a key with the least significant bit flipped
+(i.e. key ^ 0x01) until no closer peers are received in the DatabaseSearchReplyMessages.
+This ensures that the true closest peer will be found even if a more-distant peer had
+the netdb item.
 </p>
 
 
@@ -362,11 +385,14 @@
   After a floodfill router receives a DatabaseStoreMessage containing a
   valid RouterInfo or LeaseSet which is newer than that previously stored in its
   local NetDb, it "floods" it.
-  To flood a NetDb entry, it looks up the 7 floodfill routers closest to the key
-  of the NetDb entry. (The key is the SHA256 Hash of the RouterIdentity or Destination with the date (yyyyMMdd) appended.)
+  To flood a NetDb entry, it looks up several (currently 4) floodfill routers closest to the routing key
+  of the NetDb entry. (The routing key is the SHA256 Hash of the RouterIdentity or Destination with the date (yyyyMMdd) appended.)
+  By flooding to those closest to the key, not closest to itself, the floodfill ensures that the storage
+  gets to the right place, even if the storing router did not have good knowledge of the
+  DHT "neighborhood" for the routing key.
 </p>
 <p>
-  It then directly connects to each of the 7 peers
+  The floodfill then directly connects to each of those peers
   and sends it a <a href="i2np.html">I2NP</a> DatabaseStoreMessage
   with a zero Reply Token. The message is not end-to-end garlic encrypted,
   as this is a direct connection, so there are no intervening routers
@@ -635,6 +661,10 @@ This attack becomes more difficult as the network size grows.
 </p>
 <p>
 This attack becomes more difficult as the network size grows.
+However, recent research demonstrates that the keyspace rotation is not particularly effective.
+An attacker can precompute numerous router hashes in advance,
+and only a few routers are sufficient to "eclipse" a portion
+of the keyspace within a half hour after rotation.
 </p>
 
 <p>

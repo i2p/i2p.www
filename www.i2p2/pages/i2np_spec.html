@@ -657,6 +657,9 @@ reply tags:
 
 <h4>Notes</h4>
 <ul><li>
+The key may be for a RouterInfo or LeaseSet, as they are in the same key space,
+and there is no flag to request only a particular type of data.
+</li><li>
 Encryption flag, reply key, and reply tags as of release 0.9.7.
 </li><li>
 Encrypted replies are only useful when the response is through a tunnel.
@@ -722,12 +725,11 @@ key:
 
 num:
     1 byte Integer
-    number of peer hashes that follow
+    number of peer hashes that follow, 0-255
 
-peer hash:
+peer hash ($num entries) :
           32 bytes
-          SHA256 of the RouterInfo that the other router thinks are close to the key
-          $num entries
+          SHA256 of the RouterIdentity that the other router thinks is close to the key
 
 from:
      32 bytes
@@ -736,9 +738,17 @@ from:
 </pre>
 
 <h4>Notes</h4>
-<p>
+<ul><li>
   The 'from' hash is unauthenticated and cannot be trusted.
-</p>
+</li><li>
+  The returned peer hashes are not necessarily closer to the key
+  than the router being queried.
+</li><li>
+  Typical number of hashes returned: 3
+</li>
+
+
+
 
 <h3 id="msg_DeliveryStatus">DeliveryStatus</h3>
 <h4>Description</h4>
