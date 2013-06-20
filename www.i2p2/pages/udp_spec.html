@@ -33,8 +33,9 @@ key.  The specific construct of the MAC is the first 16 bytes from:</p>
 </pre>
 where '||' means append.
 The payload is the message starting with the flag byte.
-The macKey is either the introduction key or the
-session key, as specified for each message below.
+The macKey is either the introduction key or is constructed from the
+exchanged DH key (see details below), as specified for each message below.
+Note that protocolVersion is 0, so the exclusive or is a no-op.
 <b>WARNING</b> - the HMAC-MD5-128 used here is non-standard,
 see <a href="how_cryptography.html#udp">the cryptography page</a> for details.
 
@@ -50,6 +51,47 @@ and is currently set to 0.  Peers using a different protocol version will
 not be able to communicate with this peer, though earlier versions not
 using this flag are.</p>
 
+<h3>Session Key Details</h3>
+The 32-byte session key is created as follows:
+<ol><li>
+Take the exchanged DH key, represented as a positive minimal-length BigInteger byte array (two's complement big-endian)
+</li><li>
+If the most significant bit is 1 (i.e. array[0] & 0x80 != 0),
+prepend a 0x00 byte, as in Java's BigInteger.toByteArray() representation
+</li><li>
+If the byte array is greater than or equal to 32 bytes, use the first (most significant) 32 bytes
+</li><li>
+If the byte array is less than 32 bytes, append 0x00 bytes to extend to 32 bytes
+</li></ol>
+
+<h3>MAC Key Details</h3>
+The 32-byte MAC key is created as follows:
+<ol><li>
+Take the exchanged DH key byte array, prepended with a 0x00 byte if necessary,
+from step 2 in the Session Key Details above.
+</li><li>
+If that byte array is greater than or equal to 64 bytes, the MAC key is
+bytes 33-64 from that byte array.
+</li><li>
+If that byte array is greater than 32 bytes but less than 64 bytes, the MAC key is formed from
+the bytes starting at byte 33, followed by 0x00 bytes to extend the MAC key to 32 bytes.
+<i>Broken - See note below</i>
+</li><li>
+If that byte array is equal to 32 bytes, the MAC key is all zeros.
+<i>Broken - See note below</i>
+</li><li>
+If that byte array is less than 32 bytes, the MAC key is the SHA-256 Hash of the 32-bytes
+from step 3 in the Session Key Details above.
+<i>See note below</i>
+</li></ol>
+Important note: It appears that the existing code is buggy and does not correctly handle DH key byte arrays
+between 32 and 63 bytes (steps 3 and 4 above) and the connection will fail.
+As these cases won't ever work, they are subject to change (probably using SHA-256).
+Since the nominal exchanged DH key is 256 bytes, the chances of the mininimal representation
+being less than 64 bytes is vanishingly small.
+
+
+<h3>Header Format</h3>
 <p>Within the AES encrypted payload, there is a minimal common structure
 to the various messages - a one byte flag and a four byte sending 
 timestamp (seconds since the unix epoch).  The flag byte contains 
