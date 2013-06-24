@@ -2,7 +2,7 @@
 {% block title %}SSU Protocol Specification{% endblock %}
 {% block content %}
 
-Updated May 2013 for release 0.9.6. IPv6 information is preliminary.
+Updated June 2013 for release 0.9.6. IPv6 information is preliminary.
 
 <p>
 <a href="udp.html">See the SSU page for an overview of the SSU transport</a>.
@@ -61,7 +61,8 @@ prepend a 0x00 byte, as in Java's BigInteger.toByteArray() representation
 </li><li>
 If the byte array is greater than or equal to 32 bytes, use the first (most significant) 32 bytes
 </li><li>
-If the byte array is less than 32 bytes, append 0x00 bytes to extend to 32 bytes
+If the byte array is less than 32 bytes, append 0x00 bytes to extend to 32 bytes.
+<i>Won't happen - See note below</i>
 </li></ol>
 
 <h3>MAC Key Details</h3>
@@ -157,6 +158,12 @@ provide a significant amount of protection.
 In the future, additional padding in the transport layer up to
 a set of fixed packet sizes may be appropriate to further hide the data 
 fragmentation to external adversaries.
+</p><p>
+Through release 0.9.6, messages were only padded to the next 16 byte boundary,
+and messages not a multiple of 16 bytes could possibly be invalid.
+As of release 0.9.7, messages may be padded to any length as long as the current MTU is honored.
+Any extra 1-15 padding bytes beyond the last block of 16 bytes cannot be encrypted or decrypted and will be ignored.
+However, the full length and all padding is included in the MAC calculation.
 </p>
 
 
@@ -450,7 +457,7 @@ Signed-on time appears to be unused or unverified in the current implementation.
 <h3 id="sessionDestroyed">SessionDestroyed (type 8)</h3>
 <p>
 The Session Destroyed message was implemented (reception only) in release 0.8.1,
-and is never sent. Transmission implemented as of release 0.8.9.
+and is sent as of release 0.8.9.
 </p>
 
 <table border="1">
@@ -790,6 +797,10 @@ While we use the I2NP message ID as the SSU message ID, from the SSU
 protocol view, they are random numbers.
 In fact, since the router uses a single Bloom filter for all peers,
 the message ID must be an actual random number.
+</li><li>
+Because there are no sequence numbers, there is no way to be sure an ACK was received.
+The current implementation routinely sends a large amount of duplicate ACKs.
+Duplicate ACKs should not be taken as an indication of congestion.
 </li></ul>
 
 
