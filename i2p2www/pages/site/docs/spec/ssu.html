@@ -1,6 +1,6 @@
 {% extends "global/layout.html" %}
 {% block title %}SSU Protocol Specification{% endblock %}
-{% block lastupdated %}May 2013{% endblock %}
+{% block lastupdated %}June 2013{% endblock %}
 {% block accuratefor %}0.9.6{% endblock %}
 {% block content %}
 
@@ -35,8 +35,9 @@ key.  The specific construct of the MAC is the first 16 bytes from:</p>
 </pre>
 where '||' means append.
 The payload is the message starting with the flag byte.
-The macKey is either the introduction key or the
-session key, as specified for each message below.
+The macKey is either the introduction key or is constructed from the
+exchanged DH key (see details below), as specified for each message below.
+Note that protocolVersion is 0, so the exclusive or is a no-op.
 <b>WARNING</b> - the HMAC-MD5-128 used here is non-standard,
 see <a href="{{ site_url('docs/how/cryptography') }}#udp">the cryptography page</a> for details.
 
@@ -52,6 +53,48 @@ and is currently set to 0.  Peers using a different protocol version will
 not be able to communicate with this peer, though earlier versions not
 using this flag are.</p>
 
+<h3>Session Key Details</h3>
+The 32-byte session key is created as follows:
+<ol><li>
+Take the exchanged DH key, represented as a positive minimal-length BigInteger byte array (two's complement big-endian)
+</li><li>
+If the most significant bit is 1 (i.e. array[0] & 0x80 != 0),
+prepend a 0x00 byte, as in Java's BigInteger.toByteArray() representation
+</li><li>
+If the byte array is greater than or equal to 32 bytes, use the first (most significant) 32 bytes
+</li><li>
+If the byte array is less than 32 bytes, append 0x00 bytes to extend to 32 bytes.
+<i>Won't happen - See note below</i>
+</li></ol>
+
+<h3>MAC Key Details</h3>
+The 32-byte MAC key is created as follows:
+<ol><li>
+Take the exchanged DH key byte array, prepended with a 0x00 byte if necessary,
+from step 2 in the Session Key Details above.
+</li><li>
+If that byte array is greater than or equal to 64 bytes, the MAC key is
+bytes 33-64 from that byte array.
+</li><li>
+If that byte array is greater than 32 bytes but less than 64 bytes, the MAC key is formed from
+the bytes starting at byte 33, followed by 0x00 bytes to extend the MAC key to 32 bytes.
+<i>Broken - See note below</i>
+</li><li>
+If that byte array is equal to 32 bytes, the MAC key is all zeros.
+<i>Broken - See note below</i>
+</li><li>
+If that byte array is less than 32 bytes, the MAC key is the SHA-256 Hash of the 32-bytes
+from step 3 in the Session Key Details above.
+<i>See note below</i>
+</li></ol>
+Important note: It appears that the existing code is buggy and does not correctly handle DH key byte arrays
+between 32 and 63 bytes (steps 3 and 4 above) and the connection will fail.
+As these cases won't ever work, they are subject to change (probably using SHA-256).
+Since the nominal exchanged DH key is 256 bytes, the chances of the mininimal representation
+being less than 64 bytes is vanishingly small.
+
+
+<h3>Header Format</h3>
 <p>Within the AES encrypted payload, there is a minimal common structure
 to the various messages - a one byte flag and a four byte sending 
 timestamp (seconds since the unix epoch).  The flag byte contains 
@@ -117,6 +160,12 @@ provide a significant amount of protection.
 In the future, additional padding in the transport layer up to
 a set of fixed packet sizes may be appropriate to further hide the data 
 fragmentation to external adversaries.
+</p><p>
+Through release 0.9.6, messages were only padded to the next 16 byte boundary,
+and messages not a multiple of 16 bytes could possibly be invalid.
+As of release 0.9.7, messages may be padded to any length as long as the current MTU is honored.
+Any extra 1-15 padding bytes beyond the last block of 16 bytes cannot be encrypted or decrypted and will be ignored.
+However, the full length and all padding is included in the MAC calculation.
 </p>
 
 
@@ -412,7 +461,7 @@ Signed-on time appears to be unused or unverified in the current implementation.
 <h3 id="sessionDestroyed">SessionDestroyed (type 8)</h3>
 <p>
 The Session Destroyed message was implemented (reception only) in release 0.8.1,
-and is never sent. Transmission implemented as of release 0.8.9.
+and is sent as of release 0.8.9.
 </p>
 
 <table border="1">
@@ -752,6 +801,10 @@ While we use the I2NP message ID as the SSU message ID, from the SSU
 protocol view, they are random numbers.
 In fact, since the router uses a single Bloom filter for all peers,
 the message ID must be an actual random number.
+</li><li>
+Because there are no sequence numbers, there is no way to be sure an ACK was received.
+The current implementation routinely sends a large amount of duplicate ACKs.
+Duplicate ACKs should not be taken as an indication of congestion.
 </li></ul>
 
 

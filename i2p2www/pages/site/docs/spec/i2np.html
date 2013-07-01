@@ -519,6 +519,8 @@ data:
 <h4>Notes</h4>
 <ul><li>
 For security, the reply fields are ignored if the message is received down a tunnel.
+</li><li>
+The key is the "real" hash of the RouterIdentity or Destination, NOT the routing key.
 </li></ul>
 
 
@@ -622,28 +624,33 @@ excludedPeers ::
 
 reply_key ::
      32 byte SessionKey
-     only included if encryptionFlag == 1
+     only included if encryptionFlag == 1, only as of release 0.9.7
 
 tags ::
      1 byte Integer
      valid range: 1-32 (typically 1)
      the number of reply tags that follow
-     only included if encryptionFlag == 1
+     only included if encryptionFlag == 1, only as of release 0.9.7
 
 reply_tags ::
      one or more 32 byte SessionTags (typically one)
-     only included if encryptionFlag == 1
+     only included if encryptionFlag == 1, only as of release 0.9.7
 
 {% endhighlight %}
 
 <h4>Notes</h4>
 <ul><li>
-Encryption flag, reply key, and reply tags are preliminary, not yet implemented.
+The key may be for a RouterInfo or LeaseSet, as they are in the same key space,
+and there is no flag to request only a particular type of data.
+</li><li>
+Encryption flag, reply key, and reply tags as of release 0.9.7.
 </li><li>
 Encrypted replies are only useful when the response is through a tunnel.
 </li><li>
 The number of included tags could be greater than one if alternative DHT lookup strategies
 (for example, recursive lookups) are implemented.
+</li><li>
+The lookup key and exclude keys are the "real" hashes, NOT routing keys.
 </li></ul>
 
 
@@ -700,12 +707,11 @@ key ::
 
 num ::
     1 byte Integer
-    number of peer hashes that follow
+    number of peer hashes that follow, 0-255
 
-peer_hash ::
+peer_hash ($num entries) ::
           32 bytes
-          SHA256 of the RouterInfo that the other router thinks are close to the key
-          $num entries
+          SHA256 of the RouterIdentity that the other router thinks is close to the key
 
 from ::
      32 bytes
@@ -713,9 +719,19 @@ from ::
 {% endhighlight %}
 
 <h4>Notes</h4>
-<p>
+<ul><li>
   The 'from' hash is unauthenticated and cannot be trusted.
-</p>
+</li><li>
+  The returned peer hashes are not necessarily closer to the key
+  than the router being queried.
+</li><li>
+  Typical number of hashes returned: 3
+</li><li>
+The lookup key, peer hashes, and from hash are "real" hashes, NOT routing keys.
+</li>
+
+
+
 
 <h3 id="msg_DeliveryStatus">DeliveryStatus</h3>
 <h4>Description</h4>

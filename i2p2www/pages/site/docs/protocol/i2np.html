@@ -1,7 +1,7 @@
 {% extends "global/layout.html" %}
 {% block title %}I2NP{% endblock %}
-{% block lastupdated %}{% trans %}August 2010{% endtrans %}{% endblock %}
-{% block accuratefor %}0.8{% endblock %}
+{% block lastupdated %}{% trans %}June 2013{% endtrans %}{% endblock %}
+{% block accuratefor %}0.9.6{% endblock %}
 {% block content %}
 <h2>{% trans %}I2P Network Protocol{% endtrans %} (I2NP)</h2>
 <p>{% trans -%}
@@ -20,16 +20,11 @@ through multiple hops to the ultimate destination.
 Priority is only used locally at the origin, i.e. when queuing for outbound delivery.
 {%- endtrans %}</p>
 
-<p>{% trans -%}
-Both the NTCP and UDP transports implement priority transmission,
-but in quite different manners.
-UDP has complex code with queues for each priority, however it treats
-messages with priorities 400-499, for example, the same.
-(The priority queues are 100, 200, 300, 400, 500, and 1000)
-These are global queues for all peers.
-NTCP has a trivial linear search for the highest priority within
-each buffer for a particular peer.
-This is much less effective.
+<p>{% trans outnetmessage='http://docs.i2p-projekt.de/javadoc/net/i2p/router/OutNetMessage.html' -%}
+The priorities listed below may not be current and are subject to change.
+See the <a href="{{ outnetmessage }}">OutNetMessage Javadocs</a>
+for the current priority settings.
+Priority queueing implementation may vary.
 {%- endtrans %}</p>
 
 <h3>{% trans %}Message Format{% endtrans %}</h3>
@@ -104,13 +99,8 @@ which is wrapped in a DataMessage.
 DatabaseLookupMessage
 <td align=right>2
 <td>&nbsp;
-<td align=right>100/400
-<td>{% trans -%}
-400 normally; 100 if from HarvesterJob and sent directly;
-400 for a router lookup
-{%- endtrans %}</td>
-</tr>
-
+<td align=right>500
+<td>{% trans %}May vary{% endtrans %}</td>
 <tr><td>
 DatabaseSearchReplyMessage
 <td align=right>3
@@ -126,9 +116,9 @@ three floodfill routers are returned.
 DatabaseStoreMessage
 <td align=right>1
 <td align=right>{% trans %}Varies{% endtrans %}</td>
-<td align=right>100/400
+<td align=right>460
 <td>{% trans -%}
-Usually 100 (why?)
+Priority may vary.
 Size is 898 bytes for a typical 2-lease leaseSet.
 RouterInfo structures are compressed, and size varies; however
 there is a continuing effort to reduce the amount of data published in a RouterInfo
@@ -140,8 +130,10 @@ as we approach release 1.0.
 DataMessage
 <td align=right>20
 <td align=right>4 - 62080
-<td align=right>400
-<td>
+<td align=right>425
+<td>{% trans -%}
+Priority may vary on a per-destination basis
+{%- endtrans %}</td>
 </tr>
 
 <tr><td>
@@ -167,8 +159,8 @@ but when unwrapped, given a priority of 100 by the forwarding router
 <a href="{{ site_url('docs/spec/tunnel-creation') }}#tunnelCreate.requestRecord">TunnelBuildMessage</a>
 <td align=right>21
 <td align=right>4224
-<td align=right>300/500
-<td>{% trans %}Usually 500 (why?){% endtrans %}</td>
+<td align=right>500
+<td>
 </tr>
 
 <tr><td>
@@ -203,7 +195,7 @@ TunnelGatewayMessage
 VariableTunnelBuildMessage
 <td align=right>23
 <td align=right>1057 - 4225
-<td align=right>300/500
+<td align=right>500
 <td>{% trans %}Shorter TunnelBuildMessage as of 0.7.12{% endtrans %}</td>
 </tr>
 
