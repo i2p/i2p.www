@@ -1,4 +1,4 @@
-from flask import redirect, render_template
+from flask import abort, redirect, render_template
 try:
     import json
 except ImportError:
@@ -6,6 +6,12 @@ except ImportError:
 from random import randint
 
 from i2p2www import CURRENT_I2P_VERSION, MIRRORS_FILE
+
+DEFAULT_MIRROR = {
+    'protocol': 'https',
+    'domain':   'i2p.googlecode.com',
+    'org':      'Google Code',
+}
 
 
 ###################
@@ -23,39 +29,36 @@ def read_mirrors():
             obj=json.loads(line)
         except ValueError:
             continue
-        if 'protocol' not in obj:
+        if 'protocol' not in obj or 'domain' not in obj or 'path' not in obj:
             continue
         protocol=obj['protocol']
+        domain=obj['domain']
+        path=obj['path']
+        obj['url']='%s://%s%s' % (protocol, domain, path)
         if protocol not in ret:
-            ret[protocol]=[]
-        ret[protocol].append(obj)
+            ret[protocol]={}
+        ret[protocol][domain]=obj
     return ret
 
 # List of downloads
 def downloads_list():
     # TODO: read mirror list or list of available files
-    return render_template('downloads/list.html')
+    return render_template('downloads/list.html', def_mirror=DEFAULT_MIRROR)
 
 # Specific file downloader
 def downloads_select(version, file):
     if (file == 'debian'):
         return render_template('downloads/debian.html', file=file)
     mirrors=read_mirrors()
-    data = {
-        'version': version,
-        'file': file,
-        }
     obj=[]
     for protocol in mirrors.keys():
         a={}
         a['name']=protocol
         a['mirrors']=mirrors[protocol]
-        for mirror in a['mirrors']:
-            mirror['url']=mirror['url'] % data
         obj.append(a)
     return render_template('downloads/select.html', mirrors=obj, version=version, file=file)
 
-def downloads_redirect(version, protocol, file, mirror):
+def downloads_redirect(version, protocol, domain, file):
     mirrors=read_mirrors()
     if not protocol in mirrors:
         abort(404)
@@ -64,6 +67,8 @@ def downloads_redirect(version, protocol, file, mirror):
         'version': version,
         'file': file,
         }
-    if mirror:
-        return redirect(mirrors[mirror-1]['url'] % data)
+    if domain:
+        if not domain in mirrors:
+            abort(404)
+        return redirect(mirrors[domain]['url'] % data)
     return redirect(mirrors[randint(0, len(mirrors) - 1)]['url'] % data)
