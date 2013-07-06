@@ -3,6 +3,8 @@ import os.path
 
 from i2p2www import CANONICAL_DOMAIN, CURRENT_I2P_VERSION, STATIC_DIR, app
 
+INPROXY = '.us'
+
 I2P_TO_CLEAR = {
     'www.i2p2.i2p': 'www.i2p2.de',
     #'forum.i2p': 'forum.i2p2.de',
@@ -61,7 +63,7 @@ def utility_processor():
             return I2P_TO_CLEAR[value]
         except KeyError:
             # The I2P site has no known clearnet address, so use an inproxy
-            return value + '.to'
+            return value + INPROXY
 
     # Convert a paginated URL to that of another page
     def url_for_other_page(page):
