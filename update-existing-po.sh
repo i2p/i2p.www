@@ -1,4 +1,4 @@
 #!/bin/sh
-. ./translation.vars
+. ./babel/translation.vars
 
 TZ=UTC env/bin/pybabel update -i $POTFILE -d $TRANSDIR

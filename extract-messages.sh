@@ -1,5 +1,5 @@
 #!/bin/sh
-. ./translation.vars
+. ./babel/translation.vars
 
 TZ=UTC ./pybabel extract --msgid-bugs-address="http://trac.i2p2.de" \
                                --project=$PROJECT \

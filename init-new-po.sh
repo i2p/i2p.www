@@ -1,5 +1,5 @@
 #!/bin/sh
-. ./translation.vars
+. ./babel/translation.vars
 
 if [ $# -ge 1 ]
 then
