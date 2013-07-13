@@ -1,4 +1,6 @@
 #!/bin/sh
-. ./babel/translation.vars
+. ./translation.vars
 
-TZ=UTC env/bin/pybabel update -i $POTFILE -d $TRANSDIR
+for domain in $(ls $BABELCFG); do
+    TZ=UTC env/bin/pybabel update -D $domain -i $POTDIR/$domain.pot -d $TRANSDIR
+done
