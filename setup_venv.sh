@@ -11,4 +11,6 @@ else
 
     . $venv_dir/bin/activate
     pip install -r reqs.txt
+    # Apply multi-domain patch to Flask-Babel
+    patch -p0 <multi-domain.patch
 fi
