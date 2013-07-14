@@ -32,6 +32,17 @@ SUPPORTED_LANGS = [
 #    'el',
     ]
 
+DEFAULT_GETTEXT_DOMAIN = 'priority'
+GETTEXT_DOMAIN_MAPPING = {
+    'about': ['about'],
+    'blog': ['blog'],
+    'comparison': ['comparison'],
+    'docs': ['docs'],
+    'get-involved': ['get-involved'],
+    'misc': ['misc'],
+    'research': ['research'],
+    }
+
 TEMPLATE_DIR = os.path.join(os.path.dirname(__file__), 'pages')
 STATIC_DIR = os.path.join(os.path.dirname(__file__), 'static')
 BLOG_DIR = os.path.join(os.path.dirname(__file__), 'blog')
@@ -50,7 +61,7 @@ class MyFlask(Flask):
 
 app = application = MyFlask('i2p2www', template_folder=TEMPLATE_DIR, static_url_path='/_static', static_folder=STATIC_DIR)
 app.debug =  bool(os.environ.get('APP_DEBUG', 'False'))
-babel = Babel(app)
+babel = Babel(app, default_domain='priority')
 cache = Cache(app, config={
     'CACHE_DEFAULT_TIMEOUT': 600,
     #'CACHE_TYPE': '', # See http://packages.python.org/Flask-Cache/#configuring-flask-cache
@@ -68,6 +79,21 @@ def get_locale():
     # otherwise try to guess the language from the user accept
     # header the browser transmits. The best match wins.
     return request.accept_languages.best_match(SUPPORTED_LANGS)
+
+@babel.domainselector
+def get_domains():
+    domains = []
+    frags = request.path.split('/', 2)
+    if len(frags) == 3:
+        path = frags[2]
+        for subpath in GETTEXT_DOMAIN_MAPPING:
+            if path.startswith(subpath):
+                domains.extend(GETTEXT_DOMAIN_MAPPING[subpath])
+    # Always end with the priority domain, as it contains
+    # various template strings and is likely to be the most
+    # up-to-date (in case of any common translation strings).
+    domains.append(DEFAULT_GETTEXT_DOMAIN)
+    return domains
 
 
 ##########################
