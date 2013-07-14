@@ -67,7 +67,7 @@ def get_locale():
         return g.lang
     # otherwise try to guess the language from the user accept
     # header the browser transmits. The best match wins.
-    return request.accept_languages.best_match(['en', 'es', 'zh', 'de', 'fr', 'it', 'nl', 'ru', 'sv', 'cs', 'ar'])
+    return request.accept_languages.best_match(SUPPORTED_LANGS)
 
 
 ##########################
