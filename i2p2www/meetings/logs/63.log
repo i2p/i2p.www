@@ -1,0 +1,177 @@
+[22:59] <dm> so when IS this meeting?
+[23:00] <jrand0m> now. 
+[23:00] <jrand0m> 0) welcome [63] 
+[23:00] <jrand0m> 1) roadmap: (Link: http://wiki.invisiblenet.net/iip-wiki?I2PRoadmap)http://wiki.invisiblenet.net/iip-wiki?I2PRoadmap 
+[23:00] <jrand0m> 2) 0.2 todo: 
+[23:00] <jrand0m> - long lasting comm testing 
+[23:00] <jrand0m> - lease rebuilding bugs 
+[23:00] <jrand0m> 3) prng (yay) 
+[23:00] <jrand0m> 4) apps / questions / etc 
+[23:00] <jrand0m> 0) hi 
+[23:00] <jrand0m> sorry for being stupid and forgetting about daylight savings time 
+[23:00] <jrand0m> welcome to meeting #63 
+[23:01] *** darl_mcbride has left #iip-dev
+[23:01] <jrand0m> 1) roadmap 
+[23:01] <jrand0m> the roadmap is at the above url and will be updated whenever necessary. 
+[23:02] <jrand0m> yes, the dates are further out than they've been in the past, and thats largely a reflection of 1) me not wanting to release shitty software 2) me overlooking details in previous estimates 
+[23:02] <jrand0m> but, of course, as it says on the roadmap, "If you get involved and help out with some of the coding, things will go faster" :) 
+[23:03] <jrand0m> 0.2 itself will allow actual useful functionality 
+[23:03] *** Signoff: thecrypto (Ping timeout)
+[23:03] <dm> that's good news.
+[23:03] <jrand0m> ok, item 2) 0.2 todo 
+[23:04] <jrand0m> i've been doing qa on the 0.2 release for the last week or so and have been tracking down some bugs that have been hard to spot 
+[23:04] <jrand0m> but i think I found their source a few minutes ago, and I'm running a test against it right now in the background. 
+[23:05] <jrand0m> (the problem has been that after a few hours of use, communication with a router or a destination fails) 
+[23:05] <dm> what kind of testing rig are you using? Is it all local at this point?
+[23:05] <jrand0m> three routers local, three routers remote 
+[23:05] <sisr> Does 0.2 include the feature that when a router is not able to be contacted after a certain number of times it stops trying?
+[23:05] <jrand0m> yes 
+[23:06] <jrand0m> every router publishes its contact info every N (currently 2) minutes to everyone it knows.  if a router doesn't get new contact info every 2.5*N minutes, it drops its reference. 
+[23:06] <jrand0m> however, if it /wants/ to find a new router (aka it gets a reference to it via a Lease), it can do a search at any time and find it 
+[23:07] <jrand0m> however, running three routers plus two active destinations locally is, well, a CPU beast. 
+[23:08] <jrand0m> I've added a nasty feature which I feel dirty about, but it lets you add an environmental variable to basically turn off ElG and AES encryption.  thats only useful for communication with other nodes with the encryption turned off (as otherwise you wouldn't be able to talk) 
+[23:09] <jrand0m> ok, thats it for 0.2 todo 
+[23:09] <dm> for your testing purposes?
+[23:09] <jrand0m> yeah basically 
+[23:09] <jrand0m> (and/or for anyone else who is doing their own testing to add new features / etc ;) 
+[23:10] <jrand0m> in theory however, two destinations (like atalk) could set the -Di2p.encryption=off flag and still work (though there wouldn't be any end to end encryption) 
+[23:10] *** thecrypto (~thecrypto@anon.iip) has joined channel #iip-dev
+[23:10] <jrand0m> but i think thats a Bad Idea. 
+[23:11] <jrand0m> this feature will most certainly get pulled once the AES+SessionTag stuff gets worked out 
+[23:11] <jrand0m> ok, 3) prng 
+[23:11] <sisr> Are there any suggested minimum CPU and RAM requirements?
+[23:12] <sisr> sorry
+[23:12] <jrand0m> hmm, RAM is minimal (sun's JVM takes 7-10Mb, kaffe 16-22Mb) 
+[23:13] <jrand0m> CPU is definitely the limiting factor at the moment,but I don't have a wide array of boxes to test on ;) 
+[23:14] <jrand0m> let me just say that running three routers and two i2ptunnels pointing offsite to a squid on the same box pretty much hoses my P4 1.7Ghz box 
+[23:14] <thecrypto> i might be a little more active if you want me to say somethingh
+[23:14] <dm> alright, say something.
+[23:15] <jrand0m> hiya thecrypto :) 
+[23:15] <sisr> Why would anyone run more than one router on the same computer?
+[23:15] <jrand0m> sisr> only a developer would. 
+[23:16] <sisr> Ok, so the CPU should not be too bad and we can run some tests over the weeks
+[23:16] <jrand0m> word 
+[23:17] <jrand0m> ok, the prng stuff turned out to be a bug in kaffe, which is now fixed.   
+[23:17] <jrand0m> with that, we don't have any hard need to get a yarrow impl, as they use sha1prng 
+[23:18] <jrand0m> (but it'd be nice, whenever we get it) 
+[23:18] <jrand0m> ok, 4) apps / questions / etc 
+[23:18] <jrand0m> I don't have anything else, so... hi :) 
+[23:19] <jrand0m> any questions / thoughts / comments on anything else? 
+[23:19] <sisr> How is the naming server? I have not seen co for a long time
+[23:19] *** co (anon@anon.iip) has joined channel #iip-dev
+[23:19] <jrand0m> speaking of the devil 
+[23:19] <jrand0m> hi co 
+[23:19] <sisr> haha
+[23:19] <co> Hello.
+[23:20] <jrand0m> we're at that point where there's not really anything left on the agenda 'cept for questions 
+[23:20] <jrand0m> [23:19] <sisr> How is the naming server? I have not seen co for a long time 
+[23:20] <jrand0m> [23:19] *** co (anon@anon.iip) has joined channel #iip-dev 
+[23:20] <jrand0m> and that happened :) 
+[23:20] *** Signoff: godmode0 (EOF From client)
+[23:21] <co> There has been no progress on it. I wrote just a small part of the client, and none of the server.
+[23:22] <jrand0m> coo' 
+[23:22] * dm points the shame-stick at co.
+[23:22] <sisr> I believe the HTTP i2p tunnel is working good now
+[23:22] <sisr> i have adapt mihis excellent httpclient so that you type it into your proxy setting
+[23:23] <jrand0m> aweseme! 
+[23:23] <sisr> it also does some simple filter of non i2p site
+[23:23] <sisr> i think jrand0m has commit this already, yes?
+[23:23] <jrand0m> do we know what browsers it works with?  I know moz... 
+[23:23] <jrand0m> yeah, I think I committed that stuff.. lemmie check 
+[23:23] * co is appropriately ashamed.
+[23:23] <sisr> It working with Mozilla and the Konqueror
+[23:24] *** godmode0 (~enter@anon.iip) has joined channel #iip-dev
+[23:24] <jrand0m> dont worry co, I'm already 2 months behind schedule 
+[23:24] <sisr> I will try to get the mihi I2P tunnel to work with E-mail server this week
+[23:24] <sisr> Also many wiki pages have updated
+[23:24] <jrand0m> oh yeah!  thanks for that 
+[23:25] * jrand0m actually added a caveat to one of the FAQs this afternoon :)
+[23:25] * dm decides to concentrate his awesome analytical brainpower towards determining where sisr is from.
+[23:25] <dm> "Also many wiki pages have updated"
+[23:25] <sisr> Ok go ahead
+[23:25] <dm> mmmm.....MMmmmm.....mmmmmm...
+[23:26] <dm> ah, another clue?
+[23:26] <sisr> But I can not tell you if you are correct
+[23:26] <dm> "..... has commit this already, yes?"
+[23:26] <co> jrand0m: If this has not been asked already, do you want to release the I2P framework and applications as a package at the same time?
+[23:27] <jrand0m> I've found that what I want and what happens isn't always the same thing 
+[23:27] <co> I mean release them together.
+[23:27] <sisr> I have a question after co
+[23:27] <jrand0m> the current plan is up at (Link: http://wiki.invisiblenet.net/iip-wiki?I2PRoadmap)http://wiki.invisiblenet.net/iip-wiki?I2PRoadmap 
+[23:28] <jrand0m> i2p itself will be the router and the sdk, but with it will be bundled any applications that are ready, whenever they're ready. 
+[23:28] <jrand0m> (the installer right now bundles the router, sdk, phttprelay, atalk, and i2ptunnel) 
+[23:29] *** Signoff: dm (Ping timeout)
+[23:29] <jrand0m> 'sup sisr? 
+[23:29] <co> That page is quite helpful. Thank you.
+[23:30] <sisr> The I2P is very big and it can be used to browse the WWW, to browse I2P Tunnel connect programs and web pages and If someone write a direct I2P webserver and client, can go without the tunnel
+[23:30] <jrand0m> absolutely. 
+[23:30] <sisr> My question is how is the I2P developer target towards? Make everything working with I2P Tunnels so that users can have the programs They are already familiar with like IE or
+[23:31] <sisr> Is it better to try and make I2P web server program, I2P web browser    everything special for the I2P ?
+[23:31] *** dm (~as@anon.iip) has joined channel #iip-dev
+[23:32] <jrand0m> personally, I'd love if the former could happen.  however, there will be performance gains by designing apps native to i2p 
+[23:32] <mihi> unix principle: one job, one tool. so don't write new browsers.
+[23:32] <jrand0m> right 
+[23:32] <sisr> How much is the overhead of the I2P Tunnel?    So we should focus on use the I2p Tunnel to get existing program to work
+[23:32] <dm> one job, one tool? silly principle.
+[23:33] <sisr> I believe we will need tutorial for people to set up Squid and E-mail proxy to the regular WWW. This is valuable and more than one or two is needed so this means Easy instructions for others to set up their own
+[23:33] <jrand0m> sisr> the only significant overhead of i2ptunnel is its reliance on i2p's guaranteed delivery mode, which requires waiting for an ack message after each message sent (a full round trip through the pair of tunnels, using all appropriate encryption) 
+[23:34] <sisr> Haha, ok sisr has a very old computer
+[23:34] <sisr> It seem real slow to me because of this
+[23:34] <dm> what was latency like on the first few real tests? Just out of curiosity.
+[23:35] <jrand0m> I can pull news.google.com with all images in ~ 30-60 seconds 
+[23:35] <dm> k
+[23:36] <sisr> How difficult will it be to set up a Freenet like content distribution system on top of I2P? Is that major effort or minor effort?
+[23:36] <co> And how much time does it take without the tunnel?
+[23:36] <jrand0m> sisr> if I worked on it fulltime, I'd suspect ~ 1 month to get a DHT on top of i2p 
+[23:37] <jrand0m> co> ~ 10-15 seconds 
+[23:38] <co> So i2ptunnel is 3 times as slow.
+[23:39] <jrand0m> well, i2ptunnel + the routers.  but that is not a linear time - sending 10 bytes over i2p takes about as long as sending 100k 
+[23:39] *** Signoff: thecrypto (Ping timeout)
+[23:39] <co> For you, at least.
+[23:39] <jrand0m> the overhead is in the message wrapping 
+[23:39] <sisr> If the I2P tunnel is to be the core of most application for I2P then we should concentrate on the User interface and make easy to click option to set up tunnel
+[23:40] <sisr> Like checkbox to set up I2P Tunnel web server with port, and Checkbox for E-mail server, so it real simple
+[23:40] <jrand0m> sisr> I personally really really like its interface atm :)   
+[23:40] <jrand0m> oh, definnitely.  actually 
+[23:40] * sisr has never seen the interface but imagines it like the textbox
+[23:40] <sisr> Maybe someone can screencap the I2P tunnel for tutorial
+[23:41] <jrand0m> what I was planning on is having the installer create a set of .bat and .sh scripts to do so automatically (e.g. java .... I2PTunnel -e 'config basdfawer' -e 'server ...' ) 
+[23:42] <sisr> What should we be working on for I2P now
+[23:42] <jrand0m> thats a big question.  short answer is "whatever you can" 
+[23:43] <jrand0m> if someone were to go ahead and update the installer to build those .sh and .bat scripts, that would rule 
+[23:43] <jrand0m> if anyone has time to work on some of the things on the i2proadmap, that would also rule :) 
+[23:44] <jrand0m> I think there's going to be a large demand for doc and qa once 0.2 is out (aka Real Soon Now) 
+[23:44] <sisr> How will the Installer be? Install shield or Java?
+[23:44] <jrand0m> the current installer is a single "install.jar" which prompts the user through a few questions 
+[23:45] <jrand0m> its a really crappy installer 
+[23:45] <jrand0m> but its as platform independent as it gets 
+[23:48] <jrand0m> ok cool, the routers are still working, I think this bugfix may have done it. 
+[23:48] <jrand0m> oh yeah.  
+[23:48] <jrand0m> the mailing list will be back sometime 
+[23:48] <jrand0m> if it isn't back by the time 0.2 is ready, I'll create a new mailing list 
+[23:49] <co> I have one other question.
+[23:49] <jrand0m> fire away 
+[23:50] <co> Is there a list available of I2P nodes running right now?
+[23:50] <jrand0m> nope. 
+[23:50] <jrand0m> no public i2p nodes are open 
+[23:50] <co> I see.
+[23:50] <jrand0m> however, one of them will make its list of peers available via http once 0.2 is released 
+[23:50] <jrand0m> (and the URL to that list will be in the installer) 
+[23:50] <jrand0m> s/will be/is/ 
+[23:52] <mihi> it's in my bookmarks as well...
+[23:52] <jrand0m> heh bastard 
+[23:52] <mihi> btw: size=777 is 111 bytes too large ;)
+[23:53] <jrand0m> rofl 
+[23:53] <jrand0m> I totally didn't notice that. 
+[23:53] <jrand0m> they used to be 384 
+[23:53] <jrand0m> but then I added some router sw version info to the routerInfo 
+[23:53] <sisr> I think nop can use the I2P tunnel to set up a test IRC server with the 0.2 router?
+[23:54] <jrand0m> that'd be really cool 
+[23:54] <sisr> I wonder how the latency comparing to this IIP if nop does that
+[23:54] <jrand0m> though we wouldn't be able to dcc 
+[23:54] <jrand0m> i2p would be a lot higher latency 
+[23:54] <jrand0m> (as each send would be a few seconds, since we don't have AES+SessionTag yet) 
+[23:57] <jrand0m> ok, if anyone has anything to say before the list is back, either talk here or toss stuff up on the wiki 
+[23:57] <dm> k, night
+[23:57] *** dm has left #iip-dev
+[23:57] * jrand0m *baf*s the meeting closed

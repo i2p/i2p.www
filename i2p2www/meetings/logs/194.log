@@ -1,0 +1,154 @@
+15:02 < jrandom> 0) hi
+15:02 < jrandom> 1) Net status
+15:02 < jrandom> 2) Syndie 1.000a
+15:02 < jrandom> 3) ???
+15:02 < jrandom> 0) hi
+15:02  * jrandom waves
+15:02 < jrandom> weekly status notes up at http://dev.i2p.net/pipermail/i2p/2006-December/001324.html
+15:03 < jrandom> lets jump on in to 1) net status
+15:03 < Complication2> Oh, I entirely forgot it's a Tuesday
+15:03 < jrandom> things are going pretty well, as mentioned, though my router finally had a restart after a 45 day uptime
+15:04 < jrandom> (but frankly, i'd be quite happy if we could consistently get 1+ month uptimes :)
+15:04 < Complication2> Net status is a bit flakier than before for me, but that's because one of my I2P routers is having a recurring (once about 10 days) problem
+15:04 < Complication2> Other router is capable of pulling one-month uptimes, but it's not a very high-traffic router
+15:05 < Complication2> Rather modest, in fact
+15:05 < jrandom> stats.i2p has been showing a slightly reduced build success rate in the past week, but that may just be seasonal
+15:07 <+fox> <hottuna> Ive been getting some weird wrapper log messages
+15:07 <+fox> <hottuna> INFO   | jvm 1    | 2006/12/26 01:00:00 | 2006-dec-26 00:00:00 org.mortbay.util.RolloverFileOutputStream removeOldFiles
+15:07 <+fox> <hottuna> INFO   | jvm 1    | 2006/12/26 01:00:00 | INFO: Log age 2006_09_26.request.log
+15:07 <+fox> <hottuna> INFO   | jvm 1    | 2006/12/26 01:00:00 | 2006-dec-26 00:00:00 org.mortbay.util.RolloverFileOutputStream removeOldFiles
+15:07 < jrandom> irc is still doing pretty well though, even with 3 hop tunnels
+15:07 < jrandom> oh interesting hottuna, sounds like some verbose commons-logging stuff
+15:08 < jrandom> (jetty uses their own logger, not ours)
+15:08 <+fox> <hottuna> nothing to worry about then .. 
+15:08 <+fox> <hottuna> but still ahven been running my router due to BW starvation
+15:09 < jrandom> starvation being "not enough bw for i2p", or "i2p using too much bw"?
+15:11 <+fox> <hottuna> Well, both but since Im running i2p to donate bw the first alternative fits me best
+15:11 < jrandom> ah heh, ok
+15:11 <+fox> <hottuna> I just started syndie for the first time and Im feling a bit overwhelmed, dont really know where to begin
+15:11 <+fox> <hottuna> nice touch with adding the standard archive though
+15:13 < jrandom> thanks :)  there's lots that we need to do to reduce the overwhelmed sensation, though lets do that in our jump to 2) Syndie 1.000a :)
+15:13 < jrandom> 1.000a is out, download and enjoy!
+15:14 < jrandom> out of box experience should basically be: install, start, "add the standard archive", tell Syndie to sync with the standard archive "now" (then hit save), and it'll start pulling messages
+15:15 < jrandom> it'll add a line to that table below the save button, one per message and one per forum - right clicking on messages & forums brings them up, or you can browse via the Forum->Read all menu
+15:15 < bar> congratulations on the syndie alpha release, you've been working long and hard on this. respect.
+15:16 < Complication2> Same here. Impressive database and quite promising interface. :)
+15:16 <+fox> <hottuna> Im using syndie right now and reading the epic syndie and i2p direction post
+15:16 < gloin> btw, build.xml contains a hardcoded value: build.xml:    <property name="swt.win32" value="../swt-I20061214-1445-win32-win32-x86/swt.jar" />
+15:16 < jrandom> thanks, there's lots to do to get syndie where it needs to be, but its a start
+15:17 <+fox> <hottuna> there is much work to be done on the usability front but still you have come a long way
+15:17 < jrandom> gloin: aye, 3 of 'em (swt.win32, swt.osx, and swt.linux32) - they're only used for "ant dist"
+15:18 < Complication2> does "ant" default to "ant clean jar", by the way?
+15:18  * Complication2 checks
+15:18 < jrandom> hottuna: thats where you (and y'all :) come in - my head is deep in the innards of syndie, so its often hard for me to get the right perspective for making syndie more usable
+15:19 < jrandom> i need your opinions, feedback, and suggestions to improve things
+15:19 < Complication2> Aha, dependency check and jar
+15:19 < Complication2> (without the cleanup part)
+15:19 < jrandom> right Complication2, no 'clean' by default
+15:21 < gloin> does "ant dist" build versions for linux, win32 and so on?
+15:21 < jrandom> gloin: yeah, building installers, .exe files, etc
+15:22 < jrandom> if you just want to build and run syndie for your own use, "ant jar" and copy the lib/syndie.jar to your syndie install, or "ant run" to launch it in place
+15:23 < Complication2> darn, I overlooked the "run" target then
+15:23 < jrandom> (specifying the necessary -Dswt.dir=/blah flags, or placing them in the (new) file nbproject/private/private.properties as swt.dir=/blah/)
+15:23 < Complication2> Cooked up a run.sh :D
+15:24 < Complication2> two-liner, though, so nothing time-consuming
+15:24 < jrandom> that works too :)
+15:24 < Complication2> Yep, "ant run" worked nicely
+15:24 < gloin> ant run seem to work, the install linux32.exe complains about missing swt.
+15:24 < Complication2> Just tested
+15:26 < jrandom> hmm gloin, and swt.jar exists in the installed syndie lib dir?
+15:27 < gloin> yes.
+15:28 < jrandom> and you're running "java -jar /some/path/to/that/syndie/bin/syndie.exe"?  or do you mean the linux installer?
+15:29 < gloin> the installer was fine. it created the syndie-1.000a directory.
+15:31 < gloin> Exception in thread "main" java.lang.UnsatisfiedLinkError: no swt-pi-gtk-3235 in java.library.path
+15:33 < Complication2> One little question (I'm testing out the Linux binary)
+15:33 < jrandom> hmm, did it create the libswt-pi-gtk-3235.so in /tmp/ gloin?
+15:33 < Complication2> Where to obtain the public key "393F2DF9"?
+15:33 < jrandom> thats a good question... 
+15:34 < gloin> who? when?
+15:34 < gloin> at the moment, theres no  libswt-pi-gtk-3235.so in /tmp/
+15:35 < jrandom> gloin: the new swt (3.3M4) shipped with syndie extracts the native libs to /tmp/ when it can't find them
+15:36 < jrandom> gloin: can you run (cd ~/syndie-1.000a/ ; java -cp lib/syndie.jar:lib/swt.jar:lib/hsqldb.jar syndie.gui.SWTUI ) and see if that finds them?
+15:36 < jrandom> Complication2: it'll be up on the various keyservers and the website after the meeting
+15:37 < Complication2> Thanks :)
+15:37 < jrandom> (its on my keyrings which aren't accessible from my windows box)
+15:37 < Complication2> Meanwhile, I found out using more conventional means that my download of the binary *did* abort early
+15:37  * Complication2 fetches the end again
+15:38 < gloin> no. Maybe I rebuild the the installer
+15:39 < jrandom> gloin: could you check the swt.jar to make sure it contains the libswt-pi-gtk-3235.so (jar tvf lib/swt.jar)?
+15:40 < jrandom> in any case, we'll keep on debugging as things come up
+15:41 < gloin> it's not in it.
+15:41 < jrandom> thats about it for syndie 1.000a - there will of course be updates over time, and they'll be announced in meetings or mails
+15:42 < jrandom> (there are much smaller downloads for upgrading syndie than the full 4-5+MB ones - see syndie.i2p.net/download.html)
+15:42 <+fox> <hottuna> whats is the i2p syndie archives url on the i2p network ?
+15:43 < jrandom> gloin: could you priv msg me the jar tvf output?
+15:43 < jrandom> hottuna: http://archive.syndie.i2p/
+15:43 <+fox> <hottuna> thank you
+15:45 < jrandom> (note that archive.syndie.i2p / syndie.i2p.net:8080 are just instances of syndie with the built-in HTTP server running)
+15:45 <+fox> <hottuna> oh :) wicked :)
+15:45 <+fox> <hottuna> oh btw the syndie clock doesnt match the clock on my system
+15:46 < jrandom> so, anyone can run their own syndie archive and let people sync off 'em - just give them a link to your archive (which you can do via irc/html/etc, or in syndie itself with an 'archive link'/reference)
+15:46 < jrandom> syndie clock?
+15:46 <+fox> <hottuna> or the time stamps on messages in syndie
+15:47 <+fox> <hottuna> wait a second. . now they seem to be right..
+15:47 <+fox> <hottuna> a restart later
+15:52 < gloin> how do I build a headless archive server? I assume that the import.cgi is not 'supported' anymore?
+15:53 < jrandom> right, import.cgi is incompatible with the latest - you can run a headless server with a normal syndie install by running syndie "--cli", causing it to run the text engine. 
+15:55 < jrandom> the integrated http server can be run from the text engine via the 'httpserv' command (http://syndie.i2p.net/manual.html#general_httpserv )
+15:55 < gloin> thanks a lot.
+15:56 < jrandom> if you're going to be firing up your archive again, i should be thanking you :)
+15:57 < gloin> puh.. even with a gui, it looks complicated :)
+15:58 < jrandom> aye, y'all've got your work cut out for you - help make it usable and useful :)
+15:59 < jrandom> we'll have lots more to cover as people start kicking the tires and issues start coming up, but for the time being, feel free to dig in, post away, and see whats going on
+15:59 < jrandom> shimmying on over to 3) ???, anyone have anything else to bring up for the meeting?
+16:00 < Complication2> Tested the Linux binary installer, runs nicely
+16:00 < Complication2> It's only curious that when it tried creating a shortcut in the KDE menu, the shortcut ended up in the group "Development"
+16:00 < Complication2> Along with NetBeans and stuff
+16:01 < Complication2> I might be mistaken, but I think I recall it writing that it was going to try creating a group called Syndie...
+16:01 < jrandom> ah, yeah.  izpack and the java packagers/installers are still working through the kde integration
+16:02 < Complication2> Anyway, small detail
+16:02 < Complication2> But wanted to mention just in case
+16:02 < jrandom> it /should/ create a Syndie group, but as you can see, the kde menu doesn't have per-app folders (it has categories of apps, and then per-app folders)
+16:02 < jrandom> hopefully to be fixed when izpack fixes it (its on their radar)
+16:03 < Complication2> Right
+16:03 < Complication2> Either way, the shortcut appeared, and the uninstaller shortcut appeared too
+16:03 < jrandom> wewt
+16:03 < Complication2> And the uninstalled worked nicely too (used it too since I typically compile from sources)
+16:03 < Complication2> =uninstaller
+16:04 < bar> i have two questions, slightly related to each other
+16:04 < bar> 1. any plans yet on when to nuke the old syndie?
+16:04 < bar> 2. could we have an i2p gateway, syndie.i2p, to syndie.i2p.net, or would that perhaps collide with the old syndie infrastructure?
+16:05 < Complication2> On 2, I think it currently would collide
+16:06 < jrandom> hmm, i actually haven't thought about that much.  i'm tempted to say "nuke it, move everyone to the new syndie now now now" :)
+16:07 < Complication2> ...going to "http://archive.syndie.i2p" through "localhost:4444"
+16:07 < bar> the reason i'm asking is, it's sometimes a bit of a pain having to use squid.i2p to access the syndie web pages
+16:07 < jrandom> ah, understood.  ok, i can redirect syndie.i2p to point to syndie.i2p.net, and old-syndie users can still use syndiemedia.i2p
+16:09 < bar> loverly :)
+16:09 < Complication2> oh, you meant the web pages
+16:10 < Complication2> I thought you meant the archive :)
+16:10 < bar> correct Complication2, sorry for not being clear on that
+16:10 < gloin> the own forum is the own identity?
+16:11 < Complication2> There's definitely a default identity / pseudonym created in a new Syndie instance
+16:11 < Complication2> I'm not sure if it auto-creates a forum
+16:11 < jrandom> gloin: every identity has a forum (and every forum is owned by an identity)
+16:12 < jrandom> a forum, in syndie, is just a public key
+16:12 < jrandom> (as is an author)
+16:12 < Complication2> I've forgotten how I went about doing it, and it was in October with the text interface anyway, I think :)
+16:12 < jrandom> ((in the database and code, they're both called 'channels', but the ui talks about forums and authors/nyms))
+16:13 < bar> on the topic of closing down the old syndie, may i suggest something along the lines of "keeping it online for another month but closing the archive for new posts, along with leaving an informative note"
+16:14 < gloin> the gui let me create forums only. Does that  means, when I a want that you can post in my forum I authorize the jrandom forum and not the jrandom person?
+16:15 < Complication2> Or perhaps even leaving it open for a short while after posting the note, so if someone desperately needs it at this stage (gasp!) they can exchange some data for a short while still
+16:15 < jrandom> gloin: forums and identities are the same thing - when you create a new forum, you craete a new ientity (and to authorize jrandom the person to post in your forum, authorize jrandom's forum)
+16:15 < jrandom> seems reasonable Complication2 & bar
+16:17 < jrandom> gloin: this stuff is definitely not-obvious, and we need to do a lot of work on making it easier
+16:21 < Complication2> Oops, I've not noticed multiple suggestions for I2Phex tuning by striker on the old Syndie
+16:21  * Complication2 makes local copies
+16:23 < jrandom> :)  the old syndie will still remain accessible at syndiemedia.i2p/ and syndie.i2p.net:8000/ 
+16:23 < jrandom> ok, anyone have anything else for the meeting?
+16:25 < gloin> In the forum configuration I can set the privay level (all/auth/passphrase). But with each post I can set it, too. Which counts?
+16:27 < jrandom> both count, though for the time being, i'd recommend keeping the forum privacy as 'public' (since i havent written up the gui for passphrase protected forums yet, only passphrase protected messages)
+16:27 < jrandom> the forum privacy covers the forum's metadata (links to other sites, bundled keys, etc), while individual messages have their own policy
+16:33 < jrandom> (syndie.i2p --> syndie.i2p.net as of now, syndiemedia.i2p still points to syndie.i2p.net:8000/)
+16:33 < jrandom> ok, if there isn't anything else for the meeting
+16:33  * jrandom winds up
+16:33  * jrandom *baf*s the meeting closed

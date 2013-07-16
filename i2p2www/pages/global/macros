@@ -1,0 +1,44 @@
+{%- macro change_lang(lang) -%}
+{%- if request.endpoint == 'site_show' -%}{{ url_for('site_show', lang=lang, page=page) }}
+{%- elif request.endpoint == 'blog_index' -%}
+  {%- if category -%}{{ url_for('blog_index', lang=lang, category=category) }}
+  {%- else -%}{{ url_for('blog_index', lang=lang) }}
+  {%- endif -%}
+{%- elif request.endpoint == 'blog_post' -%}{{ url_for('blog_post', lang=lang, slug=slug) }}
+{%- elif request.endpoint == 'meetings_show' -%}{{ url_for('meetings_show', lang=lang, id=id) }}
+{%- elif request.endpoint == 'downloads_select' -%}{{ url_for('downloads_select', lang=lang, version=version, file=file) }}
+{%- elif request.endpoint == 'downloads_redirect' -%}{{ url_for('site_show', lang=lang) }}
+{%- elif request.endpoint -%}{{ url_for(request.endpoint, lang=lang) }}
+{%- else -%}{{ url_for('site_show', lang=lang) }}
+{%- endif -%}
+{%- endmacro -%}
+
+{%- macro render_pagination(pagination) %}
+  <div class="pagination">
+  {%- if pagination.has_prev %}
+    <a href="{{ url_for_other_page(pagination.page - 1)
+      }}">&laquo; {{ _('Previous') }}</a>
+  {%- endif %}
+  {%- for page in pagination.iter_pages() %}
+    {%- if page %}
+      {%- if page != pagination.page %}
+    <a href="{{ url_for_other_page(page) }}">{{ page }}</a>
+      {%- else %}
+    <strong>{{ page }}</strong>
+      {%- endif %}
+    {%- else %}
+    <span class="ellipsis">…</span>
+    {%- endif %}
+  {%- endfor %}
+  {%- if pagination.has_next %}
+    <a href="{{ url_for_other_page(pagination.page + 1)
+      }}">{{ _('Next') }} &raquo;</a>
+  {%- endif %}
+  </div>
+{%- endmacro -%}
+
+{%- macro render_categories(categories) -%}
+{%- if categories and categories|length -%}
+{{ _('Posted in') }} {% for category in categories %}<a href="{{ get_url('blog_index', category=category) }}">{{ category }}</a>{% if not loop.last %}, {% endif %}{% endfor %}
+{%- endif %}
+{%- endmacro %}

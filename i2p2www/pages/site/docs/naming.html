@@ -1,0 +1,425 @@
+{% extends "global/layout.html" %}
+{% block title %}{% trans %}Naming and Addressbook{% endtrans %}{% endblock %}
+{% block lastupdated %}{% trans %}March 2012{% endtrans %}{% endblock %}
+{% block accuratefor %}0.8.13{% endblock %}
+{% block content %}
+<h1>{% trans %}Naming in I2P{% endtrans %}</h1>
+<h2 id="overview">{% trans %}Overview{% endtrans %}</h2>
+
+<p>{% trans -%}
+I2P ships with a generic naming library and a base implementation 
+designed to work off a local name to destination mapping, as well as an
+add-on application called the <a href="#addressbook">addressbook</a>. 
+I2P also supports <a href="#base32">Base32 hostnames</a> similar to Tor's .onion addresses.
+{%- endtrans %}</p>
+
+<p>{% trans -%}
+The addressbook is a web-of-trust
+driven secure, distributed, and human readable naming system, sacrificing only
+the call for all human readable names to be globally unique by mandating only
+local uniqueness.  While all messages in I2P are cryptographically addressed
+by their destination, different people can have local addressbook entries for
+"Alice" which refer to different destinations.  People can still discover new
+names by importing published addressbooks of peers specified in their web of trust,
+by adding in the entries provided through a third party, or (if some people organize
+a series of published addressbooks using a first come first serve registration
+system) people can choose to treat these addressbooks as name servers, emulating
+traditional DNS.
+{%- endtrans %}</p>
+
+<p>{% trans namingdiscussion=site_url('docs/discussions/naming') -%}
+NOTE: For the reasoning behind the I2P naming system, common arguments against it
+and possible alternatives see the <a href="{{ namingdiscussion }}">naming discussion</a>
+page.
+{%- endtrans %}</p>
+
+
+<h2 id="components">{% trans %}Naming System Components{% endtrans %}</h2>
+
+<p>{% trans -%}
+There is no central naming authority in I2P.
+All hostnames are local.
+{%- endtrans %}</p>
+
+<p>{% trans -%}
+The naming system is quite simple and most of it is implemented
+in applications external to the router, but bundled with
+the I2P distribution.
+The components are:
+{%- endtrans %}</p>
+
+<ol>
+<li>{% trans -%}
+The <a href="#lookup">client application</a> which does local lookups in hosts.txt
+and also takes care of the <a href="#base32">Base32 hostnames</a>.
+{%- endtrans %}</li>
+<li>{% trans -%}
+The <a href="#httpproxy">HTTP proxy</a> which asks the router for lookups and points
+the user to remote jump services to assist with failed lookups.
+{%- endtrans %}</li>
+<li>{% trans -%}
+HTTP <a href="#add-services">host-add forms</a> which allow users to add hosts to their local hosts.txt
+{%- endtrans %}</li>
+<li>{% trans -%}
+HTTP <a href="#jump-services">jump services</a> which provide their own lookups and redirection.
+{%- endtrans %}</li>
+<li>{% trans -%}
+The <a href="#addressbook">addressbook</a> application which merges external
+host lists, retrieved via HTTP, with the local list.
+{%- endtrans %}</li>
+<li>{% trans -%}
+The <a href="#susidns">SusiDNS</a> application which is a simple web front-end
+for addressbook configuration and viewing of the local host lists.
+{%- endtrans %}</li>
+</ol>
+
+
+<h2 id="lookup">{% trans %}Naming Files and Lookups{% endtrans %}</h2>
+
+<p>{% trans namingdiscussion=site_url('docs/discussions/naming'), todo=site_url('get-involved/todo') -%}
+All destinations in I2P are 516-byte (or longer) keys.
+(To be more precise, it is a 256-byte public key plus a 128-byte signing key
+plus a null certificate, which in Base64 representation is 516 bytes.
+<a href="{{ namingdiscussion }}#certificates">Certificates</a> are not used now,
+if they are, the keys will be longer.
+One possible use of certificates is for <a href="{{ todo }}#hashcash">proof of work</a>.)
+{%- endtrans %}</p>
+
+<p>{% trans -%}
+If an application (i2ptunnel or the HTTP proxy) wishes to access
+a destination by name, the router does a very simple local lookup
+to resolve that name.
+The client application (technically, the client side of I2CP in the I2P API)
+does a linear search through three local files, in order, to
+look up host names and convert them to a 516-byte destination key:
+{%- endtrans %}</p>
+
+<ol>
+<li>privatehosts.txt
+<li>userhosts.txt
+<li>hosts.txt
+</ol>
+
+<p>{% trans -%}
+The lookup is case-insensitive.
+The first match is used, and conflicts are not detected.
+There is no enforcement of naming rules in lookups.
+{%- endtrans %}</p>
+
+<p>{% trans namingdiscussion=site_url('docs/discussions/naming') -%}
+Lookups are cached for a few minutes.
+There is an experimental facility for real-time lookups (a la DNS) over the network within the router,
+although it is not enabled by default
+(see "EepGet" under <a href="{{ namingdiscussion }}#alternatives">Alternatives on the discussion page</a>).
+{%- endtrans %}</p>
+
+<h2 id="httpproxy">{% trans %}HTTP Proxy{% endtrans %}</h2>
+
+<p>{% trans -%}
+The HTTP proxy does a lookup via the router for all hostnames ending in '.i2p'.
+Otherwise, it forwards the request to a configured HTTP outproxy.
+Thus, in practice, all HTTP (eepsite) hostnames must end in the pseudo-Top Level Domain '.i2p'.
+{%- endtrans %}</p>
+
+<p>{% trans -%}
+If the router fails to resolve the hostname, the HTTP proxy returns
+an error page to the user with links to several "jump" services.
+See below for details.
+{%- endtrans %}</p>
+
+<h2 id="addressbook">{% trans %}Addressbook{% endtrans %}</h2>
+<h3>{% trans %}Incoming Subscriptions and Merging{% endtrans %}</h3>
+
+<p>{% trans -%}
+The addressbook application periodically
+retrieves other users' hosts.txt files and merges
+them with the local hosts.txt, after several checks.
+Naming conflicts are resolved on a first-come first-served
+basis.
+{%- endtrans %}</p>
+
+<p>{% trans -%}
+Subscribing to another user's hosts.txt file involves
+giving them a certain amount of trust.
+You do not want them, for example, 'hijacking' a new site
+by quickly entering in their own key for a new site before
+passing the new host/key entry to you.
+{%- endtrans %}</p>
+
+<p>{% trans -%}
+For this reason, the only subscription configured by
+default is <code>http://www.i2p2.i2p/hosts.txt</code>,
+which contains a copy of the hosts.txt included
+in the I2P release.
+Users must configure additional subscriptions in their
+local addressbook application (via subscriptions.txt or <a href="#susidns">SusiDNS</a>).
+{%- endtrans %}</p>
+
+<p>{% trans -%}
+Some other public addressbook subscription links:
+{%- endtrans %}</p>
+<ul>
+<li><a href="http://{{ i2pconv('i2host.i2p') }}/cgi-bin/i2hostetag">http://{{ i2pconv('i2host.i2p') }}/cgi-bin/i2hostetag</a>
+<li><a href="http://{{ i2pconv('stats.i2p') }}/cgi-bin/newhosts.txt">http://{{ i2pconv('stats.i2p') }}/cgi-bin/newhosts.txt</a>
+</ul>
+<p>{% trans -%}
+The operators of these services may have various policies for listing hosts.
+Presence on this list does not imply endorsement.
+{%- endtrans %}</p>
+
+<h3>{% trans %}Naming Rules{% endtrans %}</h3>
+<p>{% trans -%}
+While there are hopefully not any technical limitations within I2P on host names,
+the addressbook enforces several restrictions on host names
+imported from subscriptions.
+It does this for basic typographical sanity and compatibility with browsers,
+and for security.
+The rules are essentially the same as those in RFC2396 Section 3.2.2.
+Any hostnames violating these rules may not be propagated
+to other routers.
+{%- endtrans %}</p>
+
+<p>{% trans -%}
+Naming Rules
+{%- endtrans %}:</p>
+<ul>
+<li>{% trans -%}
+Names are converted to lower case on import.
+{%- endtrans %}</li>
+
+<li>{% trans -%}
+Names are checked for conflict with existing names in the existing userhosts.txt and hosts.txt
+(but not privatehosts.txt) after conversion to lower case.
+{%- endtrans %}</li>
+
+<li>{% trans -%}
+Must contain only [a-z] [0-9] '.' and '-' after conversion to lower case.
+{%- endtrans %}</li>
+
+<li>{% trans -%}
+Must not start with '.' or '-'.
+{%- endtrans %}</li>
+
+<li>{% trans -%}
+Must end with '.i2p'.
+{%- endtrans %}</li>
+
+<li>{% trans -%}
+67 characters maximum, including the '.i2p'.
+{%- endtrans %}</li>
+
+<li>{% trans -%}
+Must not contain '..'.
+{%- endtrans %}</li>
+
+<li>{% trans -%}
+Must not contain '.-' or '-.' (as of 0.6.1.33).
+{%- endtrans %}</li>
+
+<li>{% trans -%}
+Must not contain '--' except in 'xn--' for IDN.
+{%- endtrans %}</li>
+
+<li>{% trans -%}
+Base32 hostnames (*.b32.i2p) are not allowed.
+{%- endtrans %}</li>
+
+<li>{% trans -%}
+Certain hostnames reserved for project use are not allowed
+(proxy.i2p, router.i2p, console.i2p, *.proxy.i2p, *.router.i2p, *.console.i2p, and others)
+{%- endtrans %}</li>
+
+<li>{% trans -%}
+Keys are checked for base64 validity.
+{%- endtrans %}</li>
+
+<li>{% trans -%}
+Keys are checked for conflict with existing keys in hosts.txt (but not privatehosts.txt).
+{%- endtrans %}</li>
+
+<li>{% trans -%}
+Minimum key length 516 bytes.
+{%- endtrans %}</li>
+
+<li>{% trans -%}
+Maximum key length 616 bytes (to account for certs up to 100 bytes).
+{%- endtrans %}</li>
+</ul>
+
+<p>{% trans -%}
+Any name received via subscription that passes all the checks is added to the local hosts.txt.		
+{%- endtrans %}</p>
+
+<p>{% trans -%}
+Note that the '.' symbols in a host name are of no significance,
+and do not denote any actual naming or trust hierarchy.
+If the name 'host.i2p' already exists, there is nothing
+to prevent anybody from adding a name 'a.host.i2p' to their hosts.txt,
+and this name can be imported by others' addressbook.
+Methods to deny subdomains to non-domain 'owners' (certificates?),
+and the desirability and feasibility of these methods,
+are topics for future discussion.
+{%- endtrans %}</p>
+
+<p>{% trans -%}
+International Domain Names (IDN) also work in i2p (using punycode 'xn--' form).
+To see IDN .i2p domain names rendered correctly in Firefox's location bar,
+add 'network.IDN.whitelist.i2p (boolean) = true' in about:config.
+{%- endtrans %}</p>
+
+<p>{% trans -%}
+As the addressbook application does not use privatehosts.txt at all, in practice
+this file is the only place where it is appropriate to place private aliases or
+"pet names" for sites already in hosts.txt.
+{%- endtrans %}</p>
+
+<h3>{% trans %}Outgoing Subscriptions{% endtrans %}</h3>
+<p>{% trans -%}
+Addressbook will publish the merged hosts.txt to a location
+(traditionally hosts.txt in the local eepsite's home directory) to be accessed by others
+for their subscriptions.
+This step is optional and is disabled by default.
+{%- endtrans %}</p>
+
+<h3>Hosting and HTTP Transport Issues</h3>
+<p>{% trans -%}
+The addressbook application, together with eepget, saves the Etag and/or Last-Modified
+information returned by the web server of the subscription.
+This greatly reduces the bandwidth required, as the web server will
+return a '304 Not Modified' on the next fetch if nothing has changed.
+{%- endtrans %}</p>
+
+<p>{% trans -%}
+However the entire hosts.txt is downloaded if it has changed.
+See below for discussion on this issue.
+{%- endtrans %}</p>
+
+<p>{% trans -%}
+Hosts serving a static hosts.txt or an equivalent CGI application
+are strongly encouraged to deliver
+a Content-Length header, and either an Etag or Last-Modified header.
+Also ensure that the server delivers a '304 Not Modified' when appropriate.
+This will dramatically reduce the network bandwidth, and
+reduce chances of corruption.
+{%- endtrans %}</p>
+
+<h2 id="add-services">{% trans %}Host Add Services{% endtrans %}</h2>
+<p>{% trans -%}
+A host add service is a simple CGI application that takes a hostname and a Base64 key as parameters
+and adds that to its local hosts.txt.
+If other routers subscribe to that hosts.txt, the new hostname/key
+will be propagated through the network.
+{%- endtrans %}</p>
+
+<p>{% trans -%}
+It is recommended that host add services impose, at a minimum, the restrictions imposed by the addressbook application listed above.
+Host add services may impose additional restrictions on hostnames and keys, for example:
+{%- endtrans %}</p>
+<ul>
+<li>{% trans -%}
+A limit on number of 'subdomains'.
+{%- endtrans %}</li>
+
+<li>{% trans -%}
+Authorization for 'subdomains' through various methods.
+{%- endtrans %}</li>
+
+<li>{% trans -%}
+Hashcash or signed certificates.
+{%- endtrans %}</li>
+
+<li>{% trans -%}
+Editorial review of host names and/or content.
+{%- endtrans %}</li>
+
+<li>{% trans -%}
+Categorization of hosts by content.
+{%- endtrans %}</li>
+
+<li>{% trans -%}
+Reservation or rejection of certain host names.
+{%- endtrans %}</li>
+
+<li>{% trans -%}
+Restrictions on the number of names registered in a given time period.
+{%- endtrans %}</li>
+
+<li>{% trans -%}
+Delays between registration and publication.
+{%- endtrans %}</li>
+
+<li>{% trans -%}
+Requirement that the host be up for verification.
+{%- endtrans %}</li>
+
+<li>{% trans -%}
+Expiration and/or revocation.
+{%- endtrans %}</li>
+
+<li>{% trans -%}
+IDN spoof rejection.
+{%- endtrans %}</li>
+</ul>
+
+<h2 id="jump-services">{% trans %}Jump Services{% endtrans %}</h2>
+<p>{% trans -%}
+A jump service is a simple CGI application that takes a hostname as a parameter
+and returns a 301 redirect to the proper URL with a <code>?i2paddresshelper=key</code>
+string appended.
+The HTTP proxy will interpret the appended string and
+use that key as the actual destination.
+In addition, the proxy will cache that key so the
+address helper is not necessary until restart.
+{%- endtrans %}</p>
+
+<p>{% trans -%}
+Note that, like with subscriptions, using a jump service
+implies a certain amount of trust, as a jump service could maliciously
+redirect a user to an incorrect destination.
+{%- endtrans %}</p>
+
+<p>{% trans -%}
+To provide the best service, a jump service should be subscribed to
+several hosts.txt providers so that its local host list is current.
+{%- endtrans %}</p>
+
+<h2 id="susidns">SusiDNS</h2>
+<p>{% trans -%}
+SusiDNS is simply a web interface front-end to configuring addressbook subscriptions
+and accessing the four addressbook files.
+All the real work is done by the 'addressbook' application.
+{%- endtrans %}</p>
+
+<p>{% trans -%}
+Currently, there is little enforcement of addressbook naming rules within SusiDNS,
+so a user may enter hostnames locally that would be rejected by
+the addressbook subscription rules.
+{%- endtrans %}</p>
+
+<h2 id="base32">{% trans %}Base32 Names{% endtrans %}</h2>
+<p>{% trans -%}
+I2P supports Base32 hostnames similar to Tor's .onion addresses.
+Base32 addresses are much shorter and easier to handle than the
+full 516-character Base64 Destinations or addresshelpers.
+Example: <code>ukeu3k5oycgaauneqgtnvselmt4yemvoilkln7jpvamvfx7dnkdq.b32.i2p</code>
+{%- endtrans %}</p>
+
+<p>{% trans -%}
+In Tor, the address is 16 characters (80 bits), or half of the SHA-1 hash.
+I2P uses 52 characters (256 bits) to represent the full SHA-256 hash.
+The form is {52 chars}.b32.i2p.
+Base32 is implemented in the naming service, which queries the
+router over I2CP to lookup the LeaseSet to get the full Destination.
+Base32 lookups will only be successful when the Destination is up and publishing
+a LeaseSet.
+Because resolution may require a network database lookup, it may take significantly
+longer than a local address book lookup.
+{%- endtrans %}</p>
+
+<p>{% trans -%}
+Base32 addresses can be used in most places where hostnames or full destinations
+are used, however there are some exceptions where they may fail if the
+name does not immediately resolve. I2PTunnel will fail, for example, if
+the name does not resolve to a destination.
+{%- endtrans %}</p>
+{% endblock %}
