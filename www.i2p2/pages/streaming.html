@@ -398,8 +398,8 @@ CLOSE packets may contain data as well.
 <h3 id="sharing">Control Block Sharing</h3>
 <p>
 The streaming lib supports "TCP" Control Block sharing.
-This shares two important streaming lib parameters
-(window size and round trip time)
+This shares three important streaming lib parameters
+(window size, round trip time, round trip time variance)
 across connections to the same remote peer.
 This is used for "temporal" sharing at connection open/close time,
 not "ensemble" sharing during a connection (See
@@ -408,6 +408,12 @@ There is a separate share per ConnectionManager (i.e. per local Destination)
 so that there is no information leakage to other Destinations on the
 same router.
 The share data for a given peer expires after a few minutes.
+The following Control Block Sharing parameters can be set per router:
+<ul>
+<li>RTT_DAMPENING = 0.75</li>
+<li>RTTDEV_DAMPENING = 0.75</li>
+<li>WINDOW_DAMPENING = 0.75</li>
+</ul>
 </p>
 
 <h3 id="other">Other Parameters</h3>
@@ -417,12 +423,17 @@ The following parameters are hardcoded, but may be of interest for analysis:
 <li>MAX_RESEND_DELAY = 45*1000 (maximum RTO)
 <li>MIN_WINDOW_SIZE = 1
 <li>TREND_COUNT = 3
-<li>RTT_DAMPENING = 0.875
 <li>MIN_MESSAGE_SIZE = 512 (minimum MTU)
 <li>INBOUND_BUFFER_SIZE = maxMessageSize * (maxWindowSize + 2)
-<li>INITIAL_TIMEOUT = 1.5 * initialRTT
+<li>INITIAL_TIMEOUT (valid only before RTT is sampled) = 12000
 <li>PASSIVE_FLUSH_DELAY = 250
 <li>Maximum RTT estimate: 60*1000
+</ul>
+The following parameters can be set per individual connection:
+<ul>
+<li>"alpha" ( RTT dampening factor as per RFC 6298 ) = 0.125</li>
+<li>"beta" ( RTTDEV dampening factor as per RFC 6298 ) = 0.25</li>
+<li>"K" ( RTDEV multiplier as per RFC 6298 ) = 4</li>
 </ul>
 </p>
 
