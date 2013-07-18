@@ -26,7 +26,7 @@ SUPPORTED_LANGS = [
 #    'it',
 #    'nl',
 #    'ru',
-    'sv',
+    'sv_SE',
 #    'cs',
 #    'ar',
 #    'el',
