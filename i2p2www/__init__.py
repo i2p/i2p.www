@@ -30,6 +30,7 @@ SUPPORTED_LANGS = [
 #    'cs',
 #    'ar',
 #    'el',
+    'pt',
     ]
 
 DEFAULT_GETTEXT_DOMAIN = 'priority'
