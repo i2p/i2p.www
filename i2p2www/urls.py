@@ -55,6 +55,7 @@ url('/<lang:lang>/meetings/<int:id>.rst', 'meetings.views.meetings_show_rst')
 url('/<lang:lang>/feed/meetings/atom', 'meetings.views.meetings_atom')
 
 url('/<lang:lang>/download', 'downloads.downloads_list')
+url('/<lang:lang>/download/debian', 'downloads.downloads_debian')
 url('/<lang:lang>/download/<string:version>/<path:file>', 'downloads.downloads_select')
 url('/download/<string:version>/<string:protocol>/any/<path:file>', 'downloads.downloads_redirect', defaults={'domain': None})
 url('/download/<string:version>/<string:protocol>/<string:domain>/<path:file>', 'downloads.downloads_redirect')

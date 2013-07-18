@@ -45,10 +45,12 @@ def downloads_list():
     # TODO: read mirror list or list of available files
     return render_template('downloads/list.html', def_mirror=DEFAULT_MIRROR)
 
+# Debian-specific page
+def downloads_debian():
+    return render_template('downloads/debian.html')
+
 # Specific file downloader
 def downloads_select(version, file):
-    if (file == 'debian'):
-        return render_template('downloads/debian.html', file=file)
     mirrors=read_mirrors()
     obj=[]
     for protocol in mirrors.keys():
