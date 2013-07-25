@@ -2,7 +2,7 @@
 {% block title %}SSU Protocol Specification{% endblock %}
 {% block content %}
 
-Updated June 2013 for release 0.9.6. IPv6 information is preliminary.
+Updated July 2013 for release 0.9.7. IPv6 information is preliminary.
 
 <p>
 <a href="udp.html">See the SSU page for an overview of the SSU transport</a>.
@@ -152,18 +152,13 @@ bytes.</p>
 <p>
 All messages contain 0 or more bytes of padding.
 Each message must be padded to a 16 byte boundary, as required by the <a href="how_cryptography.html#AES">AES256 encryption layer</a>.
-Currently, messages are not padded beyond the next 16 byte boundary.
-The fixed-size tunnel messages of 1024 bytes (at a higher layer)
-provide a significant amount of protection.
-In the future, additional padding in the transport layer up to
-a set of fixed packet sizes may be appropriate to further hide the data 
-fragmentation to external adversaries.
-</p><p>
-Through release 0.9.6, messages were only padded to the next 16 byte boundary,
+Through release 0.9.7, messages were only padded to the next 16 byte boundary,
 and messages not a multiple of 16 bytes could possibly be invalid.
 As of release 0.9.7, messages may be padded to any length as long as the current MTU is honored.
 Any extra 1-15 padding bytes beyond the last block of 16 bytes cannot be encrypted or decrypted and will be ignored.
 However, the full length and all padding is included in the MAC calculation.
+As of release 0.9.8, transmitted messages are not necessarily a multiple of 16 bytes.
+The SessionConfirmed message is an exception, see below.
 </p>
 
 
@@ -391,7 +386,7 @@ bits 3-0: total identity fragments (F) 1-15</pre></li>
 </table>
 
 <pre>
- <b>Fragment 0 through F-2</b>
+ <b>Fragment 0 through F-2 (if F &gt; 1):</b>
  +----+----+----+----+----+----+----+----+
  |info| cursize |                        |
  +----+----+----+                        |
@@ -404,7 +399,7 @@ bits 3-0: total identity fragments (F) 1-15</pre></li>
  |              data                     |
  +----+----+----+----+----+----+----+----+
  
- <b>Fragment F-1:</b>
+ <b>Fragment F-1 (last or only fragment):</b>
  +----+----+----+----+----+----+----+----+
  |info| cursize |                        |
  +----+----+----+                        |
@@ -418,6 +413,7 @@ bits 3-0: total identity fragments (F) 1-15</pre></li>
  |  arbitrary amount of uninterpreted    |
  |      data, to 40 bytes prior to       |
  |       end of the current packet       |
+ |  Packet length must be mult. of 16    |
  +----+----+----+----+----+----+----+----+
  | DSA signature                         |
  +                                       +
@@ -440,7 +436,9 @@ Typical size including header, in current implementation: 480 bytes
 In the current implementation, the maximum fragment size is 512 bytes.
 </li><li>
 The typical <a href="common_structures_spec.html#struct_RouterIdentity">Router Identity</a>
-is 387 bytes, so no fragmentation is usually necessary.
+is 387 bytes, so no fragmentation is ever necessary.
+If new crypto extends the size of the RouterIdentity, the fragmentation scheme
+must be tested carefully.
 </li><li>
 There is no mechanism for requesting or redelivering missing fragments.
 </li><li>
@@ -449,6 +447,10 @@ The total fragments field F must be set identically in all fragments.
 See <a href="#keys">the Keys section above</a> for details on DSA signatures.
 </li><li>
 Signed-on time appears to be unused or unverified in the current implementation.
+</li><li>
+Since the signature is at the end, the padding in the last or only packet must pad the total packet to
+a multiple of 16 bytes, or the signature will not get decrypted correctly.
+This is different from all the other message types, where the padding is at the end.
 </li></ul>
 
 
