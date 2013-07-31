@@ -1,7 +1,7 @@
 {% extends "global/layout.html" %}
 {% block title %}{% trans %}Streaming Library{% endtrans %}{% endblock %}
 {% block lastupdated %}{% trans %}July 2013{% endtrans %}{% endblock %}
-{% block accuratefor %}0.9.6{% endblock %}
+{% block accuratefor %}0.9.7{% endblock %}
 {% block content %}
 <h2>{% trans %}Overview{% endtrans %}</h2>
 
@@ -134,9 +134,25 @@ Use the access list as a blacklist for incoming connections.
 As of release {{ release }}.
 {%- endtrans %}</td></tr>
 
+<!--
+<tr><td>i2p.streaming.alpha</td><td>0.125</td><td>
+Ref. RFC 6298. Floating point value.
+{% trans release='0.9.8' -%}
+As of release {{ release }}.
+{%- endtrans %}</td></tr>
+-->
+
 <tr><td>i2p.streaming.answerPings</td><td>true</td><td>{% trans -%}
 Whether to respond to incoming pings
 {%- endtrans %}</td></tr>
+
+<!--
+<tr><td>i2p.streaming.beta</td><td>0.25</td><td>
+Ref. RFC 6298. Floating point value.
+{% trans release='0.9.8' -%}
+As of release {{ release }}.
+{%- endtrans %}</td></tr>
+-->
 
 <tr><td>i2p.streaming.blacklist</td><td>null</td><td>{% trans -%}
 Comma- or space-separated list of Base64 peer Hashes to be
@@ -198,11 +214,30 @@ The initial value of the resend delay field in the packet header, times 1000.
 Not fully implemented; see below.
 {%- endtrans %}</td></tr>
 
-<tr><td>i2p.streaming.initialRTT</td><td>8000 </td><td>({% trans %}if no <a href="#sharing">sharing data</a> available{% endtrans %})</td></tr>
+<tr><td>i2p.streaming.initialRTO</td><td>9000</td><td>{% trans -%}
+Initial timeout
+(if no <a href="#sharing">sharing data</a> available).
+{%- endtrans %} {% trans release='0.9.8' -%}
+As of release {{ release }}.
+{%- endtrans %}</td></tr>
+
+<tr><td>i2p.streaming.initialRTT</td><td>8000 </td><td>{% trans -%}
+Initial round trip time estimate
+(if no <a href="#sharing">sharing data</a> available).
+Disabled as of release 0.9.8; uses actual RTT.
+{%- endtrans %}</td></tr>
 
 <tr><td>i2p.streaming.initialWindowSize</td><td>6</td><td>({% trans %}if no <a href="#sharing">sharing data</a> available{% endtrans %}) {% trans -%}
 In standard TCP, window sizes are in bytes, while in I2P, window sizes are in messages.
 {%- endtrans %}</td></tr>
+
+<!--
+<tr><td>i2p.streaming.kappa</td><td>4.0</td><td>
+Ref. RFC 6298 "K". Floating point value.
+{% trans release='0.9.8' -%}
+As of release {{ release }}.
+{%- endtrans %}</td></tr>
+-->
 
 <tr><td>i2p.streaming.maxConcurrentStreams</td><td>-1 </td><td>{% trans -%}
 (0 or negative value means unlimited)
@@ -271,6 +306,27 @@ When we're in slow start, we grow the window size at the rate
 of 1/(factor).  In standard TCP, window sizes are in bytes,
 while in I2P, window sizes are in messages.
 A higher number means slower growth.
+{%- endtrans %}</td></tr>
+
+<tr><td>i2p.streaming.tcbcache.rttDampening</td><td>0.75</td><td>{% trans -%}
+Ref: RFC 2140. Floating point value.
+May be set only via context properties, not connection options.
+{%- endtrans %} {% trans release='0.9.8' -%}
+As of release {{ release }}.
+{%- endtrans %}</td></tr>
+
+<tr><td>i2p.streaming.tcbcache.rttdevDampening</td><td>0.75</td><td>{% trans -%}
+Ref: RFC 2140. Floating point value.
+May be set only via context properties, not connection options.
+{%- endtrans %} {% trans release='0.9.8' -%}
+As of release {{ release }}.
+{%- endtrans %}</td></tr>
+
+<tr><td>i2p.streaming.tcbcache.wdwDampening</td><td>0.75</td><td>{% trans -%}
+Ref: RFC 2140. Floating point value.
+May be set only via context properties, not connection options.
+{%- endtrans %} {% trans release='0.9.8' -%}
+As of release {{ release }}.
 {%- endtrans %}</td></tr>
 
 <tr><td>i2p.streaming.writeTimeout</td><td>-1</td><td>{% trans -%}
@@ -360,8 +416,8 @@ CLOSE packets may contain data as well.
 <h3 id="sharing">{% trans %}Control Block Sharing{% endtrans %}</h3>
 <p>{% trans -%}
 The streaming lib supports "TCP" Control Block sharing.
-This shares two important streaming lib parameters
-(window size and round trip time)
+This shares three important streaming lib parameters
+(window size, round trip time, round trip time variance)
 across connections to the same remote peer.
 This is used for "temporal" sharing at connection open/close time,
 not "ensemble" sharing during a connection (See
@@ -370,7 +426,14 @@ There is a separate share per ConnectionManager (i.e. per local Destination)
 so that there is no information leakage to other Destinations on the
 same router.
 The share data for a given peer expires after a few minutes.
-{%- endtrans %}</p>
+The following Control Block Sharing parameters can be set per router:
+{%- endtrans %}
+<ul>
+<li>RTT_DAMPENING = 0.75</li>
+<li>RTTDEV_DAMPENING = 0.75</li>
+<li>WINDOW_DAMPENING = 0.75</li>
+</ul>
+</p>
 
 <h3 id="other">{% trans %}Other Parameters{% endtrans %}</h3>
 <p>{% trans -%}
@@ -381,10 +444,12 @@ The following parameters are hardcoded, but may be of interest for analysis:
 <li>MAX_RESEND_DELAY = 45*1000 (maximum RTO)
 <li>MIN_WINDOW_SIZE = 1
 <li>TREND_COUNT = 3
-<li>RTT_DAMPENING = 0.875
 <li>MIN_MESSAGE_SIZE = 512 (minimum MTU)
 <li>INBOUND_BUFFER_SIZE = maxMessageSize * (maxWindowSize + 2)
-<li>INITIAL_TIMEOUT = 1.5 * initialRTT
+<li>INITIAL_TIMEOUT (valid only before RTT is sampled) = 9000
+<li>"alpha" ( RTT dampening factor as per RFC 6298 ) = 0.125</li>
+<li>"beta" ( RTTDEV dampening factor as per RFC 6298 ) = 0.25</li>
+<li>"K" ( RTDEV multiplier as per RFC 6298 ) = 4</li>
 <li>PASSIVE_FLUSH_DELAY = 250
 <li>Maximum RTT estimate: 60*1000
 </ul>
