@@ -56,7 +56,10 @@ def get_meetings_ids(num=0):
             # ignore all non-.rst files
             if not f.endswith('.rst'):
                 continue
-            meetings.append(int(f[:-4]))
+            try:
+                meetings.append(int(f[:-4]))
+            except ValueError:
+                continue
     meetings.sort()
     meetings.reverse()
     if (num > 0):
