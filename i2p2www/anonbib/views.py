@@ -44,3 +44,20 @@ def papers_list(tag=None, choice=None):
     bib['sections'] = sections
 
     return render_template('papers/list.html', bib=bib)
+
+def papers_bibtex(tag=None):
+    config.load(ANONBIB_CFG)
+    rbib = BibTeX.parseFile(ANONBIB_FILE)
+    if tag:
+        rbib = [ b for b in rbib.entries if tag in b.get('www_tags', '').split() ]
+    else:
+        rbib = rbib.entries
+    entries = [ (ent.key, ent) for ent in rbib ]
+    entries.sort()
+    entries = [ ent[1] for ent in entries ]
+
+    bib = {}
+    bib['title'] = 'Papers on I2P'
+    bib['entries'] = rbib
+
+    return render_template('papers/bibtex.html', bib=bib)
