@@ -50,6 +50,8 @@ BLOG_DIR = os.path.join(os.path.dirname(__file__), 'blog')
 MEETINGS_DIR = os.path.join(os.path.dirname(__file__), 'meetings/logs')
 SITE_DIR = os.path.join(TEMPLATE_DIR, 'site')
 MIRRORS_FILE = os.path.join(TEMPLATE_DIR, 'downloads/mirrors')
+ANONBIB_CFG = os.path.join(TEMPLATE_DIR, 'papers/anonbib.cfg')
+ANONBIB_FILE = os.path.join(TEMPLATE_DIR, 'papers/anonbib.bib')
 
 
 ###################

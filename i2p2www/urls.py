@@ -38,6 +38,8 @@ url('/', 'views.main_index')
 url('/<lang:lang>/', 'views.site_show', defaults={'page': 'index'})
 url('/<lang:lang>/<path:page>', 'views.site_show')
 
+url('/<lang:lang>/papers/', 'anonbib.views.papers_list')
+
 url('/<lang:lang>/blog/', 'blog.views.blog_index', defaults={'page': 1})
 url('/<lang:lang>/blog/page/<int:page>', 'blog.views.blog_index')
 url('/<lang:lang>/blog/category/<string:category>', 'blog.views.blog_index', defaults={'page': 1})
