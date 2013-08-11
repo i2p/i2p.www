@@ -39,6 +39,9 @@ url('/<lang:lang>/', 'views.site_show', defaults={'page': 'index'})
 url('/<lang:lang>/<path:page>', 'views.site_show')
 
 url('/<lang:lang>/papers/', 'anonbib.views.papers_list')
+url('/<lang:lang>/papers/by-<string:choice>', 'anonbib.views.papers_list')
+url('/<lang:lang>/papers/tag/<string:tag>', 'anonbib.views.papers_list')
+url('/<lang:lang>/papers/tag/<string:tag>/by-<string:choice>', 'anonbib.views.papers_list')
 
 url('/<lang:lang>/blog/', 'blog.views.blog_index', defaults={'page': 1})
 url('/<lang:lang>/blog/page/<int:page>', 'blog.views.blog_index')
