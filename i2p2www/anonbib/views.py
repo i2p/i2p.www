@@ -3,7 +3,7 @@ from flask import render_template
 from i2p2www import ANONBIB_CFG, ANONBIB_FILE
 from i2p2www.anonbib import BibTeX, config
 
-def papers_list(tag=None, choice=None):
+def papers_list(tag='', choice='date'):
     config.load(ANONBIB_CFG)
     rbib = BibTeX.parseFile(ANONBIB_FILE)
     if tag:
@@ -31,12 +31,12 @@ def papers_list(tag=None, choice=None):
         rbib = BibTeX.splitSortedEntriesBy(rbib, 'year')
 
     bib = {
-        'title':        'Papers on I2P',
-        'short_title':  'I2P Papers',
-        'otherbibs':    '',
-        'sectiontypes': sectionType,
-        'tag':          tag,
-        'field':        choice,
+        'tags':             config.ALL_TAGS,
+        'tag_titles':       config.TAG_TITLES,
+        'tag_short_titles': config.TAG_SHORT_TITLES,
+        'tag':              tag,
+        'sectiontypes':     sectionType,
+        'field':            choice,
         }
 
     sections = []
