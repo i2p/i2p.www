@@ -12,6 +12,7 @@ def papers_list(tag=None, choice=None):
         rbib = rbib.entries
 
     if choice == 'topic':
+        sectionType = 'Topics'
         rbib = BibTeX.sortEntriesBy(rbib, 'www_section', 'ZZZZZZZZZZZZZZ')
         rbib = BibTeX.splitSortedEntriesBy(rbib, 'www_section')
         if rbib[-1][0].startswith("<span class='bad'>"):
@@ -21,25 +22,30 @@ def papers_list(tag=None, choice=None):
                  for s, ents in rbib
                  ]
     elif choice == 'author':
+        sectionType = 'Authors'
         rbib, url_map = BibTeX.splitEntriesByAuthor(rbib)
     else:
+        sectionType = 'Years'
+        choice = 'date'
         rbib = BibTeX.sortEntriesByDate(rbib)
         rbib = BibTeX.splitSortedEntriesBy(rbib, 'year')
 
-    bib = {}
-    bib['title'] = 'Papers on I2P'
-    bib['short_title'] = 'I2P Papers'
-    bib['otherbibs'] = ''
-    bib['choices'] = ''
-    bib['sectiontypes'] = 'Dates'
-    bib['field'] = 'date'
+    bib = {
+        'title':        'Papers on I2P',
+        'short_title':  'I2P Papers',
+        'otherbibs':    '',
+        'sectiontypes': sectionType,
+        'tag':          tag,
+        'field':        choice,
+        }
 
     sections = []
     for section, entries in rbib:
-        s = {}
-        s['name'] = section
-        s['slug'] = section
-        s['entries'] = entries
+        s = {
+            'name':    section,
+            'slug':    section,
+            'entries': entries,
+            }
         sections.append(s)
     bib['sections'] = sections
 
@@ -56,8 +62,9 @@ def papers_bibtex(tag=None):
     entries.sort()
     entries = [ ent[1] for ent in entries ]
 
-    bib = {}
-    bib['title'] = 'Papers on I2P'
-    bib['entries'] = rbib
+    bib = {
+        'title':   'Papers on I2P',
+        'entries': rbib,
+        }
 
     return render_template('papers/bibtex.html', bib=bib)
