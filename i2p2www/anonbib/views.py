@@ -43,7 +43,7 @@ def papers_list(tag='', choice='date'):
     for section, entries in rbib:
         s = {
             'name':    section,
-            'slug':    section,
+            'slug':    BibTeX.url_untranslate(section),
             'entries': entries,
             }
         sections.append(s)
