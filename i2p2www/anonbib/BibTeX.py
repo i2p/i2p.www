@@ -509,7 +509,7 @@ class BibTeXEntry:
         res[0:0] = ["<span class='biblio'>"]
         res.append(".</span>")
 
-        bibtexurl = "./bibtex.html#%s"%url_untranslate(self.key)
+        bibtexurl = "./bibtex#%s"%url_untranslate(self.key)
         res.append((" <span class='availability'>"
                    "(<a href='%s'>BibTeX&nbsp;entry</a>)"
                    "</span>") %bibtexurl)
