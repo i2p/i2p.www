@@ -1,5 +1,5 @@
 #!/bin/sh
-. ./translation.vars
+. ./etc/translation.vars
 
 if [ $# -ge 1 ]
 then

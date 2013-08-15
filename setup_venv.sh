@@ -1,6 +1,6 @@
 #!/bin/sh
 set -e
-. ./project.vars
+. ./etc/project.vars
 
 if [ ! $venv ]; then
     echo "ERROR: virtualenv not found!" >&2
@@ -10,7 +10,7 @@ else
     fi
 
     . $venv_dir/bin/activate
-    pip install -r reqs.txt
+    pip install -r etc/reqs.txt
     # Apply multi-domain patch to Flask-Babel
-    patch -p0 <multi-domain.patch
+    patch -p0 <etc/multi-domain.patch
 fi
