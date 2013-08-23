@@ -20,7 +20,7 @@ MEETINGS_PER_PAGE = 20
 SUPPORTED_LANGS = [
     'en',
     'es',
-#    'zh',
+    'zh_CN',
     'de',
     'fr',
 #    'it',
