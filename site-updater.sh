@@ -3,7 +3,7 @@ TMP=tmp
 
 mtn update 2>&1 | tee $TMP
 
-cat $TMP | grep "^mtn: updating 'i2p2www/translations/" >/dev/null
+cat $TMP | grep "^mtn: adding 'i2p2www/translations/\|^mtn: dropping 'i2p2www/translations/\|^mtn: updating 'i2p2www/translations/" >/dev/null
 if [ $? -eq 0 ]; then
   echo "Translations updated, compiling messages"
   ./compile-messages.sh
