@@ -92,6 +92,7 @@ LEGACY_PAGES_MAP={
     'plugin_spec':            'docs/spec/plugin',
     'plugins':                'docs/plugins',
     'ports':                  'docs/ports',
+    'pressetext-0.7':         'misc/pressetext-0.7',
     'protocols':              'docs/protocol',
     'ratestats':              'misc/ratestats',
     'release-signing-key':    'get-involved/develop/release-signing-key',
