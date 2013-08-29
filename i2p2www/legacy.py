@@ -135,4 +135,4 @@ def legacy_meeting(id):
     return redirect(url_for('meetings_show', id=id, lang='en'))
 
 def legacy_status(year, month, day):
-    return redirect(url_for('blog_post', lang='en', slug=('%s/%s/%s/status' % (year, month, day))))
+    return redirect(url_for('blog_post', lang='en', slug=('%d/%02d/%02d/status' % (year, month, day))))
