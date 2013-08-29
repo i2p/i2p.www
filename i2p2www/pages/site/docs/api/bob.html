@@ -1,0 +1,347 @@
+{% extends "global/layout.html" %}
+{% block title %}BOB{% endblock %}
+{% block lastupdated %}{% trans %}August 2010{% endtrans %}{% endblock %}
+{% block content %}
+<h1>{% trans %}BOB - Basic Open Bridge{% endtrans %}</h1>
+
+<h2>{% trans %}Technical differences from SAM (for the better?){% endtrans %}</h2>
+
+<p>{% trans -%}
+BOB has separate command and data channels. 
+One, an application command channel socket to router to configure.
+Two, the application data sockets to/from router that carry only data.
+The command channel is only needed for making or setting the initial
+destination key, and to set the destination key to port bindings. 
+All connections run in parallel.
+{%- endtrans %}</p>
+
+<p>{% trans -%}
+SAM has one connection that does everything, and you need to parse every packet.
+{%- endtrans %}</p>
+
+<p>{% trans -%}
+BOB does not hold keypair values, nor does the router.
+Your application holds the keypair values. 
+This is to reduce any extra complexity in the router code, it also adds to
+your privacy.
+{%- endtrans %}</p>
+
+<p>{% trans -%}
+SAM router stores every keypair you ever make.
+{%- endtrans %}</p>
+
+<p>{% trans -%}
+Those are the important differences.
+{%- endtrans %}</p>
+
+<p>{% trans -%}
+<code>KEYS</code> = keypair public+private, these are BASE64
+{%- endtrans %}</p>
+<p>{% trans -%}
+<code>KEY</code> = public key, also BASE64
+{%- endtrans %}</p>
+<p>{% trans -%}
+<code>ERROR</code> as is implied returns the message <code>"ERROR "+DESCRIPTION+"\n"</code>, where the <code>DESCRIPTION</code> is what went wrong.
+{%- endtrans %}</p>
+<p>{% trans -%}
+<code>OK</code> returns <code>"OK"</code>, and if data is to be returned, it is on the same line. <code>OK</code> means the command is finished.
+{%- endtrans %}</p>
+<p>{% trans -%}
+<code>DATA</code> lines contain information that you requested. There may be multiple <code>DATA</code> lines per request.
+{%- endtrans %}</p>
+
+<p>{% trans -%}
+<b>NOTE:</b> The help command is the ONLY command that has an exception to
+the rules... it can actually return nothing! This is intentional, since
+help is a HUMAN and not an APPLICATION command.
+{%- endtrans %}</p>
+
+<p>{% trans -%}
+<b>PLEASE NOTE:</b>
+For CURRENT details on the commands PLEASE use the built-in help command. 
+Just telnet to localhost 2827 and type help and you can get full documentation on each command. 
+{%- endtrans %}</p>
+
+<p>{% trans -%}
+Commands never get obsoleted or changed, however new commands do get added from time to time.
+{%- endtrans %}</p>
+
+<p>{% trans -%}
+Here are the commands we have as of this writing:
+{%- endtrans %}</p>
+
+{% highlight lang='text' %}
+{{ _('COMMAND') }}     {{ _('OPERAND') }}                             {{ _('RETURNS') }}
+help        (optional command to get help on)   NOTHING or OK and description of the command
+clear                                           ERROR or OK
+getdest                                         ERROR or OK and KEY
+getkeys                                         ERROR or OK and KEYS
+getnick     tunnelname                          ERROR or OK
+inhost      hostname or IP address              ERROR or OK
+inport      port number                         ERROR or OK
+list                                            ERROR or DATA lines and final OK
+newkeys                                         ERROR or OK and KEY
+option                                          ERROR or OK
+outhost     hostname or IP address              ERROR or OK
+outport     port number                         ERROR or OK
+quiet                                           ERROR or OK
+quit                                            OK and terminates the command connection
+setkeys     KEYS                                ERROR or OK
+setnick     tunnel nickname                     ERROR or OK
+show                                            ERROR or OK and information
+showprops                                       ERROR or OK and information
+start                                           ERROR or OK
+status      tunnel nickname                     ERROR or OK and information
+stop                                            ERROR or OK
+verify      KEY                                 ERROR or OK
+visit                                           OK, and dumps BOB's threads to the wrapper.log
+zap                                             nothing, quits BOB
+{% endhighlight %}
+
+<p>{% trans -%}
+Once set up, all TCP sockets can and will block as needed, and there is no need for any 
+additional messages to/from the command channel. This allows the router to pace the
+stream without exploding with OOM like SAM does as it chokes on attempting to shove 
+many streams in or out one socket -- that can't scale when you have alot of connections!
+{%- endtrans %}</p>
+
+<p>{% trans -%}
+What is also nice about this particular interface is that writing anything to interface 
+to it, is much much easier than SAM. There is no other processing to do after the set up.
+It's configuration is so simple, that very simple tools, such as nc (netcat) can be used 
+to point to some application. The value there is that one could schedule up and down times 
+for an application, and not have to change the application to do that, or to even have 
+to stop that application. Instead, you can literally "unplug" the destination, and 
+"plug it in" again. As long as the same IP/port addresses and destination keys are used 
+when bringing the bridge up, the normal TCP application won't care, and won't notice.
+It will simply be fooled -- the destinations are not reachable, and that nothing is coming in.
+{%- endtrans %}</p>
+
+<p>{% trans -%}
+For the following example, we'll setup a very simple local loopback connection, 
+with two destinations. Destination "mouth" will be the CHARGEN service from 
+the INET superserver daemon. Destination "ear" will be a local port that you
+can telnet into, and watch the pretty ASCII test puke forth.
+{%- endtrans %}</p>
+
+{% highlight lang='text' %}
+{% trans %}EXAMPLE SESSION DIALOGUE -- simple telnet 127.0.0.1 2827 works{% endtrans %}
+A = {{ _('Application') }}
+C = {% trans %}BOB's Command response.{% endtrans %}
+
+{{ _('FROM') }} 	{{ _('TO') }}	{{ _('DIALOGUE') }}
+A	C	setnick mouth
+C	A	OK Nickname set to mouth
+A	C	newkeys
+C	A	OK ZMPz1zinTdy3~zGD~f3g9aikZTipujEvvXOEyYfq4Su-mNKerqG710hFbkR6P-xkouVyNQsqWLI8c6ngnkSwGdUfM7hGccqBYDjIubTrlr~0g2-l0vM7Y8nSqtFrSdMw~pyufXZ0Ys3NqUSb8NuZXpiH2lCCkFG21QPRVfKBGwvvyDVU~hPVfBHuR8vkd5x0teMXGGmiTzdB96DuNRWayM0y8vkP-1KJiPFxKjOXULjuXhLmINIOYn39bQprq~dAtNALoBgd-waZedYgFLvwHDCc9Gui8Cpp41EihlYGNW0cu0vhNFUN79N4DEpO7AtJyrSu5ZjFTAGjLw~lOvhyO2NwQ4RiC4UCKSuM70Fz0BFKTJquIjUNkQ8pBPBYvJRRlRG9HjAcSqAMckC3pvKKlcTJJBAE8GqexV7rdCCIsnasJXle-6DoWrDkY1s1KNbEVH6i1iUEtmFr2IHTpPeFCyWfZ581CAFNRbbUs-MmnZu1tXAYF7I2-oXTH2hXoxCGAAAA
+{% endhighlight %}
+
+<p><b>{% trans -%}
+MAKE NOTE OF THE ABOVE DESTINATION KEY, YOURS WILL BE DIFFERENT!
+{%- endtrans %}</b></p>
+
+{% highlight lang='text' %}
+{{ _('FROM') }}    {{ _('TO') }}    {{ _('DIALOGUE') }}
+A       C     outhost 127.0.0.1
+C       A     OK outhost set
+A       C     outport 19
+C       A     OK outbound port set
+A       C     start
+C       A     OK tunnel starting
+{% endhighlight %}
+
+<p>{% trans -%}
+At this point, there was no error, a destination with a nickname of "mouth" 
+is set up. When you contact the destination provided, you actually connect 
+to the <code>CHARGEN</code> service on <code>19/TCP</code>.
+{%- endtrans %}</p>
+
+<p>{% trans -%}
+Now for the other half, so that we can actually contact this destination.
+{%- endtrans %}</p>
+
+{% highlight lang='text' %}
+{{ _('FROM') }}    {{ _('TO') }}      {{ _('DIALOGUE') }}
+A       C       setnick ear
+C       A       OK Nickname set to ear
+A       C       newkeys
+C       A       OK 8SlWuZ6QNKHPZ8KLUlExLwtglhizZ7TG19T7VwN25AbLPsoxW0fgLY8drcH0r8Klg~3eXtL-7S-qU-wdP-6VF~ulWCWtDMn5UaPDCZytdGPni9pK9l1Oudqd2lGhLA4DeQ0QRKU9Z1ESqejAIFZ9rjKdij8UQ4amuLEyoI0GYs2J~flAvF4wrbF-LfVpMdg~tjtns6fA~EAAM1C4AFGId9RTGot6wwmbVmKKFUbbSmqdHgE6x8-xtqjeU80osyzeN7Jr7S7XO1bivxEDnhIjvMvR9sVNC81f1CsVGzW8AVNX5msEudLEggpbcjynoi-968tDLdvb-CtablzwkWBOhSwhHIXbbDEm0Zlw17qKZw4rzpsJzQg5zbGmGoPgrSD80FyMdTCG0-f~dzoRCapAGDDTTnvjXuLrZ-vN-orT~HIVYoHV7An6t6whgiSXNqeEFq9j52G95MhYIfXQ79pO9mcJtV3sfea6aGkMzqmCP3aikwf4G3y0RVbcPcNMQetDAAAA
+A       C       inhost 127.0.0.1
+C       A       OK inhost set
+A       C       inport 37337
+C       A       OK inbound port set
+A       C       start
+C       A       OK tunnel starting
+A       C       quit
+C       A       OK Bye!
+{% endhighlight %}
+
+<p>{% trans -%}
+Now all we need to do is telnet into 127.0.0.1, port 37337,
+send the destination key or host address from addressbook we want to contact.
+In this case, we want to contact "mouth", all we do is paste in the
+key and it goes.
+{%- endtrans %}</p>
+
+<p>{% trans -%}
+<b>NOTE:</b> The "quit" command in the command channel does NOT disconnect the tunnels like SAM.
+{%- endtrans %}</p>
+
+{% highlight lang='text' %}
+$ telnet 127.0.0.1 37337
+Trying 127.0.0.1...
+Connected to 127.0.0.1.
+Escape character is '^]'.
+ZMPz1zinTdy3~zGD~f3g9aikZTipujEvvXOEyYfq4Su-mNKerqG710hFbkR6P-xkouVyNQsqWLI8c6ngnkSwGdUfM7hGccqBYDjIubTrlr~0g2-l0vM7Y8nSqtFrSdMw~pyufXZ0Ys3NqUSb8NuZXpiH2lCCkFG21QPRVfKBGwvvyDVU~hPVfBHuR8vkd5x0teMXGGmiTzdB96DuNRWayM0y8vkP-1KJiPFxKjOXULjuXhLmINIOYn39bQprq~dAtNALoBgd-waZedYgFLvwHDCc9Gui8Cpp41EihlYGNW0cu0vhNFUN79N4DEpO7AtJyrSu5ZjFTAGjLw~lOvhyO2NwQ4RiC4UCKSuM70Fz0BFKTJquIjUNkQ8pBPBYvJRRlRG9HjAcSqAMckC3pvKKlcTJJBAE8GqexV7rdCCIsnasJXle-6DoWrDkY1s1KNbEVH6i1iUEtmFr2IHTpPeFCyWfZ581CAFNRbbUs-MmnZu1tXAYF7I2-oXTH2hXoxCGAAAA
+ !"#$%&amp;'()*+,-./0123456789:;&lt;=&gt;?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\]^_`abcdefg
+!"#$%&amp;'()*+,-./0123456789:;&lt;=&gt;?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\]^_`abcdefgh
+"#$%&amp;'()*+,-./0123456789:;&lt;=&gt;?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\]^_`abcdefghi
+#$%&amp;'()*+,-./0123456789:;&lt;=&gt;?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\]^_`abcdefghij
+$%&amp;'()*+,-./0123456789:;&lt;=&gt;?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\]^_`abcdefghijk
+...
+{% endhighlight %}
+<p>{% trans -%}
+After a few virtual miles of this spew, press <code>Control-]</code>
+{%- endtrans %}</p>
+{% highlight lang='text' %}
+...
+cdefghijklmnopqrstuvwxyz{|}~ !"#$%&amp;'()*+,-./0123456789:;&lt;=&gt;?@ABCDEFGHIJK
+defghijklmnopqrstuvwxyz{|}~ !"#$%&amp;'()*+,-./0123456789:;&lt;=&gt;?@ABCDEFGHIJKL
+efghijklmnopqrstuvwxyz{|}~ !"#$%&amp;'()*+,-./0123456789:;&lt;=
+telnet&gt; c
+Connection closed.
+{% endhighlight %}
+
+<p>{% trans -%}
+Here is what happened...
+{%- endtrans %}</p>
+{% highlight lang='text' %}
+telnet -&gt; ear -&gt; i2p -&gt; mouth -&gt; chargen -.
+telnet &lt;- ear &lt;- i2p &lt;- mouth &lt;-----------'
+{% endhighlight %}
+
+<p>{% trans -%}
+You can connect to EEPSITES too!
+{%- endtrans %}</p>
+
+{% highlight lang='text' %}
+$ telnet 127.0.0.1 37337
+Trying 127.0.0.1...
+Connected to 127.0.0.1.
+Escape character is '^]'.
+i2host.i2p
+GET / HTTP/1.1
+
+HTTP/1.1 200 OK
+Date: Fri, 05 Dec 2008 14:20:28 GMT
+Connection: close
+Content-Type: text/html
+Content-Length: 3946
+Last-Modified: Fri, 05 Dec 2008 10:33:36 GMT
+Accept-Ranges: bytes
+
+&lt;html&gt;
+&lt;head&gt;
+  &lt;title&gt;I2HOST&lt;/title&gt;
+  &lt;link rel="shortcut icon" href="favicon.ico"&gt;
+&lt;/head&gt;
+...
+&lt;a href="http://sponge.i2p/"&gt;--Sponge.&lt;/a&gt;&lt;/pre&gt;
+&lt;img src="/counter.gif" alt="!@^7A76Z!#(*&amp;amp;%"&gt; visitors. &lt;/body&gt;
+&lt;/html&gt;
+Connection closed by foreign host.
+$
+{% endhighlight %}
+
+<p>{% trans -%}
+Pretty cool isn't it? Try some other well known EEPSITES if you like, nonexistent ones, 
+etc, to get a feel for what kind of output to expect in different situations. 
+For the most part, it is suggested that you ignore any of the error messages. 
+They would be meaningless to the application, and are only presented for human debugging.
+{%- endtrans %}</p>
+
+<p>{% trans -%}
+Let's put down our destinations now that we are all done with them.
+{%- endtrans %}</p>
+
+<p>{% trans -%}
+First, lets see what destination nicknames we have.
+{%- endtrans %}</p>
+
+{% highlight lang='text' %}
+{{ _('FROM') }} 	{{ _('TO') }}	{{ _('DIALOGUE') }}
+A	C	list
+C	A	DATA NICKNAME: mouth STARTING: false RUNNING: true STOPPING: false KEYS: true QUIET: false INPORT: not_set INHOST: localhost OUTPORT: 19 OUTHOST: 127.0.0.1
+C	A	DATA NICKNAME: ear STARTING: false RUNNING: true STOPPING: false KEYS: true QUIET: false INPORT: 37337 INHOST: 127.0.0.1 OUTPORT: not_set OUTHOST: localhost
+C	A	OK Listing done
+{% endhighlight %}
+
+<p>{% trans -%}
+Alright, there they are. First, let's remove "mouth".
+{%- endtrans %}</p>
+
+{% highlight lang='text' %}
+{{ _('FROM') }} 	{{ _('TO') }}	{{ _('DIALOGUE') }}
+A	C	getnick mouth
+C	A	OK Nickname set to mouth
+A	C	stop
+C	A	OK tunnel stopping
+A	C	clear
+C	A	OK cleared
+{% endhighlight %}
+
+<p>{% trans -%}
+Now to remove "ear", note that this is what happens when you type too fast,
+and shows you what typical ERROR messages looks like.
+{%- endtrans %}</p>
+
+{% highlight lang='text' %}
+{{ _('FROM') }} 	{{ _('TO') }}	{{ _('DIALOGUE') }}
+A	C	getnick ear
+C	A	OK Nickname set to ear
+A	C	stop
+C	A	OK tunnel stopping
+A	C	clear
+C	A	ERROR tunnel is active
+A	C	clear
+C	A	OK cleared
+A	C	quit
+C	A	OK Bye!
+{% endhighlight %}
+
+<p>{% trans -%}
+I won't bother to show an example of the receiver end of a bridge
+because it is very simple. There are two possible settings for it, and
+it is toggled with the "quiet" command.
+{%- endtrans %}</p>
+
+<p>{% trans -%}
+The default is NOT quiet, and the first data to come into your
+listening socket is the destination that is making the contact. It is a
+single line consisting of the BASE64 address followed by a newline.
+Everything after that is for the application to actually consume.
+{%- endtrans %}</p>
+
+<p>{% trans -%}
+In quiet mode, think of it as a regular Internet connection. No
+extra data comes in at all. It's just as if you are plain connected to
+the regular Internet. This mode allows a form of transparency much like
+is available on the router console tunnel settings pages, so that you
+can use BOB to point a destination at a web server, for example, and
+you would not have to modify the web server at all.
+{%- endtrans %}</p>
+
+<p>{% trans -%}
+The advantage with using BOB for this is as discussed
+previously. You could schedule random uptimes for the application,
+redirect to a different machine, etc. One use of this may be something
+like wanting to try to goof up router-to-destination upness guessing.
+You could stop and start the destination with a totally different
+process to make random up and down times on services. That way you
+would only be stopping the ability to contact such a service, and not
+have to bother shutting it down and restarting it. You could redirect
+and point to a different machine on your LAN while you do updates, or
+point to a set of backup machines depending on what is running, etc,
+etc. Only your imagination limits what you could do with BOB.
+{%- endtrans %}</p>
+{% endblock %}

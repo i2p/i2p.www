@@ -1,0 +1,24 @@
+{% extends "global/layout.html" %}
+{% block title %}{{ _('Blog') }}{% endblock %}
+{% block headextra %}
+    <link href="{{ get_url('blog_atom') }}" type="application/atom+xml" rel="alternate" title="{{ _('I2P Blog ATOM Feed') }}" />
+{%- endblock %}
+{% block content %}
+<ul id="posts">
+{% for (slug, post) in posts %}
+  <li>
+    <article>
+      <header>
+        <a href="{{ get_url('blog_post', slug=slug) }}">{{ post.title }}</a>
+      </header>
+      {%- if post.excerpt %}
+      <p>{{ post.excerpt }}</p>
+      {%- endif %}
+      <footer>{% trans date=post.date, author=post.author %}Posted {{ date }} by {{ author }}{% endtrans %}</footer>
+    </article>
+  </li>
+{% endfor %}
+</ul>
+{%- from "global/macros" import render_pagination with context -%}
+{{ render_pagination(pagination) | safe }}
+{% endblock %}

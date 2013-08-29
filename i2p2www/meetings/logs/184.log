@@ -1,0 +1,262 @@
+16:06 < jrandom> 0) hi
+16:06 < jrandom> 1) 0.6.1.25 and net status
+16:06 < jrandom> 2) I2PSnark
+16:06 < jrandom> 3) Syndie (what/why/when)
+16:06 < jrandom> 4) Syndie crypto questions
+16:06 < jrandom> 5) ???
+16:06 < jrandom> 0) hi
+16:06  * jrandom waves
+16:06 < jrandom> weekly status notes posted up at http://dev.i2p.net/pipermail/i2p/2006-September/001307.html
+16:07 < jrandom> since those notes came up hours and hours ago, y'all should have already read them and have notes ready, right? ;)
+16:07 < jrandom> jumping forward to 1) 0.6.1.25 and net status
+16:08 < vulpine> <Complication> Regarding 0.6.1.25 seems to have worked fine over here, only one previously unseen error
+16:08 < jrandom> cool, whats the prob?
+16:08 < vulpine> * Complication searches logs
+16:09 < jrandom> the net size seems larger than before, though still same orer of magnitude
+16:09 < vulpine> <Complication> "Unknown error reading the net.i2p.data.i2np.GarlicMessage: wtf, fromLong got a negative? -840"
+16:10 < vulpine> <Complication> Started with "ERROR [NTCP read 1 ] .router.tunnel.FragmentHandler: Error receiving fragmented message (corrupt?)"
+16:10 < jrandom> ah ok cool, that one has been around for a long time, safe to ignore
+16:11 < vulpine> <Complication> Single occurrence
+16:11 < vulpine> <frosk> i've gotten several of that last one
+16:11 < vulpine> * jrandom pokes fox
+16:12 < vulpine> <Complication> Oh, and one more: "router.tunnel.TunnelDispatcher: wtf, took 1121 to dispatch net.i2p.data.i2np.TunnelBuildMessage@XXXX out YYYYY in net.i2p.router.tunnel.PumpedTunnelGateway@ZZZZ"
+16:12 < vulpine> <Complication> (seems non-significant too, maybe simple congestion)
+16:12 < jrandom> aye, likely 
+16:13 < jrandom> irc is, obviously, a bit rough at the moment still
+16:13 < jrandom> (but, for once, its not i2p's fault :)
+16:14 < jrandom> ok, anyone have anything else for 1) Net status and 0.6.1.25?
+16:15 < kostya213> just want to add that .25 fixed all my problems i've been having the past few months
+16:15 < jrandom> wikked!
+16:16 < vulpine> <green> please, change status calcul when only using NTCP
+16:16 < jrandom> 'k, but its not recommended to disable udp (i believe i've explicitly said that i won't tell people how to disable udp too)
+16:17 < jrandom> but the status should be updated to take into consideration that udp is not the only transport
+16:17 < jrandom> i'll get that fixed in the next rev, thanks
+16:17 < vulpine> <green> jrandom : sure you don't tell, but i'm able to read code ;)
+16:18 < jrandom> right, though when i don't recommend something, and tell people not even to try, don't be suprised if a display message comes up confusing ;)
+16:19 < vulpine> <green> sure, i could also juste display "OK" in console :)
+16:19 < jrandom> true 'nuff
+16:21 < jrandom> ok, lets jump on over to 2) I2PSnark 
+16:21 < jrandom> zzz doesn't seem to be over there atm
+16:22 < jrandom> there are some changes zzz is working on to improve the scheduling in i2psnark
+16:23 < jrandom> (its a bit.. simplistic atm iirc, though i'm not entirely certain of the mods zzz is hacking on)
+16:23 < jrandom> ((but i look forward to the progress!))
+16:25 < jrandom> ok, if there's nothing else on 2) I2PSnark, lets move forward to 3.*) Syndie stuff
+16:26 < jrandom> lets jump in to 3.1) what is syndie first, since there's so much to cover
+16:27 < jrandom> i got a few questions before the meeting regarding the encryption for posts
+16:27 < jrandom> basically, posts are *symmetrically* encrypted - anyone with the symmetric key can read the post, as they're authorized
+16:28 < jrandom> channel replies are asymmetrically encrypted to the public key associated with the channel/forum
+16:28 < jrandom> some posts can use passphrase based encryption to generate the symmetric key for reading
+16:29 < jrandom> and some posts can include the symmetric key in the post's readable headers (so that anyone can read it)
+16:29 < modulus> what's the point of that last one?
+16:29 < jrandom> and some forums themselves can include the symmetric key in the forum metadata, so that anyone can read the post but only if they have the channel metadata
+16:29 < jrandom> modulus: so that everything is always encrypted, even publicly readable stuff
+16:29 < jrandom> (so that trivial wiretapping is useless)
+16:30 < modulus> right, i see.
+16:31 < jrandom> ok, i think that covers the encryption questions that were asked before the meeting
+16:31 < jrandom> does anyone have any questions on 3.1) what is syndie?
+16:31 < jrandom> (I mean, more will be clarified as it is pushed out there, of course)
+16:32 < vulpine> <void> hmm
+16:33 < jrandom> que tal void?
+16:33 < vulpine> <void> <void> i guess that the message (.zip) archive can also include other messages, possibly from other  people, such as the messages being quoted?
+16:34 < jrandom> well, yes, you can include .snd files as attachments, but there is an explicit namespace, so you can do standard References: style links to previous messages
+16:34 < jrandom> (aka you don't have to do frost-style "threading")
+16:35 < vulpine> <void> ok, right
+16:37 < vulpine> <Complication> About Syndie, I wondered how people would go about solving the problem of granting people access to some multiple-poster forum (like accounts on an ordinary message board) but not granting this irrevocably, and avoiding undesired mess when need to revoke access (for whatever reasons) occurs
+16:38 < vulpine> <Complication> One solution, of course, seemed for the author to specify a recommendation of whose replies clients should display
+16:38 < jrandom> Complication: create a new pub/private keypair, give the private key to (temporarily) authorized people, and include the public key as the list of "keys allowed to post"
+16:38 < vulpine> <Complication> ..and for clients, unless they desire to research history, to follow this recommendation (or more specifically its latest version)
+16:38 < jrandom> (and when they are no longer authorized, remove that key from the list of "keys allowed to post")
+16:39 < kostya213> jrandom: you might want to use a different extension than .snd since it's a widely used extension for audio applications, mime will confuse it
+16:39 < jrandom> ah, right - all forums have an "owner" (a signing private key) who can manage the list of who is allowed to post, etc
+16:39 < vulpine> <Complication> "keys allowed to post" would be metadata attached to the author's latest post, or some other message, right?
+16:39 < jrandom> good point kostya213, though we may be stuck with .dat then ;)
+16:40 < jrandom> Complication: ah sorry, no, its like the current/old syndie- separate signed metadata posts for the forum/channel itself
+16:40 < vulpine> * Complication believes that someone has even claimed .dat for something :)
+16:40 < jrandom> yes, the application called "octet-stream" ;)
+16:40 < vulpine> <void> it doesn't look like .syn is used for anything noteworthy
+16:41 < vulpine> <Complication> Aha, special metadata posts... right, that could do it
+16:41 < jrandom> oh neat, we get to syn!
+16:41 < jrandom> (good eye void, thanks kostya213)
+16:41 < vulpine> <void> hmm, "
+16:41 < vulpine> <void> hmm, "Word Synonym File", Company: Microsoft
+16:42 < jrandom> well, i'm sure we'll work 'er out
+16:42 < kostya213> yes it's used by word
+16:42 < vulpine> <void> but we might as well ignore that :)
+16:42 < kostya213> don't lose hope, i think it's possible to find something that won't cause problems with widely used mimetypes
+16:43 < jrandom> ok, anything else on 3.1) What is syndie?
+16:43 < vulpine> <void> err, then again, why would we stick with three-letter extensions? it's a relic from the DOS ages
+16:43 < kostya213> one thing that must be asked, why limit to a three-letter extension? nobody uses DOS anymore
+16:44 < jrandom> heh
+16:44 < kostya213> jinx on void
+16:44 < kostya213> .syndie seems good to me
+16:44 < vulpine> <void> .synd wouldn't conflict with any
+16:44 < kostya213> good as well
+16:45 < vulpine> <void> damn lag :(
+16:48 < jrandom> ok, lets jump on over to 3.2) Why does Syndie matter?
+16:48 < vulpine> <void> jrandom: wait
+16:48 < cervantes> (because you say it does)
+16:48  * jrandom waits
+16:48 < jrandom> !thwap cervantes ;)
+16:48 < vulpine> <void> the status notes post mentions that an avatar can be attached to a post, otherwise a default will be used
+16:49 < vulpine> <void> but what if a person wants to have several predefined avatars instead of a single "default" one?
+16:49 < jrandom> aye, the author can include a default avatar in their own channel's metadata
+16:49 < vulpine> <void> attaching the other one every time isn't going to be efficient
+16:49 < jrandom> good question void - lets jump to that script code in the notes
+16:50 < jrandom>     listauthkeys --authorizedOnly true
+16:50 < jrandom>     authenticate 0
+16:50 < vulpine> <void> (?)
+16:50 < jrandom> listauthkeys will display all of the identities you can sign the message saying that you are, while "authenticate 0" picks an identity to sign with
+16:51 < jrandom> so, that identity has its own channel, and that channel has its own metadata, which may include an avatar
+16:51 < vulpine> <void> hmm, a separate identity means a separate keypair?
+16:51 < jrandom> yes
+16:51 < vulpine> <void> what if a person wants to have several avatars on a single identity?
+16:52 < jrandom> they have a default avatar on their channel metadata, and they can override it on a per-message basis
+16:52 < kostya213> dubious value
+16:52 < vulpine> <void> several "default" avatars he can choose from
+16:52 < vulpine> <void> or am i splitting hair here? :)
+16:53 < jrandom> ah, i understand what you're saying.  nah, not supported at first
+16:53 < jrandom> maybe later
+16:53 < vulpine> <void> true kostya213, never mind then
+16:53 < vulpine> <void> :)
+16:53 < jrandom> (but the avatars will be very limited in size, so shouldn't be much trouble to include)
+16:53 < vulpine> * Complication thinks the adding of per-message ones could be coded to be easy enough
+16:53 < vulpine> <void> so, 3.1) What is syndie?
+16:53 < vulpine> <Complication> (eventually)
+16:54 < vulpine> * cervantes glues the irc servers together
+16:54 < vulpine> <void> Complication: jrandom just said he is going to do that already :)
+16:54 < jrandom> (per message ones will be in the baseline complication, its the idea of having many 'defaults' to choose from, picking it by saying "use avatar 1" in a message rather than including the avatar itself)
+16:54 < vulpine> <Complication> latency, latency...
+16:54 < jrandom> ok, anything else for 3.1?
+16:54 < jrandom> if not, lets jump to 3.2
+16:55 < vulpine> <void> i think that's all
+16:55 < jrandom> wr0d.
+16:56 < jrandom> other than cervantes' snark, anyone have any questions/comments/concernts re "why"?
+16:56 < jrandom> (er, "concerns")
+16:58 < vulpine> <Complication> cervantes: did you clean the surface with alcohol before applying glue on the ircd? ;)
+16:58 < kostya213> imo syndie doesn't need justification, its value should be self-evident to anyone who's already interested in anonymizing networks
+16:58 < kostya213> and aware of the dangers of centralization of information
+16:59 < vulpine> <Complication> (repost, please ignore if reached server)
+16:59 < vulpine> * Complication thinks that Syndie matters because Joe Sixpack running phpBB would suffer pwnage too quickly, and Joe Sixpack running $random_blogging_tool would suffer it too
+16:59 < vulpine> <Complication> (even if probability might vary)
+16:59 < vulpine> <void> indeed
+16:59 < jrandom> aye, plus anyone facing actual hostile adversaries (not even necessarily state level)
+17:00 < jrandom> ok, cool, just wanted to run things by y'all
+17:00 < jrandom> anything else on 3.2, or shall we move over to 3.3) when can we use syndie?
+17:01 < vulpine> <void> well, essentially it's a forum/blogging/e-mail/communication tool based on cryptographic primitives and independent from a transport layer
+17:01 < vulpine> <Complication> ...and in the far-out scenario that Joe Sixpack's adversary would mount intersection attacks, anyone running an eepsite of any kind would suffer pwnage eventually (except in an enormous network)
+17:01 < kostya213> it might be a harder sell to those who don't see immediate value in privacy/anonymity
+17:01 < jrandom> kostya213: aye, though we may be able to pull some tricks, like being able to safely browse offline
+17:02 < vulpine> <Complication> They might appreciate security regardless
+17:02 < jrandom> (e.g. an offline rss reader that also pulls in the full set of pages referenced, not just the rss summary)
+17:02 < vulpine> <void> so yeah, i can't see why it needs justification :)
+17:02 < vulpine> <void> kostya213: they needn't be anonymous to use syndie
+17:02 < cervantes> when can we use syndie or when will syndie be useable?
+17:02 < jrandom> word void :)
+17:03 < cervantes> for the text interface I imagine there needs to be a fairly hefty amount of usage documentation
+17:03 < jrandom> cervantes: right now, syndie is functional (you can create posts, manage channels, read posts, reply to posts, etc)
+17:03 < kostya213> jrandom: how does syndie handle redundancy? how resilient is it against content disappearing?
+17:03 < cervantes> (before it's useable)
+17:03 < jrandom> cervantes: there's inline menus with each command doc'ed (at least minimaly)
+17:04 < cervantes> cool, any plans on some use case examples?
+17:04 < jrandom> kostya213: syndie works at the content layer - redundancy is handled by something else.  if you post to usenet, its replicated across usenet (for instance)
+17:04 < cervantes> I think the trick will be learning how they all script together
+17:04 < vulpine> <void> kostya213: that's out of the scope of syndie, it's dependant on the transport mechanism
+17:04 < vulpine> <void> unfortunately
+17:04 < jrandom> good idea cervantes
+17:05 < jrandom> the first syndie release will include an http replication system like the old/existing syndie
+17:05 < jrandom> cervantes: perhaps some of the beta users can put together  their favorite scripts for us to distribute :)
+17:05 < modulus> mmm, is this a console app?
+17:05 < jrandom> modulus: yes, the first text based app
+17:06 < modulus> excellent!
+17:06 < cervantes> jrandom: provided the beta users can work out how to use it ;-)
+17:06 < jrandom> hehe
+17:06  * jrandom considered curses/etc, as well as cli-only, but an interactive scriptable text interface is probably the simplest and most useful
+17:07 < jrandom> (sans gui, that is)
+17:07 < cervantes> modulus: see, jrandom listened to your relentless feedback :)
+17:07 < vulpine> <Complication> If people want, they can probably build more interactive textual interfaces on top of it
+17:07 < jrandom> aye, certainly
+17:08 < jrandom> (the code is built to support easy integration with an irc client, like pircbot)
+17:08 < modulus> cervantes: hehe
+17:09 < modulus> i guess you could put a gui on top of it too for that matter, if it works roughly as i imagine
+17:09 < modulus> although that'd be lots more work.
+17:09  * kostya213 waits for the emacs plugin
+17:09 < modulus> hahaha
+17:09 < jrandom> heh
+17:09 < modulus> actually an emacs mode isn't such a bad idea, maybe would attract more crazies to it.
+17:10 < cervantes> press ctrl-alt-shift-break-uparrow-num7-b to choose your identity
+17:10  * jrandom will leave that to elipsers to hack through ;)
+17:10 < kostya213> no offense, but i'm not sure this project needs to attract more crazies
+17:10 < vulpine> <Complication> would those sort of crazies code, too?
+17:11 < jrandom> hopefuly complication
+17:11 < jrandom> ok, hopefully 3.3) explains a it of whats coming down the line
+17:11 < jrandom> as for *when*, well, we'll see, but i'm hoping "soon" ;)
+17:12 < jrandom> ok, anyone have anything else for 3.3)?
+17:12 < vulpine> * Complication would welcome a few hordes of those crazies then :D
+17:12 < cervantes> well there's coding and then there's writing obfuscated perl interpreted tcl
+17:12 < kostya213> a plugin for FUSE might be useful too
+17:13 < jrandom> aye
+17:13 < jrandom> ok, lets jump on over to 4) crypto for syndie
+17:13 < jrandom> anyone have any comments on those issues?
+17:14 < vulpine> <Complication> I wish I had, but I'm not competent to estimate the strength of those ciphers/hashes/key lengths
+17:15 < vulpine> <void> how long are elgamal/rsa signatures? 4kbit for a 2kbit key?
+17:15 < vulpine> * Complication leaves that talk entirely for others
+17:15 < jrandom> dunno offhand
+17:15 < vulpine> <void> vs dsa?
+17:16 < jrandom> (though ecc looks nice'n'tiny)
+17:16 < modulus> ElGamal signatures are hard and long. as gnupg's team found out.
+17:16 < jrandom> aye, though some of those tricks were related to key reuse
+17:16 < vulpine> <void> ah, ok
+17:16 < vulpine> <void> yeah, it does
+17:16 < tethra> modulus: if they're hard and long, there's a fetish site for it
+17:17 < jrandom> ok, that point was really just a heads up and call for comments whenever y'all have thoughts
+17:17 < cervantes> could it not be possible to implement some kind of pluggable ciphers - when a better method of creating keys is standardised we can add that to syndie and new posts will begin using them, but can still use obsolete methods for older posts
+17:17 < tethra> (sorry)
+17:17 < jrandom> cervantes: it includes a DSA: prefix, so an Elg: prefix would work
+17:17 < modulus> are you using 1024-limited dsa or not?
+17:18 < modulus> also what has? sha1 or higher order revs?
+17:18 < cervantes> so really you are just concerned with getting syndie off to a good start
+17:18 < jrandom> dsa is only 1024bit (there are dsa2 proposals for longer, but they aren't standardized yet)
+17:18 < jrandom> and yes, dsa requires sha1
+17:18 < modulus> hmm, my understanding is that they were quite strong pre-standards.
+17:18 < kostya213> cervantes has a good point, having syndie content in fixed ciphers offers poor forward-secrecy, you never know when an algo will go titsup
+17:18 < modulus> but i don't follow the process closely enough so you are probably right
+17:19 < jrandom> kostya213: but choice is bad for crypto, so we should have fixed values when we can
+17:19 < jrandom> (bad because of anonymity)
+17:19 < vulpine> <void> do you know why aren't more people/protocols using ecc, anyway? are they afraid of the lack of research, or just worried about compatibility?
+17:19 < modulus> patents.
+17:20 < jrandom> patents and fud, yet some concerns in implementation
+17:20 < vulpine> <void> ah, right modulus
+17:20 < modulus> btw, is there are a good reason to go dsa vs rsa-sha512 for instance?
+17:20 < tethra> patents and fud and the state (oh my)
+17:20 < modulus> not trying to be annoying, just considering that gpg for instance has gone this way, among others.
+17:20 < jrandom> haven't reviewed that option in years modulus
+17:21 < modulus> obviously dsa is a standard, which speaks for it, but the keys are small and the hashes are weak. not that i think it's likely to end up being the weakest link ;-)
+17:23 < cervantes> I wouldn't propose "choice" - but new versions of syndie would package increasingly secure (mandatory) ciphers
+17:23 < vulpine> <Complication> Leaving some leeway in the structures for future change, seems reasonable regardless of which current crypto proves best, I'd think
+17:23 < jrandom> aye, though that implies the fallback to weaker/older versions to interoperate
+17:23 < jrandom> but, ok, we'll work through it
+17:24 < jrandom> ok, lets jump on over to 5) ???
+17:24 < jrandom> anyone have anything else to bring up for the meeting?
+17:25 < cervantes> no being able to read the latest posts from your favourite source is a good incentive to make sure everyone stays upgraded
+17:25 < jrandom> to a degree
+17:26 < cervantes> no=not
+17:26 < jrandom> (aye, its an incentive, but people are lazy/not interested in "upgrading software", etc)
+17:27 < jrandom> s/people/some people/
+17:27 < cervantes> I guess that's their issue though
+17:27 < jrandom> true that
+17:27 < kostya213> the i2p implementation at least can have painless upgrading
+17:28 < jrandom> certainly
+17:28 < cervantes> as for ??? - apologies for the irc connectivity - the ISP should be restoring one if it's major network carriers "as soon as possible"
+17:29 < jrandom> w3wt
+17:29 < vulpine> <Complication> To the ??? topic, I could perhaps add that the second (more extensive) part of NTP modifications is close to working, and I hope to have it committed for testing soonish
+17:29  * cervantes pinches salt
+17:29 < kostya213> what's the near-term plans for router development? is the roadmap accurate?
+17:29 < jrandom> wikked complication
+17:29 < vulpine> <Complication> It's goal is to second-guess NTP servers basing on peer clock skews
+17:29 < jrandom> kostya213: stabilization until syndie is out
+17:30 < jrandom> (from my perspective)
+17:30 < vulpine> <Complication> (and avoid taking potentially connectivity-damaging action)
+17:31 < cervantes> grand
+17:32 < jrandom> ok, anything else for the meeting?
+17:34  * jrandom winds up
+17:34  * jrandom *baf*s the meeting closed
