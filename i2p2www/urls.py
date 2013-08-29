@@ -75,6 +75,7 @@ url('/<string:f>_<lang:lang>', 'legacy.legacy_show')
 url('/<string:f>_<lang:lang>.html', 'legacy.legacy_show')
 url('/<string:f>/', 'legacy.legacy_show')
 url('/<string:f>.html', 'legacy.legacy_show')
+url('/<string:f>.txt', 'legacy.legacy_show')
 
 url('/hosts.txt', 'views.hosts')
 url('/robots.txt', 'views.robots')
