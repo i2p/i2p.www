@@ -122,6 +122,61 @@ LEGACY_PAGES_MAP={
     'upgrade-0.6.1.30':       'misc/upgrade-0.6.1.30',
 }
 
+LEGACY_BLOG_POSTS_MAP={
+    'statnotes0108':         {'date': (2008, 2, 1), 'title': 'status'},
+    'summerofcode-2011':     {'date': (2011, 6, 6), 'title': 'Ipredator-SoC'},
+    'summerofcode-2011-end': {'date': (2011, 9, 3), 'title': 'Ipredator-SoC-itoopie-released'},
+}
+
+LEGACY_RELEASES_MAP={
+    '0.6.1.30': (2007, 10, 7),
+    '0.6.1.31': (2008, 2, 10),
+    '0.6.1.32': (2008, 3, 9),
+    '0.6.1.33': (2008, 4, 26),
+    '0.6.2':    (2008, 6, 7),
+    '0.6.3':    (2008, 8, 26),
+    '0.6.4':    (2008, 10, 6),
+    '0.6.5':    (2008, 12, 1),
+    '0.7':      (2009, 1, 25),
+    '0.7.1':    (2009, 3, 29),
+    '0.7.2':    (2009, 4, 19),
+    '0.7.3':    (2009, 5, 18),
+    '0.7.4':    (2009, 6, 13),
+    '0.7.5':    (2009, 6, 29),
+    '0.7.6':    (2009, 7, 31),
+    '0.7.7':    (2009, 10, 12),
+    '0.7.8':    (2009, 12, 8),
+    '0.7.9':    (2010, 1, 12),
+    '0.7.10':   (2010, 1, 22),
+    '0.7.11':   (2010, 2, 15),
+    '0.7.12':   (2010, 3, 15),
+    '0.7.13':   (2010, 4, 27),
+    '0.7.14':   (2010, 6, 7),
+    '0.8':      (2010, 7, 12),
+    '0.8.1':    (2010, 11, 15),
+    '0.8.2':    (2010, 12, 22),
+    '0.8.3':    (2011, 1, 24),
+    '0.8.4':    (2011, 3, 2),
+    '0.8.5':    (2011, 4, 18),
+    '0.8.6':    (2011, 5, 16),
+    '0.8.7':    (2011, 6, 27),
+    '0.8.8':    (2011, 8, 23),
+    '0.8.9':    (2011, 10, 11),
+    '0.8.10':   (2011, 10, 20),
+    '0.8.11':   (2011, 11, 8),
+    '0.8.12':   (2012, 1, 6),
+    '0.8.13':   (2012, 2, 27),
+    '0.9':      (2012, 5, 2),
+    '0.9.1':    (2012, 7, 30),
+    '0.9.2':    (2012, 9, 21),
+    '0.9.3':    (2012, 10, 27),
+    '0.9.4':    (2012, 12, 17),
+    '0.9.5':    (2013, 3, 8),
+    '0.9.6':    (2013, 5, 28),
+    '0.9.7':    (2013, 7, 15),
+    '0.9.7.1':  (2013, 8, 10),
+}
+
 def legacy_show(f):
     lang = 'en'
     if hasattr(g, 'lang') and g.lang:
@@ -130,6 +185,8 @@ def legacy_show(f):
         return redirect(url_for(LEGACY_FUNCTIONS_MAP[f]['function'], lang=lang, **LEGACY_FUNCTIONS_MAP[f]['params']))
     elif f in LEGACY_PAGES_MAP:
         return redirect(url_for('site_show', lang=lang, page=LEGACY_PAGES_MAP[f]))
+    elif f in LEGACY_BLOG_POSTS_MAP:
+        return legacy_blog(lang, LEGACY_BLOG_POSTS_MAP[f]['date'], LEGACY_BLOG_POSTS_MAP[f]['title'])
     else:
         return redirect(url_for('site_show', lang=lang, page=f))
 
@@ -137,4 +194,16 @@ def legacy_meeting(id):
     return redirect(url_for('meetings_show', id=id, lang='en'))
 
 def legacy_status(year, month, day):
-    return redirect(url_for('blog_post', lang='en', slug=('%d/%02d/%02d/status' % (year, month, day))))
+    return legacy_blog('en', (year, month, day), 'status')
+
+def legacy_release(version):
+    lang = 'en'
+    if hasattr(g, 'lang') and g.lang:
+        lang = g.lang
+    if version in LEGACY_RELEASES_MAP:
+        return legacy_blog(lang, LEGACY_RELEASES_MAP[version], '%s-Release' % version)
+    else:
+        return legacy_show('release-%s' % version)
+
+def legacy_blog(lang, (year, month, day), title):
+    return redirect(url_for('blog_post', lang=lang, slug=('%d/%02d/%02d/%s' % (year, month, day, title))))
