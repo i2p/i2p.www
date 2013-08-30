@@ -73,4 +73,5 @@ def downloads_redirect(version, protocol, domain, file):
         if not domain in mirrors:
             abort(404)
         return redirect(mirrors[domain]['url'] % data)
-    return redirect(mirrors[randint(0, len(mirrors) - 1)]['url'] % data)
+    randomain = mirrors.keys()[randint(0, len(mirrors) - 1)]
+    return redirect(mirrors[randomain]['url'] % data)
