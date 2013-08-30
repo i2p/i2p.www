@@ -19,18 +19,18 @@ MEETINGS_PER_PAGE = 20
 
 SUPPORTED_LANGS = [
     'en',
-#    'es',
-#    'zh_CN',
-#    'de',
-#    'fr',
+    'es',
+    'zh_CN',
+    'de',
+    'fr',
 #    'it',
 #    'nl',
 #    'ru',
-#    'sv_SE',
+    'sv_SE',
 #    'cs',
 #    'ar',
 #    'el',
-#    'pt',
+    'pt',
     ]
 
 DEFAULT_GETTEXT_DOMAIN = 'priority'
