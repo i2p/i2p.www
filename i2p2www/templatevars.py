@@ -7,7 +7,7 @@ INPROXY = '.us'
 
 I2P_TO_CLEAR = {
     'www.i2p2.i2p': 'www.i2p2.de',
-    #'forum.i2p': 'forum.i2p2.de',
+    'forum.i2p': 'forum.i2p', # Don't convert forum.i2p, it is not accessible outside I2P
     'trac.i2p2.i2p': 'trac.i2p2.de',
     'mail.i2p': 'i2pmail.org',
     }
