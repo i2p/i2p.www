@@ -64,7 +64,7 @@ class MyFlask(Flask):
 
 app = application = MyFlask('i2p2www', template_folder=TEMPLATE_DIR, static_url_path='/_static', static_folder=STATIC_DIR)
 app.debug =  bool(os.environ.get('APP_DEBUG', 'False'))
-babel = Babel(app, default_domain='priority')
+babel = Babel(app, default_domain=DEFAULT_GETTEXT_DOMAIN)
 cache = Cache(app, config={
     'CACHE_DEFAULT_TIMEOUT': 600,
     #'CACHE_TYPE': '', # See http://packages.python.org/Flask-Cache/#configuring-flask-cache
