@@ -5,6 +5,11 @@ from docutils.core import publish_parts
 import os.path
 import os
 
+try:
+    from i2p2www import settings
+except ImportError:
+    settings = None
+
 
 ###########
 # Constants
@@ -13,7 +18,11 @@ CURRENT_I2P_VERSION = '0.9.7.1'
 
 CANONICAL_DOMAIN = 'i2hq.srv.i2p2.de'
 
-THIS_DOMAIN = CANONICAL_DOMAIN
+THIS_DOMAIN = settings.THIS_DOMAIN if settings and hasattr(settings, 'THIS_DOMAIN') else CANONICAL_DOMAIN
+
+CACHE_CONFIG = settings.CACHE_CONFIG if settings and hasattr(settings, 'CACHE_CONFIG') else {
+    'CACHE_DEFAULT_TIMEOUT': 600,
+    }
 
 BLOG_POSTS_PER_FEED = 10
 BLOG_POSTS_PER_PAGE = 10
@@ -67,10 +76,7 @@ class MyFlask(Flask):
 app = application = MyFlask('i2p2www', template_folder=TEMPLATE_DIR, static_url_path='/_static', static_folder=STATIC_DIR)
 app.debug =  bool(os.environ.get('APP_DEBUG', 'False'))
 babel = Babel(app, default_domain=DEFAULT_GETTEXT_DOMAIN)
-cache = Cache(app, config={
-    'CACHE_DEFAULT_TIMEOUT': 600,
-    #'CACHE_TYPE': '', # See http://packages.python.org/Flask-Cache/#configuring-flask-cache
-    })
+cache = Cache(app, config=CACHE_CONFIG)
 
 
 #################
