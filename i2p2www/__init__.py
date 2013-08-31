@@ -18,8 +18,6 @@ CURRENT_I2P_VERSION = '0.9.7.1'
 
 CANONICAL_DOMAIN = 'i2hq.srv.i2p2.de'
 
-THIS_DOMAIN = settings.THIS_DOMAIN if settings and hasattr(settings, 'THIS_DOMAIN') else CANONICAL_DOMAIN
-
 CACHE_CONFIG = settings.CACHE_CONFIG if settings and hasattr(settings, 'CACHE_CONFIG') else {
     'CACHE_DEFAULT_TIMEOUT': 600,
     }

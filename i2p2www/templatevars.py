@@ -1,12 +1,11 @@
 from flask import g, request, safe_join, url_for
 import os.path
 
-from i2p2www import CANONICAL_DOMAIN, CURRENT_I2P_VERSION, STATIC_DIR, THIS_DOMAIN, app
+from i2p2www import CANONICAL_DOMAIN, CURRENT_I2P_VERSION, STATIC_DIR, app
 
 INPROXY = '.us'
 
 I2P_TO_CLEAR = {
-    'www.i2p2.i2p': THIS_DOMAIN,
     'forum.i2p': 'forum.i2p', # Don't convert forum.i2p, it is not accessible outside I2P
     'trac.i2p2.i2p': 'trac.i2p2.de',
     'mail.i2p': 'i2pmail.org',
