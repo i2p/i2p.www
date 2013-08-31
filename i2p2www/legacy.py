@@ -182,6 +182,8 @@ def legacy_show(f):
     lang = 'en'
     if hasattr(g, 'lang') and g.lang:
         lang = g.lang
+    if lang == 'zh':
+        lang = 'zh_CN'
     if f in LEGACY_FUNCTIONS_MAP:
         return redirect(url_for(LEGACY_FUNCTIONS_MAP[f]['function'], lang=lang, **LEGACY_FUNCTIONS_MAP[f]['params']))
     elif f in LEGACY_PAGES_MAP:
