@@ -1,6 +1,12 @@
 from flask import Flask, request, g, redirect, url_for, abort, render_template, send_from_directory, safe_join
-from flaskext.babel import Babel
-from flask.ext.cache import Cache
+try:
+    from flaskext.babel import Babel
+except ImportError:
+    from flask_babel import Babel
+try:
+    from flask.ext.cache import Cache
+except ImportError:
+    from flask_cache import Cache
 from docutils.core import publish_parts
 import os.path
 import os
