@@ -10,6 +10,7 @@ LEGACY_FUNCTIONS_MAP={
     'download':      {'function': 'downloads_list',   'params': {}},
     'installation':  {'function': 'downloads_list',   'params': {}},
     'meetings':      {'function': 'meetings_index',   'params': {}},
+    'papers':        {'function': 'papers_list',      'params': {}},
     'statusnotes':   {'function': 'blog_index',       'params': {}},
 }
 
@@ -86,7 +87,6 @@ LEGACY_PAGES_MAP={
     'ntcp':                   'docs/transport/ntcp',
     'ntcp_discussion':        'docs/discussions/ntcp',
     'othernetworks':          'comparison/other-networks',
-    'papers':                 'research/papers',
     'performance-history':    'about/performance/history',
     'performance':            'about/performance/future',
     'plugin_spec':            'docs/spec/plugin',
