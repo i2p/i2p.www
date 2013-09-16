@@ -1,0 +1,528 @@
+{% extends "global/layout.html" %}
+{% block title %}{% trans %}Streaming Library{% endtrans %}{% endblock %}
+{% block lastupdated %}{% trans %}July 2013{% endtrans %}{% endblock %}
+{% block accuratefor %}0.9.7{% endblock %}
+{% block content %}
+<h2>{% trans %}Overview{% endtrans %}</h2>
+
+<p>{% trans datagrams=site_url('docs/spec/datagrams') -%}
+The streaming library is technically part of the "application" layer,
+as it is not a core router function.
+In practice, however, it provides a vital function for almost all
+existing I2P applications, by providing a TCP-like
+streams over I2P, and allowing existing apps to be easily ported to I2P.
+The other end-to-end transport library for client communication is the
+<a href="{{ datagrams }}">datagram library</a>.
+{%- endtrans %}</p>
+
+<p>{% trans i2cp=site_url('docs/protocol/i2cp') -%}
+The streaming library is a layer on top of the core 
+<a href="{{ i2cp }}">I2CP API</a> that allows reliable, in-order, and authenticated streams
+of messages to operate across an unreliable, unordered, and unauthenticated 
+message layer.  Just like the TCP to IP relationship, this streaming 
+functionality has a whole series of tradeoffs and optimizations available, but
+rather than embed that functionality into the base I2P code, it has been factored
+off into its own library both to keep the TCP-esque complexities separate and to
+allow alternative optimized implementations.
+{%- endtrans %}</p>
+
+<p>{% trans -%}
+In consideration of the relatively high cost of messages, 
+the streaming library's protocol for scheduling and delivering those messages has been optimized to
+allow individual messages passed to contain as much information as is available.
+For instance, a small HTTP transaction proxied through the streaming library can
+be completed in a single round trip - the first messages bundle a SYN, FIN, and
+the small HTTP request payload, and the reply bundles the SYN,
+FIN, ACK, and the HTTP response payload.  While an additional
+ACK must be transmitted to tell the HTTP server that the SYN/FIN/ACK has been
+received, the local HTTP proxy can often deliver the full response to the browser 
+immediately.
+{%- endtrans %}</p>
+
+<p>{% trans -%}
+The streaming library bears much resemblance to an 
+abstraction of TCP, with its sliding windows, congestion control algorithms
+(both slow start and congestion avoidance), and general packet behavior (ACK,
+SYN, FIN, RST, rto calculation, etc).  
+{%- endtrans %}</p>
+
+<p>{% trans -%}
+The streaming library is
+a robust library
+which is optimized for operation over I2P.
+It has a one-phase setup, and
+it contains a full windowing implementation.
+{%- endtrans %}</p>
+
+
+<h2 id="api">{% trans %}API{% endtrans %}</h2>
+
+<p>{% trans i2cp=site_url('docs/protocol/i2cp') -%}
+The streaming library API provides a standard socket paradigm to Java applications.
+The lower-level <a href="{{ i2cp }}">I2CP</a> API is completely hidden, except that
+applications may pass <a href="{{ i2cp }}#options">I2CP parameters</a> through the
+streaming library, to be interpreted by I2CP.
+{%- endtrans %}</p>
+
+<p>{% trans i2cp=site_url('docs/protocol/i2cp'),
+i2psktmf='http://docs.i2p-projekt.de/javadoc/net/i2p/client/streaming/I2PSocketManagerFactory.html',
+i2psktm='http://docs.i2p-projekt.de/javadoc/net/i2p/client/streaming/I2PSocketManager.html',
+i2psess='http://docs.i2p-projekt.de/javadoc/net/i2p/client/I2PSession.html',
+i2pskt='http://docs.i2p-projekt.de/javadoc/net/i2p/client/streaming/I2PSocket.html',
+i2psskt='http://docs.i2p-projekt.de/javadoc/net/i2p/client/streaming/I2PServerSocket.html' -%}
+The standard interface to the streaming lib is for the application to use the
+<a href="{{ i2psktmf }}">I2PSocketManagerFactory</a> to create an
+<a href="{{ i2psktm }}">I2PSocketManager</a>. The application then asks the
+socket manager for an <a href="{{ i2psess }}">I2PSession</a>, which will cause
+a connection to the router via <a href="{{ i2cp }}">I2CP</a>. The application
+can then setup connections with an <a href="{{ i2pskt }}">I2PSocket</a> or
+receive connections with an <a href="{{ i2psskt }}">I2PServerSocket</a>.
+{%- endtrans %}</p>
+
+<p>{% trans url='http://docs.i2p-projekt.de/javadoc/net/i2p/client/streaming/package-summary.html' -%}
+Here are the <a href="{{ url }}">full streaming library Javadocs</a>.
+{%- endtrans %}</p>
+
+<p>{% trans -%}
+For a good example of usage, see the i2psnark code.
+{%- endtrans %}</p>
+
+
+<h3 id="options">{% trans %}Options and Defaults{% endtrans %}</h3>
+<p>{% trans i2psktmf='http://docs.i2p-projekt.de/javadoc/net/i2p/client/streaming/I2PSocketManagerFactory.html' -%}
+The options and current default values are listed below.
+Options are case-sensitive and may be set for the whole router, for a particular client, or for an individual socket on a
+per-connection basis.
+Many values are tuned for HTTP performance over typical I2P conditions. Other applications such
+as peer-to-peer services are strongly encouraged to
+modify as necessary, by setting the options and passing them via the call to
+<a href="{{ i2psktmf }}">I2PSocketManagerFactory</a>.createManager(_i2cpHost, _i2cpPort, opts).
+Time values are in ms.
+{%- endtrans %}</p>
+
+<p>{% trans samv3=site_url('docs/api/samv3'), bob=site_url('docs/api/bob'), i2ptunnel=site_url('docs/api/i2ptunnel') -%}
+Note that higher-layer APIs, such as <a href="{{ samv3 }}">SAM</a>,
+<a href="{{ bob }}">BOB</a>, and <a href="{{ i2ptunnel }}">I2PTunnel</a>,
+may override these defaults with their own defaults.
+Also note that many options only apply to servers listening for incoming connections.
+{%- endtrans %}</p>
+
+<p>{% trans -%}
+As of release 0.9.1, most, but not all, options may be changed on an active socket manager or session.
+See the javadocs for details.
+{%- endtrans %}</p>
+
+
+<table>
+<tr><th>{{ _('Option') }}</th><th>{{ _('Default') }}</th><th>{{ _('Notes') }}</th>
+</tr>
+<tr><td>i2cp.accessList</td><td>null</td><td>{% trans -%}
+Comma- or space-separated list of Base64 peer Hashes used for either access list or blacklist.
+{%- endtrans %} {% trans release='0.7.13' -%}
+As of release {{ release }}.
+{%- endtrans %}</td></tr>
+
+<tr><td>i2cp.enableAccessList</td><td>false</td><td>{% trans -%}
+Use the access list as a whitelist for incoming connections.
+{%- endtrans %} {% trans release='0.7.13' -%}
+As of release {{ release }}.
+{%- endtrans %}</td></tr>
+
+<tr><td>i2cp.enableBlackList</td><td>false</td><td>{% trans -%}
+Use the access list as a blacklist for incoming connections.
+{%- endtrans %} {% trans release='0.7.13' -%}
+As of release {{ release }}.
+{%- endtrans %}</td></tr>
+
+<!--
+<tr><td>i2p.streaming.alpha</td><td>0.125</td><td>
+Ref. RFC 6298. Floating point value.
+{% trans release='0.9.8' -%}
+As of release {{ release }}.
+{%- endtrans %}</td></tr>
+-->
+
+<tr><td>i2p.streaming.answerPings</td><td>true</td><td>{% trans -%}
+Whether to respond to incoming pings
+{%- endtrans %}</td></tr>
+
+<!--
+<tr><td>i2p.streaming.beta</td><td>0.25</td><td>
+Ref. RFC 6298. Floating point value.
+{% trans release='0.9.8' -%}
+As of release {{ release }}.
+{%- endtrans %}</td></tr>
+-->
+
+<tr><td>i2p.streaming.blacklist</td><td>null</td><td>{% trans -%}
+Comma- or space-separated list of Base64 peer Hashes to be
+blacklisted for incoming connections to ALL destinations in the context.
+This option must be set in the context properties, NOT in the createManager() options argument.
+Note that setting this in the router context will not affect clients outside the
+router in a separate JVM and context.
+{%- endtrans %} {% trans release='0.9.3' -%}
+As of release {{ release }}.
+{%- endtrans %}</td></tr>
+
+<tr><td>i2p.streaming.bufferSize</td><td>64K</td><td>{% trans -%}
+How much transmit data (in bytes) will be accepted that hasn't been written out yet.
+{%- endtrans %}</td></tr>
+
+<tr><td>i2p.streaming.congestionAvoidanceGrowthRateFactor</td><td>1</td><td>{% trans -%}
+When we're in congestion avoidance, we grow the window size at the rate
+of <code>1/(windowSize*factor)</code>.  In standard TCP, window sizes are in bytes,
+while in I2P, window sizes are in messages.
+A higher number means slower growth.
+{%- endtrans %}</td></tr>
+
+<tr><td>i2p.streaming.connectDelay</td><td>-1</td><td>{% trans -%}
+How long to wait after instantiating a new con 
+before actually attempting to connect.  If this is
+&lt;= 0, connect immediately with no initial data.  If greater than 0, wait
+until the output stream is flushed, the buffer fills, 
+or that many milliseconds pass, and include any initial data with the SYN.
+{%- endtrans %}</td></tr>
+
+<tr><td>i2p.streaming.connectTimeout</td><td>5*60*1000</td><td>{% trans -%}
+How long to block on connect, in milliseconds. Negative means indefinitely. Default is 5 minutes.
+{%- endtrans %}</td></tr>
+
+<tr><td>i2p.streaming.disableRejectLogging</td><td>false</td><td>{% trans -%}
+Whether to disable warnings in the logs when an incoming connection is rejected due to connection limits.
+{%- endtrans %} {% trans release='0.9.4' -%}
+As of release {{ release }}.
+{%- endtrans %}</td></tr>
+
+<tr><td>i2p.streaming.enforceProtocol</td><td>false</td><td>{% trans -%}
+Whether to listen only for the streaming protocol.
+Setting to true will prohibit communication with Destinations earlier than release 0.7.1
+(released March 2009). Set to true if running multiple protocols on this Destination.
+{%- endtrans %} {% trans release='0.9.1' -%}
+As of release {{ release }}.
+{%- endtrans %}</td></tr>
+
+<tr><td>i2p.streaming.inactivityAction</td><td>2 (send) </td><td>{% trans -%}
+(0=noop, 1=disconnect)
+What to do on an inactivity timeout - do nothing, disconnect, or send a duplicate ack.
+{%- endtrans %}</td></tr>
+
+<tr><td>i2p.streaming.inactivityTimeout</td><td>90*1000</td></tr>
+<tr><td>i2p.streaming.initialAckDelay</td><td>2000</td></tr>
+
+<tr><td>i2p.streaming.initialResendDelay</td><td>1000</td><td>{% trans -%}
+The initial value of the resend delay field in the packet header, times 1000.
+Not fully implemented; see below.
+{%- endtrans %}</td></tr>
+
+<tr><td>i2p.streaming.initialRTO</td><td>9000</td><td>{% trans -%}
+Initial timeout
+(if no <a href="#sharing">sharing data</a> available).
+{%- endtrans %} {% trans release='0.9.8' -%}
+As of release {{ release }}.
+{%- endtrans %}</td></tr>
+
+<tr><td>i2p.streaming.initialRTT</td><td>8000 </td><td>{% trans -%}
+Initial round trip time estimate
+(if no <a href="#sharing">sharing data</a> available).
+Disabled as of release 0.9.8; uses actual RTT.
+{%- endtrans %}</td></tr>
+
+<tr><td>i2p.streaming.initialWindowSize</td><td>6</td><td>({% trans %}if no <a href="#sharing">sharing data</a> available{% endtrans %}) {% trans -%}
+In standard TCP, window sizes are in bytes, while in I2P, window sizes are in messages.
+{%- endtrans %}</td></tr>
+
+<!--
+<tr><td>i2p.streaming.kappa</td><td>4.0</td><td>
+Ref. RFC 6298 "K". Floating point value.
+{% trans release='0.9.8' -%}
+As of release {{ release }}.
+{%- endtrans %}</td></tr>
+-->
+
+<tr><td>i2p.streaming.maxConcurrentStreams</td><td>-1 </td><td>{% trans -%}
+(0 or negative value means unlimited)
+This is a total limit for incoming and outgoing combined.
+{%- endtrans %}</td></tr>
+
+<tr><td>i2p.streaming.maxConnsPerMinute</td><td>0 </td><td>{% trans -%}
+Incoming connection limit (per peer; 0 means disabled)
+{%- endtrans %} {% trans release='0.7.14' -%}
+As of release {{ release }}.
+{%- endtrans %}</td></tr>
+
+<tr><td>i2p.streaming.maxConnsPerHour</td><td>0 </td><td>{% trans -%}
+(per peer; 0 means disabled)
+{%- endtrans %} {% trans release='0.7.14' -%}
+As of release {{ release }}.
+{%- endtrans %}</td></tr>
+
+<tr><td>i2p.streaming.maxConnsPerDay</td><td>0 </td><td>{% trans -%}
+(per peer; 0 means disabled)
+{%- endtrans %} {% trans release='0.7.14' -%}
+As of release {{ release }}.
+{%- endtrans %}</td></tr>
+
+<tr><td>i2p.streaming.maxMessageSize</td><td>1730</td><td>{% trans -%}
+The MTU in bytes.
+{%- endtrans %}</td></tr>
+
+<tr><td>i2p.streaming.maxResends</td><td>8</td><td>{% trans -%}
+Maximum number of retransmissions before failure.
+{%- endtrans %}</td></tr>
+
+<tr><td>i2p.streaming.maxTotalConnsPerMinute</td><td>0 </td><td>{% trans -%}
+Incoming connection limit (all peers; 0 means disabled)
+{%- endtrans %} {% trans release='0.7.14' -%}
+As of release {{ release }}.
+{%- endtrans %}</td></tr>
+
+<tr><td>i2p.streaming.maxTotalConnsPerHour</td><td>0 </td><td>{% trans -%}
+(all peers; 0 means disabled)
+Use with caution as exceeding this will disable a server for a long time.
+{%- endtrans %} {% trans release='0.7.14' -%}
+As of release {{ release }}.
+{%- endtrans %}</td></tr>
+
+<tr><td>i2p.streaming.maxTotalConnsPerDay</td><td>0 </td><td>{% trans -%}
+(all peers; 0 means disabled)
+Use with caution as exceeding this will disable a server for a long time.
+{%- endtrans %} {% trans release='0.7.14' -%}
+As of release {{ release }}.
+{%- endtrans %}</td></tr>
+
+<tr><td>i2p.streaming.maxWindowSize</td><td>128</td></tr>
+
+<tr><td>i2p.streaming.profile</td><td>1 (bulk)</td><td>{% trans -%}
+(2=interactive not supported)
+This doesn't currently do anything, but setting it to a value other than 1 will cause an error.
+{%- endtrans %}</td></tr>
+
+<tr><td>i2p.streaming.readTimeout</td><td>-1</td><td>{% trans -%}
+How long to block on read, in milliseconds. Negative means indefinitely.
+{%- endtrans %}</td></tr>
+
+<tr><td>i2p.streaming.slowStartGrowthRateFactor</td><td>1</td><td>{% trans -%}
+When we're in slow start, we grow the window size at the rate
+of 1/(factor).  In standard TCP, window sizes are in bytes,
+while in I2P, window sizes are in messages.
+A higher number means slower growth.
+{%- endtrans %}</td></tr>
+
+<tr><td>i2p.streaming.tcbcache.rttDampening</td><td>0.75</td><td>{% trans -%}
+Ref: RFC 2140. Floating point value.
+May be set only via context properties, not connection options.
+{%- endtrans %} {% trans release='0.9.8' -%}
+As of release {{ release }}.
+{%- endtrans %}</td></tr>
+
+<tr><td>i2p.streaming.tcbcache.rttdevDampening</td><td>0.75</td><td>{% trans -%}
+Ref: RFC 2140. Floating point value.
+May be set only via context properties, not connection options.
+{%- endtrans %} {% trans release='0.9.8' -%}
+As of release {{ release }}.
+{%- endtrans %}</td></tr>
+
+<tr><td>i2p.streaming.tcbcache.wdwDampening</td><td>0.75</td><td>{% trans -%}
+Ref: RFC 2140. Floating point value.
+May be set only via context properties, not connection options.
+{%- endtrans %} {% trans release='0.9.8' -%}
+As of release {{ release }}.
+{%- endtrans %}</td></tr>
+
+<tr><td>i2p.streaming.writeTimeout</td><td>-1</td><td>{% trans -%}
+How long to block on write/flush, in milliseconds. Negative means indefinitely.
+{%- endtrans %}</td></tr>
+</table>
+
+
+
+
+<h2>{% trans %}Protocol Specification{% endtrans %}</h2>
+
+<p><a href="{{ site_url('docs/spec/streaming') }}">{% trans -%}
+See the Streaming Library Specification page.
+{%- endtrans %}</a></p>
+
+<h2>{% trans %}Implementation Details{% endtrans %}</h2>
+
+<h3>{% trans %}Setup{% endtrans %}</h3>
+<p>{% trans -%}
+The initiator sends a packet with the SYNCHRONIZE flag set. This packet may contain the initial data as well.
+The peer replies with a packet with the SYNCHRONIZE flag set. This packet may contain the initial response data as well.
+{%- endtrans %}</p>
+
+<p>{% trans -%}
+The initiator may send additional data packets, up to the initial window size, before receiving the SYNCHRONIZE response.
+These packets will also have the send Stream ID field set to 0.
+Recipients must buffer packets received on unknown streams for a short period of time, as they may
+arrive out of order, in advance of the SYNCHRONIZE packet.
+{%- endtrans %}</p>
+
+<h3>{% trans %}MTU Selection and Negotiation{% endtrans %}</h3>
+<p>{% trans -%}
+The maximum message size (also called the MTU / MRU) is negotiated to the lower value supported by
+the two peers. As tunnel messages are padded to 1KB, a poor MTU selection will lead to
+a large amount of overhead.
+The MTU is specified by the option i2p.streaming.maxMessageSize.
+The current default MTU of 1730 was chosen to fit precisely into two 1K I2NP tunnel messages,
+including overhead for the typical case.
+{%- endtrans %}</p>
+
+<p>{% trans -%}
+The first message in a connection includes a 387 byte (typical) Destination added by the streaming layer,
+and usually a 898 byte (typical) LeaseSet, and Session keys, bundled in the Garlic message by the router.
+(The LeaseSet and Session Keys will not be bundled if an ElGamal Session was previously established).
+Therefore, the goal of fitting a complete HTTP request in a single 1KB I2NP message is not always attainable.
+However, the selection of the MTU, together with careful implementation of fragmentation
+and batching strategies in the tunnel gateway processor, are important factors in network bandwidth,
+latency, reliability, and efficiency, especially for long-lived connections.
+{%- endtrans %}</p>
+
+<h3>{% trans %}Data Integrity{% endtrans %}</h3>
+<p>{% trans i2cp=site_url('docs/protocol/i2cp') -%}
+Data integrity is assured by the gzip CRC-32 checksum implemented in
+<a href="{{ i2cp }}#format">the I2CP layer</a>.
+There is no checksum field in the streaming protocol.
+{%- endtrans %}</p>
+
+
+<h3>{% trans %}Packet Encapsulation{% endtrans %}</h3>
+<p>{% trans garlicrouting=site_url('docs/how/garlic-routing'), i2cp=site_url('docs/protocol/i2cp'),
+i2np=site_url('docs/protocol/i2np'), tunnelmessage=site_url('docs/spec/tunnel-message') -%}
+Each packet is sent through I2P as a single message (or as an individual clove in a
+<a href="{{ garlicrouting }}">Garlic Message</a>). Message encapsulation is implemented
+in the underlying <a href="{{ i2cp }}">I2CP</a>, <a href="{{ i2np }}">I2NP</a>, and
+<a href="{{ tunnelmessage }}">tunnel message</a> layers. There is no packet delimiter
+mechanism or payload length field in the streaming protocol.
+{%- endtrans %}</p>
+
+
+<h3>{% trans %}Windowing{% endtrans %}</h3>
+<p>{% trans -%}
+The streaming lib uses standard slow-start (exponential window growth) and congestion avoidance (linear window growth)
+phases, with exponential backoff.
+Windowing and acknowledgments use packet count, not byte count.
+{%- endtrans %}</p>
+
+
+<h3>{% trans %}Close{% endtrans %}</h3>
+<p>{% trans -%}
+Any packet, including one with the SYNCHRONIZE flag set, may have the CLOSE flag sent as well.
+The connection is not closed until the peer responds with the CLOSE flag.
+CLOSE packets may contain data as well.
+{%- endtrans %}</p>
+
+
+<h3 id="sharing">{% trans %}Control Block Sharing{% endtrans %}</h3>
+<p>{% trans -%}
+The streaming lib supports "TCP" Control Block sharing.
+This shares three important streaming lib parameters
+(window size, round trip time, round trip time variance)
+across connections to the same remote peer.
+This is used for "temporal" sharing at connection open/close time,
+not "ensemble" sharing during a connection (See
+<a href="http://www.ietf.org/rfc/rfc2140.txt">RFC 2140</a>).
+There is a separate share per ConnectionManager (i.e. per local Destination)
+so that there is no information leakage to other Destinations on the
+same router.
+The share data for a given peer expires after a few minutes.
+The following Control Block Sharing parameters can be set per router:
+{%- endtrans %}
+<ul>
+<li>RTT_DAMPENING = 0.75</li>
+<li>RTTDEV_DAMPENING = 0.75</li>
+<li>WINDOW_DAMPENING = 0.75</li>
+</ul>
+</p>
+
+<h3 id="other">{% trans %}Other Parameters{% endtrans %}</h3>
+<p>{% trans -%}
+The following parameters are hardcoded, but may be of interest for analysis:
+{%- endtrans %}</p>
+<ul>
+<li>MIN_RESEND_DELAY = 2*1000 (minimum RTO)
+<li>MAX_RESEND_DELAY = 45*1000 (maximum RTO)
+<li>MIN_WINDOW_SIZE = 1
+<li>TREND_COUNT = 3
+<li>MIN_MESSAGE_SIZE = 512 (minimum MTU)
+<li>INBOUND_BUFFER_SIZE = maxMessageSize * (maxWindowSize + 2)
+<li>INITIAL_TIMEOUT (valid only before RTT is sampled) = 9000
+<li>"alpha" ( RTT dampening factor as per RFC 6298 ) = 0.125</li>
+<li>"beta" ( RTTDEV dampening factor as per RFC 6298 ) = 0.25</li>
+<li>"K" ( RTDEV multiplier as per RFC 6298 ) = 4</li>
+<li>PASSIVE_FLUSH_DELAY = 250
+<li>Maximum RTT estimate: 60*1000
+</ul>
+</p>
+
+<h3>{% trans %}History{% endtrans %}</h3>
+<p>{% trans -%}
+The streaming library has grown organically for I2P - first mihi implemented the
+"mini streaming library" as part of I2PTunnel, which was limited to a window
+size of 1 message (requiring an ACK before sending the next one), and then it was
+refactored out into a generic streaming interface (mirroring TCP sockets) and the
+full streaming implementation was deployed with a sliding window protocol and 
+optimizations to take into account the high bandwidth x delay product.  Individual
+streams may adjust the maximum packet size and other options. The default
+message size is selected to fit precisely in two 1K I2NP tunnel messages,
+and is a reasonable tradeoff between the bandwidth costs of 
+retransmitting lost messages, and the latency and overhead of multiple messages.
+{%- endtrans %}</p>
+
+
+<h2 id="future">{% trans %}Future Work{% endtrans %}</h2>
+<p>{% trans -%}
+The behavior of the streaming library has a profound impact on
+application-level performance, and as such, is an important
+area for further analysis.
+{%- endtrans %}</p>
+<ul>
+<li>{% trans -%}
+Additional tuning of the streaming lib parameters may be necessary.
+{%- endtrans %}</li>
+<li>{% trans ntcpdisc=site_url('docs/discussions/ntcp') -%}
+Another area for research is the interaction of the streaming lib with the
+NTCP and SSU transport layers.
+See <a href="{{ ntcpdisc }}">the NTCP discussion page</a> for details.
+{%- endtrans %}</li>
+<li>{% trans -%}
+The interaction of the routing algorithms with the streaming lib strongly affects performance.
+In particular, random distribution of messages to multiple tunnels in a pool
+leads to a high degree of out-of-order delivery which results in smaller window
+sizes than would otherwise be the case. The router currently routes 
+messages for a single from/to destination pair through a consistent set 
+of tunnels, until tunnel expiration or delivery failure. The router's 
+failure and tunnel selection algorithms should be reviewed for possible 
+improvements.
+{%- endtrans %}</li>
+<li>{% trans -%}
+The data in the first SYN packet may exceed the receiver's MTU.
+{%- endtrans %}</li>
+<li>{% trans -%}
+The DELAY_REQUESTED field could be used more.
+{%- endtrans %}</li>
+<li>{% trans -%}
+Duplicate initial SYNCHRONIZE packets on short-lived streams may not be recognized and removed.
+{%- endtrans %}</li>
+<li>{% trans -%}
+Don't send the MTU in a retransmission.
+{%- endtrans %}</li>
+<li>{% trans -%}
+Data is sent along unless the outbound window is full.
+(i.e. no-Nagle or TCP_NODELAY)
+Probably should have a configuration option for this.
+{%- endtrans %}</li>
+<li>{% trans -%}
+zzz has added debug code to the streaming library to log packets in a wireshark-compatible
+(pcap) format; Use this to further analyze performance.
+The format may require enhancement to map more streaming lib parameters to TCP fields.
+{%- endtrans %}</li>
+<li>{% trans -%}
+There are proposals to replace the streaming lib with standard TCP
+(or perhaps a null layer together with raw sockets).
+This would unfortunately be incompatible with the streaming lib
+but it would be good to compare the performance of the two.
+{%- endtrans %}</li>
+</ul>
+
+{% endblock %}

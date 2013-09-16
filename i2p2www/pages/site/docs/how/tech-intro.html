@@ -1,0 +1,1070 @@
+{% extends "global/layout.html" %}
+{% block title %}{% trans %}Introducing I2P{% endtrans %}{% endblock %}
+{% block content %}
+
+<h1 class="title">{% trans %}I2P: A scalable framework for anonymous communication{% endtrans %}</h1>
+  <div id="toc">
+    <h2>{% trans %}Table of Contents{% endtrans %}</h2>
+      <ul>
+        <li><a href="#intro">{% trans %}Introduction{% endtrans %}</a></li>
+        <li>
+              <a href="#op">{% trans %}I2P Operation{% endtrans %}</a>
+              <ul>
+                <li><a href="#op.overview">{% trans %}Overview{% endtrans %}</a></li>
+                <li><a href="#op.tunnels">{% trans %}Tunnels{% endtrans %}</a></li>
+                <li><a href="#op.netdb">{% trans %}Network Database{% endtrans %}</a></li>
+                <li><a href="#op.transport">{% trans %}Transport protocols{% endtrans %}</a></li>
+                <li><a href="#op.crypto">{% trans %}Cryptography{% endtrans %}</a></li>
+              </ul>
+        </li>
+      </ul>
+  </div> 
+
+  <br/>
+  <h1 id="intro">{% trans %}Introduction{% endtrans %}</h1>
+  <p>{% trans -%}
+I2P is a scalable, self organizing, resilient packet switched anonymous 
+network layer, upon which any number of different anonymity or security conscious 
+applications can operate. Each of these applications may make their own anonymity, 
+latency, and throughput tradeoffs without worrying about the proper implementation 
+of a free route mixnet, allowing them to blend their activity with the larger 
+anonymity set of users already running on top of I2P.
+{%- endtrans %}</p>
+
+  <p>{% trans -%}
+Applications available already provide the full range of typical Internet activities -
+<b>anonymous</b> web browsing, web hosting, chat, file sharing, e-mail,
+blogging and content syndication, newsgroups, as well as several other applications under development.
+{%- endtrans %}</p>
+    <ul>
+      <li>{% trans %}Web browsing: using any existing browser that supports using a proxy.{% endtrans %}</li>
+      <li>{% trans %}Chat: IRC, Jabber, <a href="#app.i2pmessenger">I2P-Messenger</a>.{% endtrans %}</li>
+      <li>{% trans -%}
+File sharing: <a href="#app.i2psnark">I2PSnark</a>, <a href="#app.robert">Robert</a>, <a href="#app.imule">iMule</a>, 
+<a href="#app.i2phex">I2Phex</a>, <a href="#app.pybit">PyBit</a>, <a href="#app.i2pbt">I2P-bt</a>
+and others.
+{%- endtrans %}</li>
+      <li>{% trans %}E-mail: <a href="#app.i2pmail">susimail</a> and <a href="#app.i2pbote">I2P-Bote</a>.{% endtrans %}</li>
+      <li>{% trans %}Blog: using e.g. the pebble plugin or the distributed blogging software <a href="#app.syndie">Syndie</a>.{% endtrans %}</li>
+      <li>{% trans %}Distributed Data Store: Save your data redundantly in the Tahoe-LAFS cloud over I2P.{% endtrans %}</li>
+      <li>{% trans %}Newsgroups: using any newsgroup reader that supports using a proxy.{% endtrans %}</li>
+    </ul>
+
+  <p>{% trans -%}
+Unlike web sites hosted within content distribution networks like <a href="#similar.freenet">Freenet</a> 
+or <a href="http://www.ovmj.org/GNUnet/">GNUnet</a>, the services hosted on 
+I2P are fully interactive - there are traditional web-style search engines, 
+bulletin boards, blogs you can comment on, database driven sites, and bridges 
+to query static systems like Freenet without needing to install it locally. 
+{%- endtrans %}</p>
+
+  <p>{% trans -%}
+With all of these anonymity enabled applications, I2P takes on the role 
+of the message oriented middleware - applications say that they want to send 
+some data to a cryptographic identifier (a "destination") and I2P takes care 
+of making sure it gets there securely and anonymously. I2P also bundles a 
+simple <a href="#app.streaming">streaming</a> library to allow I2P's anonymous 
+best-effort messages to transfer as reliable, in-order streams, transparently 
+offering a TCP based congestion control algorithm tuned for the high bandwidth 
+delay product of the network. While there have been several simple SOCKS proxies 
+available to tie existing applications into the network, their value has been 
+limited as nearly every application routinely exposes what, in an anonymous 
+context, is sensitive information. The only safe way to go is to fully audit 
+an application to ensure proper operation and to assist in that we provide 
+a series of APIs in various languages which can be used to make the most out 
+of the network.
+{%- endtrans %}</p>
+
+  <p>{% trans site=site_url(), halloffame=site_url('about/hall-of-fame') -%}
+I2P is not a research project - academic, commercial, or governmental, but 
+is instead an engineering effort aimed at doing whatever is necessary to provide 
+a sufficient level of anonymity to those who need it. It has been in active 
+development since early 2003 with one full time developer and a dedicated 
+group of part time contributors from all over the world. All of the work done 
+on I2P is open source and freely available on the <a href="{{ site }}">website</a>, 
+with the majority of the code released outright into the public domain, though 
+making use of a few cryptographic routines under BSD-style licenses. The people 
+working on I2P do not control what people release client applications under, 
+and there are several GPL'ed applications available (<a href="#app.i2ptunnel">I2PTunnel</a>, 
+<a href="#app.i2pmail">susimail</a>, <a href="#app.i2psnark">I2PSnark</a>, <a href="#app.i2pbote">I2P-Bote</a>, 
+<a href="#app.i2phex">I2Phex</a> and others.).
+<a href="{{ halloffame }}">Funding</a> for I2P comes entirely from donations,
+and does not receive any tax breaks in any jurisdiction at this time,
+as many of the developers are themselves anonymous.
+{%- endtrans %}</p>
+
+  <h1 id="op">{% trans %}Operation{% endtrans %}</h1>
+  <h2 id="op.overview">{% trans %}Overview{% endtrans %}</h2>
+  <p>{% trans -%}
+To understand I2P's operation, it is essential to understand a few key concepts. 
+First, I2P makes a strict separation between the software participating in 
+the network (a "router") and the anonymous endpoints ("destinations") associated 
+with individual applications. The fact that someone is running I2P is not 
+usually a secret. What is hidden is information on what the user is doing, 
+if anything at all, as well as what router a particular destination is connected 
+to. End users will typically have several local destinations on their router 
+- for instance, one proxying in to IRC servers, another supporting the user's 
+anonymous webserver ("eepsite"), another for an I2Phex instance, another for 
+torrents, etc.
+{%- endtrans %}</p>
+
+  <p>{% trans -%}
+Another critical concept to understand is the "tunnel".
+A tunnel is a directed path through an explicitly selected list of routers.
+Layered encryption is used, so each of the routers can only decrypt a single layer.
+The decrypted information contains the IP of the next router, along with
+the encrypted information to be forwarded.
+Each tunnel has a starting point (the first router, also known as "gateway")
+and an end point. Messages can be sent only in one way. To send messages back,
+another tunnel is required.
+{%- endtrans %}</p>
+    <div class="box" style="text-align:center;">
+      <img src="{{ url_for('static', filename='images/tunnels.png') }}" alt="{{ _('Inbound and outbound tunnel schematic') }}" title="{{ _('Inbound and outbound tunnel schematic') }}" />
+      <br /><br />
+      {% trans %}Figure 1: Two types of tunnels exist: inbound and outbound.{% endtrans %}
+    </div>
+
+  <p>{% trans -%}
+Two types of tunnels exist:
+<b>"outbound" tunnels</b> send messages away from the tunnel creator,
+while <b>"inbound" tunnels</b> bring messages to the tunnel creator.
+Combining these two tunnels allows users to send messages to each other.
+The sender ("Alice" in the above image) sets up an outbound tunnel,
+while the receiver ("Bob" in the above image) creates an inbound tunnel.
+The gateway of an inbound tunnel can receive messages from any other user
+and will send them on until the endpoint ("Bob").
+The endpoint of the outbound tunnel will need to send the message
+on to the gateway of the inbound tunnel.
+To do this, the sender ("Alice") adds instructions to her encrypted message.
+Once the endpoint of the outbound tunnel decrypts the message,
+it will have instructions to forward the message to the correct
+inbound gateway (the gateway to "Bob").
+{%- endtrans %}</p>
+
+  <p>{% trans -%}
+A third critical concept to understand is I2P's <b>"network database"</b> (or "netDb") 
+- a pair of algorithms used to share network metadata. The two types of metadata 
+carried are <b>"routerInfo"</b> and <b>"leaseSets"</b> - the routerInfo gives routers the 
+data necessary for contacting a particular router (their public keys, transport 
+addresses, etc), while the leaseSet gives routers the information necessary 
+for contacting a particular destination. A leaseSet contains a number of "leases".
+Each of this leases specifies a tunnel gateway, which allows reaching a specific destination.
+The full information contained in a lease:
+{%- endtrans %}</p>
+    <ul>
+      <li>{% trans %}Inbound gateway for a tunnel that allows reaching a specific destination.{% endtrans %}</li>
+      <li>{% trans %}Time when a tunnel expires.{% endtrans %}</li>
+      <li>{% trans %}Pair of public keys to be able to encrypt messages (to send through the tunnel and reach the destination).{% endtrans %}</li>
+    </ul>
+  <p>{% trans -%}
+Routers themselves send their routerInfo to the netDb directly, while leaseSets are sent through outbound tunnels
+(leaseSets need to be sent anonymously, to avoid correlating a router with his leaseSets).
+{%- endtrans %}</p>
+
+  <p>{% trans -%}
+We can combine the above concepts to build successful connections in the network.
+{%- endtrans %}</p>
+
+  <p>{% trans -%}
+To build up her own inbound and outbound tunnels, Alice does a lookup in the netDb to collect routerInfo.
+This way, she gathers lists of peers she can use as hops in her tunnels.
+She can then send a build message to the first hop, requesting the construction of a tunnel and asking
+that router to send the construction message onward, until the tunnel has been constructed.
+{%- endtrans %}</p>
+    <div class="box" style="text-align:center;">
+      <img src="{{ url_for('static', filename='images/netdb_get_routerinfo_1.png') }}" alt="{{ _('Request information on other routers') }}" title="{{ _('Request information on other routers') }}" />
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+      <img src="{{ url_for('static', filename='images/netdb_get_routerinfo_2.png') }}" alt="{{ _('Build tunnel using router information') }}" title="{{ _('Build tunnel using router information') }}" />
+      <br /><br />
+      {% trans %}Figure 2: Router information is used to build tunnels.{% endtrans %}
+    </div>
+  <br/>
+  <p>{% trans -%}
+When Alice wants to send a message to Bob, she first does a lookup in the 
+netDb to find Bob's leaseSet, giving her his current inbound tunnel gateways. 
+She then picks one of her outbound tunnels and sends the message down it with 
+instructions for the outbound tunnel's endpoint to forward the message on 
+to one of Bob's inbound tunnel gateways. When the outbound tunnel endpoint 
+receives those instructions, it forwards the message as requested, and when 
+Bob's inbound tunnel gateway receives it, it is forwarded down the tunnel 
+to Bob's router. If Alice wants Bob to be able to reply to the message, she 
+needs to transmit her own destination explicitly as part of the message itself.
+This can be done by introducing a higher-level layer, which is done in the
+<a href="#app.streaming">streaming</a> library.
+Alice may also cut down on the response time by bundling her most 
+recent LeaseSet with the message so that Bob doesn't need to do a netDb lookup 
+for it when he wants to reply, but this is optional.
+{%- endtrans %}</p>
+    <div class="box" style="text-align:center;">
+      <img src="{{ url_for('static', filename='images/netdb_get_leaseset.png') }}" alt="{{ _('Connect tunnels using LeaseSets') }}" title="{{ _('Connect tunnels using leaseSets') }}" />
+      <br /><br />
+      {% trans %}Figure 3: LeaseSets are used to connect outbound and inbound tunnels.{% endtrans %}
+    </div>
+  <br/>
+  <p>{% trans -%}
+While the tunnels themselves have layered encryption to prevent unauthorized 
+disclosure to peers inside the network (as the transport layer itself does 
+to prevent unauthorized disclosure to peers outside the network), it is necessary 
+to add an additional end to end layer of encryption to hide the message from 
+the outbound tunnel endpoint and the inbound tunnel gateway. This "<a href="#op.garlic">garlic 
+encryption</a>" lets Alice's router wrap up multiple messages into a single 
+"garlic message", encrypted to a particular public key so that intermediary 
+peers cannot determine either how many messages are within the garlic, what 
+those messages say, or where those individual cloves are destined. For typical 
+end to end communication between Alice and Bob, the garlic will be encrypted 
+to the public key published in Bob's leaseSet, allowing the message to be 
+encrypted without giving out the public key to Bob's own router.
+{%- endtrans %}</p>
+
+  <p>{% trans -%}
+Another important fact to keep in mind is that I2P is entirely message based 
+and that some messages may be lost along the way. Applications using I2P can 
+use the message oriented interfaces and take care of their own congestion 
+control and reliability needs, but most would be best served by reusing the 
+provided <a href="#app.streaming">streaming</a> library to view I2P as a streams 
+based network.
+{%- endtrans %}</p>
+
+  <h2 id="op.tunnels">{% trans %}Tunnels{% endtrans %}</h2>
+  <p>{% trans -%}
+Both inbound and outbound tunnels work along similar principles.
+The tunnel gateway accumulates a number of tunnel messages, eventually preprocessing 
+them into something for tunnel delivery. Next, the gateway encrypts that preprocessed 
+data and forwards it to the first hop. That peer and subsequent tunnel participants 
+add on a layer of encryption after verifying that it isn't a duplicate before 
+forward it on to the next peer. Eventually, the message arrives at the endpoint 
+where the messages are split out again and forwarded on as requested. The 
+difference arises in what the tunnel's creator does - for inbound tunnels, 
+the creator is the endpoint and they simply decrypt all of the layers added, 
+while for outbound tunnels, the creator is the gateway and they pre-decrypt 
+all of the layers so that after all of the layers of per-hop encryption are 
+added, the message arrives in the clear at the tunnel endpoint.
+{%- endtrans %}</p>
+
+  <p>{% trans -%}
+The choice of specific peers to pass on messages as well as their particular 
+ordering is important to understanding both I2P's anonymity and performance 
+characteristics. While the network database (below) has its own criteria for 
+picking what peers to query and store entries on, tunnel creators may use any peers 
+in the network in any order (and even any number of times) in a single tunnel. 
+If perfect latency and capacity data were globally known, selection and ordering 
+would be driven by the particular needs of the client in tandem with their 
+threat model. Unfortunately, latency and capacity data is not trivial to gather 
+anonymously, and depending upon untrusted peers to provide this information 
+has its own serious anonymity implications.
+{%- endtrans %}</p>
+
+  <p>{% trans -%}
+From an anonymity perspective, the simplest technique would be to pick peers 
+randomly from the entire network, order them randomly and use those peers 
+in that order for all eternity. From a performance perspective, the simplest 
+technique would be to pick the fastest peers with the necessary spare capacity, 
+spreading the load across different peers to handle transparent failover, 
+and to rebuild the tunnel whenever capacity information changes. While the 
+former is both brittle and inefficient, the later requires inaccessible information 
+and offers insufficient anonymity. I2P is instead working on offering a range 
+of peer selection strategies, coupled with anonymity aware measurement code 
+to organize the peers by their profiles.
+{%- endtrans %}</p>
+
+  <p>{% trans -%}
+As a base, I2P is constantly profiling the peers with which it interacts 
+with by measuring their indirect behavior - for instance, when a peer responds 
+to a netDb lookup in 1.3 seconds, that round trip latency is recorded in the 
+profiles for all of the routers involved in the two tunnels (inbound and outbound) 
+through which the request and response passed, as well as the queried peer's 
+profile. Direct measurement, such as transport layer latency or congestion, 
+is not used as part of the profile, as it can be manipulated and associated 
+with the measuring router, exposing them to trivial attacks. While gathering 
+these profiles, a series of calculations are run on each to summarize its 
+performance - its latency, capacity to handle lots of activity, whether they 
+are currently overloaded, and how well integrated into the network they seem 
+to be. These calculations are then compared for active peers to organize the 
+routers into four tiers - fast and high capacity, high capacity, not failing, 
+and failing. The thresholds for those tiers are determined dynamically, and 
+while they currently use fairly simple algorithms, alternatives exist.
+{%- endtrans %}</p>
+
+  <p>{% trans -%}
+Using this profile data, the simplest reasonable peer selection strategy 
+is to pick peers randomly from the top tier (fast and high capacity), and 
+this is currently deployed for client tunnels. Exploratory tunnels (used for 
+netDb and tunnel management) pick peers randomly from the "not failing" tier 
+(which includes routers in 'better' tiers as well), allowing the peer to sample 
+routers more widely, in effect optimizing the peer selection through randomized 
+hill climbing. These strategies alone do however leak information regarding 
+the peers in the router's top tier through predecessor and netDb harvesting 
+attacks. In turn, several alternatives exist which, while not balancing the 
+load as evenly, will address the attacks mounted by particular classes of 
+adversaries.
+{%- endtrans %}</p>
+
+  <p>{% trans -%}
+By picking a random key and ordering the peers according to their XOR distance 
+from it, the information leaked is reduced in predecessor and harvesting attacks 
+according to the peers' failure rate and the tier's churn. Another simple 
+strategy for dealing with netDb harvesting attacks is to simply fix the inbound 
+tunnel gateway(s) yet randomize the peers further on in the tunnels. To deal 
+with predecessor attacks for adversaries which the client contacts, the outbound 
+tunnel endpoints would also remain fixed. The selection of which peer to fix 
+on the most exposed point would of course need to have a limit to the duration, 
+as all peers fail eventually, so it could either be reactively adjusted or 
+proactively avoided to mimic a measured mean time between failures of other 
+routers. These two strategies can in turn be combined, using a fixed exposed 
+peer and an XOR based ordering within the tunnels themselves. A more rigid 
+strategy would fix the exact peers and ordering of a potential tunnel, only 
+using individual peers if all of them agree to participate in the same way 
+each time. This varies from the XOR based ordering in that the predecessor 
+and successor of each peer is always the same, while the XOR only makes sure 
+their order doesn't change.
+{%- endtrans %}</p>
+
+  <p>{% trans tunnelimpl=site_url('docs/tunnels/implementation') -%}
+As mentioned before, I2P currently (release 0.8) includes the tiered 
+random strategy above, with XOR-based ordering. A 
+more detailed discussion of the mechanics involved in tunnel operation, management, 
+and peer selection can be found in the <a href="{{ tunnelimpl }}">tunnel spec</a>. 
+{%- endtrans %}</p>
+
+  <h2 id="op.netdb">{% trans %}Network Database{% endtrans %}</h2>
+  <p>{% trans netdb=site_url('docs/how/network-database') -%}
+As mentioned earlier, I2P's netDb works to share the network's metadata.
+This is detailed in <a href="{{ netdb }}">the network database</a> page,
+but a basic explanation is available below.
+{%- endtrans %}</p>
+
+  <p>{% trans -%}
+A percentage of I2P users are appointed as 'floodfill peers'.
+Currently, I2P installations that have a lot of bandwidth and are fast enough,
+will appoint themselves as floodfill as soon as the number of existing floodfill routers
+drops too low.
+{%- endtrans %}</p>
+
+  <p>{% trans netdb=site_url('docs/how/network-database') -%}
+Other I2P routers will store their data and lookup data by sending simple 'store' and 'lookup' queries to the floodfills.
+If a floodfill router receives a 'store' query, it will spread the information to other floodfill routers
+using the <a href="http://en.wikipedia.org/wiki/Kademlia">Kademlia algorithm</a>.
+The 'lookup' queries currently function differently, to avoid an important
+<a href="{{ netdb }}#lookup">security issue</a>.
+When a lookup is done, the floodfill router will not forward the lookup to other peers,
+but will always answer by itself (if it has the requested data).
+{%- endtrans %}</p>
+
+  <p>{% trans -%}
+Two types of information are stored in the network database.
+{%- endtrans %}</p>
+    <ul>
+        <li>{% trans %}A <b>RouterInfo</b> stores information on a specific I2P router and how to contact it{% endtrans %}</li>
+        <li>{% trans %}A <b>LeaseSet</b> stores information on a specific destination (e.g. I2P website, e-mail server...){% endtrans %}</li>
+    </ul>
+  <p>{% trans -%}
+All of this information is signed by the publishing party and verified by any I2P router using or storing the information.
+In addition, the data contains timing information, to avoid storage of old entries and possible attacks.
+This is also why I2P bundles the necessary code for maintaining the correct time, occasionally querying some SNTP servers 
+(the <a href="http://www.pool.ntp.org/">pool.ntp.org</a> round robin by default)
+and detecting skew between routers at the transport layer.
+{%- endtrans %}</p>
+
+  <p>{% trans -%}
+Some additional remarks are also important.
+{%- endtrans %}</p>
+    <ul>
+      <li>
+        <b>{% trans %}Unpublished and encrypted leasesets:{% endtrans %}</b>
+        <p>{% trans -%}
+One could only want specific people to be able to reach a destination.
+This is possible by not publishing the destination in the netDb. You will however have to transmit the destination by other means.
+An alternative are the 'encrypted leaseSets'. These leaseSets can only be decoded by people with access to the decryption key.
+{%- endtrans %}</p>
+      </li>
+      <li>
+        <b>{% trans %}Bootstrapping:{% endtrans %}</b>
+        <p>{% trans -%}
+Bootstrapping the netDb is quite simple. Once a router manages to receive a single routerInfo of a reachable peer,
+it can query that router for references to other routers in the network.
+Currently, a number of users post their routerInfo files to a website to make this information available.
+I2P automatically connects to one of these websites to gather routerInfo files and bootstrap.
+{%- endtrans %}</p>
+      </li>
+      <li>
+        <b>{% trans %}Lookup scalability:{% endtrans %}</b>
+        <p>{% trans -%}
+Lookups in the I2P network are not forwarded to other netDb routers.
+Currently, this is not a major problem, since the network is not very large.
+However, as the network grows, not all routerInfo and leaseSet files will be present
+on each netDb router. This will cause a deterioration of the percentage of successful lookups.
+Because of this, refinements to the netDb will be done in the next releases.
+{%- endtrans %}</p>
+      </li>
+    </ul>
+
+  <h2 id="op.transport">{% trans %}Transport protocols{% endtrans %}</h2>
+  <p>{% trans -%}
+Communication between routers needs to provide confidentiality and integrity 
+against external adversaries while authenticating that the router contacted 
+is the one who should receive a given message. The particulars of how routers 
+communicate with other routers aren't critical - three separate protocols 
+have been used at different points to provide those bare necessities.
+{%- endtrans %}</p>
+
+  <p>{% trans ssu=site_url('docs/transport/ssu') -%}
+I2P started with a TCP-based protocol which 
+has since been disabled. Then, to accommodate the need for high degree communication 
+(as a number of routers will end up speaking with many others), I2P moved 
+from a TCP based transport to a <a href="{{ ssu }}">UDP-based one</a> - "Secure 
+Semireliable UDP", or "SSU".
+{%- endtrans %}</p>
+
+  <p>{% trans ssu=site_url('docs/transport/ssu') -%}
+As described in the <a href="{{ ssu }}">SSU spec</a>:
+{%- endtrans %}</p>
+
+  <blockquote>{% trans -%}
+The goal of this protocol is to provide secure, authenticated, 
+semireliable and unordered message delivery, exposing only a minimal amount 
+of data easily discernible to third parties. It should support high degree 
+communication as well as TCP-friendly congestion control and may include 
+PMTU detection. It should be capable of efficiently moving bulk data at rates 
+sufficient for home users. In addition, it should support techniques for addressing 
+network obstacles, like most NATs or firewalls.
+{%- endtrans %}</blockquote>
+
+  <p>{% trans ntcp=site_url('docs/transport/ntcp') -%}
+Following the introduction of SSU, after issues with congestion collapse 
+appeared, a new NIO-based TCP transport called <a href="{{ ntcp }}">NTCP</a> 
+was implemented. It is enabled by default for outbound connections only. Those 
+who configure their NAT/firewall to allow inbound connections and specify 
+the external host and port (dyndns/etc is ok) on /config.jsp can receive inbound 
+connections. As NTCP is NIO based, so it doesn't suffer from the 1 thread 
+per connection issues of the old TCP transport.
+{%- endtrans %}</p>
+
+  <p>{% trans -%}
+I2P supports multiple transports simultaneously. A particular transport 
+for an outbound connection is selected with "bids". Each transport bids for 
+the connection and the relative value of these bids assigns the priority. 
+Transports may reply with different bids, depending on whether there is already 
+an established connection to the peer.
+{%- endtrans %}</p>
+
+  <p>{% trans ntcp=site_url('docs/transport/ntcp') -%}
+The current implementation ranks NTCP as the highest-priority transport 
+for outbound connections in most situations. SSU is enabled for both outbound 
+and inbound connections. Your firewall and your I2P router must be configured 
+to allow inbound NTCP connections. For further information see the <a href="{{ ntcp }}">NTCP 
+page</a>.
+{%- endtrans %}</p>
+
+  <h2 id="op.crypto">{% trans %}Cryptography{% endtrans %}</h2>
+  <p>{% trans -%}
+A bare minimum set of cryptographic primitives are combined together to 
+provide I2P's layered defenses against a variety of adversaries. At the lowest 
+level, inter router communication is protected by the transport layer security 
+- SSU encrypts each packet with AES256/CBC with both an explicit IV and MAC 
+(HMAC-MD5-128) after agreeing upon an ephemeral session key through a 2048bit 
+Diffie-Hellman exchange, station-to-station authentication with the other 
+router's DSA key, plus each network message has their own hash for local integrity 
+checking. <a href="#op.tunnels">Tunnel</a> messages passed over the transports 
+have their own layered AES256/CBC encryption with an explicit IV and verified 
+at the tunnel endpoint with an additional SHA256 hash. Various other messages 
+are passed along inside "garlic messages", which are encrypted with ElGamal/AES+SessionTags 
+(explained below).
+{%- endtrans %}</p>
+
+  <h3 id="op.garlic">{% trans %}Garlic messages{% endtrans %}</h3>
+  <p>{% trans -%}
+Garlic messages are an extension of "onion" layered encryption, allowing 
+the contents of a single message to contain multiple "cloves" - fully formed 
+messages alongside their own instructions for delivery. Messages are wrapped 
+into a garlic message whenever the message would otherwise be passing in cleartext 
+through a peer who should not have access to the information - for instance, 
+when a router wants to ask another router to participate in a tunnel, they 
+wrap the request inside a garlic, encrypt that garlic to the receiving router's 
+2048bit ElGamal public key, and forward it through a tunnel. Another example 
+is when a client wants to send a message to a destination - the sender's router 
+will wrap up that data message (alongside some other messages) into a garlic, 
+encrypt that garlic to the 2048bit ElGamal public key published in the recipient's 
+leaseSet, and forward it through the appropriate tunnels.
+{%- endtrans %}</p>
+
+  <p>{% trans -%}
+The "instructions" attached to each clove inside the encryption layer includes 
+the ability to request that the clove be forwarded locally, to a remote router, 
+or to a remote tunnel on a remote router. There are fields in those instructions 
+allowing a peer to request that the delivery be delayed until a certain time 
+or condition has been met, though they won't be honored until the <a href="#future.variablelatency">nontrivial 
+delays</a> are deployed. It is possible to explicitly route garlic messages 
+any number of hops without building tunnels, or even to reroute tunnel messages 
+by wrapping them in garlic messages and forwarding them a number of hops prior 
+to delivering them to the next hop in the tunnel, but those techniques are 
+not currently used in the existing implementation.
+{%- endtrans %}</p>
+
+  <h3 id="op.sessiontags">{% trans %}Session tags{% endtrans %}</h3>
+  <p>{% trans -%}
+As an unreliable, unordered, message based system, I2P uses a simple combination 
+of asymmetric and symmetric encryption algorithms to provide data confidentiality 
+and integrity to garlic messages. As a whole, the combination is referred 
+to as ElGamal/AES+SessionTags, but that is an excessively verbose way to describe 
+the simple use of 2048bit ElGamal, AES256, SHA256 and 32 byte nonces.
+{%- endtrans %}</p>
+
+  <p>{% trans -%}
+The first time a router wants to encrypt a garlic message to another router, 
+they encrypt the keying material for an AES256 session key with ElGamal and 
+append the AES256/CBC encrypted payload after that encrypted ElGamal block. 
+In addition to the encrypted payload, the AES encrypted section contains the 
+payload length, the SHA256 hash of the unencrypted payload, as well as a number 
+of "session tags" - random 32 byte nonces. The next time the sender wants 
+to encrypt a garlic message to another router, rather than ElGamal encrypt 
+a new session key they simply pick one of the previously delivered session 
+tags and AES encrypt the payload like before, using the session key used with 
+that session tag, prepended with the session tag itself. When a router receives 
+a garlic encrypted message, they check the first 32 bytes to see if it matches 
+an available session tag - if it does, they simply AES decrypt the message, 
+but if it does not, they ElGamal decrypt the first block.
+{%- endtrans %}</p>
+
+  <p>{% trans -%}
+Each session tag can be used only once so as to prevent internal adversaries 
+from unnecessarily correlating different messages as being between the same 
+routers. The sender of an ElGamal/AES+SessionTag encrypted message chooses 
+when and how many tags to deliver, prestocking the recipient with enough tags 
+to cover a volley of messages. Garlic messages may detect the successful tag 
+delivery by bundling a small additional message as a clove (a "delivery status 
+message") - when the garlic message arrives at the intended recipient and 
+is decrypted successfully, this small delivery status message is one of the 
+cloves exposed and has instructions for the recipient to send the clove back 
+to the original sender (through an inbound tunnel, of course). When the original 
+sender receives this delivery status message, they know that the session tags 
+bundled in the garlic message were successfully delivered.
+{%- endtrans %}</p>
+
+  <p>{% trans -%}
+Session tags themselves have a very short lifetime, after which they are 
+discarded if not used. In addition, the quantity stored for each key is limited, 
+as are the number of keys themselves - if too many arrive, either new or old 
+messages may be dropped. The sender keeps track whether messages using session 
+tags are getting through, and if there isn't sufficient communication it may 
+drop the ones previously assumed to be properly delivered, reverting back 
+to the full expensive ElGamal encryption.
+{%- endtrans %}</p>
+
+  <p>{% trans -%}
+One alternative is to transmit only a single session tag, and from that, 
+seed a deterministic PRNG for determining what tags to use or expect. By keeping 
+this PRNG roughly synchronized between the sender and recipient (the recipient 
+precomputes a window of the next e.g. 50 tags), the overhead of periodically 
+bundling a large number of tags is removed, allowing more options in the space/time 
+tradeoff, and perhaps reducing the number of ElGamal encryptions necessary. 
+However, it would depend upon the strength of the PRNG to provide the necessary 
+cover against internal adversaries, though perhaps by limiting the amount 
+of times each PRNG is used, any weaknesses can be minimized. At the moment, 
+there are no immediate plans to move towards these synchronized PRNGs.
+{%- endtrans %}</p>
+
+  <h1 id="future">{% trans %}Future{% endtrans %}</h1>
+  <p>{% trans -%}
+While I2P is currently functional and sufficient for many scenarios, there 
+are several areas which require further improvement to meet the needs of those 
+facing more powerful adversaries as well as substantial user experience optimization. 
+{%- endtrans %}</p>
+
+  <h2 id="future.restricted">{% trans %}Restricted route operation{% endtrans %}</h2>
+  <p>{% trans -%}
+I2P is an overlay network designed to be run on top of a functional packet 
+switched network, exploiting the end to end principle to offer anonymity and 
+security. While the Internet no longer fully embraces the end to end principle
+(due to the usage of NAT), 
+I2P does require a substantial portion of the network to be reachable - there 
+may be a number of peers along the edges running using restricted routes, 
+but I2P does not include an appropriate routing algorithm for the degenerate 
+case where most peers are unreachable. It would, however work on top of a 
+network employing such an algorithm.
+{%- endtrans %}</p>
+
+  <p>{% trans -%}
+Restricted route operation, where there are limits to what peers are reachable 
+directly, has several different functional and anonymity implications, dependent 
+upon how the restricted routes are handled. At the most basic level, restricted 
+routes exist when a peer is behind a NAT or firewall which does not allow 
+inbound connections. This was largely addressed in I2P 0.6.0.6 by integrating 
+distributed hole punching into the transport layer, allowing people behind 
+most NATs and firewalls to receive unsolicited connections without any configuration. 
+However, this does not limit the exposure of the peer's IP address to routers 
+inside the network, as they can simply get introduced to the peer through 
+the published introducer.
+{%- endtrans %}</p>
+
+  <p>{% trans -%}
+Beyond the functional handling of restricted routes, there are two levels 
+of restricted operation that can be used to limit the exposure of one's IP 
+address - using router-specific tunnels for communication, and offering 'client 
+routers'. For the former, routers can either build a new pool of tunnels or 
+reuse their exploratory pool, publishing the inbound gateways to some of them 
+as part of their routerInfo in place of their transport addresses. When a 
+peer wants to get in touch with them, they see those tunnel gateways in the 
+netDb and simply send the relevant message to them through one of the published 
+tunnels. If the peer behind the restricted route wants to reply, it may do 
+so either directly (if they are willing to expose their IP to the peer) or 
+indirectly through their outbound tunnels. When the routers that the peer 
+has direct connections to want to reach it (to forward tunnel messages, for 
+instance), they simply prioritize their direct connection over the published 
+tunnel gateway. The concept of 'client routers' simply extends the restricted 
+route by not publishing any router addresses. Such a router would not even 
+need to publish their routerInfo in the netDb, merely providing their self 
+signed routerInfo to the peers that it contacts (necessary to pass the router's 
+public keys). Both levels of restricted route operation are planned for I2P 
+2.0.
+{%- endtrans %}</p>
+
+  <p>{% trans -%}
+There are tradeoffs for those behind restricted routes, as they would likely 
+participate in other people's tunnels less frequently, and the routers which 
+they are connected to would be able to infer traffic patterns that would not 
+otherwise be exposed. On the other hand, if the cost of that exposure is less 
+than the cost of an IP being made available, it may be worthwhile. This, of 
+course, assumes that the peers that the router behind a restricted route contacts 
+are not hostile - either the network is large enough that the probability 
+of using a hostile peer to get connected is small enough, or trusted (and 
+perhaps temporary) peers are used instead.
+{%- endtrans %}</p>
+
+  <h2 id="future.variablelatency">{% trans %}Variable latency{% endtrans %}</h2>
+  <p>{% trans -%}
+Even though the bulk of I2P's initial efforts have been on low latency communication, 
+it was designed with variable latency services in mind from the beginning. 
+At the most basic level, applications running on top of I2P can offer the 
+anonymity of medium and high latency communication while still blending their 
+traffic patterns in with low latency traffic. Internally though, I2P can offer 
+its own medium and high latency communication through the garlic encryption 
+- specifying that the message should be sent after a certain delay, at a certain 
+time, after a certain number of messages have passed, or another mix strategy. 
+With the layered encryption, only the router that the clove exposed the delay 
+request would know that the message requires high latency, allowing the traffic 
+to blend in further with the low latency traffic. Once the transmission precondition 
+is met, the router holding on to the clove (which itself would likely be a 
+garlic message) simply forwards it as requested - to a router, to a tunnel, 
+or, most likely, to a remote client destination.
+{%- endtrans %}</p>
+
+  <p>{% trans -%}
+There are a substantial number of ways to exploit this capacity for high 
+latency comm in I2P, but for the moment, doing so has been scheduled for the 
+I2P 3.0 release. In the meantime, those requiring the anonymity that high 
+latency comm can offer should look towards the application layer to provide 
+it.
+{%- endtrans %}</p>
+
+  <h2 id="future.open">{% trans %}Open questions{% endtrans %}</h2>
+  <ul>
+    <li>{% trans %}How to get rid of the timing constraint?{% endtrans %}</li>
+    <li>{% trans %}Can we deal with the sessionTags more efficiently?{% endtrans %}</li>
+    <li>{% trans %}What, if any, batching/mixing strategies should be made available on the tunnels?{% endtrans %}</li>
+    <li>{% trans %}What other tunnel peer selection and ordering strategies should be available?{% endtrans %}</li>
+  </ul>
+
+  <h1 id="similar">{% trans %}Similar systems{% endtrans %}</h1>
+
+  <p>{% trans -%}
+I2P's architecture builds on the concepts of message oriented middleware, 
+the topology of DHTs, the anonymity and cryptography of free route mixnets, 
+and the adaptability of packet switched networking. The value comes not from 
+novel concepts of algorithms though, but from careful engineering combining 
+the research results of existing systems and papers. While there are a few 
+similar efforts worth reviewing, both for technical and functional comparisons, 
+two in particular are pulled out here - Tor and Freenet.
+{%- endtrans %}</p>
+
+  <p>{% trans comparisons=site_url('comparison') -%}
+See also the <a href="{{ comparisons }}">Network Comparisons Page</a>. 
+{%- endtrans %}</p>
+
+  <h2 id="similar.tor">Tor</h2>
+  <p><i><a href="https://www.torproject.org/">{% trans %}website{% endtrans %}</a></i></p>
+
+  <p>{% trans -%}
+At first glance, Tor and I2P have many functional and anonymity related 
+similarities. While I2P's development began before we were aware of the early 
+stage efforts on Tor, many of the lessons of the original onion routing and 
+ZKS efforts were integrated into I2P's design. Rather than building an essentially 
+trusted, centralized system with directory servers, I2P has a self organizing 
+network database with each peer taking on the responsibility of profiling 
+other routers to determine how best to exploit available resources. Another 
+key difference is that while both I2P and Tor use layered and ordered paths 
+(tunnels and circuits/streams), I2P is fundamentally a packet switched network, 
+while Tor is fundamentally a circuit switched one, allowing I2P to transparently 
+route around congestion or other network failures, operate redundant pathways, 
+and load balance the data across available resources. While Tor offers the 
+useful outproxy functionality by offering integrated outproxy discovery and 
+selection, I2P leaves such application layer decisions up to applications 
+running on top of I2P - in fact, I2P has even externalized the TCP-like streaming 
+library itself to the application layer, allowing developers to experiment 
+with different strategies, exploiting their domain specific knowledge to offer 
+better performance.
+{%- endtrans %}</p>
+
+  <p>{% trans -%}
+From an anonymity perspective, there is much similarity when the core networks 
+are compared. However, there are a few key differences. When dealing with 
+an internal adversary or most external adversaries, I2P's simplex tunnels 
+expose half as much traffic data than would be exposed with Tor's duplex circuits 
+by simply looking at the flows themselves - an HTTP request and response would 
+follow the same path in Tor, while in I2P the packets making up the request 
+would go out through one or more outbound tunnels and the packets making up 
+the response would come back through one or more different inbound tunnels. 
+While I2P's peer selection and ordering strategies should sufficiently address 
+predecessor attacks, should a switch to bidirectional tunnels be necessary,
+we could simply build an inbound and outbound tunnel along the same routers.
+{%- endtrans %}</p>
+
+  <p>{% trans -%}
+Another anonymity issue comes up in Tor's use of telescopic tunnel creation, 
+as simple packet counting and timing measurements as the cells in a circuit 
+pass through an adversary's node exposes statistical information regarding 
+where the adversary is within the circuit. I2P's unidirectional tunnel creation 
+with a single message so that this data is not exposed. Protecting the position 
+in a tunnel is important, as an adversary would otherwise be able to mount 
+a series of powerful predecessor, intersection, and traffic confirmation attacks. 
+{%- endtrans %}</p>
+
+  <p>{% trans -%}
+Tor's support for a second tier of "onion proxies" does offer a non-trivial 
+degree of anonymity while requiring a low cost of entry, while I2P will not 
+offer this topology until <a href="#future.restricted">2.0</a>.
+{%- endtrans %}</p>
+
+  <p>{% trans -%}
+On the whole, Tor and I2P complement each other in their focus - Tor works 
+towards offering high speed anonymous Internet outproxying, while I2P works 
+towards offering a decentralized resilient network in itself. In theory, both 
+can be used to achieve both purposes, but given limited development resources, 
+they both have their strengths and weaknesses. The I2P developers have considered 
+the steps necessary to modify Tor to take advantage of I2P's design, but concerns 
+of Tor's viability under resource scarcity suggest that I2P's packet switching 
+architecture will be able to exploit scarce resources more effectively.
+{%- endtrans %}</p>
+
+  <h2 id="similar.freenet">Freenet</h2>
+  <p><i><a href="http://www.freenetproject.org/">{% trans %}website{% endtrans %}</a></i></p>
+
+  <p>{% trans -%}
+Freenet played a large part in the initial stages of I2P's design - giving 
+proof to the viability of a vibrant pseudonymous community completely contained 
+within the network, demonstrating that the dangers inherent in outproxies 
+could be avoided. The first seed of I2P began as a replacement communication 
+layer for Freenet, attempting to factor out the complexities of a scalable, 
+anonymous and secure point to point communication from the complexities of 
+a censorship resistant distributed data store. Over time however, some of 
+the anonymity and scalability issues inherent in Freenet's algorithms made 
+it clear that I2P's focus should stay strictly on providing a generic anonymous 
+communication layer, rather than as a component of Freenet. Over the years, 
+the Freenet developers have come to see the weaknesses in the older design, 
+prompting them to suggest that they will require a "premix" layer to offer 
+substantial anonymity. In other words, Freenet needs to run on top of a mixnet 
+such as I2P or Tor, with "client nodes" requesting and publishing data through 
+the mixnet to the "server nodes" which then fetch and store the data according 
+to Freenet's heuristic distributed data storage algorithms.
+{%- endtrans %}</p>
+
+  <p>{% trans -%}
+Freenet's functionality is very complementary to I2P's, as Freenet natively 
+provides many of the tools for operating medium and high latency systems, 
+while I2P natively provides the low latency mix network suitable for offering 
+adequate anonymity. The logic of separating the mixnet from the censorship-
+resistant distributed data store still seems self-evident from an engineering, 
+anonymity, security, and resource allocation perspective, so hopefully the 
+Freenet team will pursue efforts in that direction, if not simply reusing 
+(or helping to improve, as necessary) existing mixnets like I2P or Tor.
+{%- endtrans %}</p>
+
+  <p>{% trans -%}
+It is worth mentioning that there has recently been discussion and work 
+by the Freenet developers on a "globally scalable darknet" using restricted 
+routes between peers of various trust. While insufficient information has 
+been made publicly available regarding how such a system would operate for 
+a full review, from what has been said the anonymity and scalability claims 
+seem highly dubious. In particular, the appropriateness for use in hostile 
+regimes against state level adversaries has been tremendously overstated, 
+and any analysis on the implications of resource scarcity upon the scalability 
+of the network has seemingly been avoided. Further questions regarding susceptibility 
+to traffic analysis, trust and other topics do exist, but a more in-depth 
+review of this "globally scalable darknet" will have to wait until the Freenet 
+team makes more information available.
+{%- endtrans %}</p>
+
+  <h1 id="app">Appendix A: Application layer</h1>
+  <p>{% trans -%}
+I2P itself doesn't really do much - it simply sends messages to remote destinations 
+and receives messages targeting local destinations - most of the interesting 
+work goes on at the layers above it. By itself, I2P could be seen as an anonymous 
+and secure IP layer, and the bundled <a href="#app.streaming">streaming library</a> 
+as an implementation of an anonymous and secure TCP layer on top of it. Beyond 
+that, <a href="#app.i2ptunnel">I2PTunnel</a> exposes a generic TCP proxying 
+system for either getting into or out of the I2P network, plus a variety of 
+network applications provide further functionality for end users.
+{%- endtrans %}</p>
+
+  <h2 id="app.streaming">{% trans %}Streaming library{% endtrans %}</h2>
+  <p>{% trans -%}
+The I2P streaming library can be viewed as a generic streaming interface (mirroring TCP sockets),
+and the implementation supports a <a href="http://en.wikipedia.org/wiki/Sliding_Window_Protocol">sliding window protocol</a>
+with several optimizations, to take into account the high delay over I2P.
+Individual streams may adjust the maximum packet size and 
+other options, though the default of 4KB compressed seems a reasonable tradeoff 
+between the bandwidth costs of retransmitting lost messages and the latency 
+of multiple messages.
+{%- endtrans %}</p>
+
+  <p>{% trans -%}
+In addition, in consideration of the relatively high cost of subsequent 
+messages, the streaming library's protocol for scheduling and delivering messages 
+has been optimized to allow individual messages passed to contain as much 
+information as is available. For instance, a small HTTP transaction proxied 
+through the streaming library can be completed in a single round trip - the 
+first message bundles a SYN, FIN and the small payload (an HTTP request typically 
+fits) and the reply bundles the SYN, FIN, ACK and the small payload (many 
+HTTP responses fit). While an additional ACK must be transmitted to tell the 
+HTTP server that the SYN/FIN/ACK has been received, the local HTTP proxy can 
+deliver the full response to the browser immediately.
+{%- endtrans %}</p>
+
+  <p>{% trans -%}
+On the whole, however, the streaming library bears much resemblance to an 
+abstraction of TCP, with its sliding windows, congestion control algorithms 
+(both slow start and congestion avoidance), and general packet behavior (ACK, 
+SYN, FIN, RST, etc).
+{%- endtrans %}</p>
+
+  <h2 id="app.naming">{% trans %}Naming library and addressbook{% endtrans %}</h2>
+  <p><i>{% trans naming=site_url('docs/naming') -%}
+For more information see the <a href="{{ naming }}">Naming and Addressbook</a> page.
+{%- endtrans %}</i></p>
+
+  <p><i>{% trans dev='mihi, Ragnarok' -%}Developed by: {{ dev }}{%- endtrans %}</i></p>
+
+  <p>{% trans -%}
+Naming within I2P has been an oft-debated topic since the very beginning 
+with advocates across the spectrum of possibilities. However, given I2P's 
+inherent demand for secure communication and decentralized operation, the 
+traditional DNS-style naming system is clearly out, as are "majority rules" 
+voting systems. Instead, I2P ships with a generic naming library and a base 
+implementation designed to work off a local name to destination mapping, as 
+well as an optional add-on application called the "addressbook". The addressbook 
+is a web-of-trust-driven secure, distributed, and human readable naming system, 
+sacrificing only the call for all human readable names to be globally unique 
+by mandating only local uniqueness. While all messages in I2P are cryptographically 
+addressed by their destination, different people can have local addressbook 
+entries for "Alice" which refer to different destinations. People can still 
+discover new names by importing published addressbooks of peers specified 
+in their web of trust, by adding in the entries provided through a third party, 
+or (if some people organize a series of published addressbooks using a first 
+come first serve registration system) people can choose to treat these addressbooks 
+as name servers, emulating traditional DNS.
+{%- endtrans %}</p>
+
+  <p>{% trans -%}
+I2P does not promote the use of DNS-like services though, as the damage 
+done by hijacking a site can be tremendous - and insecure destinations have 
+no value. DNSsec itself still falls back on registrars and certificate authorities, 
+while with I2P, requests sent to a destination cannot be intercepted or the 
+reply spoofed, as they are encrypted to the destination's public keys, and 
+a destination itself is just a pair of public keys and a certificate. DNS-style 
+systems on the other hand allow any of the name servers on the lookup path 
+to mount simple denial of service and spoofing attacks. Adding on a certificate 
+authenticating the responses as signed by some centralized certificate authority 
+would address many of the hostile nameserver issues but would leave open replay 
+attacks as well as hostile certificate authority attacks.
+{%- endtrans %}</p>
+
+  <p>{% trans -%}
+Voting style naming is dangerous as well, especially given the effectiveness 
+of Sybil attacks in anonymous systems - the attacker can simply create an 
+arbitrarily high number of peers and "vote" with each to take over a given 
+name. Proof-of-work methods can be used to make identity non-free, but as 
+the network grows the load required to contact everyone to conduct online 
+voting is implausible, or if the full network is not queried, different sets 
+of answers may be reachable.
+{%- endtrans %}</p>
+
+  <p>{% trans -%}
+As with the Internet however, I2P is keeping the design and operation of 
+a naming system out of the (IP-like) communication layer. The bundled naming 
+library includes a simple service provider interface which alternate naming 
+systems can plug into, allowing end users to drive what sort of naming tradeoffs 
+they prefer.
+{%- endtrans %}</p>
+
+  <h2 id="app.syndie">Syndie</h2>
+  <p><i>{% trans -%}
+The old Syndie bundled with I2P has been replaced by the new Syndie which
+is distributed separately. For more information see the <a href="http://syndie.i2p2.de/">Syndie</a>
+pages.
+{%- endtrans %}</i></p>
+
+  <p>{% trans -%}
+Syndie is a safe, anonymous blogging / content publication / content aggregation 
+system. It lets you create information, share it with others, and read posts 
+from those you're interested in, all while taking into consideration your 
+needs for security and anonymity. Rather than building its own content distribution 
+network, Syndie is designed to run on top of existing networks, syndicating 
+content through eepsites, Tor hidden services, Freenet freesites, normal websites, 
+usenet newsgroups, email lists, RSS feeds, etc. Data published with Syndie 
+is done so as to offer pseudonymous authentication to anyone reading or archiving 
+it.
+{%- endtrans %}</p>
+
+  <h2 id="app.i2ptunnel">I2PTunnel</h2>
+  <p><i>{% trans dev='mihi' -%}Developed by: {{ dev }}{%- endtrans %}</i></p>
+
+  <p>{% trans -%}
+I2PTunnel is probably I2P's most popular and versatile client application, 
+allowing generic proxying both into and out of the I2P network. I2PTunnel 
+can be viewed as four separate proxying applications - a "client" which receives 
+inbound TCP connections and forwards them to a given I2P destination, an "httpclient" 
+(aka "eepproxy") which acts like an HTTP proxy and forwards the requests to 
+the appropriate I2P destination (after querying the naming service if necessary), 
+a "server" which receives inbound I2P streaming connections on a destination 
+and forwards them to a given TCP host+port, and an "httpserver" which extends 
+the "server" by parsing the HTTP request and responses to allow safer operation. 
+There is an additional "socksclient" application, but its use is not encouraged 
+for reasons previously mentioned.
+{%- endtrans %}</p>
+
+  <p>{% trans -%}
+I2P itself is not an outproxy network - the anonymity and security concerns 
+inherent in a mix net which forwards data into and out of the mix have kept 
+I2P's design focused on providing an anonymous network which capable of meeting 
+the user's needs without requiring external resources. However, the I2PTunnel 
+"httpclient" application offers a hook for outproxying - if the hostname requested 
+doesn't end in ".i2p", it picks a random destination from a user-provided 
+set of outproxies and forwards the request to them. These destinations are 
+simply I2PTunnel "server" instances run by volunteers who have explicitly 
+chosen to run outproxies - no one is an outproxy by default, and running an 
+outproxy doesn't automatically tell other people to proxy through you. While 
+outproxies do have inherent weaknesses, they offer a simple proof of concept 
+for using I2P and provide some functionality under a threat model which may 
+be sufficient for some users.
+{%- endtrans %}</p>
+
+  <p>{% trans -%}
+I2PTunnel enables most of the applications in use. An "httpserver" pointing 
+at a webserver lets anyone run their own anonymous website (or "eepsite") 
+- a webserver is bundled with I2P for this purpose, but any webserver can 
+be used. Anyone may run a "client" pointing at one of the anonymously hosted 
+IRC servers, each of which are running a "server" pointing at their local 
+IRCd and communicating between IRCds over their own "client" tunnels. End 
+users also have "client" tunnels pointing at <a href="#app.i2pmail">I2Pmail's</a> 
+POP3 and SMTP destinations (which in turn are simply "server" instances pointing 
+at POP3 and SMTP servers), as well as "client" tunnels pointing at I2P's CVS 
+server, allowing anonymous development. At times people have even run "client" 
+proxies to access the "server" instances pointing at an NNTP server.
+{%- endtrans %}</p>
+
+  <h2 id="app.i2pbt">i2p-bt</h2>
+  <p><i>{% trans dev='duck, et al' -%}Developed by: {{ dev }}{%- endtrans %}</i></p>
+
+  <p>{% trans -%}
+i2p-bt is a port of the mainline python BitTorrent client to run both the 
+tracker and peer communication over I2P. Tracker requests are forwarded through 
+the eepproxy to eepsites specified in the torrent file while tracker responses 
+refer to peers by their destination explicitly, allowing i2p-bt to open up 
+a <a href="#app.streaming">streaming lib</a> connection to query them for 
+blocks.
+{%- endtrans %}</p>
+
+  <p>{% trans -%}
+In addition to i2p-bt, a port of bytemonsoon has been made to I2P, making 
+a few modifications as necessary to strip any anonymity-compromising information 
+from the application and to take into consideration the fact that IPs cannot 
+be used for identifying peers.
+{%- endtrans %}</p>
+
+  <h2 id="app.i2psnark">I2PSnark</h2>
+  <p><i>{% trans -%}
+I2PSnark developed: jrandom, et al, ported from <a
+href="http://www.klomp.org/mark/">mjw</a>'s <a
+href="http://www.klomp.org/snark/">Snark</a> client
+{%- endtrans %}</i></p>
+
+  <p>{% trans -%}
+Bundled with the I2P install, I2PSnark offers a simple anonymous BitTorrent 
+client with multitorrent capabilities, exposing all of the functionality through 
+a plain HTML web interface.
+{%- endtrans %}</p>
+
+  <h2 id="app.robert">Robert</h2>
+  <p><i>{% trans dev='sponge' -%}Developed by: {{ dev }}{%- endtrans %}</i></p>
+
+  <p>{% trans bob=i2pconv('bob.i2p') -%}
+Robert is a Bittorrent client written in Python.
+It is hosted on <a href="http://{{ bob }}/Robert.html">http://{{ bob }}/Robert.html</a> <!-- TODO: expand -->
+{%- endtrans %}</p>
+
+  <h2 id="app.pybit">PyBit</h2>
+  <p><i>{% trans dev='Blub' -%}Developed by: {{ dev }}{%- endtrans %}</i></p>
+
+  <p>{% trans pybit='http://'+i2pconv('echelon.i2p')+'/pybit/' -%}
+PyBit is a Bittorrent client written in Python.
+It is hosted on <a href="{{ pybit }}">{{ pybit }}</a> <!-- TODO: expand -->
+{%- endtrans %}</p>
+
+  <h2 id="app.i2phex">I2Phex</h2>
+  <p><i>{% trans dev='sirup' -%}Developed by: {{ dev }}{%- endtrans %}</i></p>
+
+  <p>{% trans -%}
+I2Phex is a fairly direct port of the Phex Gnutella filesharing client to 
+run entirely on top of I2P. While it has disabled some of Phex's functionality, 
+such as integration with Gnutella webcaches, the basic file sharing and chatting 
+system is fully functional.
+{%- endtrans %}</p>
+
+  <h2 id="app.imule">iMule</h2>
+  <p><i>{% trans dev='mkvore' -%}Developed by: {{ dev }}{%- endtrans %}</i></p>
+
+  <p>{% trans -%}
+iMule is a fairly direct port of the aMule filesharing client 
+running entirely inside I2P.
+{%- endtrans %}</p>
+
+  <h2 id="app.i2pmail">I2Pmail/susimail</h2>
+  <p><i>{% trans dev='postman, susi23, mastiejaner' -%}Developed by: {{ dev }}{%- endtrans %}</i></p>
+
+  <p>{% trans postman=i2pconv('hq.postman.i2p') -%}
+I2Pmail is more a service than an application - postman offers both internal 
+and external email with POP3 and SMTP service through I2PTunnel instances 
+accessing a series of components developed with mastiejaner, allowing people 
+to use their preferred mail clients to send and receive mail pseudonymously. 
+However, as most mail clients expose substantial identifying information, 
+I2P bundles susi23's web based susimail client which has been built specifically 
+with I2P's anonymity needs in mind. The I2Pmail/mail.i2p service offers transparent 
+virus filtering as well as denial of service prevention with hashcash augmented 
+quotas. In addition, each user has control of their batching strategy prior 
+to delivery through the mail.i2p outproxies, which are separate from the mail.i2p 
+SMTP and POP3 servers - both the outproxies and inproxies communicate with 
+the mail.i2p SMTP and POP3 servers through I2P itself, so compromising those 
+non-anonymous locations does not give access to the mail accounts or activity 
+patterns of the user. At the moment the developers work on a decentralized 
+mailsystem, called "v2mail". More information can be found on the eepsite 
+<a href="http://{{ postman }}/">{{ postman }}</a>.
+{%- endtrans %}</p>
+
+  <h2 id="app.i2pbote">I2P-Bote</h2>
+  <p><i>{% trans dev='HungryHobo' -%}Developed by: {{ dev }}{%- endtrans %}</i></p>
+
+  <p>{% trans -%}
+I2P-Bote is a distributed e-mail application. It does not use the traditional
+e-mail concept of sending an e-mail to a server and retrieving it from a server.
+Instead, it uses a Kademlia Distributed Hash Table to store mails.
+One user can push a mail into the DHT, while another can request the e-mail from the DHT.
+And all the mails sent within the I2P-Bote network are automatically encrypted end-to-end. <br>
+Furthermore, I2P-Bote offers a remailer function on top of I2P, for increased high-latency anonymity.
+{%- endtrans %}</p>
+
+  <h2 id="app.i2pmessenger">I2P-Messenger</h2>
+  <p>{% trans -%}
+I2P-Messenger is an end-to-end encrypted serverless communication application.
+For communication between two users, they need to give each other their destination keys, to allow the other to connect.
+It supports file transfer and has a search for other users, based on Seedless.
+{%- endtrans %}</p>
+{% endblock %}

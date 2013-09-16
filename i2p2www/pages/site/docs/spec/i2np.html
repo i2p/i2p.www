@@ -1,0 +1,1063 @@
+{% extends "global/layout.html" %}
+{% block title %}I2NP Specification{% endblock %}
+{% block lastupdated %}July 2013{% endblock %}
+{% block accuratefor %}0.9.7{% endblock %}
+{% block content %}
+<h1>I2P Network Protocol (I2NP) Specification</h1>
+<p>
+The I2P Network Protocol (I2NP),
+which is sandwiched between I2CP and the various I2P transport protocols, manages the
+routing and mixing of messages between routers, as well as the selection of what
+transports to use when communicating with a peer for which there are multiple
+common transports supported.
+</p>
+
+<h2 id="structures">Common structures</h2>
+The following structures are elements of multiple I2NP messages.
+They are not complete messages.
+
+<h3 id="struct_header">I2NP message header</h3>
+<h4>Description</h4>
+<p>
+  Common header to all I2NP messages, which contains important information like a checksum, expiration date, etc.
+</p>
+<h4>Contents</h4>
+<p>
+  1 byte <a href="{{ site_url('docs/spec/common-structures') }}#type_Integer">Integer</a> specifying the type of this message,
+ followed by a 4 byte <a href="{{ site_url('docs/spec/common-structures') }}#type_Integer">Integer</a> specifying the message-id.
+ After that there is an expiration <a href="{{ site_url('docs/spec/common-structures') }}#type_Date">Date</a>,
+ followed by a 2 byte <a href="{{ site_url('docs/spec/common-structures') }}#type_Integer">Integer</a> specifying
+ the length of the message payload, followed by a <a href="{{ site_url('docs/spec/common-structures') }}#type_Hash">Hash</a>,
+ which is truncated to the first byte. After that the actual message data follows.
+</p>
+{% highlight lang='dataspec' %}
+Standard (16 bytes):
+
++----+----+----+----+----+----+----+----+
+|type|      msg_id       |  expiration
++----+----+----+----+----+----+----+----+
+                         |  size   |chks|
++----+----+----+----+----+----+----+----+
+
+Short (SSU, 5 bytes):
+
++----+----+----+----+----+
+|type| short_expiration  |
++----+----+----+----+----+
+
+{% endhighlight %}
+
+<h4>Definition</h4>
+{% highlight lang='dataspec' %}
+type :: Integer
+        length -> 1 byte
+        
+        purpose -> identifies the message type (see table below)
+
+msg_id :: Integer
+          length -> 4 bytes
+
+          purpose -> uniquely identifies this message (for some time at least)
+
+expiration :: Date
+           8 bytes
+           date this message will expire
+
+short_expiration :: Integer
+           4 bytes
+           date this message will expire (seconds since the epoch)
+
+size :: Integer
+        length -> 2 bytes
+        
+        purpose -> length of the payload
+
+chks :: Integer
+        length -> 1 byte
+     
+        purpose -> checksum of the payload
+                   SHA256 hash truncated to the first byte
+
+data :: Data
+        length -> $size bytes
+        
+        purpose -> actual message contents
+{% endhighlight %}
+<h4>Notes</h4>
+<ul><li>
+When transmitted over <a href="{{ site_url('docs/transport/ssu') }}">SSU</a>,
+the 16-byte standard header is not used.
+Only a 1-byte type and a 4-byte expiration in seconds is included.
+The message id and size are
+incorporated into various parts of the SSU data packet format.
+The checksum is not required since errors are caught in decryption.
+</li><li>
+The standard header is also required for I2NP messages contained in other messages and structures
+(Data, TunnelData, TunnelGateway, and GarlicClove).
+As of release 0.8.12, to reduce overhead, checksum verification is disabled at
+some places in the protocol stack.
+However, for compatibility with older versions, checksum generation is still required.
+It is a topic for future research to determine points in the protocol stack
+where the far-end router's version is known and checksum generation can be disabled.
+</li></ul>
+
+
+<h3 id="struct_BuildRequestRecord">BuildRequestRecord</h3>
+<h4>Description</h4>
+<p>
+  One Record in a set of multiple records to request the creation of one hop in the tunnel. For more details see
+  <a href="{{ site_url('docs/tunnels/implementation') }}">the tunnel overview</a> and
+  <a href="{{ site_url('docs/spec/tunnel-creation') }}">the tunnel creation specification</a>.
+</p>
+<h4>Contents</h4>
+<p>
+  <a href="{{ site_url('docs/spec/common-structures') }}#type_TunnelId">TunnelId</a> to receive messages on, followed by the <a href="{{ site_url('docs/spec/common-structures') }}#type_Hash">Hash</a> of our <a href="{{ site_url('docs/spec/common-structures') }}#struct_RouterIdentity">RouterIdentity</a>. After that the <a href="{{ site_url('docs/spec/common-structures') }}#type_TunnelId">TunnelId</a> and the <a href="{{ site_url('docs/spec/common-structures') }}#type_Hash">Hash</a> of the next router's <a href="{{ site_url('docs/spec/common-structures') }}#struct_RouterIdentity">RouterIdentity</a> follow.
+</p>
+<h4>Definition</h4>
+{% highlight lang='dataspec' %}
+Cleartext:
++----+----+----+----+----+----+----+----+
+| receive_tunnel    | our_ident         |
++----+----+----+----+                   +
+|                                       |
++                                       +
+|                                       |
++                                       +
+|                                       |
++                   +----+----+----+----+
+|                   | next_tunnel       |
++----+----+----+----+----+----+----+----+
+| next_ident                            |
++                                       +
+|                                       |
++                                       +
+|                                       |
++                                       +
+|                                       |
++----+----+----+----+----+----+----+----+
+| layer_key                             |
++                                       +
+|                                       |
++                                       +
+|                                       |
++                                       +
+|                                       |
++----+----+----+----+----+----+----+----+
+| iv_key                                |
++                                       +
+|                                       |
++                                       +
+|                                       |
++                                       +
+|                                       |
++----+----+----+----+----+----+----+----+
+| reply_key                             |
++                                       +
+|                                       |
++                                       +
+|                                       |
++                                       +
+|                                       |
++----+----+----+----+----+----+----+----+
+| reply_iv                              |
++                                       +
+|                                       |
++----+----+----+----+----+----+----+----+
+|flag| request_time      | send_msg_id
++----+----+----+----+----+----+----+----+
+     |                                  |
++----+                                  +
+|         29 bytes padding              |
++                                       +
+|                                       |
++                             +----+----+
+|                             |
++----+----+----+----+----+----+
+
+
+ElGamal encrypted:
++----+----+----+----+----+----+----+----+
+| toPeer                                |
++                                       +
+|                                       |
++----+----+----+----+----+----+----+----+
+| encrypted data ...                    |
+~                                       ~
+|                                       |
++----+----+----+----+----+----+----+----+
+
+
+ElGamal and AES encrypted:
++----+----+----+----+----+----+----+----+
+| encrypted data ...                    |
+~                                       ~
+|                                       |
++----+----+----+----+----+----+----+----+
+{% endhighlight %}
+
+<h4>Definition</h4>
+{% highlight lang='dataspec' %}
+unencrypted:
+
+receive_tunnel :: TunnelId
+                  length -> 4 bytes
+our_ident :: Hash
+             length -> 32 bytes
+
+next_tunnel :: TunnelId
+               length -> 4 bytes
+
+next_ident :: Hash
+              length -> 32 bytes
+
+layer_key :: SessionKey
+             length -> 32 bytes
+
+iv_key :: SessionKey
+          length -> 32 bytes
+
+reply_key :: SessionKey
+             length -> 32 bytes
+
+reply_iv :: data
+            length -> 16 bytes
+
+flag :: Integer
+        length -> 1 byte
+
+request_time :: Integer
+                length -> 4 bytes
+                Hours since the epoch, i.e. current time / 3600
+
+send_message_id :: Integer
+                   length -> 4 bytes
+
+padding :: Data
+           length -> 29 bytes
+           source -> random
+
+total length: 222
+
+
+ElGamal encrypted:
+
+toPeer :: First 16 bytes of the SHA-256 Hash of the peer's router identity
+          length -> 16 bytes
+
+encrypted_data :: ElGamal-2048 encrypted data (see notes)
+                  length -> 512
+
+total length: 528
+
+
+ElGamal and AES encrypted:
+
+encrypted_data :: ElGamal and AES encrypted data
+                  length -> 528
+
+total length: 528
+
+{% endhighlight %}
+
+<h4>Notes</h4>
+<ul><li>
+In the 512-byte encrypted record,
+the ElGamal data contains bytes 1-256 and 258-513 of the
+<a href="{{ site_url('docs/how/cryptography') }}#elgamal">514-byte ElGamal encrypted block</a>.
+The two padding bytes from the block (the zero bytes at locations 0 and 257) are removed.
+</li><li>
+  See the <a href="{{ site_url('docs/spec/tunnel-creation') }}">tunnel creation specification</a> for details on field contents.
+</li></ul>
+</p>
+
+
+<h3 id="struct_BuildResponseRecord">BuildResponseRecord</h3>
+{% highlight lang='dataspec' %}
+unencrypted:
++----+----+----+----+----+----+----+----+
+|                                       |
++                                       +
+|                                       |
++   SHA-256 Hash of following bytes     +
+|                                       |
++                                       +
+|                                       |
++----+----+----+----+----+----+----+----+
+| random data...                        |
+~                                       ~
+|                                       |
++                                  +----+
+|                                  |ret |
++----+----+----+----+----+----+----+----+
+{% endhighlight %}
+<h4>Definition</h4>
+{% highlight lang='dataspec' %}
+unencrypted:
+bytes 0-31   : SHA-256 Hash of bytes 32-527
+bytes 32-526 : random data
+byte  527    : reply
+
+encrypted:
+bytes 0-527: AES-encrypted record(note: same size as BuildRequestRecord)
+
+total length: 528
+
+{% endhighlight %}
+
+<h4>Notes</h4>
+<ul><li>
+  The random data field could, in the future, be used to return congestion or peer connectivity information
+  back to the requestor.
+</li><li>
+  See the <a href="{{ site_url('docs/spec/tunnel-creation') }}">tunnel creation specification</a> for details on the reply field.
+</li></ul>
+
+
+<h3 id="struct_GarlicClove">GarlicClove</h3>
+{% highlight lang='dataspec' %}
+unencrypted:
++----+----+----+----+----+----+----+----+
+| Delivery Instructions                 |
+~                                       ~
+~                                       ~
+|                                       |
++----+----+----+----+----+----+----+----+
+| I2NP Message                          |
+~                                       ~
+~                                       ~
+|                                       |
++----+----+----+----+----+----+----+----+
+|    Clove ID       |     Expiration
++----+----+----+----+----+----+----+----+
+                    | Certificate  |
++----+----+----+----+----+----+----+
+{% endhighlight %}
+<h4>Definition</h4>
+<pre>
+unencrypted:
+Delivery Instructions :: <a href="{{ site_url('docs/spec/tunnel-message') }}#delivery">as defined here</a>
+       Length varies but is typically 39, 43, or 47 bytes
+
+I2NP Message :: Any I2NP Message
+
+Clove ID :: 4 byte Integer
+
+Expiration :: Date (8 bytes)
+
+Certificate :: Always NULL in the current implementation (3 bytes total, all zeroes)
+
+</pre>
+
+<h4>Notes</h4>
+<ul>
+<li>
+  Cloves are never fragmented.
+  When used in a Garlic Clove, the first bit of the Delivery Instructions flag byte (the fragment bit) is redefined.
+  If this bit is 0, the clove is not encrypted.
+  If 1, the clove is encrypted, and a 32 byte Session Key immediately follows the flag byte.
+  Clove encryption is not fully implemented.
+<li>
+  See also the <a href="{{ site_url('docs/how/garlic-routing') }}">garlic routing specification</a>.
+<li>
+  See also <a href="{{ site_url('docs/spec/tunnel-message') }}#delivery">Delivery Instructions definition</a>
+<li>
+  Maximum length is a function of the total length of all the cloves and the
+  maximum length of the GarlicMessage.
+<li>
+  In the future, the certificate could possibly be used for a HashCash to "pay" for the routing.
+<li>
+  The message can be any I2NP message (including a GarlicMessage, although that is not used in practice).
+  The messages used in practice are DataMessage, DeliveryStatusMessage, and DatabaseStoreMessage.
+<li>
+  The Clove ID is generally set to a random number on transmit and is checked for
+  duplicates on receive (same message ID space as top-level Message IDs)
+</ul>
+
+
+<h3 id="struct_DeliveryInstructions">Delivery Instructions</h3>
+Defined in the <a href="{{ site_url('docs/spec/tunnel-message') }}#delivery">Tunnel Message Specification</a>.
+
+
+<h2 id="messages">Messages</h2>
+<table border=1>
+  <tr>
+    <th>Message</th>
+    <th>Type</th>
+  </tr>
+  <tr>
+    <td><a href="#msg_DatabaseStore">DatabaseStore</a></td>
+    <td align="right">1</td>
+  </tr>
+  <tr>
+    <td><a href="#msg_DatabaseLookup">DatabaseLookup</a></td>
+    <td align="right">2</td>
+  </tr>
+  <tr>
+    <td><a href="#msg_DatabaseSearchReply">DatabaseSearchReply</a></td>
+    <td align="right">3</td>
+  </tr>
+  <tr>
+    <td><a href="#msg_DeliveryStatus">DeliveryStatus</a></td>
+    <td align="right">10</td>
+  </tr>
+  <tr>
+    <td><a href="#msg_Garlic">Garlic</a></td>
+    <td align="right">11</td>
+  </tr>
+  <tr>
+    <td><a href="#msg_TunnelData">TunnelData</a></td>
+    <td align="right">18</td>
+  </tr>
+  <tr>
+    <td><a href="#msg_TunnelGateway">TunnelGateway</a></td>
+    <td align="right">19</td>
+  </tr>
+  <tr>
+    <td><a href="#msg_Data">Data</a></td>
+    <td align="right">20</td>
+  </tr>
+  <tr>
+    <td><a href="#msg_TunnelBuild">TunnelBuild</a></td>
+    <td align="right">21</td>
+  </tr>
+  <tr>
+    <td><a href="#msg_TunnelBuildReply">TunnelBuildReply</a></td>
+    <td align="right">22</td>
+  </tr>
+  <tr>
+    <td><a href="#msg_VariableTunnelBuild">VariableTunnelBuild</a></td>
+    <td align="right">23</td>
+  </tr>
+  <tr>
+    <td><a href="#msg_VariableTunnelBuildReply">VariableTunnelBuildReply</a></td>
+    <td align="right">24</td>
+  </tr>
+</table>
+
+<h3 id="msg_DatabaseStore">DatabaseStore</h3>
+<h4>Description</h4>
+<p>
+  An unsolicited database store, or the response to a successful Database Lookup Message
+</p>
+<h4>Contents</h4>
+<p>
+  An uncompressed LeaseSet or a compressed RouterInfo
+</p>
+{% highlight lang='dataspec' %}
+with reply token:
++----+----+----+----+----+----+----+----+
+| SHA256 Hash as key                    |
++                                       +
+|                                       |
++                                       +
+|                                       |
++                                       +
+|                                       |
++----+----+----+----+----+----+----+----+
+|type| reply token       | reply tunnel-
++----+----+----+----+----+----+----+----+
+ Id  | SHA256 of the gateway RouterInfo |
++----+                                  +
+|                                       |
++                                       +
+|                                       |
++                                       +
+|                                       |
++    +----+----+----+----+----+----+----+
+|    | data ...
++----+-//
+
+with reply token == 0:
++----+----+----+----+----+----+----+----+
+| SHA256 Hash as key                    |
++                                       +
+|                                       |
++                                       +
+|                                       |
++                                       +
+|                                       |
++----+----+----+----+----+----+----+----+
+|type|         0         | data ...
++----+----+----+----+----+-//
+{% endhighlight %}
+<h4>Definition</h4>
+<pre>
+key:
+    32 bytes
+    SHA256 hash
+
+type:
+     1 byte
+     type identifier
+     mapping:
+             0    RouterInfo
+             1    LeaseSet
+
+reply token:
+            4 bytes
+            If greater than zero, a <a href="#msg_DeliveryStatus">Delivery Status Message</a>
+            is requested with the Message ID set to the value of the Reply Token.
+            A floodfill router is also expected to flood the data to the closest floodfill peers
+            if the token is greater than zero.
+
+reply tunnelId:
+               4 byte Tunnel ID
+               only included if reply token &gt; 0
+               This is the <a href="{{ site_url('docs/spec/common-structures') }}#type_TunnelID">tunnel ID</a> of the inbound gateway of the tunnel the response should be sent to
+
+reply gateway:
+              32 bytes
+              Hash of the routerInfo entry to reach the gateway
+              only included if reply token &gt; 0
+              This is the router hash of the inbound gateway of the tunnel the response should be sent to
+
+data:
+     If type == 0, data is a 2-byte integer specifying the number of bytes that follow, followed by a gzip-compressed RouterInfo.
+     If type == 1, data is an uncompressed LeaseSet.
+</pre>
+
+<h4>Notes</h4>
+<ul><li>
+For security, the reply fields are ignored if the message is received down a tunnel.
+</li><li>
+The key is the "real" hash of the RouterIdentity or Destination, NOT the routing key.
+</li></ul>
+
+
+
+<h3 id="msg_DatabaseLookup">DatabaseLookup</h3>
+<h4>Description</h4>
+<p>
+  A request to look up an item in the network database.
+  The response is either a DatabaseStore or a DatabaseSearchReply.
+</p>
+<h4>Contents</h4>
+{% highlight lang='dataspec' %}
++----+----+----+----+----+----+----+----+
+| SHA256 hash as the key to look up     |
++                                       +
+|                                       |
++                                       +
+|                                       |
++                                       +
+|                                       |
++----+----+----+----+----+----+----+----+
+| SHA256 hash of the routerInfo         |
++ who is asking, or the gateway to      +
+| send the reply to                     |
++                                       +
+|                                       |
++                                       +
+|                                       |
++----+----+----+----+----+----+----+----+
+|flag| reply_tunnelId    |size     |    |
++----+----+----+----+----+----+----+    +
+| SHA256 of $key1 to exclude            |
++                                       +
+|                                       |
++                                       +
+|                                       |
++                                  +----+
+|                                  |    |
++----+----+----+----+----+----+----+    +
+| SHA256 of $key2 to exclude            |
++                                       +
+~                                       ~
++                                  +----+
+|                                  |    |
++----+----+----+----+----+----+----+    +
+|                                       |
++                                       +
+|   Session key if reply encryption     |
++   was requested                       +
+|                                       |
++                                  +----+
+|                                  |tags|
++----+----+----+----+----+----+----+----+
+|                                       |
++                                       +
+|   Session tags if reply encryption    |
++   was requested                       +
+|                                       |
++                                       +
+|                                       |
++----+----+----+----+----+----+----+----+
+{% endhighlight %}
+
+<h4>Definition</h4>
+{% highlight lang='dataspec' %}
+key ::
+    32 bytes
+    SHA256 hash of the object to lookup
+
+from ::
+     32 bytes
+     if deliveryFlag == 0, the SHA256 hash of the routerInfo entry this request came from (and to which the reply should be sent)
+     if deliveryFlag == 1, the SHA256 hash of the reply tunnel gateway (to which the reply should be sent)
+
+flags ::
+     1 byte
+     bit order: 76543210
+     bit 0: deliveryFlag
+             0  => send reply directly
+             1  => send reply to some tunnel
+     bit 1: encryptionFlag
+             through release 0.9.5, must be set to 0
+             as of release 0.9.6, ignored
+             as of release 0.9.7:
+             0  => send unencrypted reply
+             1  => send AES encrypted reply using enclosed key and tag
+     bits 7-2:
+             through release 0.9.5, must be set to 0
+             as of release 0.9.6, ignored, set to 0 for compatibility with future uses and with older routers
+
+reply_tunnelId ::
+               4 byte Tunnel ID
+               only included if deliveryFlag == 1
+               tunnelId of the tunnel to send the reply to
+
+size ::
+     2 byte Integer
+     valid range: 0-512
+     number of peers to exclude from the DatabaseSearchReply Message
+
+excludedPeers ::
+              $size SHA256 hashes of 32 bytes each (total $size*32 bytes)
+              if the lookup fails, these peers are requested to be excluded from the list in
+              the DatabaseSearchReply Message.
+              if excludedPeers includes a hash of all zeroes, the request is exploratory, and
+              the DatabaseSearchReply Message is requested to list non-floodfill routers only.
+
+reply_key ::
+     32 byte SessionKey
+     only included if encryptionFlag == 1, only as of release 0.9.7
+
+tags ::
+     1 byte Integer
+     valid range: 1-32 (typically 1)
+     the number of reply tags that follow
+     only included if encryptionFlag == 1, only as of release 0.9.7
+
+reply_tags ::
+     one or more 32 byte SessionTags (typically one)
+     only included if encryptionFlag == 1, only as of release 0.9.7
+
+{% endhighlight %}
+
+<h4>Notes</h4>
+<ul><li>
+The key may be for a RouterInfo or LeaseSet, as they are in the same key space,
+and there is no flag to request only a particular type of data.
+</li><li>
+Encryption flag, reply key, and reply tags as of release 0.9.7.
+</li><li>
+Encrypted replies are only useful when the response is through a tunnel.
+</li><li>
+The number of included tags could be greater than one if alternative DHT lookup strategies
+(for example, recursive lookups) are implemented.
+</li><li>
+The lookup key and exclude keys are the "real" hashes, NOT routing keys.
+</li></ul>
+
+
+<h3 id="msg_DatabaseSearchReply">DatabaseSearchReply</h3>
+<h4>Description</h4>
+<p>
+  The response to a failed Database Lookup Message
+</p>
+<h4>Contents</h4>
+<p>
+  A list of router hashes closest to the requested key
+</p>
+{% highlight lang='dataspec' %}
++----+----+----+----+----+----+----+----+
+| SHA256 hash as query key              |
++                                       +
+|                                       |
++                                       +
+|                                       |
++                                       +
+|                                       |
++----+----+----+----+----+----+----+----+
+|num | peer_hash $1                     |
++----+                                  +
+|                                       |
++                                       +
+|                                       |
++                                       +
+|                                       |
++    +----+----+----+----+----+----+----+
+|    |                                  |
++----+ $num peer_hashes                 +
+
++    +----+----+----+----+----+----+----+
+|    | from                             |
++----+                                  +
+|                                       |
++                                       +
+|                                       |
++                                       +
+|                                       |
++    +----+----+----+----+----+----+----+
+|    |
++----+
+
+
+{% endhighlight %}
+
+<h4>Definition</h4>
+{% highlight lang='dataspec' %}
+key ::
+    32 bytes
+    SHA256 of the object being searched
+
+num ::
+    1 byte Integer
+    number of peer hashes that follow, 0-255
+
+peer_hash ($num entries) ::
+          32 bytes
+          SHA256 of the RouterIdentity that the other router thinks is close to the key
+
+from ::
+     32 bytes
+     SHA256 of the RouterInfo of the router this reply was sent from
+{% endhighlight %}
+
+<h4>Notes</h4>
+<ul><li>
+  The 'from' hash is unauthenticated and cannot be trusted.
+</li><li>
+  The returned peer hashes are not necessarily closer to the key
+  than the router being queried.
+</li><li>
+  Typical number of hashes returned: 3
+</li><li>
+The lookup key, peer hashes, and from hash are "real" hashes, NOT routing keys.
+</li>
+</ul>
+
+
+
+<h3 id="msg_DeliveryStatus">DeliveryStatus</h3>
+<h4>Description</h4>
+<p>
+  A simple message acknowledgment. Generally created by the message originator, and wrapped
+  in a Garlic Message with the message itself, to be returned by the destination.
+</p>
+<h4>Contents</h4>
+<p>
+  The ID of the delivered message, and the creation or arrival time.
+</p>
+{% highlight lang='dataspec' %}
++----+----+----+----+----+----+----+----+----+----+----+----+
+|msg_id             |           time_stamp                  |
++----+----+----+----+----+----+----+----+----+----+----+----+
+{% endhighlight %}
+
+<h4>Definition</h4>
+{% highlight lang='dataspec' %}
+msg_id ::
+       4 bytes
+       unique ID of the message we deliver the DeliveryStatus for (see common I2NP header for details)
+
+time_stamp :: Date
+             8 bytes
+             time the message was successfully created or delivered
+{% endhighlight %}
+
+<h4>Notes</h4>
+<ul><li>
+  It appears that the time stamp is always set by the creator to the current time.
+  However there are several uses of this in the code, and more may be added in the future.
+</li><li>
+  This message is also used as a session established confirmation in <a href="{{ site_url('docs/transport/ssu') }}#establishDirect">SSU</a>.
+  In this case, the message ID is set to a random number, and the
+  "arrival time" is set to the current network-wide ID, which is 2
+  (i.e. 0x0000000000000002).
+</ul>
+
+<h3 id="msg_Garlic">Garlic</h3>
+<h4>Description</h4>
+<p>
+  Used to wrap multiple encrypted I2NP Messages
+</p>
+<h4>Contents</h4>
+<p>
+  When decrypted, a series of <a href="#struct_GarlicClove">Garlic Cloves</a>.
+</p>
+{% highlight lang='dataspec' %}
+encrypted:
++----+----+----+----+----+----+----+----+
+|      length       | data              |
++----+----+----+----+                   +
+|                                       |
+~                                       ~
+~                                       ~
+|                                       |
++----+----+----+----+----+----+----+----+
+
+
+unencrypted data:
++----+----+----+----+----+----+----+----+
+|num |  clove 1                         |
++----+                                  +
+|                                       |
+~                                       ~
+~                                       ~
+|                                       |
++----+----+----+----+----+----+----+----+
+|         clove 2 ...                   |
+~                                       ~
+~                                       ~
+|                                       |
++----+----+----+----+----+----+----+----+
+| Certificate  |   Message_ID      |     
++----+----+----+----+----+----+----+----+
+          Expiration               |
++----+----+----+----+----+----+----+
+{% endhighlight %}
+
+<h4>Definition</h4>
+{% highlight lang='dataspec' %}
+Encrypted:
+
+length ::
+       4 byte Integer
+       number of bytes that follow 0 - 64 KB
+
+data ::
+     $length bytes
+     ElGamal encrypted data
+
+
+Unencrypted data:
+
+num ::
+     1 byte Integer number of GarlicCloves to follow
+
+clove ::  a GarlicClove
+
+Certificate :: always NULL in the current implementation (3 bytes total, all zeroes)
+
+Message_ID :: 4 byte Integer
+
+Expiration :: Date (8 bytes)
+
+{% endhighlight %}
+
+<h4>Notes</h4>
+<ul>
+<li>
+  When unencrypted, data contains one or more <a href="#struct_GarlicClove">Garlic Cloves</a>.
+<li>
+  The AES encrypted block is padded to a minimum of 128 bytes; with the 32-byte Session Tag
+  the minimum size of the encrypted message is 160 bytes; with the 4 length bytes
+  the minimum size of the Garlic Message is 164 bytes.
+<li>
+  Actual max length is less than 64 KB; see the <a href="{{ site_url('docs/protocol/i2np') }}">I2NP Overview</a>.
+<li>
+  See also the <a href="{{ site_url('docs/how/elgamal-aes') }}">ElGamal/AES specification</a>.
+<li>
+  See also the <a href="{{ site_url('docs/how/garlic-routing') }}">garlic routing specification</a>.
+<li>
+  The 128 byte minimum size of the AES encrypted block is not currently configurable,
+  however the minimum size of a DataMessage in a GarlicClove in a GarlicMessage, with
+  overhead, is 128 bytes anyway. A configurable option to increase the minimum size
+  may be added in the future.
+<li>
+  The message ID is generally set to a random number on transmit and
+  appears to be ignored on receive.
+<li>
+  In the future, the certificate could possibly be used for a HashCash to "pay" for the routing.
+</ul>
+
+
+<h3 id="msg_TunnelData">TunnelData</h3>
+<h4>Description</h4>
+<p>
+  A message sent from a tunnel's gateway or participant to the next participant or endpoint.
+  The data is of fixed length, containing I2NP messages that are fragmented, batched, padded, and encrypted.
+</p>
+<h4>Contents</h4>
+{% highlight lang='dataspec' %}
++----+----+----+----+----+----+----+----+
+|     tunnnelID     | data              |
++----+----+----+----+                   |
+|                                       |
+~                                       ~
+~                                       ~
+|                                       |
++                   +----+----+----+----+
+|                   |
++----+----+----+----+
+{% endhighlight %}
+
+<h4>Definition</h4>
+{% highlight lang='dataspec' %}
+tunnelId ::
+         4 byte Tunnel ID
+         identifies the tunnel this message is directed at
+
+data ::
+     1024 bytes
+     payload data.. fixed to 1024 bytes
+{% endhighlight %}
+
+<h4>Notes</h4>
+<ul>
+<li>
+  See also the <a href="{{ site_url('docs/spec/tunnel-message') }}">Tunnel Message Specification</a>
+</ul>
+
+
+<h3 id="msg_TunnelGateway">TunnelGateway</h3>
+<h4>Description</h4>
+<p>
+  Wraps another I2NP message to be sent into a tunnel at the tunnel's inbound gateway.
+</p>
+<h4>Contents</h4>
+{% highlight lang='dataspec' %}
++----+----+----+----+----+----+----+-//
+| tunnelId          | length  | data...
++----+----+----+----+----+----+----+-//
+{% endhighlight %}
+
+<h4>Definition</h4>
+{% highlight lang='dataspec' %}
+tunnelId ::
+         4 byte Tunnel ID
+         identifies the tunnel this message is directed at
+
+length ::
+       2 byte Integer
+       length of the payload
+
+data ::
+     $length bytes
+     actual payload of this message
+{% endhighlight %}
+
+<h4>Notes</h4>
+<ul>
+<li>
+  The payload is an I2NP message with a standard 16-byte header.
+</ul>
+
+
+<h3 id="msg_Data">Data</h3>
+<h4>Description</h4>
+<p>
+  Used as a wrapper for encrypted Garlic Messages and Garlic Cloves.
+  Also used previously for network load testing.
+</p>
+<h4>Contents</h4>
+<p>
+  A length Integer, followed by opaque data.
+</p>
+{% highlight lang='dataspec' %}
++----+----+----+----+----+-//
+| length            | data...
++----+----+----+----+----+-//
+{% endhighlight %}
+
+<h4>Definition</h4>
+{% highlight lang='dataspec' %}
+length ::
+       4 bytes
+       length of the payload
+
+data ::
+     $length bytes
+     actual payload of this message
+{% endhighlight %}
+
+<h3 id="msg_TunnelBuild">TunnelBuild</h3>
+{% highlight lang='dataspec' %}
++----+----+----+----+----+----+----+----+
+| Record 0 ...                          |
+
+|                                       |
++----+----+----+----+----+----+----+----+
+| Record 1 ...                          |
+
+.....
++----+----+----+----+----+----+----+----+
+| Record 7 ...                          |
+
+|                                       |
++----+----+----+----+----+----+----+----+
+{% endhighlight %}
+
+<h4>Definition</h4>
+{% highlight lang='dataspec' %}
+Just 8 Build Request Records attached together
+record size: 528 bytes
+total size: 8*528 = 4224 bytes
+{% endhighlight %}
+
+<h4>Notes</h4>
+<p>
+  See also the <a href="{{ site_url('docs/spec/tunnel-creation') }}">tunnel creation specification</a>.
+</p>
+
+
+<h3 id="msg_TunnelBuildReply">TunnelBuildReply</h3>
+{% highlight lang='dataspec' %}
+same format as TunnelBuild message, with Build Response Records
+{% endhighlight %}
+
+<h4>Notes</h4>
+<p>
+  See also the <a href="{{ site_url('docs/spec/tunnel-creation') }}">tunnel creation specification</a>.
+</p>
+
+<h3 id="msg_VariableTunnelBuild">VariableTunnelBuild</h3>
+{% highlight lang='dataspec' %}
++----+----+----+----+----+----+----+----+
+|num | BuildRequestRecords...
++----+----+----+----+----+----+----+----+
+{% endhighlight %}
+
+<h4>Definition</h4>
+{% highlight lang='dataspec' %}
+Same format as TunnelBuildMessage, except for the addition of an "num" field in front and $num number of Build Request Records instead of 8
+
+num ::
+       1 byte Integer
+       Valid values: 1-8
+
+record size: 528 bytes
+total size: 1 + $num*528
+{% endhighlight %}
+
+<h4>Notes</h4>
+<ul>
+<li>
+  This message was introduced in router version 0.7.12, and may not be sent to tunnel participants earlier than that version.
+<li>
+  See also the <a href="{{ site_url('docs/spec/tunnel-creation') }}">tunnel creation specification</a>.
+</ul>
+
+<h3 id="msg_VariableTunnelBuildReply">VariableTunnelBuildReply</h3>
+{% highlight lang='dataspec' %}
++----+----+----+----+----+----+----+----+
+|num | BuildResponseRecords...
++----+----+----+----+----+----+----+----+
+{% endhighlight %}
+
+<h4>Definition</h4>
+Same format as VariableTunnelBuild message, with Build Response Records.
+
+
+<h4>Notes</h4>
+<ul>
+<li>
+  This message was introduced in router version 0.7.12, and may not be sent to tunnel participants earlier than that version.
+<li>
+  See also the <a href="{{ site_url('docs/spec/tunnel-creation') }}">tunnel creation specification</a>.
+</ul>
+
+
+
+{% endblock %}
