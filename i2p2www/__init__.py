@@ -40,7 +40,7 @@ SUPPORTED_LANGS = [
     'fr',
 #    'it',
 #    'nl',
-#    'ru',
+    'ru_RU',
     'sv_SE',
 #    'cs',
 #    'ar',
