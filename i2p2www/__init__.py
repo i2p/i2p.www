@@ -20,7 +20,7 @@ except ImportError:
 ###########
 # Constants
 
-CURRENT_I2P_VERSION = '0.9.7.1'
+CURRENT_I2P_VERSION = '0.9.8'
 
 CANONICAL_DOMAIN = 'i2hq.srv.i2p2.de'
 
