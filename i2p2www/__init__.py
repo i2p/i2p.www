@@ -202,7 +202,6 @@ def page_not_found(error):
 def server_error(error):
     return render_template('global/error_500.html'), 500
 
-
 # Import these to ensure they get loaded
 import templatevars
 import urls
