@@ -1,0 +1,366 @@
+13:05 <@jrandom> 0) hi
+13:05 <@jrandom> 1) 0.5.0.1
+13:05 <@jrandom> 2) roadmap
+13:05 <@jrandom> 3) addressbook editor and config
+13:05 <@jrandom> 4) i2p-bt
+13:05 <@jrandom> 5) ???
+13:05 <@jrandom> 0) hi
+13:05  * jrandom waves
+13:05 <@duck> hi
+13:05 <@jrandom> weekly status notes up @ http://dev.i2p.net/pipermail/i2p/2005-March/000616.html
+13:05 < null> hi
+13:05 <@jrandom> (yeah, i'm late this week, off with my head)
+13:06 <@jrandom> while y'all speedreaders dig through that, perhaps we can jump into 1) 0.5.0.1
+13:07 <@jrandom> 0.5.0.1 is out, and gets rid of the most ovious bugs from 0.5, but as we've seen, there's still work to be done
+13:07 <@jrandom> (current cvs stands at 0.5.0.1-7, I expect at least -8 or -9 before we hit 0.5.0.2)
+13:07 <+ugha2p> Hi.
+13:08 <+ugha2p> Does CVS HEAD fix that 100% CPU issue?
+13:08 <@jrandom> yes, -7 should get the last remnants of it
+13:08 <@duck> Does CVS HEAD fix that OOM issue?
+13:08 <+detonate> hi
+13:08 <@jrandom> no, the OOM is still being tracked down
+13:09 <@jrandom> actually... is there a Connelly in the house?
+13:09 < ant> <jrandom> nope
+13:09 <@jrandom> bugger
+13:09 <+ugha2p> jrandom must be going crazy, he is having a dialogue with himself.
+13:09 <@jrandom> ok, well, we can see what will be done to get rid of the OOM.  its definitely a show stopper, so there won't be a release until its resolved one way or another
+13:10 <+detonate> just in time for the meeting
+13:11 <@jrandom> thats about all i have to say for the 0.5.0.1 stuff - anyone else have anything they want to mention/ask/discuss?
+13:12 <+ugha2p> jrandom: Err, I haven't actually seen the CPU issue with 0.5.0.1, but it happened twice when I tried 0.5.0.1-5. Am I missing something?
+13:12 <+ugha2p> I downgraded back to 0.5.0.1 as a result.
+13:13 <+detonate> i had a question, the shutdown seems to take a very long time, and the memory usage spikes by about 40mb during that time
+13:13 <+detonate> was wondering if you knew why
+13:14 <+detonate> the immediate one, obviously
+13:14 <@jrandom> it could happen with 0.5.0.1, you just hadn't run into it.  
+13:14 <@jrandom> (its not a common occurrence, and it only hits some people in odd situations)
+13:14 <@jrandom> detonate: very long, as in, more than the usual 11-12 minutes?
+13:14 <+ugha2p> Well, it hit me twice during a 8-hour period.
+13:15 <+detonate> once all the participating tunnels are gone
+13:15 <+ugha2p> jrandom: Is it supposed to use up all the CPU and lose all the leases until restarted when that bug occurs?
+13:16 <@jrandom> ugha2p: thats a typical result from the bug, yes
+13:16 <+detonate> hmm
+13:17 <@jrandom> (it happens when the # of tunnel build requests consume sufficient CPU to exceed the time to satisfy a request, causing an additional request to be queued up, etc)
+13:17 <+ugha2p> Must have been an extreme coincidence that it only happened to me while on 0.5.0.1-5.
+13:18 <@jrandom> ugha2p: its happened to some people repeatably on 0.5.0.1-0, but is fixed in -7.  you can stick with -0 if you prefer, of course
+13:18 < cervantes> it was a wonderous godsend
+13:18 <+ugha2p> jrandom: I'll try out -7.
+13:18 <@jrandom> cool
+13:19 <+ugha2p> Although I'm already feeling guilty for giving a bumpy ride to the wiki users so far. :)
+13:20 <+ugha2p> One more thing, have you documented the bulk/interactive tunnel types anywhere?
+13:20 <+ugha2p> (Except for the source ;)
+13:20 <@jrandom> in the changelog.  the only difference is a max window size of 1 message
+13:20 <+ugha2p> Oh, okay.
+13:21 <@jrandom> ok, anything else on 0.5.0.1, or shall we move on over to 2) roadmap?
+13:21 <@duck> move on!
+13:21 <@jrandom> consider us moved
+13:22 <@jrandom> roadmap updated.  'n stuff.  see the page for details
+13:22 < cervantes> eeh, duck ankle bites
+13:23 <@jrandom> i'm thinking of pushing some of the strategies from 0.5.1 to 0.6.1 (so we get UDP faster), but we'll see
+13:23 <@jrandom> anyone have any questions/comments/concerns/frisbees?
+13:23 <+detonate> have you heard from mule lately?
+13:23 <+detonate> speaking of udp
+13:24 <@jrandom> nope, he was fairly ill last i heard from 'im
+13:24 <+detonate> :/
+13:24 < jnymo> udp would kick ass
+13:25 <@jrandom> s/would/will/
+13:25 <@jrandom> hopefully he's off having fun instead though :)
+13:25 <+ugha2p> jrandom: What kind of changes would the bandwidth and performance tuning include?
+13:26 < jnymo> so, udp basically means connectionless.. which means.. bigger network, right
+13:26 <+detonate> udp introduces all sorts of difficulties along with that
+13:26 <@jrandom> ugha2p: batching the tunnel message fragments to fit better into the fixed 1024byte tunnel messages, adding per-pool bw throttles, etc
+13:27 <+detonate> but yeah
+13:27 <@jrandom> detonate: it won't be so bad, the token bucket scheme we have now can handle async requests without a problem
+13:27 <@jrandom> (we just obviously wouldn't use the BandwidthLimitedOutputStream, but would ask the FIFOBandwidthLimiter to allocate K bytes)
+13:27 <+ugha2p> Would the first one really make much difference? Per-pool throttling doesn't sound urgent.
+13:28 <+detonate> that's good then
+13:28 <@jrandom> ugha2p: likely, yes.  you can see the exact #s involved by going to /oldstats.jsp#tunnel.smallFragments
+13:29 < bla> detonate: How's progress on the reassembly?
+13:29 <+detonate> really stalled
+13:30 <@jrandom> ugha2p: though its largely dependent upon the type of activity, of course.  chatty comm has more to gain, but bulk comm already fills the fragments fully
+13:30 <+ugha2p> jrandom: Ok.
+13:30 <+ugha2p> Right.
+13:31 <+detonate> i stopped working on it completely and started working on the addressbook-editor
+13:31 <+detonate> there's probably a really efficient, well-researched way of doing that sort of thing, but i haven't come across it 
+13:31 < jnymo> will upd mean people behind nats can get through now?
+13:31 <@jrandom> some jnymo 
+13:31 < jnymo> and use i2p?
+13:32 <@jrandom> but first we need to get it to work with udp at all, then we start adding the firewall/nat punching, then the PMTU, etc
+13:32 < jnymo> that'll be a boon
+13:33 <+detonate> of course if anyone has suggestions on what to do, i'd appreciate them
+13:33 <+ugha2p> jrandom: How would UDP help people behind NATs?
+13:34 < bla> detonate: TCP (on the regular net) does reassembly. Can those concepts be carried over to the I2P UDP reassembly?
+13:34 <+detonate> i haven't looked into how tcp does it
+13:34 <@jrandom> ugha2p: there's a lot of trickery we can pull off with consistent port #s, etc.  lots of code & docs out there
+13:35 <@jrandom> bla: we'll certainly be using some level of UDP reassembly along tcp-SACK lines
+13:35 <+detonate> but if you're going to handle most of what tcp does, you might as well go the NIO route and actually use it
+13:35 <+detonate> saving the hassle
+13:35 <@jrandom> no, there's substantial reason for why we do want both some reassembly/retransmission and not tcp
+13:36 <+detonate> well, the threads thing
+13:36 <@jrandom> the transport layer will not need to be fully reliable or ordered, just semireliable and unordered
+13:37 <+ugha2p> Can we also expect a drop in memory usage because of fewer threads?
+13:37 <@jrandom> yes
+13:37 <+ugha2p> A significant drop
+13:38 <+ugha2p> ?
+13:38 <@jrandom> substantially.  (as well as a drop in memory usage, based off whatever the current OOM is coming from ;)
+13:38 <+ugha2p> Right.
+13:39 <@jrandom> ok, anything else on 2) roadmap?
+13:39 < bla> jrandom: Yeah.
+13:40 < bla> jrandom: Will detonate be doing the UDP stuff now? Or else, who will?
+13:40 <@jrandom> its a team effort for all who can contribute :)
+13:40 <+detonate> heh, i plan on working on udp stuff more, it's less boring than watching tv
+13:41 <@jrandom> heh w3wt
+13:41 < bla> jrandom: I understand. But for a moment it looked like detonate dropped the project ;)
+13:42 <@jrandom> its on the roadmap, it will be done
+13:42 <+detonate> sorry for the confusion
+13:43 <@jrandom> ok anyone else have anything on 2) roadmap, or shall we mosey on over to 3) addressbook stuff?
+13:44 <@jrandom> ok, detonate wanna give us an overview/status report on the editor?
+13:45 < bla> detonate: (np)
+13:45 <+detonate> ok
+13:45 <+detonate> the current state of the editor is here:
+13:45 <+detonate> http://detonate.i2p/addressbook-editor/current-state.html
+13:45 <+detonate> it still doesn't do any actual editing
+13:45 <+detonate> and currently i'm working on the table at the bottom
+13:46 <+detonate> i need to read a couple chapters of my jsp book, but after that, you should be able to use it to add/modify entries in the hosts.txt and subscriptions quite easily
+13:47 <+detonate> i took a break from it the last 24 hours or so, so that's why there hasn't been much progress
+13:47 <+detonate> that's pretty much all
+13:47 <@jrandom> w3wt
+13:48 < bla> detonate: Looks good
+13:49 <@jrandom> yeah, mos' def', I'm looking forward to a way to manage the entries /other/ than just hcaking the hosts file
+13:49 <+detonate> thanks
+13:49 <+detonate> that's the first time i've used jsp for anything
+13:50 <@jrandom> cool
+13:51 <@jrandom> oh, i hadn't realized there was the overlap here for subscription management - perhaps smeghead's work can fit in with this as well
+13:51 <@jrandom> smeghead: you 'round?  you seen this yet?
+13:51 < jnymo> detonate: will there be collision detection and what not?
+13:51 <@smeghead> actually i only hashed out some skeleton code on the addressbook console, nothing useful
+13:51 <+detonate> yeah, i got tired of that, thank duck for suggesting the idea :)
+13:51 <@smeghead> i got sidetracked on the TrustedUpdate thingy
+13:52 <@jrandom> ah cool :)
+13:53  * jrandom likes sidetracking to add new features 
+13:53 < bla> smeghead: You mean 1-click updates of I2P from _within_ I2P?
+13:53 <@smeghead> so luck, not laziness (at least this time :)
+13:53 < cervantes2p> bla: 2 click at least ;-)
+13:54 <@jrandom> bah, we can get it down to 1 (reject if bad sig/invalid/etc ;)
+13:54 <+detonate> yeah, there will be collision detection, that's currently what i'm working on
+13:54 <@jrandom> detonate: doesnt the addressbook itself take care of that?
+13:54 <@jrandom> detonate: i thought what you're doing just edited the files?  
+13:55 <@jrandom> (the files will be uniq'ed by the addressbook)
+13:55 <+detonate> i mean, showing you the collisions from the logs and handling that
+13:55 <@jrandom> ah
+13:55 <@jrandom> ok cool
+13:55 <+detonate> i assume that's what jnymo is talking about
+13:55 < Ragnarok> hm, is there anything I can do to make your life easier? :)
+13:55 <+detonate> so you can say "replace entry" with the colliding one of your choice
+13:55 <@jrandom> nice!
+13:58 <@jrandom> Ragnarok: iirc detonate was able to parse out the logfile pretty easily.  do you forsee that format changing?
+13:58 < jnymo> detonate: pretty much, yea
+13:58 < jnymo> now, is this tied into i2p tightly?  How easily can i put a link+key from my browser into my address book?
+13:59 <+detonate> yeah, don't change the format, that'll break everything
+13:59 < Ragnarok> the format is highly unlikely to change
+14:00 < Ragnarok> though more things may get logged in the future
+14:00 <@jrandom> jnymo: the eepproxy doesn't have any hooks into detonate's editor atm, but we could add something down the road
+14:00 <+detonate> although if you modified the Conflict lines, that would make them easier to parse
+14:00 < cervantes2p> possibly something my firefox plugin could do
+14:00 <+detonate> right now there are lots of human readable words that get in the way
+14:00 < Ragnarok> modify how?
+14:00 <@jrandom> (for instance, perhaps i2paddresshelper might redirect to an editor page)
+14:00 < cervantes2p> "click here to add this to your addressbook"
+14:00 < Ragnarok> ah...  I want to be nice to the humans, though
+14:00 <+detonate> <date>=<host>=<source>=<new destination> would be superior
+14:01 <@jrandom> cervantes2p: that going to work like google's page rewriter?  :)
+14:01 <+detonate> well, that's what the addressbook-editor is for :)
+14:01 <+detonate> it's really not an issue, i've got it covered
+14:01 < cervantes2p> jrandom: nah...just have it in the link context menu
+14:01 <@jrandom> ooOOoo
+14:01 <+detonate> as long as nothing changes radically, things should keep working smoothly
+14:02 < cervantes2p> of course I could add a rewriter...but that's just breaks people's page layouts ;-)
+14:02 <+detonate> oh, one thing you could do
+14:02 <+detonate> because it conflicts with what i do
+14:02 <+detonate> make sure all the entries for the hostnames are all-lowercase
+14:02 <+detonate> since Legion.i2p is in there
+14:02 < cervantes2p> I do want to add a "non i2p link highlighter"
+14:02 <+detonate> and i run them all through toLowercase()
+14:02 <@jrandom> ah that'd be neat cervantes2p 
+14:03 <@jrandom> (be sure to only toLowercase the names, base64 is case sensitive ;)
+14:03 <+detonate> yeah, only the names
+14:04 < jnymo> context menu would be ideal
+14:04 <@jrandom> (dont forget the flying ponies!)
+14:04 < Ragnarok> I've made address comparisons non-case sensitive in my local branch... I should commit that...
+14:04 <+detonate> /make all the hostnames lowercase
+14:04 <+detonate>                 pair[0] = pair[0].toLowerCase();
+14:05 <+detonate> there, in black and white
+14:05 <+detonate> it just does the hostnames
+14:05 <@jrandom> aye Ragnarok, give us the goods :)
+14:05 < jnymo> why do i always feel i'm the one riding the flying ponies :(
+14:06 <@jrandom> thats 'cause you're hoggin' 'em jnymo ;)
+14:06 < cervantes2p> jnymo: don't discuss your domestic "arrangements" in a meeting
+14:07 <@jrandom> ok, lots of cool stuff going on within the addressbook & editor.  any eta on when we can beta things detonate?  (this week, next week, etc)
+14:07 < jnymo> heh
+14:07 <+detonate> well, as soon as you can get it to work in jetty, you can put it in beta i think
+14:07  * jnymo pulls out his p32-space-modulator
+14:07 <@jrandom> it works in jetty
+14:07 <+detonate> i have no idea how to get netbeans to precompile them and put them in the war
+14:08 <+detonate> as long as people don't change the names of the files in config.txt, it should work hopefully without bugs
+14:08 <@jrandom> ok, we can work you through ant to take care of things
+14:08 <+detonate> ok
+14:08 <+detonate> cool
+14:08 < cervantes2p> detonate: do what I did, take jrandom's code....strip out everything you don't need, crowbar in your own code and run the ant build script ;-)
+14:08 <@jrandom> heh
+14:09 <@smeghead> detonate: i know a thing or two about ant, yell if ya get stuck
+14:09 <+detonate> feel free to add it to your release
+14:09 <+detonate> if you know how to do that
+14:09 < MichElle> s/you don't need//
+14:09 < Ragnarok> addressbook has a very simple build script, if you want to take a look at that
+14:10 <+detonate> i need the section that precompiles jsps
+14:10 <+detonate> that's missing from mine
+14:10 <+detonate> although it does compile them, it just doesn't merge them, and the entry to test compile them isn't in build.xml
+14:10 <@jrandom> detonate: check out the precompilejsp targets in routerconsole, that'll get you started
+14:10 <+detonate> and i need to figure out where to put -source 1.3 etc in
+14:10 <@jrandom> (and the <war> task)
+14:11 <+detonate> yeah, we can sort things out later this evening
+14:11 <@jrandom> aye
+14:11 < cervantes> yup that's how I managed it...and I don't know ANY java or jsp ;-)
+14:11 <@jrandom> ok, if there's nothing more on 3) addressbook stuff, moving on to 4) bt stuff
+14:12 <@jrandom> duck/smeghead: wanna give us an update?
+14:12 <@duck> k
+14:12 <@duck> last week we spoke with Nolar from Azureus about fixing some compatibility problems
+14:12 <@duck> with the release of 0.1.8 as result
+14:12 <@duck> this week has been mostly about communication
+14:12 <@duck> with fellow developers, with forum admins and with users
+14:13 <+detonate> does anyone know if the aznet plugin can host torrents again?
+14:13 <@duck> the FAQ has been updated based on input from the forum, thanks for those who contributed
+14:13 <@duck> also there has been some miscommunication and confusion
+14:13 <@jrandom> detonate: word on the street is yes
+14:13 <@duck> like legions spork
+14:13 <+detonate> excellent
+14:13 <@duck> I believe that changing the name of it will prevent further problems there
+14:13 <@duck> .
+14:14 <@jrandom> r0xor duck
+14:14  * MichElle applauds duck
+14:14 < MichElle> duck: you work very hard
+14:14 < jnymo> yea, why not i2p-bt_extractor or some shit?
+14:15 <@jrandom> any word on the later 0.2 stuff, or is that to be addressed after 0.5.0.2/etc?
+14:15 <@smeghead> don't applaud yet, you don't know what we're naming it >;-}
+14:15 <@jrandom> heh
+14:15  * jnymo claps
+14:15 <@duck> tell us!
+14:15 <@jrandom> i2p-flying-pony-torrent
+14:16 <+detonate> heh, are we hiding it now by changing the name?
+14:16 < MichElle> again with the ponies
+14:16 <@smeghead> it's top-secret for now, we don't want to get sued
+14:16 < jnymo> what a debocle
+14:17  * bla makes sign for MPAA: "Sue me, if you can..."
+14:17 <@smeghead> duck and i have agreed 0.2 will be the first version with the new name
+14:17 <+detonate> i2p-communism
+14:17 <@duck> released spring 2006
+14:17 <@jrandom> heh
+14:17 <@duck> .
+14:18 <@smeghead> based on my current workload and the fact that i'm moving this week, i don't expect to get any hacking done on 0.2 for a few days, i don't know what duck's near-term schedule is like
+14:18 <@duck> been doing 8 hours of C++ pointer fixing
+14:19 <@duck> so not much here either :)
+14:19 <@jrandom> 'k but something we can perhaps look forward to along side 0.6 (or 0.5.1 if we're lucky?)
+14:19 <@jrandom> yikes, fun fun fun
+14:19 <@duck> before 2.0 atleast
+14:19 <@smeghead> i'd estimate a month or so, just a wild guess, what do you think duck
+14:19 <@duck> yeah
+14:19 <@jrandom> cool
+14:19 <@duck> ballpark
+14:20 <@smeghead> the thing is we'd like to wait until the release of the official BT 4.0
+14:20 <@jrandom> its ok, we know how schedules go ;)
+14:20 <@smeghead> so we can sync 0.2 up-to-date with that
+14:20 < MichElle> duck has many things on his plate, indeed
+14:20 <@smeghead> 4.0 appears imminent
+14:20 <@jrandom> ah, really smeghead?  cool
+14:20 <@duck> smeghead: that is just the official excuse :)
+14:20 < MichElle> but he is a hard worker
+14:21 <@duck> I am for 5) ???
+14:21 <@jrandom> almost there... 
+14:21 <@jrandom> legion: any updates on your bt client?  progress, etc?
+14:21 <@smeghead> source code?
+14:22 <@smeghead> (in a zip, not an .exe)
+14:22 < cervantes> so the next wave of releases then
+14:22 <@jrandom> hmm, legion seems to be idle, ok perhaps we can get an update later
+14:22 < cervantes2p> damn huge lag
+14:23 <@jrandom> so, movin' on over to 5) ???
+14:23 < cervantes> *ahem* w00t
+14:23 <@jrandom> cervantes2p: nah, you're just slow ;)
+14:23 <@jrandom> ok, anyone else have anything to bring up?
+14:23 < cervantes2p> I said those things like 5 minutes ago
+14:23 <+ugha2p> jrandom: The mailing list footer still uses the i2p.dnsalias.net address. Perhaps you should update it to reflect dev.i2p.net? :)
+14:23  * cervantes2p feeds his router's hamster
+14:24 <@jrandom> ah, yeah, prolly ugha2p 
+14:24  * jrandom has some sysadmin work i've been avoiding for a while (like, oh, moving things to the new srever...)
+14:24 < MichElle> I have a concern
+14:24 < MichElle> regarding transparency
+14:24 <@jrandom> sup MichElle?
+14:25 < MichElle> for purposes of full transparency, I will declare here that identiguy has suggested jrandom could in fact be employed by the NSA
+14:25 <+detonate> oh, i've noticed 190 routers, how close are we to the thread limit right now?
+14:25  * jnymo wonders about other help people can do
+14:25 < jnymo> (still looking into the php thing, duck ;)
+14:25 <@jrandom> heh MichElle
+14:25 < MichElle> his 'convenient' ability to work 24/7 on i2p is quite suspicious, indeed
+14:25 < MichElle> anyway
+14:25 < MichElle> that's all I wanted to say
+14:25 < MichElle> keep your eyes on jrandom
+14:26 < MichElle> his gentle and warm facade may be just that.
+14:26 <+ugha2p> detonate: There are no theoretical thread limits, it will just consume all available resources until it crashes. :)
+14:26 < jnymo> facade
+14:26 <@jrandom> detonate: some OSes/ulimits may throttle @ 256, but win98 is already past the 100 TCP connections limit anyway
+14:26 < cervantes2p> I can give a quick update on the firefox plugin. The I2P Mail notifier is working now, as is the news reader and basic router controls. I'm busy with tediously building configuration screens now ( http://freshcoffee.i2p/fire2pe_i2pmail_prefs.jpg )
+14:27 < jnymo> MichElle, if the source code is sound, then who cares?
+14:27 <+detonate> oh, is the firefox plugin released?
+14:27 < MichElle> jnymo: it ruins the mood a little
+14:27 < cervantes2p> and I want to implement a downloader/install service that ties into smeghead's new updater verifier before I release
+14:27 < ddd> hi channel
+14:28 <+detonate> ok
+14:28 <@jrandom> w0ah! kickass cervantes2p 
+14:28 <@jrandom> it looks really nice
+14:28 <+detonate> hi ddd
+14:28 < cervantes2p> but getting close now...probably another couple of weeks...
+14:28 < MichElle> sort of like how running windows would still not be cool, even if microsoft open-sourced it
+14:28 <+detonate> that plugin looks cool
+14:28 < MichElle> back to the meeting, though ...
+14:28 <@smeghead> TrustedUpdate may be done this week hopefully, before i move
+14:28 <@jrandom> cool
+14:29 < ddd> ?
+14:29 < ddd> is i2p the only anonymous chat?
+14:29 <@jrandom> hi ddd .  weekly dev meeting going on
+14:30 < cervantes2p> 'lo ddd, we're just finishing a meeting...stick around we'll be done in a couple of minutes
+14:30 < ddd> are there other projects like i2p?
+14:30 <@smeghead> ddd: type /list then take your pick
+14:30 < ddd> ok
+14:30 < ddd> no i mean on other networks
+14:30 <@jrandom> ok, anyone else have anything to bring up for 5) ???
+14:30 <@smeghead> ddd: ask in #i2p-chat
+14:30 < ddd> ok i let you guys finish
+14:30 <+detonate> has anyone successfully run i2p in openbsd yet?
+14:31 <@jrandom> ddd: http://www.i2p.net/how_networkcomparisons
+14:31 < ddd> ok
+14:31 <+detonate> i was thinking of starting that fiasco up again
+14:31 <@jrandom> detonate: dunno
+14:31 < jnymo> oh yea.. who was doing the bsd i2p distro, and which bsd was it?
+14:31 <@jrandom> heh cool detonate, let us know how it goes
+14:31 <@jrandom> jnymo: lioux packaged 'er up for fbsd
+14:32 <@smeghead> i2p would never ship with openbsd :)
+14:32 <+detonate> sure
+14:32 < jnymo> woord..  wasn't someone going to do a i2p oriented distro?
+14:32 <+detonate> yeah, there's a port in freebsd now
+14:32 <+detonate> it's scary
+14:32 <+detonate> heh, someone wanted to have a knoppix cd that ran i2p
+14:32 <@jrandom> jnymo: after i2p is rock solid, it'd be worthwhile to explore packaging on distros/microdistros, yeah
+14:32 <+detonate> who knows why
+14:33 <@smeghead> jnymo: i remember that, i think it was going to be a knoppix/i2p, can't recall who was talking about it
+14:33 <@jrandom> detonate: netcafe
+14:33 <+detonate> ah
+14:34 <@jrandom> ok, anything else for the meeting?
+14:34 < MichElle> what the fuck is an i2p 'oriented' distro
+14:34 < MichElle> tor, i2p, and freenet ?
+14:34 < MichElle> there is no purpose
+14:34 < MichElle> the bandwidth requirements cancel the programmes out
+14:34 < MichElle> is jrandom theo de raadt ?
+14:34 < cervantes> a slightly camp distribution
+14:34 < jnymo> a completely anonymized distro
+14:35 < cervantes2p> jrandom: I guess not :)
+14:35 < MichElle> jrandom: nothing
+14:35  * jrandom winds up
+14:35  * jrandom *baf*s the meeting closed

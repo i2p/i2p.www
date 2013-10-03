@@ -1,0 +1,330 @@
+<jrandom> 0) hi
+<jrandom> 1) router status
+<jrandom> 2) i2ptunnel
+<jrandom> 3) im
+<jrandom> 4) 0.3 plans
+<jrandom> 5) time synchronization
+<jrandom> 6) ???
+<jrandom> hello mihi, polo
+<polo> hello !
+<mihi> hi jrandom
+<jrandom> 0) hi
+<jrandom> :)
+<rsk> hi
+<i2p> <duck> hi
+<jrandom> 1) router status
+<jrandom> 0.2.3.3 is out, and it seems to be working
+<jrandom> still lots to do, of course
+<jrandom> but this should be the last 0.2 release
+<jrandom> 0.3 is going to add the peer profiling to allow routers to avoid bad routers
+<jrandom> (and 0.3.1 is a revamp of the transports)
+<jrandom> hola Ophite1
+<Ophite1> Heya.
+<rsk> so more overhead for 0.3?
+<jrandom> yes and no
+<jrandom> it will have peer testing, but its going to be more focused
+<rsk> will we see a speed up with path selection?
+<jrandom> yes
+<jrandom> there are those 'liveliness' calculators, and there will be new latency and throughput calculators added
+<jrandom> plus people will be able to tweak their own preferences for particular peers
+<jrandom> e.g. if you know you want to prefer peer X over peer Y, you will be able to give them a weighting bonus of
+          some random points
+<mihi> will there be a clean shutdown? *g*
+<jrandom> thats actually a good question mihi
+<jrandom> i2p is getting to the point where it needs an admin interface.
+<jrandom> the longest Job thats holding up its operation is the GenerateStatusConsoleJob
+<jrandom> which can now take up to 4-6 seconds
+<jrandom> (holding everything else up)
+<jrandom> that needs to go async and on demand.
+<jrandom> but i dont want to write a web listener / etc.
+<jrandom> perhaps the reverse - a servlet that starts the router and communicates with it
+<mihi> you don't need a full web server. just when you see GET, return your data.
+<jrandom> right
+<jrandom> you're right, that stuff should be in 0.3 as well.
+<mihi> and when you see something else (like SHUTDOWN), do as you please. of course only from localhost ;)
+<jrandom> aww c'mon
+<mihi> then someone can make a nice admin program
+<jrandom> right
+<mihi> you had some triggers by files, didn't you? are they documented somewhere?
+>>> mihi [~mihi@ags9-d9ba536a.pool.mediaWays.net] requested PING 1072820995 from jrandom
+<jrandom> those were in IDN, not the router itself
+<jrandom> but that might be a good way to go
+<jrandom> its a trivially easy system
+<jrandom> good idea, lets go that way
+<jrandom> (and i can just reuse that code :)
+<i2p> <duck> this magical filestuff starts to look like plan9
+<jrandom> lol
+<mihi> but file triggers require polling
+<jrandom> right mihi, reading a directory every 30s aint that bad
+<mihi> but a ServerSocket#accept is cheaper.
+<mihi> as it won't eat any time. (provided a good OS)
+<mihi> okay, file triggers are better than nothing, sure.
+<jrandom> server socket would allow remote admin
+<jrandom> (when appropriate)
+<jrandom> dunno.
+<jrandom> something to be worked out.
+<jrandom> (or if someone wants to jump on it and code... :)
+<mihi> and server socket could deliver the routerConsole as well.
+<jrandom> right
+<jrandom> ok, 2) i2ptunnel
+<jrandom> :)
+<jrandom> i2ptunnel still rules, and its looking like we want to add a socket based API to control it
+<i2p> <anon> aum's ic2cp2pc plans are off for now?
+<jrandom> yes, ci2cp is dead in the water, replaced with the socket based API to control I2PTunnel
+<jrandom> I think I may be able to throw on that API in the next few days, so he can get churning on the impl
+<mihi> just use a socket, make in.readLine() and feed that line to runCommand() ;)
+<rsk> what does the api give i2p?
+<jrandom> pretty much mihi (except it formats the results and send them back in a standard way)
+<mihi> with an appropriate "logger" to send the commands back.
+<mihi> s/commands/results/
+<jrandom> rsk> it lets application developers build client and server sockets over i2p without dealing with I2CP's
+          encryption needs
+<jrandom> right right
+<jrandom> i2ptunnel /does/ have an overhead for situations where there are lots of i2ptunnels
+<jrandom> regardless of the JVM
+<jrandom> i2ptunnel clients create a new destination per client contacted, and the router will perform much worse as
+          the number of local destinations grows.
+<rsk> ah
+<jrandom> this is due to the anonymity needs of the network tied to how our encryption works
+<jrandom> for applications who just want to open a tunnel or two to a peer, this new api will RULE
+<jrandom> but for applications that need to talk to lots of other peers, I2CP is the way to go.
+<jrandom> (since that is a single destination, multiplexed by i2cp)
+<jrandom> I suppose its the old TCP vs UDP balance, in a way
+<jrandom> mihi> do you have any thoughts, or some ideas for the future of i2ptunnel?
+<rsk> hows the work on the ip over i2p, or the vpn stuff going?
+<mihi> jrandom: someone write a good streaming api, and then lets i2ptunnel use it.
+<mihi> same for naming server.
+<mihi> perhaps add some sequence numbers if no one does the things above.
+<mihi> which will mean an incompatible change.
+<jrandom> incompatible changes aren't bad, we're early in dev
+<jrandom> (if we could increase the size of of the IDs too to two or four bytes per side as well?)
+<mihi> the streaming api will be an incompatible change nevertheless. and if i2p worked, we don't need sequence
+          numbers.
+<jrandom> rsk> on hold, until someone has time to run with it?
+&#8801; rsk/#i2p thinks incompatible chages are the best kind
+<jrandom> right mihi
+<mihi> ID should be 3 byte atm, so why *increase* to 2 bytes?
+<jrandom> mihi> actually, I'd like to slowly deprecate mode=GUARANTEED and implement that in the streaming api
+&#8801; mihi/#i2p too
+<jrandom> leaving i2p = IP, not TCP or UDP
+<jrandom> damnit I wish I had another 14 hours in the day.
+<mihi> only 14? ;)
+<jrandom> ;)
+<jrandom> aren't the 3 byte ids derived by both sides of the con?  or maybe i'm just confused
+<mihi> each side has an ID of 3 bytes, hovever, only one must be sent at a time.
+<jrandom> perhaps I'll implement the streaming API, rip out GUARANTEED, and add that socket controller next.
+<jrandom> ah ok
+<mihi> see /apps/i2p/i2ptunnel/java/src/protocol.txt
+<jrandom> right right
+<mihi> btw, who misplaced that file *there*?
+&#8801; jrandom blames eco ;)
+<jrandom> wait, naw, you put 'em there
+<jrandom> didnt you?
+<jrandom> oh wait, no I imported them
+&#8801; jrandom blames self for being stupid.
+<jrandom> (la la la)
+<jrandom> damn.  ok, yeah, working on the streaming API and the socket controller will allow me to mull over the peer
+          testing / profiling / selection manifesto
+<jrandom> I'll post that in a few days for comment
+<jrandom> (and it'll get my head out of the router.  variety++)
+<jrandom> mihi> anything else on i2ptunnel?
+<mihi> not that i know
+<jrandom> coo'
+<jrandom> (thanks again for taking the time to chime in on this stuff, I know you're busy with fiw and the rest)
+<jrandom> ok, thecrypto isn't here, but he's making progress on the IM app.
+<jrandom> (thats agenda item 3)
+<jrandom> 4) 0.3 plans
+<jrandom> 0.3.0 ~= peer profiling stuff, and now it'll also include the streaming api and that socket controller for
+          i2ptunnel
+<jrandom> but, if you couldn't guess, its not going to be released on jan 1
+<jrandom> jan 15 is an outside possibility.  we'll see how things go.
+<jrandom> 0.3.1 isn't a full month of work, so it may not need to get bumped.
+<jrandom> other than that, the roadmap is still pretty much on track and representative of where we're moving
+<jrandom> 5) time synchronization
+<jrandom> a new faq is posted at http://wiki.invisiblenet.net/iip-wiki?I2PTiming
+<jrandom> mihi, you had a suggestion about the fourth option there (building our own in-i2p timing)?
+<jrandom> hi brawl
+<mihi> yep.
+&#8729;&#966;&#8729; brawl is now known as eco_
+<eco_> hi guys
+<jrandom> oh heya eco
+<mihi> you should connect 3 random nodes and remember the diff between the avg time and local time.
+<jrandom> we just discussed the streaming API / tunnel api
+<mihi> and then hack up your own getTimeMillis that corrects that.
+<Ophite1> mihi: No, you shouldn't.
+<jrandom> mihi> so if an attacker creates 1000 nodes with the wrong time, everyone gets screwed
+<jrandom> (since avg would skew randomly in between)
+<mihi> if an attacker creates 1000 nodes, everyone gets screwed anyway...?
+<rsk> wouldnt that be self corecting?
+<Ophite1> mihi: OK, 3.
+<jrandom> no, we should be able to handle that mihi.
+<mihi> okay, then only use avg, if standard deviation is lower than 1sec or so.
+<rsk> if everyone has the same time your ok, even if that time is wrong, right?
+<jrandom> rsk> if all 1000 nodes were in sync, but what if they're all random
+<mihi> only use times that are close enough together. if not, take 3 new nodes.
+<jrandom> mihi> right, we could implement NTP (which basically does what you say, using a series of candidate averages
+          to iteratively close in on the correct time
+<mihi> but we need not care of everything (like ping latencies), as ntp does.
+<Ophite1> if we did not, mihi, time would slowly creep backwards.
+&#8801; mihi/#i2p thinks that is better than let users set their time individually.
+<jrandom> so anyone who randomly picks 3 of those skewed nodes gets sent onto their own private network?
+<jrandom> what about that third option -
+<jrandom> i2p has a component that checks with a real NTP server via NTP or SNTP
+<mihi> if you have only skewed notes in your netDB, you are on that private net as well...
+<jrandom> rather than reimplementing the wheel
+<Ophite1> while I partially like that one...
+<Ophite1> NTP isn't signed, it's subject to an MITM attack.
+<Ophite1> or dns cache poisoning for, say, time.nist.gov
+<jrandom> right Ophite1, though with 200,000+ SNTP or NTP hosts, thats a large set to attack.
+<jrandom> we would definitely not sync of time.nist.gov.
+<Ophite1> connections from i2p to the NSA's time server might raise a few eyebrows, ne? :)
+<jrandom> and if an attacker goes after time.nist.gov, everyone everywhere is affected
+<jrandom> heh
+<mihi> then we combine both. ask a "real" ntp server and your neighbor. if both say the same, it's okay.
+<jrandom> so even /more/ code ;)
+<jrandom> but yeah, thats reasonable.
+<Ophite1> That's interesting. And if they don't?
+<Ophite1> pick another ntp server?
+<jrandom> refuse the peer.
+<mihi> try other ntp server and another peer.
+<mihi> until you have a match. then refuse all prev peers.
+&#8801; mihi/#i2p types slower than jrandom :(
+<Ophite1> match within a certain threshold, say 1sec?
+<jrandom> 1s would be good.
+<jrandom> accepting peers up to 30s or so (to deal with lag)
+<Ophite1> is 1 sec okay on HEAVILY LADEN connections?
+<jrandom> 1s for syncing, 30s for comm.
+<Ophite1> I've seen latency on DSL get to 5 seconds when doing evil things to it.
+<jrandom> with tcp or udp?
+<Ophite1> but then, in that case, that host might not be the one you want to sync time to anyway ;)
+<jrandom> right
+<Ophite1> udp.
+<jrandom> hmm 'k
+<Ophite1> you'd have thought it'd get dropped :)
+<i2p> <duck> I think that the problem is more letting the user know that there is a problem
+<jrandom> duck> that is true.
+<i2p> <duck> only after walking through big logs they see that their clock is off (if they find it)
+<Ophite1> Maybe. Sort of.
+<i2p> <duck> or that the port is already bound
+<jrandom> an admin interface would be nice.
+<i2p> <duck> the world is better with everybody using NTP connected to their local stantrum (sp) 2 server
+CTCP Cloaking is now [On]
+<jrandom> perhaps we'll have a 0.4 release with a bunch of cleanups and end user things, prior to going 1.0?
+<jrandom> right (stratum)
+<i2p> <duck> only windows clients are not likely to have that
+<i2p> <duck> but they are also not likely to be stable
+<jrandom> windows has NTP
+<i2p> <duck> so who cares
+<Ophite1> duck: Windows XP and Windows Server 2003 include NTP.
+<jrandom> a shitload easier than with unix too
+<Ophite1> sync'ed by default to time.windows.com iirc.
+<jrandom> with drop down options for others
+<Ophite1> It's an essential part of Windows Product Activation.
+<Ophite1> can't expire if you don't know the time :)
+<jrandom> heh
+<mihi> no option at my university... all clocks are 1 hour to 5 hours off. but i might not be allowed to run i2p there
+          anyway...
+<Ophite1> mihi: i2p should try especially hard to work in such a situation...
+<jrandom> mihi> awesome!  you can help test out the hidden operation :)
+<jrandom> as an aside, I'm going to be doing some traveling this summer
+<jrandom> i'll likely be offline, without my laptop.
+<i2p> <duck> sidethought: ntp.duck.i2p :)
+<Ophite1> Look at it like this: Brianna Kazaa downloads cool new anonymous filesharing client which her best friend
+          told her was really cool and lets you chat to people secretly and stuff. Do we want to tell her that she
+          needs to set her clock within 30 seconds (how will she get some?)? Or do we want it to just work?
+<jrandom> but I'm going to make sure I can still be on I2P with just public terminals.
+CTCP Cloaking is now [Off]
+<jrandom> no brainer Ophite1.  just work (with docs for geeks)
+<jrandom> duck> bootstrap ;)
+<jrandom> and i2p will /not/ require root.
+<Ophite1> That's my point.
+<Ophite1> jrandom: would you run a router on a box you didn't have root to?
+<jrandom> so yeah, a mix between option 3 and 4
+<Ophite1> option 3.5 sounds cool to me ;)
+<jrandom> Ophite1> i'd run a hundred of them :)
+<mihi> option 3.1415926...
+<jrandom> (and move on to the next lab, run a hundred more)
+<Ophite1> Ooh. Pie. Tasty.;)
+<Ophite1> jrandom: I said you didn't have root on. Amateur. :)
+<jrandom> lol
+<jrandom> so thats basically where we're looking.
+<jrandom> until the time stuff is implemented, everyone should use option 1 or 2.
+<jrandom> for option 2, if someone could write up some docs, I'd appreciate it
+<Ophite1> that's acceptable for now as we are Not Yet Ready for Brianna Kazaa et al ;)
+<mihi> jftr: i won't test "hidden operation". my univ account has already been disabled once and i don't want it
+          another time blocked...
+<Ophite1> mihi: You are the best test we could possibly have.
+<jrandom> Ophite1 > not for test.
+<jrandom> 'k mihi, we'll find a way, and once its ready you'll be able to use it.
+<Ophite1> OK, maybe not test. Some unis get shirty enough to chuck you out rather than just block you.
+<Ophite1> I know someone at the most anti-filesharing pro-RIAA university in the USA. He runs a 2gbit dumpsite.
+<jrandom> lol nice
+<Ophite1> I appreciate that very, very few people are this ballsy.
+<jrandom> ok, thats it for time synchronization.
+<jrandom> eco_> hi.  any bt stuff you want to talk about?  {or save till next week}
+<Ophite1> but bear in mind the majority of the internet is in future probably going to become university/corporate.
+          i2p might be banned. i2p might WELL be considered abuse by major ISPs. i2p will have to work anyway.
+<Ophite1> I have a few interesting ideas along that angle I will present at a future date.
+<jrandom> word
+<Ophite1> (transport)
+<rsk> i2p is considered abuse by major ISPs, read your contract
+<Ophite1> rsk: running a distributed proxy cache?
+<rsk> running any 'server'
+<Ophite1> rsk: Not unless it relays to SMTP or WWW.
+<jrandom> running services of any time
+<jrandom> right
+<Ophite1> rsk: Hehe, I have a solution to that ;)
+<eco_> jrandom: can give a brief update
+<jrandom> floor is yours :)
+<eco_> i'm porting the java-based bittorrent client snark (www.klomp.org/snark) to get aquainted with i2p
+<eco_> first port runs on top of i2ptunnel, directly calling the java classes
+<eco_> current state: does work with 2 peers, things get messed up with > 2, tunnels aren't cleaned up, so restarting
+          is painful
+<eco_> eta: this weekend
+&#8801; eco_/#i2p realises that this might be considered > 2003
+<jrandom> w00t!
+&#8801; jrandom hacks time.nist.gov
+<eco_> a "real" port would probably cut the overhead of the tunnels, but that's a next step
+<jrandom> cool
+&#8801; eco_/#i2p gives floor back to mc jrandom
+<jrandom> 'k, I think that was it
+<jrandom> 6) ???
+<jrandom> anyone have anything else?
+&#8801; eco_/#i2p would like to express his thanks for the job well done by jrandom cs up to now
+<eco_> and that sleep has some use for home sapiens, though jrandom seems to prove this false
+<jrandom> ;)
+<jrandom> what are y'all's thoughts on meeting here as opposed to iip, until i2p is reliable enough?
+<jrandom> personally, I'm tired of meetings being cut to shreds every week.
+<i2p> <anon> lilo sucks!
+<eco_> we might be shutting people out by going here
+<jrandom> we are, I know.
+<jrandom> if we can get an iip<-->here bridge
+<i2p> <duck> IIP is shutting ppl out each day
+<jrandom> that'd be good.
+<jrandom> right.
+<jrandom> iip is, unfortunately, unusable for a reliable development community.
+<i2p> <duck> http://banaan.zeelandnet.nl/open/changate.html
+<i2p> <duck> that is the code where eyeKon etc is based on
+<jrandom> and while I like to go off coding on my own, y'all come up with really good ideas and do good stuff that is
+          essential
+&#8801; rsk/#i2p is writing a windows update script
+<i2p> <duck> theoretically it could connect to 3 servers and mirror each of them
+<jrandom> word duck, perhaps I'll try to get one running on i2p.dnsalias.net
+<jrandom> ping flood from hell ;)
+<eco_> irc at duck.i2p was pretty good today, beat iip
+<jrandom> agreed
+<jrandom> dropped me a few times though.
+<jrandom> perhaps it'll be more reliable next week
+<eco_> it's in your hands :-)
+<jrandom> reliability probably won't improve until 0.3, which is ~2 weeks out
+<jrandom> (1 week to do the tunnel/streaming stuff, 1 week for peer profiling / testing)
+<jrandom> then there'll be whatever bugs that introduces :)
+<jrandom> though I should say I was really excited to stream audio from aum last night
+<jrandom> and ardvark was able to stream for 42 minutes without buffering!
+<jrandom> so perhaps we can be reliable enough
+<jrandom> (my local router is phttp only, which is probably a slight cause)
+<jrandom> ok, anyone have anything else?
+<i2p> <duck> cant thing of anything
+&#8801; eco_/#i2p can't either
+&#8801; jrandom winds up...
+&#8801; jrandom *baf*s the meeting closed

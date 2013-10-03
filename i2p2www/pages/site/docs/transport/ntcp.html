@@ -1,0 +1,471 @@
+{% extends "global/layout.html" %}
+{% block title %}NTCP{% endblock %}
+{% block lastupdated %}{% trans %}August 2010{% endtrans %}{% endblock %}
+{% block accuratefor %}0.8{% endblock %}
+{% block content %}
+<h2>{% trans %}NTCP (NIO-based TCP){% endtrans %}</h2>
+
+<p>{% trans transports=site_url('docs/transport'), ssu=site_url('docs/transport/ssu') -%}
+NTCP is one of two <a href="{{ transports }}">transports</a> currently implemented in I2P.
+The other is <a href="{{ ssu }}">SSU</a>.
+NTCP is a Java NIO-based transport introduced in I2P release 0.6.1.22.
+Java NIO (new I/O) does not suffer from the 1 thread per connection issues of the old TCP transport.
+{%- endtrans %}</p>
+
+<p>{% trans -%}
+By default, NTCP uses the IP/Port
+auto-detected by SSU. When enabled on config.jsp,
+SSU will notify/restart NTCP when the external address changes
+or when the firewall status changes.
+Now you can enable inbound TCP without a static IP or dyndns service.
+{%- endtrans %}</p>
+
+<p>{% trans -%}
+The NTCP code within I2P is relatively lightweight (1/4 the size of the SSU code)
+because it uses the underlying Java TCP transport for reliable delivery.
+{%- endtrans %}</p>
+
+
+<h2>{% trans %}NTCP Protocol Specification{% endtrans %}</h2>
+
+<h3>{% trans %}Standard Message Format{% endtrans %}</h3>
+<p>{% trans -%}
+After establishment,
+the NTCP transport sends individual I2NP messages, with a simple checksum.
+The unencrypted message is encoded as follows:
+{%- endtrans %}</p>
+{% highlight lang='dataspec' %}
++-------+-------+--//--+---//----+-------+-------+-------+-------+
+| sizeof(data)  | data | padding | Adler checksum of sz+data+pad |
++-------+-------+--//--+---//----+-------+-------+-------+-------+
+{% endhighlight %}
+<p>{% trans -%}
+The data is then AES/256/CBC encrypted. The session key for the encryption
+is negotiated during establishment (using Diffie-Hellman 2048 bit).
+The establishment between two routers is implemented in the EstablishState class
+and detailed below.
+The IV for AES/256/CBC encryption is the last 16 bytes of the previous encrypted message.
+{%- endtrans %}</p>
+
+<p>{% trans -%}
+0-15 bytes of padding are required to bring the total message length
+(including the six size and checksum bytes) to a multiple of 16.
+The maximum message size is currently 16 KB.
+Therefore the maximum data size is currently 16 KB - 6, or 16378 bytes.
+The minimum data size is 1.
+{%- endtrans %}</p>
+
+<h3>{% trans %}Time Sync Message Format{% endtrans %}</h3>
+<p>{% trans -%}
+One special case is a metadata message where the sizeof(data) is 0.  In
+that case, the unencrypted message is encoded as:
+{%- endtrans %}</p>
+{% highlight lang='dataspec' %}
++-------+-------+-------+-------+-------+-------+-------+-------+
+|       0       |      timestamp in seconds     | uninterpreted             
++-------+-------+-------+-------+-------+-------+-------+-------+
+        uninterpreted           | Adler checksum of bytes 0-11  |
++-------+-------+-------+-------+-------+-------+-------+-------+
+{% endhighlight %}
+<p>{% trans -%}
+Total length: 16 bytes. The time sync message is sent at approximately 15 minute intervals.
+The message is encrypted just as standard messages are.
+{%- endtrans %}</p>
+
+
+<h3>{% trans %}Checksums{% endtrans %}</h3>
+<p>{% trans rfc1950='http://tools.ietf.org/html/rfc1950' -%}
+The standard and time sync messages use the Adler-32 checksum
+as defined in the <a href="{{ rfc1950 }}">ZLIB Specification</a>.
+{%- endtrans %}</p>
+
+
+<h3>{% trans %}Establishment Sequence{% endtrans %}</h3>
+<p>{% trans -%}
+In the establish state, there is a 4-phase message sequence to exchange DH keys and signatures.
+In the first two messages there is a 2048-bit Diffie Hellman exchange.
+Then, DSA signatures of the critical data are exchanged to confirm the connection.
+{%- endtrans %}</p>
+{% highlight %}
+Alice                   contacts                      Bob
+=========================================================
+ X+(H(X) xor Bob.identHash)-----------------------------&gt;
+ &lt;----------------------------------------Y+E(H(X+Y)+tsB+padding, sk, Y[239:255])
+ E(sz+Alice.identity+tsA+padding+S(X+Y+Bob.identHash+tsA+tsB), sk, hX_xor_Bob.identHash[16:31])---&gt;
+ &lt;----------------------E(S(X+Y+Alice.identHash+tsA+tsB)+padding, sk, prev)
+
+
+  {% trans %}Legend:{% endtrans %}
+    X, Y: {% trans %}256 byte DH public keys{% endtrans %}
+    H(): 32 byte SHA256 Hash
+    E(data, session key, IV): AES256 Encrypt
+    S(): 40 byte DSA Signature
+    tsA, tsB: {% trans %}timestamps (4 bytes, seconds since epoch){% endtrans %}
+    sk: {% trans %}32 byte Session key{% endtrans %}
+    sz: {% trans %}2 byte size of Alice identity to follow{% endtrans %}
+{% endhighlight %}
+
+<h4 id="DH">{% trans %}DH Key Exchange{% endtrans %}</h4>
+<p>{% trans cryptography=site_url('docs/how/cryptography') -%}
+The initial 2048-bit DH key exchange
+uses the same shared prime (p) and generator (g) as that used for I2P's
+<a href="{{ cryptography }}#elgamal">ElGamal encryption</a>.
+{%- endtrans %}</p>
+
+<p>{% trans -%}
+The DH key exchange consists of a number of steps, displayed below.
+The mapping between these steps and the messages sent between I2P routers,
+is marked in bold.
+{%- endtrans %}</p>
+  <ol>
+    <li>{% trans %}Alice generates a secret 226-bit integer x. She then calculates <code>X = g^x mod p</code>.{% endtrans %}</li>
+    <li>{% trans %}Alice sends X to Bob <b>(Message 1)</b>.{% endtrans %}</li>
+    <li>{% trans %}Bob generates a secret 226-bit integer y. He then calculates <code>Y = g^y mod p</code>.{% endtrans %}</li>
+    <li>{% trans %}Bob sends Y to Alice.<b>(Message 2)</b>{% endtrans %}</li>
+    <li>{% trans %}Alice can now compute <code>sessionKey = Y^x mod p</code>.{% endtrans %}</li>
+    <li>{% trans %}Bob can now compute <code>sessionKey = X^y mod p</code>.{% endtrans %}</li>
+    <li>{% trans %}Both Alice and Bob now have a shared key <code>sessionKey = g^(x*y) mod p</code>.{% endtrans %}</li>
+  </ol>
+<p>{% trans -%}
+The sessionKey is then used to exchange identities in <b>Message 3</b> and <b>Message 4</b>.
+{%- endtrans %}</p>
+
+<h4>{% trans %}Message 1 (Session Request){% endtrans %}</h4>
+<p>{% trans commonstructures=site_url('docs/spec/common-structures'),
+netdb=site_url('docs/how/network-database') -%}
+This is the DH request. Alice already has Bob's
+<a href="{{ commonstructures }}#struct_RouterIdentity">Router Identity</a>,
+IP address, and port, as contained in his
+<a href="{{ commonstructures }}#struct_RouterInfo">Router Info</a>,
+which was published to the
+<a href="{{ netdb }}">network database</a>.
+Alice sends Bob:
+{%- endtrans %}</p>
+{% highlight %}
+ X+(H(X) xor Bob.identHash)-----------------------------&gt;
+
+    {% trans %}Size:{% endtrans %} 288 bytes
+{% endhighlight %}
+<p>{% trans %}Contents:{% endtrans %}</p>
+<pre>
+ +----+----+----+----+----+----+----+----+
+ |         X, as calculated from DH      |
+ +                                       +
+ |                                       |
+ ~               .   .   .               ~
+ |                                       |
+ +----+----+----+----+----+----+----+----+
+ |                                       |
+ +                                       +
+ |              HXxorHI                  |
+ +                                       +
+ |                                       |
+ +                                       +
+ |                                       |
+ +----+----+----+----+----+----+----+----+
+
+  X: {% trans %}256 byte X from Diffie Hellman{% endtrans %}
+
+  HXxorHI:  {% trans commonstructures=site_url('docs/spec/common-structures') -%}
+SHA256 Hash(X) xored with SHA256 Hash(Bob's <a href="{{ commonstructures }}#struct_RouterIdentity">Router Identity</a>)
+{%- endtrans %}
+            (32 bytes)
+
+</pre>
+
+<p><b>{% trans %}Notes:{% endtrans %}</b>
+<ul><li>{% trans -%}
+Bob verifies HXxorHI using his own router hash. If it does not verify,
+Alice has contacted the wrong router, and Bob drops the connection.
+{%- endtrans %}</li></ul>
+
+
+<h4>{% trans %}Message 2 (Session Created){% endtrans %}</h4>
+<p>{% trans -%}
+This is the DH reply. Bob sends Alice:
+{%- endtrans %}</p>
+{% highlight %}
+ &lt;----------------------------------------Y+E(H(X+Y)+tsB+padding, sk, Y[239:255])
+
+    {% trans %}Size:{% endtrans %} 304 bytes
+{% endhighlight %}
+<p>{% trans %}Unencrypted Contents:{% endtrans %}</p>
+{% highlight lang='dataspec' %}
+ +----+----+----+----+----+----+----+----+
+ |         Y as calculated from DH       |
+ +                                       +
+ |                                       |
+ ~               .   .   .               ~
+ |                                       |
+ +----+----+----+----+----+----+----+----+
+ |                                       |
+ +                                       +
+ |              HXY                      |
+ +                                       +
+ |                                       |
+ +                                       +
+ |                                       |
+ +----+----+----+----+----+----+----+----+
+ |        tsB        |     padding       |
+ +----+----+----+----+                   +
+ |                                       |
+ +----+----+----+----+----+----+----+----+
+
+  Y: {% trans %}256 byte Y from Diffie Hellman{% endtrans %}
+
+  HXY:  {% trans %}SHA256 Hash(X concatenated with Y){% endtrans %}
+        (32 bytes)
+
+  tsB: {% trans %}4 byte timestamp (seconds since the epoch){% endtrans %}
+
+  padding: {% trans %}12 bytes random data{% endtrans %}
+
+{% endhighlight %}
+
+
+<p>{% trans %}Encrypted Contents:{% endtrans %}</p>
+<pre>
+ +----+----+----+----+----+----+----+----+
+ |         Y as calculated from DH       |
+ +                                       +
+ |                                       |
+ ~               .   .   .               ~
+ |                                       |
+ +----+----+----+----+----+----+----+----+
+ |                                       |
+ +                                       +
+ |             encrypted data            |
+ +                                       +
+ |                                       |
+ +                                       +
+ |                                       |
+ +                                       +
+ |                                       |
+ +                                       +
+ |                                       |
+ +----+----+----+----+----+----+----+----+
+
+  Y: {% trans %}256 byte Y from Diffie Hellman{% endtrans %}
+
+  encrypted data: {% trans cryptography=site_url('docs/how/cryptography') -%}
+48 bytes <a href="{{ cryptography }}#AES">AES encrypted</a> using the DH session key and
+                  the last 16 bytes of Y as the IV{% endtrans %}
+
+</pre>
+
+
+<p><b>{% trans %}Notes:{% endtrans %}</b></p>
+<ul><li>{% trans -%}
+Alice may drop the connection if the clock skew with Bob is too high as calculated using tsB.
+{%- endtrans %}</li></ul>
+
+
+<h4>{% trans %}Message 3 (Session Confirm A){% endtrans %}</h4>
+<p>{% trans -%}
+This contains Alice's router identity, and a DSA signature of the critical data. Alice sends Bob:
+{%- endtrans %}</p>
+{% highlight %}
+ E(sz+Alice.identity+tsA+padding+S(X+Y+Bob.identHash+tsA+tsB), sk, hX_xor_Bob.identHash[16:31])---&gt;
+
+    {% trans %}Size:{% endtrans %} 448 bytes (typ. for 387 byte identity)
+{% endhighlight %}
+<p>{% trans %}Unencrypted Contents:{% endtrans %}</p>
+<pre>
+ +----+----+----+----+----+----+----+----+
+ |   sz    | Alice's Router Identity     |
+ +----+----+                             +
+ |                                       |
+ ~               .   .   .               ~
+ |                                       |
+ +                        +----+----+----+
+ |                        |     tsA       
+ +----+----+----+----+----+----+----+----+
+      |             padding              |
+ +----+                                  +
+ |                                       |
+ +----+----+----+----+----+----+----+----+
+ |                                       |
+ +                                       +
+ |              signature                |
+ +                                       +
+ |                                       |
+ +                                       +
+ |                                       |
+ +                                       +
+ |                                       |
+ +----+----+----+----+----+----+----+----+
+
+  sz: {% trans %}2 byte size of Alice's router identity to follow (should always be 387){% endtrans %}
+
+  ident: {% trans commonstructures=site_url('docs/spec/common-structures') -%}
+Alice's 387 byte <a href="{{ commonstructures }}#struct_RouterIdentity">Router Identity</a>
+{%- endtrans %}
+
+  tsA: {% trans %}4 byte timestamp (seconds since the epoch){% endtrans %}
+
+  padding: {% trans %}15 bytes random data{% endtrans %}
+
+  signature: {% trans commonstructures=site_url('docs/spec/common-structures') -%}
+the 40 byte <a href="{{ commonstructures }}#type_Signature">DSA signature</a> of the following concatenated data:
+             X, Y, Bob's <a href="{{ commonstructures }}#struct_RouterIdentity">Router Identity</a>, tsA, tsB.
+             Alice signs it with the <a href="{{ commonstructures }}#type_SigningPrivateKey">private signing key</a> associated with the <a href="{{ commonstructures }}#type_SigningPublicKey">public signing key</a> in her <a href="{{ commonstructures }}#struct_RouterIdentity">Router Identity</a>
+{%- endtrans %}
+
+</pre>
+
+<p>{% trans %}Encrypted Contents:{% endtrans %}</p>
+<pre>
+ +----+----+----+----+----+----+----+----+
+ |                                       |
+ +                                       +
+ |             encrypted data            |
+ ~               .   .   .               ~
+ |                                       |
+ +----+----+----+----+----+----+----+----+
+
+  encrypted data: {% trans cryptography=site_url('docs/how/cryptography') -%}
+448 bytes <a href="{{ cryptography }}#AES">AES encrypted</a> using the DH session key and
+                  the last 16 bytes of HXxorHI (i.e., the last 16 bytes of message #1) as the IV
+{%- endtrans %}
+
+</pre>
+
+
+<p><b>{% trans %}Notes:{% endtrans %}</b></p>
+<ul>
+<li>{% trans -%}
+Bob verifies the signature, and on failure, drops the connection.
+{%- endtrans %}</li>
+<li>{% trans -%}
+Bob may drop the connection if the clock skew with Alice is too high as calculated using tsA.
+{%- endtrans %}</li>
+</ul>
+
+
+
+<h4>{% trans %}Message 4 (Session Confirm B){% endtrans %}</h4>
+<p>{% trans -%}
+This is a DSA signature of the critical data. Bob sends Alice:
+{%- endtrans %}</p>
+{% highlight %}
+ *  &lt;----------------------E(S(X+Y+Alice.identHash+tsA+tsB)+padding, sk, prev)
+
+    {% trans %}Size:{% endtrans %} 48 bytes
+{% endhighlight %}
+<p>{% trans %}Unencrypted Contents:{% endtrans %}</p>
+<pre>
+ +----+----+----+----+----+----+----+----+
+ |                                       |
+ +                                       +
+ |              signature                |
+ +                                       +
+ |                                       |
+ +                                       +
+ |                                       |
+ +                                       +
+ |                                       |
+ +----+----+----+----+----+----+----+----+
+ |               padding                 |
+ +----+----+----+----+----+----+----+----+
+
+
+  signature: {% trans commonstructures=site_url('docs/spec/common-structures') -%}
+the 40 byte <a href="{{ commonstructures }}#type_Signature">DSA signature</a> of the following concatenated data:
+             X, Y, Alice's <a href="{{ commonstructures }}#struct_RouterIdentity">Router Identity</a>, tsA, tsB.
+             Bob signs it with the <a href="{{ commonstructures }}#type_SigningPrivateKey">private signing key</a> associated with the <a href="{{ commonstructures }}#type_SigningPublicKey">public signing key</a> in his <a href="{{ commonstructures }}#struct_RouterIdentity">Router Identity</a>
+{%- endtrans %}
+
+  padding: {% trans %}8 bytes random data{% endtrans %}
+
+</pre>
+
+
+<p>{% trans %}Encrypted Contents:{% endtrans %}</p>
+<pre>
+ +----+----+----+----+----+----+----+----+
+ |                                       |
+ +                                       +
+ |             encrypted data            |
+ ~               .   .   .               ~
+ |                                       |
+ +----+----+----+----+----+----+----+----+
+
+  encrypted data: {% trans cryptography=site_url('docs/how/cryptography') -%}
+48 bytes <a href="{{ cryptography }}#AES">AES encrypted</a> using the DH session key and
+                  the last 16 bytes of the encrypted contents of message #2 as the IV
+{%- endtrans %}
+
+</pre>
+
+<p><b>Notes:</b></p>
+<ul><li>{% trans -%}
+Alice verifies the signature, and on failure, drops the connection.
+{%- endtrans %}</li></ul>
+
+
+
+
+<h4>{% trans %}After Establishment{% endtrans %}</h4>
+<p>{% trans -%}
+The connection is established, and standard or time sync messages may be exchanged.
+All subsequent messages are AES encrypted using the negotiated DH session key.
+Alice will use the last 16 bytes of the encrypted contents of message #3 as the next IV.
+Bob will use the last 16 bytes of the encrypted contents of message #4 as the next IV.
+{%- endtrans %}</p>
+
+
+
+<h3>{% trans %}Check Connection Message{% endtrans %}</h3>
+<p>{% trans -%}
+Alternately, when Bob receives a connection, it could be a
+check connection (perhaps prompted by Bob asking for someone
+to verify his listener).
+Check Connection is not currently used.
+However, for the record, check connections are formatted as follows.
+A check info connection will receive 256 bytes containing:
+{%- endtrans %}</p>
+<ul>
+     <li>{% trans %}32 bytes of uninterpreted, ignored data{% endtrans %}</li>
+     <li>{% trans %}1 byte size{% endtrans %}</li>
+     <li>{% trans %}that many bytes making up the local router's IP address (as reached by the remote side){% endtrans %}</li>
+     <li>{% trans %}2 byte port number that the local router was reached on{% endtrans %}</li>
+     <li>{% trans %}4 byte i2p network time as known by the remote side (seconds since the epoch){% endtrans %}</li>
+     <li>{% trans %}uninterpreted padding data, up to byte 223{% endtrans %}</li>
+     <li>{% trans %}xor of the local router's identity hash and the SHA256 of bytes 32 through bytes 223{% endtrans %}</li>
+</ul>
+</pre>
+
+<h2>{% trans %}Discussion{% endtrans %}</h2>
+<p>{% trans ntcpdisc=site_url('docs/discussions/ntcp') -%}
+Now on the <a href="{{ ntcpdisc }}">NTCP Discussion Page</a>.
+{%- endtrans %}</p>
+
+<h2><a name="future">{% trans %}Future Work{% endtrans %}</a></h2>
+<ul>
+<li>{% trans -%}
+The maximum message size should be increased to approximately 32 KB.
+{%- endtrans %}</li>
+
+<li>{% trans -%}
+A set of fixed packet sizes may be appropriate to further hide the data 
+fragmentation to external adversaries, but the tunnel, garlic, and end to 
+end padding should be sufficient for most needs until then.
+However, there is currently no provision for padding beyond the next 16-byte boundary,
+to create a limited number of message sizes.
+{%- endtrans %}</li>
+
+<li>{% trans -%}
+Memory utilization (including that of the kernel) for NTCP should be compared to that for SSU.
+{%- endtrans %}</li>
+
+<li>{% trans -%}
+Can the establishment messages be randomly padded somehow, to frustrate
+identification of I2P traffic based on initial packet sizes?
+{%- endtrans %}</li>
+
+<li>{% trans -%}
+Review and possibly disable 'check connection'
+{%- endtrans %}</li>
+</ul>
+
+{% endblock %}

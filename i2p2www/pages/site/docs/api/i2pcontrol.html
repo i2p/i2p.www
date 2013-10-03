@@ -1,0 +1,206 @@
+{% extends "global/layout.html" %}
+{% block title %}I2PControl API{% endblock %}
+{% block content %}
+<h1>{% trans %}I2PControl - Remote Control Service{% endtrans %}</h1>
+<p>{% trans itoopie='http://'+i2pconv('itoopie.i2p')+'/' -%}
+I2P enables a <a href="http://en.wikipedia.org/wiki/JSON-RPC">JSONRPC2</a> interface via the plugin <a href="{{ itoopie }}">I2PControl</a>.
+The aim of the interface is to provide simple way to interface with a running I2P node. A client, itoopie, has been developed in parallel.
+The JSONRPC2 implementation for the client as well as the plugin is provided by the java libraries <a href="http://software.dzhuvinov.com/json-rpc-2.0.html">JSON-RPC 2.0</a>.  
+A list of implementations of JSON-RPC for various languages can be found at <a href="http://json-rpc.org/wiki/implementations">the JSON-RPC wiki</a>.
+{%- endtrans %}</p>
+
+<p>{% trans %}I2PControl is by default listening on localhost:7650{% endtrans %}</p>
+
+<h2>{% trans %}API, version 1.{% endtrans %}</h2>
+<p>{% trans -%}
+Parameters are only provided in a named way (maps).
+{%- endtrans %}</p>
+
+<h4>{% trans %}JSON-RPC 2 format{% endtrans %}</h4>
+<div class="box" style="clear: none;"><pre>
+{{ _('Request:') }}
+{"id":"id", "method":"Method-name","params":{"Param-key-1":"param-value-1", "Param-key-2":"param-value-2", "Token":"**actual token**"}, "jsonrpc":"2.0"}
+{{ _('Response:') }}
+{"id":"id","result":{"Result-key-1":"result-value-1","Result-key-2":"result-value-2"},"jsonrpc":"2.0"}
+</pre></div>
+<ul>method-name &ndash; {{ _('Description') }}
+	<ul>{{ _('Request:') }}
+		<li>Param-key-1 &ndash; {{ _('Description') }}</li>
+		<li>Param-key-2 &ndash; {{ _('Description') }}</li>
+		<li>Token &ndash; {% trans %}Token used for authenticating every request (excluding the 'Authenticate' RPC method){% endtrans %}</li>
+	</ul>
+	<ul>{{ _('Response:') }}
+		<li>Result-key-1 &ndash; {{ _('Description') }}</li>
+		<li>Result-key-2 &ndash; {{ _('Description') }}</li>
+	</ul>
+</ul>
+
+<h4>{% trans %}Implemented methods{% endtrans %}</h4>
+<ul>Authenticate &ndash; {% trans %}Creates and returns an authentication token used for further communication.{% endtrans %}
+	<ul>{{ _('Request:') }}
+		<li>API &ndash; [long] {% trans %}The version of the I2PControl API used by the client.{% endtrans %}</li>
+		<li>Password &ndash; [String] {% trans %}The password used for authenticating against the remote server.{% endtrans %}</li>
+	</ul>
+	<ul>{{ _('Response:') }}
+		<li>API &ndash; [long] {% trans %}The primary I2PControl API version implemented by the server.{% endtrans %}</li>
+		<li>Token &ndash; [String] {% trans %}The token used for further communication.{% endtrans %}</li>
+	</ul>
+</ul>
+<ul>Echo &ndash; {% trans %}Echoes the value of the echo key, used for debugging and testing.{% endtrans %}
+	<ul>{{ _('Request:') }}
+		<li>Echo &ndash; [String] {% trans %}Value will be returned in response.{% endtrans %}</li>
+		<li>Token &ndash; [String] {% trans %}Token used for authenticating the client. Is provided by the server via the 'Authenticate' RPC method.{% endtrans %}</li>
+	</ul>
+	<ul>{{ _('Response:') }}
+		<li>Result &ndash; [String] {% trans %}Value of the key 'echo' in the request.{% endtrans %}</li>
+	</ul>
+</ul>
+<ul>GetRate &ndash; {% trans %}Fetches rateStat from router statManager. Creates stat if not already created.{% endtrans %}
+	<ul>{{ _('Request:') }}
+		<li>Stat &ndash; [String] {% trans ratestats=site_url('misc/ratestats') %}Determines which rateStat to fetch, see <a href="{{ ratestats }}">ratestats</a>.{% endtrans %}</li>
+		<li>Period &ndash; [long] {% trans %}Determines which period a stat is fetched for. Measured in ms.{% endtrans %}</li>
+		<li>Token &ndash; [String] {% trans %}Token used for authenticating the client. Is provided by the server via the 'Authenticate' RPC method.{% endtrans %}</li>
+	</ul>
+	<ul>{{ _('Response:') }}
+		<li>Result &ndash; [double] {% trans %}Returns the average value for the reuested rateStat and period.{% endtrans %}</li>
+	</ul>
+</ul>
+<ul>I2PControl &ndash; {% trans %}Manages I2PControl. Ports, passwords and the like.{% endtrans %}
+	<ul>{{ _('Request:') }}
+		<li>*i2pcontrol.address &ndash; [String] {% trans %}Sets a new listen address for I2PControl (only 127.0.0.1 and 0.0.0.0 are implemented in I2PControl currently).{% endtrans %}</li>
+		<li>*i2pcontrol.password &ndash; [String] {% trans %}Sets a new password for I2PControl, all Authentication tokens will be revoked.{% endtrans %}</li>
+		<li>*i2pcontrol.port &ndash; [String] {% trans %}Switches which port I2PControl will listen for connections on.{% endtrans %}</li>
+		<li>Token &ndash; [String] {% trans %}Token used for authenticating the client. Is provided by the server via the 'Authenticate' RPC method.{% endtrans %}</li>
+	</ul>
+	<ul>{{ _('Response:') }}
+		<li>**i2pcontrol.address &ndash; [null] {% trans %}Returned if address was changed{% endtrans %}</li>
+		<li>**i2pcontrol.password &ndash; [null] {% trans %}Returned if setting was changed{% endtrans %}</li>
+		<li>**i2pcontrol.port &ndash; [null] {% trans %}Returned if setting was changed{% endtrans %}</li>
+		<li>SettingsSaved &ndash; [Boolean] {% trans %}Returns true if any changes were made.{% endtrans %}</li>
+		<li>RestartNeeded &ndash; [Boolean] {% trans %}Returns true if any changes requiring a restart to take effect were made.{% endtrans %}</li>
+	</ul>
+</ul>
+<ul>RouterInfo &ndash; {% trans %}Fetches basic information about the I2P router. Uptime, version etc.{% endtrans %}
+	<ul>{{ _('Request:') }}
+		<li>*i2p.router.status &ndash; [n/a]</li>
+		<li>*i2p.router.uptime &ndash; [n/a]</li>
+		<li>*i2p.router.version	&ndash; [n/a]</li>
+		<li>*i2p.router.net.bw.inbound.1s &ndash; [n/a] </li>
+		<li>*i2p.router.net.bw.inbound.15s &ndash; [n/a] </li>
+		<li>*i2p.router.net.bw.outbound.1s &ndash; [n/a] </li>
+		<li>*i2p.router.net.bw.outbound.15s &ndash; [n/a] </li>
+		<li>*i2p.router.net.status &ndash; [n/a]</li>
+		<li>*i2p.router.net.tunnels.participating &ndash; [n/a] </li>
+		<li>*i2p.router.netdb.activepeers &ndash; [n/a] </li>
+		<li>*i2p.router.netdb.fastpeers &ndash; [n/a] </li>
+		<li>*i2p.router.netdb.highcapacitypeers &ndash; [n/a] </li>
+		<li>*i2p.router.netdb.isreseeding &ndash; [n/a] </li>
+		<li>*i2p.router.netdb.knownpeers &ndash; [n/a] </li>
+		<li>Token &ndash; [String] {% trans %}Token used for authenticating the client. Is provided by the server via the 'Authenticate' RPC method.{% endtrans %}</li>
+	</ul>
+	<ul>{{ _('Response:') }}
+		<li>**i2p.router.status &ndash; [String] {% trans %}What the status of the router is.{% endtrans %}</li>
+		<li>**i2p.router.uptime &ndash; [long] {% trans %}What the uptime of the router is in ms.{% endtrans %}</li>
+		<li>**i2p.router.version &ndash; [String] {% trans %}What version of I2P the router is running.{% endtrans %}</li>
+		<li>**i2p.router.net.bw.inbound.1s &ndash; [double] {% trans %}The 1 second average inbound bandwidth in Bps.{% endtrans %}</li>
+		<li>**i2p.router.net.bw.inbound.15s &ndash; [double] {% trans %}The 15 second average inbound bandwidth in Bps.{% endtrans %}</li>
+		<li>**i2p.router.net.bw.outbound.1s &ndash; [double] {% trans %}The 1 second average outbound bandwidth in Bps.{% endtrans %}</li>
+		<li>**i2p.router.net.bw.outbound.15s &ndash; [double] {% trans %}The 15 second average outbound bandwidth in Bps.{% endtrans %}</li>
+		<li>**i2p.router.net.status &ndash; [long] {% trans %}What the current network status is. According to the below enum:{% endtrans %}
+			<ul>
+				<li>0 &ndash; OK</li>
+				<li>1 &ndash; TESTING</li>
+				<li>2 &ndash; FIREWALLED</li>
+				<li>3 &ndash; HIDDEN</li>
+				<li>4 &ndash; WARN_FIREWALLED_AND_FAST</li>
+				<li>5 &ndash; WARN_FIREWALLED_AND_FLOODFILL</li>
+				<li>6 &ndash; WARN_FIREWALLED_WITH_INBOUND_TCP</li>
+				<li>7 &ndash; WARN_FIREWALLED_WITH_UDP_DISABLED</li>
+				<li>8 &ndash; ERROR_I2CP</li>
+				<li>9 &ndash; ERROR_CLOCK_SKEW</li>
+				<li>10 &ndash; ERROR_PRIVATE_TCP_ADDRESS</li>
+				<li>11 &ndash; ERROR_SYMMETRIC_NAT</li>
+				<li>12 &ndash; ERROR_UDP_PORT_IN_USE</li>
+				<li>13 &ndash; ERROR_NO_ACTIVE_PEERS_CHECK_CONNECTION_AND_FIREWALL</li>
+				<li>14 &ndash; ERROR_UDP_DISABLED_AND_TCP_UNSET</li>
+			</ul>
+		</li>
+		<li>**i2p.router.net.tunnels.participating &ndash; [long] {% trans %}How many tunnels on the I2P net are we participating in.{% endtrans %}</li>
+		<li>**i2p.router.netdb.activepeers &ndash; [long] {% trans %}How many peers have we communicated with recently.{% endtrans %}</li>
+		<li>**i2p.router.netdb.fastpeers &ndasg; [long] {% trans %}How many peers are considered 'fast'.{% endtrans %}</li>
+		<li>**i2p.router.netdb.highcapacitypeers &ndash; [long] {% trans %}How many peers are considered 'high capacity'.{% endtrans %}</li>
+		<li>**i2p.router.netdb.isreseeding &ndash; [boolean] {% trans %}Is the router reseeding hosts to its NetDB?{% endtrans %}</li>
+		<li>**i2p.router.netdb.knownpeers &ndash; [long] {% trans %}How many peers are known to us (listed in our NetDB).{% endtrans %}</li>
+	</ul>
+</ul>
+<ul>RouterManager &ndash; {% trans %}Manages I2P router restart/shutdown.{% endtrans %}
+	<ul>{{ _('Request:') }}
+		<li>*Reseed &ndash; [n/a] {% trans %}Initiates a router reseed, fetching peers into our NetDB from a remote host.{% endtrans %}</li>
+		<li>*Restart &ndash; [n/a] {% trans %}Restarts the router.{% endtrans %}</li>
+		<li>*RestartGraceful &ndash; [n/a] {% trans %}Restarts the router gracefully (waits for participating tunnels to expire).{% endtrans %}</li>
+		<li>*Shutdown &ndash; [n/a] {% trans %}Shuts down the router.{% endtrans %}</li>
+		<li>*ShutdownGraceful &ndash; [n/a] {% trans %}Shuts down the router gracefully (waits for participating tunnels to expire).{% endtrans %}</li>
+		<li>Token &ndash; [String] {% trans %}Token used for authenticating the client. Is provided by the server via the 'Authenticate' RPC method.{% endtrans %}</li>
+	</ul>
+	<ul>{{ _('Response:') }}
+		<li>**Reseed &ndash; [null] {% trans %}If requested, verifies that a reseed has been initiated.{% endtrans %}</li>
+		<li>**Restart &ndash; [null] {% trans %}If requested, verifies that a restart has been initiated.{% endtrans %}</li>
+		<li>**RestartGraceful &ndash; [null] {% trans %}If requested, verifies that a graceful restart has been initiated.{% endtrans %}</li>
+		<li>**Shutdown &ndash; [null] {% trans %}If requested, verifies that a shutdown has been initiated{% endtrans %}</li>
+		<li>**ShutdownGraceful &ndash; [null] {% trans %}If requested, verifies that a graceful shutdown has been initiated{% endtrans %}</li>
+	</ul>
+</ul>
+<ul>NetworkSetting &ndash; {% trans %}Fetches or sets various network related settings. Ports, addresses etc.{% endtrans %}
+	<ul>{{ _('Request:') }}
+		<li>*i2p.router.net.ntcp.port &ndash; [String] {% trans %}What port is used for the TCP transport. If null is submitted, current setting will be returned.{% endtrans %}</li>
+		<li>*i2p.router.net.ntcp.hostname &ndash; [String] {% trans %}What hostname is used for the TCP transport. If null is submitted, current setting will be returned.{% endtrans %}</li>
+		<li>*i2p.router.net.ntcp.autoip &ndash; [String] {% trans %}Use automatically detected ip for TCP transport. If null is submitted, current setting will be returned.{% endtrans %}</li>
+		<li>*i2p.router.net.ssu.port &ndash; [String] {% trans %}What port is used for the UDP transport. If null is submitted, current setting will be returned.{% endtrans %}</li>
+		<li>*i2p.router.net.ssu.hostname &ndash; [String] {% trans %}What hostname is used for the UDP transport. If null is submitted, current setting will be returned.{% endtrans %}</li>
+		<li>*i2p.router.net.ssu.autoip &ndash; [String] {% trans %}Which methods should be used for detecting the ip address of the UDP transport. If null is submitted, current setting will be returned.{% endtrans %}</li>
+		<li>*i2p.router.net.ssu.detectedip &ndash; [null] {% trans %}What ip has been detected by the UDP transport.{% endtrans %}</li>
+		<li>*i2p.router.net.upnp &ndash; [String] {% trans %}Is UPnP enabled. If null is submitted, current setting will be returned.{% endtrans %}</li>
+		<li>*i2p.router.net.bw.share &ndash; [String] {% trans %}How many percent of bandwidth is usable for participating tunnels. If null is submitted, current setting will be returned.{% endtrans %}</li>
+		<li>*i2p.router.net.bw.in &ndash; [String] {% trans %}How many KB/s of inbound bandwidth is allowed. If null is submitted, current setting will be returned.{% endtrans %}</li>
+		<li>*i2p.router.net.bw.out &ndash; [String] {% trans %}How many KB/s of outbound bandwidth is allowed. If null is submitted, current setting will be returned.{% endtrans %}</li>
+		<li>*i2p.router.net.laptopmode &ndash; [String] {% trans %}Is laptop mode enabled (change router identity and UDP port when IP changes ). If null is submitted, current setting will be returned.{% endtrans %}</li>
+		<li>Token &ndash; [String] {% trans %}Token used for authenticating the client. Is provided by the server via the 'Authenticate' RPC method. If null is submitted, current setting will be returned.{% endtrans %}</li>
+	</ul>
+	<ul>{{ _('Response:') }}
+		<li>**i2p.router.net.ntcp.port &ndash; [String] {% trans %}If requested, returns the port used for the TCP transport.{% endtrans %}</li>
+		<li>**i2p.router.net.ntcp.hostname &ndash; [String] {% trans %}If requested, returns the hostname used for the TCP transport.{% endtrans %}</li>
+		<li>**i2p.router.net.ntcp.autoip &ndash; [String] {% trans %}If requested, returns the method used for automatically detecting ip for the TCP transport.{% endtrans %}</li>
+		<li>**i2p.router.net.ssu.port &ndash; [String] {% trans %}If requested, returns the port used for the UDP transport.{% endtrans %}</li>
+		<li>**i2p.router.net.ssu.hostname &ndash; [String] {% trans %}If requested, returns the hostname used for the UDP transport.{% endtrans %}</li>
+		<li>**i2p.router.net.ssu.autoip &ndash; [String] {% trans %}If requested, returns methods used for detecting the ip address of the UDP transport.{% endtrans %}</li>
+		<li>**i2p.router.net.ssu.detectedip &ndash; [String] {% trans %}If requested, returns what ip has been detected by the UDP transport.{% endtrans %}</li>
+		<li>**i2p.router.net.upnp &ndash; [String] {% trans %}If requested, returns the UPNP setting.{% endtrans %}</li>
+		<li>**i2p.router.net.bw.share &ndash; [String] {% trans %}If requested, returns how many percent of bandwidth is usable for participating tunnels.{% endtrans %}</li>
+		<li>**i2p.router.net.bw.in &ndash; [String] {% trans %}If requested, returns how many KB/s of inbound bandwidth is allowed.{% endtrans %}</li>
+		<li>**i2p.router.net.bw.out &ndash; [String] {% trans %}If requested, returns how many KB/s of outbound bandwidth is allowed.{% endtrans %}</li>
+		<li>**i2p.router.net.laptopmode &ndash; [String] {% trans %}If requested, returns the laptop mode.{% endtrans %}</li>
+		<li>SettingsSaved &ndash; [boolean] {% trans %}Have the provided settings been saved.{% endtrans %}</li>
+		<li>RestartNeeded &ndash; [boolean] {% trans %}Is a restart needed for the new settings to be used.{% endtrans %}</li>
+	</ul>
+</ul>
+<p>* {% trans %}denotes an optional value.{% endtrans %}</p>
+<p>** {% trans %}denotes a possibly occuring return value{% endtrans %}</p>
+
+<h3>{% trans %}Error codes{% endtrans %}</h3>
+<ul>{% trans %}Standard JSON-RPC2 error codes.{% endtrans %}
+	<li>-32700 &ndash; {% trans %}JSON parse error.{% endtrans %}</li>
+	<li>-32600 &ndash; {% trans %}Invalid request.{% endtrans %}</li>
+	<li>-32601 &ndash; {% trans %}Method not found.{% endtrans %}</li>
+	<li>-32602 &ndash; {% trans %}Invalid parameters.{% endtrans %}</li>
+	<li>-32603 &ndash; {% trans %}Internal error.{% endtrans %}</li>
+</ul>
+<ul>{% trans %}I2PControl specific error codes.{% endtrans %}
+	<li>-32001 &ndash; {% trans %}Invalid password provided.{% endtrans %}</li>
+	<li>-32002 &ndash; {% trans %}No authentication token presented.{% endtrans %}</li>
+	<li>-32003 &ndash; {% trans %}Authentication token doesn't exist.{% endtrans %}</li>
+	<li>-32004 &ndash; {% trans %}The provided authentication token was expired and will be removed.{% endtrans %}</li>
+	<li>-32005 &ndash; {% trans %}The version of the I2PControl API used wasn't specified, but is required to be specified.{% endtrans %}</li>
+	<li>-32006 &ndash; {% trans %}The version of the I2PControl API specified is not supported by I2PControl.{% endtrans %}</li>
+</ul>
+
+{% endblock %}

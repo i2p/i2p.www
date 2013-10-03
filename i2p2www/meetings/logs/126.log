@@ -1,0 +1,172 @@
+13:50 < jrandom> 0) hi
+13:50 < jrandom> 1) 0.5 status
+13:50 < jrandom> 2) sam.net
+13:50 < jrandom> 3) gcj progress
+13:50 < jrandom> 4) udp
+13:50 < jrandom> 5) ???
+13:50 < jrandom> 0) hi
+13:50  * jrandom waves belatedly
+13:51 < jrandom> weekly status notes posted up to http://dev.i2p.net/pipermail/i2p/2005-January/000560.html
+13:51 <+postman> hi
+13:51  * brachtus waves back
+13:52  * cervantes waves a detention slip for tardiness
+13:52 < jrandom> yeah yeah, blame the code for sucking me in
+13:52 < jrandom> ok, jumping into 1) 0.5 status
+13:53 < jrandom> lots of progress since last week - all the messy problems we had with the new crypto are resolved without much trouble
+13:54 < jrandom> the latest http://dev.i2p.net/cgi-bin/cvsweb.cgi/i2p/router/doc/tunnel-alt.html?rev=HEAD is very likely to be what we deploy in 0.5 and beyond, unless/until people find any problems with it
+13:55 < jrandom> not sure if i have anything else to add beyond whats in the email
+13:55 < jrandom> anyone have any questions/concerns?
+13:56 < Ragnarok> what's performance going to be like?
+13:56 < jrandom2p> (not me)
+13:56 < jrandom> Ragnarok: tunnel performance should be much better
+13:56 < frosk> any significant overhead compared to what we have today?
+13:57 < jrandom> frosk: sometimes
+13:57 < jrandom> frosk: when we can coallesce messages in a tunnel, the overhead will be minimal
+13:58 < jrandom> however, when we cannot coallesce or when its not effective, there can be nontrivial waste
+13:58 < frosk> i see
+13:59 < jrandom> otoh, we're trimming some of the absurdities of our current i2np (where we currently prepend a 32 byte SHA256 before each I2NP message, even ones within garlic messages, etc)
+13:59 < jrandom> the fragmentation and fixed size will be an issue we need to tune with, but there is lots of room to do so
+14:01 < jrandom> ok, anytihng else on 0.5?
+14:02 < jrandom> if not, moving on to 2) sam.net
+14:02 < jrandom> smeghead has ported the java sam client lib to .net (yay!)
+14:02 < jrandom> smeghead: wanna give us the rundown?
+14:03 < smeghead> sure
+14:03 < smeghead> i'm writing tests for it, should have those in cvs in the next couple of days
+14:04 < smeghead> should work with .net/mono/portable.net
+14:04 < smeghead> and c# and vb.net
+14:05 < frosk> (and all of the other languages that works with .net i suppose)
+14:05 < cervantes> (urgh)
+14:05 < smeghead> the interface is dirt simple
+14:05 < smeghead> just register listener methods with SamReader, or subclass SamBaseEventHandler and override methods as necessary
+14:05 < smeghead> yes, i aim to make it fully CLR compatible
+14:06 < jrandom> wikked
+14:06 < cervantes> cool... smeg.net ;-)
+14:06 < frosk> goodie
+14:06 < smeghead> really not much else to it
+14:06 <+protokol> CLR?
+14:06 < smeghead> common language runtime
+14:06 < smeghead> the .net equivalent of the JRE
+14:07 <+protokol> JRE?
+14:07 <+protokol> just kidding
+14:07 < jrandom> !thwap protokol 
+14:07 < Ragnarok> jrandom: how's the sam bridge holding up these days?  were all the bt related issues resolved?
+14:08 < Tracker> I doubt it, i2p-bt can even drive my amd64 3000 mad, cpu-wise...
+14:08 < jrandom> Ragnarok: i havent touched it lately.  there's still the outstanding choke issue that polecat came up with, but where the i2p-bt<-->sam bridge is getting off, i'm not sure
+14:09 < jrandom> hmm, failed connections will force full ElGamal instead of AES
+14:10 < Ragnarok> ok
+14:10 < jrandom> we should be able to reduce some of that after 0.5, but only partially
+14:12 < Tracker> Ok, the I2P will be good for anonymus trackers but not for anonymus clients. Just try to think what happens on a really popular torrent with some 1000 seeds and leechs.
+14:12 < jrandom> ok, the sam.net stuff sounds cool, thanks again smeghead.  i'm looking forward to the unit tests and perhaps a demo app :)
+14:12 < ant> <Evil-Brotten> hello everbody
+14:12 < smeghead> a demo app, yes i'll do that too
+14:13 < smeghead> i've ported yours in fact
+14:13 < jrandom> Tracker: i2p can handle anonymous clients just fine, we just need to figure out whats wrong with the i2p-bt<-->sam bridge to reduce the full ElG's
+14:13 < smeghead> they're just bug-ridden atm
+14:13 < ant> <Evil-Brotten> deer?
+14:13 < jrandom> hi Evil-Brotten
+14:13 < ant> <Evil-Brotten> hello
+14:14 < jrandom> weekly dev meeting going on, feel free to stick around.  deer is a gateway to i2p/iip
+14:14 < ant> <Evil-Brotten> are you an i2p expert?
+14:14 < ant> <Evil-Brotten> :P
+14:14 < ant> <Evil-Brotten> ow, ok
+14:14 < ant> <cervantes> Evil-Brotten: you can talk in #i2p-chat if you like while the meeting is ongoing
+14:14 < jrandom> Tracker: we've got a lot to do before handling 1k-wide torrents
+14:14 < ant> <Evil-Brotten> i was just trying to install your program, but i am having some problems
+14:14 < ant> <Evil-Brotten> cool, i will ask there
+14:15 < jrandom> wikked smeghead 
+14:15 < Tracker> jrandom: I hope so, non-anonymus bt won't survive much longer...
+14:15 < frosk> nonsense
+14:15 < jrandom> "but exeem is anonymous!@#" </snark>
+14:15 < Tracker> jrandom: But that's a different story
+14:15 < ant> <MikeW> what?
+14:15 < ant> <MikeW> who said exeem is anonymous?
+14:16 < jrandom> mikew: just the occational fanboy
+14:16 < jrandom> Tracker: after 0.5 we're going to have a lot of work to do getting performance where we need it to be
+14:16  * DrWoo notes that 'people' are fucking morons (sometimes)
+14:16 < Tracker> jrandom: Yeah, installing spy-/adware isn't really what I would do ;)
+14:16 < jrandom> heh
+14:17 < smeghead> i happen to like people
+14:17 < smeghead> they're good on toast
+14:17 < jrandom> *chomp*
+14:17 < smeghead> some need a little more butter than others
+14:18 < jrandom> ok, i think thats 'bout it for 2) sam.net (unless anyone has something else to add?)
+14:18 < jrandom> if not, moving on to 3) gcj progress
+14:19 < ant> <dm> sam.net??
+14:19 < ant> <dm> is it working?/
+14:19 < jrandom> i've read in my backlog that smeghead has been making some good headway - wanna give us an update on how its going?
+14:19 < smeghead> yes
+14:20 < ant> <dm> cooooooool
+14:20 < smeghead> i modified a few classes so the router compiles with gcj 3.4.3
+14:20 < smeghead> i will submit the patch after the meeting
+14:20 < smeghead> after that i and anyone who would like to help can get to work on making it run
+14:21 < jrandom> nice
+14:21  * frosk decorates smeghead with the Employee of the Week medal for sam.net _and_ gcj work
+14:21 < jrandom> aye, v.cool
+14:21 < smeghead> :)
+14:22 < Tracker> frosk: better forum user of the week ;)
+14:22 < frosk> i haven't read the forum this week, sorry :)
+14:22 < cervantes> duck's glory has not yet expired ;-)
+14:23  * jrandom is very much looking forward to seeing i2p gcj compatible
+14:24 < jrandom> (and there's still that bounty on it, so people should get in touch with smeghead and get involved ;)
+14:24 < smeghead> yes it would expand i2p's portability significantly
+14:24 < cervantes> maybe we'll be able to squeeze something that resembles performance from the router :P
+14:24 < ant> <dm> my 32-week run as hardest I2P worker ends at last...
+14:25 < jrandom> i dont expect gcj to actually improve performance or reduce the memory footprint, but it'll work on OSes that sun doesn't release JVMs for and kaffe is b0rked on
+14:25 < jrandom> (but if i'm wrong, cool!)
+14:25 < frosk> anything that can make i2p run better without proprietary software is Good
+14:26 < jrandom> agreed.  supporting both kaffe and gcj would be a Good Thing
+14:27 < jrandom> ok, anything else on 3) gcj progress, or shall we move on?
+14:27 < smeghead> installation would be easier too
+14:27 < Teal`c> has gcj worked for anything besides 'hello world' examples ?
+14:27 < Ragnarok> someone built eclipse with it
+14:27 < smeghead> Teal`c: yes, i've used it for .exe's under mingw before in fact
+14:27 < smeghead> yes, eclipse was running under gcj with red hat not to long ago
+14:28 < jrandom> having the option of distributing gcj'ed executables, plain .jar installers, and bundled .jar+jvm will definitely be Good
+14:29 < jrandom> ok, moving on to 4) udp
+14:30 < jrandom> there was a recent post to the forum that i just wanted to draw people's attention to, asking (and answering) why udp is important
+14:30 < Tracker> Yuck
+14:30 < jrandom> (see http://forum.i2p.net/viewtopic.php?t=280 and comment if you have any suggestions/questions/concenrs)
+14:31 < jrandom> yuck Tracker?
+14:32 < jrandom> anyway, both mule and detonate are making some headway on the udp side.  detonate/mule: y'all have any updates to share?
+14:32 < Tracker> UPD is evil here, while it works well within the country borders it really get's ugly when trying to use it on destinations outside our countrys.
+14:32 < jrandom> hmm
+14:32 < Tracker> Just my experience from 5 years online gaming...
+14:33 < jrandom> we'll certainly need to take into account the congestion and mtu issues as they go out on the net
+14:33 < Tracker> Somehow the two big backbones here don't like to router UPD very well and if only with very low priority.
+14:34 < Tracker> Meaning pings between 5 and 20 seconds.
+14:34 < jrandom> i'd be pretty suprised if there was an isp that didn't allow UDP at all (since we all use DNS)
+14:34 < Tracker> And high packet loss
+14:34 < jrandom> congestion control is certainly important
+14:35 < Tracker> Why do you think I'm running my own caching dns with a very big cache for years ;)
+14:35 < jrandom> heh
+14:35 < jrandom> well, we will have the fallback of tcp for people who cannot use udp for some reason
+14:36 < jrandom> but udp will be overwhelmingly preferred 
+14:36 < Tracker> That's nice.
+14:36 < jrandom> (meaning i hope there will only be perhaps 10 people using tcp out of 1m+ nodes ;)
+14:37 < jrandom> but, again, that forum link explains why we need to do what we're doing, though if anyone can find a better way, i'm all ears
+14:37 < Tracker> I guess I will be one of them.
+14:37 < jrandom> perhaps.  
+14:38 < jrandom> we'll see as 0.6 is deployed whether thats the case, or whether we'll be able to work around the issues your isp has
+14:38 < jrandom> ok, anything else on udp?  or shall we move on to 5) ???
+14:39 < jrandom> consider us moved
+14:39 < jrandom> 5) ??
+14:39 < jrandom> anyone have anything else to bring up?
+14:40 < Teal`c> is the pizza here yet ?
+14:40 < Jhor> anybody know where i should look to find/debug problems in bittorrent?
+14:41 < jrandom> Jhor: in i2p-bt, a good place to start would likely be adding in some logging to tell you what BT messages are sent/received, so we know where its blocking/timing out/etc
+14:41 < jrandom> (assuming you mean i2p-bt and not azneti2p?)
+14:42 < Jhor> yeah, i2p-bt.  what are the different spew levels?
+14:42 < jrandom> no idea, all i know is --spew 1
+14:42 < Jhor> Ok, I'll try that
+14:43  * Jhor prepares for a crash course in python
+14:43 < jrandom> :)
+14:44 < jrandom> ok, anybody else have something to discuss?
+14:44  * cervantes wheels out the Strand Gong
+14:44 < jrandom> we're around the 60m mark, so a pretty good rate
+14:44 < Teal`c> when is udp due for general consumption ?
+14:44 < jrandom> Teal`c: april
+14:44 < jrandom> thats 0.6, we're still working on 0.5
+14:45 < Teal`c> nice work.
+14:46 < jrandom> progress, ever onwards
+14:46  * jrandom winds up
+14:46  * jrandom *baf*s the gong, closing the meeting
