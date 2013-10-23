@@ -10,7 +10,7 @@ if grep "^mtn: \(add\|dropp\|updat\)ing 'i2p2www/translations/" "$TMP" >/dev/nul
   ./compile-messages-i2hq.sh
 fi
 
-if grep "^mtn: updating 'i2p2www/.*\.py\|^mtn: updating 'i2p2www/.*/.*\.py" >/dev/null; then
+if grep "^mtn: updating 'i2p2www/.*\.py\|^mtn: updating 'i2p2www/.*/.*\.py" "$TMP" >/dev/null; then
   echo "Python files changed, restarting server"
   touch /tmp/2fcd2f17-c293-4f77-b4c9-9b266ba70daa
 fi
