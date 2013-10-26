@@ -106,6 +106,7 @@ LEGACY_PAGES_MAP={
     'supported_applications': 'docs/applications/supported',
     'team':                   'about/team',
     'techintro':              'docs/how/tech-intro',
+    'ticket1056':             'misc/ticket1056',
     'ticket919':              'misc/ticket919',
     'todo':                   'get-involved/todo',
     'transition-guide':       'misc/transition-guide',
