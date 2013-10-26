@@ -1,0 +1,111 @@
+{% extends "global/layout.html" %}
+{% block title %}{{ _('Performance') }}{% endblock %}
+{% block content %}
+
+<h1>{% trans %}How does I2P work, why is it slow, and why does it not use my full bandwidth?{% endtrans %}</h1>
+
+<p>{% trans -%}
+Probably one of the most frequent things people ask is "how fast is I2P?",
+and no one seems to like the answer - "it depends".  After trying out I2P, the
+next thing they ask is "will it get faster?", and the answer to that is a most
+emphatic <b>yes</b>.
+{%- endtrans %}</p>
+
+<p>{% trans -%}
+I2P is a full dynamic network. Each client is known to other nodes and tests local known nodes for reachability and capacity.
+Only reachable and capable nodes are saved to a local NetDB (This is generally only a portion of the network, around 500-1000).
+When I2P builds tunnels, it selects the best resource from this pool. For example, a small subset of 20-50 nodes are only available to build tunnels with.
+Because testing happens every minute, the pool of used nodes changes every minute.
+Each I2P node knows a different part of the net, meaning that each router has a different set of I2P nodes to be used for tunnels.
+Even if two routers have the same subset of known nodes, the tests for reachability and capacity will likely show different results, as the other routers could be under load just as one router tests, but be free if the second router tests.
+{%- endtrans %}</p>
+
+<p>{% trans -%}
+The above describes why each I2P node has different nodes to build tunnels.
+Because every I2P node has a different latency and bandwith, tunnels (which are built via those nodes) have different latency and bandwidth values.
+And because every I2P node has different tunnels built, no two I2P nodes have the same tunnel sets.
+{%- endtrans %}</p>
+
+<p>{% trans -%}
+A server/client is known as a "destination" and each destination has at least one inbound and one outbound tunnel. The default is 3 hops per tunnel.
+This adds up to 12 hops (aka 12 different I2P nodes) for a full roundtrip client-server-client.
+{%- endtrans %}</p>
+
+<p>{% trans -%}
+Each data package is sent through 6 other I2P nodes until it reaches the server:
+{%- endtrans %}</p>
+<pre>
+client - hop1 - hop2 - hop3 - hopa1 - hopa2 - hopa3 - server
+</pre>
+<p>{% trans -%}
+and on way back 6 different I2P nodes:
+{%- endtrans %}</p>
+<pre>
+server - hopb1 - hopb2 - hopb3 - hopc1 - hopc2 - hopc3 - client
+</pre>
+
+<p>{% trans -%}
+As most traffic on I2P (www, torrent,...) needs ack packages until new data is sent, it needs to wait until a ack package returns from the server.
+In the end: send data, wait for ack, send more data, wait for ack,..
+As the RTT (RoundTripTime) adds up from the latency of each individual I2P node and each connection on this roundtrip, it takes usually 1-3 seconds until a ack package comes back to the client.
+With some internals of TCP and I2P transport, a data package has a limited size and cannot be as large as we want it to be.
+Together these conditions set a limit of max bandwidth per tunnel of 20-50 kbyte/sec.
+But if ONLY ONE hop in the tunnel has only 5 kb/sec bandwidth to spend, the whole tunnel is limited to 5 kb/sec, independent of the 
+latency and other limitations.
+{%- endtrans %}</p>
+
+<p>{% trans -%}
+Due to encryption used and other setups in I2P (howto built up tunnels, latency, ...) it is quite expensive in CPU time to build a tunnel. This is 
+why a destination is only allowed to have a max of 6 IN and 6 OUT tunnels to transport data. With a max of 50 kb/sec per tunnel, a destination could 
+use roughly 300 kb/sec traffic combined ( in reality it could be more if shorter tunnels are used with low or no anonymity available).
+Used tunnels are discarded every 10 minutes and new ones are built up.
+This change of tunnels (and sometimes clients that shutdown hard due to usage of "shut down at once" or situations where there is power loss) does 
+sometimes break tunnels and connections, as seen on the IRC2P Network in loss of connection (ping timeout) or on when using eepget.
+{%- endtrans %}</p>
+
+<p>{% trans -%}
+With a limited set of destinations and a limited set of tunnels per destination, one I2P node only uses a limited set of tunnels across other I2P nodes.
+For example, if an I2P node is "hop1" in the small example above, we only see 1 participating tunnel originating from the client.
+If we sum up the whole I2P network, only a rather limited number of participating tunnels could be built with a limited amount of bandwidth all together.
+If one distributes these limited numbers across the number of I2P nodes, there is only a fraction of available bandwidth/capacity available for use.
+{%- endtrans %}</p>
+
+<p>{% trans -%}
+To remain anonymous one router should not be used by the whole network for building tunnels.
+If one router does act as a tunnel router for ALL I2P nodes, it becomes a very real central point of failure as well as a central point to grab IPs and data from the clients. This is not good.
+I2P attempts to spread the load across a lot of I2P nodes because of this reason.
+{%- endtrans %}</p>
+
+<p>{% trans -%}
+Another point is the full mesh network. Each connection hop-hop utilizes one TCP or UDP connection on the I2P nodes. With 1000 connections, one sees 
+1000 TCP connections. That is quite a lot and some home and small office routers (DSL, cable,..) only allow a small number of connections (or just go mad if you use more than X connections).
+I2P tries to limit these connections to be under 1500 per UDP and per TCP type.
+This limits the amount of traffic routed across your I2P node as well.
+{%- endtrans %}</p>
+
+<p>{% trans -%}
+In summary, I2P is very complex and there is no easy way to pinpoint why your node is not used.
+If your node is reachable and has a bandwidth setting of >128 kbyte/sec shared and is reachable 24/7, it should be used after some time for participating traffic.
+If it is down in between, the testing of your I2P node done by other nodes will tell them: you are not reachable. This blocks your node for at least 
+24h on other nodes. So, the other nodes which tested you as down will not use your node for 24h for building tunnels. This is why your traffic will 
+be lower after a restart/shutdown for a minimum of 24h.
+{%- endtrans %}</p>
+
+<p>{% trans -%}
+Also: other I2P nodes needs to know your I2P router to test it for reachability and capacity. It takes time for other nodes to get known to your node. 
+It will be faster if you use I2P and build more tunnels, e.g. use a torrent or www for some time.
+{%- endtrans %}</p>
+
+<h2>{{ _('Performance Improvements') }}</h2>
+
+<p>{% trans future=site_url('about/performance/future') -%}
+For possible future performance improvements see
+<a href="{{ future }}">Future Performance Improvements</a>.
+{%- endtrans %}</p>
+
+<p>{% trans history=site_url('about/performance/history') -%}
+For past performance improvements see the <a href="{{ history }}">
+Performance History</a>.
+{%- endtrans %}</p>
+
+{% endblock %}

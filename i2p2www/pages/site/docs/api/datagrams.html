@@ -1,0 +1,122 @@
+{% extends "global/layout.html" %}
+{% block title %}{% trans %}Datagrams{% endtrans %}{% endblock %}
+{% block lastupdated %}{% trans %}August 2010{% endtrans %}{% endblock %}
+{% block accuratefor %}0.8{% endblock %}
+{% block content %}
+<h2>{% trans %}Datagram Overview{% endtrans %}</h2>
+<p>{% trans i2cp=site_url('docs/protocol/i2cp') -%}
+Datagrams build upon the base <a href="{{ i2cp }}">I2CP</a> to provide authenticated
+and repliable messages in a standard format.  This lets applications reliably read
+the "from" address out of a datagram and know that the address really sent the
+message.  This is necessary for some applications since the base I2P message is
+completely raw - it has no "from" address (unlike IP packets).  In addition, the
+message and sender are authenticated by signing the payload.
+{%- endtrans %}</p>
+
+<p>{% trans streaming=site_url('docs/api/streaming'),
+transports=site_url('docs/transport') -%}
+Datagrams, like <a href="{{ streaming }}">streaming library packets</a>,
+are an application-level construct.
+These protocols are independent of the low-level <a href="{{ transports }}">transports</a>;
+the protocols are converted to I2NP messages by the router, and
+either protocol may be carried by either transport.
+{%- endtrans %}</p>
+
+<h2>{% trans %}Application Guide{% endtrans %}</h2>
+<p>{% trans url='http://docs.i2p-projekt.de/javadoc/net/i2p/client/datagram/package-summary.html',
+sam= site_url('docs/api/sam'),
+socks=site_url('docs/api/socks') -%}
+Applications written in Java may use the 
+<a href="{{ url }}">datagram API</a>,
+while applications in other languages 
+can use <a href="{{ sam }}">SAM</a>'s datagram support.
+There is also limited support in i2ptunnel in the <a href="{{ socks }}">SOCKS proxy</a>,
+the 'streamr' tunnel types, and udpTunnel classes.
+{%- endtrans %}</p>
+
+<h3>{% trans %}Datagram Length{% endtrans %}</h3>
+<p>{% trans -%}
+The application designer should carefully consider the tradeoff of repliable vs. non-repliable
+datagrams. Also, the datagram size will affect reliability, due to tunnel fragmentation into 1KB
+tunnel messages. The more message fragments, the more likely that one of them will be dropped
+by an intermediate hop. Messages larger than a few KB are not recommended.
+Over about 10 KB, the delivery probablility drops dramatically.
+Messages over 16 KB cannot be delivered over NTCP, dropping delivery chances even more.
+{%- endtrans %}</p>
+
+<p>{% trans elgamalaes=site_url('docs/how/elgamal-aes') -%}
+Also note that the various overheads added by lower layers, in particular asymmetric
+<a href="{{ elgamalaes }}">ElGamal/AES</a>, place a large burden on intermittent messages
+such as used by a Kademlia-over-UDP application. The implementations are currently tuned
+for frequent traffic using the streaming library. There are a high number
+of session tags delivered, and a short session tag lifetime, for example.
+There are currently no configuration parameters available within I2CP to tune
+the ElGamal Session Tag parameters.
+{%- endtrans %}</p>
+
+<h3>{% trans %}I2CP Protocol Number and Ports{% endtrans %}</h3>
+<p>{% trans -%}
+The standard I2CP protocol number for datagrams is PROTO_DATAGRAM (17).
+Applications may or may not choose to set the
+protocol in the I2CP header. It is not set by default.
+It must be set to demultiplex datagram and streaming traffic received on the same Destination.
+{%- endtrans %}</p>
+
+<p>{% trans i2cp=site_url('docs/protocol/i2cp') -%}
+As datagrams are not connection-oriented, the application may require
+port numbers to correlate datagrams with particular peers or communications sessions,
+as is traditional with UDP over IP.
+Applications may add 'from' and 'to' ports to the I2CP (gzip) header as described in
+the <a href="{{ i2cp }}#format">I2CP page</a>.
+{%- endtrans %}</p>
+
+<p>{% trans i2psession='http://docs.i2p-projekt.de/javadoc/net/i2p/client/I2PSession.html' -%}
+There is no method within the datagram API to specify whether it is non-repliable (raw)
+or repliable. The application should be designed to expect the appropriate type.
+The I2CP protocol number or port should be used by the application to
+indicate datagram type.
+The I2CP protocol numbers PROTO_DATAGRAM (signed) and PROTO_DATAGRAM_RAW are defined in the
+<a href="{{ i2psession }}">I2PSession API</a>
+for this purpose. A common design pattern in client/server datagram applications is to
+use signed datagrams for a request which includes a nonce, and use a raw datagram
+for the reply, returning the nonce from the request.
+{%- endtrans %}</p>
+
+<p>{% trans i2psession='http://docs.i2p-projekt.de/javadoc/net/i2p/client/I2PSession.html',
+i2psessionmuxed='http://docs.i2p-projekt.de/javadoc/net/i2p/client/I2PSessionMuxedImpl.html' -%}
+The protocols and ports may be set in I2CP's
+<a href="{{ i2psession }}">I2PSession API</a>,
+as implemented in
+<a href="{{ i2psessionmuxed }}">I2PSessionMuxedImpl</a>.
+{%- endtrans %}</p>
+
+<h3>{% trans %}Data Integrity{% endtrans %}</h3>
+<p>{% trans i2cp=site_url('docs/protocol/i2cp') -%}
+Data integrity is assured by the gzip CRC-32 checksum implemented in
+<a href="{{ i2cp }}#format">the I2CP layer</a>.
+There is no checksum field in the datagram protocol.
+{%- endtrans %}</p>
+
+<h3>{% trans %}Packet Encapsulation{% endtrans %}</h3>
+<p>{% trans garlicrouting=site_url('docs/how/garlic-routing'),
+i2cp=site_url('docs/protocol/i2cp'),
+i2np=site_url('docs/protocol/i2np'),
+tunnelmessage=site_url('docs/spec/tunnel-message') -%}
+Each datagram is sent through I2P as a single message (or as an individual clove in a
+<a href="{{ garlicrouting }}">Garlic Message</a>).
+Message encapsulation is implemented in the underlying
+<a href="{{ i2cp }}">I2CP</a>,
+<a href="{{ i2np }}">I2NP</a>, and
+<a href="{{ tunnelmessage }}">tunnel message</a> layers.
+There is no packet delimiter mechanism or length field in the datagram protocol.
+{%- endtrans %}</p>
+
+<h2 id="spec">{% trans %}Specification{% endtrans %}</h2>
+
+<p><a href="{{ site_url('docs/spec/datagrams') }}">{% trans -%}
+See the Datagrams Specification page.
+{%- endtrans %}</a></p>
+
+
+
+{% endblock %}
