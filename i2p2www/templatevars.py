@@ -45,8 +45,8 @@ def utility_processor():
 
     # Provide the canonical link to the current page
     def get_canonical_link():
-        protocol = request.url.split('//')[0]
-        return protocol + '//' + CANONICAL_DOMAIN + request.path
+        # Canonical domain should always be HTTPS
+        return 'https://' + CANONICAL_DOMAIN + request.path
 
     # Convert an I2P url to an equivalent clearnet one
     def convert_url_to_clearnet(value):
