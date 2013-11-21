@@ -1,7 +1,7 @@
 {% extends "global/layout.html" %}
 {% block title %}{% trans %}The Network Database{% endtrans %}{% endblock %}
-{% block lastupdated %}{% trans %}June 2013{% endtrans %}{% endblock %}
-{% block accuratefor %}0.9.6{% endblock %}
+{% block lastupdated %}{% trans %}October 2013{% endtrans %}{% endblock %}
+{% block accuratefor %}0.9.9{% endblock %}
 {% block content %}
 <h2>{% trans %}Overview{% endtrans %}</h2>
 
@@ -398,11 +398,11 @@ This message is sent back to one of the client's inbound tunnels.
 
 
 <h3>{% trans %}Flooding{% endtrans %}</h3>
-<p>{% trans -%}
+<p>{% trans floodsize=3 -%}
 After a floodfill router receives a DatabaseStoreMessage containing a
 valid RouterInfo or LeaseSet which is newer than that previously stored in its
 local NetDb, it "floods" it.
-To flood a NetDb entry, it looks up several (currently 4) floodfill routers closest to the routing key
+To flood a NetDb entry, it looks up several (currently {{ floodsize }}) floodfill routers closest to the routing key
 of the NetDb entry. (The routing key is the SHA256 Hash of the RouterIdentity or Destination with the date (yyyyMMdd) appended.)
 By flooding to those closest to the key, not closest to itself, the floodfill ensures that the storage
 gets to the right place, even if the storing router did not have good knowledge of the
@@ -489,6 +489,13 @@ Given the current size of the network, a router has
 
 
 <h3>{% trans %}RouterInfo Storage Verification{% endtrans %}</h3>
+<p>{% trans egger2013='http://wwwcip.informatik.uni-erlangen.de/~spjsschl/i2p.pdf' -%}
+Note: RouterInfo verification is disabled as of release 0.9.7.1 to prevent
+the attack described in the paper
+<a href="{{ egger2013 }}">Practical Attacks Against the I2P Network</a>.
+It is not clear if verification can be redesigned to be done safely.
+{%- endtrans %}</p>
+
 <p>{% trans -%}
 To verify a storage was successful, a router simply waits about 10 seconds,
 then sends a lookup to another floodfill router close to the key
@@ -567,16 +574,16 @@ Some scenarios are discussed below.
 {%- endtrans %}</p>
 
 <h3>{% trans %}General Mitigation Through Growth{% endtrans %}</h3>
-<p>{% trans -%}
-There are currently hundreds of floodfill routers in the network.
+<p>{% trans ffcount=600 -%}
+There are currently around {{ ffcount }} floodfill routers in the network.
 Most of the following attacks will become more difficult, or have less impact,
 as the network size and number of floodfill routers increase.
 {%- endtrans %}</p>
 
 
 <h3>{% trans %}General Mitigation Through Redundancy{% endtrans %}</h3>
-<p>{% trans -%}
-Via flooding, all netdb entries are stored on the 8 floodfill routers closest to the key.
+<p>{% trans floodsize=3 -%}
+Via flooding, all netdb entries are stored on the {{ floodsize }} floodfill routers closest to the key.
 {%- endtrans %}</p>
 
 

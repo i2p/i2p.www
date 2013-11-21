@@ -1,7 +1,7 @@
 {% extends "global/layout.html" %}
 {% block title %}{% trans %}I2P Software Update Specification{% endtrans %}{% endblock %}
-{% block lastupdated %}{% trans %}July 2013{% endtrans %}{% endblock %}
-{% block accuratefor %}0.9.7{% endblock %}
+{% block lastupdated %}{% trans %}October 2013{% endtrans %}{% endblock %}
+{% block accuratefor %}0.9.9{% endblock %}
 {% block content %}
 <h3>{% trans %}Overview{% endtrans %}</h3>
 <p>{% trans -%}
@@ -33,18 +33,65 @@ The news.xml file may contain the following elements:
 </pre>
 
 <p>{% trans -%}
-The elements may be included inside XML comments to prevent interpretation by browsers.
-The i2p.release element and version are required. All others are optional and are
-currently unused.
+Parameters in the i2p.release entry are as follows.
+All keys are case-insensitive. All values must be enclosed in double quotes.
 {%- endtrans %}</p>
 
+<ul>
+<li>
+date: The release date of the router version. Unused. Format not specified.
+</li><li>
+minJavaVersion: The minimum version of Java required to run the current version.
+As of release 0.9.9.
+</li><li>
+minVersion: The minimum version of the router required to update to the current version.
+If a router is older than this, the user must (manually?) update to an intermediate version first.
+As of release 0.9.9.
+</li><li>
+su3Clearnet: One or more HTTP URLs where the .su3 update file may
+be found on the clearnet (non-I2P).
+Multiple URLs must be separated by a space or comma.
+As of release 0.9.9.
+</li><li>
+su3SSL: One or more HTTPS URLs where the .su3 update file may
+be found on the clearnet (non-I2P).
+Multiple URLs must be separated by a space or comma.
+As of release 0.9.9.
+</li><li>
+sudTorrent: The magnet link for the .sud (non-pack200) torrent of the update.
+As of release 0.9.4.
+</li><li>
+su2Torrent: The magnet link for the .su2 (pack200) torrent of the update.
+As of release 0.9.4.
+</li><li>
+su3Torrent: The magnet link for the .su3 (new format) torrent of the update.
+As of release 0.9.9.
+</li><li>
+version: Required. The latest current router version available.
+</li></ul>
+
 <p>{% trans -%}
-The news source is trusted only to indicate that a new version is available.
-It does not specify the URL of the update, the checksum, or any other information.
+The elements may be included inside XML comments to prevent interpretation by browsers.
+The i2p.release element and version are required. All others are optional.
+NOTE: Due to parser limitations an entire element must be on a single line.
 {%- endtrans %}</p>
 
 
 <h3>{% trans %}Update File Specification{% endtrans %}</h3>
+<p>{% trans -%}
+As of release 0.9.9, the signed update file, named i2pupdate.su3, will
+use the "su3" file format specified below.
+Approved release signers will use 4096-bit RSA keys.
+The X.509 public key certificates for these signers are distributed in the router installation packages.
+The updates may contain certificates for new, approved signers, and/or contain
+a list of certificates to delete for revocation.
+{%- endtrans %}</p>
+
+
+<h3>{% trans %}Old Update File Specification{% endtrans %}</h3>
+<p>{% trans -%}
+This format is obsolte as of release 0.9.9.
+{%- endtrans %}</p>
 <p>{% trans -%}
 The signed update file, traditionally named i2pupdate.sud,
 is simply a zip file with a prepended 56 byte header.
@@ -126,10 +173,10 @@ The router will then delete the deletelist.txt file.
 <h3>{% trans %}New "su3" Update File Specification{% endtrans %}</h3>
 
 <p>{% trans -%}
-This specification is preliminary and is not yet implemented.
+This specification is used for router updates and reseed data as of release 0.9.9.
 {%- endtrans %}</p>
 
-<h4>{% trans %}Issues with existing .sud/.su2 format:{% endtrans %}</h4>
+<h4>{% trans %}Issues with the previous .sud/.su2 format:{% endtrans %}</h4>
 <ul>
 <li>{% trans -%}
 No magic number or flags
@@ -177,11 +224,17 @@ existing version checkers
 <tr><td>
 7	<td>su3 file format version = 0
 <tr><td>
-8	<td>unused
+8-9	<td>Signature type
+		<ul><li>0x0000 = DSA-160
+		</li><li>0x0001 = ECDSA-SHA256-P256
+		</li><li>0x0002 = ECDSA-SHA384-P384
+		</li><li>0x0003 = ECDSA-SHA512-P521
+		</li><li>0x0004 = RSA-SHA256-2048
+		</li><li>0x0005 = RSA-SHA384-3072
+		</li><li>0x0006 = RSA-SHA512-4096
+		</li></ul>
 <tr><td>
-9	<td>Signature type 0x00 = DSA-160, 0x01 = new algo
-<tr><td>
-10-11	<td>Signature length 40 (0x0028) = DSA-160
+10-11	<td>Signature length, e.g. 40 (0x0028) for DSA-160
 <tr><td>
 12	<td>unused
 <tr><td>
@@ -200,7 +253,12 @@ existing version checkers
 <tr><td>
 26	<td>unused
 <tr><td>
-27	<td>Content type 0x00 = router w/o pack200, 0x01 = router w/ pack200, 0x02 = plugin
+27	<td>Content type
+		<ul><li>0x00 = unknown
+		</li><li>0x01 = router update
+		</li><li>0x02 = plugin or plugin update
+		</li><li>0x03 = reseed data
+		</li></ul>
 <tr><td>
 28-39	<td>unused
 <tr><td>
