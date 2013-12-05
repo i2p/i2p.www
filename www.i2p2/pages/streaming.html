@@ -326,7 +326,8 @@ Abnormal close.
 SIGNATURE_INCLUDED must be set also.
 <tr><td>3<td>SIGNATURE_INCLUDED<td>40 byte <a href="common_structures_spec.html#type_Signature">DSA Signature</a>
 <td>
-Currently sent only with SYNCHRONIZE, CLOSE, and RESET, where it is required.
+Currently sent only with SYNCHRONIZE, CLOSE, and RESET, where it is required,
+and with ECHO, where it is required for a ping.
 The signature uses the Destination's <a href="common_structures_spec.html#type_SigningPublicKey">DSA signing keys</a> 
 to sign the entire header and payload with the 40-byte space in the option data field 
 for the signature being set to all zeroes.
@@ -334,7 +335,8 @@ for the signature being set to all zeroes.
 Unused. Requests every packet in the other direction to have SIGNATURE_INCLUDED
 <tr><td>5<td>FROM_INCLUDED<td>387+ byte <a href="common_structures_spec.html#struct_Destination">Destination</a>
 <td>
-Currently sent only with SYNCHRONIZE, where it is required.
+Currently sent only with SYNCHRONIZE, where it is required,
+and with ECHO, where it is required for a ping.
 <tr><td>6<td>DELAY_REQUESTED<td>2 byte <a href="common_structures_spec.html#type_Integer">Integer</a><td>
 Optional delay.
 How many milliseconds the sender of this packet wants the recipient
@@ -346,7 +348,8 @@ Was also sent in retransmitted packets until release 0.9.1.
 <tr><td>8<td>PROFILE_INTERACTIVE<td align="center">--<td>
 Unused or ignored; the interactive profile is unimplemented.
 <tr><td>9<td>ECHO<td align="center">--<td>
-Unused except by ping programs
+Unused except by ping programs.
+If set, most other options, and the payload, are ignored. See below.
 <tr><td>10<td>NO_ACK<td align="center">--<td>
 This flag simply tells the recipient to ignore the ackThrough field in the header.
 Currently set in the inital SYN packet, otherwise the ackThrough field is always valid.
@@ -417,6 +420,29 @@ Windowing and acknowledgments use packet count, not byte count.
 Any packet, including one with the SYNCHRONIZE flag set, may have the CLOSE flag sent as well.
 The connection is not closed until the peer responds with the CLOSE flag.
 CLOSE packets may contain data as well.
+</p>
+
+
+<h3>Ping / Pong</h3>
+<p>
+There is no ping function at the I2CP layer (equivalent to ICMP echo) or in datagrams.
+This function is provided in streaming.
+Pings and pongs may not be combined with a standard streaming packet;
+if the ECHO option is set, then
+most other flags, options, ackThrough, sequenceNum, NACKs, payload, etc. are ignored.
+</p>
+<p>
+A ping packet must have the ECHO, SIGNATURE_INCLUDED, and FROM_INCLUDED flags set.
+The sendStreamId must be greater than zero, and the receiveStreamId is ignored.
+The sendStreamId may or may not correspond to an existing connection.
+</p>
+<p>
+A pong packet must have the ECHO flag set.
+The sendStreamId must be zero, and the receiveStreamId is the sendStreamId from the ping.
+The pong packet does not include any payload that was contained in the ping.
+</p>
+<p>
+Streaming may be configured to disable sending pongs with the configuration i2p.streaming.answerPings=false.
 </p>
 
 
