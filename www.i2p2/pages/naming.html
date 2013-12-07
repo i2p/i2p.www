@@ -4,7 +4,7 @@
 <h1>Naming in I2P</h1>
 <h2 id="overview">Overview</h2>
 
-This page was last updated in March 2012 and is accurate for router version 0.8.13.
+This page was last updated in December 2013 and is accurate for router version 0.9.9.
 <p>
 I2P ships with a generic naming library and a base implementation 
 designed to work off a local name to destination mapping, as well as an
@@ -45,8 +45,8 @@ the I2P distribution.
 The components are:
 </p>
 <ol>
-<li>The <a href="#lookup">client application</a> which does local lookups in hosts.txt
-and also takes care of the <a href="#base32">Base32 hostnames</a>.
+<li>The local <a href="#lookup">naming service</a> which does lookups
+and also handles <a href="#base32">Base32 hostnames</a>.
 <li>The <a href="#httpproxy">HTTP proxy</a> which asks the router for lookups and points
 the user to remote jump services to assist with failed lookups
 <li>HTTP <a href="#add-services">host-add forms</a> which allow users to add hosts to their local hosts.txt
@@ -57,7 +57,7 @@ host lists, retrieved via HTTP, with the local list
 for addressbook configuration and viewing of the local host lists.
 </ol>
 
-<h2 id="lookup">Naming Files and Lookups</h2>
+<h2 id="lookup">Naming Services</h2>
 <p>
 All destinations in I2P are 516-byte (or longer) keys.
 (To be more precise, it is a 256-byte public key plus a 128-byte signing key
@@ -69,28 +69,74 @@ One possible use of certificates is for <a href="todo.html#hashcash">proof of wo
 If an application (i2ptunnel or the HTTP proxy) wishes to access
 a destination by name, the router does a very simple local lookup
 to resolve that name.
-The client application (technically, the client side of I2CP in the I2P API)
-does a linear search through three local files, in order, to
-look up host names and convert them to a 516-byte destination key:
+</p>
+<h3>Hosts.txt Naming Service</h3>
+<p>
+The hosts.txt Naming Service does a simple linear search through
+text files. This naming service was the default until
+release 0.8.8 when it was replaced by the Blockfile Naming Service.
+The hosts.txt format had become too slow after the file grew to thousands of entries.
+</p><p>
+It does a linear search through three local files, in order, to
+look up host names and convert them to a 516-byte destination key.
+Each file is in a simple <a href="configuration.html">configuration file format</a>, with hostname=base64, one per line.
+The files are:
 <ol>
 <li>privatehosts.txt
 <li>userhosts.txt
 <li>hosts.txt
 </ol>
+</p>
+<h3>Blockfile Naming Service</h3>
+<p>
+The Blockfile Naming Service stores multiple "addressbooks" in a single
+database file named hostsdb.blockfile.
+This Naming Service is the default since release 0.8.8.
+</p><p>
+A blockfile is simply on-disk storage of multiple sorted maps (key-value pairs),
+implemented as skiplists.
+The blockfile format is specified on the <a href="blockfile.html">Blockfile page</a>.
+It provides fast Destination lookup in a compact format. While the blockfile overhead is substantial,
+the destinations are stored in binary rather than in Base 64 as in the hosts.txt format.
+In addition, the blockfile provides the capability of arbitrary metadata storage
+(such as added date, source, and comments) for each entry to implement advanced addressbook features.
+The blockfile storage requirement is a modest increase over the hosts.txt format, and the blockfile provides
+approximately 10x reduction in lookup times.
+</p><p>
+On creation, the naming service imports entries from the three files used by the hosts.txt Naming Service.
+The blockfile mimics the previous implementation by maintaining three maps that
+are searched in-order, named privatehosts.txt, userhosts.txt, and hosts.txt.
+It also maintains a reverse-lookup map to implement rapid reverse lookups.
+</p>
+<h3>Other Naming Service Facilities</h3>
 <p>The lookup is case-insensitive.
 The first match is used, and conflicts are not detected.
 There is no enforcement of naming rules in lookups.
-</p><p>
 Lookups are cached for a few minutes.
-There is an experimental facility for real-time lookups (a la DNS) over the network within the router,
-although it is not enabled by default
-(see "EepGet" under <a href="naming_discussion.html#alternatives">Alternatives on the discussion page</a>).
+Base 32 resolution is <a href="#base32">described below</a>.
+For a full description of the Naming Service API see the
+<a href="http://docs.i2p-projekt.de/javadoc/net/i2p/client/naming/package-summary.html">Naming Service Javadocs</a>.
+This API was significantly expanded in release 0.8.7 to provide
+adds and removes, storage of arbitrary properties with the hostname,
+and other features.
+</p>
+<h3>Alternatives and Experimental Naming Services</h3>
+<p>
+The naming service is specified with the configuration property <tt>i2p.naming.impl=class</tt>.
+Other implementations are possible. For example,
+there is an experimental facility for real-time lookups (a la DNS) over the network within the router.
+For more information see the <a href="naming_discussion.html#alternatives">alternatives on the discussion page</a>.
 </p>
 
 <h2 id="httpproxy">HTTP Proxy</h2>
 <p>The HTTP proxy does a lookup via the router for all hostnames ending in '.i2p'.
 Otherwise, it forwards the request to a configured HTTP outproxy.
 Thus, in practice, all HTTP (eepsite) hostnames must end in the pseudo-Top Level Domain '.i2p'.
+</p><p>
+We have
+<a href="https://datatracker.ietf.org/doc/draft-grothoff-iesg-special-use-p2p-names/">applied to reserve the .i2p TLD</a>
+following the procedures specified in
+<a href="http://tools.ietf.org/html/rfc6761">RFC 6761</a>.
 </p>
 
 <p>
@@ -155,7 +201,7 @@ Naming rules:</p>
 <li>Must not contain '..'.
 <li>Must not contain '.-' or '-.' (as of 0.6.1.33).
 <li>Must not contain '--' except in 'xn--' for IDN.
-<li>Base32 hostnames (*.b32.i2p) are not allowed.
+<li>Base32 hostnames (*.b32.i2p) are reserved for base 32 use and so are not allowed to be imported.
 <li>Certain hostnames reserved for project use are not allowed
     (proxy.i2p, router.i2p, console.i2p, *.proxy.i2p, *.router.i2p, *.console.i2p, and others)
 <li>Keys are checked for base64 validity.
@@ -164,7 +210,7 @@ Naming rules:</p>
 <li>Maximum key length 616 bytes (to account for certs up to 100 bytes).
 </ul>
 <p>
-Any name received via subscription that passes all the checks is added to the local hosts.txt.		
+Any name received via subscription that passes all the checks is added via the local naming service.
 </p><p>
 Note that the '.' symbols in a host name are of no significance,
 and do not denote any actual naming or trust hierarchy.
@@ -276,6 +322,9 @@ Example: <code>ukeu3k5oycgaauneqgtnvselmt4yemvoilkln7jpvamvfx7dnkdq.b32.i2p</cod
 In Tor, the address is 16 characters (80 bits), or half of the SHA-1 hash.
 I2P uses 52 characters (256 bits) to represent the full SHA-256 hash.
 The form is {52 chars}.b32.i2p.
+Tor has recently published a
+<a href="https://blog.torproject.org/blog/tor-weekly-news-%E2%80%94-december-4th-2013">proposal</a>
+to convert to an identical format of {52 chars}.onion for their hidden services.
 Base32 is implemented in the naming service, which queries the
 router over I2CP to lookup the LeaseSet to get the full Destination.
 Base32 lookups will only be successful when the Destination is up and publishing
