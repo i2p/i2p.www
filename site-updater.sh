@@ -1,8 +1,10 @@
 #!/bin/sh
+. ./etc/update.vars
+
 TMP=$(mktemp XXXXXXXXXX)
 trap 'rm -f $TMP;exit' 0 1 2 15
 
-mtn pull
+mtn pull "mtn://$MTNURL?$MTNBRANCH"
 mtn up 2>&1 | tee $TMP
 
 
