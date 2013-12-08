@@ -1,7 +1,7 @@
 {% extends "global/layout.html" %}
 {% block title %}{% trans %}Streaming Library Specification{% endtrans %}{% endblock %}
-{% block lastupdated %}{% trans %}July 2013{% endtrans %}{% endblock %}
-{% block accuratefor %}0.9.6{% endblock %}
+{% block lastupdated %}{% trans %}December 2013{% endtrans %}{% endblock %}
+{% block accuratefor %}0.9.9{% endblock %}
 {% block content %}
 <p><a href="{{ site_url('docs/api/streaming') }}">{% trans -%}
 See the Streaming page for an overview of the Streaming Library.
@@ -105,7 +105,8 @@ Abnormal close.
 SIGNATURE_INCLUDED must be set also.
 <tr><td>3<td>SIGNATURE_INCLUDED<td>40 byte <a href="{{ site_url('docs/spec/common-structures') }}#type_Signature">DSA Signature</a>
 <td>
-Currently sent only with SYNCHRONIZE, CLOSE, and RESET, where it is required.
+Currently sent only with SYNCHRONIZE, CLOSE, and RESET, where it is required,
+and with ECHO, where it is required for a ping.
 The signature uses the Destination's <a href="{{ site_url('docs/spec/common-structures') }}#type_SigningPublicKey">DSA signing keys</a> 
 to sign the entire header and payload with the 40-byte space in the option data field 
 for the signature being set to all zeroes.
@@ -113,7 +114,8 @@ for the signature being set to all zeroes.
 Unused. Requests every packet in the other direction to have SIGNATURE_INCLUDED
 <tr><td>5<td>FROM_INCLUDED<td>387+ byte <a href="{{ site_url('docs/spec/common-structures') }}#struct_Destination">Destination</a>
 <td>
-Currently sent only with SYNCHRONIZE, where it is required.
+Currently sent only with SYNCHRONIZE, where it is required,
+and with ECHO, where it is required for a ping.
 <tr><td>6<td>DELAY_REQUESTED<td>2 byte <a href="{{ site_url('docs/spec/common-structures') }}#type_Integer">Integer</a><td>
 Optional delay.
 How many milliseconds the sender of this packet wants the recipient
@@ -125,7 +127,9 @@ Was also sent in retransmitted packets until release 0.9.1.
 <tr><td>8<td>PROFILE_INTERACTIVE<td align="center">--<td>
 Unused or ignored; the interactive profile is unimplemented.
 <tr><td>9<td>ECHO<td align="center">--<td>
-Unused except by ping programs
+Unused except by ping programs.
+If set, most other options, and the payload, are ignored. See
+<a href="{{ site_url('docs/api/streaming') }}">the streaming docs</a>.
 <tr><td>10<td>NO_ACK<td align="center">--<td>
 This flag simply tells the recipient to ignore the ackThrough field in the header.
 Currently set in the inital SYN packet, otherwise the ackThrough field is always valid.
