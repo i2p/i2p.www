@@ -1,7 +1,7 @@
 {% extends "global/layout.html" %}
 {% block title %}{% trans %}Streaming Library{% endtrans %}{% endblock %}
-{% block lastupdated %}{% trans %}July 2013{% endtrans %}{% endblock %}
-{% block accuratefor %}0.9.7{% endblock %}
+{% block lastupdated %}{% trans %}December 2013{% endtrans %}{% endblock %}
+{% block accuratefor %}0.9.9{% endblock %}
 {% block content %}
 <h2>{% trans %}Overview{% endtrans %}</h2>
 
@@ -410,6 +410,32 @@ Windowing and acknowledgments use packet count, not byte count.
 Any packet, including one with the SYNCHRONIZE flag set, may have the CLOSE flag sent as well.
 The connection is not closed until the peer responds with the CLOSE flag.
 CLOSE packets may contain data as well.
+{%- endtrans %}</p>
+
+
+<h3>Ping / Pong</h3>
+<p>{% trans -%}
+There is no ping function at the I2CP layer (equivalent to ICMP echo) or in datagrams.
+This function is provided in streaming.
+Pings and pongs may not be combined with a standard streaming packet;
+if the ECHO option is set, then
+most other flags, options, ackThrough, sequenceNum, NACKs, payload, etc. are ignored.
+{%- endtrans %}</p>
+
+<p>{% trans -%}
+A ping packet must have the ECHO, SIGNATURE_INCLUDED, and FROM_INCLUDED flags set.
+The sendStreamId must be greater than zero, and the receiveStreamId is ignored.
+The sendStreamId may or may not correspond to an existing connection.
+{%- endtrans %}</p>
+
+<p>{% trans -%}
+A pong packet must have the ECHO flag set.
+The sendStreamId must be zero, and the receiveStreamId is the sendStreamId from the ping.
+The pong packet does not include any payload that was contained in the ping.
+{%- endtrans %}</p>
+
+<p>{% trans -%}
+Streaming may be configured to disable sending pongs with the configuration i2p.streaming.answerPings=false.
 {%- endtrans %}</p>
 
 

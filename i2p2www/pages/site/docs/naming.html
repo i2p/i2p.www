@@ -1,7 +1,7 @@
 {% extends "global/layout.html" %}
 {% block title %}{% trans %}Naming and Addressbook{% endtrans %}{% endblock %}
-{% block lastupdated %}{% trans %}March 2012{% endtrans %}{% endblock %}
-{% block accuratefor %}0.8.13{% endblock %}
+{% block lastupdated %}{% trans %}December 2013{% endtrans %}{% endblock %}
+{% block accuratefor %}0.9.9{% endblock %}
 {% block content %}
 <h1>{% trans %}Naming in I2P{% endtrans %}</h1>
 <h2 id="overview">{% trans %}Overview{% endtrans %}</h2>
@@ -50,8 +50,8 @@ The components are:
 
 <ol>
 <li>{% trans -%}
-The <a href="#lookup">client application</a> which does local lookups in hosts.txt
-and also takes care of the <a href="#base32">Base32 hostnames</a>.
+The local <a href="#lookup">naming service</a> which does lookups
+and also handles <a href="#base32">Base32 hostnames</a>.
 {%- endtrans %}</li>
 <li>{% trans -%}
 The <a href="#httpproxy">HTTP proxy</a> which asks the router for lookups and points
@@ -74,7 +74,7 @@ for addressbook configuration and viewing of the local host lists.
 </ol>
 
 
-<h2 id="lookup">{% trans %}Naming Files and Lookups{% endtrans %}</h2>
+<h2 id="lookup">{{ _('Naming Services') }}</h2>
 
 <p>{% trans namingdiscussion=site_url('docs/discussions/naming'), todo=site_url('get-involved/todo') -%}
 All destinations in I2P are 516-byte (or longer) keys.
@@ -89,36 +89,90 @@ One possible use of certificates is for <a href="{{ todo }}#hashcash">proof of w
 If an application (i2ptunnel or the HTTP proxy) wishes to access
 a destination by name, the router does a very simple local lookup
 to resolve that name.
-The client application (technically, the client side of I2CP in the I2P API)
-does a linear search through three local files, in order, to
-look up host names and convert them to a 516-byte destination key:
 {%- endtrans %}</p>
 
+<h3>{{ _('Hosts.txt Naming Service') }}</h3>
+
+<p>{% trans -%}
+The hosts.txt Naming Service does a simple linear search through
+text files. This naming service was the default until
+release 0.8.8 when it was replaced by the Blockfile Naming Service.
+The hosts.txt format had become too slow after the file grew to thousands of entries.
+{%- endtrans %}</p>
+
+<p>{% trans configuration=site_url('docs/spec/configuration') -%}
+It does a linear search through three local files, in order, to
+look up host names and convert them to a 516-byte destination key.
+Each file is in a simple <a href="{{ configuration }}">configuration file format</a>, with hostname=base64, one per line.
+The files are:
+{%- endtrans %}</p>
 <ol>
 <li>privatehosts.txt
 <li>userhosts.txt
 <li>hosts.txt
 </ol>
 
+<h3>{{ _('Blockfile Naming Service') }}</h3>
+
 <p>{% trans -%}
+The Blockfile Naming Service stores multiple "addressbooks" in a single
+database file named hostsdb.blockfile.
+This Naming Service is the default since release 0.8.8.
+{%- endtrans %}</p>
+
+<p>{% trans blockfile=site_url('docs/spec/blockfile') -%}
+A blockfile is simply on-disk storage of multiple sorted maps (key-value pairs),
+implemented as skiplists.
+The blockfile format is specified on the <a href="{{ blockfile }}">Blockfile page</a>.
+It provides fast Destination lookup in a compact format. While the blockfile overhead is substantial,
+the destinations are stored in binary rather than in Base 64 as in the hosts.txt format.
+In addition, the blockfile provides the capability of arbitrary metadata storage
+(such as added date, source, and comments) for each entry to implement advanced addressbook features.
+The blockfile storage requirement is a modest increase over the hosts.txt format, and the blockfile provides
+approximately 10x reduction in lookup times.
+{%- endtrans %}</p>
+
+<p>{% trans -%}
+On creation, the naming service imports entries from the three files used by the hosts.txt Naming Service.
+The blockfile mimics the previous implementation by maintaining three maps that
+are searched in-order, named privatehosts.txt, userhosts.txt, and hosts.txt.
+It also maintains a reverse-lookup map to implement rapid reverse lookups.
+{%- endtrans %}</p>
+
+<h3>{{ _('Other Naming Service Facilities') }}</h3>
+
+<p>{% trans nsjavadocs='http://docs.i2p-projekt.de/javadoc/net/i2p/client/naming/package-summary.html' -%}
 The lookup is case-insensitive.
 The first match is used, and conflicts are not detected.
 There is no enforcement of naming rules in lookups.
+Lookups are cached for a few minutes.
+Base 32 resolution is <a href="#base32">described below</a>.
+For a full description of the Naming Service API see the
+<a href="{{ nsjavadocs }}">Naming Service Javadocs</a>.
+This API was significantly expanded in release 0.8.7 to provide
+adds and removes, storage of arbitrary properties with the hostname,
+and other features.
 {%- endtrans %}</p>
+
+<h3>{{ _('Alternatives and Experimental Naming Services') }}</h3>
 
 <p>{% trans namingdiscussion=site_url('docs/discussions/naming') -%}
-Lookups are cached for a few minutes.
-There is an experimental facility for real-time lookups (a la DNS) over the network within the router,
-although it is not enabled by default
-(see "EepGet" under <a href="{{ namingdiscussion }}#alternatives">Alternatives on the discussion page</a>).
+The naming service is specified with the configuration property <tt>i2p.naming.impl=class</tt>.
+Other implementations are possible. For example,
+there is an experimental facility for real-time lookups (a la DNS) over the network within the router.
+For more information see the <a href="{{ namingdiscussion }}#alternatives">alternatives on the discussion page</a>.
 {%- endtrans %}</p>
-
-<h2 id="httpproxy">{% trans %}HTTP Proxy{% endtrans %}</h2>
 
 <p>{% trans -%}
 The HTTP proxy does a lookup via the router for all hostnames ending in '.i2p'.
 Otherwise, it forwards the request to a configured HTTP outproxy.
 Thus, in practice, all HTTP (eepsite) hostnames must end in the pseudo-Top Level Domain '.i2p'.
+{%- endtrans %}</p>
+
+<p>{% trans i2ptld='https://datatracker.ietf.org/doc/draft-grothoff-iesg-special-use-p2p-names/',
+rfc6761='http://tools.ietf.org/html/rfc6761' -%}
+We have <a href="{{ i2ptld }}">applied to reserve the .i2p TLD</a>
+following the procedures specified in <a href="{{ rfc6761 }}">RFC 6761</a>.
 {%- endtrans %}</p>
 
 <p>{% trans -%}
@@ -221,7 +275,7 @@ Must not contain '--' except in 'xn--' for IDN.
 {%- endtrans %}</li>
 
 <li>{% trans -%}
-Base32 hostnames (*.b32.i2p) are not allowed.
+Base32 hostnames (*.b32.i2p) are reserved for base 32 use and so are not allowed to be imported.
 {%- endtrans %}</li>
 
 <li>{% trans -%}
@@ -247,7 +301,7 @@ Maximum key length 616 bytes (to account for certs up to 100 bytes).
 </ul>
 
 <p>{% trans -%}
-Any name received via subscription that passes all the checks is added to the local hosts.txt.		
+Any name received via subscription that passes all the checks is added via the local naming service.
 {%- endtrans %}</p>
 
 <p>{% trans -%}
@@ -408,6 +462,9 @@ Example: <code>ukeu3k5oycgaauneqgtnvselmt4yemvoilkln7jpvamvfx7dnkdq.b32.i2p</cod
 In Tor, the address is 16 characters (80 bits), or half of the SHA-1 hash.
 I2P uses 52 characters (256 bits) to represent the full SHA-256 hash.
 The form is {52 chars}.b32.i2p.
+Tor has recently published a
+<a href="https://blog.torproject.org/blog/tor-weekly-news-%E2%80%94-december-4th-2013">proposal</a>
+to convert to an identical format of {52 chars}.onion for their hidden services.
 Base32 is implemented in the naming service, which queries the
 router over I2CP to lookup the LeaseSet to get the full Destination.
 Base32 lookups will only be successful when the Destination is up and publishing
