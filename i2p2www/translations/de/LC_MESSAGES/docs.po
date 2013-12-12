@@ -12,7 +12,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version:  I2P\n"
 "Report-Msgid-Bugs-To: http://trac.i2p2.de\n"
-"POT-Creation-Date: 2013-11-27 00:23+0000\n"
+"POT-Creation-Date: 2013-12-12 06:16+0000\n"
 "PO-Revision-Date: 2013-11-27 00:29+0000\n"
 "Last-Translator: str4d <str4d@i2pmail.org>\n"
 "Language-Team: German "
@@ -30,7 +30,6 @@ msgstr ""
 #: i2p2www/pages/site/docs/index.html:3 i2p2www/pages/site/docs/ports.html:3
 #: i2p2www/pages/site/docs/spec/datagrams.html:3
 #: i2p2www/pages/site/docs/spec/geoip.html:3
-#: i2p2www/pages/site/docs/transport/ssu.html:3
 msgid "May 2013"
 msgstr "May 2013"
 
@@ -520,7 +519,14 @@ msgid "To Do List"
 msgstr ""
 
 #: i2p2www/pages/site/docs/naming.html:3
-msgid "March 2012"
+#: i2p2www/pages/site/docs/api/streaming.html:3
+#: i2p2www/pages/site/docs/protocol/i2cp.html:3
+#: i2p2www/pages/site/docs/spec/common-structures.html:3
+#: i2p2www/pages/site/docs/spec/streaming.html:3
+#: i2p2www/pages/site/docs/transport/index.html:3
+#: i2p2www/pages/site/docs/transport/ntcp.html:3
+#: i2p2www/pages/site/docs/transport/ssu.html:3
+msgid "December 2013"
 msgstr ""
 
 #: i2p2www/pages/site/docs/naming.html:6
@@ -590,9 +596,8 @@ msgstr ""
 
 #: i2p2www/pages/site/docs/naming.html:52
 msgid ""
-"The <a href=\"#lookup\">client application</a> which does local lookups "
-"in hosts.txt\n"
-"and also takes care of the <a href=\"#base32\">Base32 hostnames</a>."
+"The local <a href=\"#lookup\">naming service</a> which does lookups\n"
+"and also handles <a href=\"#base32\">Base32 hostnames</a>."
 msgstr ""
 
 #: i2p2www/pages/site/docs/naming.html:56
@@ -629,7 +634,7 @@ msgid ""
 msgstr ""
 
 #: i2p2www/pages/site/docs/naming.html:77
-msgid "Naming Files and Lookups"
+msgid "Naming Services"
 msgstr ""
 
 #: i2p2www/pages/site/docs/naming.html:79
@@ -650,37 +655,113 @@ msgstr ""
 msgid ""
 "If an application (i2ptunnel or the HTTP proxy) wishes to access\n"
 "a destination by name, the router does a very simple local lookup\n"
-"to resolve that name.\n"
-"The client application (technically, the client side of I2CP in the I2P "
-"API)\n"
-"does a linear search through three local files, in order, to\n"
-"look up host names and convert them to a 516-byte destination key:"
+"to resolve that name."
+msgstr ""
+
+#: i2p2www/pages/site/docs/naming.html:94
+msgid "Hosts.txt Naming Service"
+msgstr ""
+
+#: i2p2www/pages/site/docs/naming.html:96
+msgid ""
+"The hosts.txt Naming Service does a simple linear search through\n"
+"text files. This naming service was the default until\n"
+"release 0.8.8 when it was replaced by the Blockfile Naming Service.\n"
+"The hosts.txt format had become too slow after the file grew to thousands"
+" of entries."
 msgstr ""
 
 #: i2p2www/pages/site/docs/naming.html:103
+#, python-format
+msgid ""
+"It does a linear search through three local files, in order, to\n"
+"look up host names and convert them to a 516-byte destination key.\n"
+"Each file is in a simple <a href=\"%(configuration)s\">configuration file"
+" format</a>, with hostname=base64, one per line.\n"
+"The files are:"
+msgstr ""
+
+#: i2p2www/pages/site/docs/naming.html:115
+msgid "Blockfile Naming Service"
+msgstr ""
+
+#: i2p2www/pages/site/docs/naming.html:117
+msgid ""
+"The Blockfile Naming Service stores multiple \"addressbooks\" in a single"
+"\n"
+"database file named hostsdb.blockfile.\n"
+"This Naming Service is the default since release 0.8.8."
+msgstr ""
+
+#: i2p2www/pages/site/docs/naming.html:123
+#, python-format
+msgid ""
+"A blockfile is simply on-disk storage of multiple sorted maps (key-value "
+"pairs),\n"
+"implemented as skiplists.\n"
+"The blockfile format is specified on the <a "
+"href=\"%(blockfile)s\">Blockfile page</a>.\n"
+"It provides fast Destination lookup in a compact format. While the "
+"blockfile overhead is substantial,\n"
+"the destinations are stored in binary rather than in Base 64 as in the "
+"hosts.txt format.\n"
+"In addition, the blockfile provides the capability of arbitrary metadata "
+"storage\n"
+"(such as added date, source, and comments) for each entry to implement "
+"advanced addressbook features.\n"
+"The blockfile storage requirement is a modest increase over the hosts.txt"
+" format, and the blockfile provides\n"
+"approximately 10x reduction in lookup times."
+msgstr ""
+
+#: i2p2www/pages/site/docs/naming.html:135
+msgid ""
+"On creation, the naming service imports entries from the three files used"
+" by the hosts.txt Naming Service.\n"
+"The blockfile mimics the previous implementation by maintaining three "
+"maps that\n"
+"are searched in-order, named privatehosts.txt, userhosts.txt, and "
+"hosts.txt.\n"
+"It also maintains a reverse-lookup map to implement rapid reverse lookups."
+msgstr ""
+
+#: i2p2www/pages/site/docs/naming.html:142
+msgid "Other Naming Service Facilities"
+msgstr ""
+
+#: i2p2www/pages/site/docs/naming.html:144
+#, python-format
 msgid ""
 "The lookup is case-insensitive.\n"
 "The first match is used, and conflicts are not detected.\n"
-"There is no enforcement of naming rules in lookups."
+"There is no enforcement of naming rules in lookups.\n"
+"Lookups are cached for a few minutes.\n"
+"Base 32 resolution is <a href=\"#base32\">described below</a>.\n"
+"For a full description of the Naming Service API see the\n"
+"<a href=\"%(nsjavadocs)s\">Naming Service Javadocs</a>.\n"
+"This API was significantly expanded in release 0.8.7 to provide\n"
+"adds and removes, storage of arbitrary properties with the hostname,\n"
+"and other features."
 msgstr ""
 
-#: i2p2www/pages/site/docs/naming.html:109
+#: i2p2www/pages/site/docs/naming.html:157
+msgid "Alternatives and Experimental Naming Services"
+msgstr ""
+
+#: i2p2www/pages/site/docs/naming.html:159
 #, python-format
 msgid ""
-"Lookups are cached for a few minutes.\n"
-"There is an experimental facility for real-time lookups (a la DNS) over "
-"the network within the router,\n"
-"although it is not enabled by default\n"
-"(see \"EepGet\" under <a "
-"href=\"%(namingdiscussion)s#alternatives\">Alternatives on the discussion"
-" page</a>)."
+"The naming service is specified with the configuration property "
+"<tt>i2p.naming.impl=class</tt>.\n"
+"Other implementations are possible. For example,\n"
+"there is an experimental facility for real-time lookups (a la DNS) over "
+"the network within the router.\n"
+"For more information see the <a "
+"href=\"%(namingdiscussion)s#alternatives\">alternatives on the discussion"
+" page</a>."
 msgstr ""
 
-#: i2p2www/pages/site/docs/naming.html:116
-msgid "HTTP Proxy"
-msgstr ""
-
-#: i2p2www/pages/site/docs/naming.html:118
+#: i2p2www/pages/site/docs/naming.html:166
 msgid ""
 "The HTTP proxy does a lookup via the router for all hostnames ending in "
 "'.i2p'.\n"
@@ -689,23 +770,31 @@ msgid ""
 "Top Level Domain '.i2p'."
 msgstr ""
 
-#: i2p2www/pages/site/docs/naming.html:124
+#: i2p2www/pages/site/docs/naming.html:172
+#, python-format
+msgid ""
+"We have <a href=\"%(i2ptld)s\">applied to reserve the .i2p TLD</a>\n"
+"following the procedures specified in <a href=\"%(rfc6761)s\">RFC "
+"6761</a>."
+msgstr ""
+
+#: i2p2www/pages/site/docs/naming.html:178
 msgid ""
 "If the router fails to resolve the hostname, the HTTP proxy returns\n"
 "an error page to the user with links to several \"jump\" services.\n"
 "See below for details."
 msgstr ""
 
-#: i2p2www/pages/site/docs/naming.html:130
+#: i2p2www/pages/site/docs/naming.html:184
 #: i2p2www/pages/site/docs/spec/configuration.html:77
 msgid "Addressbook"
 msgstr ""
 
-#: i2p2www/pages/site/docs/naming.html:131
+#: i2p2www/pages/site/docs/naming.html:185
 msgid "Incoming Subscriptions and Merging"
 msgstr ""
 
-#: i2p2www/pages/site/docs/naming.html:133
+#: i2p2www/pages/site/docs/naming.html:187
 msgid ""
 "The addressbook application periodically\n"
 "retrieves other users' hosts.txt files and merges\n"
@@ -714,7 +803,7 @@ msgid ""
 "basis."
 msgstr ""
 
-#: i2p2www/pages/site/docs/naming.html:141
+#: i2p2www/pages/site/docs/naming.html:195
 msgid ""
 "Subscribing to another user's hosts.txt file involves\n"
 "giving them a certain amount of trust.\n"
@@ -723,7 +812,7 @@ msgid ""
 "passing the new host/key entry to you."
 msgstr ""
 
-#: i2p2www/pages/site/docs/naming.html:149
+#: i2p2www/pages/site/docs/naming.html:203
 msgid ""
 "For this reason, the only subscription configured by\n"
 "default is <code>http://www.i2p2.i2p/hosts.txt</code>,\n"
@@ -734,23 +823,23 @@ msgid ""
 "href=\"#susidns\">SusiDNS</a>)."
 msgstr ""
 
-#: i2p2www/pages/site/docs/naming.html:158
+#: i2p2www/pages/site/docs/naming.html:212
 msgid "Some other public addressbook subscription links:"
 msgstr ""
 
-#: i2p2www/pages/site/docs/naming.html:165
+#: i2p2www/pages/site/docs/naming.html:219
 msgid ""
 "The operators of these services may have various policies for listing "
 "hosts.\n"
 "Presence on this list does not imply endorsement."
 msgstr ""
 
-#: i2p2www/pages/site/docs/naming.html:170
-#: i2p2www/pages/site/docs/naming.html:182
+#: i2p2www/pages/site/docs/naming.html:224
+#: i2p2www/pages/site/docs/naming.html:236
 msgid "Naming Rules"
 msgstr ""
 
-#: i2p2www/pages/site/docs/naming.html:171
+#: i2p2www/pages/site/docs/naming.html:225
 msgid ""
 "While there are hopefully not any technical limitations within I2P on "
 "host names,\n"
@@ -764,81 +853,83 @@ msgid ""
 "to other routers."
 msgstr ""
 
-#: i2p2www/pages/site/docs/naming.html:186
+#: i2p2www/pages/site/docs/naming.html:240
 msgid "Names are converted to lower case on import."
 msgstr ""
 
-#: i2p2www/pages/site/docs/naming.html:190
+#: i2p2www/pages/site/docs/naming.html:244
 msgid ""
 "Names are checked for conflict with existing names in the existing "
 "userhosts.txt and hosts.txt\n"
 "(but not privatehosts.txt) after conversion to lower case."
 msgstr ""
 
-#: i2p2www/pages/site/docs/naming.html:195
+#: i2p2www/pages/site/docs/naming.html:249
 msgid "Must contain only [a-z] [0-9] '.' and '-' after conversion to lower case."
 msgstr ""
 
-#: i2p2www/pages/site/docs/naming.html:199
+#: i2p2www/pages/site/docs/naming.html:253
 msgid "Must not start with '.' or '-'."
 msgstr ""
 
-#: i2p2www/pages/site/docs/naming.html:203
+#: i2p2www/pages/site/docs/naming.html:257
 msgid "Must end with '.i2p'."
 msgstr ""
 
-#: i2p2www/pages/site/docs/naming.html:207
+#: i2p2www/pages/site/docs/naming.html:261
 msgid "67 characters maximum, including the '.i2p'."
 msgstr ""
 
-#: i2p2www/pages/site/docs/naming.html:211
+#: i2p2www/pages/site/docs/naming.html:265
 msgid "Must not contain '..'."
 msgstr ""
 
-#: i2p2www/pages/site/docs/naming.html:215
+#: i2p2www/pages/site/docs/naming.html:269
 msgid "Must not contain '.-' or '-.' (as of 0.6.1.33)."
 msgstr ""
 
-#: i2p2www/pages/site/docs/naming.html:219
+#: i2p2www/pages/site/docs/naming.html:273
 msgid "Must not contain '--' except in 'xn--' for IDN."
 msgstr ""
 
-#: i2p2www/pages/site/docs/naming.html:223
-msgid "Base32 hostnames (*.b32.i2p) are not allowed."
+#: i2p2www/pages/site/docs/naming.html:277
+msgid ""
+"Base32 hostnames (*.b32.i2p) are reserved for base 32 use and so are not "
+"allowed to be imported."
 msgstr ""
 
-#: i2p2www/pages/site/docs/naming.html:227
+#: i2p2www/pages/site/docs/naming.html:281
 msgid ""
 "Certain hostnames reserved for project use are not allowed\n"
 "(proxy.i2p, router.i2p, console.i2p, *.proxy.i2p, *.router.i2p, "
 "*.console.i2p, and others)"
 msgstr ""
 
-#: i2p2www/pages/site/docs/naming.html:232
+#: i2p2www/pages/site/docs/naming.html:286
 msgid "Keys are checked for base64 validity."
 msgstr ""
 
-#: i2p2www/pages/site/docs/naming.html:236
+#: i2p2www/pages/site/docs/naming.html:290
 msgid ""
 "Keys are checked for conflict with existing keys in hosts.txt (but not "
 "privatehosts.txt)."
 msgstr ""
 
-#: i2p2www/pages/site/docs/naming.html:240
+#: i2p2www/pages/site/docs/naming.html:294
 msgid "Minimum key length 516 bytes."
 msgstr ""
 
-#: i2p2www/pages/site/docs/naming.html:244
+#: i2p2www/pages/site/docs/naming.html:298
 msgid "Maximum key length 616 bytes (to account for certs up to 100 bytes)."
 msgstr ""
 
-#: i2p2www/pages/site/docs/naming.html:249
+#: i2p2www/pages/site/docs/naming.html:303
 msgid ""
-"Any name received via subscription that passes all the checks is added to"
-" the local hosts.txt."
+"Any name received via subscription that passes all the checks is added "
+"via the local naming service."
 msgstr ""
 
-#: i2p2www/pages/site/docs/naming.html:253
+#: i2p2www/pages/site/docs/naming.html:307
 msgid ""
 "Note that the '.' symbols in a host name are of no significance,\n"
 "and do not denote any actual naming or trust hierarchy.\n"
@@ -850,7 +941,7 @@ msgid ""
 "are topics for future discussion."
 msgstr ""
 
-#: i2p2www/pages/site/docs/naming.html:264
+#: i2p2www/pages/site/docs/naming.html:318
 msgid ""
 "International Domain Names (IDN) also work in i2p (using punycode 'xn--' "
 "form).\n"
@@ -859,7 +950,7 @@ msgid ""
 "add 'network.IDN.whitelist.i2p (boolean) = true' in about:config."
 msgstr ""
 
-#: i2p2www/pages/site/docs/naming.html:270
+#: i2p2www/pages/site/docs/naming.html:324
 msgid ""
 "As the addressbook application does not use privatehosts.txt at all, in "
 "practice\n"
@@ -868,11 +959,11 @@ msgid ""
 "\"pet names\" for sites already in hosts.txt."
 msgstr ""
 
-#: i2p2www/pages/site/docs/naming.html:276
+#: i2p2www/pages/site/docs/naming.html:330
 msgid "Outgoing Subscriptions"
 msgstr ""
 
-#: i2p2www/pages/site/docs/naming.html:277
+#: i2p2www/pages/site/docs/naming.html:331
 msgid ""
 "Addressbook will publish the merged hosts.txt to a location\n"
 "(traditionally hosts.txt in the local eepsite's home directory) to be "
@@ -881,7 +972,7 @@ msgid ""
 "This step is optional and is disabled by default."
 msgstr ""
 
-#: i2p2www/pages/site/docs/naming.html:285
+#: i2p2www/pages/site/docs/naming.html:339
 msgid ""
 "The addressbook application, together with eepget, saves the Etag and/or "
 "Last-Modified\n"
@@ -890,13 +981,13 @@ msgid ""
 "return a '304 Not Modified' on the next fetch if nothing has changed."
 msgstr ""
 
-#: i2p2www/pages/site/docs/naming.html:292
+#: i2p2www/pages/site/docs/naming.html:346
 msgid ""
 "However the entire hosts.txt is downloaded if it has changed.\n"
 "See below for discussion on this issue."
 msgstr ""
 
-#: i2p2www/pages/site/docs/naming.html:297
+#: i2p2www/pages/site/docs/naming.html:351
 msgid ""
 "Hosts serving a static hosts.txt or an equivalent CGI application\n"
 "are strongly encouraged to deliver\n"
@@ -907,11 +998,11 @@ msgid ""
 "reduce chances of corruption."
 msgstr ""
 
-#: i2p2www/pages/site/docs/naming.html:306
+#: i2p2www/pages/site/docs/naming.html:360
 msgid "Host Add Services"
 msgstr ""
 
-#: i2p2www/pages/site/docs/naming.html:307
+#: i2p2www/pages/site/docs/naming.html:361
 msgid ""
 "A host add service is a simple CGI application that takes a hostname and "
 "a Base64 key as parameters\n"
@@ -920,7 +1011,7 @@ msgid ""
 "will be propagated through the network."
 msgstr ""
 
-#: i2p2www/pages/site/docs/naming.html:314
+#: i2p2www/pages/site/docs/naming.html:368
 msgid ""
 "It is recommended that host add services impose, at a minimum, the "
 "restrictions imposed by the addressbook application listed above.\n"
@@ -928,55 +1019,55 @@ msgid ""
 "keys, for example:"
 msgstr ""
 
-#: i2p2www/pages/site/docs/naming.html:319
+#: i2p2www/pages/site/docs/naming.html:373
 msgid "A limit on number of 'subdomains'."
 msgstr ""
 
-#: i2p2www/pages/site/docs/naming.html:323
+#: i2p2www/pages/site/docs/naming.html:377
 msgid "Authorization for 'subdomains' through various methods."
 msgstr ""
 
-#: i2p2www/pages/site/docs/naming.html:327
+#: i2p2www/pages/site/docs/naming.html:381
 msgid "Hashcash or signed certificates."
 msgstr ""
 
-#: i2p2www/pages/site/docs/naming.html:331
+#: i2p2www/pages/site/docs/naming.html:385
 msgid "Editorial review of host names and/or content."
 msgstr ""
 
-#: i2p2www/pages/site/docs/naming.html:335
+#: i2p2www/pages/site/docs/naming.html:389
 msgid "Categorization of hosts by content."
 msgstr ""
 
-#: i2p2www/pages/site/docs/naming.html:339
+#: i2p2www/pages/site/docs/naming.html:393
 msgid "Reservation or rejection of certain host names."
 msgstr ""
 
-#: i2p2www/pages/site/docs/naming.html:343
+#: i2p2www/pages/site/docs/naming.html:397
 msgid "Restrictions on the number of names registered in a given time period."
 msgstr ""
 
-#: i2p2www/pages/site/docs/naming.html:347
+#: i2p2www/pages/site/docs/naming.html:401
 msgid "Delays between registration and publication."
 msgstr ""
 
-#: i2p2www/pages/site/docs/naming.html:351
+#: i2p2www/pages/site/docs/naming.html:405
 msgid "Requirement that the host be up for verification."
 msgstr ""
 
-#: i2p2www/pages/site/docs/naming.html:355
+#: i2p2www/pages/site/docs/naming.html:409
 msgid "Expiration and/or revocation."
 msgstr ""
 
-#: i2p2www/pages/site/docs/naming.html:359
+#: i2p2www/pages/site/docs/naming.html:413
 msgid "IDN spoof rejection."
 msgstr ""
 
-#: i2p2www/pages/site/docs/naming.html:364
+#: i2p2www/pages/site/docs/naming.html:418
 msgid "Jump Services"
 msgstr ""
 
-#: i2p2www/pages/site/docs/naming.html:365
+#: i2p2www/pages/site/docs/naming.html:419
 msgid ""
 "A jump service is a simple CGI application that takes a hostname as a "
 "parameter\n"
@@ -989,20 +1080,20 @@ msgid ""
 "address helper is not necessary until restart."
 msgstr ""
 
-#: i2p2www/pages/site/docs/naming.html:375
+#: i2p2www/pages/site/docs/naming.html:429
 msgid ""
 "Note that, like with subscriptions, using a jump service\n"
 "implies a certain amount of trust, as a jump service could maliciously\n"
 "redirect a user to an incorrect destination."
 msgstr ""
 
-#: i2p2www/pages/site/docs/naming.html:381
+#: i2p2www/pages/site/docs/naming.html:435
 msgid ""
 "To provide the best service, a jump service should be subscribed to\n"
 "several hosts.txt providers so that its local host list is current."
 msgstr ""
 
-#: i2p2www/pages/site/docs/naming.html:387
+#: i2p2www/pages/site/docs/naming.html:441
 msgid ""
 "SusiDNS is simply a web interface front-end to configuring addressbook "
 "subscriptions\n"
@@ -1010,7 +1101,7 @@ msgid ""
 "All the real work is done by the 'addressbook' application."
 msgstr ""
 
-#: i2p2www/pages/site/docs/naming.html:393
+#: i2p2www/pages/site/docs/naming.html:447
 msgid ""
 "Currently, there is little enforcement of addressbook naming rules within"
 " SusiDNS,\n"
@@ -1018,11 +1109,11 @@ msgid ""
 "the addressbook subscription rules."
 msgstr ""
 
-#: i2p2www/pages/site/docs/naming.html:399
+#: i2p2www/pages/site/docs/naming.html:453
 msgid "Base32 Names"
 msgstr ""
 
-#: i2p2www/pages/site/docs/naming.html:400
+#: i2p2www/pages/site/docs/naming.html:454
 msgid ""
 "I2P supports Base32 hostnames similar to Tor's .onion addresses.\n"
 "Base32 addresses are much shorter and easier to handle than the\n"
@@ -1031,12 +1122,18 @@ msgid ""
 "<code>ukeu3k5oycgaauneqgtnvselmt4yemvoilkln7jpvamvfx7dnkdq.b32.i2p</code>"
 msgstr ""
 
-#: i2p2www/pages/site/docs/naming.html:407
+#: i2p2www/pages/site/docs/naming.html:461
+#, python-format
 msgid ""
 "In Tor, the address is 16 characters (80 bits), or half of the SHA-1 "
 "hash.\n"
 "I2P uses 52 characters (256 bits) to represent the full SHA-256 hash.\n"
 "The form is {52 chars}.b32.i2p.\n"
+"Tor has recently published a\n"
+"<a href=\"https://blog.torproject.org/blog/tor-weekly-news-%E2%80%94"
+"-december-4th-2013\">proposal</a>\n"
+"to convert to an identical format of {52 chars}.onion for their hidden "
+"services.\n"
 "Base32 is implemented in the naming service, which queries the\n"
 "router over I2CP to lookup the LeaseSet to get the full Destination.\n"
 "Base32 lookups will only be successful when the Destination is up and "
@@ -1047,7 +1144,7 @@ msgid ""
 "longer than a local address book lookup."
 msgstr ""
 
-#: i2p2www/pages/site/docs/naming.html:419
+#: i2p2www/pages/site/docs/naming.html:476
 msgid ""
 "Base32 addresses can be used in most places where hostnames or full "
 "destinations\n"
@@ -1349,7 +1446,6 @@ msgstr ""
 #: i2p2www/pages/site/docs/api/datagrams.html:3
 #: i2p2www/pages/site/docs/how/garlic-routing.html:3
 #: i2p2www/pages/site/docs/protocol/index.html:3
-#: i2p2www/pages/site/docs/transport/ntcp.html:3
 msgid "August 2010"
 msgstr ""
 
@@ -1831,7 +1927,7 @@ msgstr ""
 
 #: i2p2www/pages/site/docs/api/datagrams.html:114
 #: i2p2www/pages/site/docs/spec/datagrams.html:10
-#: i2p2www/pages/site/docs/transport/ssu.html:567
+#: i2p2www/pages/site/docs/transport/ssu.html:571
 msgid "Specification"
 msgstr ""
 
@@ -1905,7 +2001,7 @@ msgstr ""
 #: i2p2www/pages/site/docs/api/i2pcontrol.html:33
 #: i2p2www/pages/site/docs/api/i2pcontrol.html:34
 #: i2p2www/pages/site/docs/protocol/i2cp.html:99
-#: i2p2www/pages/site/docs/protocol/i2cp.html:442
+#: i2p2www/pages/site/docs/protocol/i2cp.html:440
 #: i2p2www/pages/site/docs/spec/common-structures.html:16
 #: i2p2www/pages/site/docs/spec/common-structures.html:26
 #: i2p2www/pages/site/docs/spec/common-structures.html:37
@@ -1921,12 +2017,12 @@ msgstr ""
 #: i2p2www/pages/site/docs/spec/common-structures.html:162
 #: i2p2www/pages/site/docs/spec/common-structures.html:174
 #: i2p2www/pages/site/docs/spec/common-structures.html:227
-#: i2p2www/pages/site/docs/spec/common-structures.html:299
-#: i2p2www/pages/site/docs/spec/common-structures.html:348
-#: i2p2www/pages/site/docs/spec/common-structures.html:400
-#: i2p2www/pages/site/docs/spec/common-structures.html:445
-#: i2p2www/pages/site/docs/spec/common-structures.html:582
-#: i2p2www/pages/site/docs/spec/common-structures.html:638
+#: i2p2www/pages/site/docs/spec/common-structures.html:310
+#: i2p2www/pages/site/docs/spec/common-structures.html:359
+#: i2p2www/pages/site/docs/spec/common-structures.html:411
+#: i2p2www/pages/site/docs/spec/common-structures.html:456
+#: i2p2www/pages/site/docs/spec/common-structures.html:593
+#: i2p2www/pages/site/docs/spec/common-structures.html:655
 msgid "Description"
 msgstr ""
 
@@ -2738,11 +2834,6 @@ msgid ""
 "risks of socks proxies."
 msgstr ""
 
-#: i2p2www/pages/site/docs/api/streaming.html:3
-#: i2p2www/pages/site/docs/spec/streaming.html:3
-msgid "July 2013"
-msgstr ""
-
 #: i2p2www/pages/site/docs/api/streaming.html:8
 #, python-format
 msgid ""
@@ -2896,13 +2987,13 @@ msgstr ""
 
 #: i2p2www/pages/site/docs/api/streaming.html:117
 #: i2p2www/pages/site/docs/protocol/i2cp.html:94
-#: i2p2www/pages/site/docs/protocol/i2cp.html:437
+#: i2p2www/pages/site/docs/protocol/i2cp.html:435
 msgid "Option"
 msgstr ""
 
 #: i2p2www/pages/site/docs/api/streaming.html:117
 #: i2p2www/pages/site/docs/protocol/i2cp.html:98
-#: i2p2www/pages/site/docs/protocol/i2cp.html:441
+#: i2p2www/pages/site/docs/protocol/i2cp.html:439
 msgid "Default"
 msgstr ""
 
@@ -2912,11 +3003,11 @@ msgstr ""
 #: i2p2www/pages/site/docs/spec/common-structures.html:58
 #: i2p2www/pages/site/docs/spec/common-structures.html:203
 #: i2p2www/pages/site/docs/spec/common-structures.html:257
-#: i2p2www/pages/site/docs/spec/common-structures.html:340
-#: i2p2www/pages/site/docs/spec/common-structures.html:434
-#: i2p2www/pages/site/docs/spec/common-structures.html:542
-#: i2p2www/pages/site/docs/spec/common-structures.html:620
-#: i2p2www/pages/site/docs/spec/common-structures.html:722
+#: i2p2www/pages/site/docs/spec/common-structures.html:351
+#: i2p2www/pages/site/docs/spec/common-structures.html:445
+#: i2p2www/pages/site/docs/spec/common-structures.html:553
+#: i2p2www/pages/site/docs/spec/common-structures.html:631
+#: i2p2www/pages/site/docs/spec/common-structures.html:739
 #: i2p2www/pages/site/docs/spec/datagrams.html:30
 #: i2p2www/pages/site/docs/spec/datagrams.html:89
 msgid "Notes"
@@ -3241,11 +3332,46 @@ msgid ""
 "CLOSE packets may contain data as well."
 msgstr ""
 
-#: i2p2www/pages/site/docs/api/streaming.html:416
+#: i2p2www/pages/site/docs/api/streaming.html:417
+msgid ""
+"There is no ping function at the I2CP layer (equivalent to ICMP echo) or "
+"in datagrams.\n"
+"This function is provided in streaming.\n"
+"Pings and pongs may not be combined with a standard streaming packet;\n"
+"if the ECHO option is set, then\n"
+"most other flags, options, ackThrough, sequenceNum, NACKs, payload, etc. "
+"are ignored."
+msgstr ""
+
+#: i2p2www/pages/site/docs/api/streaming.html:425
+msgid ""
+"A ping packet must have the ECHO, SIGNATURE_INCLUDED, and FROM_INCLUDED "
+"flags set.\n"
+"The sendStreamId must be greater than zero, and the receiveStreamId is "
+"ignored.\n"
+"The sendStreamId may or may not correspond to an existing connection."
+msgstr ""
+
+#: i2p2www/pages/site/docs/api/streaming.html:431
+msgid ""
+"A pong packet must have the ECHO flag set.\n"
+"The sendStreamId must be zero, and the receiveStreamId is the "
+"sendStreamId from the ping.\n"
+"The pong packet does not include any payload that was contained in the "
+"ping."
+msgstr ""
+
+#: i2p2www/pages/site/docs/api/streaming.html:437
+msgid ""
+"Streaming may be configured to disable sending pongs with the "
+"configuration i2p.streaming.answerPings=false."
+msgstr ""
+
+#: i2p2www/pages/site/docs/api/streaming.html:442
 msgid "Control Block Sharing"
 msgstr ""
 
-#: i2p2www/pages/site/docs/api/streaming.html:417
+#: i2p2www/pages/site/docs/api/streaming.html:443
 msgid ""
 "The streaming lib supports \"TCP\" Control Block sharing.\n"
 "This shares three important streaming lib parameters\n"
@@ -3262,22 +3388,22 @@ msgid ""
 "The following Control Block Sharing parameters can be set per router:"
 msgstr ""
 
-#: i2p2www/pages/site/docs/api/streaming.html:438
+#: i2p2www/pages/site/docs/api/streaming.html:464
 msgid "Other Parameters"
 msgstr ""
 
-#: i2p2www/pages/site/docs/api/streaming.html:439
+#: i2p2www/pages/site/docs/api/streaming.html:465
 msgid ""
 "The following parameters are hardcoded, but may be of interest for "
 "analysis:"
 msgstr ""
 
-#: i2p2www/pages/site/docs/api/streaming.html:458
-#: i2p2www/pages/site/docs/how/network-database.html:829
+#: i2p2www/pages/site/docs/api/streaming.html:484
+#: i2p2www/pages/site/docs/how/network-database.html:843
 msgid "History"
 msgstr ""
 
-#: i2p2www/pages/site/docs/api/streaming.html:459
+#: i2p2www/pages/site/docs/api/streaming.html:485
 msgid ""
 "The streaming library has grown organically for I2P - first mihi "
 "implemented the\n"
@@ -3300,33 +3426,33 @@ msgid ""
 "messages."
 msgstr ""
 
-#: i2p2www/pages/site/docs/api/streaming.html:473
+#: i2p2www/pages/site/docs/api/streaming.html:499
 #: i2p2www/pages/site/docs/how/elgamal-aes.html:331
 #: i2p2www/pages/site/docs/how/garlic-routing.html:242
-#: i2p2www/pages/site/docs/how/network-database.html:834
+#: i2p2www/pages/site/docs/how/network-database.html:848
 #: i2p2www/pages/site/docs/how/peer-selection.html:265
 #: i2p2www/pages/site/docs/how/tunnel-routing.html:255
-#: i2p2www/pages/site/docs/protocol/i2cp.html:646
+#: i2p2www/pages/site/docs/protocol/i2cp.html:644
 #: i2p2www/pages/site/docs/protocol/i2np.html:227
 #: i2p2www/pages/site/docs/spec/updates.html:280
-#: i2p2www/pages/site/docs/transport/ntcp.html:443
-#: i2p2www/pages/site/docs/transport/ssu.html:502
+#: i2p2www/pages/site/docs/transport/ntcp.html:444
+#: i2p2www/pages/site/docs/transport/ssu.html:506
 #: i2p2www/pages/site/docs/tunnels/implementation.html:503
 msgid "Future Work"
 msgstr ""
 
-#: i2p2www/pages/site/docs/api/streaming.html:474
+#: i2p2www/pages/site/docs/api/streaming.html:500
 msgid ""
 "The behavior of the streaming library has a profound impact on\n"
 "application-level performance, and as such, is an important\n"
 "area for further analysis."
 msgstr ""
 
-#: i2p2www/pages/site/docs/api/streaming.html:480
+#: i2p2www/pages/site/docs/api/streaming.html:506
 msgid "Additional tuning of the streaming lib parameters may be necessary."
 msgstr ""
 
-#: i2p2www/pages/site/docs/api/streaming.html:483
+#: i2p2www/pages/site/docs/api/streaming.html:509
 #, python-format
 msgid ""
 "Another area for research is the interaction of the streaming lib with "
@@ -3335,7 +3461,7 @@ msgid ""
 "See <a href=\"%(ntcpdisc)s\">the NTCP discussion page</a> for details."
 msgstr ""
 
-#: i2p2www/pages/site/docs/api/streaming.html:488
+#: i2p2www/pages/site/docs/api/streaming.html:514
 msgid ""
 "The interaction of the routing algorithms with the streaming lib strongly"
 " affects performance.\n"
@@ -3350,32 +3476,32 @@ msgid ""
 "improvements."
 msgstr ""
 
-#: i2p2www/pages/site/docs/api/streaming.html:498
+#: i2p2www/pages/site/docs/api/streaming.html:524
 msgid "The data in the first SYN packet may exceed the receiver's MTU."
 msgstr ""
 
-#: i2p2www/pages/site/docs/api/streaming.html:501
+#: i2p2www/pages/site/docs/api/streaming.html:527
 msgid "The DELAY_REQUESTED field could be used more."
 msgstr ""
 
-#: i2p2www/pages/site/docs/api/streaming.html:504
+#: i2p2www/pages/site/docs/api/streaming.html:530
 msgid ""
 "Duplicate initial SYNCHRONIZE packets on short-lived streams may not be "
 "recognized and removed."
 msgstr ""
 
-#: i2p2www/pages/site/docs/api/streaming.html:507
+#: i2p2www/pages/site/docs/api/streaming.html:533
 msgid "Don't send the MTU in a retransmission."
 msgstr ""
 
-#: i2p2www/pages/site/docs/api/streaming.html:510
+#: i2p2www/pages/site/docs/api/streaming.html:536
 msgid ""
 "Data is sent along unless the outbound window is full.\n"
 "(i.e. no-Nagle or TCP_NODELAY)\n"
 "Probably should have a configuration option for this."
 msgstr ""
 
-#: i2p2www/pages/site/docs/api/streaming.html:515
+#: i2p2www/pages/site/docs/api/streaming.html:541
 msgid ""
 "zzz has added debug code to the streaming library to log packets in a "
 "wireshark-compatible\n"
@@ -3384,7 +3510,7 @@ msgid ""
 "to TCP fields."
 msgstr ""
 
-#: i2p2www/pages/site/docs/api/streaming.html:520
+#: i2p2www/pages/site/docs/api/streaming.html:546
 msgid ""
 "There are proposals to replace the streaming lib with standard TCP\n"
 "(or perhaps a null layer together with raw sockets).\n"
@@ -4902,7 +5028,6 @@ msgid "Low-level Cryptography Details"
 msgstr ""
 
 #: i2p2www/pages/site/docs/how/cryptography.html:3
-#: i2p2www/pages/site/docs/spec/common-structures.html:3
 msgid "November 2013"
 msgstr ""
 
@@ -6752,28 +6877,74 @@ msgid ""
 "approximate bandwidth, and perceived reachability"
 msgstr ""
 
+#: i2p2www/pages/site/docs/how/network-database.html:47
+msgid "SSU Testing"
+msgstr ""
+
 #: i2p2www/pages/site/docs/how/network-database.html:48
-msgid "The core library version, always the same as the router version"
+msgid "SSU Introducer"
+msgstr ""
+
+#: i2p2www/pages/site/docs/how/network-database.html:49
+#: i2p2www/pages/site/docs/how/network-database.html:246
+msgid "Floodfill"
+msgstr ""
+
+#: i2p2www/pages/site/docs/how/network-database.html:50
+msgid "Hidden"
 msgstr ""
 
 #: i2p2www/pages/site/docs/how/network-database.html:51
+#, python-format
+msgid "Under %(amount)s shared bandwidth"
+msgstr ""
+
+#: i2p2www/pages/site/docs/how/network-database.html:52
+#: i2p2www/pages/site/docs/how/network-database.html:53
+#: i2p2www/pages/site/docs/how/network-database.html:54
+#, python-format
+msgid "%(amount)s shared bandwidth"
+msgstr ""
+
+#: i2p2www/pages/site/docs/how/network-database.html:52
+msgid "default"
+msgstr ""
+
+#: i2p2www/pages/site/docs/how/network-database.html:55
+#, python-format
+msgid "Over %(amount)s shared bandwidth"
+msgstr ""
+
+#: i2p2www/pages/site/docs/how/network-database.html:56
+msgid "Reachable"
+msgstr ""
+
+#: i2p2www/pages/site/docs/how/network-database.html:57
+msgid "Unreachable"
+msgstr ""
+
+#: i2p2www/pages/site/docs/how/network-database.html:62
+msgid "The core library version, always the same as the router version"
+msgstr ""
+
+#: i2p2www/pages/site/docs/how/network-database.html:65
 msgid ""
 "Basic network compatibility - A router will refuse to communicate with a "
 "peer having a different netId"
 msgstr ""
 
-#: i2p2www/pages/site/docs/how/network-database.html:54
+#: i2p2www/pages/site/docs/how/network-database.html:68
 msgid "Used to determine compatibility with newer features and messages"
 msgstr ""
 
-#: i2p2www/pages/site/docs/how/network-database.html:57
+#: i2p2www/pages/site/docs/how/network-database.html:71
 msgid ""
 "Always sent as 90m, for compatibility with an older scheme where routers "
 "published their actual uptime,\n"
 "and only sent tunnel requests to peers whose was more than 60m"
 msgstr ""
 
-#: i2p2www/pages/site/docs/how/network-database.html:62
+#: i2p2www/pages/site/docs/how/network-database.html:76
 msgid ""
 "These values are used by other routers for basic decisions.\n"
 "Should we connect to this router? Should we attempt to route a tunnel "
@@ -6787,7 +6958,7 @@ msgid ""
 " and network analysis."
 msgstr ""
 
-#: i2p2www/pages/site/docs/how/network-database.html:72
+#: i2p2www/pages/site/docs/how/network-database.html:86
 #, python-format
 msgid ""
 "Additional text options include\n"
@@ -6802,15 +6973,15 @@ msgid ""
 "Current statistics are limited to:"
 msgstr ""
 
-#: i2p2www/pages/site/docs/how/network-database.html:83
+#: i2p2www/pages/site/docs/how/network-database.html:97
 msgid "Client and exploratory tunnel build success, reject, and timeout rates"
 msgstr ""
 
-#: i2p2www/pages/site/docs/how/network-database.html:84
+#: i2p2www/pages/site/docs/how/network-database.html:98
 msgid "1 hour average number of participating tunnels"
 msgstr ""
 
-#: i2p2www/pages/site/docs/how/network-database.html:87
+#: i2p2www/pages/site/docs/how/network-database.html:101
 msgid ""
 "The data published can be seen in the router's user interface,\n"
 "but is not used or trusted within the router.\n"
@@ -6820,19 +6991,19 @@ msgid ""
 "releases."
 msgstr ""
 
-#: i2p2www/pages/site/docs/how/network-database.html:95
+#: i2p2www/pages/site/docs/how/network-database.html:109
 msgid "RouterInfo specification"
 msgstr ""
 
-#: i2p2www/pages/site/docs/how/network-database.html:98
+#: i2p2www/pages/site/docs/how/network-database.html:112
 msgid "RouterInfo Javadoc"
 msgstr ""
 
-#: i2p2www/pages/site/docs/how/network-database.html:101
+#: i2p2www/pages/site/docs/how/network-database.html:115
 msgid "RouterInfo Expiration"
 msgstr ""
 
-#: i2p2www/pages/site/docs/how/network-database.html:102
+#: i2p2www/pages/site/docs/how/network-database.html:116
 msgid ""
 "RouterInfos have no set expiration time.\n"
 "Each router is free to maintain its own local policy to trade off the "
@@ -6841,17 +7012,17 @@ msgid ""
 "In the current implementation, there are the following general policies:"
 msgstr ""
 
-#: i2p2www/pages/site/docs/how/network-database.html:109
+#: i2p2www/pages/site/docs/how/network-database.html:123
 msgid ""
 "There is no expiration during the first hour of uptime, as the persistent"
 " stored data may be old."
 msgstr ""
 
-#: i2p2www/pages/site/docs/how/network-database.html:112
+#: i2p2www/pages/site/docs/how/network-database.html:126
 msgid "There is no expiration if there are 25 or less RouterInfos."
 msgstr ""
 
-#: i2p2www/pages/site/docs/how/network-database.html:115
+#: i2p2www/pages/site/docs/how/network-database.html:129
 msgid ""
 "As the number of local RouterInfos grows, the expiration time shrinks, in"
 " an attempt to maintain\n"
@@ -6860,7 +7031,7 @@ msgid ""
 "while expiration time with 300 routers is around 30 hours."
 msgstr ""
 
-#: i2p2www/pages/site/docs/how/network-database.html:120
+#: i2p2www/pages/site/docs/how/network-database.html:134
 #, python-format
 msgid ""
 "RouterInfos containing <a href=\"%(ssu)s\">SSU</a> introducers expire in "
@@ -6868,24 +7039,24 @@ msgid ""
 "the introducer list expires in about that time."
 msgstr ""
 
-#: i2p2www/pages/site/docs/how/network-database.html:124
+#: i2p2www/pages/site/docs/how/network-database.html:138
 msgid ""
 "Floodfills use a short expiration time (1 hour) for all local "
 "RouterInfos, as valid RouterInfos will\n"
 "be frequently republished to them."
 msgstr ""
 
-#: i2p2www/pages/site/docs/how/network-database.html:130
+#: i2p2www/pages/site/docs/how/network-database.html:144
 msgid "RouterInfo Persistent Storage"
 msgstr ""
 
-#: i2p2www/pages/site/docs/how/network-database.html:132
+#: i2p2www/pages/site/docs/how/network-database.html:146
 msgid ""
 "RouterInfos are periodically written to disk so that they are available "
 "after a restart."
 msgstr ""
 
-#: i2p2www/pages/site/docs/how/network-database.html:139
+#: i2p2www/pages/site/docs/how/network-database.html:153
 msgid ""
 "The second piece of data distributed in the netDb is a \"LeaseSet\" - "
 "documenting\n"
@@ -6894,73 +7065,73 @@ msgid ""
 "Each of these leases specify the following information:"
 msgstr ""
 
-#: i2p2www/pages/site/docs/how/network-database.html:145
+#: i2p2www/pages/site/docs/how/network-database.html:159
 msgid "The tunnel gateway router (by specifying its identity)"
 msgstr ""
 
-#: i2p2www/pages/site/docs/how/network-database.html:146
+#: i2p2www/pages/site/docs/how/network-database.html:160
 msgid "The tunnel ID on that router to send messages with (a 4 byte number)"
 msgstr ""
 
-#: i2p2www/pages/site/docs/how/network-database.html:147
+#: i2p2www/pages/site/docs/how/network-database.html:161
 msgid "When that tunnel will expire."
 msgstr ""
 
-#: i2p2www/pages/site/docs/how/network-database.html:149
+#: i2p2www/pages/site/docs/how/network-database.html:163
 msgid ""
 "The LeaseSet itself is stored in the netDb under\n"
 "the key derived from the SHA256 of the destination."
 msgstr ""
 
-#: i2p2www/pages/site/docs/how/network-database.html:154
+#: i2p2www/pages/site/docs/how/network-database.html:168
 msgid "In addition to these leases, the LeaseSet includes:"
 msgstr ""
 
-#: i2p2www/pages/site/docs/how/network-database.html:158
+#: i2p2www/pages/site/docs/how/network-database.html:172
 msgid ""
 "The destination itself (a 2048bit ElGamal encryption key, 1024bit DSA "
 "signing key and a certificate)"
 msgstr ""
 
-#: i2p2www/pages/site/docs/how/network-database.html:159
+#: i2p2www/pages/site/docs/how/network-database.html:173
 msgid ""
 "Additional encryption public key: used for end-to-end encryption of "
 "garlic messages"
 msgstr ""
 
-#: i2p2www/pages/site/docs/how/network-database.html:160
+#: i2p2www/pages/site/docs/how/network-database.html:174
 msgid ""
 "Additional signing public key: intended for LeaseSet revocation, but is "
 "currently unused."
 msgstr ""
 
-#: i2p2www/pages/site/docs/how/network-database.html:161
+#: i2p2www/pages/site/docs/how/network-database.html:175
 msgid ""
 "Signature of all the LeaseSet data, to make sure the Destination "
 "published the LeaseSet."
 msgstr ""
 
-#: i2p2www/pages/site/docs/how/network-database.html:165
+#: i2p2www/pages/site/docs/how/network-database.html:179
 msgid "Lease specification"
 msgstr ""
 
-#: i2p2www/pages/site/docs/how/network-database.html:167
+#: i2p2www/pages/site/docs/how/network-database.html:181
 msgid "LeaseSet specification"
 msgstr ""
 
-#: i2p2www/pages/site/docs/how/network-database.html:170
+#: i2p2www/pages/site/docs/how/network-database.html:184
 msgid "Lease Javadoc"
 msgstr ""
 
-#: i2p2www/pages/site/docs/how/network-database.html:172
+#: i2p2www/pages/site/docs/how/network-database.html:186
 msgid "LeaseSet Javadoc"
 msgstr ""
 
-#: i2p2www/pages/site/docs/how/network-database.html:176
+#: i2p2www/pages/site/docs/how/network-database.html:190
 msgid "Unpublished LeaseSets"
 msgstr ""
 
-#: i2p2www/pages/site/docs/how/network-database.html:177
+#: i2p2www/pages/site/docs/how/network-database.html:191
 msgid ""
 "A LeaseSet for a destination used only for outgoing connections is "
 "<i>unpublished</i>.\n"
@@ -6972,11 +7143,11 @@ msgid ""
 "because of <a href=\"#leaseset_storage_peers\">I2NP storage messages</a>."
 msgstr ""
 
-#: i2p2www/pages/site/docs/how/network-database.html:187
+#: i2p2www/pages/site/docs/how/network-database.html:201
 msgid "Revoked LeaseSets"
 msgstr ""
 
-#: i2p2www/pages/site/docs/how/network-database.html:188
+#: i2p2www/pages/site/docs/how/network-database.html:202
 msgid ""
 "A LeaseSet may be <i>revoked</i> by publishing a new LeaseSet with zero "
 "leases.\n"
@@ -6988,11 +7159,11 @@ msgid ""
 "unused."
 msgstr ""
 
-#: i2p2www/pages/site/docs/how/network-database.html:195
+#: i2p2www/pages/site/docs/how/network-database.html:209
 msgid "Encrypted LeaseSets"
 msgstr ""
 
-#: i2p2www/pages/site/docs/how/network-database.html:196
+#: i2p2www/pages/site/docs/how/network-database.html:210
 msgid ""
 "In an <i>encrypted</i> LeaseSet, all Leases are encrypted with a separate"
 " DSA key.\n"
@@ -7007,32 +7178,32 @@ msgid ""
 "LeaseSets could be improved."
 msgstr ""
 
-#: i2p2www/pages/site/docs/how/network-database.html:205
+#: i2p2www/pages/site/docs/how/network-database.html:219
 msgid "LeaseSet Expiration"
 msgstr ""
 
-#: i2p2www/pages/site/docs/how/network-database.html:206
+#: i2p2www/pages/site/docs/how/network-database.html:220
 msgid ""
 "All Leases (tunnels) are valid for 10 minutes; therefore, a LeaseSet "
 "expires\n"
 "10 minutes after the earliest creation time of all its Leases."
 msgstr ""
 
-#: i2p2www/pages/site/docs/how/network-database.html:211
+#: i2p2www/pages/site/docs/how/network-database.html:225
 msgid "LeaseSet Persistent Storage"
 msgstr ""
 
-#: i2p2www/pages/site/docs/how/network-database.html:212
+#: i2p2www/pages/site/docs/how/network-database.html:226
 msgid ""
 "There is no persistent storage of LeaseSet data since they expire so "
 "quickly."
 msgstr ""
 
-#: i2p2www/pages/site/docs/how/network-database.html:217
+#: i2p2www/pages/site/docs/how/network-database.html:231
 msgid "Bootstrapping"
 msgstr ""
 
-#: i2p2www/pages/site/docs/how/network-database.html:218
+#: i2p2www/pages/site/docs/how/network-database.html:232
 msgid ""
 "The netDb is decentralized, however you do need at\n"
 "least one reference to a peer so that the integration process\n"
@@ -7053,11 +7224,7 @@ msgid ""
 "one of these URLs, selected at random."
 msgstr ""
 
-#: i2p2www/pages/site/docs/how/network-database.html:232
-msgid "Floodfill"
-msgstr ""
-
-#: i2p2www/pages/site/docs/how/network-database.html:233
+#: i2p2www/pages/site/docs/how/network-database.html:247
 msgid ""
 "The floodfill netDb is a simple distributed storage mechanism.\n"
 "The storage algorithm is simple: send the data to the closest peer that "
@@ -7076,24 +7243,24 @@ msgid ""
 "href=\"#kademlia_closeness\">XOR-metric</a>) to a specific key."
 msgstr ""
 
-#: i2p2www/pages/site/docs/how/network-database.html:244
+#: i2p2www/pages/site/docs/how/network-database.html:258
 msgid ""
 "Determining who is part of the floodfill netDb is trivial - it is exposed"
 " in each \n"
 "router's published routerInfo as a capability."
 msgstr ""
 
-#: i2p2www/pages/site/docs/how/network-database.html:249
+#: i2p2www/pages/site/docs/how/network-database.html:263
 msgid ""
 "Floodfills have no central authority and do not form a \"consensus\" -\n"
 "they only implement a simple DHT overlay."
 msgstr ""
 
-#: i2p2www/pages/site/docs/how/network-database.html:256
+#: i2p2www/pages/site/docs/how/network-database.html:270
 msgid "Floodfill Router Opt-in"
 msgstr ""
 
-#: i2p2www/pages/site/docs/how/network-database.html:258
+#: i2p2www/pages/site/docs/how/network-database.html:272
 msgid ""
 "Unlike Tor, where the directory servers are hardcoded and trusted,\n"
 "and operated by known entities,\n"
@@ -7101,7 +7268,7 @@ msgid ""
 "change over time."
 msgstr ""
 
-#: i2p2www/pages/site/docs/how/network-database.html:265
+#: i2p2www/pages/site/docs/how/network-database.html:279
 msgid ""
 "To increase reliability of the netDb, and minimize the impact\n"
 "of netDb traffic on a router, floodfill is automatically enabled\n"
@@ -7113,7 +7280,7 @@ msgid ""
 "KBytes/sec."
 msgstr ""
 
-#: i2p2www/pages/site/docs/how/network-database.html:275
+#: i2p2www/pages/site/docs/how/network-database.html:289
 msgid ""
 "In addition, a router must pass several additional tests for health\n"
 "(outbound message queue time, job lag, etc.) before floodfill operation "
@@ -7121,13 +7288,13 @@ msgid ""
 "automatically enabled."
 msgstr ""
 
-#: i2p2www/pages/site/docs/how/network-database.html:281
+#: i2p2www/pages/site/docs/how/network-database.html:295
 msgid ""
 "With the current rules for automatic opt-in, approximately 6&#37; of\n"
 "the routers in the network are floodfill routers."
 msgstr ""
 
-#: i2p2www/pages/site/docs/how/network-database.html:286
+#: i2p2www/pages/site/docs/how/network-database.html:300
 msgid ""
 "While some peers are manually configured to be floodfill,\n"
 "others are simply high-bandwidth routers who automatically volunteer\n"
@@ -7138,11 +7305,11 @@ msgid ""
 "too many floodfills outstanding."
 msgstr ""
 
-#: i2p2www/pages/site/docs/how/network-database.html:296
+#: i2p2www/pages/site/docs/how/network-database.html:310
 msgid "Floodfill Router Roles"
 msgstr ""
 
-#: i2p2www/pages/site/docs/how/network-database.html:297
+#: i2p2www/pages/site/docs/how/network-database.html:311
 msgid ""
 "A floodfill router's only services that are in addition to those of non-"
 "floodfill routers\n"
@@ -7153,11 +7320,11 @@ msgid ""
 "their distributed database services."
 msgstr ""
 
-#: i2p2www/pages/site/docs/how/network-database.html:305
+#: i2p2www/pages/site/docs/how/network-database.html:319
 msgid "Kademlia Closeness Metric"
 msgstr ""
 
-#: i2p2www/pages/site/docs/how/network-database.html:306
+#: i2p2www/pages/site/docs/how/network-database.html:320
 msgid ""
 "The netDb uses a simple Kademlia-style XOR metric to determine closeness."
 "\n"
@@ -7176,22 +7343,22 @@ msgid ""
 "although it isn't strictly a rotation."
 msgstr ""
 
-#: i2p2www/pages/site/docs/how/network-database.html:318
+#: i2p2www/pages/site/docs/how/network-database.html:332
 msgid ""
 "Routing keys are never sent on-the-wire in any I2NP message, they are "
 "only used locally for\n"
 "determination of distance."
 msgstr ""
 
-#: i2p2www/pages/site/docs/how/network-database.html:325
+#: i2p2www/pages/site/docs/how/network-database.html:339
 msgid "Storage, Verification, and Lookup Mechanics"
 msgstr ""
 
-#: i2p2www/pages/site/docs/how/network-database.html:327
+#: i2p2www/pages/site/docs/how/network-database.html:341
 msgid "RouterInfo Storage to Peers"
 msgstr ""
 
-#: i2p2www/pages/site/docs/how/network-database.html:328
+#: i2p2www/pages/site/docs/how/network-database.html:342
 #, python-format
 msgid ""
 "<a href=\"%(i2np)s\">I2NP</a> DatabaseStoreMessages containing the local "
@@ -7200,11 +7367,11 @@ msgid ""
 "or <a href=\"%(ssu)s\">SSU</a> transport connection."
 msgstr ""
 
-#: i2p2www/pages/site/docs/how/network-database.html:335
+#: i2p2www/pages/site/docs/how/network-database.html:349
 msgid "LeaseSet Storage to Peers"
 msgstr ""
 
-#: i2p2www/pages/site/docs/how/network-database.html:336
+#: i2p2www/pages/site/docs/how/network-database.html:350
 #, python-format
 msgid ""
 "<a href=\"%(i2np)s\">I2NP</a> DatabaseStoreMessages containing the local "
@@ -7217,7 +7384,7 @@ msgid ""
 "Destinations to have published LeaseSets at all."
 msgstr ""
 
-#: i2p2www/pages/site/docs/how/network-database.html:344
+#: i2p2www/pages/site/docs/how/network-database.html:358
 msgid ""
 "The DatabaseStoreMessage should be sent to the floodfill that is closest\n"
 "to the current routing key for the RouterInfo or LeaseSet being stored.\n"
@@ -7229,7 +7396,7 @@ msgid ""
 "This provides a high degree of fault-tolerance."
 msgstr ""
 
-#: i2p2www/pages/site/docs/how/network-database.html:353
+#: i2p2www/pages/site/docs/how/network-database.html:367
 msgid ""
 "In traditional Kademlia, a peer would do a \"find-closest\" search before"
 " inserting\n"
@@ -7250,11 +7417,11 @@ msgid ""
 "the netdb item."
 msgstr ""
 
-#: i2p2www/pages/site/docs/how/network-database.html:366
+#: i2p2www/pages/site/docs/how/network-database.html:380
 msgid "RouterInfo Storage to Floodfills"
 msgstr ""
 
-#: i2p2www/pages/site/docs/how/network-database.html:367
+#: i2p2www/pages/site/docs/how/network-database.html:381
 #, python-format
 msgid ""
 "A router publishes its own RouterInfo by directly connecting to a "
@@ -7269,18 +7436,18 @@ msgid ""
 "with the Message ID set to the value of the Reply Token."
 msgstr ""
 
-#: i2p2www/pages/site/docs/how/network-database.html:381
+#: i2p2www/pages/site/docs/how/network-database.html:395
 msgid "LeaseSet Storage to Floodfills"
 msgstr ""
 
-#: i2p2www/pages/site/docs/how/network-database.html:382
+#: i2p2www/pages/site/docs/how/network-database.html:396
 msgid ""
 "Storage of LeaseSets is much more sensitive than for RouterInfos, as a "
 "router\n"
 "must take care that the LeaseSet cannot be associated with the router."
 msgstr ""
 
-#: i2p2www/pages/site/docs/how/network-database.html:387
+#: i2p2www/pages/site/docs/how/network-database.html:401
 #, python-format
 msgid ""
 "A router publishes a local LeaseSet by\n"
@@ -7296,11 +7463,11 @@ msgid ""
 "This message is sent back to one of the client's inbound tunnels."
 msgstr ""
 
-#: i2p2www/pages/site/docs/how/network-database.html:400
+#: i2p2www/pages/site/docs/how/network-database.html:414
 msgid "Flooding"
 msgstr ""
 
-#: i2p2www/pages/site/docs/how/network-database.html:401
+#: i2p2www/pages/site/docs/how/network-database.html:415
 #, python-format
 msgid ""
 "After a floodfill router receives a DatabaseStoreMessage containing a\n"
@@ -7318,7 +7485,7 @@ msgid ""
 "DHT \"neighborhood\" for the routing key."
 msgstr ""
 
-#: i2p2www/pages/site/docs/how/network-database.html:412
+#: i2p2www/pages/site/docs/how/network-database.html:426
 #, python-format
 msgid ""
 "The floodfill then directly connects to each of those peers\n"
@@ -7329,11 +7496,11 @@ msgid ""
 "The other routers do not reply or re-flood, as the Reply Token is zero."
 msgstr ""
 
-#: i2p2www/pages/site/docs/how/network-database.html:422
+#: i2p2www/pages/site/docs/how/network-database.html:436
 msgid "RouterInfo and LeaseSet Lookup"
 msgstr ""
 
-#: i2p2www/pages/site/docs/how/network-database.html:423
+#: i2p2www/pages/site/docs/how/network-database.html:437
 #, python-format
 msgid ""
 "The <a href=\"%(i2np)s\">I2NP</a> DatabaseLookupMessage is used to "
@@ -7343,13 +7510,13 @@ msgid ""
 "exploratory tunnels."
 msgstr ""
 
-#: i2p2www/pages/site/docs/how/network-database.html:429
+#: i2p2www/pages/site/docs/how/network-database.html:443
 msgid ""
 "Lookups are generally sent to the two \"good\" (the connection doesn't "
 "fail) floodfill routers closest to the requested key, in parallel."
 msgstr ""
 
-#: i2p2www/pages/site/docs/how/network-database.html:433
+#: i2p2www/pages/site/docs/how/network-database.html:447
 #, python-format
 msgid ""
 "If the key is found locally by the floodfill router, it responds with a\n"
@@ -7360,7 +7527,7 @@ msgid ""
 "containing a list of other floodfill routers close to the key."
 msgstr ""
 
-#: i2p2www/pages/site/docs/how/network-database.html:441
+#: i2p2www/pages/site/docs/how/network-database.html:455
 msgid ""
 "LeaseSet lookups are garlic encrypted end-to-end as of release 0.9.5.\n"
 "RouterInfo lookups are not encrypted and thus are vulnerable to snooping "
@@ -7370,7 +7537,7 @@ msgid ""
 "RouterInfo lookup encryption may be enabled in a future release."
 msgstr ""
 
-#: i2p2www/pages/site/docs/how/network-database.html:448
+#: i2p2www/pages/site/docs/how/network-database.html:462
 msgid ""
 "As of release 0.9.7, replies to a LeaseSet lookup (a DatabaseStoreMessage"
 " or a DatabaseSearchReplyMessage)\n"
@@ -7381,14 +7548,14 @@ msgid ""
 " encryption."
 msgstr ""
 
-#: i2p2www/pages/site/docs/how/network-database.html:455
+#: i2p2www/pages/site/docs/how/network-database.html:469
 #, python-format
 msgid ""
 "(Reference: <a href=\"%(pdf)s\">Hashing it out in Public</a> Sections "
 "2.2-2.3 for terms below in italics)"
 msgstr ""
 
-#: i2p2www/pages/site/docs/how/network-database.html:459
+#: i2p2www/pages/site/docs/how/network-database.html:473
 msgid ""
 "Due to the relatively small size of the network and the flooding "
 "redundancy of 8x,\n"
@@ -7404,7 +7571,7 @@ msgid ""
 "to <i>reduce the chance of query failure</i>."
 msgstr ""
 
-#: i2p2www/pages/site/docs/how/network-database.html:470
+#: i2p2www/pages/site/docs/how/network-database.html:484
 msgid ""
 "As of release 0.8.9, <i>iterative lookups</i> are implemented with no "
 "lookup redundancy.\n"
@@ -7422,7 +7589,7 @@ msgid ""
 "or the maximum number of peers is queried."
 msgstr ""
 
-#: i2p2www/pages/site/docs/how/network-database.html:482
+#: i2p2www/pages/site/docs/how/network-database.html:496
 msgid ""
 "<i>Node IDs</i> are <i>verifiable</i> in that we use the router hash "
 "directly as both the node ID and the Kademlia key.\n"
@@ -7432,11 +7599,11 @@ msgid ""
 "<i>detailed knowledge of the neighborhood of the destination ID space</i>."
 msgstr ""
 
-#: i2p2www/pages/site/docs/how/network-database.html:491
+#: i2p2www/pages/site/docs/how/network-database.html:505
 msgid "RouterInfo Storage Verification"
 msgstr ""
 
-#: i2p2www/pages/site/docs/how/network-database.html:492
+#: i2p2www/pages/site/docs/how/network-database.html:506
 #, python-format
 msgid ""
 "Note: RouterInfo verification is disabled as of release 0.9.7.1 to "
@@ -7446,7 +7613,7 @@ msgid ""
 "It is not clear if verification can be redesigned to be done safely."
 msgstr ""
 
-#: i2p2www/pages/site/docs/how/network-database.html:499
+#: i2p2www/pages/site/docs/how/network-database.html:513
 msgid ""
 "To verify a storage was successful, a router simply waits about 10 "
 "seconds,\n"
@@ -7457,11 +7624,11 @@ msgid ""
 "outbound endpoint(OBEP)."
 msgstr ""
 
-#: i2p2www/pages/site/docs/how/network-database.html:507
+#: i2p2www/pages/site/docs/how/network-database.html:521
 msgid "LeaseSet Storage Verification"
 msgstr ""
 
-#: i2p2www/pages/site/docs/how/network-database.html:508
+#: i2p2www/pages/site/docs/how/network-database.html:522
 msgid ""
 "To verify a storage was successful, a router simply waits about 10 "
 "seconds,\n"
@@ -7475,7 +7642,7 @@ msgid ""
 "tunnels."
 msgstr ""
 
-#: i2p2www/pages/site/docs/how/network-database.html:518
+#: i2p2www/pages/site/docs/how/network-database.html:532
 msgid ""
 "As of release 0.9.7, replies for both RouterInfo and LeaseSet lookups (a "
 "DatabaseStoreMessage or a DatabaseSearchReplyMessage)\n"
@@ -7483,11 +7650,11 @@ msgid ""
 "to hide the reply from the inbound gateway (IBGW) of the reply tunnel."
 msgstr ""
 
-#: i2p2www/pages/site/docs/how/network-database.html:526
+#: i2p2www/pages/site/docs/how/network-database.html:540
 msgid "Exploration"
 msgstr ""
 
-#: i2p2www/pages/site/docs/how/network-database.html:527
+#: i2p2www/pages/site/docs/how/network-database.html:541
 #, python-format
 msgid ""
 "<i>Exploration</i> is a special form of netdb lookup, where a router "
@@ -7510,11 +7677,11 @@ msgid ""
 "the requested key."
 msgstr ""
 
-#: i2p2www/pages/site/docs/how/network-database.html:541
+#: i2p2www/pages/site/docs/how/network-database.html:555
 msgid "Notes on Lookup Responses"
 msgstr ""
 
-#: i2p2www/pages/site/docs/how/network-database.html:542
+#: i2p2www/pages/site/docs/how/network-database.html:556
 msgid ""
 "The response to a lookup request is either a Database Store Message (on "
 "success) or a\n"
@@ -7527,11 +7694,11 @@ msgid ""
 "difficult to monitor the performance of the various floodfill routers."
 msgstr ""
 
-#: i2p2www/pages/site/docs/how/network-database.html:552
+#: i2p2www/pages/site/docs/how/network-database.html:566
 msgid "MultiHoming"
 msgstr ""
 
-#: i2p2www/pages/site/docs/how/network-database.html:554
+#: i2p2www/pages/site/docs/how/network-database.html:568
 msgid ""
 "Destinations may be hosted on multiple routers simultaneously, by using "
 "the same\n"
@@ -7548,18 +7715,18 @@ msgid ""
 "services on the network."
 msgstr ""
 
-#: i2p2www/pages/site/docs/how/network-database.html:564
+#: i2p2www/pages/site/docs/how/network-database.html:578
 msgid "Threat Analysis"
 msgstr ""
 
-#: i2p2www/pages/site/docs/how/network-database.html:565
+#: i2p2www/pages/site/docs/how/network-database.html:579
 #, python-format
 msgid ""
 "Also discussed on <a href=\"%(threatmodel)s#floodfill\">the threat model "
 "page</a>."
 msgstr ""
 
-#: i2p2www/pages/site/docs/how/network-database.html:569
+#: i2p2www/pages/site/docs/how/network-database.html:583
 msgid ""
 "A hostile user may attempt to harm the network by\n"
 "creating one or more floodfill routers and crafting them to offer\n"
@@ -7567,11 +7734,11 @@ msgid ""
 "Some scenarios are discussed below."
 msgstr ""
 
-#: i2p2www/pages/site/docs/how/network-database.html:576
+#: i2p2www/pages/site/docs/how/network-database.html:590
 msgid "General Mitigation Through Growth"
 msgstr ""
 
-#: i2p2www/pages/site/docs/how/network-database.html:577
+#: i2p2www/pages/site/docs/how/network-database.html:591
 #, python-format
 msgid ""
 "There are currently around %(ffcount)s floodfill routers in the network.\n"
@@ -7580,32 +7747,32 @@ msgid ""
 "as the network size and number of floodfill routers increase."
 msgstr ""
 
-#: i2p2www/pages/site/docs/how/network-database.html:584
+#: i2p2www/pages/site/docs/how/network-database.html:598
 msgid "General Mitigation Through Redundancy"
 msgstr ""
 
-#: i2p2www/pages/site/docs/how/network-database.html:585
+#: i2p2www/pages/site/docs/how/network-database.html:599
 #, python-format
 msgid ""
 "Via flooding, all netdb entries are stored on the %(floodsize)s floodfill"
 " routers closest to the key."
 msgstr ""
 
-#: i2p2www/pages/site/docs/how/network-database.html:590
+#: i2p2www/pages/site/docs/how/network-database.html:604
 msgid "Forgeries"
 msgstr ""
 
-#: i2p2www/pages/site/docs/how/network-database.html:591
+#: i2p2www/pages/site/docs/how/network-database.html:605
 msgid ""
 "All netdb entries are signed by their creators, so no router may forge a\n"
 "RouterInfo or LeaseSet."
 msgstr ""
 
-#: i2p2www/pages/site/docs/how/network-database.html:596
+#: i2p2www/pages/site/docs/how/network-database.html:610
 msgid "Slow or Unresponsive"
 msgstr ""
 
-#: i2p2www/pages/site/docs/how/network-database.html:597
+#: i2p2www/pages/site/docs/how/network-database.html:611
 #, python-format
 msgid ""
 "Each router maintains an expanded set of statistics in the\n"
@@ -7615,31 +7782,31 @@ msgid ""
 "The set includes:"
 msgstr ""
 
-#: i2p2www/pages/site/docs/how/network-database.html:604
+#: i2p2www/pages/site/docs/how/network-database.html:618
 msgid "Average response time"
 msgstr ""
 
-#: i2p2www/pages/site/docs/how/network-database.html:605
+#: i2p2www/pages/site/docs/how/network-database.html:619
 msgid "Percentage of queries answered with the data requested"
 msgstr ""
 
-#: i2p2www/pages/site/docs/how/network-database.html:606
+#: i2p2www/pages/site/docs/how/network-database.html:620
 msgid "Percentage of stores that were successfully verified"
 msgstr ""
 
-#: i2p2www/pages/site/docs/how/network-database.html:607
+#: i2p2www/pages/site/docs/how/network-database.html:621
 msgid "Last successful store"
 msgstr ""
 
-#: i2p2www/pages/site/docs/how/network-database.html:608
+#: i2p2www/pages/site/docs/how/network-database.html:622
 msgid "Last successful lookup"
 msgstr ""
 
-#: i2p2www/pages/site/docs/how/network-database.html:609
+#: i2p2www/pages/site/docs/how/network-database.html:623
 msgid "Last response"
 msgstr ""
 
-#: i2p2www/pages/site/docs/how/network-database.html:612
+#: i2p2www/pages/site/docs/how/network-database.html:626
 msgid ""
 "Each time a router needs to make a determination on which floodfill "
 "router is closest to a key,\n"
@@ -7652,11 +7819,11 @@ msgid ""
 "routers that are only sometimes malicious may be much harder to deal with."
 msgstr ""
 
-#: i2p2www/pages/site/docs/how/network-database.html:622
+#: i2p2www/pages/site/docs/how/network-database.html:636
 msgid "Sybil Attack (Full Keyspace)"
 msgstr ""
 
-#: i2p2www/pages/site/docs/how/network-database.html:623
+#: i2p2www/pages/site/docs/how/network-database.html:637
 #, python-format
 msgid ""
 "An attacker may mount a <a href=\"%(url)s\">Sybil attack</a>\n"
@@ -7664,7 +7831,7 @@ msgid ""
 "keyspace."
 msgstr ""
 
-#: i2p2www/pages/site/docs/how/network-database.html:628
+#: i2p2www/pages/site/docs/how/network-database.html:642
 #, python-format
 msgid ""
 "(In a related example, a researcher recently created a\n"
@@ -7673,7 +7840,7 @@ msgid ""
 "network."
 msgstr ""
 
-#: i2p2www/pages/site/docs/how/network-database.html:634
+#: i2p2www/pages/site/docs/how/network-database.html:648
 msgid ""
 "If the floodfills are not sufficiently misbehaving to be marked as "
 "\"bad\" using the peer profile\n"
@@ -7685,7 +7852,7 @@ msgid ""
 "none of them is completely satisfactory:"
 msgstr ""
 
-#: i2p2www/pages/site/docs/how/network-database.html:642
+#: i2p2www/pages/site/docs/how/network-database.html:656
 msgid ""
 "Compile a list of bad router hashes or IPs, and announce the list through"
 " various means\n"
@@ -7694,30 +7861,30 @@ msgid ""
 "add it to their local \"blacklist\"."
 msgstr ""
 
-#: i2p2www/pages/site/docs/how/network-database.html:647
+#: i2p2www/pages/site/docs/how/network-database.html:661
 msgid ""
 "Ask everyone in the network to enable floodfill manually (fight Sybil "
 "with more Sybil)"
 msgstr ""
 
-#: i2p2www/pages/site/docs/how/network-database.html:648
+#: i2p2www/pages/site/docs/how/network-database.html:662
 msgid "Release a new software version that includes the hardcoded \"bad\" list"
 msgstr ""
 
-#: i2p2www/pages/site/docs/how/network-database.html:649
+#: i2p2www/pages/site/docs/how/network-database.html:663
 msgid ""
 "Release a new software version that improves the peer profile metrics and"
 " thresholds,\n"
 "in an attempt to automatically identify the \"bad\" peers."
 msgstr ""
 
-#: i2p2www/pages/site/docs/how/network-database.html:653
+#: i2p2www/pages/site/docs/how/network-database.html:667
 msgid ""
 "Add software that disqualifies floodfills if too many of them are in a "
 "single IP block"
 msgstr ""
 
-#: i2p2www/pages/site/docs/how/network-database.html:654
+#: i2p2www/pages/site/docs/how/network-database.html:668
 msgid ""
 "Implement an automatic subscription-based blacklist controlled by a "
 "single individual or group.\n"
@@ -7729,15 +7896,15 @@ msgid ""
 "or even to completely shutdown or destroy the entire network."
 msgstr ""
 
-#: i2p2www/pages/site/docs/how/network-database.html:663
+#: i2p2www/pages/site/docs/how/network-database.html:677
 msgid "This attack becomes more difficult as the network size grows."
 msgstr ""
 
-#: i2p2www/pages/site/docs/how/network-database.html:669
+#: i2p2www/pages/site/docs/how/network-database.html:683
 msgid "Sybil Attack (Partial Keyspace)"
 msgstr ""
 
-#: i2p2www/pages/site/docs/how/network-database.html:670
+#: i2p2www/pages/site/docs/how/network-database.html:684
 #, python-format
 msgid ""
 "An attacker may mount a <a href=\"%(url)s\">Sybil attack</a>\n"
@@ -7751,7 +7918,7 @@ msgid ""
 "eepsite, for example."
 msgstr ""
 
-#: i2p2www/pages/site/docs/how/network-database.html:679
+#: i2p2www/pages/site/docs/how/network-database.html:693
 msgid ""
 "As the keyspace is indexed by the cryptographic (SHA256) Hash of the key,"
 "\n"
@@ -7763,7 +7930,7 @@ msgid ""
 "size, is unknown."
 msgstr ""
 
-#: i2p2www/pages/site/docs/how/network-database.html:687
+#: i2p2www/pages/site/docs/how/network-database.html:701
 msgid ""
 "As a partial defense against this attack,\n"
 "the algorithm used to determine Kademlia \"closeness\" varies over time.\n"
@@ -7780,7 +7947,7 @@ msgid ""
 "to the target key, or to each other."
 msgstr ""
 
-#: i2p2www/pages/site/docs/how/network-database.html:699
+#: i2p2www/pages/site/docs/how/network-database.html:713
 msgid ""
 "This attack becomes more difficult as the network size grows.\n"
 "However, recent research demonstrates that the keyspace rotation is not "
@@ -7790,7 +7957,7 @@ msgid ""
 "of the keyspace within a half hour after rotation."
 msgstr ""
 
-#: i2p2www/pages/site/docs/how/network-database.html:707
+#: i2p2www/pages/site/docs/how/network-database.html:721
 msgid ""
 "One consequence of daily keyspace rotation is that the distributed "
 "network database\n"
@@ -7802,11 +7969,11 @@ msgid ""
 "are a topic for further study."
 msgstr ""
 
-#: i2p2www/pages/site/docs/how/network-database.html:717
+#: i2p2www/pages/site/docs/how/network-database.html:731
 msgid "Bootstrap Attacks"
 msgstr ""
 
-#: i2p2www/pages/site/docs/how/network-database.html:718
+#: i2p2www/pages/site/docs/how/network-database.html:732
 msgid ""
 "An attacker could attempt to boot new routers into an isolated\n"
 "or majority-controlled network by taking over a reseed website,\n"
@@ -7814,38 +7981,38 @@ msgid ""
 "to the hardcoded list in the router."
 msgstr ""
 
-#: i2p2www/pages/site/docs/how/network-database.html:725
+#: i2p2www/pages/site/docs/how/network-database.html:739
 msgid "Several defenses are possible, and most of these are planned:"
 msgstr ""
 
-#: i2p2www/pages/site/docs/how/network-database.html:729
+#: i2p2www/pages/site/docs/how/network-database.html:743
 msgid ""
 "Disallow fallback from HTTPS to HTTP for reseeding.\n"
 "A MITM attacker could simply block HTTPS, then respond to the HTTP."
 msgstr ""
 
-#: i2p2www/pages/site/docs/how/network-database.html:733
+#: i2p2www/pages/site/docs/how/network-database.html:747
 msgid ""
 "Changing the reseed task to fetch a subset of RouterInfos from\n"
 "each of several reseed sites rather than using only a single site"
 msgstr ""
 
-#: i2p2www/pages/site/docs/how/network-database.html:737
+#: i2p2www/pages/site/docs/how/network-database.html:751
 msgid ""
 "Creating an out-of-network reseed monitoring service that\n"
 "periodically polls reseed websites and verifies that the\n"
 "data are not stale or inconsistent with other views of the network"
 msgstr ""
 
-#: i2p2www/pages/site/docs/how/network-database.html:742
+#: i2p2www/pages/site/docs/how/network-database.html:756
 msgid "Bundling reseed data in the installer"
 msgstr ""
 
-#: i2p2www/pages/site/docs/how/network-database.html:745
+#: i2p2www/pages/site/docs/how/network-database.html:759
 msgid "Query Capture"
 msgstr ""
 
-#: i2p2www/pages/site/docs/how/network-database.html:746
+#: i2p2www/pages/site/docs/how/network-database.html:760
 #, python-format
 msgid ""
 "See also <a href=\"#lookup\">lookup</a>\n"
@@ -7853,7 +8020,7 @@ msgid ""
 "2.2-2.3 for terms below in italics)"
 msgstr ""
 
-#: i2p2www/pages/site/docs/how/network-database.html:751
+#: i2p2www/pages/site/docs/how/network-database.html:765
 msgid ""
 "Similar to a bootstrap attack, an attacker using a floodfill router could"
 " attempt to \"steer\"\n"
@@ -7861,7 +8028,7 @@ msgid ""
 "references."
 msgstr ""
 
-#: i2p2www/pages/site/docs/how/network-database.html:756
+#: i2p2www/pages/site/docs/how/network-database.html:770
 msgid ""
 "This is unlikely to work via exploration, because exploration is a low-"
 "frequency task.\n"
@@ -7871,7 +8038,7 @@ msgid ""
 "and each exploration query is directed to a random floodfill router."
 msgstr ""
 
-#: i2p2www/pages/site/docs/how/network-database.html:763
+#: i2p2www/pages/site/docs/how/network-database.html:777
 #, python-format
 msgid ""
 "As of release 0.8.9, <i>iterative lookups</i> are implemented.\n"
@@ -7896,16 +8063,16 @@ msgid ""
 "is much more difficult."
 msgstr ""
 
-#: i2p2www/pages/site/docs/how/network-database.html:782
+#: i2p2www/pages/site/docs/how/network-database.html:796
 msgid "DHT-Based Relay Selection"
 msgstr ""
 
-#: i2p2www/pages/site/docs/how/network-database.html:783
+#: i2p2www/pages/site/docs/how/network-database.html:797
 #, python-format
 msgid "(Reference: <a href=\"%(pdf)s\">Hashing it out in Public</a> Section 3)"
 msgstr ""
 
-#: i2p2www/pages/site/docs/how/network-database.html:787
+#: i2p2www/pages/site/docs/how/network-database.html:801
 #, python-format
 msgid ""
 "This doesn't have much to do with floodfill, but see\n"
@@ -7913,18 +8080,18 @@ msgid ""
 "for a discussion of the vulnerabilities of peer selection for tunnels."
 msgstr ""
 
-#: i2p2www/pages/site/docs/how/network-database.html:793
+#: i2p2www/pages/site/docs/how/network-database.html:807
 msgid "Information Leaks"
 msgstr ""
 
-#: i2p2www/pages/site/docs/how/network-database.html:794
+#: i2p2www/pages/site/docs/how/network-database.html:808
 #, python-format
 msgid ""
 "(Reference: <a href=\"%(pdf)s\">In Search of an Anonymous and Secure "
 "Lookup</a> Section 3)"
 msgstr ""
 
-#: i2p2www/pages/site/docs/how/network-database.html:798
+#: i2p2www/pages/site/docs/how/network-database.html:812
 #, python-format
 msgid ""
 "This paper addresses weaknesses in the \"Finger Table\" DHT lookups used "
@@ -7941,7 +8108,7 @@ msgid ""
 "Also, peer selection is unrelated to any notion of DHT key-closeness."
 msgstr ""
 
-#: i2p2www/pages/site/docs/how/network-database.html:809
+#: i2p2www/pages/site/docs/how/network-database.html:823
 msgid ""
 "Some of this may actually be more interesting when the I2P network gets "
 "much larger.\n"
@@ -7955,7 +8122,7 @@ msgid ""
 "much harder."
 msgstr ""
 
-#: i2p2www/pages/site/docs/how/network-database.html:817
+#: i2p2www/pages/site/docs/how/network-database.html:831
 #, python-format
 msgid ""
 "However, the general issue of DHT information leakage in I2P needs "
@@ -7971,15 +8138,15 @@ msgid ""
 "become problematic for several reasons."
 msgstr ""
 
-#: i2p2www/pages/site/docs/how/network-database.html:831
+#: i2p2www/pages/site/docs/how/network-database.html:845
 msgid "Moved to the netdb discussion page"
 msgstr ""
 
-#: i2p2www/pages/site/docs/how/network-database.html:835
+#: i2p2www/pages/site/docs/how/network-database.html:849
 msgid "End-to-end encryption of additional netDb lookups and responses."
 msgstr ""
 
-#: i2p2www/pages/site/docs/how/network-database.html:839
+#: i2p2www/pages/site/docs/how/network-database.html:853
 msgid "Better methods for tracking lookup responses."
 msgstr ""
 
@@ -8448,7 +8615,7 @@ msgstr ""
 
 #: i2p2www/pages/site/docs/how/tech-intro.html:9
 #: i2p2www/pages/site/docs/how/tech-intro.html:24
-#: i2p2www/pages/site/docs/transport/ssu.html:278
+#: i2p2www/pages/site/docs/transport/ssu.html:281
 msgid "Introduction"
 msgstr ""
 
@@ -12096,10 +12263,6 @@ msgstr ""
 msgid "I2CP options"
 msgstr ""
 
-#: i2p2www/pages/site/docs/protocol/i2cp.html:3
-msgid "November 2012"
-msgstr ""
-
 #: i2p2www/pages/site/docs/protocol/i2cp.html:6
 msgid ""
 "The I2P Client Protocol (I2CP) exposes a strong separation of concerns "
@@ -12241,17 +12404,17 @@ msgid "Router-side Options"
 msgstr ""
 
 #: i2p2www/pages/site/docs/protocol/i2cp.html:95
-#: i2p2www/pages/site/docs/protocol/i2cp.html:438
+#: i2p2www/pages/site/docs/protocol/i2cp.html:436
 msgid "As Of Release"
 msgstr ""
 
 #: i2p2www/pages/site/docs/protocol/i2cp.html:96
-#: i2p2www/pages/site/docs/protocol/i2cp.html:439
+#: i2p2www/pages/site/docs/protocol/i2cp.html:437
 msgid "Recommended Arguments"
 msgstr ""
 
 #: i2p2www/pages/site/docs/protocol/i2cp.html:97
-#: i2p2www/pages/site/docs/protocol/i2cp.html:440
+#: i2p2www/pages/site/docs/protocol/i2cp.html:438
 msgid "Allowable Range"
 msgstr ""
 
@@ -12278,7 +12441,7 @@ msgstr ""
 #: i2p2www/pages/site/docs/protocol/i2cp.html:233
 #: i2p2www/pages/site/docs/protocol/i2cp.html:245
 #: i2p2www/pages/site/docs/protocol/i2cp.html:257
-#: i2p2www/pages/site/docs/protocol/i2cp.html:530
+#: i2p2www/pages/site/docs/protocol/i2cp.html:528
 #, python-format
 msgid "%(from)s to %(to)s"
 msgstr ""
@@ -12382,7 +12545,7 @@ msgid ""
 msgstr ""
 
 #: i2p2www/pages/site/docs/protocol/i2cp.html:292
-#: i2p2www/pages/site/docs/protocol/i2cp.html:571
+#: i2p2www/pages/site/docs/protocol/i2cp.html:569
 msgid ""
 "If true, the router just sends the MessagePayload instead\n"
 "of sending a MessageStatus and awaiting a ReceiveMessageBegin."
@@ -12395,27 +12558,29 @@ msgid ""
 msgstr ""
 
 #: i2p2www/pages/site/docs/protocol/i2cp.html:313
-#: i2p2www/pages/site/docs/protocol/i2cp.html:325
 msgid ""
 "For authorization, if required by the router.\n"
 "If the client is running in the same JVM as a router, this option is not "
-"required."
+"required.\n"
+"Warning - username and password are sent in the clear to the router, "
+"unless using SSL (i2cp.SSL=true).\n"
+"Authorization is only recommended when using SSL."
 msgstr ""
 
-#: i2p2www/pages/site/docs/protocol/i2cp.html:337
+#: i2p2www/pages/site/docs/protocol/i2cp.html:335
 msgid ""
 "Number of ElGamal/AES Session Tags to send at a time.\n"
 "For clients with relatively low bandwidth per-client-pair (IRC, some UDP "
 "apps), this may be set lower."
 msgstr ""
 
-#: i2p2www/pages/site/docs/protocol/i2cp.html:349
+#: i2p2www/pages/site/docs/protocol/i2cp.html:347
 msgid ""
 "Minimum number of ElGamal/AES Session Tags before we send more.\n"
 "Recommended: approximately tagsToSend * 2/3"
 msgstr ""
 
-#: i2p2www/pages/site/docs/protocol/i2cp.html:361
+#: i2p2www/pages/site/docs/protocol/i2cp.html:359
 msgid ""
 "Set to false to disable ever bundling a reply LeaseSet.\n"
 "For clients that do not publish their LeaseSet, this option must be true\n"
@@ -12424,7 +12589,7 @@ msgid ""
 "with long connection times."
 msgstr ""
 
-#: i2p2www/pages/site/docs/protocol/i2cp.html:368
+#: i2p2www/pages/site/docs/protocol/i2cp.html:366
 msgid ""
 "Setting to \"false\" may save significant outbound bandwidth, especially "
 "if\n"
@@ -12435,15 +12600,15 @@ msgid ""
 "There are several cases where \"false\" may be appropriate:"
 msgstr ""
 
-#: i2p2www/pages/site/docs/protocol/i2cp.html:376
+#: i2p2www/pages/site/docs/protocol/i2cp.html:374
 msgid "Unidirectional communication, no reply required"
 msgstr ""
 
-#: i2p2www/pages/site/docs/protocol/i2cp.html:377
+#: i2p2www/pages/site/docs/protocol/i2cp.html:375
 msgid "LeaseSet is published and higher reply latency is acceptable"
 msgstr ""
 
-#: i2p2www/pages/site/docs/protocol/i2cp.html:378
+#: i2p2www/pages/site/docs/protocol/i2cp.html:376
 msgid ""
 "LeaseSet is published, client is a \"server\", all connections are "
 "inbound\n"
@@ -12457,27 +12622,27 @@ msgid ""
 "HTTP servers may fit these requirements."
 msgstr ""
 
-#: i2p2www/pages/site/docs/protocol/i2cp.html:396
+#: i2p2www/pages/site/docs/protocol/i2cp.html:394
 msgid ""
 "Any other options prefixed with \"inbound.\" are stored\n"
 "in the \"unknown options\" properties of the inbound tunnel pool's "
 "settings."
 msgstr ""
 
-#: i2p2www/pages/site/docs/protocol/i2cp.html:408
+#: i2p2www/pages/site/docs/protocol/i2cp.html:406
 msgid ""
 "Any other options prefixed with \"outbound.\" are stored\n"
 "in the \"unknown options\" properties of the outbound tunnel pool's "
 "settings."
 msgstr ""
 
-#: i2p2www/pages/site/docs/protocol/i2cp.html:415
+#: i2p2www/pages/site/docs/protocol/i2cp.html:413
 msgid ""
 "Note: Large quantity, length, or variance settings may cause significant "
 "performance or reliability problems."
 msgstr ""
 
-#: i2p2www/pages/site/docs/protocol/i2cp.html:419
+#: i2p2www/pages/site/docs/protocol/i2cp.html:417
 msgid ""
 "Note: As of release 0.7.7, option names and values must use UTF-8 "
 "encoding.\n"
@@ -12485,7 +12650,7 @@ msgid ""
 "Prior to that release, options with multi-byte characters were corrupted."
 msgstr ""
 
-#: i2p2www/pages/site/docs/protocol/i2cp.html:425
+#: i2p2www/pages/site/docs/protocol/i2cp.html:423
 msgid ""
 "The following options are interpreted on the client side,\n"
 "and will be interpreted if passed to the I2PSession via the "
@@ -12494,76 +12659,76 @@ msgid ""
 "Other implementations may have different defaults."
 msgstr ""
 
-#: i2p2www/pages/site/docs/protocol/i2cp.html:433
+#: i2p2www/pages/site/docs/protocol/i2cp.html:431
 msgid "Client-side Options"
 msgstr ""
 
-#: i2p2www/pages/site/docs/protocol/i2cp.html:451
+#: i2p2www/pages/site/docs/protocol/i2cp.html:449
 msgid ""
 "Router hostname.\n"
 "If the client is running in the same JVM as a router, this option is "
 "ignored, and the client connects to that router internally."
 msgstr ""
 
-#: i2p2www/pages/site/docs/protocol/i2cp.html:463
+#: i2p2www/pages/site/docs/protocol/i2cp.html:461
 msgid ""
 "Router I2CP port.\n"
 "If the client is running in the same JVM as a router, this option is "
 "ignored, and the client connects to that router internally."
 msgstr ""
 
-#: i2p2www/pages/site/docs/protocol/i2cp.html:475
+#: i2p2www/pages/site/docs/protocol/i2cp.html:473
 msgid ""
 "Connect to the router using SSL.\n"
 "If the client is running in the same JVM as a router, this option is "
 "ignored, and the client connects to that router internally."
 msgstr ""
 
-#: i2p2www/pages/site/docs/protocol/i2cp.html:487
+#: i2p2www/pages/site/docs/protocol/i2cp.html:485
 msgid "Gzip outbound data"
 msgstr ""
 
-#: i2p2www/pages/site/docs/protocol/i2cp.html:496
+#: i2p2www/pages/site/docs/protocol/i2cp.html:494
 msgid "Reduce tunnel quantity when idle"
 msgstr ""
 
-#: i2p2www/pages/site/docs/protocol/i2cp.html:505
+#: i2p2www/pages/site/docs/protocol/i2cp.html:503
 msgid "Close I2P session when idle"
 msgstr ""
 
-#: i2p2www/pages/site/docs/protocol/i2cp.html:512
-#: i2p2www/pages/site/docs/protocol/i2cp.html:521
+#: i2p2www/pages/site/docs/protocol/i2cp.html:510
+#: i2p2www/pages/site/docs/protocol/i2cp.html:519
 #, python-format
 msgid "%(num)s minimum"
 msgstr ""
 
-#: i2p2www/pages/site/docs/protocol/i2cp.html:514
+#: i2p2www/pages/site/docs/protocol/i2cp.html:512
 msgid "(ms) Idle time required (default 20 minutes, minimum 5 minutes)"
 msgstr ""
 
-#: i2p2www/pages/site/docs/protocol/i2cp.html:523
+#: i2p2www/pages/site/docs/protocol/i2cp.html:521
 msgid "(ms) Idle time required (default 30 minutes)"
 msgstr ""
 
-#: i2p2www/pages/site/docs/protocol/i2cp.html:532
+#: i2p2www/pages/site/docs/protocol/i2cp.html:530
 msgid "Tunnel quantity when reduced (applies to both inbound and outbound)"
 msgstr ""
 
-#: i2p2www/pages/site/docs/protocol/i2cp.html:541
+#: i2p2www/pages/site/docs/protocol/i2cp.html:539
 msgid "Encrypt the lease"
 msgstr ""
 
-#: i2p2www/pages/site/docs/protocol/i2cp.html:550
+#: i2p2www/pages/site/docs/protocol/i2cp.html:548
 msgid "Base64 SessionKey (44 characters)"
 msgstr ""
 
-#: i2p2www/pages/site/docs/protocol/i2cp.html:559
+#: i2p2www/pages/site/docs/protocol/i2cp.html:557
 msgid ""
 "Guaranteed is disabled;\n"
 "None implemented in 0.8.1; None is the default as of 0.9.4"
 msgstr ""
 
-#: i2p2www/pages/site/docs/protocol/i2cp.html:578
+#: i2p2www/pages/site/docs/protocol/i2cp.html:576
 msgid ""
 "Note: All arguments, including numbers, are strings. True/false values "
 "are case-insensitive strings.\n"
@@ -12571,11 +12736,11 @@ msgid ""
 "All option names are case-sensitive."
 msgstr ""
 
-#: i2p2www/pages/site/docs/protocol/i2cp.html:584
+#: i2p2www/pages/site/docs/protocol/i2cp.html:582
 msgid "I2CP Payload Data Format and Multiplexing"
 msgstr ""
 
-#: i2p2www/pages/site/docs/protocol/i2cp.html:585
+#: i2p2www/pages/site/docs/protocol/i2cp.html:583
 #, python-format
 msgid ""
 "The end-to-end messages handled by I2CP (i.e. the data sent by the client"
@@ -12596,73 +12761,73 @@ msgid ""
 "to work reliably in the presence of multiple channels."
 msgstr ""
 
-#: i2p2www/pages/site/docs/protocol/i2cp.html:599
+#: i2p2www/pages/site/docs/protocol/i2cp.html:597
 msgid ""
 "The gzip function cannot be completely turned off, however setting "
 "i2cp.gzip=false\n"
 "turns the gzip effort setting to 0, which may save a little CPU."
 msgstr ""
 
-#: i2p2www/pages/site/docs/protocol/i2cp.html:605
+#: i2p2www/pages/site/docs/protocol/i2cp.html:603
 #: i2p2www/pages/site/docs/protocol/i2np.html:33
 msgid "Bytes"
 msgstr ""
 
-#: i2p2www/pages/site/docs/protocol/i2cp.html:606
+#: i2p2www/pages/site/docs/protocol/i2cp.html:604
 msgid "Content"
 msgstr ""
 
-#: i2p2www/pages/site/docs/protocol/i2cp.html:611
+#: i2p2www/pages/site/docs/protocol/i2cp.html:609
 msgid "Gzip header"
 msgstr ""
 
-#: i2p2www/pages/site/docs/protocol/i2cp.html:616
+#: i2p2www/pages/site/docs/protocol/i2cp.html:614
 msgid "Gzip flags"
 msgstr ""
 
-#: i2p2www/pages/site/docs/protocol/i2cp.html:621
+#: i2p2www/pages/site/docs/protocol/i2cp.html:619
 msgid "I2P Source port (Gzip mtime)"
 msgstr ""
 
-#: i2p2www/pages/site/docs/protocol/i2cp.html:626
+#: i2p2www/pages/site/docs/protocol/i2cp.html:624
 msgid "I2P Destination port (Gzip mtime)"
 msgstr ""
 
-#: i2p2www/pages/site/docs/protocol/i2cp.html:631
+#: i2p2www/pages/site/docs/protocol/i2cp.html:629
 msgid "Gzip xflags"
 msgstr ""
 
-#: i2p2www/pages/site/docs/protocol/i2cp.html:636
+#: i2p2www/pages/site/docs/protocol/i2cp.html:634
 msgid "I2P Protocol (6 = Streaming, 17 = Datagram, 18 = Raw Datagrams) (Gzip OS)"
 msgstr ""
 
-#: i2p2www/pages/site/docs/protocol/i2cp.html:640
+#: i2p2www/pages/site/docs/protocol/i2cp.html:638
 msgid ""
 "Data integrity is verified with the standard gzip CRC-32 as\n"
 "specified by <a href=\"http://www.ietf.org/rfc/rfc1952.txt\">RFC 1952</a>."
 msgstr ""
 
-#: i2p2www/pages/site/docs/protocol/i2cp.html:648
+#: i2p2www/pages/site/docs/protocol/i2cp.html:646
 msgid "Implement I2CP and the streaming library in another programming language."
 msgstr ""
 
-#: i2p2www/pages/site/docs/protocol/i2cp.html:652
+#: i2p2www/pages/site/docs/protocol/i2cp.html:650
 msgid "Is the initial Get Date / Set Date handshake required?"
 msgstr ""
 
-#: i2p2www/pages/site/docs/protocol/i2cp.html:656
+#: i2p2www/pages/site/docs/protocol/i2cp.html:654
 msgid ""
 "The current authorization mechanism could be modified to use hashed "
 "passwords."
 msgstr ""
 
-#: i2p2www/pages/site/docs/protocol/i2cp.html:660
+#: i2p2www/pages/site/docs/protocol/i2cp.html:658
 msgid ""
 "Private Keys are included in the Create Lease Set message,\n"
 "are they really required? Revocation is unimplemented."
 msgstr ""
 
-#: i2p2www/pages/site/docs/protocol/i2cp.html:665
+#: i2p2www/pages/site/docs/protocol/i2cp.html:663
 #, python-format
 msgid ""
 "Some improvements may be able to use messages previously defined but not "
@@ -13334,12 +13499,12 @@ msgstr ""
 #: i2p2www/pages/site/docs/spec/common-structures.html:166
 #: i2p2www/pages/site/docs/spec/common-structures.html:178
 #: i2p2www/pages/site/docs/spec/common-structures.html:231
-#: i2p2www/pages/site/docs/spec/common-structures.html:303
-#: i2p2www/pages/site/docs/spec/common-structures.html:352
-#: i2p2www/pages/site/docs/spec/common-structures.html:404
-#: i2p2www/pages/site/docs/spec/common-structures.html:451
-#: i2p2www/pages/site/docs/spec/common-structures.html:586
-#: i2p2www/pages/site/docs/spec/common-structures.html:643
+#: i2p2www/pages/site/docs/spec/common-structures.html:314
+#: i2p2www/pages/site/docs/spec/common-structures.html:363
+#: i2p2www/pages/site/docs/spec/common-structures.html:415
+#: i2p2www/pages/site/docs/spec/common-structures.html:462
+#: i2p2www/pages/site/docs/spec/common-structures.html:597
+#: i2p2www/pages/site/docs/spec/common-structures.html:660
 #: i2p2www/pages/site/docs/spec/streaming.html:35
 msgid "Contents"
 msgstr ""
@@ -13538,72 +13703,87 @@ msgstr ""
 
 #: i2p2www/pages/site/docs/spec/common-structures.html:273
 msgid ""
-"Mappings contained in I2NP messages (i.e. in a RouterAddress or "
-"RouterInfo)\n"
-"must be sorted by key so that the signature will be invariant."
+"The encoding allows duplicate keys, however in any usage where the "
+"mapping is signed,\n"
+"duplicates may cause a signature failure."
 msgstr ""
 
 #: i2p2www/pages/site/docs/spec/common-structures.html:278
+msgid ""
+"Mappings contained in I2NP messages (i.e. in a RouterAddress or "
+"RouterInfo)\n"
+"must be sorted by key so that the signature will be invariant.\n"
+"Duplicate keys are not allowed."
+msgstr ""
+
+#: i2p2www/pages/site/docs/spec/common-structures.html:284
 #, python-format
 msgid ""
 "Mappings contained in an <a href=\"%(i2cp)s#struct_SessionConfig\">I2CP "
 "SessionConfig</a>\n"
-"must be sorted by key so that the signature will be invariant."
+"must be sorted by key so that the signature will be invariant.\n"
+"Duplicate keys are not allowed."
 msgstr ""
 
-#: i2p2www/pages/site/docs/spec/common-structures.html:283
+#: i2p2www/pages/site/docs/spec/common-structures.html:290
+msgid ""
+"While it is application-dependent, keys and values are generally case-"
+"sensitive."
+msgstr ""
+
+#: i2p2www/pages/site/docs/spec/common-structures.html:294
 msgid ""
 "Key and value string length limits are 255 bytes (not characters) each, "
 "plus the length byte. Length byte may be 0."
 msgstr ""
 
-#: i2p2www/pages/site/docs/spec/common-structures.html:287
+#: i2p2www/pages/site/docs/spec/common-structures.html:298
 msgid ""
 "Total length limit is 65535 bytes, plus the 2 byte size field, or 65537 "
 "total."
 msgstr ""
 
-#: i2p2www/pages/site/docs/spec/common-structures.html:296
+#: i2p2www/pages/site/docs/spec/common-structures.html:307
 msgid "Common structure specification"
 msgstr ""
 
-#: i2p2www/pages/site/docs/spec/common-structures.html:300
+#: i2p2www/pages/site/docs/spec/common-structures.html:311
 msgid "Defines the way to uniquely identify a particular router\n"
 msgstr ""
 
-#: i2p2www/pages/site/docs/spec/common-structures.html:304
+#: i2p2www/pages/site/docs/spec/common-structures.html:315
 msgid ""
 "<a href=\"#type_PublicKey\">PublicKey</a> followed by <a "
 "href=\"#type_SigningPublicKey\">SigningPublicKey</a> and then a <a "
 "href=\"#type_Certificate\">Certificate</a>\n"
 msgstr ""
 
-#: i2p2www/pages/site/docs/spec/common-structures.html:341
+#: i2p2www/pages/site/docs/spec/common-structures.html:352
 msgid ""
 "The certificate for a RouterIdentity is currently unused and is always "
 "NULL."
 msgstr ""
 
-#: i2p2www/pages/site/docs/spec/common-structures.html:349
+#: i2p2www/pages/site/docs/spec/common-structures.html:360
 msgid ""
 "A Destination defines a particular endpoint to which messages can be "
 "directed for secure delivery.\n"
 msgstr ""
 
-#: i2p2www/pages/site/docs/spec/common-structures.html:353
+#: i2p2www/pages/site/docs/spec/common-structures.html:364
 msgid ""
 "<a href=\"#type_PublicKey\">PublicKey</a> followed by a <a "
 "href=\"#type_SigningPublicKey\">SigningPublicKey</a> and then a <a "
 "href=\"#type_Certificate\">Certificate</a>\n"
 msgstr ""
 
-#: i2p2www/pages/site/docs/spec/common-structures.html:401
+#: i2p2www/pages/site/docs/spec/common-structures.html:412
 msgid ""
 "Defines the authorization for a particular tunnel to receive messages "
 "targeting a <a href=\"#struct_Destination\">Destination</a>.\n"
 msgstr ""
 
-#: i2p2www/pages/site/docs/spec/common-structures.html:405
+#: i2p2www/pages/site/docs/spec/common-structures.html:416
 msgid ""
 "SHA256 <a href=\"#type_Hash\">Hash</a> of the\n"
 "<a href=\"#struct_RouterIdentity\">RouterIdentity</a> of the gateway "
@@ -13611,11 +13791,11 @@ msgid ""
 "end <a href=\"#type_Date\">Date</a>\n"
 msgstr ""
 
-#: i2p2www/pages/site/docs/spec/common-structures.html:436
+#: i2p2www/pages/site/docs/spec/common-structures.html:447
 msgid "Total size: 44 bytes"
 msgstr ""
 
-#: i2p2www/pages/site/docs/spec/common-structures.html:446
+#: i2p2www/pages/site/docs/spec/common-structures.html:457
 msgid ""
 "Contains all of the currently authorized <a "
 "href=\"#struct_Lease\">Lease</a>s for a particular <a "
@@ -13631,7 +13811,7 @@ msgid ""
 "href=\"#struct_Destination\">Destination</a>.\n"
 msgstr ""
 
-#: i2p2www/pages/site/docs/spec/common-structures.html:452
+#: i2p2www/pages/site/docs/spec/common-structures.html:463
 msgid ""
 "<a href=\"#struct_Destination\">Destination</a>, followed by a <a "
 "href=\"#type_PublicKey\">PublicKey</a> for encryption, then a <a "
@@ -13645,14 +13825,14 @@ msgid ""
 "href=\"#type_SigningPrivateKey\">SigningPrivateKey</a>"
 msgstr ""
 
-#: i2p2www/pages/site/docs/spec/common-structures.html:544
+#: i2p2www/pages/site/docs/spec/common-structures.html:555
 msgid ""
 "The public key of the destination was used for the old i2cp-to-i2cp "
 "encryption\n"
 "which was disabled in version 0.6, it is currently unused."
 msgstr ""
 
-#: i2p2www/pages/site/docs/spec/common-structures.html:549
+#: i2p2www/pages/site/docs/spec/common-structures.html:560
 #, python-format
 msgid ""
 "The encryption key is used for end-to-end <a "
@@ -13661,13 +13841,13 @@ msgid ""
 "persistent."
 msgstr ""
 
-#: i2p2www/pages/site/docs/spec/common-structures.html:554
+#: i2p2www/pages/site/docs/spec/common-structures.html:565
 msgid ""
 "The signature may be verified using the signing public key of the "
 "destination."
 msgstr ""
 
-#: i2p2www/pages/site/docs/spec/common-structures.html:558
+#: i2p2www/pages/site/docs/spec/common-structures.html:569
 msgid ""
 "The signing_key is currently unused. It was intended for LeaseSet "
 "revocation, which is unimplemented.\n"
@@ -13675,7 +13855,7 @@ msgid ""
 "persistent."
 msgstr ""
 
-#: i2p2www/pages/site/docs/spec/common-structures.html:562
+#: i2p2www/pages/site/docs/spec/common-structures.html:573
 msgid ""
 "The earliest expiration of all the Leases is treated as the timestamp or "
 "version of the LeaseSet.\n"
@@ -13688,7 +13868,7 @@ msgid ""
 "of the oldest Lease by at least 1 ms in that case."
 msgstr ""
 
-#: i2p2www/pages/site/docs/spec/common-structures.html:569
+#: i2p2www/pages/site/docs/spec/common-structures.html:580
 msgid ""
 "Prior to release 0.9.7, when included in a DatabaseStore Message sent by "
 "the originating router,\n"
@@ -13700,13 +13880,13 @@ msgid ""
 "specification."
 msgstr ""
 
-#: i2p2www/pages/site/docs/spec/common-structures.html:583
+#: i2p2www/pages/site/docs/spec/common-structures.html:594
 msgid ""
 "This structure defines the means to contact a router through a transport "
 "protocol.\n"
 msgstr ""
 
-#: i2p2www/pages/site/docs/spec/common-structures.html:587
+#: i2p2www/pages/site/docs/spec/common-structures.html:598
 msgid ""
 "1 byte <a href=\"#type_Integer\">Integer</a> defining the relative cost "
 "of using the address, where 0 is free and 255 is expensive, followed by "
@@ -13719,21 +13899,29 @@ msgid ""
 "IP address, port number, email address, URL, etc.\n"
 msgstr ""
 
-#: i2p2www/pages/site/docs/spec/common-structures.html:622
+#: i2p2www/pages/site/docs/spec/common-structures.html:633
 msgid "Cost is typically 5 or 6 for SSU, and 10 or 11 for NTCP."
 msgstr ""
 
-#: i2p2www/pages/site/docs/spec/common-structures.html:626
+#: i2p2www/pages/site/docs/spec/common-structures.html:637
 msgid ""
 "Expiration is currently unused, always null (all zeroes)).\n"
 "As of release 0.9.3, the expiration is assumed zero and not stored, so "
 "any non-zero expiration\n"
 "will fail in the RouterInfo signature verification.\n"
 "Implementing expiration (or another use for these bytes) will be a "
-"backwards-incompatible change."
+"backwards-incompatible change.\n"
+"Routers MUST set this field to all zeros."
 msgstr ""
 
-#: i2p2www/pages/site/docs/spec/common-structures.html:639
+#: i2p2www/pages/site/docs/spec/common-structures.html:645
+msgid ""
+"The following options, while not required, are standard and expected to "
+"be present in most router addresses:\n"
+"\"host\" (an IPv4 or IPv6 address or host name) and \"port\"."
+msgstr ""
+
+#: i2p2www/pages/site/docs/spec/common-structures.html:656
 msgid ""
 "Defines all of the data that a router wants to publish for the network to"
 " see. The <a href=\"#struct_RouterInfo\">RouterInfo</a> is one of two "
@@ -13743,27 +13931,34 @@ msgid ""
 "the contained <a href=\"#struct_RouterIdentity\">RouterIdentity</a>.\n"
 msgstr ""
 
-#: i2p2www/pages/site/docs/spec/common-structures.html:644
+#: i2p2www/pages/site/docs/spec/common-structures.html:661
 msgid ""
 "<a href=\"#struct_RouterIdentity\">RouterIdentity</a> followed by the <a "
 "href=\"#type_Date\">Date</a>, when the entry was published\n"
 msgstr ""
 
-#: i2p2www/pages/site/docs/spec/common-structures.html:723
+#: i2p2www/pages/site/docs/spec/common-structures.html:741
 msgid ""
 "The peer_size Integer may be followed by a list of that many router "
 "hashes.\n"
 "This is currently unused. It was intended for a form of restricted "
-"routes, which is unimplemented.\n"
+"routes, which is unimplemented."
 msgstr ""
 
-#: i2p2www/pages/site/docs/spec/common-structures.html:728
+#: i2p2www/pages/site/docs/spec/common-structures.html:746
 msgid ""
 "The signature may be verified using the signing public key of the "
-"router_ident.\n"
+"router_ident."
 msgstr ""
 
-#: i2p2www/pages/site/docs/spec/common-structures.html:736
+#: i2p2www/pages/site/docs/spec/common-structures.html:750
+#, python-format
+msgid ""
+"See <a href=\"%(netdb)s#routerInfo\">the network database page</a>\n"
+"for standard options that are expected to be present in all router infos."
+msgstr ""
+
+#: i2p2www/pages/site/docs/spec/common-structures.html:760
 #, python-format
 msgid ""
 "Defined in the <a href=\"%(tunnelmessage)s#delivery\">Tunnel Message "
@@ -14349,10 +14544,6 @@ msgstr ""
 msgid "Transport Overview"
 msgstr ""
 
-#: i2p2www/pages/site/docs/transport/index.html:3
-msgid "April 2013"
-msgstr ""
-
 #: i2p2www/pages/site/docs/transport/index.html:6
 msgid "Transports in I2P"
 msgstr ""
@@ -14399,35 +14590,45 @@ msgid "The transport subsystem in I2P provides the following services:"
 msgstr ""
 
 #: i2p2www/pages/site/docs/transport/index.html:37
+#, python-format
 msgid ""
-"Maintain a set of router addresses, one or more for each transport,\n"
-"that the router publishes as its global contact information (the "
-"RouterInfo)"
-msgstr ""
-
-#: i2p2www/pages/site/docs/transport/index.html:41
-msgid "Selection of the best transport for each outgoing message"
+"Reliable delivery of <a href=\"%(i2np)s\">I2NP</a> messages.\n"
+"Transports support I2NP message delivery ONLY.\n"
+"They are not general-purpose data pipes."
 msgstr ""
 
 #: i2p2www/pages/site/docs/transport/index.html:42
+msgid ""
+"Maintain a set of router addresses, one or more for each transport,\n"
+"that the router publishes as its global contact information (the "
+"RouterInfo).\n"
+"Each transport may connect using one of these addresses, which may be\n"
+"IPv4 or (as of version 0.9.8) IPv6."
+msgstr ""
+
+#: i2p2www/pages/site/docs/transport/index.html:48
+msgid "Selection of the best transport for each outgoing message"
+msgstr ""
+
+#: i2p2www/pages/site/docs/transport/index.html:49
 msgid "Queueing of outbound messages by priority"
 msgstr ""
 
-#: i2p2www/pages/site/docs/transport/index.html:43
+#: i2p2www/pages/site/docs/transport/index.html:50
 msgid ""
 "Bandwidth limiting, both outbound and inbound, according to router "
 "configuration"
 msgstr ""
 
-#: i2p2www/pages/site/docs/transport/index.html:44
+#: i2p2www/pages/site/docs/transport/index.html:51
 msgid "Setup and teardown of transport connections"
 msgstr ""
 
-#: i2p2www/pages/site/docs/transport/index.html:45
+#: i2p2www/pages/site/docs/transport/index.html:52
 msgid "Encryption of point-to-point communications"
 msgstr ""
 
-#: i2p2www/pages/site/docs/transport/index.html:46
+#: i2p2www/pages/site/docs/transport/index.html:53
 msgid ""
 "Maintenance of connection limits for each transport, implementation of "
 "various thresholds for these limits,\n"
@@ -14435,80 +14636,81 @@ msgid ""
 "operational changes based on the status"
 msgstr ""
 
-#: i2p2www/pages/site/docs/transport/index.html:50
+#: i2p2www/pages/site/docs/transport/index.html:57
 msgid "Firewall port opening using UPnP (Universal Plug and Play)"
 msgstr ""
 
-#: i2p2www/pages/site/docs/transport/index.html:51
+#: i2p2www/pages/site/docs/transport/index.html:58
 msgid "Cooperative NAT/Firewall traversal"
 msgstr ""
 
-#: i2p2www/pages/site/docs/transport/index.html:52
+#: i2p2www/pages/site/docs/transport/index.html:59
 msgid ""
 "Local IP detection by various methods, including UPnP, inspection of "
 "incoming connections, and enumeration of network devices"
 msgstr ""
 
-#: i2p2www/pages/site/docs/transport/index.html:53
+#: i2p2www/pages/site/docs/transport/index.html:60
 msgid ""
 "Coordination of firewall status and local IP, and changes to either, "
 "among the transports"
 msgstr ""
 
-#: i2p2www/pages/site/docs/transport/index.html:54
-#: i2p2www/pages/site/docs/transport/ssu.html:32
+#: i2p2www/pages/site/docs/transport/index.html:61
+#: i2p2www/pages/site/docs/transport/ssu.html:33
 msgid ""
 "Communication of firewall status and local IP, and changes to either, to "
 "the router and the user interface"
 msgstr ""
 
-#: i2p2www/pages/site/docs/transport/index.html:55
+#: i2p2www/pages/site/docs/transport/index.html:62
 msgid ""
 "Determination of a consensus clock, which is used to periodically update "
 "the router's clock, as a backup for NTP"
 msgstr ""
 
-#: i2p2www/pages/site/docs/transport/index.html:56
+#: i2p2www/pages/site/docs/transport/index.html:63
 msgid ""
 "Maintenance of status for each peer, including whether it is connected, "
 "whether it was recently connected,\n"
 "and whether it was reachable in the last attempt"
 msgstr ""
 
-#: i2p2www/pages/site/docs/transport/index.html:60
+#: i2p2www/pages/site/docs/transport/index.html:67
 msgid "Qualification of valid IP addresses according to a local rule set"
 msgstr ""
 
-#: i2p2www/pages/site/docs/transport/index.html:61
+#: i2p2www/pages/site/docs/transport/index.html:68
 msgid ""
 "Honoring the automated and manual lists of banned peers maintained by the"
 " router,\n"
 "and refusing outbound and inbound connections to those peers"
 msgstr ""
 
-#: i2p2www/pages/site/docs/transport/index.html:68
+#: i2p2www/pages/site/docs/transport/index.html:75
 msgid "Transport Addresses"
 msgstr ""
 
-#: i2p2www/pages/site/docs/transport/index.html:70
+#: i2p2www/pages/site/docs/transport/index.html:77
 msgid ""
 "The transport subsystem maintains a set of router addresses, each of "
 "which lists a transport method, IP, and port.\n"
 "These addresses constitute the advertised contact points, and are "
-"published by the router to the network database."
+"published by the router to the network database.\n"
+"Addresses may also contain an arbitrary set of additional options."
 msgstr ""
 
-#: i2p2www/pages/site/docs/transport/index.html:75
+#: i2p2www/pages/site/docs/transport/index.html:83
 msgid "Typical scenarios are:"
 msgstr ""
 
-#: i2p2www/pages/site/docs/transport/index.html:77
+#: i2p2www/pages/site/docs/transport/index.html:85
 msgid ""
 "A router has no published addresses, so it is considered \"hidden\" and "
 "cannot receive incoming connections"
 msgstr ""
 
-#: i2p2www/pages/site/docs/transport/index.html:78
+#: i2p2www/pages/site/docs/transport/index.html:86
 #, python-format
 msgid ""
 "A router is firewalled, and therefore publishes an SSU address which "
@@ -14517,22 +14719,22 @@ msgid ""
 "href=\"%(ssu)s\">the SSU spec</a> for details)"
 msgstr ""
 
-#: i2p2www/pages/site/docs/transport/index.html:82
+#: i2p2www/pages/site/docs/transport/index.html:90
 msgid ""
 "A router is not firewalled or its NAT ports  are open; it publishes both "
 "NTCP and SSU addresses containing\n"
 "directly-accessible IP and ports."
 msgstr ""
 
-#: i2p2www/pages/site/docs/transport/index.html:88
+#: i2p2www/pages/site/docs/transport/index.html:96
 msgid "Transport Selection"
 msgstr ""
 
-#: i2p2www/pages/site/docs/transport/index.html:90
+#: i2p2www/pages/site/docs/transport/index.html:98
 #, python-format
 msgid ""
-"The transport system delivers <a href=\"%(i2np)s\">I2NP messages</a>. The"
-" transport selected for any message is\n"
+"The transport system delivers <a href=\"%(i2np)s\">I2NP messages</a> "
+"only. The transport selected for any message is\n"
 "independent of the upper-layer protocols and contents (router or client "
 "messages, whether an external application was using\n"
 "TCP or UDP to connect to I2P, whether the upper layer was using\n"
@@ -14544,7 +14746,7 @@ msgid ""
 "etc.)."
 msgstr ""
 
-#: i2p2www/pages/site/docs/transport/index.html:104
+#: i2p2www/pages/site/docs/transport/index.html:112
 msgid ""
 "For each outgoing message, the transport system solicits \"bids\" from "
 "each transport.\n"
@@ -14553,84 +14755,74 @@ msgid ""
 "A transport may refuse to bid."
 msgstr ""
 
-#: i2p2www/pages/site/docs/transport/index.html:110
+#: i2p2www/pages/site/docs/transport/index.html:118
 msgid "Whether a transport bids, and with what value, depend on numerous factors:"
 msgstr ""
 
-#: i2p2www/pages/site/docs/transport/index.html:114
+#: i2p2www/pages/site/docs/transport/index.html:122
 msgid "Configuration of transport preferences"
 msgstr ""
 
-#: i2p2www/pages/site/docs/transport/index.html:115
+#: i2p2www/pages/site/docs/transport/index.html:123
 msgid "Whether the transport is already connected to the peer"
 msgstr ""
 
-#: i2p2www/pages/site/docs/transport/index.html:116
+#: i2p2www/pages/site/docs/transport/index.html:124
 msgid ""
 "The number of current connections compared to various connection limit "
 "thresholds"
 msgstr ""
 
-#: i2p2www/pages/site/docs/transport/index.html:117
+#: i2p2www/pages/site/docs/transport/index.html:125
 msgid "Whether recent connection attempts to the peer have failed"
 msgstr ""
 
-#: i2p2www/pages/site/docs/transport/index.html:118
+#: i2p2www/pages/site/docs/transport/index.html:126
 msgid ""
 "The size of the message, as different transports have different size "
 "limits"
 msgstr ""
 
-#: i2p2www/pages/site/docs/transport/index.html:119
+#: i2p2www/pages/site/docs/transport/index.html:127
 msgid ""
 "Whether the peer can accept incoming connections for that transport, as "
 "advertised in its RouterInfo"
 msgstr ""
 
-#: i2p2www/pages/site/docs/transport/index.html:120
+#: i2p2www/pages/site/docs/transport/index.html:128
 msgid "Whether the connection would be indirect (requiring introducers) or direct"
 msgstr ""
 
-#: i2p2www/pages/site/docs/transport/index.html:121
+#: i2p2www/pages/site/docs/transport/index.html:129
 msgid "The peer's transport preference, as advertised in its RouterInfo"
 msgstr ""
 
-#: i2p2www/pages/site/docs/transport/index.html:124
+#: i2p2www/pages/site/docs/transport/index.html:132
 msgid ""
 "In general, the bid values are selected so that two routers are only "
 "connected by a single transport\n"
 "at any one time. However, this is not a requirement."
 msgstr ""
 
-#: i2p2www/pages/site/docs/transport/index.html:131
+#: i2p2www/pages/site/docs/transport/index.html:139
 msgid "New Transports and Future Work"
 msgstr ""
 
-#: i2p2www/pages/site/docs/transport/index.html:133
+#: i2p2www/pages/site/docs/transport/index.html:141
 msgid "Additional transports may be developed, including:"
 msgstr ""
 
-#: i2p2www/pages/site/docs/transport/index.html:138
+#: i2p2www/pages/site/docs/transport/index.html:146
 msgid "A TLS/SSH look-alike transport"
 msgstr ""
 
-#: i2p2www/pages/site/docs/transport/index.html:139
+#: i2p2www/pages/site/docs/transport/index.html:147
 msgid ""
 "An \"indirect\" transport for routers that are not reachable by all other"
 " routers (one form of \"restricted routes\")"
 msgstr ""
 
-#: i2p2www/pages/site/docs/transport/index.html:142
-#, python-format
-msgid ""
-"IPv6: The existing transports must be enhanced to support multiple "
-"addresses within a single transport,\n"
-"including IPV6 addresses. Currently, a transport may only advertise a "
-"single IPV4 address.\n"
-"See <a href=\"%(thread)s\">this thread</a> for discussion."
-msgstr ""
-
-#: i2p2www/pages/site/docs/transport/index.html:148
+#: i2p2www/pages/site/docs/transport/index.html:150
 msgid ""
 "Work continues on adjusting default connection limits for each transport."
 "\n"
@@ -14641,7 +14833,7 @@ msgid ""
 "routers that are behind restrictive state firewalls (restricted routes)."
 msgstr ""
 
-#: i2p2www/pages/site/docs/transport/index.html:155
+#: i2p2www/pages/site/docs/transport/index.html:157
 msgid ""
 "The current connection limits are higher for SSU than for NTCP, based on "
 "the assumption that\n"
@@ -14652,7 +14844,7 @@ msgid ""
 "that assumption is difficult to verify."
 msgstr ""
 
-#: i2p2www/pages/site/docs/transport/index.html:162
+#: i2p2www/pages/site/docs/transport/index.html:164
 #, python-format
 msgid ""
 "Analyze <a href=\"%(pdf)s\">Breaking and Improving Protocol "
@@ -14672,10 +14864,11 @@ msgid ""
 "The other is <a href=\"%(ssu)s\">SSU</a>.\n"
 "NTCP is a Java NIO-based transport introduced in I2P release 0.6.1.22.\n"
 "Java NIO (new I/O) does not suffer from the 1 thread per connection "
-"issues of the old TCP transport."
+"issues of the old TCP transport.\n"
+"NTCP-over-IPv6 is supported as of version 0.9.8."
 msgstr ""
 
-#: i2p2www/pages/site/docs/transport/ntcp.html:15
+#: i2p2www/pages/site/docs/transport/ntcp.html:16
 msgid ""
 "By default, NTCP uses the IP/Port\n"
 "auto-detected by SSU. When enabled on config.jsp,\n"
@@ -14684,22 +14877,22 @@ msgid ""
 "Now you can enable inbound TCP without a static IP or dyndns service."
 msgstr ""
 
-#: i2p2www/pages/site/docs/transport/ntcp.html:23
+#: i2p2www/pages/site/docs/transport/ntcp.html:24
 msgid ""
 "The NTCP code within I2P is relatively lightweight (1/4 the size of the "
 "SSU code)\n"
 "because it uses the underlying Java TCP transport for reliable delivery."
 msgstr ""
 
-#: i2p2www/pages/site/docs/transport/ntcp.html:29
+#: i2p2www/pages/site/docs/transport/ntcp.html:30
 msgid "NTCP Protocol Specification"
 msgstr ""
 
-#: i2p2www/pages/site/docs/transport/ntcp.html:31
+#: i2p2www/pages/site/docs/transport/ntcp.html:32
 msgid "Standard Message Format"
 msgstr ""
 
-#: i2p2www/pages/site/docs/transport/ntcp.html:32
+#: i2p2www/pages/site/docs/transport/ntcp.html:33
 msgid ""
 "After establishment,\n"
 "the NTCP transport sends individual I2NP messages, with a simple "
@@ -14707,7 +14900,7 @@ msgid ""
 "The unencrypted message is encoded as follows:"
 msgstr ""
 
-#: i2p2www/pages/site/docs/transport/ntcp.html:42
+#: i2p2www/pages/site/docs/transport/ntcp.html:43
 msgid ""
 "The data is then AES/256/CBC encrypted. The session key for the "
 "encryption\n"
@@ -14719,7 +14912,7 @@ msgid ""
 "encrypted message."
 msgstr ""
 
-#: i2p2www/pages/site/docs/transport/ntcp.html:50
+#: i2p2www/pages/site/docs/transport/ntcp.html:51
 msgid ""
 "0-15 bytes of padding are required to bring the total message length\n"
 "(including the six size and checksum bytes) to a multiple of 16.\n"
@@ -14728,39 +14921,39 @@ msgid ""
 "The minimum data size is 1."
 msgstr ""
 
-#: i2p2www/pages/site/docs/transport/ntcp.html:58
+#: i2p2www/pages/site/docs/transport/ntcp.html:59
 msgid "Time Sync Message Format"
 msgstr ""
 
-#: i2p2www/pages/site/docs/transport/ntcp.html:59
+#: i2p2www/pages/site/docs/transport/ntcp.html:60
 msgid ""
 "One special case is a metadata message where the sizeof(data) is 0.  In\n"
 "that case, the unencrypted message is encoded as:"
 msgstr ""
 
-#: i2p2www/pages/site/docs/transport/ntcp.html:70
+#: i2p2www/pages/site/docs/transport/ntcp.html:71
 msgid ""
 "Total length: 16 bytes. The time sync message is sent at approximately 15"
 " minute intervals.\n"
 "The message is encrypted just as standard messages are."
 msgstr ""
 
-#: i2p2www/pages/site/docs/transport/ntcp.html:76
+#: i2p2www/pages/site/docs/transport/ntcp.html:77
 msgid "Checksums"
 msgstr ""
 
-#: i2p2www/pages/site/docs/transport/ntcp.html:77
+#: i2p2www/pages/site/docs/transport/ntcp.html:78
 #, python-format
 msgid ""
 "The standard and time sync messages use the Adler-32 checksum\n"
 "as defined in the <a href=\"%(rfc1950)s\">ZLIB Specification</a>."
 msgstr ""
 
-#: i2p2www/pages/site/docs/transport/ntcp.html:83
+#: i2p2www/pages/site/docs/transport/ntcp.html:84
 msgid "Establishment Sequence"
 msgstr ""
 
-#: i2p2www/pages/site/docs/transport/ntcp.html:84
+#: i2p2www/pages/site/docs/transport/ntcp.html:85
 msgid ""
 "In the establish state, there is a 4-phase message sequence to exchange "
 "DH keys and signatures.\n"
@@ -14769,31 +14962,31 @@ msgid ""
 "connection."
 msgstr ""
 
-#: i2p2www/pages/site/docs/transport/ntcp.html:98
+#: i2p2www/pages/site/docs/transport/ntcp.html:99
 msgid "Legend:"
 msgstr ""
 
-#: i2p2www/pages/site/docs/transport/ntcp.html:99
+#: i2p2www/pages/site/docs/transport/ntcp.html:100
 msgid "256 byte DH public keys"
 msgstr ""
 
-#: i2p2www/pages/site/docs/transport/ntcp.html:103
+#: i2p2www/pages/site/docs/transport/ntcp.html:104
 msgid "timestamps (4 bytes, seconds since epoch)"
 msgstr ""
 
-#: i2p2www/pages/site/docs/transport/ntcp.html:104
+#: i2p2www/pages/site/docs/transport/ntcp.html:105
 msgid "32 byte Session key"
 msgstr ""
 
-#: i2p2www/pages/site/docs/transport/ntcp.html:105
+#: i2p2www/pages/site/docs/transport/ntcp.html:106
 msgid "2 byte size of Alice identity to follow"
 msgstr ""
 
-#: i2p2www/pages/site/docs/transport/ntcp.html:108
+#: i2p2www/pages/site/docs/transport/ntcp.html:109
 msgid "DH Key Exchange"
 msgstr ""
 
-#: i2p2www/pages/site/docs/transport/ntcp.html:109
+#: i2p2www/pages/site/docs/transport/ntcp.html:110
 #, python-format
 msgid ""
 "The initial 2048-bit DH key exchange\n"
@@ -14801,7 +14994,7 @@ msgid ""
 "<a href=\"%(cryptography)s#elgamal\">ElGamal encryption</a>."
 msgstr ""
 
-#: i2p2www/pages/site/docs/transport/ntcp.html:115
+#: i2p2www/pages/site/docs/transport/ntcp.html:116
 msgid ""
 "The DH key exchange consists of a number of steps, displayed below.\n"
 "The mapping between these steps and the messages sent between I2P "
@@ -14809,51 +15002,51 @@ msgid ""
 "is marked in bold."
 msgstr ""
 
-#: i2p2www/pages/site/docs/transport/ntcp.html:121
+#: i2p2www/pages/site/docs/transport/ntcp.html:122
 msgid ""
 "Alice generates a secret 226-bit integer x. She then calculates <code>X ="
 " g^x mod p</code>."
 msgstr ""
 
-#: i2p2www/pages/site/docs/transport/ntcp.html:122
+#: i2p2www/pages/site/docs/transport/ntcp.html:123
 msgid "Alice sends X to Bob <b>(Message 1)</b>."
 msgstr ""
 
-#: i2p2www/pages/site/docs/transport/ntcp.html:123
+#: i2p2www/pages/site/docs/transport/ntcp.html:124
 msgid ""
 "Bob generates a secret 226-bit integer y. He then calculates <code>Y = "
 "g^y mod p</code>."
 msgstr ""
 
-#: i2p2www/pages/site/docs/transport/ntcp.html:124
+#: i2p2www/pages/site/docs/transport/ntcp.html:125
 msgid "Bob sends Y to Alice.<b>(Message 2)</b>"
 msgstr ""
 
-#: i2p2www/pages/site/docs/transport/ntcp.html:125
+#: i2p2www/pages/site/docs/transport/ntcp.html:126
 msgid "Alice can now compute <code>sessionKey = Y^x mod p</code>."
 msgstr ""
 
-#: i2p2www/pages/site/docs/transport/ntcp.html:126
+#: i2p2www/pages/site/docs/transport/ntcp.html:127
 msgid "Bob can now compute <code>sessionKey = X^y mod p</code>."
 msgstr ""
 
-#: i2p2www/pages/site/docs/transport/ntcp.html:127
+#: i2p2www/pages/site/docs/transport/ntcp.html:128
 msgid ""
 "Both Alice and Bob now have a shared key <code>sessionKey = g^(x*y) mod "
 "p</code>."
 msgstr ""
 
-#: i2p2www/pages/site/docs/transport/ntcp.html:129
+#: i2p2www/pages/site/docs/transport/ntcp.html:130
 msgid ""
 "The sessionKey is then used to exchange identities in <b>Message 3</b> "
 "and <b>Message 4</b>."
 msgstr ""
 
-#: i2p2www/pages/site/docs/transport/ntcp.html:133
+#: i2p2www/pages/site/docs/transport/ntcp.html:134
 msgid "Message 1 (Session Request)"
 msgstr ""
 
-#: i2p2www/pages/site/docs/transport/ntcp.html:134
+#: i2p2www/pages/site/docs/transport/ntcp.html:135
 #, python-format
 msgid ""
 "This is the DH request. Alice already has Bob's\n"
@@ -14866,79 +15059,79 @@ msgid ""
 "Alice sends Bob:"
 msgstr ""
 
-#: i2p2www/pages/site/docs/transport/ntcp.html:147
-#: i2p2www/pages/site/docs/transport/ntcp.html:190
-#: i2p2www/pages/site/docs/transport/ntcp.html:270
-#: i2p2www/pages/site/docs/transport/ntcp.html:353
+#: i2p2www/pages/site/docs/transport/ntcp.html:148
+#: i2p2www/pages/site/docs/transport/ntcp.html:191
+#: i2p2www/pages/site/docs/transport/ntcp.html:271
+#: i2p2www/pages/site/docs/transport/ntcp.html:354
 msgid "Size:"
 msgstr ""
 
-#: i2p2www/pages/site/docs/transport/ntcp.html:149
+#: i2p2www/pages/site/docs/transport/ntcp.html:150
 msgid "Contents:"
 msgstr ""
 
-#: i2p2www/pages/site/docs/transport/ntcp.html:167
+#: i2p2www/pages/site/docs/transport/ntcp.html:168
 msgid "256 byte X from Diffie Hellman"
 msgstr ""
 
-#: i2p2www/pages/site/docs/transport/ntcp.html:169
+#: i2p2www/pages/site/docs/transport/ntcp.html:170
 #, python-format
 msgid ""
 "SHA256 Hash(X) xored with SHA256 Hash(Bob's <a "
 "href=\"%(commonstructures)s#struct_RouterIdentity\">Router Identity</a>)"
 msgstr ""
 
-#: i2p2www/pages/site/docs/transport/ntcp.html:176
-#: i2p2www/pages/site/docs/transport/ntcp.html:257
-#: i2p2www/pages/site/docs/transport/ntcp.html:334
+#: i2p2www/pages/site/docs/transport/ntcp.html:177
+#: i2p2www/pages/site/docs/transport/ntcp.html:258
+#: i2p2www/pages/site/docs/transport/ntcp.html:335
 msgid "Notes:"
 msgstr ""
 
-#: i2p2www/pages/site/docs/transport/ntcp.html:177
+#: i2p2www/pages/site/docs/transport/ntcp.html:178
 msgid ""
 "Bob verifies HXxorHI using his own router hash. If it does not verify,\n"
 "Alice has contacted the wrong router, and Bob drops the connection."
 msgstr ""
 
-#: i2p2www/pages/site/docs/transport/ntcp.html:183
+#: i2p2www/pages/site/docs/transport/ntcp.html:184
 msgid "Message 2 (Session Created)"
 msgstr ""
 
-#: i2p2www/pages/site/docs/transport/ntcp.html:184
+#: i2p2www/pages/site/docs/transport/ntcp.html:185
 msgid "This is the DH reply. Bob sends Alice:"
 msgstr ""
 
-#: i2p2www/pages/site/docs/transport/ntcp.html:192
-#: i2p2www/pages/site/docs/transport/ntcp.html:272
-#: i2p2www/pages/site/docs/transport/ntcp.html:355
+#: i2p2www/pages/site/docs/transport/ntcp.html:193
+#: i2p2www/pages/site/docs/transport/ntcp.html:273
+#: i2p2www/pages/site/docs/transport/ntcp.html:356
 msgid "Unencrypted Contents:"
 msgstr ""
 
-#: i2p2www/pages/site/docs/transport/ntcp.html:214
-#: i2p2www/pages/site/docs/transport/ntcp.html:248
+#: i2p2www/pages/site/docs/transport/ntcp.html:215
+#: i2p2www/pages/site/docs/transport/ntcp.html:249
 msgid "256 byte Y from Diffie Hellman"
 msgstr ""
 
-#: i2p2www/pages/site/docs/transport/ntcp.html:216
+#: i2p2www/pages/site/docs/transport/ntcp.html:217
 msgid "SHA256 Hash(X concatenated with Y)"
 msgstr ""
 
-#: i2p2www/pages/site/docs/transport/ntcp.html:219
-#: i2p2www/pages/site/docs/transport/ntcp.html:304
+#: i2p2www/pages/site/docs/transport/ntcp.html:220
+#: i2p2www/pages/site/docs/transport/ntcp.html:305
 msgid "4 byte timestamp (seconds since the epoch)"
 msgstr ""
 
-#: i2p2www/pages/site/docs/transport/ntcp.html:221
+#: i2p2www/pages/site/docs/transport/ntcp.html:222
 msgid "12 bytes random data"
 msgstr ""
 
-#: i2p2www/pages/site/docs/transport/ntcp.html:226
-#: i2p2www/pages/site/docs/transport/ntcp.html:316
-#: i2p2www/pages/site/docs/transport/ntcp.html:383
+#: i2p2www/pages/site/docs/transport/ntcp.html:227
+#: i2p2www/pages/site/docs/transport/ntcp.html:317
+#: i2p2www/pages/site/docs/transport/ntcp.html:384
 msgid "Encrypted Contents:"
 msgstr ""
 
-#: i2p2www/pages/site/docs/transport/ntcp.html:250
+#: i2p2www/pages/site/docs/transport/ntcp.html:251
 #, python-format
 msgid ""
 "48 bytes <a href=\"%(cryptography)s#AES\">AES encrypted</a> using the DH "
@@ -14946,38 +15139,38 @@ msgid ""
 "                  the last 16 bytes of Y as the IV"
 msgstr ""
 
-#: i2p2www/pages/site/docs/transport/ntcp.html:258
+#: i2p2www/pages/site/docs/transport/ntcp.html:259
 msgid ""
 "Alice may drop the connection if the clock skew with Bob is too high as "
 "calculated using tsB."
 msgstr ""
 
-#: i2p2www/pages/site/docs/transport/ntcp.html:263
+#: i2p2www/pages/site/docs/transport/ntcp.html:264
 msgid "Message 3 (Session Confirm A)"
 msgstr ""
 
-#: i2p2www/pages/site/docs/transport/ntcp.html:264
+#: i2p2www/pages/site/docs/transport/ntcp.html:265
 msgid ""
 "This contains Alice's router identity, and a DSA signature of the "
 "critical data. Alice sends Bob:"
 msgstr ""
 
-#: i2p2www/pages/site/docs/transport/ntcp.html:298
+#: i2p2www/pages/site/docs/transport/ntcp.html:299
 msgid "2 byte size of Alice's router identity to follow (should always be 387)"
 msgstr ""
 
-#: i2p2www/pages/site/docs/transport/ntcp.html:300
+#: i2p2www/pages/site/docs/transport/ntcp.html:301
 #, python-format
 msgid ""
 "Alice's 387 byte <a "
 "href=\"%(commonstructures)s#struct_RouterIdentity\">Router Identity</a>"
 msgstr ""
 
-#: i2p2www/pages/site/docs/transport/ntcp.html:306
+#: i2p2www/pages/site/docs/transport/ntcp.html:307
 msgid "15 bytes random data"
 msgstr ""
 
-#: i2p2www/pages/site/docs/transport/ntcp.html:308
+#: i2p2www/pages/site/docs/transport/ntcp.html:309
 #, python-format
 msgid ""
 "the 40 byte <a href=\"%(commonstructures)s#type_Signature\">DSA "
@@ -14993,7 +15186,7 @@ msgid ""
 "href=\"%(commonstructures)s#struct_RouterIdentity\">Router Identity</a>"
 msgstr ""
 
-#: i2p2www/pages/site/docs/transport/ntcp.html:326
+#: i2p2www/pages/site/docs/transport/ntcp.html:327
 #, python-format
 msgid ""
 "448 bytes <a href=\"%(cryptography)s#AES\">AES encrypted</a> using the DH"
@@ -15002,25 +15195,25 @@ msgid ""
 "of message #1) as the IV"
 msgstr ""
 
-#: i2p2www/pages/site/docs/transport/ntcp.html:336
+#: i2p2www/pages/site/docs/transport/ntcp.html:337
 msgid "Bob verifies the signature, and on failure, drops the connection."
 msgstr ""
 
-#: i2p2www/pages/site/docs/transport/ntcp.html:339
+#: i2p2www/pages/site/docs/transport/ntcp.html:340
 msgid ""
 "Bob may drop the connection if the clock skew with Alice is too high as "
 "calculated using tsA."
 msgstr ""
 
-#: i2p2www/pages/site/docs/transport/ntcp.html:346
+#: i2p2www/pages/site/docs/transport/ntcp.html:347
 msgid "Message 4 (Session Confirm B)"
 msgstr ""
 
-#: i2p2www/pages/site/docs/transport/ntcp.html:347
+#: i2p2www/pages/site/docs/transport/ntcp.html:348
 msgid "This is a DSA signature of the critical data. Bob sends Alice:"
 msgstr ""
 
-#: i2p2www/pages/site/docs/transport/ntcp.html:372
+#: i2p2www/pages/site/docs/transport/ntcp.html:373
 #, python-format
 msgid ""
 "the 40 byte <a href=\"%(commonstructures)s#type_Signature\">DSA "
@@ -15036,11 +15229,11 @@ msgid ""
 "href=\"%(commonstructures)s#struct_RouterIdentity\">Router Identity</a>"
 msgstr ""
 
-#: i2p2www/pages/site/docs/transport/ntcp.html:378
+#: i2p2www/pages/site/docs/transport/ntcp.html:379
 msgid "8 bytes random data"
 msgstr ""
 
-#: i2p2www/pages/site/docs/transport/ntcp.html:393
+#: i2p2www/pages/site/docs/transport/ntcp.html:394
 #, python-format
 msgid ""
 "48 bytes <a href=\"%(cryptography)s#AES\">AES encrypted</a> using the DH "
@@ -15049,15 +15242,15 @@ msgid ""
 "#2 as the IV"
 msgstr ""
 
-#: i2p2www/pages/site/docs/transport/ntcp.html:401
+#: i2p2www/pages/site/docs/transport/ntcp.html:402
 msgid "Alice verifies the signature, and on failure, drops the connection."
 msgstr ""
 
-#: i2p2www/pages/site/docs/transport/ntcp.html:408
+#: i2p2www/pages/site/docs/transport/ntcp.html:409
 msgid "After Establishment"
 msgstr ""
 
-#: i2p2www/pages/site/docs/transport/ntcp.html:409
+#: i2p2www/pages/site/docs/transport/ntcp.html:410
 msgid ""
 "The connection is established, and standard or time sync messages may be "
 "exchanged.\n"
@@ -15069,11 +15262,11 @@ msgid ""
 " the next IV."
 msgstr ""
 
-#: i2p2www/pages/site/docs/transport/ntcp.html:418
+#: i2p2www/pages/site/docs/transport/ntcp.html:419
 msgid "Check Connection Message"
 msgstr ""
 
-#: i2p2www/pages/site/docs/transport/ntcp.html:419
+#: i2p2www/pages/site/docs/transport/ntcp.html:420
 msgid ""
 "Alternately, when Bob receives a connection, it could be a\n"
 "check connection (perhaps prompted by Bob asking for someone\n"
@@ -15083,54 +15276,54 @@ msgid ""
 "A check info connection will receive 256 bytes containing:"
 msgstr ""
 
-#: i2p2www/pages/site/docs/transport/ntcp.html:428
+#: i2p2www/pages/site/docs/transport/ntcp.html:429
 msgid "32 bytes of uninterpreted, ignored data"
 msgstr ""
 
-#: i2p2www/pages/site/docs/transport/ntcp.html:429
+#: i2p2www/pages/site/docs/transport/ntcp.html:430
 msgid "1 byte size"
 msgstr ""
 
-#: i2p2www/pages/site/docs/transport/ntcp.html:430
+#: i2p2www/pages/site/docs/transport/ntcp.html:431
 msgid ""
 "that many bytes making up the local router's IP address (as reached by "
 "the remote side)"
 msgstr ""
 
-#: i2p2www/pages/site/docs/transport/ntcp.html:431
+#: i2p2www/pages/site/docs/transport/ntcp.html:432
 msgid "2 byte port number that the local router was reached on"
 msgstr ""
 
-#: i2p2www/pages/site/docs/transport/ntcp.html:432
+#: i2p2www/pages/site/docs/transport/ntcp.html:433
 msgid ""
 "4 byte i2p network time as known by the remote side (seconds since the "
 "epoch)"
 msgstr ""
 
-#: i2p2www/pages/site/docs/transport/ntcp.html:433
+#: i2p2www/pages/site/docs/transport/ntcp.html:434
 msgid "uninterpreted padding data, up to byte 223"
 msgstr ""
 
-#: i2p2www/pages/site/docs/transport/ntcp.html:434
+#: i2p2www/pages/site/docs/transport/ntcp.html:435
 msgid ""
 "xor of the local router's identity hash and the SHA256 of bytes 32 "
 "through bytes 223"
 msgstr ""
 
-#: i2p2www/pages/site/docs/transport/ntcp.html:438
+#: i2p2www/pages/site/docs/transport/ntcp.html:439
 msgid "Discussion"
 msgstr ""
 
-#: i2p2www/pages/site/docs/transport/ntcp.html:439
+#: i2p2www/pages/site/docs/transport/ntcp.html:440
 #, python-format
 msgid "Now on the <a href=\"%(ntcpdisc)s\">NTCP Discussion Page</a>."
 msgstr ""
 
-#: i2p2www/pages/site/docs/transport/ntcp.html:445
+#: i2p2www/pages/site/docs/transport/ntcp.html:446
 msgid "The maximum message size should be increased to approximately 32 KB."
 msgstr ""
 
-#: i2p2www/pages/site/docs/transport/ntcp.html:449
+#: i2p2www/pages/site/docs/transport/ntcp.html:450
 msgid ""
 "A set of fixed packet sizes may be appropriate to further hide the data \n"
 "fragmentation to external adversaries, but the tunnel, garlic, and end to"
@@ -15141,19 +15334,19 @@ msgid ""
 "to create a limited number of message sizes."
 msgstr ""
 
-#: i2p2www/pages/site/docs/transport/ntcp.html:457
+#: i2p2www/pages/site/docs/transport/ntcp.html:458
 msgid ""
 "Memory utilization (including that of the kernel) for NTCP should be "
 "compared to that for SSU."
 msgstr ""
 
-#: i2p2www/pages/site/docs/transport/ntcp.html:461
+#: i2p2www/pages/site/docs/transport/ntcp.html:462
 msgid ""
 "Can the establishment messages be randomly padded somehow, to frustrate\n"
 "identification of I2P traffic based on initial packet sizes?"
 msgstr ""
 
-#: i2p2www/pages/site/docs/transport/ntcp.html:466
+#: i2p2www/pages/site/docs/transport/ntcp.html:467
 msgid "Review and possibly disable 'check connection'"
 msgstr ""
 
@@ -15180,14 +15373,15 @@ msgid ""
 "SSU is the newer of the two transports,\n"
 "introduced in I2P release 0.6.\n"
 "In a standard I2P installation, the router uses both NTCP and SSU for "
-"outbound connections."
+"outbound connections.\n"
+"SSU-over-IPv6 is supported as of version 0.9.8."
 msgstr ""
 
-#: i2p2www/pages/site/docs/transport/ssu.html:21
+#: i2p2www/pages/site/docs/transport/ssu.html:22
 msgid "SSU Services"
 msgstr ""
 
-#: i2p2www/pages/site/docs/transport/ssu.html:23
+#: i2p2www/pages/site/docs/transport/ssu.html:24
 msgid ""
 "Like the NTCP transport, SSU provides reliable, encrypted, connection-"
 "oriented, point-to-point data transport.\n"
@@ -15195,33 +15389,33 @@ msgid ""
 "including:"
 msgstr ""
 
-#: i2p2www/pages/site/docs/transport/ssu.html:29
+#: i2p2www/pages/site/docs/transport/ssu.html:30
 msgid ""
 "Cooperative NAT/Firewall traversal using <a "
 "href=\"#introduction\">introducers</a>"
 msgstr ""
 
-#: i2p2www/pages/site/docs/transport/ssu.html:30
+#: i2p2www/pages/site/docs/transport/ssu.html:31
 msgid ""
 "Local IP detection by inspection of incoming packets and <a "
 "href=\"#peerTesting\">peer testing</a>"
 msgstr ""
 
-#: i2p2www/pages/site/docs/transport/ssu.html:31
+#: i2p2www/pages/site/docs/transport/ssu.html:32
 msgid ""
 "Communication of firewall status and local IP, and changes to either to "
 "NTCP"
 msgstr ""
 
-#: i2p2www/pages/site/docs/transport/ssu.html:36
+#: i2p2www/pages/site/docs/transport/ssu.html:37
 msgid "Protocol Details"
 msgstr ""
 
-#: i2p2www/pages/site/docs/transport/ssu.html:38
+#: i2p2www/pages/site/docs/transport/ssu.html:39
 msgid "Congestion control"
 msgstr ""
 
-#: i2p2www/pages/site/docs/transport/ssu.html:40
+#: i2p2www/pages/site/docs/transport/ssu.html:41
 msgid ""
 "SSU's need for only semireliable delivery, TCP-friendly operation,\n"
 "and the capacity for high throughput allows a great deal of latitude in\n"
@@ -15229,7 +15423,7 @@ msgid ""
 "meant to be both efficient in bandwidth as well as simple to implement."
 msgstr ""
 
-#: i2p2www/pages/site/docs/transport/ssu.html:47
+#: i2p2www/pages/site/docs/transport/ssu.html:48
 msgid ""
 "Packets are scheduled according to the router's policy, taking care\n"
 "not to exceed the router's outbound capacity or to exceed the measured \n"
@@ -15244,7 +15438,7 @@ msgid ""
 "other messages."
 msgstr ""
 
-#: i2p2www/pages/site/docs/transport/ssu.html:58
+#: i2p2www/pages/site/docs/transport/ssu.html:59
 msgid ""
 "The congestion detection techniques vary from TCP as well, since each \n"
 "message has its own unique and nonsequential identifier, and each message"
@@ -15260,7 +15454,7 @@ msgid ""
 "retransmitted with any new updates."
 msgstr ""
 
-#: i2p2www/pages/site/docs/transport/ssu.html:70
+#: i2p2www/pages/site/docs/transport/ssu.html:71
 msgid ""
 "The current implementation does not pad the packets to\n"
 "any particular size, but instead just places a single message fragment "
@@ -15268,7 +15462,7 @@ msgid ""
 "a packet and sends it off (careful not to exceed the MTU)."
 msgstr ""
 
-#: i2p2www/pages/site/docs/transport/ssu.html:77
+#: i2p2www/pages/site/docs/transport/ssu.html:78
 msgid ""
 "As of router version 0.8.12,\n"
 "two MTU values are used for IPv4: 620 and 1484.\n"
@@ -15276,21 +15470,21 @@ msgid ""
 "retransmitted."
 msgstr ""
 
-#: i2p2www/pages/site/docs/transport/ssu.html:83
+#: i2p2www/pages/site/docs/transport/ssu.html:84
 msgid ""
 "For both MTU values, it is desirable that (MTU &#37; 16) == 12, so that\n"
 "the payload portion after the 28-byte IP/UDP header is a multiple of\n"
 "16 bytes, for encryption purposes."
 msgstr ""
 
-#: i2p2www/pages/site/docs/transport/ssu.html:89
+#: i2p2www/pages/site/docs/transport/ssu.html:90
 msgid ""
 "For the small MTU value, it is desirable to pack a 2646-byte\n"
 "Variable Tunnel Build Message efficiently into multiple packets;\n"
 "with a 620-byte MTU, it fits into 5 packets with nicely."
 msgstr ""
 
-#: i2p2www/pages/site/docs/transport/ssu.html:95
+#: i2p2www/pages/site/docs/transport/ssu.html:96
 msgid ""
 "Based on measurements, 1492 fits nearly all reasonably small I2NP "
 "messages\n"
@@ -15299,13 +15493,13 @@ msgid ""
 "into a live network MTU anyway)."
 msgstr ""
 
-#: i2p2www/pages/site/docs/transport/ssu.html:101
+#: i2p2www/pages/site/docs/transport/ssu.html:102
 msgid ""
 "The MTU values were 608 and 1492 for releases 0.8.9 - 0.8.11.\n"
 "The large MTU was 1350 prior to release 0.8.9."
 msgstr ""
 
-#: i2p2www/pages/site/docs/transport/ssu.html:106
+#: i2p2www/pages/site/docs/transport/ssu.html:107
 msgid ""
 "The maximum receive packet size\n"
 "is 1571 bytes as of release 0.8.12.\n"
@@ -15313,7 +15507,7 @@ msgid ""
 "Prior to release 0.8.9 it was 2048 bytes."
 msgstr ""
 
-#: i2p2www/pages/site/docs/transport/ssu.html:113
+#: i2p2www/pages/site/docs/transport/ssu.html:114
 msgid ""
 "As of release 0.9.2, if a router's network interface MTU is less than "
 "1484,\n"
@@ -15321,17 +15515,18 @@ msgid ""
 "honor that when a connection is established."
 msgstr ""
 
-#: i2p2www/pages/site/docs/transport/ssu.html:119
+#: i2p2www/pages/site/docs/transport/ssu.html:120
 msgid ""
 "For IPv6, the minimum MTU is 1280. The IPv6 IP/UDP header is 48 bytes,\n"
-"so we use an MTU where (MTN &#37; 16 == 0), which is true for 1280."
+"so we use an MTU where (MTN &#37; 16 == 0), which is true for 1280.\n"
+"The maximum IPv6 MTU is 1472."
 msgstr ""
 
-#: i2p2www/pages/site/docs/transport/ssu.html:124
+#: i2p2www/pages/site/docs/transport/ssu.html:126
 msgid "Message Size Limits"
 msgstr ""
 
-#: i2p2www/pages/site/docs/transport/ssu.html:125
+#: i2p2www/pages/site/docs/transport/ssu.html:127
 msgid ""
 "While the maximum message size is nominally 32KB, the practical\n"
 "limit differs. The protocol limits the number of fragments to 7 bits, or "
@@ -15346,11 +15541,11 @@ msgid ""
 "For connections using the larger MTU, larger messages are possible."
 msgstr ""
 
-#: i2p2www/pages/site/docs/transport/ssu.html:136
+#: i2p2www/pages/site/docs/transport/ssu.html:138
 msgid "Keys"
 msgstr ""
 
-#: i2p2www/pages/site/docs/transport/ssu.html:138
+#: i2p2www/pages/site/docs/transport/ssu.html:140
 msgid ""
 "All encryption used is AES256/CBC with 32 byte keys and 16 byte IVs.\n"
 "The MAC and session keys are negotiated as part of the DH exchange, used\n"
@@ -15358,7 +15553,7 @@ msgid ""
 "the publicly knowable introKey is used for the MAC and encryption."
 msgstr ""
 
-#: i2p2www/pages/site/docs/transport/ssu.html:145
+#: i2p2www/pages/site/docs/transport/ssu.html:147
 msgid ""
 "When using the introKey, both the initial message and any subsequent\n"
 "reply use the introKey of the responder (Bob) - the responder does \n"
@@ -15368,7 +15563,7 @@ msgid ""
 "Bob."
 msgstr ""
 
-#: i2p2www/pages/site/docs/transport/ssu.html:154
+#: i2p2www/pages/site/docs/transport/ssu.html:156
 msgid ""
 "Upon receiving a message, the receiver checks the \"from\" IP address and"
 " port\n"
@@ -15381,7 +15576,7 @@ msgid ""
 "it may be dropped anyway."
 msgstr ""
 
-#: i2p2www/pages/site/docs/transport/ssu.html:165
+#: i2p2www/pages/site/docs/transport/ssu.html:167
 msgid ""
 "If Alice and Bob have an established session, but Alice loses the \n"
 "keys for some reason and she wants to contact Bob, she may at any \n"
@@ -15393,7 +15588,7 @@ msgid ""
 "new one."
 msgstr ""
 
-#: i2p2www/pages/site/docs/transport/ssu.html:176
+#: i2p2www/pages/site/docs/transport/ssu.html:178
 #, python-format
 msgid ""
 "For the DH key agreement,\n"
@@ -15401,18 +15596,18 @@ msgid ""
 "MODP group (#14) is used:"
 msgstr ""
 
-#: i2p2www/pages/site/docs/transport/ssu.html:186
+#: i2p2www/pages/site/docs/transport/ssu.html:188
 #, python-format
 msgid ""
 "These are the same p and g used for I2P's\n"
 "<a href=\"%(cryptography)s#elgamal\">ElGamal encryption</a>."
 msgstr ""
 
-#: i2p2www/pages/site/docs/transport/ssu.html:191
+#: i2p2www/pages/site/docs/transport/ssu.html:193
 msgid "Replay prevention"
 msgstr ""
 
-#: i2p2www/pages/site/docs/transport/ssu.html:193
+#: i2p2www/pages/site/docs/transport/ssu.html:195
 msgid ""
 "Replay prevention at the SSU layer occurs by rejecting packets \n"
 "with exceedingly old timestamps or those which reuse an IV.  To\n"
@@ -15420,7 +15615,7 @@ msgid ""
 "\"decay\" periodically so that only recently added IVs are detected."
 msgstr ""
 
-#: i2p2www/pages/site/docs/transport/ssu.html:200
+#: i2p2www/pages/site/docs/transport/ssu.html:202
 msgid ""
 "The messageIds used in DataMessages are defined at layers above\n"
 "the SSU transport and are passed through transparently.  These IDs\n"
@@ -15429,11 +15624,11 @@ msgid ""
 "replay prevention - higher layers should take that into account."
 msgstr ""
 
-#: i2p2www/pages/site/docs/transport/ssu.html:208
+#: i2p2www/pages/site/docs/transport/ssu.html:210
 msgid "Addressing"
 msgstr ""
 
-#: i2p2www/pages/site/docs/transport/ssu.html:210
+#: i2p2www/pages/site/docs/transport/ssu.html:212
 msgid ""
 "To contact an SSU peer, one of two sets of information is necessary:\n"
 "a direct address, for when the peer is publicly reachable, or an\n"
@@ -15441,40 +15636,42 @@ msgid ""
 "There is no restriction on the number of addresses a peer may have."
 msgstr ""
 
-#: i2p2www/pages/site/docs/transport/ssu.html:222
+#: i2p2www/pages/site/docs/transport/ssu.html:224
 msgid ""
 "Each of the addresses may also expose a series of options - special\n"
 "capabilities of that particular peer.  For a list of available\n"
 "capabilities, see <a href=\"#capabilities\">below</a>."
 msgstr ""
 
-#: i2p2www/pages/site/docs/transport/ssu.html:228
+#: i2p2www/pages/site/docs/transport/ssu.html:230
 #, python-format
 msgid ""
 "The addresses, options, and capabilities are published in the <a "
 "href=\"%(netdb)s\">network database</a>."
 msgstr ""
 
-#: i2p2www/pages/site/docs/transport/ssu.html:233
+#: i2p2www/pages/site/docs/transport/ssu.html:235
 msgid "Direct Session Establishment"
 msgstr ""
 
-#: i2p2www/pages/site/docs/transport/ssu.html:234
+#: i2p2www/pages/site/docs/transport/ssu.html:236
 msgid ""
 "Direct session establishment is used when no third party is required for "
 "NAT traversal.\n"
 "The message sequence is as follows:"
 msgstr ""
 
-#: i2p2www/pages/site/docs/transport/ssu.html:239
+#: i2p2www/pages/site/docs/transport/ssu.html:241
 msgid "Connection establishment (direct)"
 msgstr ""
 
-#: i2p2www/pages/site/docs/transport/ssu.html:240
-msgid "Alice connects directly to Bob."
+#: i2p2www/pages/site/docs/transport/ssu.html:242
+msgid ""
+"Alice connects directly to Bob.\n"
+"IPv6 is supported as of version 0.9.8."
 msgstr ""
 
-#: i2p2www/pages/site/docs/transport/ssu.html:254
+#: i2p2www/pages/site/docs/transport/ssu.html:257
 #, python-format
 msgid ""
 "After the SessionConfirmed message is received, Bob sends a small\n"
@@ -15487,7 +15684,7 @@ msgid ""
 "(i.e. 0x0000000000000002)."
 msgstr ""
 
-#: i2p2www/pages/site/docs/transport/ssu.html:263
+#: i2p2www/pages/site/docs/transport/ssu.html:266
 #, python-format
 msgid ""
 "After the status message is sent, the peers exchange\n"
@@ -15496,7 +15693,7 @@ msgid ""
 "<a href=\"%(commonstructures)s#struct_RouterInfo\">RouterInfos</a>."
 msgstr ""
 
-#: i2p2www/pages/site/docs/transport/ssu.html:271
+#: i2p2www/pages/site/docs/transport/ssu.html:274
 msgid ""
 "It does not appear that the type of the status message or its contents "
 "matters.\n"
@@ -15505,7 +15702,7 @@ msgid ""
 "the status message can be eliminated."
 msgstr ""
 
-#: i2p2www/pages/site/docs/transport/ssu.html:280
+#: i2p2www/pages/site/docs/transport/ssu.html:283
 msgid ""
 "Introduction keys are delivered through an external channel \n"
 "(the network database, where they are identical to the router Hash for "
@@ -15521,7 +15718,7 @@ msgid ""
 "not necessary to any intermediary relay peer)."
 msgstr ""
 
-#: i2p2www/pages/site/docs/transport/ssu.html:294
+#: i2p2www/pages/site/docs/transport/ssu.html:297
 msgid ""
 "Indirect session establishment by means of a third party introduction\n"
 "is necessary for efficient NAT traversal.  Charlie, a router behind a\n"
@@ -15549,25 +15746,25 @@ msgid ""
 "full direction session establishment with the specified IP and port."
 msgstr ""
 
-#: i2p2www/pages/site/docs/transport/ssu.html:321
+#: i2p2www/pages/site/docs/transport/ssu.html:324
 msgid "Connection establishment (indirect using an introducer)"
 msgstr ""
 
-#: i2p2www/pages/site/docs/transport/ssu.html:323
+#: i2p2www/pages/site/docs/transport/ssu.html:326
 msgid "Alice first connects to introducer Bob, who relays the request to Charlie."
 msgstr ""
 
-#: i2p2www/pages/site/docs/transport/ssu.html:341
+#: i2p2www/pages/site/docs/transport/ssu.html:344
 msgid ""
 "After the hole punch, the session is established between Alice and "
 "Charlie as in a direct establishment."
 msgstr ""
 
-#: i2p2www/pages/site/docs/transport/ssu.html:352
+#: i2p2www/pages/site/docs/transport/ssu.html:356
 msgid "Peer testing"
 msgstr ""
 
-#: i2p2www/pages/site/docs/transport/ssu.html:354
+#: i2p2www/pages/site/docs/transport/ssu.html:358
 msgid ""
 "The automation of collaborative reachability testing for peers is\n"
 "enabled by a sequence of PeerTest messages.  With its proper \n"
@@ -15576,7 +15773,7 @@ msgid ""
 "quite simple:"
 msgstr ""
 
-#: i2p2www/pages/site/docs/transport/ssu.html:373
+#: i2p2www/pages/site/docs/transport/ssu.html:377
 msgid ""
 "Each of the PeerTest messages carry a nonce identifying the\n"
 "test series itself, as initialized by Alice.  If Alice doesn't \n"
@@ -15586,7 +15783,7 @@ msgid ""
 "that may be reached are as follows:"
 msgstr ""
 
-#: i2p2www/pages/site/docs/transport/ssu.html:383
+#: i2p2www/pages/site/docs/transport/ssu.html:387
 msgid ""
 "If she doesn't receive a response from Bob, she will retransmit\n"
 "up to a certain number of times, but if no response ever arrives,\n"
@@ -15596,7 +15793,7 @@ msgid ""
 "Charlie to reply."
 msgstr ""
 
-#: i2p2www/pages/site/docs/transport/ssu.html:392
+#: i2p2www/pages/site/docs/transport/ssu.html:396
 msgid ""
 "If Alice doesn't receive a PeerTest message with the \n"
 "expected nonce from a third party (Charlie), she will retransmit\n"
@@ -15608,7 +15805,7 @@ msgid ""
 "IP and port that Bob offered up should be forwarded)."
 msgstr ""
 
-#: i2p2www/pages/site/docs/transport/ssu.html:403
+#: i2p2www/pages/site/docs/transport/ssu.html:407
 msgid ""
 "If Alice receives Bob's PeerTest message and both of Charlie's\n"
 "PeerTest messages but the enclosed IP and port numbers in Bob's \n"
@@ -15619,7 +15816,7 @@ msgid ""
 "remote connectivity, ignoring further port discovery."
 msgstr ""
 
-#: i2p2www/pages/site/docs/transport/ssu.html:413
+#: i2p2www/pages/site/docs/transport/ssu.html:417
 msgid ""
 "If Alice receives Charlie's first message but not his second,\n"
 "she will retransmit her PeerTest message to Charlie up to a \n"
@@ -15627,7 +15824,7 @@ msgid ""
 "that Charlie is either confused or no longer online."
 msgstr ""
 
-#: i2p2www/pages/site/docs/transport/ssu.html:421
+#: i2p2www/pages/site/docs/transport/ssu.html:425
 msgid ""
 "Alice should choose Bob arbitrarily from known peers who seem\n"
 "to be capable of participating in peer tests.  Bob in turn should\n"
@@ -15638,7 +15835,7 @@ msgid ""
 "to designate a new peer as Bob and try again with a different nonce."
 msgstr ""
 
-#: i2p2www/pages/site/docs/transport/ssu.html:431
+#: i2p2www/pages/site/docs/transport/ssu.html:435
 msgid ""
 "Alice's introduction key is included in all of the PeerTest \n"
 "messages so that she doesn't need to already have an established\n"
@@ -15647,11 +15844,11 @@ msgid ""
 "with either Bob or Charlie, but it is not required."
 msgstr ""
 
-#: i2p2www/pages/site/docs/transport/ssu.html:449
+#: i2p2www/pages/site/docs/transport/ssu.html:453
 msgid "Transmission window, ACKs and Retransmissions"
 msgstr ""
 
-#: i2p2www/pages/site/docs/transport/ssu.html:450
+#: i2p2www/pages/site/docs/transport/ssu.html:454
 #, python-format
 msgid ""
 "The DATA message may contain ACKs of full messages and\n"
@@ -15661,7 +15858,7 @@ msgid ""
 "for details."
 msgstr ""
 
-#: i2p2www/pages/site/docs/transport/ssu.html:458
+#: i2p2www/pages/site/docs/transport/ssu.html:462
 #, python-format
 msgid ""
 "The details of windowing, ACK, and retransmission strategies are not "
@@ -15676,11 +15873,11 @@ msgid ""
 "See the code for initial, min and max parameters."
 msgstr ""
 
-#: i2p2www/pages/site/docs/transport/ssu.html:470
+#: i2p2www/pages/site/docs/transport/ssu.html:474
 msgid "Security"
 msgstr ""
 
-#: i2p2www/pages/site/docs/transport/ssu.html:471
+#: i2p2www/pages/site/docs/transport/ssu.html:475
 msgid ""
 "UDP source addresses may, of course, be spoofed.\n"
 "Additionally, the IPs and ports contained inside specific\n"
@@ -15689,31 +15886,31 @@ msgid ""
 "Also, certain actions and responses may need to be rate-limited."
 msgstr ""
 
-#: i2p2www/pages/site/docs/transport/ssu.html:479
+#: i2p2www/pages/site/docs/transport/ssu.html:483
 msgid ""
 "The details of validation are not specified\n"
 "here. Implementers should add defenses where appropriate."
 msgstr ""
 
-#: i2p2www/pages/site/docs/transport/ssu.html:485
+#: i2p2www/pages/site/docs/transport/ssu.html:489
 msgid "Peer capabilities"
 msgstr ""
 
-#: i2p2www/pages/site/docs/transport/ssu.html:489
+#: i2p2www/pages/site/docs/transport/ssu.html:493
 msgid ""
 "If the peer address contains the 'B' capability, that means \n"
 "they are willing and able to participate in peer tests as\n"
 "a 'Bob' or 'Charlie'."
 msgstr ""
 
-#: i2p2www/pages/site/docs/transport/ssu.html:495
+#: i2p2www/pages/site/docs/transport/ssu.html:499
 msgid ""
 "If the peer address contains the 'C' capability, that means\n"
 "they are willing and able to serve as an introducer - serving\n"
 "as a Bob for an otherwise unreachable Alice."
 msgstr ""
 
-#: i2p2www/pages/site/docs/transport/ssu.html:504
+#: i2p2www/pages/site/docs/transport/ssu.html:508
 msgid ""
 "Analysis of current SSU performance, including assessment of window size "
 "adjustment\n"
@@ -15722,14 +15919,14 @@ msgid ""
 "performance, is a topic for future work."
 msgstr ""
 
-#: i2p2www/pages/site/docs/transport/ssu.html:510
+#: i2p2www/pages/site/docs/transport/ssu.html:514
 msgid ""
 "The current implementation repeatedly sends acknowledgments for the same "
 "packets,\n"
 "which unnecessarily increases overhead."
 msgstr ""
 
-#: i2p2www/pages/site/docs/transport/ssu.html:515
+#: i2p2www/pages/site/docs/transport/ssu.html:519
 msgid ""
 "The default small MTU value of 620 should be analyzed and possibly "
 "increased.\n"
@@ -15738,15 +15935,15 @@ msgid ""
 "Probably not."
 msgstr ""
 
-#: i2p2www/pages/site/docs/transport/ssu.html:521
+#: i2p2www/pages/site/docs/transport/ssu.html:525
 msgid "The protocol should be extended to exchange MTUs during the setup."
 msgstr ""
 
-#: i2p2www/pages/site/docs/transport/ssu.html:525
+#: i2p2www/pages/site/docs/transport/ssu.html:529
 msgid "Rekeying is currently unimplemented and may never be."
 msgstr ""
 
-#: i2p2www/pages/site/docs/transport/ssu.html:529
+#: i2p2www/pages/site/docs/transport/ssu.html:533
 msgid ""
 "The potential use of the 'challenge' fields in RelayIntro and "
 "RelayResponse,\n"
@@ -15754,7 +15951,7 @@ msgid ""
 "undocumented."
 msgstr ""
 
-#: i2p2www/pages/site/docs/transport/ssu.html:534
+#: i2p2www/pages/site/docs/transport/ssu.html:538
 msgid ""
 "Instead of a single fragment per packet, a more efficient\n"
 "strategy may be to bundle multiple message fragments into the same "
@@ -15762,7 +15959,7 @@ msgid ""
 "so long as it doesn't exceed the MTU."
 msgstr ""
 
-#: i2p2www/pages/site/docs/transport/ssu.html:540
+#: i2p2www/pages/site/docs/transport/ssu.html:544
 msgid ""
 "A set of fixed packet sizes may be appropriate to further hide the data \n"
 "fragmentation to external adversaries, but the tunnel, garlic, and end to"
@@ -15770,34 +15967,34 @@ msgid ""
 "end padding should be sufficient for most needs until then."
 msgstr ""
 
-#: i2p2www/pages/site/docs/transport/ssu.html:546
+#: i2p2www/pages/site/docs/transport/ssu.html:550
 msgid ""
 "Why are introduction keys the same as the router hash, should it be "
 "changed, would there be any benefit?"
 msgstr ""
 
-#: i2p2www/pages/site/docs/transport/ssu.html:550
+#: i2p2www/pages/site/docs/transport/ssu.html:554
 msgid "Capacities appear to be unused."
 msgstr ""
 
-#: i2p2www/pages/site/docs/transport/ssu.html:554
+#: i2p2www/pages/site/docs/transport/ssu.html:558
 msgid ""
 "Signed-on times in SessionCreated and SessionConfirmed appear to be "
 "unused or unverified."
 msgstr ""
 
-#: i2p2www/pages/site/docs/transport/ssu.html:559
+#: i2p2www/pages/site/docs/transport/ssu.html:563
 msgid "Implementation Diagram"
 msgstr ""
 
-#: i2p2www/pages/site/docs/transport/ssu.html:560
+#: i2p2www/pages/site/docs/transport/ssu.html:564
 msgid ""
 "This diagram\n"
 "should accurately reflect the current implementation, however there may "
 "be small differences."
 msgstr ""
 
-#: i2p2www/pages/site/docs/transport/ssu.html:568
+#: i2p2www/pages/site/docs/transport/ssu.html:572
 msgid "Now on the SSU specification page"
 msgstr ""
 
