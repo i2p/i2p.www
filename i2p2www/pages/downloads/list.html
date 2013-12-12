@@ -1,0 +1,313 @@
+{% extends "global/layout.html" %}
+{% block title %}{{ _('Download') }}{% endblock %}
+{% set i2pinstall_windows_sig = '97dd4326ad8afdea0e78ffcb053b23793dfa79d89458be3fe3a1ed62a2d988e9' %}
+{% set i2pinstall_jar_sig     = '5028910d3fb9747a6724e39f8eccb6d9ebe0530ef017102c372871badfbf6d9f' %}
+{% set i2p_android_sig        = 'a6120e19186246458a01e498eeb9e5afcb3901b9c058244410bda85d5a474113' %}
+{% set i2psource_sig          = 'cbbf25dea50a717c3376eb7af226f0b2a653e0372db8782ef37aa8b3d275436c' %}
+{% set i2pupdate_sig          = '533b0ce2d9e1bfc8762ba17eef3572ae7355ed8f21d5d3557b718a14b05794f2' %}
+{% block content %}
+<h1>{{ _('Download I2P') }}</h1>
+
+<h3>{{ _('Dependency') }}</h3>
+<p>{% trans java='http://java.com/download/',
+openjdk='http://openjdk.java.net/install/',
+icedtea='http://icedtea.classpath.org/wiki/Main_Page',
+oracle8='https://jdk8.java.net/download.html',
+ibmsdk7='http://www.ibm.com/developerworks/java/jdk/linux/download.html',
+detectjre='http://java.com/en/download/installed.jsp?detect=jre&amp;try=1' %}
+Java Runtime 1.5 or higher.
+(<a href="{{ java }}">Oracle Java Version 7</a>,
+<a href="{{ openjdk }}">OpenJDK 7</a>, or
+<a href="{{ icedtea }}">IcedTea7</a>
+ recommended,
+except Raspberry Pi: <a href="{{ oracle8 }}">Oracle 8 Early Access</a>,
+PowerPC: <a href="{{ ibmsdk7 }}">IBM SDK 7</a>)
+<br />
+<a href="{{ detectjre }}">Determine your installed Java version here</a>
+or type <tt>java -version</tt> at your command prompt.
+{% endtrans %}</p>
+
+<h3>{{ _('Clean installs') }}</h3>
+<div class="downloadlist">
+
+<div class="package">
+  <h1>Windows</h1>
+  <div class="file">
+    <a href="{{ url_for('downloads_redirect', version=ver(), protocol=def_mirror.protocol, domain=def_mirror.domain, file=ver('i2pinstall_%s_windows.exe')) }}">i2pinstall_{{ ver() }}_windows.exe</a> ({{ def_mirror.org }})
+    (<a href="{{ get_url('downloads_select', version=ver(), file=ver('i2pinstall_%s_windows.exe')) }}">{{ _('select alternate link') }}</a>)
+    <div class="sig">
+      (SHA256 <code>{{ i2pinstall_windows_sig }}</code>
+      <a href="{{ url_for('downloads_redirect', version=ver(), protocol=def_mirror.protocol, domain=def_mirror.domain, file=ver('i2pinstall_%s_windows.exe.sig')) }}">sig</a>)
+    </div>
+  </div>
+  <div class="details">
+    {% trans -%}
+    Download that file and run it.
+    {%- endtrans %}
+  </div>
+</div>
+
+<div class="package">
+  <h1>Mac OS X</h1>
+  <div class="file">
+    <a href="{{ url_for('downloads_redirect', version=ver(), protocol=def_mirror.protocol, domain=def_mirror.domain, file=ver('i2pinstall_%s.jar')) }}">i2pinstall_{{ ver() }}.jar</a> ({{ def_mirror.org }})
+    (<a href="{{ get_url('downloads_select', version=ver(), file=ver('i2pinstall_%s.jar')) }}">{{ _('select alternate link') }}</a>)
+    <div class="sig">
+      (SHA256 <code>{{ i2pinstall_jar_sig }}</code>
+      <a href="{{ url_for('downloads_redirect', version=ver(), protocol=def_mirror.protocol, domain=def_mirror.domain, file=ver('i2pinstall_%s.jar.sig')) }}">sig</a>)
+    </div>
+  </div>
+  <div class="details">
+    {% trans i2pversion=ver() -%}
+    Download that file and double-click it (if that works) or
+    type <code>java -jar i2pinstall_{{ i2pversion }}.jar</code> in a terminal to run the
+    installer.
+    You may be able to right-click and select
+    &quot;Open with Java&quot;.
+    {%- endtrans %}
+
+    <h2>{% trans %}Command line (headless) install:{% endtrans %}</h2>
+    {% trans i2pversion=ver() -%}
+    Download the {{ i2pversion }} OSX graphical installer file above and
+    run <code>java -jar i2pinstall_{{ i2pversion }}.jar -console</code> from the command line.
+    {%- endtrans %}
+  </div>
+</div>
+
+<div class="package">
+  <h1>GNU/Linux / BSD / Solaris</h1>
+  <div class="file">
+    <a href="{{ url_for('downloads_redirect', version=ver(), protocol=def_mirror.protocol, domain=def_mirror.domain, file=ver('i2pinstall_%s.jar')) }}">i2pinstall_{{ ver() }}.jar</a> ({{ def_mirror.org }})
+    (<a href="{{ get_url('downloads_select', version=ver(), file=ver('i2pinstall_%s.jar')) }}">{{ _('select alternate link') }}</a>)
+    <div class="sig">
+      (SHA256 <code>{{ i2pinstall_jar_sig }}</code>
+      <a href="{{ url_for('downloads_redirect', version=ver(), protocol=def_mirror.protocol, domain=def_mirror.domain, file=ver('i2pinstall_%s.jar.sig')) }}">sig</a>)
+    </div>
+  </div>
+  <div class="details">
+    {% trans i2pversion=ver() -%}
+    Download that file and double-click it (if that works) or
+    type <code>java -jar i2pinstall_{{ i2pversion }}.jar</code> in a terminal to run the
+    installer.
+    On some platforms you may be able to right-click and select
+    &quot;Open with Java&quot;.
+    {%- endtrans %}
+
+    <h2>{% trans %}Command line (headless) install:{% endtrans %}</h2>
+    {% trans i2pversion=ver() -%}
+    Download the graphical installer file above and
+    run <code>java -jar i2pinstall_{{ i2pversion }}.jar -console</code> from the command line.
+    {%- endtrans %}
+  </div>
+</div>
+
+<div class="package">
+  <h1>Debian / Ubuntu</h1>
+  <div class="details">
+    <a href="{{ get_url('downloads_debian') }}">{% trans %}Packages for Debian &amp; Ubuntu are available.{% endtrans %}</a>
+  </div>
+</div>
+
+<div class="package">
+  <h1>Android</h1>
+  <div class="file">
+    <a href="http://{{ i2pconv('stats.i2p') }}/i2p.apk">i2p-android-0.9.7.1-0_b4-API8.apk</a>
+    <div class="sig">
+      (SHA256 <code>{{ i2p_android_sig }}</code>
+      )
+    </div>
+  </div>
+  <div class="details">
+    {% trans devbuild='0.9.7.1-23_b2-API8', str4durl='http://'+i2pconv('str4d.i2p')+'/android/' -%}
+    The above file is the current release build.
+    The latest dev build is version {{ devbuild }}, and is available from
+    <a href="{{ str4durl }}">str4d's eepsite</a>.
+    {%- endtrans %}
+    <div class="warning">
+      {% trans -%}
+      The release and dev versions of the I2P APK are not compatible, as they
+      are signed by zzz and str4d respectively. Uninstall one before installing
+      the other.
+      {%- endtrans %}
+    </div>
+  </div>
+</div>
+
+<div class="package">
+  <h1>{{ _('Source package') }}</h1>
+  <div class="file">
+    <a href="{{ url_for('downloads_redirect', version=ver(), protocol=def_mirror.protocol, domain=def_mirror.domain, file=ver('i2psource_%s.tar.bz2')) }}">i2psource_{{ ver() }}.tar.bz2</a> ({{ def_mirror.org }})
+    (<a href="{{ get_url('downloads_select', version=ver(), file=ver('i2psource_%s.tar.bz2')) }}">{{ _('select alternate link') }}</a>)
+    <div class="sig">
+      (SHA256 <code>{{ i2psource_sig }}</code>
+      <a href="{{ url_for('downloads_redirect', version=ver(), protocol=def_mirror.protocol, domain=def_mirror.domain, file=ver('i2psource_%s.tar.bz2.sig')) }}">sig</a>)
+    </div>
+  </div>
+  <div class="details">
+    {% trans monotoneurl=site_url('get-involved/guides/new-developers'),
+             gitrepo='http://'+i2pconv('git.repo.i2p')+'/w/i2p.i2p.git',
+             github='https://github.com/i2p/i2p.i2p',
+             i2pversion=ver() -%}
+    Alternately, you can fetch the source from <a href="{{ monotoneurl }}#getting-the-i2p-code">monotone</a>
+    or via Git from <a href="{{ gitrepo }}">git.repo.i2p</a> or <a href="{{ github }}">Github</a>.
+    <br />
+    Run <code>(tar xjvf i2psource_{{ i2pversion }}.tar.bz2 ; cd i2p-{{ i2pversion }} ; ant pkg)</code> then either
+    run the GUI installer or headless install as above.
+    {%- endtrans %}
+  </div>
+</div>
+
+</div>
+
+{% trans signingkey=site_url('get-involved/develop/release-signing-key') -%}
+The files are signed by zzz,
+<a href="{{ signingkey }}">whose key is here</a>.
+{%- endtrans %}
+
+<p>{% trans -%}
+I2P can also be downloaded from our project pages on <a href="https://launchpad.net/i2p/trunk">Launchpad</a> and <a href="http://code.google.com/p/i2p/">Google Code</a>.
+{%- endtrans %}</p>
+
+<h3>{{ _('Post-install work') }}</h3>
+
+<p>{% trans -%}
+After running the installer on windows, simply click on the "Start I2P" button
+which will bring up the <a href="http://localhost:7657/index.jsp">router console</a>,
+which has further instructions.
+{%- endtrans %}</p>
+
+<p>{% trans -%}
+On Unix-like systems, I2P can be started as a service
+using the "i2prouter" script, located in the directory you selected for I2P.
+Changing to that directory in a console and issuing "sh i2prouter status"
+should tell you the router's status. The arguments "start", "stop" and "restart"
+control the service. The <a href="http://localhost:7657/index.jsp">router console</a>
+can be accessed at its usual location.
+For users on OpenSolaris and other systems for which the wrapper (i2psvc) is not supported,
+start the router with "sh runplain.sh" instead.
+{%- endtrans %}</p>
+
+<p>{% trans faq=site_url('faq') -%}
+When installing for the first time, please remember to <b>adjust your NAT/firewall</b>
+if you can, bearing in mind the Internet-facing ports I2P uses,
+<a href="{{ faq }}#ports">described here</a> among other ports.
+If you have successfully opened your port to inbound TCP, also enable inbound TCP on the
+<a href="http://localhost:7657/confignet.jsp">configuration page</a>.
+{%- endtrans %}</p>
+
+<p>{% trans -%}
+Also, please review and <b>adjust the bandwidth settings</b> on the
+<a href="http://localhost:7657/config.jsp">configuration page</a>,
+as the default settings of 96 KBps down / 40 KBps up are fairly slow.
+{%- endtrans %}</p>
+
+<p>{% trans browserconfig=site_url('about/browser-config') -%}
+If you want to reach eepsites via your browser, have a look on the <a href="{{ browserconfig }}">browser proxy setup</a> page for an easy howto.
+{%- endtrans %}</p>
+
+<h3 id="update">{{ _('Updates from earlier releases:') }}</h3>
+
+<p>{% trans -%}
+Both automatic and manual upgrades are available for the release.
+{%- endtrans %}</p>
+
+<div class="package">
+  <h1>{{ _('Automatic updates') }}</h1>
+  <div class="details">
+<p>{% trans -%}
+If you are running 0.7.5 or later, your router should detect the
+new release. To upgrade simply click the 'Download Update' button on your router console
+when it appears.
+{%- endtrans %}</p>
+    <div class="warning">
+<p>{% trans -%}
+Due to a bug in release 0.7.6, those whose first I2P installation was that version
+and have not upgraded manually
+may get a "downloaded version is not greater than current version" error,
+and should use the manual update method below.
+{%- endtrans %}</p>
+    </div>
+    <div class="warning">
+<p>{% trans blogpost=get_url('blog_post', slug='2009/06/29/0.7.5-Release') -%}
+If you are running 0.7.4 or earlier, please see
+<a href="{{ blogpost }}">the 0.7.5 release notes</a>
+for important information about how to configure your router to automatically
+receive the release.
+{%- endtrans %}</p>
+    </div>
+    <div class="warning">
+<p>{% trans instructions=site_url('misc/upgrade-0.6.1.30') -%}
+If you are running 0.6.1.30 or earlier, please see
+<a href="{{ instructions }}">instructions</a>
+for important information about how to configure your router to automatically
+receive the release.
+{%- endtrans %}</p>
+
+<ol>
+<li>
+    {% trans instructions=site_url('misc/upgrade-0.6.1.30') -%}
+    If you have reconfigured your router following the <a href="{{ instructions }}">instructions</a>, you should see a link on your 
+    <a href="http://localhost:7657/index.jsp">router console</a> allowing
+    you to download and install the new release by just clicking on that
+    link.
+    {%- endtrans %}
+</li>
+<li>
+    {% trans -%}
+    Alternately, you can use the manual method specified below.
+    {%- endtrans %}
+</li>
+</ol>
+    </div>
+  </div>
+</div>
+
+<div class="package">
+  <h1>{{ _('Manual updates') }}</h1>
+  <div class="file">
+    <a href="{{ url_for('downloads_redirect', version=ver(), protocol=def_mirror.protocol, domain=def_mirror.domain, file=ver('i2pupdate_%s.zip')) }}">i2pupdate_{{ ver() }}.zip</a> ({{ def_mirror.org }})
+    (<a href="{{ get_url('downloads_select', version=ver(), file=ver('i2pupdate_%s.zip')) }}">{{ _('select alternate link') }}</a>)
+    <div class="sig">
+      (SHA256 <code>{{ i2pupdate_sig }}</code>
+      <a href="{{ url_for('downloads_redirect', version=ver(), protocol=def_mirror.protocol, domain=def_mirror.domain, file=ver('i2pupdate_%s.zip.sig')) }}">sig</a>)
+    </div>
+  </div>
+  <div class="details">
+<ol>
+<li>
+    {% trans -%}
+    Download that file to your I2P
+    installation directory and <b>rename as i2pupdate.zip</b>.
+    (alternately, you can get the source as above and run "ant updater", then copy the
+    resulting i2pupdate.zip to your I2P installation directory).  You do 
+    NOT need to unzip that file.
+    {%- endtrans %}
+</li>
+<li>
+    {% trans -%}
+    Click <a href="http://localhost:7657/configservice.jsp">"Restart"</a>
+    {%- endtrans %}
+</li>
+<li>
+    {% trans -%}
+    Grab a cup of coffee and come back in 11 minutes
+    {%- endtrans %}
+</li>
+</ol>
+  </div>
+</div>
+
+{% trans signingkey=site_url('get-involved/develop/release-signing-key') -%}
+The file is signed by zzz,
+<a href="{{ signingkey }}">whose key is here</a>.
+{%- endtrans %}
+
+<h3>{{ _('Previous Releases') }}</h3>
+
+{% trans echelon=i2pconv('echelon.i2p') -%}
+Previous releases are available on <a href="http://code.google.com/p/i2p/downloads/list?can=1">Google Code</a>
+and <a href="https://launchpad.net/i2p/trunk">Launchpad</a>
+and within the I2P network on <a href="http://{{ echelon }}/">{{ echelon }}</a>.
+{%- endtrans %}
+
+{% endblock %}

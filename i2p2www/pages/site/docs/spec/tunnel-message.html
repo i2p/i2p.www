@@ -1,0 +1,314 @@
+{% extends "global/layout.html" %}
+{% block title %}Tunnel Message Specification{% endblock %}
+{% block lastupdated %}November 2013{% endblock %}
+{% block accuratefor %}0.9.9{% endblock %}
+{% block content %}
+<h1>Tunnel Message Specification</h1>
+This document specifies the format of tunnel messages.
+For general information about tunnels see
+<a href="{{ site_url('docs/tunnels/implementation') }}">the tunnel documentation</a>.
+
+<h2>Message preprocessing</h2>
+
+
+A <i>tunnel gateway</i> is the entrance, or first hop, of a tunnel.
+For an outbound tunnel, the gateway is the creator of the tunnel.
+For an inbound tunnel, the gateway is at the opposite end from the creator of the tunnel.
+
+<p>
+A gateway <i>preprocesses</i> <a href="{{ site_url('docs/protocol/i2np') }}">I2NP messages</a>
+by fragmenting and combining them into tunnel messages.
+
+<p>
+While I2NP messages are variable size from 0 to almost 64 KB,
+tunnel messages are fixed-size, approximately 1 KB.
+Fixed message size
+restricts several types of attacks that are possible from
+observing message size.
+
+<p>
+After the tunnel messages are created, they are encrypted as described in
+<a href="{{ site_url('docs/tunnels/implementation') }}">the tunnel documentation</a>.
+
+<h2 id="msg_Data">Tunnel Message (Encrypted)</h2>
+These are the contents of a tunnel data message after encryption.
+{% highlight lang='dataspec' %}
++----+----+----+----+----+----+----+----+
+|    Tunnel_ID      |       IV          |
++----+----+----+----+                   +
+|                                       |
++                   +----+----+----+----+
+|                   |                   |
++----+----+----+----+                   +
+|                                       |
++           Encrypted_Data              +
+~                                       ~
+|                                       |
++                   +-------------------+
+|                   |
++----+----+----+----+
+{% endhighlight %}
+
+<h4>Definition</h4>
+{% highlight lang='dataspec' %}
+Tunnel_ID ::
+       4 bytes
+       the ID of the next hop
+
+IV ::
+       16 bytes
+       the initialization vector
+
+Encrypted_Data ::
+       1008 bytes
+       the encrypted tunnel message
+
+total size: 1028 Bytes
+
+{% endhighlight %}
+
+
+<h2 id="msg_Data">Tunnel Message (Decrypted)</h2>
+These are the contents of a tunnel data message when decrypted.
+{% highlight lang='dataspec' %}
++----+----+----+----+----+----+----+----+
+|    Tunnel_ID      |       IV          |
++----+----+----+----+                   +
+|                                       |
++                   +----+----+----+----+
+|                   |     Checksum      |
++----+----+----+----+----+----+----+----+
+|          nonzero padding..            |
+~                                       ~
+|                                       |
++                                  +----+
+|                                  |zero|
++----+----+----+----+----+----+----+----+
+|                                       |
+|       Delivery Instructions  1        |
+~                                       ~
+|                                       |
++----+----+----+----+----+----+----+----+
+|                                       |
++       I2NP Message Fragment 1         +
+|                                       |
+~                                       ~
+|                                       |
++----+----+----+----+----+----+----+----+
+|                                       |
+|       Delivery Instructions 2...      |
+~                                       ~
+|                                       |
++----+----+----+----+----+----+----+----+
+|                                       |
++       I2NP Message Fragment 2...      +
+|                                       |
+~                                       ~
+|                                       |
++                   +-------------------+
+|                   |
++----+----+----+----+
+{% endhighlight %}
+
+<h4>Definition</h4>
+<pre>
+Tunnel_ID ::
+       4 bytes
+       the ID of the next hop
+
+IV ::
+       16 bytes
+       the initialization vector
+
+Checksum ::
+       4 bytes
+       the first 4 bytes of the SHA256 hash of the remaining contents of the message concatenated with the IV
+
+Nonzero_padding ::
+       0 or more bytes
+       random nonzero data for padding
+
+Zero ::
+       1 byte
+       the value 0x00
+
+Delivery_Instructions ::
+       length varies but is typically 7, 39, 43, or 47 bytes
+       Indicates the fragment and the routing for the fragment
+       See <a href="#delivery">below</a> for specification
+
+Message_Fragment ::
+       1 to 996 bytes, actual maximum depends on delivery instruction size
+       A partial or full I2NP Message
+
+total size: 1028 Bytes
+
+</pre>
+
+
+<p>Note that the padding, if any, must be before the instruction/message pairs.
+there is no provision for padding at the end.</p>
+
+<h2 id="delivery">Delivery Instructions</h2>
+
+<p>The instructions are encoded with a single control byte, followed by any
+necessary additional information.  The first bit (MSB) in that control byte determines
+how the remainder of the header is interpreted - if it is not set, the message 
+is either not fragmented or this is the first fragment in the message.  If it is
+set, this is a follow on fragment.</p>
+
+<p>
+Note that Delivery Instructions are also used inside
+<a href="{{ site_url('docs/spec/i2np') }}#struct_GarlicClove">Garlic Cloves</a>,
+where the format is slightly different. In a Garlic Clove,
+messages are not fragmented, and the fragment bit in the flag byte is
+redefined. See the
+<a href="{{ site_url('docs/spec/i2np') }}#struct_GarlicClove">Garlic Clove documentation</a>
+for more details.
+
+
+<h3>First Fragment Delivery Instructions</h3>
+<p>If the MSB of the first byte is 0, this is an initial I2NP message fragment,
+or a complete I2NP message, and the instructions are:</p>
+{% highlight lang='dataspec' %}
++----+----+----+----+----+----+----+----+
+|flag|  Tunnel ID (opt)  |              |
++----+----+----+----+----+              +
+|                                       |
++                                       +
+|         To Hash (optional)            |
++                                       +
+|                                       |
++                        +--------------+
+|                        |dly | Msg...  |
++----+----+----+----+----+----+----+----+
+|..ID(opt)| ext opts... (opt) |   size  |
++----+----+----+----+----+----+----+----+
+{% endhighlight %}
+
+<h4>Definition</h4>
+<pre>
+flag:
+       1 byte
+       Bit order: 76543210
+       bit 7: 0 to specify an initial fragment
+       bits 6-5: delivery type
+                 For tunnel messages:
+                     0x0 = LOCAL, 0x01 = TUNNEL, 0x02 = ROUTER, 0x03 = unused
+                     Note: LOCAL is used for inbound tunnels only, unimplemented for outbound tunnels
+                 For garlic cloves:
+                     0x0 = LOCAL, 0x01 = DESTINATION, 0x02 = ROUTER, 0x03 = TUNNEL
+       bit 4: delay included?  Unimplemented, always 0
+                           If 1, a delay byte is included
+       bit 3: fragmented?  If 0, the message is not fragmented, what follows is the entire message
+                           If 1, the message is fragmented, and the instructions contain a Message ID
+       bit 2: extended options?  Unimplemented, always 0
+                           If 1, extended options are included
+       bits 1-0: reserved, set to 0 for compatibility with future uses
+
+Tunnel ID:
+       4 bytes
+       Optional, present if delivery type is TUNNEL
+       The destination tunnel ID
+
+To Hash:
+       32 bytes
+       Optional, present if delivery type is DESTINATION, ROUTER, or TUNNEL
+          If DESTINATION, the SHA256 Hash of the destination
+          If ROUTER, the SHA256 Hash of the router
+          If TUNNEL, the SHA256 Hash of the gateway router
+
+Delay:
+       1 byte (tunnel message) or 4 bytes (garlic clove)
+       Optional, present if delay included flag is set
+       In tunnel messages: Unimplemented, never present; original specification:
+          bit 7: type (0 = strict, 1 = randomized)
+          bits 6-0: delay exponent (2^value minutes)
+       In garlic cloves: Not fully implemented. A 4 byte integer specifying the delay in seconds.
+
+Message ID:
+       4 bytes
+       Optional, present if this message is the first of 2 or more fragments
+       An ID that uniquely identifies all fragments as belonging to a single message
+       (the current implementation uses the <a href="{{ site_url('docs/spec/i2np') }}#struct_header">I2NP Message ID</a>)
+
+Extended Options:
+       2 or more bytes
+       Optional, present if extend options flag is set
+       Unimplemented, never present; original specification:
+       One byte length and then that many bytes
+
+size:
+       2 bytes
+       Required in a tunnel message; never present in a garlic clove.
+       The length of the fragment that follows
+       Valid values: 1 to approx. 960 in a tunnel message
+
+Total length: Typical length is:
+       1 byte for LOCAL delivery (garlic clove);
+       3 bytes for LOCAL delivery (tunnel message);
+       35 bytes for ROUTER / DESTINATION delivery or 39 bytes for TUNNEL delivery (unfragmented tunnel message);
+       33 bytes for ROUTER / DESTINATION delivery or 37 bytes for TUNNEL delivery (garlic clove);
+       39 bytes for ROUTER delivery or 43 bytes for TUNNEL delivery (first fragment)
+
+</pre>
+
+<h3>Follow-on Fragment Delivery Instructions</h3>
+<p>If the MSB of the first byte is 1, this is a follow-on fragment, and the instructions are:</p>
+{% highlight lang='dataspec' %}
++----+----+----+----+----+----+----+
+|frag|     Message_ID    |  size   |
++----+----+----+----+----+----+----+
+{% endhighlight %}
+
+<h4>Definition</h4>
+{% highlight lang='dataspec' %}
+frag ::
+       1 byte
+       binary 1nnnnnnd
+              the first bit is 1 to indicate this is a follow-on fragment
+              nnnnnn is the 6 bit fragment number from 1 to 63
+              d is 1 to indicate the last fragment, 0 otherwise
+
+Message_ID ::
+       4 bytes
+       the same ID specified in the first fragment for this message ID
+
+size ::
+       2 bytes
+       the length of the fragment that follows
+       valid values: 1 to 996
+
+total length: 7 bytes
+
+{% endhighlight %}
+
+<h3><a href="http://docs.i2p-projekt.de/javadoc/net/i2p/data/i2np/DeliveryInstructions.html">Delivery Instructions Javadoc</a></h3>
+
+<h2 id="notes">Notes</h2>
+<h3>I2NP Message Maximum Size</h3>
+<p>
+While the maximum I2NP message size is nominally 64 KB, the size is further constrained by the
+method of fragmenting I2NP messages into multiple 1 KB tunnel messages.
+The maximum number of fragments is 64, and the initial fragment may not
+be perfectly aligned at the start of a tunnel message.
+So the message must nominally fit in 63 fragments.
+<p>
+The maximum size of an initial fragment is 956 bytes (assuming TUNNEL delivery mode);
+the maximum size of a follow-on fragment is 996 bytes.
+Therefore the maximum size is approximately 956 + (62 * 996) = 62708 bytes, or 61.2 KB.
+</p>
+
+<h3>Ordering, Batching, Packing</h3>
+Tunnel messages may be dropped or reordered.
+The tunnel gateway, who creates tunnel messages, is free to implement any
+batching, mixing, or reordering strategy to fragment I2NP messages and
+efficiently pack fragments into tunnel messages.
+In general, an optimal packing is not possible (the "packing problem").
+The gateways may implement various delay and reordering strategies.
+
+<h3>Cover Traffic</h3>
+Tunnel messages may contain only padding (i.e. no delivery instructions or message fragments at all)
+for cover traffic. This is unimplemented.
+
+{% endblock %}

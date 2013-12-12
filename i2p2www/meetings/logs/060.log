@@ -1,0 +1,274 @@
+[22:53] <jrand0m> 0.x) welcome 
+[22:53] <jrand0m> 1.x) todo before i2p 0.2: 
+[22:53] <jrand0m> 1.1) bw limiting 
+[22:54] <jrand0m> 1.2) AES the tcp transport 
+[22:54] <jrand0m> 1.3) package up [distro, building, seeding, running] 
+[22:54] <jrand0m> 1.4) ElG session ack discussion 
+[22:54] * hezekiah is away: Is off eating to keep up is strength for his upcoming tests
+[22:54] <jrand0m> 2.x) apps 
+[22:54] <jrand0m> 2.1) ns 
+[22:54] <jrand0m> 2.2) i2pim 
+[22:54] <jrand0m> 2.3) i2ptunnel 
+[22:54] <jrand0m> 3.x) ??? 
+[22:54] <jrand0m> 0.x) welcome 
+[22:54] <jrand0m> welcome to meeting 60 
+[22:54] <dm> thanks
+[22:55] <mihi> oh. 60. whe have something to celebrate ;)
+[22:55] * jrand0m hands out some beers
+[22:55] *** wiht (anon@anon.iip) has joined channel #iip-dev
+[22:55] * mihi does not like alcohol
+[22:55] <thecrypto> hi
+[22:55] * jrand0m takes back the german beer
+[22:55] <thecrypto> i'm not awake
+[22:55] <mihi> but not asleep either ;)
+[22:55] <jrand0m> heh interesting 
+[22:56] <jrand0m> ok, 1.{x,1}) todo before 0.2 
+[22:56] <thecrypto> i just remembered the meeting it today
+[22:56] <thecrypto> i was just discussing wireless cards
+[22:56] <jrand0m> the router is in pretty good shape, and I think 0.2 will be ready for internal dist and testing 
+[22:57] *** Signoff: mihi (EOF From client)
+[22:57] <jrand0m> there are three things that need to get implemented first though.  bandwidth limiting, AES on the TCP, and ElG session ack 
+[22:57] <jrand0m> the bandwidth limiting will be classless for the moment - just one big honking input limit and output limit. 
+[22:58] *** mihi_backup (~mihi@anon.iip) has joined channel #iip-dev
+[22:58] <jrand0m> the code is committed to tie it in, but the limit is set at infinity atm 
+[22:58] <jrand0m> for point 1.2, the TCP transport has key exchange and authentication, but needs encryption 
+[22:59] <jrand0m> nop/semi-awake-thecrypto> thoughts on AES for streaming?   
+[22:59] <thecrypto> carefully
+[22:59] <jrand0m> !thwap 
+[22:59] <thecrypto> sorry
+[23:00] * CounterRev eats popcorn in the grand stands
+[23:00] <jrand0m> CBC using first 16 bytes of H(sessionKey) work, or should we do something else? 
+[23:00] <dm> I can't remember where that originated, exclamation mark before an action.
+[23:00] <thecrypto> i realized when the agenda started being pasted today was tuesday
+[23:00] <jrand0m> dm> some eggdrops use them as command identifiers 
+[23:01] <thecrypto> why not use more bits from the DH for that?
+[23:01] <jrand0m> hmm? 
+[23:01] <thecrypto> i don't see any problem for that
+[23:01] <thecrypto> for the IV
+[23:01] <jrand0m> more bits of what?  X, Y, x, y? 
+[23:02] *** mihi (mihi@anon.iip) has joined channel #iip-dev
+[23:02] <thecrypto> K
+[23:02] <dm> !thwap thecrypto
+[23:02] <thecrypto> what?
+[23:02] <dm> he said X,Y,x or y
+[23:02] <jrand0m> AES 256 only has a 16 byte K 
+[23:02] <jrand0m> er, IV 
+[23:03] <jrand0m> the session key is 32 bytes 
+[23:03] <thecrypto> but you generate many more
+[23:03] <jrand0m> (originally I was stupid and made the IV the first 16 bytes of the key ;) 
+[23:03] <thecrypto> so use 48 bytes from the DH
+[23:04] <dm> we all make mistakes.
+[23:04] <jrand0m> hmm ok, pulling more bytes off the modPow will work.  cool.  but why 48?   
+[23:04] <jrand0m> (why not just another 16?) 
+[23:05] <thecrypto> i meant 32+16
+[23:05] <jrand0m> ah 'k 
+[23:06] <jrand0m> ok cool, CBC with that.  if you or nop or someone else has time (userx?), we can get rekeying / rotating keys in there.  but for the moment I'll get it CBC'ed w/ that IV 
+[23:06] <jrand0m> (rekey would be just drop the connection and re-DH) 
+[23:06] <jrand0m> ok, 1.3) packaging up for 0.2 
+[23:07] <jrand0m> that just means a make / ant script, install / build doc, plus a method for distributing seed routerInfo references  
+[23:07] <jrand0m> (plus, most likely, a set of a few routers for people to connect to) 
+[23:08] <jrand0m> I hope to have 0.2 out and ready for people to d/l and install by this time next week, if not sooner 
+[23:09] <jrand0m> the one last point holding up 0.2 is the ElG session ack 
+[23:09] <dm> can we use 0.2 to talk to each other?
+[23:09] <jrand0m> yes dm 
+[23:09] <dm> ok, that's useful.
+[23:10] <mihi> dm: is talking with you really useful? *veg*
+[23:10] <dm> (Killer App: Cyber Sex)
+[23:10] <jrand0m> 0.2 is definitely not even alpha, so it won't be for the faint of heart 
+[23:10] <jrand0m> heh 
+[23:10] <jrand0m> (but we need to get some testing and experience on some platforms and usage patterns other than my xp box here) 
+[23:11] <dm> I'll take care of the marketing for I2P, I have a knack for it.
+[23:11] <jrand0m> lol 
+[23:11] <dm> 0.2 code name: CyberSex, features, anonymous CyberSex through text.
+[23:11] <jrand0m> ok, the ElG session ack stuff.   
+[23:11] <wiht> I can test on FreeBSD and Gentoo Linux.
+[23:11] <jrand0m> awesome wiht! 
+[23:11] * popopopo can test Debian
+[23:11] <jrand0m> nice 
+[23:12] <thecrypto> i can test on mandrake
+[23:12] * dm can test windows XP
+[23:12] <jrand0m> damn we're going to have pretty good coverage :) 
+[23:12] * dm stands out from the crowd.
+[23:12] <popopopo> I can test win2k as well I think, although that should be about the same as XP I think
+[23:12] <jrand0m> hopefully 
+[23:12] <dm> stick to unix popopopo
+[23:13] * thecrypto plays the trump: I can test win 98 :)
+[23:13] <jrand0m> uuuugh 
+[23:13] * dm welcomes his little brother to the crowd.
+[23:13] <popopopo> I have an old DOS disk around here. Will java run on that? :)
+[23:13] <wiht> popopopo: Probably not.
+[23:13] <jrand0m> actually, probably. 
+[23:14] <jrand0m> since gcc supports java 
+[23:14] <jrand0m> and djgpp runs on dos 
+[23:14] <popopopo> I2P on DOS, now that would be an accomplishment
+[23:14] <mihi_backup> popopopo: there is a commercial java version for DOS ;)
+[23:14] * jrand0m is currently hacking around with gjc to see if we can compile to native
+[23:14] <dm> Getting PPP working on DOS would be accomplishment enough.
+[23:14] <mihi> dm: use arachne.
+[23:15] <popopopo> gcj
+[23:15] <mihi> should work via parallel modem.
+[23:15] <nop> oh shit
+[23:15] <nop> it's tuesday
+[23:15] <nop> haha
+[23:15] <jrand0m> ah right popopopo... I always type it wrong 
+[23:15] <mihi> oops, serial modem ;)
+[23:15] <jrand0m> wb nop ;) 
+[23:15] <thecrypto> nop: you and me both
+[23:15] <nop> haha
+[23:16] <nop> sorry
+[23:16] <nop> my brain is fried this week
+[23:16] <nop> re-cooping
+[23:16] <nop> from this weekend
+[23:16] <thecrypto> nop: you and me both
+[23:16] <jrand0m> ok, the ElG ack stuff. 
+[23:16] <jrand0m> (take 4) 
+[23:16] * CounterRev could test xp as well "its running.. its running... its stopped"
+[23:17] <jrand0m> right now the ElG+AES works by using session tags - 32 byte tags prepended to AES streams to identify what session key to decrypt with 
+[23:17] <mihi> and "it's bluescreened, it's autorebooting"
+[23:17] <jrand0m> (these tags are distributed in the streams, and the session keys are distributed in the ElG) 
+[23:18] <jrand0m> the problem comes up if we lose the first ElG+AES, we've lost the session key as well as the initial set of session tags 
+[23:18] <thecrypto> brb, playing magic
+[23:18] <jrand0m> so we need to make sure messages use ElG instead of AES with a session tag unless we know for sure the session key has been received 
+[23:19] <jrand0m> there are lots of optimizations and tradeoffs here - one could always ElG and just forget about acks 
+[23:19] <jrand0m> (trading cpu for bandwidth) 
+[23:19] <jrand0m> or one could always require an ack for the first block, and then AES 
+[23:20] <jrand0m> but that breaks if the recipient crashes and loses the session key 
+[23:20] * nop is backlogging
+[23:20] <jrand0m> there are a few different patterns that can be used to implement these sessions 
+[23:21] <jrand0m> what I'm probably going to go with is requiring an ack for the ElG message, using AES from then on, but every {$timeperiod, numMessages, bytes} send another ElG 
+[23:22] <dm> like P frames in MPEG!
+[23:22] <jrand0m> 'k, I dont know the MPEG standard really 
+[23:22] <dm> sorry, I frames.
+[23:23] <jrand0m> the thing is, these ElG messages are expensive.  ~0.5-1.0 seconds 
+[23:23] <jrand0m> (cpu time) 
+[23:23] <jrand0m> though, hmm, we could precalculate them 
+[23:23] <jrand0m> (if we don't rotate session keys) 
+[23:23] <mihi> which cpu? ;)
+[23:23] <dm> sender or reciever cpu time?
+[23:24] <jrand0m> exactly mihi - mine.  p4 1.7g.  so we need some perf tuning on the algorithm 
+[23:24] <jrand0m> both dm 
+[23:24] <jrand0m> (.5 encrypt, .5 decrypt) 
+[23:24] <jrand0m> (hand wavey approx) 
+[23:24] * mihi has celeron 700
+[23:24] * dm has PIII 850
+[23:24] <jrand0m> cool.  I'm also getting a sun ultra1 (150Mhz) in a few weeks 
+[23:25] <dm> Why you getting a SUN?
+[23:25] <jrand0m> I'm leaving the option open for reevaluating our ElG keysize if we need to 
+[23:26] <jrand0m> dm> its free (you can buy a u1 for ~50-100 USD).  I also have a few sparc for various purposes 
+[23:26] <dm> sweet.
+[23:27] <jrand0m> ok, unless anyone has any comments on the ElG stuff, on to agenda item 2.x... 
+[23:27] <jrand0m> ok, 2.x) apps 
+[23:27] <jrand0m> 2.1) ns 
+[23:27] <jrand0m> wiht, how goes? 
+[23:28] *** Signoff: mihi_backup (Ping timeout)
+[23:30] <wiht> I have not done any coding on the naming server this past week.
+[23:30] <wiht> I should say "of" the naming server.
+[23:31] <jrand0m> 'k, understandable.. what do you think your schedule looks like for the next few weeks for implementation?  no committment or anything, just wondering 
+[23:31] <wiht> But I will be working on it this week, and should have something more to report during the next meeting.
+[23:31] <jrand0m> cool, great 
+[23:31] <CounterRev> what is i2p like sans ns?
+[23:32] <jrand0m> icq, I suppose 
+[23:32] <wiht> I should be less busy during the next few weeks, and will have time for this. I cannot say when the naming server will be completed at this time.
+[23:32] <jrand0m> you need the secret number for contacting someone, but once you have it, you're ok 
+[23:33] <mihi> CounterRev: lots of very long destination keys...
+[23:33] <jrand0m> CounterRev> I suspect someone will install a squid and an i2ptunnel on their router, allowing people to point at the destination and browse the web anonymously 
+[23:33] *** mihi_backup (~mihi@anon.iip) has joined channel #iip-dev
+[23:33] <jrand0m> ok, 2.2) i2pim... 
+[23:33] <jrand0m> thecrypto> you still playing magic?   
+[23:34] <dm> i2pim, is that the name of the IM app?
+[23:34] <jrand0m> yup 
+[23:34] <wiht> dm: Yes.
+[23:34] <dm> crap! i2m, Invisible Instant messaging.
+[23:34] <dm> i^2m, just like i^2p!
+[23:34] <jrand0m> sounds like there's a market 
+[23:35] <mihi> dm: we had that discussion last meeting...
+[23:35] <dm> fine fine... I'll have to live with it.
+[23:36] <jrand0m> ok, thecrypto is probably still off.  he'll post to the list if there's any news on the i2pim 
+[23:36] <jrand0m> (i hope) 
+[23:36] <jrand0m> ok, 2.3) i2ptunnel 
+[23:36] * jrand0m waves to mihi
+[23:37] <wiht> jrand0m: I see that we have three applications being developed at this time. Have others been proposed?
+[23:37] <mihi> oops...
+[23:37] <mihi> but i have nothing to tell anyway ;)
+[23:37] <mihi> i2p is in cvs; look @ it ;)
+[23:37] <dm> mihi speaks in code.
+[23:38] <jrand0m> heh word.  any updates since you added that config> command? 
+[23:38] <dm> or rather, his code speaks for itself.
+[23:38] <mihi> i2ptunnel is in cvs i mean...
+[23:38] * nop proposes ex-lax for i2p
+[23:38] <mihi> jrand0m: nope.
+[23:38] <jrand0m> coo' 
+[23:38] <jrand0m> would that be like a LaTeX clone nop? 
+[23:39] <jrand0m> wiht> some various discussions, but those three have been the main ones discussed 
+[23:39] <jrand0m> (the i2ptunnel enables a shitload of normal apps to operate over it) 
+[23:40] <dm> has it been tested with anything?
+[23:40] <mihi> i2ptunnel has been tested extensively with the local router.
+[23:40] <dm> (not locally)
+[23:40] <jrand0m> I've done some web browsing with it, as well as ssh 
+[23:40] <jrand0m> (browsing a single site, that is) 
+[23:41] * wiht wonders if that website can still track people through cookies.
+[23:41] <dm> great.
+[23:41] <jrand0m> sure wiht, cookies are still sent  
+[23:43] <jrand0m> ok, thats it for apps atm, and on to 3.x) ??? 
+[23:43] <jrand0m> any questions, thoughts, concerns, toenail clippers, hedgehogs? 
+[23:43] <mihi> a pony? ;)
+[23:43] <jrand0m> yeah, I want a pony! 
+[23:43] * dm raises his glass.
+[23:43] <mihi> nop will give you onw...
+[23:43] <dm> TO 0.2!!!
+[23:44] <jrand0m> oh yeah, mihi pointed out that in 17 minutes we miss the deadline I set in my flog a month ago 
+[23:44] <jrand0m> to 1.0! 
+[23:45] <mihi> 7 minutes ;)
+[23:45] <dm> so 2 weeks from now, we'll have 20 people on the network who'll be able to send texts to each other?
+[23:45] <jrand0m> I said we'd have an alpha out by end of september.  well, it looks like we'll be a little late on that, but I think we're still making a good pace 
+[23:45] <jrand0m> yes dm (and files, etc) 
+[23:45] <nop> sickening
+[23:45] <jrand0m> there will still be room for performance improvements, of course.  there hasn't been much tuning at all 
+[23:45] <nop> sorry, I already spent my budget the next month
+[23:45] <dm> Alrighty, well if that happens, I will applaud.
+[23:45] <nop> pony has to wait
+[23:46] <jrand0m> damnit! 
+[23:46] <nop> bought a grand piano instead
+[23:46] <nop> ;)
+[23:46] <jrand0m> heh nice 
+[23:47] <mihi> jrand0m: here are some virtual ponies for you: (Link: http://tinyurl.com/p8kx)http://tinyurl.com/p8kx
+[23:47] <dm> estimated latency?
+[23:47] <dm> with network < 30 nodes?
+[23:48] <jrand0m> dm> depends on the sender and receiver's tunnel length 
+[23:48] <dm> order of magnitude.
+[23:48] <jrand0m> (e.g. if they have 0 length tunnels, it'll be approx 400ms) 
+[23:49] <dm> 0 length tunnels, don't know how I2P works, but 0 length doesn't sound good ;)
+[23:49] <mihi> or (Link: http://tinyurl.com/p8l7)http://tinyurl.com/p8l7
+[23:49] <jrand0m> if they have 2 hop tunnels, the latency should be ~ 1s 
+[23:49] <dm> alrighty.
+[23:49] <dm> throughput?
+[23:50] <dm> harder to estimate?
+[23:50] <jrand0m> depends on bandwidth 
+[23:51] <dm> Say X is the non I2P bandwidth between 2 nodes, through all the hops I2P uses.
+[23:51] <dm> what is the equation for Y(X) where Y is the throughput of I2P from one node to the other.
+[23:51] <jrand0m> I2P doesn't add a significant overhead to the size of the data 
+[23:52] <dm> alrighty.
+[23:52] <dm> wait and see I guess.
+[23:53] <jrand0m> once she's up and running, we'll definitely get some modeling going on 
+[23:53] <dm> aye..
+[23:54] * dm raises his glass.
+[23:54] <dm> To women!
+[23:54] <mihi> dm: you forgot to lower it first ;)
+[23:55] <dm> You germans...
+[23:55] <dm> You wacky germans.
+[23:55] <jrand0m> ok, I think thazzabout it 
+[23:55] <dm> It's no suprise an american is leading us into the 21st century of anonymous networking.
+[23:55] * mihi /igs dm
+[23:55] <jrand0m> american? 
+[23:56] <mihi> jrand0m is spanish i guess.
+[23:56] <dm> I was referring to you!
+[23:56] <mihi> or italian or sth in CET timezone.
+[23:56] <dm> jrand0m, the quiet american.
+[23:56] <wiht> dm: jrand0m seems to be a European.
+[23:56] <dm> !thwap mihi
+[23:57] <dm> !thwap wiht
+[23:57] <dm> jrand0m: your team members don't know you well.
+[23:58] * jrand0m thinks dm has been drinkin a lil too much, but its time for me to do the same. 
+[23:58] * jrand0m raises the *baf*...
+[23:58] <dm> nice try jr!
+[23:58] * jrand0m *baf*s the meeting away

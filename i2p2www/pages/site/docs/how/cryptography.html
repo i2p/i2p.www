@@ -1,0 +1,463 @@
+{% extends "global/layout.html" %}
+{% block title %}{% trans %}Low-level Cryptography Details{% endtrans %}{% endblock %}
+{% block lastupdated %}{% trans %}November 2013{% endtrans %}{% endblock %}
+{% block accuratefor %}0.9.9{% endblock %}
+{% block content %}
+<p>{% trans -%}
+This page specifies the low-level details of the cryptography in I2P.
+{%- endtrans %}</p>
+
+<p>{% trans elgamalaes=site_url('docs/how/elgamal-aes') -%}
+There are a handful of cryptographic algorithms in use within I2P, but we have
+reduced them to a bare minimum to deal with our needs - one symmetric algorithm
+one asymmetric algorithm, one signing algorithm, and one hashing algorithm.  However, 
+we do combine them in some particular ways to provide message integrity (rather than
+relying on a MAC).  In addition, as much as we hate doing anything new in regards to 
+cryptography, we can't seem to find a reference discussing (or even naming) the 
+technique used in <a href="{{ elgamalaes }}">ElGamal/AES+SessionTag</a> (but we're sure others have done it).
+{%- endtrans %}</p>
+
+<h2><a name="elgamal">{% trans %}ElGamal encryption{% endtrans %}</a></h2>
+
+<p>{% trans %}
+ElGamal is used for asymmetric encryption.
+ElGamal is used in several places in I2P:
+{%- endtrans %}</p>
+<ul>
+<li>{% trans tunnelcreation=site_url('docs/spec/tunnel-creation') -%}
+To encrypt router-to-router <a href="{{ tunnelcreation }}">Tunnel Build Messages</a>
+{%- endtrans %}</li>
+<li>{% trans elgamalaes=site_url('docs/how/elgamal-aes'), commonstructures=site_url('docs/spec/common-structures') -%}
+For end-to-end (destination-to-destination) encryption as a part of <a href="{{ elgamalaes }}">ElGamal/AES+SessionTag</a>
+using the encryption key in the <a href="{{ commonstructures }}#struct_LeaseSet">LeaseSet</a>
+{%- endtrans %}</li>
+<li>{% trans netdb=site_url('docs/how/network-database'), elgamalaes=site_url('docs/how/elgamal-aes') -%}
+For encryption of some <a href="{{ netdb }}#delivery">netDb stores and queries sent to floodfill routers</a>
+as a part of <a href="{{ elgamalaes }}">ElGamal/AES+SessionTag</a>
+(destination-to-router or router-to-router).
+{%- endtrans %}</li>
+</ul>
+
+<p>{% trans -%}
+We use common primes for 2048 ElGamal encryption and decryption, as given by <a href="http://tools.ietf.org/html/rfc3526">IETF RFC-3526</a>.
+We currently only use ElGamal to encrypt the IV and session key in a single block, followed by the 
+AES encrypted payload using that key and IV.
+{%- endtrans %}</p>
+
+<p>{% trans -%}
+The unencrypted ElGamal contains: 
+{%- endtrans %}</p>
+{% highlight lang='dataspec' %}
+   +----+----+----+----+----+----+----+----+
+   |nonz|           H(data)                |
+   +----+                                  +
+   |                                       |
+   +                                       +
+   |                                       |
+   +                                       +
+   |                                       |
+   +    +----+----+----+----+----+----+----+
+   |    |  data...
+   +----+----+----+-//
+{% endhighlight %}
+
+<p>{% trans -%}
+The H(data) is the SHA256 of the data that is encrypted in the ElGamal block,
+and is preceded by a nonzero byte. 
+This byte could be random, but as implemented it is always 0xFF.
+It could possibly be used for flags in the future.
+The data encrypted in the block may be up to 222 bytes long.
+As the encrypted data may contain a substantial number of zeros if the
+cleartext is smaller than 222 bytes, it is recommended that higher layers pad
+the cleartext to 222 bytes with random data.
+Total length: typically 255 bytes.
+{%- endtrans %}</p>
+
+<p>{% trans -%}
+The encrypted ElGamal contains: 
+{%- endtrans %}</p>
+</p>
+{% highlight lang='dataspec' %}
+   +----+----+----+----+----+----+----+----+
+   |  zero padding...       |              |
+   +----+----+----+-//-+----+              +
+   |                                       |
+   +                                       +
+   |       ElG encrypted part 1            |
+   ~                                       ~
+   |                                       |
+   +    +----+----+----+----+----+----+----+
+   |    |   zero padding...      |         |
+   +----+----+----+----+-//-+----+         +
+   |                                       |
+   +                                       +
+   |       ElG encrypted part 2            |
+   ~                                       ~
+   |                                       |
+   +         +----+----+----+----+----+----+
+   |         +
+   +----+----+
+{% endhighlight %}
+
+<p>{% trans -%}
+Each encrypted part is prepended with zeros to a size of exactly 257 bytes.
+Total length: 514 bytes.
+In typical usage, higher layers pad the cleartext data to 222 bytes,
+resulting in an unencrypted block of 255 bytes.
+This is encoded as two 256-byte encrypted parts,
+and there is a single byte of zero padding before each part at this layer.
+{%- endtrans %}</p>
+
+<p>{% trans url='https://github.com/i2p/i2p.i2p/tree/master/core/java/src/net/i2p/crypto/ElGamalEngine.java' -%}
+See <a href="{{ url }}">the ElGamal code</a>.
+{%- endtrans %}</p>
+
+<p>{% trans -%}
+The shared prime is the 
+<a href="http://tools.ietf.org/html/rfc3526#section-3">[Oakley prime for 2048 bit keys]</a>
+{%- endtrans %}</p>
+<pre>
+ 2^2048 - 2^1984 - 1 + 2^64 * { [2^1918 pi] + 124476 }
+</pre>
+<p>{% trans -%}
+or as a hexadecimal value:
+{%- endtrans %}</p>
+<pre>
+ FFFFFFFF FFFFFFFF C90FDAA2 2168C234 C4C6628B 80DC1CD1
+ 29024E08 8A67CC74 020BBEA6 3B139B22 514A0879 8E3404DD
+ EF9519B3 CD3A431B 302B0A6D F25F1437 4FE1356D 6D51C245
+ E485B576 625E7EC6 F44C42E9 A637ED6B 0BFF5CB6 F406B7ED
+ EE386BFB 5A899FA5 AE9F2411 7C4B1FE6 49286651 ECE45B3D
+ C2007CB8 A163BF05 98DA4836 1C55D39A 69163FA8 FD24CF5F
+ 83655D23 DCA3AD96 1C62F356 208552BB 9ED52907 7096966D
+ 670C354E 4ABC9804 F1746C08 CA18217C 32905E46 2E36CE3B
+ E39E772C 180E8603 9B2783A2 EC07A28F B5C55DF0 6F4C52C9
+ DE2BCBF6 95581718 3995497C EA956AE5 15D22618 98FA0510
+ 15728E5A 8AACAA68 FFFFFFFF FFFFFFFF
+</pre>
+<p>{% trans -%}
+Using 2 as the generator.
+{%- endtrans %}</p>
+
+<h3>{% trans %}Short Exponent{% endtrans %}</h3>
+<p>{% trans commonstructures=site_url('docs/spec/common-structures'),
+pdf='http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.14.5952&amp;rep=rep1&amp;type=pdf',
+benchmarks=site_url('misc/benchmarks'),
+oldbenchmarks='http://www.eskimo.com/~weidai/benchmarks.html' -%}
+While the standard exponent size is 2048 bits (256 bytes) and the I2P
+<a href="{{ commonstructures }}#type_PrivateKey">PrivateKey</a>
+is a full 256 bytes,
+we use the short exponent size of 226 bits (28.25 bytes).
+This should be safe for use with the Oakley primes, per
+<a href="{{ pdf }}">On Diffie-Hellman Key Agreement with Short Exponents - van Oorschot, Weiner</a>
+at EuroCrypt 96, and <a href="{{ benchmarks }}">crypto++'s benchmarks</a>.
+Benchmarks originally at <code>{{ oldbenchmarks }}</code> (now dead),
+rescued from <a href="http://www.archive.org/">the wayback machine</a>, dated Apr 23, 2008.
+{%- endtrans %}</p>
+
+<p>{% trans book='http://www.springerlink.com/content/2jry7cftp5bpdghm/',
+fulltext='http://books.google.com/books?id=cXyiNZ2_Pa0C&amp;lpg=PA173&amp;ots=PNIz3dWe4g&amp;pg=PA173#v=onepage&amp;q&amp;f=false',
+thread='http://groups.google.com/group/sci.crypt/browse_thread/thread/1855a5efa7416677/339fa2f945cc9ba0#339fa2f945cc9ba0' -%}
+Also, <a href="{{ book }}">Koshiba &amp; Kurosawa: Short Exponent Diffie-Hellman Problems</a> (PKC 2004, LNCS 2947, pp. 173-186)
+<a href="{{ fulltext }}">(full text on Google Books)</a> apparently supports this, according to
+<a href="{{ thread }}">this sci.crypt thread</a>.
+The remainder of the PrivateKey is padded with zeroes.
+{%- endtrans %}</p>
+
+<h4>{% trans %}Obsolescence{% endtrans %}</h4>
+<p>{% trans -%}
+The vulnerability of the network to an ElGamal attack and the impact of transitioning to a longer bit length is to be studied.
+It may be quite difficult to make any change backward-compatible.
+{%- endtrans %}</p>
+
+
+<h2><a name="AES">AES</a></h2>
+
+<p>{% trans -%}
+AES is used for symmetric encryption, in several cases:
+{%- endtrans %}</p>
+
+<ul>
+<li>{% trans -%}
+For <a href="#transports">transport encryption</a> after DH key exchange
+{%- endtrans %}</li>
+
+<li>{% trans elgamalaes=site_url('docs/how/elgamal-aes') -%}
+For end-to-end (destination-to-destination) encryption as a part of <a href="{{ elgamalaes }}">ElGamal/AES+SessionTag</a>
+{%- endtrans %}</li>
+
+<li>{% trans netdb=site_url('docs/how/network-database'), elgamalaes=site_url('docs/how/elgamal-aes') -%}
+For encryption of some <a href="{{ netdb }}#delivery">netDb stores and queries sent to floodfill routers</a>
+as a part of <a href="{{ elgamalaes }}">ElGamal/AES+SessionTag</a>
+(destination-to-router or router-to-router).
+{%- endtrans %}</li>
+
+<li>{% trans tunnelrouting=site_url('docs/how/tunnel-routing') -%}
+For encryption of <a href="{{ tunnelrouting }}#testing">periodic tunnel test messages</a> sent from the router to itself, through its own tunnels.
+{%- endtrans %}</li>
+</ul>
+
+<p>{% trans rfc2313='http://tools.ietf.org/html/rfc2313',
+code1='https://github.com/i2p/i2p.i2p/tree/master/core/java/src/net/i2p/crypto/CryptixAESEngine.java',
+code2='https://github.com/i2p/i2p.i2p/tree/master/core/java/src/net/i2p/crypto/CryptixRijndael_Algorithm.java',
+code3='https://github.com/i2p/i2p.i2p/tree/master/core/java/src/net/i2p/crypto/ElGamalAESEngine.java' -%}
+We use AES with 256 bit keys and 128 bit blocks in CBC mode.
+The padding used is specified in <a href="{{ rfc2313 }}">IETF RFC-2313 (PKCS#5 1.5, section 8.1 (for block type 02))</a>.
+In this case, padding exists of pseudorandomly generated octets to match 16 byte blocks.
+Specifically, see <a href="{{ code1 }}">[the CBC code]</a> and the Cryptix AES
+<a href="{{ code2 }}">[implementation]</a>, as well as the padding, found in the
+<a href="{{ code3 }}">ElGamalAESEngine.getPadding</a> function.
+{%- endtrans %}</p>
+
+<!-- *********************************************************************************
+     Believe it or not, we don't do this any more. If we ever did. safeEncode() and safeDecode() are unused.
+
+<p>
+In all cases, we know the size of the data to be sent, and we AES encrypt the following:
+<p>
+<pre>
+   +----+----+----+----+----+----+----+----+
+   |                H(data)                |
+   +                                       +
+   |                                       |
+   +                                       +
+   |                                       |
+   +                                       +
+   |                                       |
+   +----+----+----+----+----+----+----+----+
+   |        size       |    data ...       |
+   +----+----+----+----+                   +
+   |                                       |
+   ~                                       ~
+   |                                       |
+   +                                       +
+   |                                       |
+   +                        +----//---+----+
+   |                        |              |
+   +----+----+----//---+----+              +
+   |          Padding to 16 bytes          |
+   +----+----+----+----+----+----+----+----+
+
+H(data): 32-byte SHA-256 Hash of the data
+
+size: 4-byte Integer, number of data bytes to follow
+
+data: payload
+
+padding: random data, to a multiple of 16 bytes
+
+</pre>
+<p>
+After the data comes an application-specified number of randomly generated padding bytes.
+This application-specified number is rounded up to a multiple of 16.
+The entire segment (from H(data) through the end of the random bytes) is AES encrypted 
+(256 bit CBC w/ PKCS#5). 
+
+<p>
+This code is implemented in the safeEncrypt and safeDecrypt methods of 
+AESEngine but it is unused.
+</p>
+
+***************************************************************   -->
+
+
+<h4>{% trans %}Obsolescence{% endtrans %}</h4>
+<p>{% trans -%}
+The vulnerability of the network to an AES attack and the impact of transitioning to a longer bit length is to be studied.
+It may be quite difficult to make any change backward-compatible.
+{%- endtrans %}</p>
+
+<h4>{% trans %}References{% endtrans %}</h4>
+<ul>
+<li>
+<a href="{{ get_url('blog_post', slug='2006/02/07/status') }}">{% trans %}Feb. 7, 2006 Status Notes{% endtrans %}</a>
+</li>
+</ul>
+
+
+<h2><a name="DSA">DSA</a></h2>
+
+<p>{% trans code='https://github.com/i2p/i2p.i2p/tree/master/core/java/src/net/i2p/crypto/DSAEngine.java' -%}
+Signatures are generated and verified with 1024 bit DSA (L=1024, N=160), as implemented in
+<a href="{{ code }}">[DSAEngine]</a>.
+DSA was chosen because it is much faster for signatures than ElGamal.
+{%- endtrans %}</p>
+
+<h3>{% trans %}The DSA constants{% endtrans %}</h3>
+
+<h4>SEED</h4>
+
+<p>160 bit</p>
+
+<pre>
+ 86108236b8526e296e923a4015b4282845b572cc
+</pre>
+
+<h4>Counter</h4>
+
+<pre>
+ 33
+</pre>
+<p>
+<H4>DSA prime (p)</H4>
+
+<p>1024 bit</p>
+
+<p>
+<pre>
+ 9C05B2AA 960D9B97 B8931963 C9CC9E8C 3026E9B8 ED92FAD0
+ A69CC886 D5BF8015 FCADAE31 A0AD18FA B3F01B00 A358DE23
+ 7655C496 4AFAA2B3 37E96AD3 16B9FB1C C564B5AE C5B69A9F
+ F6C3E454 8707FEF8 503D91DD 8602E867 E6D35D22 35C1869C
+ E2479C3B 9D5401DE 04E0727F B33D6511 285D4CF2 9538D9E3
+ B6051F5B 22CC1C93
+</pre>
+<p>
+<H4>DSA quotient (q)</H4>
+
+<p>
+<pre>
+ A5DFC28F EF4CA1E2 86744CD8 EED9D29D 684046B7
+</pre>
+<p>
+<H4>DSA generator (g)</H4>
+
+<p>1024 bit</p>
+
+<p>
+<pre>
+ 0C1F4D27 D40093B4 29E962D7 223824E0 BBC47E7C 832A3923
+ 6FC683AF 84889581 075FF908 2ED32353 D4374D73 01CDA1D2
+ 3C431F46 98599DDA 02451824 FF369752 593647CC 3DDC197D
+ E985E43D 136CDCFC 6BD5409C D2F45082 1142A5E6 F8EB1C3A
+ B5D0484B 8129FCF1 7BCE4F7F 33321C3C B3DBB14A 905E7B2B
+ 3E93BE47 08CBCC82
+</pre>
+
+<p>{% trans commonstructures=site_url('docs/spec/common-structures') -%}
+The <a href="{{ commonstructures }}#type_SigningPublicKey">Signing Public Key</a> is 1024 bits.
+The <a href="{{ commonstructures }}#type_SigningPrivateKey">Signing Private Key</a> is 160 bits.
+{%- endtrans %}</p>
+
+
+<h4>{% trans %}Obsolescence{% endtrans %}</h4>
+<p>{% trans pdf='http://csrc.nist.gov/publications/nistpubs/800-57/sp800-57-Part1-revised2_Mar08-2007.pdf' -%}
+<a href="{{ pdf }}">NIST 800-57</a>
+recommends a minimum of (L=2048, N=224) for usage beyond 2010.
+This may be mitigated somewhat by the "cryptoperiod", or lifespan of a given key.
+{%- endtrans %}</p>
+
+<p>{% trans -%}
+The prime number was chosen <a href="#choosing_constants">in 2003</a>,
+and the person that chose the number (TheCrypto) is currently no longer an I2P developer.
+As such, we do not know if the prime chosen is a 'strong prime'.
+If a larger prime is chosen for future purposes, this should be a strong prime, and we will document the construction process.
+{%- endtrans %}</p>
+
+<p>{% trans -%}
+The vulnerability of the network to a DSA attack and the impact of transitioning to longer keys is to be studied.
+It may be quite difficult to make any change backward-compatible.
+{%- endtrans %}</p>
+
+<h4>{% trans %}References{% endtrans %}</h4>
+<ul>
+<li>
+<a href="{{ get_url('meetings_show', id=51) }}">{% trans num=51 %}Meeting {{ num }}{% endtrans %}</a>
+<li>
+<a href="{{ get_url('meetings_show', id=52) }}">{% trans num=52 %}Meeting {{ num }}{% endtrans %}</a>
+<li>
+<a name="choosing_constants" href="http://article.gmane.org/gmane.comp.security.invisiblenet.iip.devel/343">{% trans %}Choosing the constants{% endtrans %}</a>
+<li>
+<a href="http://en.wikipedia.org/wiki/Digital_Signature_Algorithm">DSA</a>
+</ul>
+
+
+<H2><a name="SHA256">SHA256</a></H2>
+
+<p>{% trans code='https://github.com/i2p/i2p.i2p/tree/master/core/java/src/net/i2p/crypto/SHA256Generator.java' -%}
+Hashes within I2P are plain old SHA256, as implemented in
+<a href="{{ code }}">[SHA256Generator]</a>
+{%- endtrans %}</p>
+
+<h4>{% trans %}Obsolescence{% endtrans %}</h4>
+<p>{% trans -%}
+The vulnerability of the network to a SHA-256 attack and the impact of transitioning to a longer hash is to be studied.
+It may be quite difficult to make any change backward-compatible.
+{%- endtrans %}</p>
+
+<h4>{% trans %}References{% endtrans %}</h4>
+<ul>
+<li>
+<a href="http://en.wikipedia.org/wiki/SHA-2">SHA-2</a>
+</ul>
+
+<h2 id="transports">{% trans %}Transports{% endtrans %}</h2>
+<p>{% trans -%}
+At the lowest protocol layer,
+point-to-point inter-router communication is protected by the transport layer security.
+Both transports use 256 byte (2048 bit) Diffie-Hellman key exchange
+using
+<a href="#elgamal">the same shared prime and generator as specified above for ElGamal</a>,
+followed by symmetric AES encryption as described above.
+This provides
+<a href="http://en.wikipedia.org/wiki/Perfect_forward_secrecy">perfect forward secrecy</a>
+on the transport links.
+{%- endtrans %}</p>
+
+<h3><a name="tcp">{% trans %}NTCP connections{% endtrans %}</a></h3>
+
+<p>{% trans elgamalaes=site_url('docs/how/elgamal-aes') -%}
+NTCP connections are negotiated with a 2048 Diffie-Hellman implementation,
+using the router's identity to proceed with a station to station agreement, followed by
+some encrypted protocol specific fields, with all subsequent data encrypted with AES
+(as above).
+The primary reason to do the DH negotiation instead of using <a href="{{ elgamalaes }}">ElGamalAES+SessionTag</a> is that it provides '<a href="http://en.wikipedia.org/wiki/Perfect_forward_secrecy">(perfect) forward secrecy</a>', while <a href="{{ elgamalaes }}">ElGamalAES+SessionTag</a> does not.
+{%- endtrans %}</p>
+
+<p>{% trans -%}
+In order to migrate to a more standardized implementation (TLS/SSL or even SSH), the following issues must be addressed:
+{%- endtrans %}</p>
+<ol>
+<li>{% trans -%}
+Can we somehow reestablish sessions securely (ala session tags) or do we need to do full negotiation each time?
+{%- endtrans %}</li>
+<li>{% trans -%}
+Can we simplify/avoid the x509 or other certificate formats and use our own RouterInfo structure (which 
+contains the ElGamal and DSA keys)?
+{%- endtrans %}</li>
+</ol>
+<p>{% trans ntcp=site_url('docs/transport/ntcp') -%}
+See <a href="{{ ntcp }}">the NTCP specification</a> for details.
+{%- endtrans %}</p>
+
+<h3><a name="udp">{% trans %}UDP connections{% endtrans %}</a></h3>
+<p>{% trans -%}
+SSU (the UDP transport) encrypts each packet with AES256/CBC with both an explicit IV and MAC 
+(HMAC-MD5-128) after agreeing upon an ephemeral session key through a 2048 bit 
+Diffie-Hellman exchange, station-to-station authentication with the other 
+router's DSA key, plus each network message has their own hash for local integrity 
+checking.
+{%- endtrans %}</p>
+
+<p>{% trans ssu=site_url('docs/transport/ssu') -%}
+See <a href="{{ ssu }}#keys">the SSU specification</a> for details.
+{%- endtrans %}</p>
+
+<p>{% trans statusnotes=get_url('blog_post', slug='2005/07/05/status') -%}
+WARNING - I2P's HMAC-MD5-128 used in SSU is apparently non-standard.
+Apparently, an early version of SSU used HMAC-SHA256, and then it was switched
+to MD5-128 for performance reasons, but left the 32-byte buffer size intact.
+See HMACGenerator.java and
+<a href="{{ statusnotes }}">the 2005-07-05 status notes</a>
+for details.
+{%- endtrans %}</p>
+
+
+<h2>{% trans %}References{% endtrans %}</h2>
+<ul>
+<li>
+<a href="http://csrc.nist.gov/publications/nistpubs/800-57/sp800-57-Part1-revised2_Mar08-2007.pdf">NIST 800-57</a>
+</li>
+</ul>
+
+{% endblock %}

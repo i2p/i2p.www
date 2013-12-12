@@ -1,0 +1,137 @@
+{% extends "global/layout.html" %}
+{% block title %}jbigi{% endblock %}
+{% block lastupdated %}{% trans %}August 2011{% endtrans %}{% endblock %}
+{% block accuratefor %}0.8.7{% endblock %}
+{% block content %}
+<h2>{% trans %}Overview{% endtrans %}</h2>
+<p>{% trans -%}
+Using JNI (Java Native Interface), a bit of C code (thanks ugha!), a little
+manual work and a piece of chewing gum we have made several
+cryptography operations quite a bit faster.
+{%- endtrans %}</p>
+
+<p>{% trans gmplib='http://gmplib.org/',
+func='http://gmplib.org/manual-4.3.2/Integer-Exponentiation.html#Integer-Exponentiation',
+bigint='http://download.oracle.com/javase/1.5.0/docs/api/java/math/BigInteger.html#modPow%28java.math.BigInteger,%20java.math.BigInteger%29' -%}
+The speedup comes from the super-fast
+<a href="{{ gmplib }}">GNU MP Bignum library (libgmp)</a>.
+We use a single function from libgmp -
+<a href="{{ func }}">mpz_powm()</a>
+as a replacement for the
+<a href="{{ bigint }}">Java Math library's BigInteger modPow()</a>.
+As modPow() is a significant computational portion of many crypto operations, this is of significant benefit.
+{%- endtrans %}</p>
+
+<p>{% trans nativebigint='http://docs.i2p-projekt.de/javadoc/net/i2p/util/NativeBigInteger.html',
+bigint='http://download.oracle.com/javase/1.5.0/docs/api/java/math/BigInteger.html#modPow%28java.math.BigInteger,%20java.math.BigInteger%29' -%}
+The standard I2P installation includes about 20 versions of the library for different platforms,
+each about 50KB, inside the jbigi.jar file.
+The initialization of the JBigI library, including CPU identification, selection, and extraction
+of the correct loadable module, is handled by the
+<a href="{{ nativebigint }}">NativeBigInteger class</a>.
+If no module is available for the current platform, the standard
+<a href="{{ bigint }}">Java Math library's BigInteger modPow()</a>
+is used.
+{%- endtrans %}</p>
+
+
+<h2>{% trans %}Rebuilding and Testing JBigI{% endtrans %}</h2>
+{% trans %}Following are the instructions to build a new jbigi library for your own platform
+and testing its performance.{% endtrans %}
+
+<h3>{% trans %}Requirements{% endtrans %}</h3>
+<p>{% trans -%}
+This works on Linux, and with a few changes in build.sh probably also on
+other platforms. FreeBSD has also been reported to work too. On Kaffee the
+speedup is very small, because it already uses native BitInteger internally.
+Blackdown seems to cause strange errors. Because you are going to do
+compilation, you need JDK; JRE won't work.
+{%- endtrans %}</p>
+<p>{% trans %}The required code is available in monotone database and the latest source tarball. {% endtrans %}</p>
+<p>{% trans -%}
+The GNU MP Bignum library (libgmp) needs to be installed, if it isn't
+included in your OS / distribution or installed already, it can be received from
+<a href="http://gmplib.org/#DOWNLOAD">http://gmplib.org/#DOWNLOAD</a>. Even if you
+have already installed it as binary, it might still be worth a try to compile
+GMP yourself, since then it will be able to use the specific instructions of
+your processor. The latest GMP may also
+be used instead of GMP 5.0.2, but it hasn't been tested by us.
+{%- endtrans %}</p>
+
+<h3>{% trans %}Step-by-step instructions{% endtrans %}</h3>
+<ol>
+<li>{% trans %}Look at <a href="http://localhost:7657/logs.jsp">your running environment on the logs.jsp page</a>.
+There should be one of two status messages for JBigI - either{% endtrans %}
+<tt>
+{% trans %}Locally optimized native BigInteger loaded from the library path{% endtrans %}
+</tt>
+{% trans %}or{% endtrans %}
+<tt>
+{% trans %}Native BigInteger library jbigi not loaded - using pure java{% endtrans %}</tt>.
+{% trans %}If the native BitInteger library was NOT loaded, you definitely need to
+compile your own.
+Certain platforms, such as OS X, OpenSolaris, and 64-bit systems,
+may require you to compile your own library.
+If the BigInteger library was loaded, do at least the next step to see
+what your performance is.{% endtrans %}
+</li>
+<li>{% trans -%}
+Look on <a href="http://localhost:7657/stats.jsp">http://localhost:7657/stats.jsp</a>
+to see what the lifetime average values for <code>crypto.elGamal.decrypt</code> and
+<code>crypto.elGamal.encrypt</code> are. The numbers are times in milliseconds. Copy these somewhere so you can compare
+them later on.
+The network average for encrypt time is about 20ms.
+If your encrypt time is less than 50ms for a relatively new processor, or less than 100ms
+for an older processor, and the native BigInteger library was loaded, you are probably fine.
+{%- endtrans %}</li>
+<li>{% trans downloads=get_url('downloads_list') -%}
+Get the latest released source code of I2P from
+<a href="{{ downloads }}">the download page</a>, or get the cutting-edge source
+out of the monotone database mtn.i2p2.de
+{%- endtrans %}</li>
+<li>{% trans %}Inside the source tree change directory to: <code>core/c/jbigi</code>{% endtrans %}</li>
+<li>{% trans -%}
+Read the README file.
+If you have a /usr/lib/libgmp.so file, you do not have to download GMP.
+Use the 'dynamic' argument to build.sh.
+Otherwise, you must download GMP version 5.0.2 from
+from <a href="http://gmplib.org/#DOWNLOAD">http://gmplib.org/#DOWNLOAD</a>, saving it to gmp-5.0.2.tar.bz2.
+If you decide to use a newer version, change the VER= line in <code>core/c/jbigi/build.sh</code>.
+{%- endtrans %}
+<li>{% trans -%}
+Take a look at <code>build.sh</code>, if your <code>JAVA_HOME</code>
+environment variable is set and you are using Linux then it might just work.
+Otherwise change the settings. Remember, you need the Java SDK installed.
+{%- endtrans %}</li>
+<li>{% trans -%}
+Run <code>build.sh</code> (if you downloaded GMP) or
+<code>build.sh dynamic</code> (if you have /usr/lib/libgmp.so).<br/>
+Maybe the build spewed out some errors of missing jni.h and jni_md.h files.
+Either copy these files from your java install into the core/c/jbigi/jbigi/include/ directory,
+or fix $JAVA_HOME.<br>
+You can run the <code>build.sh</code> from the <code>core/c/</code> directory which will
+build all available jbigi libs into a jbigi.jar.</br>
+A file named <code>libjbigi.so</code> should be created in the current
+directory. If this doesn't happen and/or you get errors then please report
+them.
+{%- endtrans %}</li>
+<li>{% trans -%}
+Follow the instructions in core/c/README to install the library and run
+the speed test.
+Read the final lines of the speed test's output for some additional
+info, it will be something like this:
+{%- endtrans %}<pre>
+native run time:  5842ms ( 57ms each)
+java run time:   41072ms (406ms each)
+native = 14.223802103622907&#37; of pure java time
+</pre>
+{% trans %}If the native is indeed 5-7x faster (or more) then it looks all good. If not, please report.{% endtrans %}</li>
+<li>{% trans %}Copy <code>libjbigi.so</code> to your i2p directory{% endtrans %}</li>
+<li>{% trans %}Restart your I2P programs.{% endtrans %}</li>
+<li>{% trans -%}
+On <a href="http://localhost:7657/stats.jsp">http://localhost:7657/stats.jsp</a>
+the <code>crypto.elGamal.decrypt</code> and <code>crypto.elGamal.encrypt</code>
+should be a lot faster.
+{%- endtrans %}</li>
+</ol>
+{% endblock %}

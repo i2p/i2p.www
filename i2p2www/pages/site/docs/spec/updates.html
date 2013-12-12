@@ -1,0 +1,295 @@
+{% extends "global/layout.html" %}
+{% block title %}{% trans %}I2P Software Update Specification{% endtrans %}{% endblock %}
+{% block lastupdated %}{% trans %}October 2013{% endtrans %}{% endblock %}
+{% block accuratefor %}0.9.9{% endblock %}
+{% block content %}
+<h3>{% trans %}Overview{% endtrans %}</h3>
+<p>{% trans -%}
+I2P uses a simple, yet secure, system for automated software update.
+The router console periodically pulls a news file from a configurable I2P URL.
+There is a hardcoded backup URL pointing to the project website, in case
+the default project news host goes down.
+{%- endtrans %}</p>
+
+<p>{% trans -%}
+The contents of the news file are displayed on the home page of the router console.
+In addition, the news file contains the most recent version number of the software.
+If the version is higher than the router's version number, it will
+display an indication to the user that an update is available.
+{%- endtrans %}</p>
+
+<p>{% trans -%}
+The router may optionally download, or download and install, the new version
+if configured to do so.
+{%- endtrans %}</p>
+
+<h3>{% trans %}News File Specification{% endtrans %}</h3>
+<p>{% trans -%}
+The news.xml file may contain the following elements:
+{%- endtrans %}</p>
+<pre>
+&lt;i2p.news date="$Date: 2010-01-22 00:00:00 $" /&gt;
+&lt;i2p.release version="0.7.14" date="2010/01/22" minVersion="0.6" /&gt;
+</pre>
+
+<p>{% trans -%}
+Parameters in the i2p.release entry are as follows.
+All keys are case-insensitive. All values must be enclosed in double quotes.
+{%- endtrans %}</p>
+
+<ul>
+<li>
+date: The release date of the router version. Unused. Format not specified.
+</li><li>
+minJavaVersion: The minimum version of Java required to run the current version.
+As of release 0.9.9.
+</li><li>
+minVersion: The minimum version of the router required to update to the current version.
+If a router is older than this, the user must (manually?) update to an intermediate version first.
+As of release 0.9.9.
+</li><li>
+su3Clearnet: One or more HTTP URLs where the .su3 update file may
+be found on the clearnet (non-I2P).
+Multiple URLs must be separated by a space or comma.
+As of release 0.9.9.
+</li><li>
+su3SSL: One or more HTTPS URLs where the .su3 update file may
+be found on the clearnet (non-I2P).
+Multiple URLs must be separated by a space or comma.
+As of release 0.9.9.
+</li><li>
+sudTorrent: The magnet link for the .sud (non-pack200) torrent of the update.
+As of release 0.9.4.
+</li><li>
+su2Torrent: The magnet link for the .su2 (pack200) torrent of the update.
+As of release 0.9.4.
+</li><li>
+su3Torrent: The magnet link for the .su3 (new format) torrent of the update.
+As of release 0.9.9.
+</li><li>
+version: Required. The latest current router version available.
+</li></ul>
+
+<p>{% trans -%}
+The elements may be included inside XML comments to prevent interpretation by browsers.
+The i2p.release element and version are required. All others are optional.
+NOTE: Due to parser limitations an entire element must be on a single line.
+{%- endtrans %}</p>
+
+
+<h3>{% trans %}Update File Specification{% endtrans %}</h3>
+<p>{% trans -%}
+As of release 0.9.9, the signed update file, named i2pupdate.su3, will
+use the "su3" file format specified below.
+Approved release signers will use 4096-bit RSA keys.
+The X.509 public key certificates for these signers are distributed in the router installation packages.
+The updates may contain certificates for new, approved signers, and/or contain
+a list of certificates to delete for revocation.
+{%- endtrans %}</p>
+
+
+<h3>{% trans %}Old Update File Specification{% endtrans %}</h3>
+<p>{% trans -%}
+This format is obsolte as of release 0.9.9.
+{%- endtrans %}</p>
+<p>{% trans -%}
+The signed update file, traditionally named i2pupdate.sud,
+is simply a zip file with a prepended 56 byte header.
+The header contains:
+{%- endtrans %}</p>
+<ul>
+<li>{% trans commonstructures=site_url('docs/spec/common-structures') -%}
+A 40-byte <a href="{{ commonstructures }}#type_signature">DSA signature</a>
+{%- endtrans %}</li>
+<li>{% trans -%}
+A 16-byte I2P version in UTF-8, padded with trailing zeroes if necessary
+{%- endtrans %}</li>
+</ul>
+
+<p>{% trans commonstructures=site_url('docs/spec/common-structures') -%}
+The signature covers only the zip archive - not the prepended version.
+The signature must match one of the <a href="{{ commonstructures }}#type_SigningPublicKey">DSA public keys</a> configured into the router,
+which has a hardcoded default list of keys of the current project release managers.
+{%- endtrans %}</p>
+
+<p>{% trans -%}
+For version comparison purposes, version fields contain [0-9]*, field separators are
+'-', '_', and '.', and all other characters are ignored.
+{%- endtrans %}</p>
+
+<p>{% trans -%}
+As of version 0.8.8, the version must also be specified as a zip file comment in UTF-8,
+without the trailing zeroes.
+The updating router verifes that the version in the header (not covered by the signature)
+matches the version in the zip file comment, which is covered by the signature.
+This prevents spoofing of the version number in the header.
+{%- endtrans %}</p>
+
+<h3>{% trans %}Download and Installation{% endtrans %}</h3>
+<p>{% trans -%}
+The router first downloads the header of the update file from one in a configurable list of I2P URLs,
+using the built-in HTTP client and proxy,
+and checks that the version is newer.
+This prevents the problem of update hosts that do not have the latest file.
+The router then downloads the full update file.
+The router verifies that the update file version is newer before installation.
+It also, of course, verifies the signature, and
+verifes that the zip file comment matches the header version, as explained above.
+{%- endtrans %}</p>
+
+<p>{% trans -%}
+The zip file is extracted in the base $I2P installation directory.
+{%- endtrans %}</p>
+
+<p>{% trans -%}
+As of release 0.7.12, the router supports Pack200 decompression.
+Files inside the zip archive with a .jar.pack or .war.pack suffix
+are transparently decompressed to a .jar or .war file.
+Update files containing .pack files are traditionally named with a '.su2' suffix.
+Pack200 shrinks the update files by about 60&#37;.
+{%- endtrans %}</p>
+
+<p>{% trans -%}
+As of release 0.8.7, the router will delete the libjbigi.so and libjcpuid.so files
+if the zip archive contains a lib/jbigi.jar file, so that the new files will
+be extracted from jbigi.jar.
+{%- endtrans %}</p>
+
+<p>{% trans -%}
+As of release 0.8.12, if the zip archive contains a file deletelist.txt, the router will
+delete the files listed there. The format is:
+{%- endtrans %}</p>
+<ul>
+<li>{% trans %}One file name per line{% endtrans %}</li>
+<li>{% trans %}All file names are relative to the installation directory; no absolute file names allowed, no files starting with ".."{% endtrans %}</li>
+<li>{% trans %}Comments start with '#'{% endtrans %}</li>
+</ul>
+
+<p>{% trans -%}
+The router will then delete the deletelist.txt file.
+{%- endtrans %}</p>
+
+
+<h3>{% trans %}New "su3" Update File Specification{% endtrans %}</h3>
+
+<p>{% trans -%}
+This specification is used for router updates and reseed data as of release 0.9.9.
+{%- endtrans %}</p>
+
+<h4>{% trans %}Issues with the previous .sud/.su2 format:{% endtrans %}</h4>
+<ul>
+<li>{% trans -%}
+No magic number or flags
+{%- endtrans %}</li>
+<li>{% trans -%}
+No way to specify compression, pack200 or not, or signing algo
+{%- endtrans %}</li>
+<li>{% trans -%}
+Version is not covered by signature, so it is enforced by requiring it
+to be in the zip file comment (for router files) or in the plugin.config
+file (for plugins)
+{%- endtrans %}</li>
+<li>{% trans -%}
+Signer not specified so verifier must try all known keys
+{%- endtrans %}</li>
+<li>{% trans -%}
+Signature-before-data format requires two passes to generate file
+{%- endtrans %}</li>
+</ul>
+
+
+<h4>{% trans %}Goals:{% endtrans %}</h4>
+
+<ul>
+<li>{% trans -%}
+Fix above problems
+{%- endtrans %}</li>
+<li>{% trans -%}
+Migrate to more secure signature algorithm
+{%- endtrans %}</li>
+<li>{% trans -%}
+Keep version info in same format and offset for compatibility with
+existing version checkers
+{%- endtrans %}</li>
+</ul>
+
+<h4>{% trans %}Specification:{% endtrans %}</h4>
+
+<table><tr>
+<th>Bytes<th>Contents
+<tr><td>
+0-5	<td>Magic number "I2Psu3"
+<tr><td>
+6	<td>unused = 0
+<tr><td>
+7	<td>su3 file format version = 0
+<tr><td>
+8-9	<td>Signature type
+		<ul><li>0x0000 = DSA-160
+		</li><li>0x0001 = ECDSA-SHA256-P256
+		</li><li>0x0002 = ECDSA-SHA384-P384
+		</li><li>0x0003 = ECDSA-SHA512-P521
+		</li><li>0x0004 = RSA-SHA256-2048
+		</li><li>0x0005 = RSA-SHA384-3072
+		</li><li>0x0006 = RSA-SHA512-4096
+		</li></ul>
+<tr><td>
+10-11	<td>Signature length, e.g. 40 (0x0028) for DSA-160
+<tr><td>
+12	<td>unused
+<tr><td>
+13	<td>Version length (in bytes not chars, including padding)
+        must be at least 16 (0x10) for compatibility
+<tr><td>
+14	<td>unused
+<tr><td>
+15	<td>Signer ID length (in bytes not chars)
+<tr><td>
+16-23	<td>Compressed content length (not including header or sig)
+<tr><td>
+24	<td>unused
+<tr><td>
+25	<td>Compressed type 0x00 = zip
+<tr><td>
+26	<td>unused
+<tr><td>
+27	<td>Content type
+		<ul><li>0x00 = unknown
+		</li><li>0x01 = router update
+		</li><li>0x02 = plugin or plugin update
+		</li><li>0x03 = reseed data
+		</li></ul>
+<tr><td>
+28-39	<td>unused
+<tr><td>
+40-55+	<td>Version, UTF-8 padded with trailing 0x00, 16 bytes min.
+<tr><td>
+xx+	<td>ID of signer, (e.g. "zzz@mail.i2p") UTF-8, not padded
+<tr><td>
+xx+	<td>Compressed content, length and format specified in header
+        No requirement on the zip file comment since the sig covers the version.
+<tr><td>
+xx+	<td>Signature, length specified in header, covers everything starting at byte 0
+</table>
+
+<p>{% trans -%}
+All unused fields must be set to 0 for compatibility with future versions.
+{%- endtrans %}</p>
+
+
+<h3>{% trans %}Future Work{% endtrans %}</h3>
+<ul>
+<li>{% trans -%}
+The network will eventually grow too large for update over HTTP.
+The built-in BitTorrent client, i2psnark, may be used as a distributed update method.
+This development effort is ongoing and should be completed by late 2013.
+{%- endtrans %}</li>
+<li>{% trans -%}
+The router update mechanism is part of the web router console.
+There is currently no provision for updates of an embedded router lacking the router console.
+{%- endtrans %}</li>
+</ul>
+
+
+
+{% endblock %}
