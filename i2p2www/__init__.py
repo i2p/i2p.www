@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 from flask import Flask, request, g, redirect, url_for, abort, render_template, send_from_directory, safe_join
 try:
     from flaskext.babel import Babel
@@ -38,15 +39,31 @@ SUPPORTED_LANGS = [
     'zh_CN',
     'de',
     'fr',
-#    'it',
-#    'nl',
+    'it',
+    'ja',
+    'pl',
+    'pt',
+    'pt_BR',
+    'ro',
     'ru_RU',
     'sv_SE',
-#    'cs',
-#    'ar',
-#    'el',
-    'pt',
     ]
+
+SUPPORTED_LANG_NAMES = {
+    'en': u'English',
+    'es': u'Castellano',
+    'zh_CN': u'Chinese',
+    'de': u'Deutsch',
+    'fr': u'Français',
+    'it': u'Italiano',
+    'ja': u'Japanese',
+    'pl': u'Polish',
+    'pt': u'Portugese',
+    'pt_BR': u'Brazilian Portugese',
+    'ro': u'Romanian',
+    'ru_RU': u'Russian',
+    'sv_SE': u'Svenska',
+    }
 
 DEFAULT_GETTEXT_DOMAIN = 'priority'
 GETTEXT_DOMAIN_MAPPING = {

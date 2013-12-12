@@ -1,7 +1,7 @@
 from flask import g, request, safe_join, url_for
 import os.path
 
-from i2p2www import CANONICAL_DOMAIN, CURRENT_I2P_VERSION, STATIC_DIR, app
+from i2p2www import CANONICAL_DOMAIN, CURRENT_I2P_VERSION, SUPPORTED_LANGS, SUPPORTED_LANG_NAMES, STATIC_DIR, app
 
 INPROXY = '.us'
 
@@ -103,4 +103,6 @@ def utility_processor():
                 get_url=get_url_with_lang,
                 get_flag=get_flag,
                 ver=get_current_version,
-                canonical=get_canonical_link)
+                canonical=get_canonical_link,
+                supported_langs=SUPPORTED_LANGS,
+                lang_names=SUPPORTED_LANG_NAMES)
