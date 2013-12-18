@@ -45,7 +45,7 @@ SUPPORTED_LANGS = [
     'pt',
     'pt_BR',
     'ro',
-    'ru_RU',
+    'ru',
     'sv_SE',
     ]
 
@@ -61,7 +61,7 @@ SUPPORTED_LANG_NAMES = {
     'pt': u'Portugese',
     'pt_BR': u'Brazilian Portugese',
     'ro': u'Romanian',
-    'ru_RU': u'Russian',
+    'ru': u'Russian',
     'sv_SE': u'Svenska',
     }
 
