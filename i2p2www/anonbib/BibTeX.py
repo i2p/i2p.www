@@ -526,7 +526,8 @@ class BibTeXEntry:
         else:
             res = ["<li><p class='entry'>"]
 
-        if imp or not draft:
+        # TODO: CITE_CACHE_DIR has permission problems on eche's server.
+        if False: #imp or not draft:
             # Add a picture of the rank
             # Only if year is known or paper important!
             r = rank.get_rank_html(self['title'], self.get('year'),
