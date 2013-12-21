@@ -1,7 +1,7 @@
 {% extends "_layout.html" %}
 {% block title %}I2CP Specification{% endblock %}
 {% block content %}
-Updated November 2013, current as of router version 0.9.9
+Updated December 2013, current as of router version 0.9.9
 
 <h1>I2P Control Protocol (I2CP) Specification</h1>
 <h2>Overview</h2>
@@ -337,6 +337,20 @@ GetDateMessage
 <td align=right>32
 <td>&nbsp;
 <tr><td>
+<a href="#msg_HostLookup">
+HostLookupMessage
+</a>
+<td align="center">C-&gt;R
+<td align=right>38
+<td align="center">0.9.10
+<tr><td>
+<a href="#msg_HostReply">
+HostReplyMessage
+</a>
+<td align="center">R-&gt;C
+<td align=right>39
+<td align="center">0.9.10
+<tr><td>
 <a href="#msg_MessagePayload">
 MessagePayloadMessage
 </a>
@@ -469,7 +483,11 @@ As of release 0.7.2.
 <h3 id="msg_CreateLeaseSet">Create Lease Set</h3>
 <h4>Description</h4>
 <p>
-This message is sent in response to a RequestLeaseSetMessage and contains all
+This message is sent in response to a
+<a href="#msg_CreateLeaseSet">Create Lease Set Message</a>
+or
+<a href="#msg_CreateLeaseSet">Create Variable Lease Set Message</a>
+and contains all
 of the Lease structures that should be published to the I2NP Network Database.
 Sent from Client to Router.
 </p>
@@ -487,9 +505,9 @@ Sent from Client to Router.
 <h4>Notes</h4>
 <p>
 The SigningPrivateKey matches the SigningPublicKey from within the
-LeaseSet,   as does the PrivateKey with the PublicKey. The Signing keys are
+LeaseSet,   as does the PrivateKey with the PublicKey. The Signing key is
 necessary to allow the router to revoke the LeaseSet if the client goes offline,
-and the normal keys are necessary for decrypting garlic routed messages. The
+and the encryption key is necessary for decrypting garlic routed messages. The
 LeaseSet granted may include Lease structures for tunnels pointing at another
 router if the client is actively connected to multiple routers with Leases granted
 to each.
@@ -546,6 +564,7 @@ The router responds with a <a href="#msg_DestReply">Dest Reply Message</a>.
 As of release 0.7.
 As of release 0.8.3, multiple outstanding lookups are supported,
 and lookups are supported in both I2PSimpleSession and in standard sessions.
+<a href="#msg_HostLookup">Host Lookup Message</a> is preferred as of release 0.9.10.
 </p>
 
 
@@ -642,15 +661,108 @@ The router responds with a <a href="#msg_SetDate">Set Date Message</a>.
 <h4>Contents</h4>
 <ol><li>
 I2CP Version <a href="common_structures_spec#struct_String">String</a>
+</li><li>
+Authentication <a href="common_structures_spec#type_Mapping">Mapping</a>
+(optional, as of release 0.9.10)
 </li></ol>
 
 <h4>Notes</h4>
-<p>
+<ul><li>
 Generally the first message sent by the client after sending the protocol version byte.
+</li><li>
 The version string is included as of release 0.8.7.
 This is only useful if the client and router are not in the same JVM.
 If it is not present, the client is version 0.8.6 or earlier.
+</li><li>
+Preliminary: As of release 0.9.10, the authentication
+<a href="common_structures_spec#type_Mapping">Mapping</a>
+may be included, with the keys i2cp.username and i2cp.password.
+The Mapping need not be sorted as this message is not signed.
+Prior to and including 0.9.10, authentication is included in the
+<a href="#struct_SessionConfig">Session Config</a> Mapping, and
+no authentication is enforced for GetDate, GetBandwidthLimits, or DestLookup.
+The Get Date authentication will be enforced in a future release.
+This is only useful outside router context.
+This will be an incompatible change, but will only affect sessions outside
+router context with authentication, which should be rare.
+</li></ul>
 </p>
+
+
+
+<h3 id="msg_HostLookup">Host Lookup</h3>
+<h4>Description</h4>
+<p>
+Sent from Client to Router.
+The router responds with a <a href="#msg_HostReply">Host Reply Message</a>.
+This replaces the <a href="#msg_DestLookup">Dest Lookup Message</a>
+and adds a request ID, a timeout, and host name lookup support.
+As it also supports Hash lookups, it may be used for all lookups if the router supports it.
+For host name lookups, the router will query its context's naming service.
+This is only useful if the client is outside the router's context.
+Inside router context, the client should query the naming service itself,
+which is much more efficient.
+</p>
+
+<h4>Contents</h4>
+<ol><li>
+4 byte <a href="common_structures_spec#type_Integer">Integer</a> request ID
+</li><li>
+4 byte <a href="common_structures_spec#type_Integer">Integer</a> timeout (ms)
+</li><li>
+1 byte <a href="common_structures_spec#type_Integer">Integer</a> request type
+</li><li>
+<a href="common_structures_spec#struct_Hash">SHA-256 Hash</a>
+or
+host name <a href="common_structures_spec#struct_String">String</a>
+</li></ol>
+
+<h4>Notes</h4>
+<ul><li>
+Preliminary. As of release 0.9.10.
+Use <a href="#msg_DestLookup">Dest Lookup Message</a> for older routers.
+</li><li>
+The request ID is that from the Host Lookup.
+</li><li>
+Timeout is useful for Hash lookups. Recommended minimum 10,000 (10 sec.).
+In the future it may also be useful for remote naming service lookups.
+The value may be not be honored for local host name lookups, which should be fast.
+</li><li>
+The request type is 0 for Hash and 1 for host name.
+</li><li>
+Base 32 host name lookup is supported but it is preferred to convert
+it to a Hash first.
+</ul>
+
+
+
+<h3 id="msg_HostReply">Host Reply</h3>
+<h4>Description</h4>
+<p>
+Sent from Router to Client in response to a
+<a href="#msg_HostLookup">Host Lookup Message</a>.
+</p>
+<h4>Contents</h4>
+<ol><li>
+4 byte <a href="common_structures_spec#type_Integer">Integer</a> request ID
+</li><li>
+1 byte <a href="common_structures_spec#type_Integer">Integer</a> result code
+</li><li>
+<a href="common_structures_spec#struct_Destination">Destination</a>,
+only present if result code is zero.
+</li></ol>
+
+<h4>Notes</h4>
+<ul><li>
+Preliminary. As of release 0.9.10.
+See Host Lookup notes.
+</li><li>
+The request ID is that from the Host Lookup.
+</li><li>
+The result code is 0 for success, 1-255 for failure.
+Only 1 is used for failure now, more specific failure codes may be defined in the future.
+</ul>
+
 
 
 
@@ -998,7 +1110,7 @@ i2cp.messageReliability=none for this message only.
 <h3 id="msg_SendMessageExpires">Send Message Expires</h3>
 <h4>Description</h4>
 <p>
-Sent from Client to Router. Same as Send Message Message, except includes an expiration.
+Sent from Client to Router. Same as Send Message Message, except includes an expiration and options.
 </p>
 <h4>Contents</h4>
 <ol><li>
