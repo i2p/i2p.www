@@ -1,7 +1,7 @@
 {% extends "global/layout.html" %}
 {% block title %}Tunnel Message Specification{% endblock %}
-{% block lastupdated %}October 2011{% endblock %}
-{% block accuratefor %}0.8.10{% endblock %}
+{% block lastupdated %}December 2013{% endblock %}
+{% block accuratefor %}0.9.9{% endblock %}
 {% block content %}
 <h1>Tunnel Message Specification</h1>
 This document specifies the format of tunnel messages.
@@ -122,7 +122,7 @@ IV ::
 
 Checksum ::
        4 bytes
-       the first 4 bytes of the SHA256 hash of the remaining contents of the message concatenated with the IV
+       the first 4 bytes of the SHA256 hash of the contents of the message after the zero byte concatenated with the IV
 
 Nonzero_padding ::
        0 or more bytes
@@ -145,9 +145,14 @@ total size: 1028 Bytes
 
 </pre>
 
+<h4>Notes</h4>
+<ul><li>
+The padding, if any, must be before the instruction/message pairs.
+There is no provision for padding at the end.
+</li><li>
+The checksum does NOT cover the padding or the zero byte.
+</li></ul>
 
-<p>Note that the padding, if any, must be before the instruction/message pairs.
-there is no provision for padding at the end.</p>
 
 <h2 id="delivery">Delivery Instructions</h2>
 
@@ -195,6 +200,7 @@ flag:
        bits 6-5: delivery type
                  For tunnel messages:
                      0x0 = LOCAL, 0x01 = TUNNEL, 0x02 = ROUTER, 0x03 = unused
+                     Note: LOCAL is used for inbound tunnels only, unimplemented for outbound tunnels
                  For garlic cloves:
                      0x0 = LOCAL, 0x01 = DESTINATION, 0x02 = ROUTER, 0x03 = TUNNEL
        bit 4: delay included?  Unimplemented, always 0
@@ -203,7 +209,7 @@ flag:
                            If 1, the message is fragmented, and the instructions contain a Message ID
        bit 2: extended options?  Unimplemented, always 0
                            If 1, extended options are included
-       bits 1-0: reserved
+       bits 1-0: reserved, set to 0 for compatibility with future uses
 
 Tunnel ID:
        4 bytes
@@ -239,12 +245,15 @@ Extended Options:
 
 size:
        2 bytes
+       Required in a tunnel message; never present in a garlic clove.
        The length of the fragment that follows
-       Valid values: 1 to approx. 960 in a tunnel message; 1 to 64K - 1 in a garlic clove
+       Valid values: 1 to approx. 960 in a tunnel message
 
 Total length: Typical length is:
-       3 bytes for LOCAL delivery (garlic clove);
-       35 bytes for ROUTER / DESTINATION delivery or 39 bytes for TUNNEL delivery (unfragmented or garlic clove);
+       1 byte for LOCAL delivery (garlic clove);
+       3 bytes for LOCAL delivery (tunnel message);
+       35 bytes for ROUTER / DESTINATION delivery or 39 bytes for TUNNEL delivery (unfragmented tunnel message);
+       33 bytes for ROUTER / DESTINATION delivery or 37 bytes for TUNNEL delivery (garlic clove);
        39 bytes for ROUTER delivery or 43 bytes for TUNNEL delivery (first fragment)
 
 </pre>
@@ -268,7 +277,7 @@ frag ::
 
 Message_ID ::
        4 bytes
-       the same ID specified in the first fragment
+       the same ID specified in the first fragment for this message ID
 
 size ::
        2 bytes

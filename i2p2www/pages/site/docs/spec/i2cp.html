@@ -1,7 +1,7 @@
 {% extends "global/layout.html" %}
 {% block title %}I2CP Specification{% endblock %}
-{% block lastupdated %}June 2013{% endblock %}
-{% block accuratefor %}0.9.6{% endblock %}
+{% block lastupdated %}December 2013{% endblock %}
+{% block accuratefor %}0.9.9{% endblock %}
 {% block content %}
 <h1>I2P Control Protocol (I2CP) Specification</h1>
 <h2>Overview</h2>
@@ -220,11 +220,16 @@ DSA <a href="{{ site_url('docs/spec/common-structures') }}#type_Signature">Signa
 </li></ol>
 
 <h4>Notes</h4>
-<p>
+<ul><li>
 The options are specified on the
 <a href="{{ site_url('docs/protocol/i2cp') }}#options">I2CP Overview page</a>.
-</p>
-
+</li><li>
+The <a href="{{ site_url('docs/spec/common-structures') }}#type_Mapping">Mapping</a>
+must be sorted by key so that the signature will be validated correctly in the router.
+</li><li>
+The creation date must be within +/- 30 seconds of the current time when processed by
+the router, or the config will be rejected.
+</li></ul>
 
 
 
@@ -317,6 +322,20 @@ GetDateMessage
 <td align="center">C-&gt;R
 <td align=right>32
 <td>&nbsp;
+<tr><td>
+<a href="#msg_HostLookup">
+HostLookupMessage
+</a>
+<td align="center">C-&gt;R
+<td align=right>38
+<td align="center">0.9.10
+<tr><td>
+<a href="#msg_HostReply">
+HostReplyMessage
+</a>
+<td align="center">R-&gt;C
+<td align=right>39
+<td align="center">0.9.10
 <tr><td>
 <a href="#msg_MessagePayload">
 MessagePayloadMessage
@@ -450,7 +469,11 @@ As of release 0.7.2.
 <h3 id="msg_CreateLeaseSet">Create Lease Set</h3>
 <h4>Description</h4>
 <p>
-This message is sent in response to a RequestLeaseSetMessage and contains all
+This message is sent in response to a
+<a href="#msg_CreateLeaseSet">Create Lease Set Message</a>
+or
+<a href="#msg_CreateLeaseSet">Create Variable Lease Set Message</a>
+and contains all
 of the Lease structures that should be published to the I2NP Network Database.
 Sent from Client to Router.
 </p>
@@ -468,9 +491,9 @@ Sent from Client to Router.
 <h4>Notes</h4>
 <p>
 The SigningPrivateKey matches the SigningPublicKey from within the
-LeaseSet,   as does the PrivateKey with the PublicKey. The Signing keys are
+LeaseSet,   as does the PrivateKey with the PublicKey. The Signing key is
 necessary to allow the router to revoke the LeaseSet if the client goes offline,
-and the normal keys are necessary for decrypting garlic routed messages. The
+and the encryption key is necessary for decrypting garlic routed messages. The
 LeaseSet granted may include Lease structures for tunnels pointing at another
 router if the client is actively connected to multiple routers with Leases granted
 to each.
@@ -497,11 +520,16 @@ The router responds with a <a href="#msg_SessionStatus">Session Status Message</
 </li></ol>
 
 <h4>Notes</h4>
-<p>
-The second message sent by the client after sending the Get Date Message and receiving the Set Date Message response.
-If the Date in the Session Config is too far from the router's current time, the session will be rejected.
+<ul><li>
+This is the second message sent by the client. Previously the client sent a Get Date Message and received a Set Date Message response.
+</li><li>
+If the Date in the Session Config is too far (more than +/- 30 seconds) from the router's current time, the session will be rejected.
+</li><li>
 If there is already a session on the router for this Destination, the session will be rejected.
-</p>
+</li><li>
+The <a href="common_structures_spec#type_Mapping">Mapping</a> in the Session Config
+must be sorted by key so that the signature will be validated correctly in the router.
+</li></ul>
 
 
 
@@ -522,6 +550,7 @@ The router responds with a <a href="#msg_DestReply">Dest Reply Message</a>.
 As of release 0.7.
 As of release 0.8.3, multiple outstanding lookups are supported,
 and lookups are supported in both I2PSimpleSession and in standard sessions.
+<a href="#msg_HostLookup">Host Lookup Message</a> is preferred as of release 0.9.10.
 </p>
 
 
@@ -545,6 +574,7 @@ As of release 0.7.
 As of release 0.8.3,
 the requested Hash is returned if the lookup failed,
 so that the client may have multiple lookups outstanding and correlate the replies to the lookups.
+To correlate a Destination response with a request, take the Hash of the Destination.
 Prior to release 0.8.3, the response was empty on failure.
 </p>
 
@@ -617,15 +647,108 @@ The router responds with a <a href="#msg_SetDate">Set Date Message</a>.
 <h4>Contents</h4>
 <ol><li>
 I2CP Version <a href="{{ site_url('docs/spec/common-structures') }}#struct_String">String</a>
+</li><li>
+Authentication <a href="{{ site_url('docs/spec/common-structures') }}#type_Mapping">Mapping</a>
+(optional, as of release 0.9.10)
 </li></ol>
 
 <h4>Notes</h4>
-<p>
+<ul><li>
 Generally the first message sent by the client after sending the protocol version byte.
+</li><li>
 The version string is included as of release 0.8.7.
 This is only useful if the client and router are not in the same JVM.
 If it is not present, the client is version 0.8.6 or earlier.
+</li><li>
+Preliminary: As of release 0.9.10, the authentication
+<a href="common_structures_spec#type_Mapping">Mapping</a>
+may be included, with the keys i2cp.username and i2cp.password.
+The Mapping need not be sorted as this message is not signed.
+Prior to and including 0.9.10, authentication is included in the
+<a href="#struct_SessionConfig">Session Config</a> Mapping, and
+no authentication is enforced for GetDate, GetBandwidthLimits, or DestLookup.
+The Get Date authentication will be enforced in a future release.
+This is only useful outside router context.
+This will be an incompatible change, but will only affect sessions outside
+router context with authentication, which should be rare.
+</li></ul>
 </p>
+
+
+
+<h3 id="msg_HostLookup">Host Lookup</h3>
+<h4>Description</h4>
+<p>
+Sent from Client to Router.
+The router responds with a <a href="#msg_HostReply">Host Reply Message</a>.
+This replaces the <a href="#msg_DestLookup">Dest Lookup Message</a>
+and adds a request ID, a timeout, and host name lookup support.
+As it also supports Hash lookups, it may be used for all lookups if the router supports it.
+For host name lookups, the router will query its context's naming service.
+This is only useful if the client is outside the router's context.
+Inside router context, the client should query the naming service itself,
+which is much more efficient.
+</p>
+
+<h4>Contents</h4>
+<ol><li>
+4 byte <a href="common_structures_spec#type_Integer">Integer</a> request ID
+</li><li>
+4 byte <a href="common_structures_spec#type_Integer">Integer</a> timeout (ms)
+</li><li>
+1 byte <a href="common_structures_spec#type_Integer">Integer</a> request type
+</li><li>
+<a href="common_structures_spec#struct_Hash">SHA-256 Hash</a>
+or
+host name <a href="common_structures_spec#struct_String">String</a>
+</li></ol>
+
+<h4>Notes</h4>
+<ul><li>
+Preliminary. As of release 0.9.10.
+Use <a href="#msg_DestLookup">Dest Lookup Message</a> for older routers.
+</li><li>
+The request ID will be returned in the <a href="#msg_HostReply">Host Reply Message</a>.
+</li><li>
+Timeout is useful for Hash lookups. Recommended minimum 10,000 (10 sec.).
+In the future it may also be useful for remote naming service lookups.
+The value may be not be honored for local host name lookups, which should be fast.
+</li><li>
+The request type is 0 for Hash and 1 for host name.
+</li><li>
+Base 32 host name lookup is supported but it is preferred to convert
+it to a Hash first.
+</ul>
+
+
+
+<h3 id="msg_HostReply">Host Reply</h3>
+<h4>Description</h4>
+<p>
+Sent from Router to Client in response to a
+<a href="#msg_HostLookup">Host Lookup Message</a>.
+</p>
+<h4>Contents</h4>
+<ol><li>
+4 byte <a href="common_structures_spec#type_Integer">Integer</a> request ID
+</li><li>
+1 byte <a href="common_structures_spec#type_Integer">Integer</a> result code
+</li><li>
+<a href="common_structures_spec#struct_Destination">Destination</a>,
+only present if result code is zero.
+</li></ol>
+
+<h4>Notes</h4>
+<ul><li>
+Preliminary. As of release 0.9.10.
+See Host Lookup notes.
+</li><li>
+The request ID is that from the Host Lookup.
+</li><li>
+The result code is 0 for success, 1-255 for failure.
+Only 1 is used for failure now, more specific failure codes may be defined in the future.
+</ul>
+
 
 
 
@@ -684,10 +807,68 @@ guaranteed failed. The size Integer specifies the size of the available
 message and is only relevant for status = 0.
 Even though guaranteed is unimplemented, (best effort is the only service), the current
 router implementation uses the guaranteed status codes, not the best effort codes.
-As of router version 0.9.5, additional status codes are defined.
+As of router version 0.9.5, additional status codes are defined,
+however they are not necessarily implemented.
 See the
 <a href="http://docs.i2p-projekt.de/javadoc/net/i2p/data/i2cp/MessageStatusMessage.html">MessageStatusMessage Javadocs</a>
 for details.
+All status codes:
+<table border=1>
+<tr><th>Status Code<th>As Of Release<th>Name<th>Description
+<tr><td align="center">0<td align="center">&nbsp;<td>Available<td>For incoming messages only.
+    The included size is the size in bytes of the available message.
+    This is unused in "fast receive" mode, which is the default as of release 0.9.4.
+    All other status codes below are for outgoing messages.
+<tr><td align="center">1<td align="center">&nbsp;<td>Accepted<td>Outgoing message accepted by the local router for delivery.
+    The included nonce matches the nonce in the
+    Send Message Message, and the included Message ID
+    will be used for subsequent success or failure notification.
+<tr><td align="center">2<td align="center">&nbsp;<td>Best Effort Success<td>Probable success (unused)
+<tr><td align="center">3<td align="center">&nbsp;<td>Best Effort Failure<td>Probable failure
+<tr><td align="center">4<td align="center">&nbsp;<td>Guaranteed Success<td>Probable success
+<tr><td align="center">5<td align="center">&nbsp;<td>Guaranteed Failure<td>Generic failure, specific cause unknown.
+    May not really be a guaranteed failure.
+<tr><td align="center">6<td align="center">0.9.5<td>Local Success<td>Local delivery successful.
+    The destination was another client on the same router.
+<tr><td align="center">7<td align="center">0.9.5<td>Local Failure<td>Local delivery failure.
+    The destination was another client on the same router.
+<tr><td align="center">8<td align="center">0.9.5<td>Router Failure<td>The local router is not ready, has shut down,
+    or has major problems.
+    This is a guaranteed failure.
+<tr><td align="center">9<td align="center">0.9.5<td>Network Failure<td>The local computer apparently has no network connectivity at all.
+    This is a guaranteed failure.
+<tr><td align="center">10<td align="center">0.9.5<td>Bad Session<td>The I2CP session is invalid or closed.
+    This is a guaranteed failure.
+<tr><td align="center">11<td align="center">0.9.5<td>Bad Message<td>The message payload is invalid or zero-length or too big.
+    This is a guaranteed failure.
+<tr><td align="center">12<td align="center">0.9.5<td>Bad Options<td>Something is invalid in the message options,
+    or the expiration is in the past or too far in the future.
+    This is a guaranteed failure.
+<tr><td align="center">13<td align="center">0.9.5<td>Overflow Failure<td>Some queue or buffer in the router is full and the message was dropped.
+    This is a guaranteed failure.
+<tr><td align="center">14<td align="center">0.9.5<td>Message Expired<td>The message expired before it could be sent.
+    This is a guaranteed failure.
+<tr><td align="center">15<td align="center">0.9.5<td>Bad Local Leaseset<td>The client has not yet signed a leaseset, or the local keys
+    are invalid, or it has expired, or it does not have any tunnels in it.
+    This is a guaranteed failure.
+<tr><td align="center">16<td align="center">0.9.5<td>No Local Tunnels<td>Local problems. No outbound tunnel to send through,
+    or no inbound tunnel if a reply is required.
+    This is a guaranteed failure.
+<tr><td align="center">17<td align="center">0.9.5<td>Unsupported Encryption<td>The certs or options in the destination or its leaseset
+    indicate that it uses an encryption format that we don't support, so we can't talk to it.
+    This is a guaranteed failure.
+<tr><td align="center">18<td align="center">0.9.5<td>Bad Destination<td>Something is wrong with the far-end destination.
+    Bad format, unsupported options, certificates, etc.
+    This is a guaranteed failure.
+<tr><td align="center">19<td align="center">0.9.5<td>Bad Leaseset<td>We got the far-end leaseset but something strange is wrong with it.
+    Unsupported options or certificates, no tunnels, etc.
+    This is a guaranteed failure.
+<tr><td align="center">20<td align="center">0.9.5<td>Expired Leaseset<td>We got the far-end leaseset but it's expired and we can't get a new one.
+    This is a guaranteed failure.
+<tr><td align="center">21<td align="center">0.9.5<td>No Leaseset<td>Could not find the far-end leaseset.
+    This is a common failure, equivalent to a DNS lookup failure.
+    This is a guaranteed failure.
+</table>
 </p>
 <p>
 When status = 1 (accepted), the nonce matches the nonce in the
@@ -720,6 +901,9 @@ message id specified in the ReceiveMessageBeginMessage is invalid or
 incorrect, the router may simply not reply, or it may send back a
 DisconnectMessage.
 </p>
+<p>
+This is unused in "fast receive" mode, which is the default as of release 0.9.4.
+</p>
 
 
 
@@ -743,6 +927,9 @@ Sent from Client to Router.
 The ReceiveMessageBeginMessage is sent after a MessagePayloadMessage fully
 delivers a message's payload.
 </p>
+<p>
+This is unused in "fast receive" mode, which is the default as of release 0.9.4.
+</p>
 
 
 
@@ -762,9 +949,14 @@ The router responds with a <a href="#msg_SessionStatus">Session Status Message</
 </li></ol>
 
 <h4>Notes</h4>
-<p>
+<ul><li>
 As of release 0.7.1.
-</p>
+</li><li>
+If the Date in the Session Config is too far (more than +/- 30 seconds) from the router's current time, the session will be rejected.
+</li><li>
+The <a href="common_structures_spec#type_Mapping">Mapping</a> in the Session Config
+must be sorted by key so that the signature will be validated correctly in the router.
+</li></ul>
 
 
 
@@ -775,7 +967,7 @@ As of release 0.7.1.
 Tell the other party (client or router) that they are under attack, potentially with reference to a
 particular messageId. If the router is under attack, the client may decide to
 migrate to another router, and if a client is under attack, the router may rebuild
-its routers or shitlist some of the peers that sent it messages delivering the attack.
+its routers or banlist some of the peers that sent it messages delivering the attack.
 Sent either from router to client or from client to router.
 </p>
 <h4>Contents</h4>
@@ -844,10 +1036,10 @@ The client responds with a <a href="#msg_CreateLeaseSet">Create LeaseSet Message
 <ol><li>
 <a href="#struct_SessionId">Session ID</a>
 </li><li>
-1 byte <a href="common_structures_spec#type_Integer">Integer</a> number of tunnels
+1 byte <a href="{{ site_url('docs/spec/common-structures') }}#type_Integer">Integer</a> number of tunnels
 </li><li>
   That many
-  <a href="common_structures_spec#struct_Lease">Leases</a>
+  <a href="{{ site_url('docs/spec/common-structures') }}#struct_Lease">Leases</a>
 </li></ol>
 
 <h4>Notes</h4>
@@ -904,7 +1096,7 @@ i2cp.messageReliability=none for this message only.
 <h3 id="msg_SendMessageExpires">Send Message Expires</h3>
 <h4>Description</h4>
 <p>
-Sent from Client to Router. Same as Send Message Message, except includes an expiration.
+Sent from Client to Router. Same as Send Message Message, except includes an expiration and options.
 </p>
 <h4>Contents</h4>
 <ol><li>
@@ -953,7 +1145,19 @@ Definitions are subject to change. Use the SendMessageOptions class to construct
 </p><p>
 Bit order: 15...0
 </p><p>
-Bits 15-9: Unused, must be zero
+Bits 15-11: Unused, must be zero
+</p><p>
+Bits 10-9: Message Reliability Override (scheduled for release 0.9.10)
+<table border=1>
+<tr><th>Field value<th>Description
+<tr><td align="center">00<td>Use session setting i2cp.messageReliabiltiy (default)
+<tr><td align="center">01<td>Use "best effort" message reliabiltiy for this message,
+    overriding the session setting. The router will send one or more MessageStatusMessages in response.
+<tr><td align="center">10<td>Use "guaranteed" message reliabiltiy for this message,
+    overriding the session setting. The router will send one or more MessageStatusMessages in response.
+<tr><td align="center">11<td>Unused. Use a nonce value of 0 to force "none" and override a session setting
+    of "best effort" or "guaranteed".
+</table>
 </p><p>
 Bit 8: If 1, don't send lease set
 </p><p>

@@ -16,11 +16,9 @@ The aim of itoopie is to provide an interface that is simpler and has a lower lu
 
 I2PControl is an I2P plugin providing a JSONRPC interface for the I2P router. The interface supports setting basic settings (bandwidth, ports etc.), reading many stats and is provided over an SSL encrypted HTTP connection.
 
-More information and instructions can be found at `itoopie.net`_, `itoopie.i2p.to`_ (via proxy)and `itoopie.i2p`_ (anonymously).
+More information and instructions can be found at `{{ i2pconv('itoopie.i2p') }}`_.
 
-.. _`itoopie.net`: http://itoopie.net
-.. _`itoopie.i2p.to`: http://itoopie.i2p.to
-.. _`itoopie.i2p`: http://itoopie.i2p
+.. _`{{ i2pconv('itoopie.i2p') }}`: http://{{ i2pconv('itoopie.i2p') }}
 
 This project has been funded by the VPN services `Relakks`_ & `Ipredator`_ and was initiated by Jan-Erik Fiske and `Peter Sunde`_.
 

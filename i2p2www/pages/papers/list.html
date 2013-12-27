@@ -1,0 +1,98 @@
+{% extends "global/layout.html" %}
+{% block title %}{{ bib.tag_short_titles[bib.tag] }}{% endblock %}
+{% block headextra %}
+<link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='styles/pubs.css') }}" />
+{% endblock %}
+{% block content %}
+<h1 align="center">{{ bib.tag_titles[bib.tag] }}</h1>
+
+<p align="center">
+{%- if bib.tag|length %}<a href='{% if bib.field != 'date' -%}
+{{ get_url('papers_list', choice=bib.field) }}
+{%- else %}{{ get_url('papers_list') }}{% endif %}'>
+{%- endif %}{{ bib.tag_titles[''] }}
+{%- if bib.tag|length %}</a>{% endif %}
+{%- for tag in bib.tags %}&nbsp;|&nbsp;
+{%- if tag != bib.tag %}<a href='{% if bib.field != 'date' -%}
+{{ get_url('papers_list', tag=tag, choice=bib.field) }}
+{%- else %}{{ get_url('papers_list', tag=tag) }}{% endif %}'>
+{%- endif %}{{ bib.tag_titles[tag] }}
+{%- if tag != bib.tag %}</a>{% endif %}
+{%- endfor -%}
+</p>
+
+<p align="center">
+{%- if bib.field != 'topic' %}{% if bib.tag -%}
+<a href='{{ get_url('papers_list', tag=bib.tag, choice='topic') }}'>
+{%- else -%}
+<a href='{{ get_url('papers_list', choice='topic') }}'>{% endif %}
+{%- endif %}{{ _('By topic') }}{%- if bib.field != 'topic' -%}</a>{% endif -%}
+&nbsp;|&nbsp;
+{%- if bib.field != 'date' -%}{% if bib.tag -%}
+<a href='{{ get_url('papers_list', tag=bib.tag) }}'>
+{%- else -%}
+<a href='{{ get_url('papers_list') }}'>{% endif %}
+{%- endif %}{{ _('By date') }}{%- if bib.field != 'date' -%}</a>{% endif -%}
+&nbsp;|&nbsp;
+{%- if bib.field != 'author' -%}{% if bib.tag -%}
+<a href='{{ get_url('papers_list', tag=bib.tag, choice='author') }}'>
+{%- else -%}
+<a href='{{ get_url('papers_list', choice='author') }}'>{% endif %}
+{%- endif %}{{ _('By author') }}{%- if bib.field != 'author' -%}</a>{% endif -%}
+</p>
+
+<!-- Table 1: contains the sidebar and the body. -->
+<table cellspacing="3" cellpadding="0" border="0" align="center" width="100%%">
+<tr valign="top">
+<td>
+
+<!-- Table 2: The sidebar-->
+<table align="right" cellspacing="0" cellpadding="5" width="100"
+     class="sidebar">
+<tr valign="top"><td><p class="l1"><strong>{{ bib.sectiontypes }}:</strong><br /></p>
+{% for section in bib.sections %}
+<p class="l2"><a href="#{{ section.slug }}">{{ section.name }}</a></p>
+{% endfor %}
+</td>
+</tr>
+</table><!-- End of table 2 -->
+</td>
+
+<td width="85%%">
+
+<h2>Publications by {{ bib.field }}</h2>
+
+<ul class="sections">
+{% for section in bib.sections %}
+<li><h3><a name="{{ section.slug }}">{{ section.name }}</a></h3>
+<ul class="expand">
+{% for entry in section.entries %}
+{{ entry.to_html()|safe }}
+{% endfor %}
+</ul></li>
+{% endfor %}
+</ul>
+
+</td>
+
+<td width="5%%"><br /></td>
+
+</tr>
+</table><!-- End of table 1 -->
+
+<p class="contact">{% trans email="press&#64;i2<!-- -->p2.de"|safe,
+bibtex = get_url('papers_bibtex', tag=bib.tag) if bib.tag else get_url('papers_bibtex'),
+citeseer = 'http://citeseer.ist.psu.edu/online-nature01/' -%}
+Please send new or corrected entries to
+<a name="contact"><span class="email">{{ email }}</span></a>.<br />
+If you can, please format them as BibTeX; see our
+<a href="{{ bibtex }}">BibTeX source page</a> for examples.<br />
+Remember to include URLs if possible:
+<a href="{{ citeseer }}">offline papers are less useful</a>.
+{%- endtrans %}</p>
+
+<p>{% trans anonbib="https://gitweb.torproject.org/anonbib.git" -%}
+The source code for this page was adapted from
+<a href="{{ anonbib }}">Free Haven's anonymity bibliography</a>.
+{%- endtrans %}</p>
+{% endblock %}

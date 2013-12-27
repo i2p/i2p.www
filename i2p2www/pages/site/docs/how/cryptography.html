@@ -1,7 +1,7 @@
 {% extends "global/layout.html" %}
 {% block title %}{% trans %}Low-level Cryptography Details{% endtrans %}{% endblock %}
-{% block lastupdated %}{% trans %}March 2012{% endtrans %}{% endblock %}
-{% block accuratefor %}0.8.13{% endblock %}
+{% block lastupdated %}{% trans %}December 2013{% endtrans %}{% endblock %}
+{% block accuratefor %}0.9.9{% endblock %}
 {% block content %}
 <p>{% trans -%}
 This page specifies the low-level details of the cryptography in I2P.
@@ -47,7 +47,7 @@ AES encrypted payload using that key and IV.
 <p>{% trans -%}
 The unencrypted ElGamal contains: 
 {%- endtrans %}</p>
-<pre>
+{% highlight lang='dataspec' %}
    +----+----+----+----+----+----+----+----+
    |nonz|           H(data)                |
    +----+                                  +
@@ -58,9 +58,9 @@ The unencrypted ElGamal contains:
    |                                       |
    +    +----+----+----+----+----+----+----+
    |    |  data...
-   +----+----+----+--//                   
+   +----+----+----+-//
+{% endhighlight %}
 
-</pre>
 <p>{% trans -%}
 The H(data) is the SHA256 of the data that is encrypted in the ElGamal block,
 and is preceded by a nonzero byte. 
@@ -77,10 +77,10 @@ Total length: typically 255 bytes.
 The encrypted ElGamal contains: 
 {%- endtrans %}</p>
 </p>
-<pre>
+{% highlight lang='dataspec' %}
    +----+----+----+----+----+----+----+----+
    |  zero padding...       |              |
-   +----+----+----+--// ----+              +
+   +----+----+----+-//-+----+              +
    |                                       |
    +                                       +
    |       ElG encrypted part 1            |
@@ -88,7 +88,7 @@ The encrypted ElGamal contains:
    |                                       |
    +    +----+----+----+----+----+----+----+
    |    |   zero padding...      |         |
-   +----+----+----+----+--// ----+         +
+   +----+----+----+----+-//-+----+         +
    |                                       |
    +                                       +
    |       ElG encrypted part 2            |
@@ -97,8 +97,8 @@ The encrypted ElGamal contains:
    +         +----+----+----+----+----+----+
    |         +
    +----+----+
+{% endhighlight %}
 
-</pre>
 <p>{% trans -%}
 Each encrypted part is prepended with zeros to a size of exactly 257 bytes.
 Total length: 514 bytes.
@@ -108,7 +108,7 @@ This is encoded as two 256-byte encrypted parts,
 and there is a single byte of zero padding before each part at this layer.
 {%- endtrans %}</p>
 
-<p>{% trans url='http://'+i2pconv('trac.i2p2.i2p')+'/browser/core/java/src/net/i2p/crypto/ElGamalEngine.java?rev=85a542c53d910dffbf34cdcefb8a2faeee96adc4' -%}
+<p>{% trans url='https://github.com/i2p/i2p.i2p/tree/master/core/java/src/net/i2p/crypto/ElGamalEngine.java' -%}
 See <a href="{{ url }}">the ElGamal code</a>.
 {%- endtrans %}</p>
 
@@ -139,19 +139,21 @@ or as a hexadecimal value:
 Using 2 as the generator.
 {%- endtrans %}</p>
 
-<h3>{% trans %}Short Exponent{% endtrans %}</h3>
-<p>{% trans commonstructures=site_url('docs/spec/common-structures'),
-pdf='http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.14.5952&amp;rep=rep1&amp;type=pdf',
-benchmarks=site_url('misc/benchmarks'),
-oldbenchmarks='http://www.eskimo.com/~weidai/benchmarks.html' -%}
+<h3><a name="exponent">{% trans %}Short Exponent{% endtrans %}</a></h3>
+<p>{% trans commonstructures=site_url('docs/spec/common-structures') -%}
 While the standard exponent size is 2048 bits (256 bytes) and the I2P
 <a href="{{ commonstructures }}#type_PrivateKey">PrivateKey</a>
-is a full 256 bytes,
+is a full 256 bytes, in some cases
 we use the short exponent size of 226 bits (28.25 bytes).
+{%- endtrans %}</p>
+
+<p>{% trans pdf='http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.14.5952&amp;rep=rep1&amp;type=pdf',
+benchmarks=site_url('misc/benchmarks'),
+oldbenchmarks='http://www.eskimo.com/~weidai/benchmarks.html' -%}
 This should be safe for use with the Oakley primes, per
 <a href="{{ pdf }}">On Diffie-Hellman Key Agreement with Short Exponents - van Oorschot, Weiner</a>
 at EuroCrypt 96, and <a href="{{ benchmarks }}">crypto++'s benchmarks</a>.
-Benchmarks originally at <code>{{ oldbenchmarks }}</code> (now dead),
+Benchmarks originally at <a rel="nofollow" href="{{ oldbenchmarks }}">this link, now dead</a>,
 rescued from <a href="http://www.archive.org/">the wayback machine</a>, dated Apr 23, 2008.
 {%- endtrans %}</p>
 
@@ -162,6 +164,13 @@ Also, <a href="{{ book }}">Koshiba &amp; Kurosawa: Short Exponent Diffie-Hellman
 <a href="{{ fulltext }}">(full text on Google Books)</a> apparently supports this, according to
 <a href="{{ thread }}">this sci.crypt thread</a>.
 The remainder of the PrivateKey is padded with zeroes.
+{%- endtrans %}</p>
+
+<p>{% trans -%}
+Prior to release 0.9.8, all routers used the short exponent.
+As of release 0.9.8, 64-bit x86 routers use a full 2048-bit exponent.
+Other routers continue to use the short exponent due to concerns about processor load.
+The transition to a longer exponent for these platforms is a topic for further study.
 {%- endtrans %}</p>
 
 <h4>{% trans %}Obsolescence{% endtrans %}</h4>
@@ -198,9 +207,9 @@ For encryption of <a href="{{ tunnelrouting }}#testing">periodic tunnel test mes
 </ul>
 
 <p>{% trans rfc2313='http://tools.ietf.org/html/rfc2313',
-code1='http://'+i2pconv('trac.i2p2.i2p')+'/browser/core/java/src/net/i2p/crypto/CryptixAESEngine.java?rev=85a542c53d910dffbf34cdcefb8a2faeee96adc4',
-code2='http://'+i2pconv('trac.i2p2.i2p')+'/browser/core/java/src/net/i2p/crypto/CryptixRijndael_Algorithm.java?rev=85a542c53d910dffbf34cdcefb8a2faeee96adc4',
-code3='http://'+i2pconv('trac.i2p2.i2p')+'/browser/core/java/src/net/i2p/crypto/ElGamalAESEngine.java?rev=85a542c53d910dffbf34cdcefb8a2faeee96adc4' -%}
+code1='https://github.com/i2p/i2p.i2p/tree/master/core/java/src/net/i2p/crypto/CryptixAESEngine.java',
+code2='https://github.com/i2p/i2p.i2p/tree/master/core/java/src/net/i2p/crypto/CryptixRijndael_Algorithm.java',
+code3='https://github.com/i2p/i2p.i2p/tree/master/core/java/src/net/i2p/crypto/ElGamalAESEngine.java' -%}
 We use AES with 256 bit keys and 128 bit blocks in CBC mode.
 The padding used is specified in <a href="{{ rfc2313 }}">IETF RFC-2313 (PKCS#5 1.5, section 8.1 (for block type 02))</a>.
 In this case, padding exists of pseudorandomly generated octets to match 16 byte blocks.
@@ -277,7 +286,7 @@ It may be quite difficult to make any change backward-compatible.
 
 <h2><a name="DSA">DSA</a></h2>
 
-<p>{% trans code='http://'+i2pconv('trac.i2p2.i2p')+'/browser/core/java/src/net/i2p/crypto/DSAEngine.java?rev=85a542c53d910dffbf34cdcefb8a2faeee96adc4' -%}
+<p>{% trans code='https://github.com/i2p/i2p.i2p/tree/master/core/java/src/net/i2p/crypto/DSAEngine.java' -%}
 Signatures are generated and verified with 1024 bit DSA (L=1024, N=160), as implemented in
 <a href="{{ code }}">[DSAEngine]</a>.
 DSA was chosen because it is much faster for signatures than ElGamal.
@@ -326,12 +335,12 @@ DSA was chosen because it is much faster for signatures than ElGamal.
 
 <p>
 <pre>
- C1F4D27D 40093B42 9E962D72 23824E0B BC47E7C8 32A39236
- FC683AF8 48895810 75FF9082 ED32353D 4374D730 1CDA1D23
- C431F469 8599DDA0 2451824F F3697525 93647CC3 DDC197DE
- 985E43D1 36CDCFC6 BD5409CD 2F450821 142A5E6F 8EB1C3AB
- 5D0484B8 129FCF17 BCE4F7F3 3321C3CB 3DBB14A9 05E7B2B3
- E93BE470 8CBCC82
+ 0C1F4D27 D40093B4 29E962D7 223824E0 BBC47E7C 832A3923
+ 6FC683AF 84889581 075FF908 2ED32353 D4374D73 01CDA1D2
+ 3C431F46 98599DDA 02451824 FF369752 593647CC 3DDC197D
+ E985E43D 136CDCFC 6BD5409C D2F45082 1142A5E6 F8EB1C3A
+ B5D0484B 8129FCF1 7BCE4F7F 33321C3C B3DBB14A 905E7B2B
+ 3E93BE47 08CBCC82
 </pre>
 
 <p>{% trans commonstructures=site_url('docs/spec/common-structures') -%}
@@ -374,7 +383,7 @@ It may be quite difficult to make any change backward-compatible.
 
 <H2><a name="SHA256">SHA256</a></H2>
 
-<p>{% trans code='http://'+i2pconv('trac.i2p2.i2p')+'/browser/core/java/src/net/i2p/crypto/SHA256Generator.java?rev=85a542c53d910dffbf34cdcefb8a2faeee96adc4' -%}
+<p>{% trans code='https://github.com/i2p/i2p.i2p/tree/master/core/java/src/net/i2p/crypto/SHA256Generator.java' -%}
 Hashes within I2P are plain old SHA256, as implemented in
 <a href="{{ code }}">[SHA256Generator]</a>
 {%- endtrans %}</p>
