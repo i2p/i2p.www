@@ -20,7 +20,7 @@ This work was the idea of Jan-Erik Fiske of `ViaEuropa`_ and Peter Sunde of `fla
 
 Current information can be found on `zzz's forum`_ and #i2p-dev on chat.freenode.net
 
-.. _`zzz's forum`: http://zzz.i2p.to/topics/888
+.. _`zzz's forum`: http://{{ i2pconv('zzz.i2p') }}/topics/888
 
 Cheers
 

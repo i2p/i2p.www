@@ -29,8 +29,8 @@ def meetings_show(id, log=False, rst=False):
     Either display the raw IRC .log or render as html and include .rst as header if it exists
     """
     # generate file name for the raw meeting file(and header)
-    lname = str(id) + '.log'
-    hname = str(id) + '.rst'
+    lname = '%03d.log' % id
+    hname = '%03d.rst' % id
     lfile = safe_join(MEETINGS_DIR, lname)
     hfile = safe_join(MEETINGS_DIR, hname)
 

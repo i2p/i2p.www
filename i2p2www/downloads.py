@@ -45,10 +45,12 @@ def downloads_list():
     # TODO: read mirror list or list of available files
     return render_template('downloads/list.html', def_mirror=DEFAULT_MIRROR)
 
+# Debian-specific page
+def downloads_debian():
+    return render_template('downloads/debian.html')
+
 # Specific file downloader
 def downloads_select(version, file):
-    if (file == 'debian'):
-        return render_template('downloads/debian.html', file=file)
     mirrors=read_mirrors()
     obj=[]
     for protocol in mirrors.keys():
@@ -71,4 +73,5 @@ def downloads_redirect(version, protocol, domain, file):
         if not domain in mirrors:
             abort(404)
         return redirect(mirrors[domain]['url'] % data)
-    return redirect(mirrors[randint(0, len(mirrors) - 1)]['url'] % data)
+    randomain = mirrors.keys()[randint(0, len(mirrors) - 1)]
+    return redirect(mirrors[randomain]['url'] % data)

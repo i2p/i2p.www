@@ -1,11 +1,12 @@
 from flask import g, request, safe_join, url_for
 import os.path
 
-from i2p2www import CANONICAL_DOMAIN, CURRENT_I2P_VERSION, STATIC_DIR, app
+from i2p2www import CANONICAL_DOMAIN, CURRENT_I2P_VERSION, SUPPORTED_LANGS, SUPPORTED_LANG_NAMES, STATIC_DIR, app
+
+INPROXY = '.us'
 
 I2P_TO_CLEAR = {
-    'www.i2p2.i2p': 'www.i2p2.de',
-    #'forum.i2p': 'forum.i2p2.de',
+    'forum.i2p': 'forum.i2p', # Don't convert forum.i2p, it is not accessible outside I2P
     'trac.i2p2.i2p': 'trac.i2p2.de',
     'mail.i2p': 'i2pmail.org',
     }
@@ -44,8 +45,8 @@ def utility_processor():
 
     # Provide the canonical link to the current page
     def get_canonical_link():
-        protocol = request.url.split('//')[0]
-        return protocol + '//' + CANONICAL_DOMAIN + request.path
+        # Canonical domain should always be HTTPS
+        return 'https://' + CANONICAL_DOMAIN + request.path
 
     # Convert an I2P url to an equivalent clearnet one
     def convert_url_to_clearnet(value):
@@ -61,7 +62,7 @@ def utility_processor():
             return I2P_TO_CLEAR[value]
         except KeyError:
             # The I2P site has no known clearnet address, so use an inproxy
-            return value + '.to'
+            return value + INPROXY
 
     # Convert a paginated URL to that of another page
     def url_for_other_page(page):
@@ -102,4 +103,6 @@ def utility_processor():
                 get_url=get_url_with_lang,
                 get_flag=get_flag,
                 ver=get_current_version,
-                canonical=get_canonical_link)
+                canonical=get_canonical_link,
+                supported_langs=SUPPORTED_LANGS,
+                lang_names=SUPPORTED_LANG_NAMES)

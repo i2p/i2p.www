@@ -1,7 +1,7 @@
 {% extends "global/layout.html" %}
 {% block title %}{% trans %}Common structure Specification{% endtrans %}{% endblock %}
-{% block lastupdated %}{% trans %}June 2013{% endtrans %}{% endblock %}
-{% block accuratefor %}0.9.6{% endblock %}
+{% block lastupdated %}{% trans %}December 2013{% endtrans %}{% endblock %}
+{% block accuratefor %}0.9.9{% endblock %}
 {% block content %}
 <h1>{% trans %}Data types Specification{% endtrans %}</h1>
 <p>{% trans i2np=site_url('docs/protocol/i2np'),
@@ -168,7 +168,7 @@ Defines an identifier that is unique to each router in a tunnel.
 4 byte <a href="#type_Integer">Integer</a>
 {% endtrans %}</p>
 
-<h4><a href="http://docs.i2p-projekt.de/javadoc/net/i2p/data/TunnelID.html">Javadoc</a></h4>
+<h4><a href="http://docs.i2p-projekt.de/javadoc/net/i2p/data/TunnelId.html">Javadoc</a></h4>
 
 <h2 id="type_Certificate">Certificate</h2>
 <h4>{% trans %}Description{% endtrans %}</h4>
@@ -271,8 +271,24 @@ UTF-8 strings in a RouterInfo options mapping in a I2NP Database Store Message w
 {%- endtrans %}</li>
 
 <li>{% trans -%}
+The encoding allows duplicate keys, however in any usage where the mapping is signed,
+duplicates may cause a signature failure.
+{%- endtrans %}</li>
+
+<li>{% trans -%}
 Mappings contained in I2NP messages (i.e. in a RouterAddress or RouterInfo)
 must be sorted by key so that the signature will be invariant.
+Duplicate keys are not allowed.
+{%- endtrans %}</li>
+
+<li>{% trans i2cp=site_url('docs/spec/i2cp') -%}
+Mappings contained in an <a href="{{ i2cp }}#struct_SessionConfig">I2CP SessionConfig</a>
+must be sorted by key so that the signature will be invariant.
+Duplicate keys are not allowed.
+{%- endtrans %}</li>
+
+<li>{% trans -%}
+While it is application-dependent, keys and values are generally case-sensitive.
 {%- endtrans %}</li>
 
 <li>{% trans -%}
@@ -381,6 +397,14 @@ certificate :: Certificate
 total length: 387+ bytes
 {% endhighlight %}
 
+<h4>Notes</h4>
+<ul><li>
+The public key of the destination was used for the old i2cp-to-i2cp encryption
+which was disabled in version 0.6, it is currently unused
+except for the IV for LeaseSet encryption,
+which is deprecated. The public key in the LeaseSet is used instead.
+</li></ul>
+
 <h4><a href="http://docs.i2p-projekt.de/javadoc/net/i2p/data/Destination.html">Javadoc</a></h4>
 
 <h2 id="struct_Lease">Lease</h2>
@@ -409,7 +433,7 @@ SHA256 <a href="#type_Hash">Hash</a> of the
 +----+----+----+----+
 
 tunnel_gw :: Hash of the RouterIdentity of the tunnel gateway
-             length -> >= 32 bytes
+             length -> 32 bytes
 
 tunnel_id :: TunnelId
              length -> 4 bytes
@@ -519,7 +543,7 @@ num :: Integer
        value: 0 <= num <= 16
 
 leases :: [Lease]
-          length -> >= $num*44 bytes
+          length -> $num*44 bytes
 
 signature :: Signature
              length -> 40 bytes
@@ -530,7 +554,7 @@ signature :: Signature
 <ul>
 <li>{% trans -%}
 The public key of the destination was used for the old i2cp-to-i2cp encryption
-which was disabled in version 0.6, it is currently unused?
+which was disabled in version 0.6, it is currently unused.
 {%- endtrans %}</li>
 
 <li>{% trans elgamalaes=site_url('docs/how/elgamal-aes') -%}
@@ -593,7 +617,7 @@ cost :: Integer
         case 0 -> free
         case 255 -> expensive
 
-expiration :: Date
+expiration :: Date (must be all zeros, see notes below)
               length -> 8 bytes
 
               case null -> never expires
@@ -615,6 +639,12 @@ Expiration is currently unused, always null (all zeroes)).
 As of release 0.9.3, the expiration is assumed zero and not stored, so any non-zero expiration
 will fail in the RouterInfo signature verification.
 Implementing expiration (or another use for these bytes) will be a backwards-incompatible change.
+Routers MUST set this field to all zeros.
+{%- endtrans %}</li>
+
+<li>{% trans -%}
+The following options, while not required, are standard and expected to be present in most router addresses:
+"host" (an IPv4 or IPv6 address or host name) and "port".
 {%- endtrans %}</li>
 </ul>
 
@@ -707,14 +737,21 @@ signature :: Signature
 {% endhighlight %}
 
 <h4>{% trans %}Notes{% endtrans %}</h4>
-<p>{% trans -%}
+<ul>
+<li>{% trans -%}
 The peer_size Integer may be followed by a list of that many router hashes.
 This is currently unused. It was intended for a form of restricted routes, which is unimplemented.
-{% endtrans %}</p>
+{%- endtrans %}</li>
 
-<p>{% trans -%}
+<li>{% trans -%}
 The signature may be verified using the signing public key of the router_ident.
-{% endtrans %}</p>
+{%- endtrans %}</li>
+
+<li>{% trans netdb=site_url('docs/how/network-database') -%}
+See <a href="{{ netdb }}#routerInfo">the network database page</a>
+for standard options that are expected to be present in all router infos.
+{%- endtrans %}</li>
+</ul>
 
 <h4><a href="http://docs.i2p-projekt.de/javadoc/net/i2p/data/RouterInfo.html">Javadoc</a></h4>
 

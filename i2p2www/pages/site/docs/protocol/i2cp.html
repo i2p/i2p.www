@@ -1,33 +1,31 @@
 {% extends "global/layout.html" %}
 {% block title %}I2CP{% endblock %}
-{% block lastupdated %}{% trans %}November 2012{% endtrans %}{% endblock %}
-{% block accuratefor %}0.9.3{% endblock %}
+{% block lastupdated %}{% trans %}December 2013{% endtrans %}{% endblock %}
+{% block accuratefor %}0.9.9{% endblock %}
 {% block content %}
 <p>{% trans -%}
 The I2P Client Protocol (I2CP) exposes a strong separation of concerns between
 the router and any client that wishes to communicate over the network.  It enables
 secure and asynchronous messaging by sending and receiving messages over a 
-single TCP socket, yet never exposing any private keys and authenticating itself
-to the router only through signatures.  With I2CP, a client application tells the
+single TCP socket.
+With I2CP, a client application tells the
 router who they are (their "destination"), what anonymity, reliability, and 
 latency tradeoffs to make, and where to send messages.  In turn the router uses
 I2CP to tell the client when any messages have arrived, and to request authorization
 for some tunnels to be used.
 {%- endtrans %}</p>
 
-<p>{% trans url='http://docs.i2p-projekt.de/javadoc/net/i2p/client/package-summary.html' -%}
-The protocol itself has only been implemented in Java, to provide the
+<p>{% trans url='http://docs.i2p-projekt.de/javadoc/net/i2p/client/package-summary.html',
+libi2cp='http://git.repo.i2p/w/libi2cp.git',
+streaming=site_url('docs/api/streaming') -%}
+The protocol itself is implemented in Java, to provide the
 <a href="{{ url }}">Client SDK</a>.
 This SDK is exposed in the i2p.jar package, which implements the client-side of I2CP.
 Clients should never need to access the router.jar package, which contains the
 router itself and the router-side of I2CP.
-{%- endtrans %}</p>
-
-<p>{% trans streaming=site_url('docs/api/streaming') -%}
-While implementing the client side of I2CP in a non-Java language is certainly feasible,
-a non-Java client would also have to implement the
+There is also a <a href="{{ libi2cp }}">C library implementation</a>.
+A non-Java client would also have to implement the
 <a href="{{ streaming }}">streaming library</a> for TCP-style connections.
-Together, implementing I2CP and the streaming library would be a sizable task.
 {%- endtrans %}</p>
 
 <p>{% trans streaming=site_url('docs/api/streaming'), datagrams=site_url('docs/spec/datagrams'),
@@ -62,6 +60,16 @@ By default, the router binds to address 127.0.0.1. To bind to 0.0.0.0, set the
 router advanced configuration option <tt>i2cp.tcp.bindAllInterfaces=true</tt> and restart.
 Clients in the same JVM as the router pass messages directly to the router
 through an internal JVM interface.
+{%- endtrans %}</p>
+
+<p>{% trans commonstructures=site_url('docs/spec/common-structures') -%}
+The router also supports external connections over SSL.
+While SSL is not the default, it is strongly recommended for any traffic that may
+be exposed to the open Internet. The authorization user/password (if any), the
+<a href="{{ commonstructures }}#type_PrivateKey">Private Key</a> and
+<a href="{{ commonstructures }}#type_SigningPrivateKey">Signing Private Key</a> for the
+<a href="{{ commonstructures }}#struct_Destination">Destination</a>
+are all transmitted in-the-clear unless SSL is enabled.
 {%- endtrans %}</p>
 
 <h2>{% trans %}I2CP Protocol Specification{% endtrans %}</h2>
@@ -310,9 +318,11 @@ of sending a MessageStatus and awaiting a ReceiveMessageBegin.
 <td>string
 <td>&nbsp;
 <td>&nbsp;
-<td>{% trans -%}
+<td rowspan="2">{% trans -%}
 For authorization, if required by the router.
 If the client is running in the same JVM as a router, this option is not required.
+Warning - username and password are sent in the clear to the router, unless using SSL (i2cp.SSL=true).
+Authorization is only recommended when using SSL.
 {%- endtrans %}</td>
 </tr>
 
@@ -322,10 +332,6 @@ If the client is running in the same JVM as a router, this option is not require
 <td>string
 <td>&nbsp;
 <td>&nbsp;
-<td>{% trans -%}
-For authorization, if required by the router.
-If the client is running in the same JVM as a router, this option is not required.
-{%- endtrans %}</td>
 </tr>
 
 <tr>
@@ -416,10 +422,12 @@ in the "unknown options" properties of the outbound tunnel pool's settings.
 Note: Large quantity, length, or variance settings may cause significant performance or reliability problems.
 {%- endtrans %}</p>
 
-<p>{% trans -%}
+<p>{% trans commonstructures=site_url('docs/spec/common-structures') -%}
 Note: As of release 0.7.7, option names and values must use UTF-8 encoding.
 This is primarily useful for nicknames.
 Prior to that release, options with multi-byte characters were corrupted.
+Since options are encoded in a <a href="{{ commonstructures }}#type_Mapping">Mapping</a>,
+all option names and values are limited to 255 bytes (not characters) maximum.
 {%- endtrans %}</p>
 
 <p>{% trans -%}
@@ -646,20 +654,13 @@ specified by <a href="http://www.ietf.org/rfc/rfc1952.txt">RFC 1952</a>.
 <h2 id="future">{% trans %}Future Work{% endtrans %}</h2>
 <ul>
 <li>{% trans -%}
-Implement I2CP and the streaming library in another programming language.
-{%- endtrans %}</li>
-
-<li>{% trans -%}
-Is the initial Get Date / Set Date handshake required?
-{%- endtrans %}</li>
-
-<li>{% trans -%}
 The current authorization mechanism could be modified to use hashed passwords.
 {%- endtrans %}</li>
 
 <li>{% trans -%}
-Private Keys are included in the Create Lease Set message,
-are they really required? Revocation is unimplemented.
+The Signing Private Keys is included in the Create Lease Set message,
+it is not required. Revocation is unimplemented.
+It should be replaced with random data or removed.
 {%- endtrans %}</li>
 
 <li>{% trans pdf1=url_for('static', filename='pdf/I2CP_spec.pdf'), pdf2=url_for('static', filename='pdf/datastructures.pdf') -%}
@@ -673,5 +674,7 @@ That document also references the
 </ul>
 
 
+<h2 id="links">See Also</h2>
+<a href="http://git.repo.i2p/w/libi2cp.git">C library implementation</a>
 
 {% endblock %}

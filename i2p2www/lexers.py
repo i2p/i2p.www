@@ -29,7 +29,9 @@ class DataSpecLexer(RegexLexer):
             (r'(-*)(//)(-+\+-)', bygroups(Text, Generic.Strong, Text)),
         ],
         'content': [
+            (r'(\s*)(\+-)', bygroups(Text, Text), '#pop', 'boundary'),
             (r'(\s*)([\+|])$', bygroups(Text, Text), '#pop'),
+            (r'(\s*)(\.\.\.)(\s)', bygroups(Text, Generic.Strong, Text)),
             (r'(\s*)(\.\.\.)$', bygroups(Text, Generic.Strong), '#pop'),
             (r'(\s*)(~)$', bygroups(Text, Generic.Strong), '#pop'),
             (r'(\s*)([\w=;]+)$', bygroups(Text, Name.Tag), '#pop'),

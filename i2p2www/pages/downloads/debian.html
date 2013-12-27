@@ -4,25 +4,24 @@
 <h1>{{ _('Debian I2P Packages') }}</h1>
 
 {% trans -%}
-The packages hosted on <a href="https://launchpad.net/%7Ei2p-maintainers/+archive/i2p">the I2P Launchpad site</a>
+The Debian packages
 have been tested and <em>should </em>work on x86/x86_64 platforms running:
 {%- endtrans %}
 <ul>
   <li>{% trans %}<a href="#ubuntu">Ubuntu</a> (Precise <em>12.04</em> and newer){% endtrans %}</li>
   <li><a href="#ubuntu">Mint</a></li>
-  <li>{% trans %}<a href="#debian">Debian Linux</a> (Wheezy and newer) &amp; <a href="#nonlinux">kFreeBSD</a>{% endtrans %}</li>
+  <li>{% trans %}<a href="#debian">Debian Linux</a> (Squeeze and newer) &amp; kFreeBSD{% endtrans %}</li>
   <li><a href="#debian">Knoppix</a></li>
 </ul>
 
-{% trans trac=i2pconv('trac.i2p2.i2p') -%}
+{% trans trac='http://trac.i2p2.de/newticket?component=package/debian&owner=killyourtv&cc=killyourtv@mail.i2p' -%}
 The I2P packages <em>may</em> work on systems not listed above. Please report any issues
-with these packages on <a href="http://{{ trac }}">Trac</a> at
-<a href="http://{{ trac }}">http://{{ trac }}</a>.
+with these packages on <a href="{{ trac }}">Trac</a> at
+<a href="{{ trac }}">https://trac.i2p2.de</a>.
 {%- endtrans %}
 <ul>
   <li>{% trans %}Option 1: <a href="#ubuntu">Recent versions</a> of Ubuntu and its derivatives (<em>Try this if you're not using Debian)</em>{% endtrans %}</li>
   <li>{% trans %}Option 2: <a href="#debian">Debian</a> (including Debian-derivatives){% endtrans %}</li>
-  <li>{% trans %}Option 3: <a href="#nonlinux">Non-Linux</a> (and possibly Non-x86 architectures){% endtrans %}</li>
 </ul>
 
 <h2 id="ubuntu">{{ _('Instructions for Ubuntu Precise Pangolin (and newer) and derivatives like Linux Mint &amp; Trisquel') }}</h2>
@@ -79,69 +78,56 @@ After the installation process completes you can move on to the next
 part of <a href="#Post-install_work">starting I2P</a> and configuring it for your system.
 {%- endtrans %}
 
-<h2 id="debian">{{ _('Instructions for Debian Lenny and newer') }}</h2>
+<h2 id="debian">{{ _('Instructions for Debian') }}</h2>
 
-<p>(<em>{% trans %}For Squeeze you can follow the instructions <a href="#nonlinux">here</a>.{% endtrans %}</em>)</p>
+<em>Currently supported architectures include amd64, i386, armel, armhf (for Raspbian), kfreebsd-amd64, kfreebsd-i386, and powerpc.</em>
 
-{% trans -%}
-The steps below should be performed with root access (i.e., switching
+<p>{% trans -%}
+Note: The steps below should be performed with root access (i.e., switching
 user to root with "su" or by prefixing each command with "sudo").
-{%- endtrans %}
+{%- endtrans %}</p>
 <ol>
-  <li>
-    {% trans %}Add the GPG key that signs the repository with the following command:{% endtrans %}<br />
-    <code>&nbsp;&nbsp;&nbsp; apt-key adv --keyserver keyserver.ubuntu.com --recv-keys <a href="http://keyserver.ubuntu.com:11371/pks/lookup?search=0x474BC46576FAE76E97C1A1A1AB9660B9EB2CC88B&amp;op=index">EB2CC88B</a></code><br />
-{% trans %}You'll have output like the following if the command was successful:{% endtrans %}<br />
-&nbsp;&nbsp;&nbsp;&nbsp;<img src="{{ url_for('static', filename='images/add-key-terminal.png') }}" alt="" />
+  <li>{% trans file='/etc/apt/sources.list.d/i2p.list' -%}
+Add lines like the following to <code>{{ file }}</code>.{% endtrans %}<br>
+For Squeeze:<br>
+<pre>
+    <code>deb http://deb.i2p2.no/ squeeze main
+    deb-src http://deb.i2p2.no/ squeeze main</code>
+</pre>
+<br />
+For Wheezy (stable):<br />
+<pre>
+    <code>deb http://deb.i2p2.no/ stable main
+    deb-src http://deb.i2p2.no/ stable main</code>
+</pre>
+<br />
+For Testing or Unstable:<br />
+<pre>
+     <code>deb http://deb.i2p2.no/ unstable main
+     deb-src http://deb.i2p2.no/ unstable main</code>
+</pre>
   </li>
-  <li>
-    {% trans %}Add the following entries to <code>/etc/apt/sources.list.d/i2p.list</code>{% endtrans %}<br />
-    <code>&nbsp;&nbsp;&nbsp; deb http://ppa.launchpad.net/i2p-maintainers/i2p/ubuntu raring main <br />
-&nbsp;&nbsp;&nbsp; deb-src http://ppa.launchpad.net/i2p-maintainers/i2p/ubuntu raring main </code><br />
+
+  <li>{% trans repokey=url_for('static', filename='debian-repo.pub') -%}
+Download <a href="{{ repokey }}">the  key used to sign the repository</a> and add it to apt:
+{%- endtrans %}<br />
+&nbsp;&nbsp;&nbsp; <code>apt-key add debian-repo.pub</code>
   </li>
+
   <li>
-    {% trans %}Notify your package manager of the new PPA by entering{% endtrans %}<br />
+    {% trans %}Notify your package manager of the new repository by entering{% endtrans %}<br />
     <code>&nbsp;&nbsp;&nbsp; apt-get update</code><br />
 {% trans -%}
 This command will retrieve the latest list of software from every
-repository enabled on your system, including the I2P PPA added in step
+repository enabled on your system, including the I2P repository added in step
 1.
 {%- endtrans %}
   </li>
-  <li>
-    {% trans %}You are now ready to install I2P!{% endtrans %}<br />
-    <code>&nbsp;&nbsp;&nbsp; apt-get install i2p</code></li>
-</ol>
-
-{% trans -%}
-After the installation process completes you can move on to the next part of <a href="#Post-install_work">starting I2P</a> and configuring it for your system.
-{%- endtrans %}
-
-<h2 id="nonlinux">{{ _('Instructions for Non-Linux / Non-x86') }}</h2>
-
-{% trans -%}
-The steps below should be performed with root access (i.e., switching
-user to root with "<code>su</code>" or by prefixing each command with "<code>sudo</code>").
+  <li>{% trans -%}
+You are now ready to install I2P! Installing the <code>i2p-keyring</code>
+package will ensure that you receive updates to the repository's GPG key.
 {%- endtrans %}<br />
-<ol>
-  <li>
-    {% trans ppa='http://ppa.launchpad.net/i2p-maintainers/i2p/ubuntu/pool/main/i/i2p/',
-kytv='http://'+i2pconv('killyourtv.i2p')+'/debian/' -%}
-Download the <a href="{{ ppa }}">i2p-router</a> package from the <a href="{{ ppa }}">PPA</a>.
-Alternatively, there are unofficial packages available <a href="{{ kytv }}">here</a> for <code>armel, armhf, and kfreebsd</code>.
-    {%- endtrans %}
-  </li>
-  <li>
-    {% trans -%}
-    Make sure that you have Java installed. Running <em><code>apt-get install default-jre</code></em> should be sufficient.{% endtrans %}<br />
-{% trans %}You are now ready to install I2P!{% endtrans %}<br />
-    <code>&nbsp;&nbsp;&nbsp; dpkg -i i2p-router_*.deb</code>
-  </li>
-  <li>
-    {% trans jbigi=site_url('misc/jbigi') -%}
-    It is recommended to compile <a href="{{ jbigi }}">jbigi</a> for your system to achieve better performance. Instructions are available <a href="{{ jbigi }}">here</a>.
-    {%- endtrans %}
-</li>
+    <code>&nbsp;&nbsp;&nbsp; apt-get install i2p i2p-keyring</code></li>
 </ol>
 
 {% trans -%}
@@ -149,7 +135,6 @@ After the installation process completes you can move on to the next part of <a 
 {%- endtrans %}
 
 <h2 id="Post-install_work">{{ _('Post-install work') }}</h2>
-
 
 {% trans -%}
 Using these I2P packages the I2P router can be started in the following

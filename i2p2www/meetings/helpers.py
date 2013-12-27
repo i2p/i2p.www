@@ -56,7 +56,10 @@ def get_meetings_ids(num=0):
             # ignore all non-.rst files
             if not f.endswith('.rst'):
                 continue
-            meetings.append(int(f[:-4]))
+            try:
+                meetings.append(int(f[:-4]))
+            except ValueError:
+                continue
     meetings.sort()
     meetings.reverse()
     if (num > 0):
@@ -65,7 +68,7 @@ def get_meetings_ids(num=0):
 
 def render_meeting_rst(id):
     # check if that file actually exists
-    name = str(id) + '.rst'
+    name = '%03d.rst' % id
     path = safe_join(MEETINGS_DIR, name)
     if not os.path.exists(path):
         abort(404)
