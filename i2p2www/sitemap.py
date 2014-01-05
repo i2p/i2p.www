@@ -54,6 +54,16 @@ def render_sitemap():
                 'path': path,
                 })
 
+    # -----------
+    # Papers urls
+    # -----------
+    urls.append({
+        'path': '/papers/',
+        })
+    urls.append({
+        'path': '/papers/bibtex',
+        })
+
     # ---------
     # Blog urls
     # ---------
