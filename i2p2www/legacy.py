@@ -189,16 +189,16 @@ def legacy_show(f):
     if lang == 'zh':
         lang = 'zh_CN'
     if f in LEGACY_FUNCTIONS_MAP:
-        return redirect(url_for(LEGACY_FUNCTIONS_MAP[f]['function'], lang=lang, **LEGACY_FUNCTIONS_MAP[f]['params']))
+        return redirect(url_for(LEGACY_FUNCTIONS_MAP[f]['function'], lang=lang, **LEGACY_FUNCTIONS_MAP[f]['params']), 301)
     elif f in LEGACY_PAGES_MAP:
-        return redirect(url_for('site_show', lang=lang, page=LEGACY_PAGES_MAP[f]))
+        return redirect(url_for('site_show', lang=lang, page=LEGACY_PAGES_MAP[f]), 301)
     elif f in LEGACY_BLOG_POSTS_MAP:
         return legacy_blog(lang, LEGACY_BLOG_POSTS_MAP[f]['date'], LEGACY_BLOG_POSTS_MAP[f]['title'])
     else:
-        return redirect(url_for('site_show', lang=lang, page=f))
+        return redirect(url_for('site_show', lang=lang, page=f), 301)
 
 def legacy_meeting(id):
-    return redirect(url_for('meetings_show', id=id, lang='en'))
+    return redirect(url_for('meetings_show', id=id, lang='en'), 301)
 
 def legacy_status(year, month, day):
     return legacy_blog('en', (year, month, day), 'status')
@@ -213,4 +213,4 @@ def legacy_release(version):
         return legacy_show('release-%s' % version)
 
 def legacy_blog(lang, (year, month, day), title):
-    return redirect(url_for('blog_post', lang=lang, slug=('%d/%02d/%02d/%s' % (year, month, day, title))))
+    return redirect(url_for('blog_post', lang=lang, slug=('%d/%02d/%02d/%s' % (year, month, day, title))), 301)
