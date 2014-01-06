@@ -23,7 +23,7 @@ except ImportError:
 
 CURRENT_I2P_VERSION = '0.9.9'
 
-CANONICAL_DOMAIN = 'new.i2p-projekt.de'
+CANONICAL_DOMAIN = 'geti2p.net'
 
 CACHE_CONFIG = settings.CACHE_CONFIG if settings and hasattr(settings, 'CACHE_CONFIG') else {
     'CACHE_DEFAULT_TIMEOUT': 600,
