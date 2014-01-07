@@ -1,9 +1,21 @@
-from flask import make_response, render_template, request, safe_join
+from flask import g, make_response, render_template, request, safe_join
 import os.path
 
 from i2p2www import SITE_DIR, SUPPORTED_LANGS, cache
 from i2p2www.blog.helpers import get_blog_slugs
 from i2p2www.meetings.helpers import get_meetings_ids
+
+
+def to_url(value):
+    parts = value.split('_')
+    if len(parts) == 2:
+        return parts[0] + '-' + parts[1].lower()
+    return value
+
+
+LANG_FRAGS = []
+for lang in SUPPORTED_LANGS:
+    LANG_FRAGS.append(to_url(lang))
 
 
 ##########
@@ -20,7 +32,7 @@ def render_sitemap_index():
     url_root = request.url_root
 
     # Render and return the sitemap index
-    response = make_response(render_template('global/sitemap_index.xml', url_root=url_root, langs=SUPPORTED_LANGS))
+    response = make_response(render_template('global/sitemap_index.xml', url_root=url_root, langs=LANG_FRAGS))
     response.headers['Content-Type'] = 'application/xml'
     return response
 
@@ -99,6 +111,7 @@ def render_sitemap():
         })
 
     # Render and return the sitemap
-    response = make_response(render_template('global/sitemap.xml', url_root=url_root, langs=SUPPORTED_LANGS, urls=urls))
+    response = make_response(render_template('global/sitemap.xml', url_root=url_root, langs=LANG_FRAGS,
+                                             curlang=to_url(g.lang), urls=urls))
     response.headers['Content-Type'] = 'application/xml'
     return response
