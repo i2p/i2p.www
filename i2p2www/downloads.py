@@ -72,6 +72,10 @@ def downloads_redirect(version, protocol, domain, file):
     if domain:
         if not domain in mirrors:
             abort(404)
-        return redirect(mirrors[domain]['url'] % data)
+        return render_template('downloads/redirect.html',
+                               version=version, protocol=protocol, domain=domain, file=file,
+                               url=mirrors[domain]['url'] % data)
     randomain = mirrors.keys()[randint(0, len(mirrors) - 1)]
-    return redirect(mirrors[randomain]['url'] % data)
+    return render_template('downloads/redirect.html',
+                           version=version, protocol=protocol, domain=domain, file=file,
+                           url=mirrors[randomain]['url'] % data)
