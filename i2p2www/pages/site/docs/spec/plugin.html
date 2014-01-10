@@ -1,12 +1,8 @@
 {% extends "global/layout.html" %}
 {% block title %}I2P Plugin Specification{% endblock %}
-{% block lastupdated %}March 2012{% endblock %}
-{% block accuratefor %}0.8.13-13{% endblock %}
+{% block lastupdated %}January 2014{% endblock %}
+{% block accuratefor %}0.9.9{% endblock %}
 {% block content %}
-<h2>
-Specification Version 0.18
-2012-03-15
-</h2>
 <h3>Overview</h3>
 <p> 
 This document specifies
@@ -56,153 +52,188 @@ system, the router, executing external programs, etc.
 
 <h3>Details</h3>
 <p>
-foo.xpi2p is a sud file containing the following:
+foo.xpi2p is a <a href="{{ updates }}">signed update (sud) file</a> containing the following:
+<h4>
+Standard .sud header prepended to the zip file, containing the following:
+</h4>
 <pre>
-	Standard .sud header prepended to the zip file, containing the following:
-	        40-byte <a href="{{ site_url('docs/how/cryptography') }}#DSA">DSA signature</a>
-		16-byte plugin version in UTF-8, padded with trailing zeroes if necessary
+        40-byte <a href="{{ site_url('docs/how/cryptography') }}#DSA">DSA signature</a>
+	16-byte plugin version in UTF-8, padded with trailing zeroes if necessary
+</pre>
+<h4>
+Zip file containing the following:
+</h4>
+<h5>
+plugin.config file
+</h5>
+<p>
+This file is required.
+It is a <a href="{{ configuration }}">standard I2P configuration file</a>,
+containing the following properties:
+</p>
+</p><p>
+The following four are required properties.
+The first three must be identical to those in the installed plugin for an update plugin.
+<pre>
 
-	Zip file containing the following:
+	name (will be installed in this directory name)
+		For native plugins, you may want separate names in different packages -
+		foo-windows and foo-linux, for example
 
-		(REQUIRED) plugin.config file:
-		(standard I2P config file, UTF-8 containing key=value lines, comments start with #)
-		Containing the following properties:
+	key (<a href="{{ site_url('docs/how/cryptography') }}#DSA">DSA public key</a> as 172 B64 chars ending with '=')
 
-		(* = required)
-			The first three must be identical to those in the installed plugin for an update plugin.
+	signer (yourname@mail.i2p recommended)
 
-			*name (will be installed in this directory name)
-				For native plugins, you may want separate names in different packages -
-				foo-windows and foo-linux, for example
-			*key (<a href="{{ site_url('docs/how/cryptography') }}#DSA">DSA public key</a> as 172 B64 chars ending with '=')
-			*signer (yourname@mail.i2p recommended)
-
-			*version (must be in a format VersionComparator can parse, e.g. 1.2.3-4)
-				16 bytes max (must match sud version)
-				Valid number separators are '.', '-', and '_'
-				This must be greater than the one in the installed plugin for an update plugin.
+	version (must be in a format VersionComparator can parse, e.g. 1.2.3-4)
+		16 bytes max (must match sud version)
+		Valid number separators are '.', '-', and '_'
+		This must be greater than the one in the installed plugin for an update plugin.
 
 
-			The following items are displayed on configclients.jsp if present:
+</pre>
+	Values for the following properties are displayed on /configclients in the router console if present:
+<pre>
+	date (Java time - long int)
+	author (yourname@mail.i2p recommended)
+	websiteURL (http://foo.i2p/)
+	updateURL (http://foo.i2p/foo.xpi2p)
+		The update checker will check bytes 41-56 at this URL
+		to determine whether a newer version is available
+		( Should the checker fetch with ?currentVersion=1.2.3?...
+		  No. If the dev wants to have the URL contain the current version, just
+		  set it in the config file, and remember to change it every release)
+	description
+	description_xx (for language xx)
+	license
+	disableStop=true
+		Default false.
+		If true, the stop button will not be shown. Use this if there are no
+		webapps and no clients with stopargs.
 
-			date (Java time - long int)
-			author (yourname@mail.i2p recommended)
-			websiteURL (http://foo.i2p/)
-			updateURL (http://foo.i2p/foo.xpi2p)
-				The update checker will check bytes 41-56 at this URL
-				to determine whether a newer version is available
-				( Should the checker fetch with ?currentVersion=1.2.3?...
-				  No. If the dev wants to have the URL contain the current version, just
-				  set it in the config file, and remember to change it every release)
-			description
-			description_xx (for language xx)
-			license
-			disableStop=true
-				Default false.
-				If true, the stop button will not be shown. Use this if there are no
-				webapps and no clients with stopargs.
+</pre>
+	The following properties are used to add a link on the console summary bar:
+<pre>
 
-			The following items are used to add a link on the console summary bar:
+	consoleLinkName (will be added to summary bar)
+	consoleLinkName_xx (for language xx)
+	consoleLinkURL (/appname/index.jsp)
+	consoleLinkTooltip (supported as of 0.7.12-6)
+	consoleLinkTooltip_xx (lang xx as of 0.7.12-6)
+		
 
-			consoleLinkName (will be added to summary bar)
-			consoleLinkName_xx (for language xx)
-			consoleLinkURL (/appname/index.jsp)
-			consoleLinkTooltip (supported as of 0.7.12-6)
-			consoleLinkTooltip_xx (lang xx as of 0.7.12-6)
-			
+</pre>
+	The following properties are used by the plugin installer:
+<pre>
 
-			The following items are used by the plugin installer:
+	type (app/theme/locale/webapp/...) (unimplemented, probably not necessary)
+	min-i2p-version
+	max-i2p-version
+	min-java-version
+	min-jetty-version (supported as of 0.8.13, use 6 for Jetty 6 webapps)
+	max-jetty-version (supported as of 0.8.13, use 5.99999 for Jetty 5 webapps)
+	required-platform-OS (unimplemented - perhaps will be displayed only, not verified)
+	other-requirements (unimplemented e.g. python x.y - not verified by the installer, just displayed to the user)
+	dont-start-at-install=true
+		Default false.
+		Won't start the plugin when it is installed or updated. On initial installation,
+                configures the plugin so the user must manually start it. An update will not change
+                the user's preference to start it if they choose to do so.
+	router-restart-required=true
+		Default false.
+		This does not restart the router or the plugin on an update, it just informs the user that a restart is required.
+		It has no effect on initial plugin installation.
+	update-only=true
+		Default false.
+		If true, will fail if an installation does not exist.
+	install-only=true
+		Default false.
+		If true, will fail if an installation exists.
+	min-installed-version (to update over, if an installation exists)
+	max-installed-version (to update over, if an installation exists)
+	depends=plugin1,plugin2,plugin3 (unimplemented - is this too hard? proposed by sponge)
+	depends-version=0.3.4,,5.6.7 (unimplemented)
 
-			type (app/theme/locale/webapp/...) (unimplemented, probably not necessary)
-			min-i2p-version
-			max-i2p-version
-			min-java-version
-			min-jetty-version (supported as of 0.8.13, use 6 for Jetty 6 webapps)
-			max-jetty-version (supported as of 0.8.13, use 5.99999 for Jetty 5 webapps)
-			required-platform-OS (unimplemented - perhaps will be displayed only, not verified)
-			other-requirements (unimplemented e.g. python x.y - not verified by the installer, just displayed to the user)
-			dont-start-at-install=true
-				Default false.
-				Won't start the plugin when it is installed or updated. On initial installation, sets the plugin as so the user must manually start it. An update will not change the user's preference to start it if they choose to do so.
-			router-restart-required=true
-				Default false.
-				This does not restart the router or the plugin on an update, it just informs the user that a restart is required.
-				It has no effect on initial plugin installation.
-			update-only=true
-				Default false.
-				If true, will fail if an installation does not exist.
-			install-only=true
-				Default false.
-				If true, will fail if an installation exists.
-			min-installed-version (to update over, if an installation exists)
-			max-installed-version (to update over, if an installation exists)
-			depends=plugin1,plugin2,plugin3 (unimplemented - is this too hard? proposed by sponge)
-			depends-version=0.3.4,,5.6.7 (unimplemented)
+</pre>
+	The following property is used for translation plugins:
+<pre>
+	langs=xx,yy,Klingon,... (unimplemented) (yy is the country flag)
 
-			The following item is used for translation plugins:
-			langs=xx,yy,Klingon,... (unimplemented) (yy is the country flag)
+</pre>
+<h5>
+Application Directories and Files
+</h5>
+<p>
+Each of the following directories or files is optional, but something must be there or it won't do anything:
+</p>
+<pre>
+console/
+	locale/
+		Only jars containing new resource bundles (translations) for apps in the base I2P installation.
+		Bundles for this plugin should go inside console/webapp/foo.war or lib/foo.jar
 
-		Each of the following directories or files is optional, but something must be there or it won't do anything:
-			
-		console/
-			locale/
-				Only jars containing new resource bundles (translations) for apps in the base I2P installation.
-				Bundles for this plugin should go inside console/webapp/foo.war or lib/foo.jar
+	themes/
+		New themes for the router console
+		Place each theme in a subdirectory.
 
-			themes/
-				New themes for the router console
-				Place each theme in a subdirectory.
+	webapps/
+		(See important notes below about webapps)
+		.wars
+		These will be run at install time unless disabled in webapps.config
+		The war name does not have to be the same as the plugin name.
+		Do not duplicate war names in the base I2P installation.
 
-			webapps/
-				(See important notes below about webapps)
-				.wars
-				These will be run at install time unless disabled in webapps.config
-				The war name does not have to be the same as the plugin name.
-				Do not duplicate war names in the base I2P installation.
+	webapps.config 
+		Same format as router's webapps.config
+		Also used to specify additional jars in $PLUGIN/lib/ or $I2P/lib for the webapp classpath,
+		with webapps.warname.classpath=$PLUGIN/lib/foo.jar,$I2P/lib/bar.jar
+		NOTE: Currently, the classpath line is only loaded if the warname is
+		the same as the plugin name.
+		NOTE: Prior to router version 0.7.12-9, the router looked for plugin.warname.startOnLoad instead
+		of webapps.warname.startOnLoad. For compatibility with older router versions, a plugin
+		wishing to disable a war should include both lines.
 
-			webapps.config 
-				Same format as router's webapps.config
-				Also used to specify additional jars in $PLUGIN/lib/ or $I2P/lib for the webapp classpath,
-				with webapps.warname.classpath=$PLUGIN/lib/foo.jar,$I2P/lib/bar.jar
-				NOTE: Currently, the classpath line is only loaded if the warname is
-				the same as the plugin name.
-				NOTE: Prior to router version 0.7.12-9, the router looked for plugin.warname.startOnLoad instead
-				of webapps.warname.startOnLoad. For compatibility with older router versions, a plugin
-				wishing to disable a war should include both lines.
+eepsite/
+	(See important notes below about eepsites)
+	cgi-bin/
+	docroot/
+	logs/
+	webapps/
+	jetty.xml
+		The installer will have to do variable substitution in here to set the path
+		The location and name of this file doesn't really matter, as long as it is set in
+		clients.config - it may be more convenient to be up one level from here
+		(that's what the zzzot plugin does)
 
-		eepsite/
-			(See important notes below about eepsites)
-			cgi-bin/
-			docroot/
-			logs/
-			webapps/
-			jetty.xml
-				The installer will have to do variable substitution in here to set the path
-				The location and name of this file doesn't really matter, as long as it is set in
-				clients.config - it may be more convenient to be up one level from here
-				(that's what the zzzot plugin does)
-
-		lib/
-			Put any jars here, and specify them in a classpath line in console/webapps.config and/or clients.config
-
-		clients.config (same format as router's clients.config)
-			These will be run when a plugin is started
-			Start at client #0, number consecutively
-			New property clientApp.0.stopargs=foo bar stop baz
-				If present, the class will be called with these args to stop the client
-				All stop tasks are called with zero delay
-				Note: The router can't tell if your clients are running or not.
-                                Each should handle stopping an app that isn't running without complaint.
-				That probably goes for starting a client that is already started too.
-			New property clientApp.0.uninstallargs=foo bar uninstall baz
-				If present, the class will be called with these args just before deleting $PLUGIN
-				All uninstall tasks are called with zero delay
-			New property clientApp.0.classpath=$I2P/lib/foo.bar,$PLUGIN/lib/bar.jar
-			The plugin runner will do variable substitution in the args and stopargs lines as follows:
-				$I2P => i2p base installation dir;
-				$CONFIG => i2p config dir (typically ~/.i2p)
-				$PLUGIN => this plugin's installation dir (typically ~/.i2p/plugins/appname)
-			(See important notes below about running shell scripts or external programs)
+lib/
+	Put any jars here, and specify them in a classpath line in console/webapps.config and/or clients.config
+</pre>
+<h5>
+clients.config file
+</h5>
+<p>
+This file is optional,
+and specifies clients that will be run when a plugin is started.
+It uses the same format as the router's clients.config file.
+See the <a href="{{ configuration }}">clients.config configuration file specification</a>
+for more information about the format and important details
+about how clients are started and stopped.
+</p>
+<pre>
+	property clientApp.0.stopargs=foo bar stop baz
+		If present, the class will be called with these args to stop the client
+		All stop tasks are called with zero delay
+		Note: The router can't tell if your unmanaged clients are running or not.
+		Each should handle stopping an app that isn't running without complaint.
+		That probably goes for starting a client that is already started too.
+	property clientApp.0.uninstallargs=foo bar uninstall baz
+		If present, the class will be called with these args just before deleting $PLUGIN
+		All uninstall tasks are called with zero delay
+	property clientApp.0.classpath=$I2P/lib/foo.bar,$PLUGIN/lib/bar.jar
+	The plugin runner will do variable substitution in the args and stopargs lines as follows:
+		$I2P => i2p base installation dir;
+		$CONFIG => i2p config dir (typically ~/.i2p)
+		$PLUGIN => this plugin's installation dir (typically ~/.i2p/plugins/appname)
+	(See important notes below about running shell scripts or external programs)
 </pre>
 
 
@@ -270,7 +301,7 @@ and there may be more than one.
 Better is to start your own Jetty instance and I2PTunnel instance,
 for a brand new eepsite.
 <p>
- It can instantiate a new I2PTunnel (kinda like the i2ptunnel CLI does),
+ It can instantiate a new I2PTunnel (somewhat like the i2ptunnel CLI does),
   but it won't appear in the i2ptunnel gui of course, that's a different instance.
 But that's ok. Then you can start and stop i2ptunnel and jetty together.
 <p>
@@ -287,6 +318,16 @@ See zzzot and pebble plugins for examples.
 Client start/stop notes
 </h3>
 <p>
+As of release 0.9.4, the router supports "managed" plugin clients.
+Managed plugin clients are instantiated and started by the <code>ClientAppManager</code>.
+The ClientAppManager maintains a reference to the client and receives updates on the client's state.
+Managed plugin client are preferred, as it is much easier to implement state tracking
+and to start and stop a client. It also is much easier to avoid static references in the client code
+which could lead to excessive memory usage after a client is stopped.
+See the <a href="{{ configuration }}">clients.config configuration file specification</a>
+for more information on writing a managed client.
+</p><p>
+For "unmanaged" plugin clients,
 The router has no way to monitor the state of clients started via clients.config.
 The plugin author should handle multiple start or stop calls gracefully, if at all possible,
 by keeping a static state table, or using PID files, etc.

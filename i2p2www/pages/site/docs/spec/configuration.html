@@ -1,7 +1,7 @@
 {% extends "global/layout.html" %}
 {% block title %}{% trans %}Configuration File Specification{% endtrans %}{% endblock %}
-{% block lastupdated %}{% trans %}September 2012{% endtrans %}{% endblock %}
-{% block accuratefor %}0.9.2{% endblock %}
+{% block lastupdated %}{% trans %}January 2014{% endtrans %}{% endblock %}
+{% block accuratefor %}0.9.9{% endblock %}
 {% block content %}
 <h2>{% trans %}Overview{% endtrans %}</h2>
 <p>{% trans -%}
@@ -51,11 +51,111 @@ serialized format for I2P protocols specified in
 <p>{% trans -%}
 Configured via /configclients in the router console.
 {%- endtrans %}</p>
+<p>
+The format is as follows:
+</p><p>
+Lines are of the form clientApp.x.prop=val, where x is the app number.
+App numbers MUST start with 0 and be consecutive.
+</p><p>
+Properties are as follows:
+<pre>
+	main: Full class name. Required. The constructor or main() method in this
+	      class will be run, depending on whether the client is managed or unmanaged.
+              See below for details.
+	name: Name to be displayed on console.
+	args: Arguments to the main class, separated by spaces or tabs.
+	      Arguments containing spaces or tabs may be quoted with ' or "
+	delay: Seconds before starting, default 120
+	onBoot: {true|false}, default false, forces a delay of 0,
+	        overrides delay setting
+	startOnLoad: {true|false} Is the client to be run at all?
+	                   Default true
+</pre>
+</p><p>
+The following additional properties are used only by plugins:
+<pre>
+	stopargs: Arguments to stop the client.
+	uninstallargs: Arguments to uninstall the client.
+	classpath: Additional classpath elements for the client,
+	           separated by commas.
+</pre>
+</p><p>
+The following substitutions are made in the args, stopargs,
+uninstallargs, and classpath lines, for plugins only:
+<pre>
+	$I2P: The base I2P install directory
+	$CONFIG: The user's configuration directory (e.g. ~/.i2p)
+	$PLUGIN: This plugin's directory (e.g. ~/.i2p/plugins/foo)
+</pre>
+</p><p>
+All properties except "main" are optional.
+Lines starting with "#" are comments.
+</p><p>
+If the delay is less than zero, the client is run immediately,
+in the same thread, so that exceptions may be propagated to the console.
+In this case, the client should either throw an exception, return quickly,
+or spawn its own thread.
+If the delay is greater than or equal to zero, it will be run
+in a new thread, and exceptions will be logged but not propagated
+to the console.
+</p>
+<p>
+Clients may be "managed" or "unmanaged".
+</p>
+
+<h4>Managed Clients</h4>
+<p>
+As of release 0.9.4, the router supports "managed" clients.
+Managed clients are instantiated and started by the <code>ClientAppManager</code>.
+The ClientAppManager maintains a reference to the client and receives updates on the client's state.
+Managed clients are preferred, as it is much easier to implement state tracking
+and to start and stop a client. It also is much easier to avoid static references in the client code
+which could lead to excessive memory usage after a client is stopped.
+</p>
+<p>
+Managed clients implement either the <code>net.i2p.app.ClientApp</code> or
+<code>net.i2p.router.app.RouterApp</code> interface.
+Clients implementing the ClientApp interface MUST provide the following constructor:
+<pre>
+    public MyClientApp(I2PAppContext context, ClientAppManager listener, String[] args)
+</pre>
+Clients implementing the RouterApp interface MUST provide the following constructor:
+<pre>
+    public MyClientApp(RouterContext context, ClientAppManager listener, String[] args)
+</pre>
+The args will be the arguments specified in the clients.config file.
+</p>
+
+<h4>Unmanaged Clients</h4>
+<p>
+If the main class does not implement a managed interface,
+it will be started with main() with the arguments specified,
+and stopped with main() with the arguments specified.
+</p>
 
 <h3>{% trans %}Logger{% endtrans %} (logger.config)</h3>
 <p>{% trans -%}
 Configured via /configlogging in the router console.
 {%- endtrans %}</p>
+<p>
+Properties are as follows:
+<pre>
+    logger.format={dctpm}*
+        where d = date, c = class, t = thread name, p = priority, m = message
+    logger.dateFormat=HH:mm:ss.SSS
+    logger.logFileName=name
+    logger.logFileSize=nnn[K|M|G]
+    logger.logRotationLimit=n
+    logger.displayOnScreen=true|false
+    logger.consoleBufferSize=n
+    logger.minimumOnScreenLevel=CRIT|ERROR|WARN|INFO|DEBUG
+    logger.defaultLevel=CRIT|ERROR|WARN|INFO|DEBUG
+    logger.logBufferSize=n
+    logger.dropOnOverflow=true|false
+    logger.dropDuplicates=true|false
+    logger.record.{class}=CRIT|ERROR|WARN|INFO|DEBUG
+</pre>
+</p>
 
 <h3>{% trans %}Individual Plugin{% endtrans %} (xxx/plugin.config)</h3>
 <p>{% trans pluginspec=site_url('docs/spec/plugin') -%}
