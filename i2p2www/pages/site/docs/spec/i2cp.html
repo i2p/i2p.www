@@ -1,6 +1,6 @@
 {% extends "global/layout.html" %}
 {% block title %}I2CP Specification{% endblock %}
-{% block lastupdated %}December 2013{% endblock %}
+{% block lastupdated %}January 2014{% endblock %}
 {% block accuratefor %}0.9.9{% endblock %}
 {% block content %}
 <h2>Overview</h2>
@@ -327,14 +327,14 @@ HostLookupMessage
 </a>
 <td align="center">C-&gt;R
 <td align=right>38
-<td align="center">0.9.10
+<td align="center">0.9.11
 <tr><td>
 <a href="#msg_HostReply">
 HostReplyMessage
 </a>
 <td align="center">R-&gt;C
 <td align=right>39
-<td align="center">0.9.10
+<td align="center">0.9.11
 <tr><td>
 <a href="#msg_MessagePayload">
 MessagePayloadMessage
@@ -549,7 +549,7 @@ The router responds with a <a href="#msg_DestReply">Dest Reply Message</a>.
 As of release 0.7.
 As of release 0.8.3, multiple outstanding lookups are supported,
 and lookups are supported in both I2PSimpleSession and in standard sessions.
-<a href="#msg_HostLookup">Host Lookup Message</a> is preferred as of release 0.9.10.
+<a href="#msg_HostLookup">Host Lookup Message</a> is preferred as of release 0.9.11.
 </p>
 
 
@@ -648,7 +648,7 @@ The router responds with a <a href="#msg_SetDate">Set Date Message</a>.
 I2CP Version <a href="{{ site_url('docs/spec/common-structures') }}#struct_String">String</a>
 </li><li>
 Authentication <a href="{{ site_url('docs/spec/common-structures') }}#type_Mapping">Mapping</a>
-(optional, as of release 0.9.10)
+(optional, as of release 0.9.11)
 </li></ol>
 
 <h4>Notes</h4>
@@ -659,7 +659,7 @@ The version string is included as of release 0.8.7.
 This is only useful if the client and router are not in the same JVM.
 If it is not present, the client is version 0.8.6 or earlier.
 </li><li>
-Preliminary: As of release 0.9.10, the authentication
+Preliminary: As of release 0.9.11, the authentication
 <a href="{{ site_url('docs/spec/common-structures') }}#type_Mapping">Mapping</a>
 may be included, with the keys i2cp.username and i2cp.password.
 The Mapping need not be sorted as this message is not signed.
@@ -691,6 +691,8 @@ which is much more efficient.
 
 <h4>Contents</h4>
 <ol><li>
+<a href="#struct_SessionId">Session ID</a>
+</li><li>
 4 byte <a href="{{ site_url('docs/spec/common-structures') }}#type_Integer">Integer</a> request ID
 </li><li>
 4 byte <a href="{{ site_url('docs/spec/common-structures') }}#type_Integer">Integer</a> timeout (ms)
@@ -704,10 +706,11 @@ host name <a href="{{ site_url('docs/spec/common-structures') }}#struct_String">
 
 <h4>Notes</h4>
 <ul><li>
-Preliminary. As of release 0.9.10.
+Preliminary. As of release 0.9.11.
 Use <a href="#msg_DestLookup">Dest Lookup Message</a> for older routers.
 </li><li>
-The request ID will be returned in the <a href="#msg_HostReply">Host Reply Message</a>.
+The session ID and request ID will be returned in the <a href="#msg_HostReply">Host Reply Message</a>.
+Use 0xFFFF for the session ID if there is no session.
 </li><li>
 Timeout is useful for Hash lookups. Recommended minimum 10,000 (10 sec.).
 In the future it may also be useful for remote naming service lookups.
@@ -729,6 +732,8 @@ Sent from Router to Client in response to a
 </p>
 <h4>Contents</h4>
 <ol><li>
+<a href="#struct_SessionId">Session ID</a>
+</li><li>
 4 byte <a href="{{ site_url('docs/spec/common-structures') }}#type_Integer">Integer</a> request ID
 </li><li>
 1 byte <a href="{{ site_url('docs/spec/common-structures') }}#type_Integer">Integer</a> result code
@@ -739,10 +744,10 @@ only present if result code is zero.
 
 <h4>Notes</h4>
 <ul><li>
-Preliminary. As of release 0.9.10.
+Preliminary. As of release 0.9.11.
 See Host Lookup notes.
 </li><li>
-The request ID is that from the Host Lookup.
+The session ID and request ID are those from the Host Lookup.
 </li><li>
 The result code is 0 for success, 1-255 for failure.
 Only 1 is used for failure now, more specific failure codes may be defined in the future.
@@ -1146,7 +1151,7 @@ Bit order: 15...0
 </p><p>
 Bits 15-11: Unused, must be zero
 </p><p>
-Bits 10-9: Message Reliability Override (scheduled for release 0.9.10)
+Bits 10-9: Message Reliability Override (scheduled for release 0.9.11)
 <table border=1>
 <tr><th>Field value<th>Description
 <tr><td align="center">00<td>Use session setting i2cp.messageReliabiltiy (default)
