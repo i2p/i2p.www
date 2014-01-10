@@ -1,6 +1,6 @@
 {% extends "global/layout.html" %}
 {% block title %}{% trans %}Common structures Specification{% endtrans %}{% endblock %}
-{% block lastupdated %}{% trans %}December 2013{% endtrans %}{% endblock %}
+{% block lastupdated %}{% trans %}January 2014{% endtrans %}{% endblock %}
 {% block accuratefor %}0.9.9{% endblock %}
 {% block content %}
 <p>{% trans i2np=site_url('docs/protocol/i2np'),
@@ -219,6 +219,108 @@ however non-NULL certs are not widely used, and any checking is left to the appl
 {%- endtrans %}</li>
 </ul>
 
+<h4>{% trans %}Certificate Types{% endtrans %}</h4>
+<p>The following certificate types are defined:</p>
+<table border=1>
+<tr><th>Type</th><th>Type Code</th><th>Payload Length</th><th>Total Length</th><th>Notes/th></tr>
+<tr><td>Null</td><td align="center">0</td><td align="center">0</td><td align="center">3</td><td></td></tr>
+<tr><td>HashCash</td><td align="center">1</td><td align="center">varies</td><td align="center">varies</td><td>
+  Experimental, unused. Payload contains an ASCII colon-separated hashcash string.
+</td></tr>
+<tr><td>Hidden</td><td align="center">2</td><td align="center">0</td><td align="center">3</td><td>
+  Experimental, unused. Hidden routers generally do not announce that they are hidden.
+</td></tr>
+<tr><td>Signed</td><td align="center">3</td><td align="center">40 or 72</td><td align="center">43 or 75</td><td>
+  Experimental, unused. Payload contains a 40-byte DSA signature,
+  optionally followed by the 32-byte Hash of the signing Destination.
+</td></tr>
+<tr><td>Multiple</td><td align="center">4</td><td align="center">varies</td><td align="center">varies</td><td>
+  Experimental, unused. Payload contains multiple certificates.
+</td></tr>
+<tr><td>Key</td><td align="center">5</td><td align="center">4+</td><td align="center">7+</td><td>
+  Since 0.9.11. See below for details.
+</td></tr>
+</table>
+
+
+<h4>{% trans %}Key Certificates{% endtrans %}</h4>
+<p>
+Key certificates are preliminary, and are scheduled to be introduced in release 0.9.11.
+Prior to that release, all PublicKeys were 256-byte ElGamal keys, and
+all SigningPublicKeys were 128-byte DSA-160 keys.
+A key certificate provides a mechanism to indicate the type of the PublicKey and SigningPublicKey
+in the Destination or RouterIdentity, and to package any key data in excess of the
+standard lengths.
+</p><p>
+By maintaining exactly 384 bytes before the certificate, and putting any excess key
+data inside the certificate, we maintain compatibility for any software that
+parses Destinations and RouterIdentities.
+
+</p><p>
+The key certificate payload contains:
+</p><table border=1>
+<tr><th>Data</th><th>Length</th></tr>
+<tr><td>Signing Public Key Type</td><td align="center">2</td></tr>
+<tr><td>Crypto Public Key Type</td><td align="center">2</td></tr>
+<tr><td>Excess Signing Public Key Data</td><td align="center">0+</td></tr>
+<tr><td>Excess Crypto Public Key Data</td><td align="center">0+</td></tr>
+</table>
+
+<p>
+The defined Signing Key types are:
+</p><table border=1>
+<tr><th>Type</th><th>Type Code</th><th>Total Public Key Length</th></tr>
+<tr><td>DSA-160</td><td align="center">0</td><td align="center">128</td></tr>
+<tr><td>ECDSA-SHA256-P256</td><td align="center">1</td><td align="center">64</td></tr>
+<tr><td>ECDSA-SHA384-P384</td><td align="center">2</td><td align="center">96</td></tr>
+<tr><td>ECDSA-SHA512-P521</td><td align="center">3</td><td align="center">132</td></tr>
+<tr><td>RSA-SHA256-2048</td><td align="center">4</td><td align="center">512</td></tr>
+<tr><td>RSA-SHA384-3072</td><td align="center">5</td><td align="center">768</td></tr>
+<tr><td>RSA-SHA512-4096</td><td align="center">6</td><td align="center">1024</td></tr>
+</table>
+
+<p>
+The defined Crypto Public Key types are:
+</p><table border=1>
+<tr><th>Type</th><th>Type Code</th><th>Total Public Key Length</th></tr>
+<tr><td>ElGamal</td><td align="center">0</td><td align="center">256</td></tr>
+</table>
+
+<p>
+When a Key Certificate is not present, the preceeding 384 bytes in the Destination or RouterIdentity
+are defined as the 256-byte ElGamal PublicKey followed by the 128-byte DSA-160 SigningPublicKey.
+When a Key Certificate is present, the preceeding 384 bytes are redefined as follows:
+<ul><li>
+Complete or first portion of Crypto Public Key
+</li><li>
+Random padding if the total lengths of the two keys are less than 384 bytes
+</li><li>
+Complete or first portion of Signing Public Key
+</li></ul>
+</p><p>
+The lengths and boundaries of the initial key data, the padding, and the excess key data portions
+in the certificates are not explicitly specified, but are derived from
+the lengths of the specified key types.
+If the total lengths of the Crypto and Signing Public Keys exceed 384 bytes,
+the remainder will be contained in the Key Certificate.
+If the Crypto Public Key length is not 256 bytes, the method for determining
+the boundary between the two keys is to be specified in a future revision of this document.
+</p>
+
+<p>
+Example layouts using an ElGamal Crypto Public Key and the Signing Public Key type indicated:
+</p><table border=1>
+<tr><th>Signing Key Type</th><th>Padding Length</th><th>Excess Signing Key Data in Cert</th></tr>
+<tr><td>DSA-160</td><td align="center">0</td><td align="center">0</td></tr>
+<tr><td>ECDSA-SHA256-P256</td><td align="center">64</td><td align="center">0</td></tr>
+<tr><td>ECDSA-SHA384-P384</td><td align="center">32</td><td align="center">0</td></tr>
+<tr><td>ECDSA-SHA512-P521</td><td align="center">0</td><td align="center">4</td></tr>
+<tr><td>RSA-SHA256-2048</td><td align="center">0</td><td align="center">384</td></tr>
+<tr><td>RSA-SHA384-3072</td><td align="center">0</td><td align="center">648</td></tr>
+<tr><td>RSA-SHA512-4096</td><td align="center">0</td><td align="center">896</td></tr>
+</table>
+
+
 <h4><a href="http://docs.i2p-projekt.de/javadoc/net/i2p/data/Certificate.html">Javadoc</a></h4>
 
 
@@ -348,9 +450,13 @@ total length: 387+ bytes
 {% endhighlight %}
 
 <h4>{% trans %}Notes{% endtrans %}</h4>
-<p>{% trans -%}
+<ul><li>{% trans -%}
 The certificate for a RouterIdentity is currently unused and is always NULL.
-{%- endtrans %}</p>
+{%- endtrans %}</li><li>
+</li><li>
+As of release 0.9.11, if the certificate is a Key Certificate, the boundaries of the
+key fields may vary. See the Key Certificate section above for details.
+</li></ul>
 
 <h4><a href="http://docs.i2p-projekt.de/javadoc/net/i2p/data/RouterIdentity.html">Javadoc</a></h4>
 
@@ -402,6 +508,9 @@ The public key of the destination was used for the old i2cp-to-i2cp encryption
 which was disabled in version 0.6, it is currently unused
 except for the IV for LeaseSet encryption,
 which is deprecated. The public key in the LeaseSet is used instead.
+</li><li>
+As of release 0.9.11, if the certificate is a Key Certificate, the boundaries of the
+key fields may vary. See the Key Certificate section above for details.
 </li></ul>
 
 <h4><a href="http://docs.i2p-projekt.de/javadoc/net/i2p/data/Destination.html">Javadoc</a></h4>
