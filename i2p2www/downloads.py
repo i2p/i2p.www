@@ -8,9 +8,9 @@ from random import randint
 from i2p2www import CURRENT_I2P_VERSION, MIRRORS_FILE
 
 DEFAULT_MIRROR = {
-    'protocol': 'https',
-    'domain':   'i2p.googlecode.com',
-    'org':      'Google Code',
+    'protocol': 'http',
+    'domain':   'download.i2p2.no',
+    'org':      'meeh',
 }
 
 
