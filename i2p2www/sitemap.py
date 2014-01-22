@@ -85,7 +85,7 @@ def render_sitemap():
     blog_slugs = get_blog_slugs()
     for slug in blog_slugs:
         urls.append({
-            'path': '/blog/entry/%s' % slug,
+            'path': '/blog/post/%s' % slug,
             })
 
     # -------------
