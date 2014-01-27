@@ -47,6 +47,7 @@ SUPPORTED_LANGS = [
     'ro',
     'ru',
     'sv_SE',
+    'uk_UA',
     ]
 
 SUPPORTED_LANG_NAMES = {
@@ -63,6 +64,7 @@ SUPPORTED_LANG_NAMES = {
     'ro': u'Romanian',
     'ru': u'Russian',
     'sv_SE': u'Svenska',
+    'uk_UA': u'Ukrainian',
     }
 
 DEFAULT_GETTEXT_DOMAIN = 'priority'
