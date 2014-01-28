@@ -1,7 +1,7 @@
 {% extends "global/layout.html" %}
 {% block title %}{% trans %}Streaming Library Specification{% endtrans %}{% endblock %}
-{% block lastupdated %}{% trans %}December 2013{% endtrans %}{% endblock %}
-{% block accuratefor %}0.9.9{% endblock %}
+{% block lastupdated %}{% trans %}January 2014{% endtrans %}{% endblock %}
+{% block accuratefor %}0.9.10{% endblock %}
 {% block content %}
 <p><a href="{{ site_url('docs/api/streaming') }}">{% trans -%}
 See the Streaming page for an overview of the Streaming Library.
@@ -103,13 +103,16 @@ SIGNATURE_INCLUDED must be set also.
 <tr><td>2<td>RESET<td align="center">--<td align="center">--<td>
 Abnormal close.
 SIGNATURE_INCLUDED must be set also.
-<tr><td>3<td>SIGNATURE_INCLUDED<td align="center">4<td>40 byte <a href="{{ site_url('docs/spec/common-structures') }}#type_Signature">DSA Signature</a>
+<tr><td>3<td>SIGNATURE_INCLUDED<td align="center">4<td>variable length <a href="{{ site_url('docs/spec/common-structures') }}#type_Signature">Signature</a>
 <td>
 Currently sent only with SYNCHRONIZE, CLOSE, and RESET, where it is required,
 and with ECHO, where it is required for a ping.
-The signature uses the Destination's <a href="{{ site_url('docs/spec/common-structures') }}#type_SigningPublicKey">DSA signing keys</a> 
-to sign the entire header and payload with the 40-byte space in the option data field 
+The signature uses the Destination's <a href="{{ site_url('docs/spec/common-structures') }}#type_SigningPublicKey">signing keys</a> 
+to sign the entire header and payload with the space in the option data field 
 for the signature being set to all zeroes.
+<br>
+Prior to release 0.9.11, the signature was always 40 bytes.
+As of release 0.9.11, the signature may be variable-length, see below for details.
 <tr><td>4<td>SIGNATURE_REQUESTED<td align="center">--<td align="center">--<td>
 Unused. Requests every packet in the other direction to have SIGNATURE_INCLUDED
 <tr><td>5<td>FROM_INCLUDED<td align="center">2<td>387+ byte <a href="{{ site_url('docs/spec/common-structures') }}#struct_Destination">Destination</a>
@@ -137,5 +140,25 @@ Note that this does not save any space, the ackThrough field is before the flags
 and is always present.
 <tr><td>11-15<td>unused<td><td><td>
 </table>
+
+<h4>Variable Length Signature Notes</h4>
+<p>
+Prior to release 0.9.11, the signature in the option field was always 40 bytes.
+As of release 0.9.11, the signature is variable length.
+The Signature type and length are inferred from the type of key used in the FROM_INCLUDED option
+and the <a href="{{ site_url('docs/spec/common-structures') }}#type_Signature">Signature documentation</a>.
+<ul><li>
+When a packet contains both FROM_INCLUDED and SIGNATURE_INCLUDED (as in SYNCHRONIZE), the inference may be made directly.
+</li><li>
+When a packet does not contain FROM_INCLUDED, the inference must be made from a previous SYNCHRONIZE packet.
+</li><li>
+When a packet does not contain FROM_INCLUDED, and there was no previous SYNCHRONIZE packet
+(for example a stray CLOSE or RESET packet), the inference can be made from the length of the remaining options
+(since SIGNATURE_INCLUDED is the last option), but the packet will probably be discarded anyway, since there is no FROM available
+to validate the signature.
+If more option fields are defined in the future, they must be accounted for.
+</li></ul>
+</p>
+
 
 {% endblock %}
