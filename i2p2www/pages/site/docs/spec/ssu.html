@@ -1,7 +1,7 @@
 {% extends "global/layout.html" %}
 {% block title %}SSU Protocol Specification{% endblock %}
-{% block lastupdated %}December 2013{% endblock %}
-{% block accuratefor %}0.9.9{% endblock %}
+{% block lastupdated %}January 2014{% endblock %}
+{% block accuratefor %}0.9.10{% endblock %}
 {% block content %}
 
 <p>
@@ -99,10 +99,13 @@ the following bitfields:</p>
   Bit order: 76543210 (bit 7 is MSB)
 
   bits 7-4: payload type
-     bit 3: rekey?
-     bit 2: extended options included
-  bits 1-0: reserved
+     bit 3: rekey, always 0, unimplemented
+     bit 2: extended options included, always 0, unimplemented
+  bits 1-0: reserved, set to 0 for compatibility with future uses
 {% endhighlight %}
+
+<p>The header format is:</p>
+
 {% highlight lang='dataspec' %}
  Header: 37+ bytes
  Encryption starts with the flag byte.
@@ -127,7 +130,14 @@ the following bitfields:</p>
  +----+----+----+----+----+----+         +
  | #opt extended option bytes (optional) |
  ~                                       ~
+ ~                                       ~
+ +----+----+----+----+----+----+----+----+
 {% endhighlight %}
+
+<p>
+Note that rekeying and extended options are unimplemented, so the
+current header size is exactly 37 bytes.
+</p>
 
 
 <h3 id="rekey">Rekeying</h3>
@@ -239,6 +249,8 @@ This is the first message sent to establish a session.
     <td>introKey</td></tr>
 </table>
 
+<p>Message format:</p>
+
 {% highlight lang='dataspec' %}
  +----+----+----+----+----+----+----+----+
  |         X, as calculated from DH      |
@@ -257,6 +269,7 @@ This is the first message sent to establish a session.
 
 <p>
 Typical size including header, in current implementation: 304 (IPv4) or 320 (IPv6) bytes
+(before non-mod-16 padding)
 </p>
 
 <h4>Notes</h4>
@@ -299,6 +312,8 @@ This is the response to a Session Request.
         signature and the following 8 bytes padding.</td></tr>
 </table>
 
+<p>Message format:</p>
+
 {% highlight lang='dataspec' %}
  +----+----+----+----+----+----+----+----+
  |         Y, as calculated from DH      |
@@ -333,6 +348,7 @@ This is the response to a Session Request.
 
 <p>
 Typical size including header, in current implementation: 368 bytes (IPv4 or IPv6)
+(before non-mod-16 padding)
 </p>
 
 <h4>Notes</h4>
@@ -390,7 +406,10 @@ bits 3-0: total identity fragments (F) 1-15</pre></li>
     <td>sessionKey</td></tr>
 </table>
 
- <b>Fragment 0 through F-2 (if F &gt; 1):</b>
+<p>
+ <b>Fragment 0 through F-2</b>
+(only if F &gt; 1; currently unused, see notes below) :
+</p>
 {% highlight lang='dataspec' %}
  +----+----+----+----+----+----+----+----+
  |info| cursize |                        |
@@ -405,7 +424,9 @@ bits 3-0: total identity fragments (F) 1-15</pre></li>
  +----+----+----+----+----+----+----+----+
 {% endhighlight %}
  
+<p>
  <b>Fragment F-1 (last or only fragment):</b>
+</p>
 {% highlight lang='dataspec' %}
  +----+----+----+----+----+----+----+----+
  |info| cursize |                        |
@@ -436,6 +457,7 @@ bits 3-0: total identity fragments (F) 1-15</pre></li>
  
 <p>
 Typical size including header, in current implementation: 480 bytes
+(before non-mod-16 padding)
 </p>
 
 <h4>Notes</h4>
@@ -479,14 +501,11 @@ and is sent as of release 0.8.9.
     <td>sessionKey or introKey</td></tr>
 </table>
 
-{% highlight lang='dataspec' %}
- +----+----+----+----+----+----+----+----+
- |              no data                  |
- +----+----+----+----+----+----+----+----+
-{% endhighlight %}
 
 <p>
+This message does not contain any data.
 Typical size including header, in current implementation: 48 bytes
+(before non-mod-16 padding)
 </p>
 
 <h3 id="relayRequest">RelayRequest (type 3)</h3>
@@ -513,6 +532,8 @@ This is the first message sent from Alice to Bob to request an introduction to C
     <td>introKey (or sessionKey, if Alice/Bob is established)</td></tr>
 </table>
  
+<p>Message format:</p>
+
 {% highlight lang='dataspec' %}
  +----+----+----+----+----+----+----+----+
  |      relay tag    |size| Alice IP addr
@@ -537,6 +558,7 @@ This is the first message sent from Alice to Bob to request an introduction to C
 
 <p>
 Typical size including header, in current implementation: 96 bytes (no Alice IP included) or 112 bytes (4-byte Alice IP included)
+(before non-mod-16 padding)
 </p>
 
 <h4>Notes</h4>
@@ -579,6 +601,8 @@ This is the response to a Relay Request and is sent from Bob to Alice.
     <td>introKey (or sessionKey, if Alice/Bob is established)</td></tr>
 </table>
 
+<p>Message format:</p>
+
 {% highlight lang='dataspec' %}
  +----+----+----+----+----+----+----+----+
  |size|    Charlie IP     | Port (C)|size|
@@ -593,6 +617,7 @@ This is the response to a Relay Request and is sent from Bob to Alice.
 
 <p>
 Typical size including header, in current implementation: 64 (Alice IPv4) or 80 (Alice IPv6) bytes
+(before non-mod-16 padding)
 </p>
 
 <h4>Notes</h4>
@@ -632,6 +657,8 @@ This is the introduction for Alice, which is sent from Bob to Charlie.
     <td>sessionKey</td></tr>
 </table>
 
+<p>Message format:</p>
+
 {% highlight lang='dataspec' %}
  +----+----+----+----+----+----+----+----+
  |size|     Alice IP      | Port (A)|size|
@@ -646,6 +673,7 @@ This is the introduction for Alice, which is sent from Bob to Charlie.
 
 <p>
 Typical size including header, in current implementation: 48 bytes
+(before non-mod-16 padding)
 </p>
 
 <h4>Notes</h4>
@@ -735,6 +763,8 @@ byte 1
 <tr><td align="right" valign="top"><b>Key used:</b></td>
     <td>sessionKey</td></tr>
 </table>
+
+<p>Message format:</p>
 
 {% highlight lang='dataspec' %}
  +----+----+----+----+----+----+----+----+
@@ -835,6 +865,8 @@ See <a href="{{ site_url('docs/transport/ssu') }}#peerTesting">the SSU overview 
     <td>introKey (or sessionKey if the connection has already been established)</td></tr>
 </table>
 
+<p>Message format:</p>
+
 {% highlight lang='dataspec' %}
  +----+----+----+----+----+----+----+----+
  |    test nonce     |size| Alice IP addr
@@ -855,6 +887,7 @@ See <a href="{{ site_url('docs/transport/ssu') }}#peerTesting">the SSU overview 
 
 <p>
 Typical size including header, in current implementation: 80 bytes
+(before non-mod-16 padding)
 </p>
 
 <h4>Notes</h4>
