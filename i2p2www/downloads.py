@@ -8,8 +8,8 @@ from random import randint
 from i2p2www import CURRENT_I2P_VERSION, MIRRORS_FILE
 
 DEFAULT_MIRROR = {
-    'protocol': 'http',
-    'domain':   'download.i2p2.no',
+    'protocol': 'https',
+    'domain':   'download.i2p2.de',
     'org':      'meeh',
 }
 
