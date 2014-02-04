@@ -36,7 +36,7 @@ MEETINGS_PER_PAGE = 20
 SUPPORTED_LANGS = [
     'en',
     'es',
-    'zh_CN',
+    'zh',
     'de',
     'fr',
     'it',
@@ -46,14 +46,14 @@ SUPPORTED_LANGS = [
     'pt_BR',
     'ro',
     'ru',
-    'sv_SE',
-    'uk_UA',
+    'sv',
+    'uk',
     ]
 
 SUPPORTED_LANG_NAMES = {
     'en': u'English',
     'es': u'Castellano',
-    'zh_CN': u'Chinese',
+    'zh': u'Chinese',
     'de': u'Deutsch',
     'fr': u'Français',
     'it': u'Italiano',
@@ -63,8 +63,8 @@ SUPPORTED_LANG_NAMES = {
     'pt_BR': u'Brazilian Portugese',
     'ro': u'Romanian',
     'ru': u'Russian',
-    'sv_SE': u'Svenska',
-    'uk_UA': u'Ukrainian',
+    'sv': u'Svenska',
+    'uk': u'Ukrainian',
     }
 
 DEFAULT_GETTEXT_DOMAIN = 'priority'
