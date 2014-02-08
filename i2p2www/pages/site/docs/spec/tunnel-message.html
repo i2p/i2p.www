@@ -79,7 +79,7 @@ These are the contents of a tunnel data message when decrypted.
 +                   +----+----+----+----+
 |                   |     Checksum      |
 +----+----+----+----+----+----+----+----+
-|          nonzero padding..            |
+|          nonzero padding...           |
 ~                                       ~
 |                                       |
 +                                  +----+
@@ -164,18 +164,19 @@ is either not fragmented or this is the first fragment in the message.  If it is
 set, this is a follow on fragment.</p>
 
 <p>
+This specification is for Delivery Instructions inside Tunnel Messages only.
 Note that "Delivery Instructions" are also used inside
 <a href="{{ site_url('docs/spec/i2np') }}#struct_GarlicClove">Garlic Cloves</a>,
 where the format is significantly different.
 See the
-<a href="{{ site_url('docs/spec/i2np') }}#struct_GarlicClove">Garlic Clove documentation</a>
-for more details.
+<a href="{{ site_url('docs/spec/i2np') }}#struct_DeliveryInstructions">I2NP documentation</a>
+for details.
 Do NOT use the following specification for Garlic Clove Delivery Instructions!
 
 
 <h3>First Fragment Delivery Instructions</h3>
 <p>If the MSB of the first byte is 0, this is an initial I2NP message fragment,
-or a complete I2NP message, and the instructions are:</p>
+or a complete (unfragmented) I2NP message, and the instructions are:</p>
 {% highlight lang='dataspec' %}
 +----+----+----+----+----+----+----+----+
 |flag|  Tunnel ID (opt)  |              |
@@ -186,9 +187,9 @@ or a complete I2NP message, and the instructions are:</p>
 +                                       +
 |                                       |
 +                        +--------------+
-|                        |dly | Msg...  |
+|                        |dly | Message  
 +----+----+----+----+----+----+----+----+
-|..ID(opt)| ext opts... (opt) |   size  |
+ ID (opt) |extended opts (opt)|  size   |
 +----+----+----+----+----+----+----+----+
 {% endhighlight %}
 
@@ -197,9 +198,9 @@ or a complete I2NP message, and the instructions are:</p>
 flag:
        1 byte
        Bit order: 76543210
-       bit 7: 0 to specify an initial fragment
+       bit 7: 0 to specify an initial fragment or an unfragmented message
        bits 6-5: delivery type
-                 0x0 = LOCAL, 0x01 = TUNNEL, 0x02 = ROUTER, 0x03 = unused
+                 0x0 = LOCAL, 0x01 = TUNNEL, 0x02 = ROUTER, 0x03 = unused, invalid
                  Note: LOCAL is used for inbound tunnels only, unimplemented for outbound tunnels
        bit 4: delay included?  Unimplemented, always 0
                            If 1, a delay byte is included
@@ -231,6 +232,7 @@ Delay:
 Message ID:
        4 bytes
        Optional, present if this message is the first of 2 or more fragments
+          (i.e. if the fragmented bit is 1)
        An ID that uniquely identifies all fragments as belonging to a single message
        (the current implementation uses the <a href="{{ site_url('docs/spec/i2np') }}#struct_header">I2NP Message ID</a>)
 
@@ -261,13 +263,14 @@ Total length: Typical length is:
 {% endhighlight %}
 
 <h4>Definition</h4>
-{% highlight lang='dataspec' %}
+<pre>
 frag ::
        1 byte
+       Bit order: 76543210
        binary 1nnnnnnd
-              the first bit is 1 to indicate this is a follow-on fragment
-              nnnnnn is the 6 bit fragment number from 1 to 63
-              d is 1 to indicate the last fragment, 0 otherwise
+              bit 7: 1 to indicate this is a follow-on fragment
+              bits 6-1: nnnnnn is the 6 bit fragment number from 1 to 63
+              bit 0: d is 1 to indicate the last fragment, 0 otherwise
 
 Message ID ::
        4 bytes
@@ -281,8 +284,7 @@ size ::
        valid values: 1 to 996
 
 total length: 7 bytes
-
-{% endhighlight %}
+</pre>
 
 <h3><a href="http://docs.i2p-projekt.de/javadoc/net/i2p/data/i2np/DeliveryInstructions.html">Delivery Instructions Javadoc</a></h3>
 
