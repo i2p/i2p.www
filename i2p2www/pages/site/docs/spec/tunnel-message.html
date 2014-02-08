@@ -1,7 +1,7 @@
 {% extends "global/layout.html" %}
 {% block title %}Tunnel Message Specification{% endblock %}
-{% block lastupdated %}December 2013{% endblock %}
-{% block accuratefor %}0.9.9{% endblock %}
+{% block lastupdated %}February 2014{% endblock %}
+{% block accuratefor %}0.9.11{% endblock %}
 {% block content %}
 <p>
 This document specifies the format of tunnel messages.
@@ -155,7 +155,7 @@ The checksum does NOT cover the padding or the zero byte.
 </li></ul>
 
 
-<h2 id="delivery">Delivery Instructions</h2>
+<h2 id="delivery">Tunnel Message Delivery Instructions</h2>
 
 <p>The instructions are encoded with a single control byte, followed by any
 necessary additional information.  The first bit (MSB) in that control byte determines
@@ -164,13 +164,13 @@ is either not fragmented or this is the first fragment in the message.  If it is
 set, this is a follow on fragment.</p>
 
 <p>
-Note that Delivery Instructions are also used inside
+Note that "Delivery Instructions" are also used inside
 <a href="{{ site_url('docs/spec/i2np') }}#struct_GarlicClove">Garlic Cloves</a>,
-where the format is slightly different. In a Garlic Clove,
-messages are not fragmented, and the fragment bit in the flag byte is
-redefined. See the
+where the format is significantly different.
+See the
 <a href="{{ site_url('docs/spec/i2np') }}#struct_GarlicClove">Garlic Clove documentation</a>
 for more details.
+Do NOT use the following specification for Garlic Clove Delivery Instructions!
 
 
 <h3>First Fragment Delivery Instructions</h3>
@@ -199,11 +199,8 @@ flag:
        Bit order: 76543210
        bit 7: 0 to specify an initial fragment
        bits 6-5: delivery type
-                 For tunnel messages:
-                     0x0 = LOCAL, 0x01 = TUNNEL, 0x02 = ROUTER, 0x03 = unused
-                     Note: LOCAL is used for inbound tunnels only, unimplemented for outbound tunnels
-                 For garlic cloves:
-                     0x0 = LOCAL, 0x01 = DESTINATION, 0x02 = ROUTER, 0x03 = TUNNEL
+                 0x0 = LOCAL, 0x01 = TUNNEL, 0x02 = ROUTER, 0x03 = unused
+                 Note: LOCAL is used for inbound tunnels only, unimplemented for outbound tunnels
        bit 4: delay included?  Unimplemented, always 0
                            If 1, a delay byte is included
        bit 3: fragmented?  If 0, the message is not fragmented, what follows is the entire message
@@ -225,12 +222,11 @@ To Hash:
           If TUNNEL, the SHA256 Hash of the gateway router
 
 Delay:
-       1 byte (tunnel message) or 4 bytes (garlic clove)
+       1 byte
        Optional, present if delay included flag is set
        In tunnel messages: Unimplemented, never present; original specification:
           bit 7: type (0 = strict, 1 = randomized)
           bits 6-0: delay exponent (2^value minutes)
-       In garlic cloves: Not fully implemented. A 4 byte integer specifying the delay in seconds.
 
 Message ID:
        4 bytes
@@ -246,15 +242,12 @@ Extended Options:
 
 size:
        2 bytes
-       Required in a tunnel message; never present in a garlic clove.
        The length of the fragment that follows
        Valid values: 1 to approx. 960 in a tunnel message
 
 Total length: Typical length is:
-       1 byte for LOCAL delivery (garlic clove);
        3 bytes for LOCAL delivery (tunnel message);
        35 bytes for ROUTER / DESTINATION delivery or 39 bytes for TUNNEL delivery (unfragmented tunnel message);
-       33 bytes for ROUTER / DESTINATION delivery or 37 bytes for TUNNEL delivery (garlic clove);
        39 bytes for ROUTER delivery or 43 bytes for TUNNEL delivery (first fragment)
 
 </pre>

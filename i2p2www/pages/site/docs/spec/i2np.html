@@ -1,7 +1,7 @@
 {% extends "global/layout.html" %}
 {% block title %}I2NP Specification{% endblock %}
-{% block lastupdated %}November 2013{% endblock %}
-{% block accuratefor %}0.9.8.1{% endblock %}
+{% block lastupdated %}February 2014{% endblock %}
+{% block accuratefor %}0.9.11{% endblock %}
 {% block content %}
 <p>
 The I2P Network Protocol (I2NP),
@@ -354,14 +354,12 @@ Certificate :: Always NULL in the current implementation (3 bytes total, all zer
 <ul>
 <li>
   Cloves are never fragmented.
-  When used in a Garlic Clove, the first bit of the Delivery Instructions flag byte (the fragment bit) is redefined.
+  When used in a Garlic Clove, the first bit of the Delivery Instructions flag byte specifies encryption.
   If this bit is 0, the clove is not encrypted.
   If 1, the clove is encrypted, and a 32 byte Session Key immediately follows the flag byte.
   Clove encryption is not fully implemented.
 <li>
   See also the <a href="{{ site_url('docs/how/garlic-routing') }}">garlic routing specification</a>.
-<li>
-  See also <a href="{{ site_url('docs/spec/tunnel-message') }}#delivery">Delivery Instructions definition</a>
 <li>
   Maximum length is a function of the total length of all the cloves and the
   maximum length of the GarlicMessage.
@@ -376,8 +374,83 @@ Certificate :: Always NULL in the current implementation (3 bytes total, all zer
 </ul>
 
 
-<h3 id="struct_DeliveryInstructions">Delivery Instructions</h3>
-Defined in the <a href="{{ site_url('docs/spec/tunnel-message') }}#delivery">Tunnel Message Specification</a>.
+<h3 id="struct_DeliveryInstructions">Garlic Clove Delivery Instructions</h3>
+
+<p>
+Note that "Delivery Instructions" are also used inside
+Tunnel Messages,
+where the format is significantly different.
+See the
+<a href="{{ site_url('docs/spec/tunnel-message') }}#delivery">Tunnel Message documentation</a>
+for more details.
+Do NOT use the following specification for Tunnel Message Clove Delivery Instructions!
+
+
+{% highlight lang='dataspec' %}
++----+----+----+----+----+----+----+----+
+|flag|                                  |
++----+                                  +
+|                                       |
++       Session Key (optional)          +
+|                                       |
++                                       +
+|                                       |
++    +----+----+----+----+--------------+
+|    |                                  |
++----+                                  +
+|                                       |
++         To Hash (optional)            +
+|                                       |
++                                       +
+|                                       |
++    +----+----+----+----+--------------+
+|    |  Tunnel ID (opt)  |  Delay (opt)  
++----+----+----+----+----+----+----+----+
+     |
++----+
+{% endhighlight %}
+
+<h4>Definition</h4>
+<pre>
+flag:
+       1 byte
+       Bit order: 76543210
+       bit 7: encrypted? Unimplemented, always 0
+                If 1, a 32-byte encryption session key is included
+       bits 6-5: delivery type
+                0x0 = LOCAL, 0x01 = DESTINATION, 0x02 = ROUTER, 0x03 = TUNNEL
+       bit 4: delay included?  Not fully implemented, always 0
+                If 1, four delay bytes are included
+       bits 3-0: reserved, set to 0 for compatibility with future uses
+
+Session Key:
+       32 bytes
+       Optional, present encrypt flag bit is set. Unimplemented, never set, never present.
+
+To Hash:
+       32 bytes
+       Optional, present if delivery type is DESTINATION, ROUTER, or TUNNEL
+          If DESTINATION, the SHA256 Hash of the destination
+          If ROUTER, the SHA256 Hash of the router
+          If TUNNEL, the SHA256 Hash of the gateway router
+
+Tunnel ID:
+       4 bytes
+       Optional, present if delivery type is TUNNEL
+       The destination tunnel ID
+
+Delay:
+       4 bytes
+       Optional, present if delay included flag is set
+       Not fully implemented. A 4 byte integer specifying the delay in seconds.
+
+Total length: Typical length is:
+       1 byte for LOCAL delivery;
+       33 bytes for ROUTER / DESTINATION delivery;
+       37 bytes for TUNNEL delivery
+
+</pre>
+
 
 
 <h2 id="messages">Messages</h2>
