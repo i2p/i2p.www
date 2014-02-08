@@ -101,6 +101,6 @@ The best way to maintain security and help the network is to run the latest rele
 - Use DataHelper.loadProps() to deserialize properties UTF-8-safely
 - Add script for the hsqldb database manager tool
 - More code refactoring
-- {% trans %}New translations{% endtrans %}: Polish, Portuguese, Romainian
+- {% trans %}New translations{% endtrans %}: Polish, Portuguese, Romanian
 - {% trans %}Translation updates{% endtrans %}
 
