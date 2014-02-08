@@ -91,7 +91,10 @@ def render_blog_post(slug):
     # check if that file actually exists
     path = safe_join(BLOG_DIR, slug + ".rst")
     if not os.path.exists(path):
-        abort(404)
+        # check for drafts
+        path = safe_join(BLOG_DIR, slug + ".rst.draft")
+        if not os.path.exists(path):
+            abort(404)
 
     # read file
     with codecs.open(path, encoding='utf-8') as fd:
