@@ -1,7 +1,7 @@
 {% trans -%}
-==============
+=====================
 Syndie 1.105b Release
-==============
+=====================
 {%- endtrans %}
 .. meta::
    :date: 2014-01-21
@@ -69,7 +69,7 @@ The best way to maintain security and help the network is to run the latest rele
 - Don't display PBE messages after deletion
 - Update to SWT 3.8.2 20130131
 
-**{% trans %} Syndication{% endtrans %}**
+**{% trans %}Syndication{% endtrans %}**
 
 - Improve import failure propagation and display
 - More cleanup of Importer and enhanced ImportResults by passing missing key and PBE indications in result code
