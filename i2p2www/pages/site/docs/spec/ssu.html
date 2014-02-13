@@ -27,13 +27,16 @@ payload encrypted with the appropriate key.  The MAC used is
 HMAC-MD5, truncated to 16 bytes, while the key is a full 32 byte AES256 
 key.  The specific construct of the MAC is the first 16 bytes from:</p>
 <pre>
-  HMAC-MD5(payload || IV || (payloadLength ^ protocolVersion), macKey)
+  HMAC-MD5(encryptedPayload + IV + (payloadLength ^ protocolVersion), macKey)
 </pre>
-where '||' means append.
-The payload is the message starting with the flag byte.
+where '+' means append and '^' means exclusive-or.
+</p><p>
+The IV is generated randomly for each packet.
+The encryptedPayload is the encrypted version of the message starting with the flag byte (encrypt-then-MAC).
+The payloadLength used in the MAC is a 2 byte unsigned integer.
+Note that protocolVersion is 0, so the exclusive-or is a no-op.
 The macKey is either the introduction key or is constructed from the
 exchanged DH key (see details below), as specified for each message below.
-Note that protocolVersion is 0, so the exclusive or is a no-op.
 <b>WARNING</b> - the HMAC-MD5-128 used here is non-standard,
 see <a href="{{ site_url('docs/how/cryptography') }}#udp">the cryptography page</a> for details.
 
@@ -41,13 +44,37 @@ see <a href="{{ site_url('docs/how/cryptography') }}#udp">the cryptography page<
 <p>The payload itself (that is, the message starting with the flag byte)
 is AES256/CBC encrypted with the IV and the 
 sessionKey, with replay prevention addressed within its body, 
-explained below.  The payloadLength in the MAC is a 2 byte unsigned 
-integer.</p>
+explained below.
+</p>
   
 <p>The protocolVersion is a 2 byte unsigned integer
 and is currently set to 0.  Peers using a different protocol version will
 not be able to communicate with this peer, though earlier versions not
 using this flag are.</p>
+
+<h3>HMAC Specification</h3>
+<ul><li>
+Inner padding: 0x36...
+</li><li>
+Outer padding: 0x5C...
+</li><li>
+Key: 32 bytes
+</li><li>
+Hash digest function: MD5, 16 bytes
+</li><li>
+Block size: 64 bytes
+</li><li>
+MAC size: 16 bytes
+</li><li>
+Example C implementations:
+hmac.h in <a href="https://github.com/orignal/i2pd">i2pd</a>
+and
+I2PHMAC.cpp in <a href="https://github.com/i2pcpp/i2pcpp">i2pcpp</a>.
+</li><li>
+Example Java implementation:
+I2PHMac.java in <a href="https://github.com/i2p/i2p.i2p">i2p</a>
+</li></ul>
+
 
 <h3>Session Key Details</h3>
 The 32-byte session key is created as follows:
