@@ -30,8 +30,14 @@ app.url_map.converters['lang'] = LangConverter
 ######
 # URLs
 
+lazy_views = {}
+
 def url(url_rule, import_name, **options):
-    view = LazyView('i2p2www.' + import_name)
+    if import_name in lazy_views:
+        view = lazy_views[import_name]
+    else:
+        view = LazyView('i2p2www.' + import_name)
+        lazy_views[import_name] = view
     app.add_url_rule(url_rule, view_func=view, **options)
 
 url('/', 'views.main_index')
