@@ -1,7 +1,7 @@
 {% extends "global/layout.html" %}
 {% block title %}{% trans %}NTCP (NIO-based TCP){% endtrans %}{% endblock %}
-{% block lastupdated %}{% trans %}December 2013{% endtrans %}{% endblock %}
-{% block accuratefor %}0.9.9{% endblock %}
+{% block lastupdated %}{% trans %}February 2013{% endtrans %}{% endblock %}
+{% block accuratefor %}0.9.11{% endblock %}
 {% block content %}
 <p>{% trans transports=site_url('docs/transport'), ssu=site_url('docs/transport/ssu') -%}
 NTCP is one of two <a href="{{ transports }}">transports</a> currently implemented in I2P.
@@ -92,8 +92,9 @@ Alice                   contacts                      Bob
  &lt;----------------------------------------Y+E(H(X+Y)+tsB+padding, sk, Y[239:255])
  E(sz+Alice.identity+tsA+padding+S(X+Y+Bob.identHash+tsA+tsB), sk, hX_xor_Bob.identHash[16:31])---&gt;
  &lt;----------------------E(S(X+Y+Alice.identHash+tsA+tsB)+padding, sk, prev)
+{% endhighlight %}
 
-
+<pre>
   {% trans %}Legend:{% endtrans %}
     X, Y: {% trans %}256 byte DH public keys{% endtrans %}
     H(): 32 byte SHA256 Hash
@@ -102,7 +103,7 @@ Alice                   contacts                      Bob
     tsA, tsB: {% trans %}timestamps (4 bytes, seconds since epoch){% endtrans %}
     sk: {% trans %}32 byte Session key{% endtrans %}
     sz: {% trans %}2 byte size of Alice identity to follow{% endtrans %}
-{% endhighlight %}
+</pre>
 
 <h4 id="DH">{% trans %}DH Key Exchange{% endtrans %}</h4>
 <p>{% trans cryptography=site_url('docs/how/cryptography') -%}
@@ -131,6 +132,20 @@ The exponent (x and y) length for the DH exchange is documented on the
 <a href="{{ crypto }}#exponent">cryptography page</a>.
 {%- endtrans %}</p>
 
+<h4>Session Key Details</h4>
+The 32-byte session key is created as follows:
+<ol><li>
+Take the exchanged DH key, represented as a positive minimal-length BigInteger byte array (two's complement big-endian)
+</li><li>
+If the most significant bit is 1 (i.e. array[0] & 0x80 != 0),
+prepend a 0x00 byte, as in Java's BigInteger.toByteArray() representation
+</li><li>
+If that byte array is greater than or equal to 32 bytes, use the first (most significant) 32 bytes
+</li><li>
+If that byte array is less than 32 bytes, append 0x00 bytes to extend to 32 bytes.
+<i>(vanishingly unlikely)</i>
+</li></ol>
+
 <h4>{% trans %}Message 1 (Session Request){% endtrans %}</h4>
 <p>{% trans commonstructures=site_url('docs/spec/common-structures'),
 netdb=site_url('docs/how/network-database') -%}
@@ -148,7 +163,7 @@ Alice sends Bob:
     {% trans %}Size:{% endtrans %} 288 bytes
 {% endhighlight %}
 <p>{% trans %}Contents:{% endtrans %}</p>
-<pre>
+{% highlight %}
  +----+----+----+----+----+----+----+----+
  |         X, as calculated from DH      |
  +                                       +
@@ -164,7 +179,9 @@ Alice sends Bob:
  +                                       +
  |                                       |
  +----+----+----+----+----+----+----+----+
+{% endhighlight %}
 
+<pre>
   X: {% trans %}256 byte X from Diffie Hellman{% endtrans %}
 
   HXxorHI:  {% trans commonstructures=site_url('docs/spec/common-structures') -%}
@@ -211,7 +228,9 @@ This is the DH reply. Bob sends Alice:
  +----+----+----+----+                   +
  |                                       |
  +----+----+----+----+----+----+----+----+
+{% endhighlight %}
 
+<pre>
   Y: {% trans %}256 byte Y from Diffie Hellman{% endtrans %}
 
   HXY:  {% trans %}SHA256 Hash(X concatenated with Y){% endtrans %}
@@ -220,12 +239,11 @@ This is the DH reply. Bob sends Alice:
   tsB: {% trans %}4 byte timestamp (seconds since the epoch){% endtrans %}
 
   padding: {% trans %}12 bytes random data{% endtrans %}
-
-{% endhighlight %}
+</pre>
 
 
 <p>{% trans %}Encrypted Contents:{% endtrans %}</p>
-<pre>
+{% highlight %}
  +----+----+----+----+----+----+----+----+
  |         Y as calculated from DH       |
  +                                       +
@@ -245,7 +263,9 @@ This is the DH reply. Bob sends Alice:
  +                                       +
  |                                       |
  +----+----+----+----+----+----+----+----+
+{% endhighlight %}
 
+<pre>
   Y: {% trans %}256 byte Y from Diffie Hellman{% endtrans %}
 
   encrypted data: {% trans cryptography=site_url('docs/how/cryptography') -%}
@@ -271,7 +291,7 @@ This contains Alice's router identity, and a DSA signature of the critical data.
     {% trans %}Size:{% endtrans %} 448 bytes (typ. for 387 byte identity)
 {% endhighlight %}
 <p>{% trans %}Unencrypted Contents:{% endtrans %}</p>
-<pre>
+{% highlight %}
  +----+----+----+----+----+----+----+----+
  |   sz    | Alice's Router Identity     |
  +----+----+                             +
@@ -295,7 +315,9 @@ This contains Alice's router identity, and a DSA signature of the critical data.
  +                                       +
  |                                       |
  +----+----+----+----+----+----+----+----+
+{% endhighlight %}
 
+<pre>
   sz: {% trans %}2 byte size of Alice's router identity to follow (should always be 387){% endtrans %}
 
   ident: {% trans commonstructures=site_url('docs/spec/common-structures') -%}
@@ -315,7 +337,7 @@ the 40 byte <a href="{{ commonstructures }}#type_Signature">DSA signature</a> of
 </pre>
 
 <p>{% trans %}Encrypted Contents:{% endtrans %}</p>
-<pre>
+{% highlight %}
  +----+----+----+----+----+----+----+----+
  |                                       |
  +                                       +
@@ -323,7 +345,9 @@ the 40 byte <a href="{{ commonstructures }}#type_Signature">DSA signature</a> of
  ~               .   .   .               ~
  |                                       |
  +----+----+----+----+----+----+----+----+
+{% endhighlight %}
 
+<pre>
   encrypted data: {% trans cryptography=site_url('docs/how/cryptography') -%}
 448 bytes <a href="{{ cryptography }}#AES">AES encrypted</a> using the DH session key and
                   the last 16 bytes of HXxorHI (i.e., the last 16 bytes of message #1) as the IV
@@ -340,6 +364,9 @@ Bob verifies the signature, and on failure, drops the connection.
 <li>{% trans -%}
 Bob may drop the connection if the clock skew with Alice is too high as calculated using tsA.
 {%- endtrans %}</li>
+<li>{% trans -%}
+Alice will use the last 16 bytes of the encrypted contents of this message as the IV for the next message.
+{%- endtrans %}</li>
 </ul>
 
 
@@ -354,7 +381,7 @@ This is a DSA signature of the critical data. Bob sends Alice:
     {% trans %}Size:{% endtrans %} 48 bytes
 {% endhighlight %}
 <p>{% trans %}Unencrypted Contents:{% endtrans %}</p>
-<pre>
+{% highlight %}
  +----+----+----+----+----+----+----+----+
  |                                       |
  +                                       +
@@ -368,8 +395,9 @@ This is a DSA signature of the critical data. Bob sends Alice:
  +----+----+----+----+----+----+----+----+
  |               padding                 |
  +----+----+----+----+----+----+----+----+
+{% endhighlight %}
 
-
+<pre>
   signature: {% trans commonstructures=site_url('docs/spec/common-structures') -%}
 the 40 byte <a href="{{ commonstructures }}#type_Signature">DSA signature</a> of the following concatenated data:
              X, Y, Alice's <a href="{{ commonstructures }}#struct_RouterIdentity">Router Identity</a>, tsA, tsB.
@@ -382,7 +410,7 @@ the 40 byte <a href="{{ commonstructures }}#type_Signature">DSA signature</a> of
 
 
 <p>{% trans %}Encrypted Contents:{% endtrans %}</p>
-<pre>
+{% highlight %}
  +----+----+----+----+----+----+----+----+
  |                                       |
  +                                       +
@@ -390,7 +418,9 @@ the 40 byte <a href="{{ commonstructures }}#type_Signature">DSA signature</a> of
  ~               .   .   .               ~
  |                                       |
  +----+----+----+----+----+----+----+----+
+{% endhighlight %}
 
+<pre>
   encrypted data: {% trans cryptography=site_url('docs/how/cryptography') -%}
 48 bytes <a href="{{ cryptography }}#AES">AES encrypted</a> using the DH session key and
                   the last 16 bytes of the encrypted contents of message #2 as the IV
@@ -401,7 +431,11 @@ the 40 byte <a href="{{ commonstructures }}#type_Signature">DSA signature</a> of
 <p><b>Notes:</b></p>
 <ul><li>{% trans -%}
 Alice verifies the signature, and on failure, drops the connection.
-{%- endtrans %}</li></ul>
+{%- endtrans %}</li>
+<li>{% trans -%}
+Bob will use the last 16 bytes of the encrypted contents of this message as the IV for the next message.
+{%- endtrans %}</li>
+</ul>
 
 
 

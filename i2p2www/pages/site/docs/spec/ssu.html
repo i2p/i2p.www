@@ -1,7 +1,7 @@
 {% extends "global/layout.html" %}
 {% block title %}SSU Protocol Specification{% endblock %}
-{% block lastupdated %}January 2014{% endblock %}
-{% block accuratefor %}0.9.10{% endblock %}
+{% block lastupdated %}February 2014{% endblock %}
+{% block accuratefor %}0.9.11{% endblock %}
 {% block content %}
 
 <p>
@@ -60,7 +60,7 @@ prepend a 0x00 byte, as in Java's BigInteger.toByteArray() representation
 If the byte array is greater than or equal to 32 bytes, use the first (most significant) 32 bytes
 </li><li>
 If the byte array is less than 32 bytes, append 0x00 bytes to extend to 32 bytes.
-<i>Won't happen - See note below</i>
+<i>Very unlikely - See note below.</i>
 </li></ol>
 
 <h3>MAC Key Details</h3>
@@ -72,20 +72,13 @@ from step 2 in the Session Key Details above.
 If that byte array is greater than or equal to 64 bytes, the MAC key is
 bytes 33-64 from that byte array.
 </li><li>
-If that byte array is greater than 32 bytes but less than 64 bytes, the MAC key is formed from
-the bytes starting at byte 33, followed by 0x00 bytes to extend the MAC key to 32 bytes.
-<i>Broken - See note below</i>
-</li><li>
-If that byte array is equal to 32 bytes, the MAC key is all zeros.
-<i>Broken - See note below</i>
-</li><li>
-If that byte array is less than 32 bytes, the MAC key is the SHA-256 Hash of the 32-bytes
-from step 3 in the Session Key Details above.
-<i>See note below</i>
+If that byte array is less than 64 bytes, the MAC key is the SHA-256 Hash of that byte array.
+<i>As of release 0.9.8. See note below.</i>
 </li></ol>
-Important note: It appears that the existing code is buggy and does not correctly handle DH key byte arrays
+Important note: Code before release 0.9.8 was broken and did not correctly handle DH key byte arrays
 between 32 and 63 bytes (steps 3 and 4 above) and the connection will fail.
-As these cases won't ever work, they are subject to change (probably using SHA-256).
+As these cases didn't ever work, they were redefined as described above for release 0.9.8,
+and the 0-32 byte case was redefined as well.
 Since the nominal exchanged DH key is 256 bytes, the chances of the mininimal representation
 being less than 64 bytes is vanishingly small.
 
