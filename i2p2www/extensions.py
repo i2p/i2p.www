@@ -1,5 +1,6 @@
 # -*- coding: utf8 -*-
 
+import os
 import sys
 from jinja2 import nodes
 from jinja2.ext import Extension, Markup
@@ -18,6 +19,19 @@ from flask import g
 
 from i2p2www.formatters import I2PHtmlFormatter
 from i2p2www.lexers import DataSpecLexer
+
+
+# https://stackoverflow.com/questions/2632199/how-do-i-get-the-path-of-the-current-executed-file-in-python?lq=1
+def we_are_frozen():
+    # All of the modules are built-in to the interpreter, e.g., by py2exe
+    return hasattr(sys, "frozen")
+
+def module_path():
+    encoding = sys.getfilesystemencoding()
+    if we_are_frozen():
+        return os.path.dirname(unicode(sys.executable, encoding))
+    return os.path.dirname(unicode(__file__, encoding))
+
 
 class HighlightExtension(Extension):
     """Highlight code blocks using Pygments
@@ -84,16 +98,15 @@ class HighlightExtension(Extension):
                 print(e)
                 sys.exit(1)
 
-        # TODO: Fix working directory issue
-        #if ctags:
-        #    if 'tagsfile' not in parameters:
-        #        parameters['tagsfile'] = 'i2p2www/pages/site/spectags'
+        if ctags:
+            if 'tagsfile' not in parameters:
+                parameters['tagsfile'] = module_path() + '/pages/site/spectags'
 
-        #    if 'tagurlformat' not in parameters:
-        #        lang = 'en'
-        #        if hasattr(g, 'lang') and g.lang:
-        #            lang = g.lang
-        #        parameters['tagurlformat'] = '/' + lang + '/%(path)s%(fname)s'
+            if 'tagurlformat' not in parameters:
+                lang = 'en'
+                if hasattr(g, 'lang') and g.lang:
+                    lang = g.lang
+                parameters['tagurlformat'] = '/' + lang + '/%(path)s%(fname)s'
 
         formatter = I2PHtmlFormatter(**parameters)
         code = highlight(Markup(body).unescape(), lexer, formatter)
