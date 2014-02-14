@@ -9,6 +9,14 @@ from pygments.lexers import get_lexer_by_name, guess_lexer
 from pygments.formatters import HtmlFormatter
 from pygments.util import ClassNotFound
 
+try:
+    import ctags
+except ImportError:
+    ctags = None
+
+from flask import g
+
+from i2p2www.formatters import I2PHtmlFormatter
 from i2p2www.lexers import DataSpecLexer
 
 class HighlightExtension(Extension):
@@ -76,7 +84,16 @@ class HighlightExtension(Extension):
                 print(e)
                 sys.exit(1)
 
-        formatter = HtmlFormatter(**parameters)
+        if ctags:
+            if 'tagsfile' not in parameters:
+                parameters['tagsfile'] = 'i2p2www/pages/site/spectags'
+
+            if 'tagurlformat' not in parameters:
+                lang = 'en'
+                if hasattr(g, 'lang') and g.lang:
+                    lang = g.lang
+                parameters['tagurlformat'] = '/' + lang + '/%(path)s%(fname)s'
+
+        formatter = I2PHtmlFormatter(**parameters)
         code = highlight(Markup(body).unescape(), lexer, formatter)
         return code
-
