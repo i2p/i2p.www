@@ -180,18 +180,15 @@ Alice sends Bob:
  +                                       +
  |                                       |
  +----+----+----+----+----+----+----+----+
-{% endhighlight %}
 
-<pre>
+  X :: {% trans %}256 byte X from Diffie Hellman{% endtrans %}
 
-  X: {% trans %}256 byte X from Diffie Hellman{% endtrans %}
-
-  HXxorHI:  {% trans commonstructures=site_url('docs/spec/common-structures') -%}
-SHA256 Hash(X) xored with SHA256 Hash(Bob's <a href="{{ commonstructures }}#struct_RouterIdentity">Router Identity</a>)
+  HXxorHI ::  {% trans -%}
+SHA256 Hash(X) xored with SHA256 Hash(Bob's `RouterIdentity`)
 {%- endtrans %}
             (32 bytes)
 
-</pre>
+{% endhighlight %}
 
 <p><b>{% trans %}Notes:{% endtrans %}</b>
 <ul><li>{% trans -%}
@@ -230,19 +227,16 @@ This is the DH reply. Bob sends Alice:
  +----+----+----+----+                   +
  |                                       |
  +----+----+----+----+----+----+----+----+
-{% endhighlight %}
 
-<pre>
+  Y :: {% trans %}256 byte Y from Diffie Hellman{% endtrans %}
 
-  Y: {% trans %}256 byte Y from Diffie Hellman{% endtrans %}
-
-  HXY:  {% trans %}SHA256 Hash(X concatenated with Y){% endtrans %}
+  HXY ::  {% trans %}SHA256 Hash(X concatenated with Y){% endtrans %}
         (32 bytes)
 
-  tsB: {% trans %}4 byte timestamp (seconds since the epoch){% endtrans %}
+  tsB :: {% trans %}4 byte timestamp (seconds since the epoch){% endtrans %}
 
-  padding: {% trans %}12 bytes random data{% endtrans %}
-</pre>
+  padding :: {% trans %}12 bytes random data{% endtrans %}
+{% endhighlight %}
 
 
 <p>{% trans %}Encrypted Contents:{% endtrans %}</p>
@@ -319,27 +313,22 @@ This contains Alice's router identity, and a DSA signature of the critical data.
  +                                       +
  |                                       |
  +----+----+----+----+----+----+----+----+
+
+  sz :: {% trans %}2 byte size of Alice's router identity to follow (should always be 387){% endtrans %}
+
+  ident :: {% trans %}Alice's 387 byte `RouterIdentity`{% endtrans %}
+
+  tsA :: {% trans %}4 byte timestamp (seconds since the epoch){% endtrans %}
+
+  padding :: {% trans %}15 bytes random data{% endtrans %}
+
+  signature :: {% trans -%}
+the 40 byte DSA `Signature` of the following concatenated data:
+             X, Y, Bob's `RouterIdentity`, tsA, tsB.
+             Alice signs it with the `SigningPrivateKey` associated with the `SigningPublicKey` in her `RouterIdentity`
+{%- endtrans %}
+
 {% endhighlight %}
-
-<pre>
-
-  sz: {% trans %}2 byte size of Alice's router identity to follow (should always be 387){% endtrans %}
-
-  ident: {% trans commonstructures=site_url('docs/spec/common-structures') -%}
-Alice's 387 byte <a href="{{ commonstructures }}#struct_RouterIdentity">Router Identity</a>
-{%- endtrans %}
-
-  tsA: {% trans %}4 byte timestamp (seconds since the epoch){% endtrans %}
-
-  padding: {% trans %}15 bytes random data{% endtrans %}
-
-  signature: {% trans commonstructures=site_url('docs/spec/common-structures') -%}
-the 40 byte <a href="{{ commonstructures }}#type_Signature">DSA signature</a> of the following concatenated data:
-             X, Y, Bob's <a href="{{ commonstructures }}#struct_RouterIdentity">Router Identity</a>, tsA, tsB.
-             Alice signs it with the <a href="{{ commonstructures }}#type_SigningPrivateKey">private signing key</a> associated with the <a href="{{ commonstructures }}#type_SigningPublicKey">public signing key</a> in her <a href="{{ commonstructures }}#struct_RouterIdentity">Router Identity</a>
-{%- endtrans %}
-
-</pre>
 
 <p>{% trans %}Encrypted Contents:{% endtrans %}</p>
 {% highlight lang='dataspec' %}
@@ -401,19 +390,16 @@ This is a DSA signature of the critical data. Bob sends Alice:
  +----+----+----+----+----+----+----+----+
  |               padding                 |
  +----+----+----+----+----+----+----+----+
-{% endhighlight %}
 
-<pre>
-
-  signature: {% trans commonstructures=site_url('docs/spec/common-structures') -%}
-the 40 byte <a href="{{ commonstructures }}#type_Signature">DSA signature</a> of the following concatenated data:
-             X, Y, Alice's <a href="{{ commonstructures }}#struct_RouterIdentity">Router Identity</a>, tsA, tsB.
-             Bob signs it with the <a href="{{ commonstructures }}#type_SigningPrivateKey">private signing key</a> associated with the <a href="{{ commonstructures }}#type_SigningPublicKey">public signing key</a> in his <a href="{{ commonstructures }}#struct_RouterIdentity">Router Identity</a>
+  signature :: {% trans -%}
+the 40 byte DSA `Signature` of the following concatenated data:
+             X, Y, Alice's `RouterIdentity`, tsA, tsB.
+             Bob signs it with the `SigningPrivateKey` associated with the `SigningPublicKey` in his `RouterIdentity`
 {%- endtrans %}
 
-  padding: {% trans %}8 bytes random data{% endtrans %}
+  padding :: {% trans %}8 bytes random data{% endtrans %}
 
-</pre>
+{% endhighlight %}
 
 
 <p>{% trans %}Encrypted Contents:{% endtrans %}</p>

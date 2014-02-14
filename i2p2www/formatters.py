@@ -713,7 +713,7 @@ class I2PHtmlFormatter(Formatter):
 
             parts = value.translate(escape_table).split('\n')
 
-            if tagsfile and ttype in Token.Name:
+            if tagsfile and ttype in Token.Name.Class:
                 filename, kind = self._lookup_ctag(value)
                 if kind:
                     base, filename = os.path.split(filename)
