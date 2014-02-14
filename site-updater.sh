@@ -1,6 +1,7 @@
 #!/bin/sh -x
 cd $(dirname $0)
 . ./etc/update.vars
+[ -f ./etc/update.vars.custom ] && . ./etc/update.vars.custom
 
 TMP=$(mktemp XXXXXXXXXX)
 trap 'rm -f $TMP;exit' 0 1 2 15
