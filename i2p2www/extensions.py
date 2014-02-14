@@ -84,15 +84,16 @@ class HighlightExtension(Extension):
                 print(e)
                 sys.exit(1)
 
-        if ctags:
-            if 'tagsfile' not in parameters:
-                parameters['tagsfile'] = 'i2p2www/pages/site/spectags'
+        # TODO: Fix working directory issue
+        #if ctags:
+        #    if 'tagsfile' not in parameters:
+        #        parameters['tagsfile'] = 'i2p2www/pages/site/spectags'
 
-            if 'tagurlformat' not in parameters:
-                lang = 'en'
-                if hasattr(g, 'lang') and g.lang:
-                    lang = g.lang
-                parameters['tagurlformat'] = '/' + lang + '/%(path)s%(fname)s'
+        #    if 'tagurlformat' not in parameters:
+        #        lang = 'en'
+        #        if hasattr(g, 'lang') and g.lang:
+        #            lang = g.lang
+        #        parameters['tagurlformat'] = '/' + lang + '/%(path)s%(fname)s'
 
         formatter = I2PHtmlFormatter(**parameters)
         code = highlight(Markup(body).unescape(), lexer, formatter)
