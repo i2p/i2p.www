@@ -266,7 +266,7 @@ This is the first message sent to establish a session.
         <li>N bytes, currently uninterpreted</li>
 	</ul></td></tr>
 <tr><td align="right" valign="top"><b>Key used:</b></td>
-    <td>introKey</td></tr>
+    <td>Bob's introKey, as retrieved from the network database</td></tr>
 </table>
 
 <p>Message format:</p>
@@ -324,7 +324,7 @@ This is the response to a Session Request.
         <li>N bytes, currently uninterpreted</li>
 	</ul></td></tr>
 <tr><td align="right" valign="top"><b>Key used:</b></td>
-    <td>introKey, with an additional layer of encryption over the 40 byte
+    <td>Bob's introKey, with an additional layer of encryption over the 40 byte
         signature and the following 8 bytes padding.</td></tr>
 </table>
 
@@ -378,6 +378,9 @@ and Bob is unaware of it, the verification by Alice will fail.
 See <a href="#keys">the Keys section above</a> for details on DSA signatures.
 Alice already has Bob's public signing key, from the network database.
 </li><li>
+This is the only message that uses the sender's intro key.
+All others use the receiver's intro key or the established session key.
+</li><li>
 Signed-on time appears to be unused or unverified in the current implementation.
 </li><li>
 The uninterpreted data could possibly be used in the future for challenges.
@@ -416,7 +419,7 @@ bits 3-0: total identity fragments (F) 1-15</pre></li>
             </li></ul>
         </ul></td></tr>
 <tr><td align="right" valign="top"><b>Key used:</b></td>
-    <td>sessionKey</td></tr>
+    <td>Alice/Bob sessionKey, as generated from the DH exchange</td></tr>
 </table>
 
 <p>
@@ -510,7 +513,7 @@ and is sent as of release 0.8.9.
     <td>none
 	</td></tr>
 <tr><td align="right" valign="top"><b>Key used:</b></td>
-    <td>sessionKey or introKey</td></tr>
+    <td>Alice/Bob sessionKey</td></tr>
 </table>
 
 
@@ -519,6 +522,12 @@ This message does not contain any data.
 Typical size including header, in current implementation: 48 bytes
 (before non-mod-16 padding)
 </p>
+
+<h4>Notes</h4>
+<ul><li>
+Destroy messages received with the sender's or receiver's intro key will be ignored.
+</li></ul>
+
 
 <h3 id="relayRequest">RelayRequest (type 3)</h3>
 <p>
@@ -541,7 +550,7 @@ This is the first message sent from Alice to Bob to request an introduction to C
         <li>N bytes, currently uninterpreted</li>
 	</ul></td></tr>
 <tr><td align="right" valign="top"><b>Key used:</b></td>
-    <td>introKey (or sessionKey, if Alice/Bob is established)</td></tr>
+    <td>Bob's introKey, as retrieved from the network database (or Alice/Bob sessionKey, if established)</td></tr>
 </table>
  
 <p>Message format:</p>
@@ -587,6 +596,10 @@ If Alice includes her address/port, Bob may perform additional validation before
 Challenge is unimplemented, challenge size is always zero
 </li><li>
 There are no plans to implement relaying for IPv6.
+</li><li>
+Prior to release 0.9.12, Bob's intro key was always used.
+As of release 0.9.12, the session key is used if there is an established session
+between Alice and Bob.
 </li></ul>
 
 
@@ -610,7 +623,7 @@ This is the response to a Relay Request and is sent from Bob to Alice.
         <li>N bytes, currently uninterpreted</li>
 	</ul></td></tr>
 <tr><td align="right" valign="top"><b>Key used:</b></td>
-    <td>introKey (or sessionKey, if Alice/Bob is established)</td></tr>
+    <td>Alice's introKey, as received in the Relay Request (or Alice/Bob sessionKey, if established)</td></tr>
 </table>
 
 <p>Message format:</p>
@@ -644,6 +657,10 @@ Charlie's IP address must be IPv4, as that is the address that Alice will send
 the SessionRequest to after the Hole Punch.
 </li><li>
 There are no plans to implement relaying for IPv6.
+</li><li>
+Prior to release 0.9.12, Alice's intro key was always used.
+As of release 0.9.12, the session key is used if there is an established session
+between Alice and Bob.
 </li></ul>
 
 
@@ -666,7 +683,7 @@ This is the introduction for Alice, which is sent from Bob to Charlie.
         <li>N bytes, currently uninterpreted</li>
 	</ul></td></tr>
 <tr><td align="right" valign="top"><b>Key used:</b></td>
-    <td>sessionKey</td></tr>
+    <td>Bob/Charlie sessionKey</td></tr>
 </table>
 
 <p>Message format:</p>
@@ -867,14 +884,37 @@ See <a href="{{ site_url('docs/transport/ssu') }}#peerTesting">the SSU overview 
 <tr><td align="right" valign="top"><b>Data:</b></td>
     <td><ul>
         <li>4 byte nonce</li>
-        <li>1 byte IP address size</li>
-        <li>that many byte representation of Alice's IP address</li>
+        <li>1 byte IP address size (may be zero)</li>
+        <li>that many byte representation of Alice's IP address, if size &gt; 0</li>
         <li>2 byte Alice's port number</li>
-        <li>Alice's 32-byte introduction key</li>
+        <li>Alice's or Charlie's 32-byte introduction key</li>
         <li>N bytes, currently uninterpreted</li>
 	</ul></td></tr>
 <tr><td align="right" valign="top"><b>Key used:</b></td>
-    <td>introKey (or sessionKey if the connection has already been established)</td></tr>
+    <td>
+Listed in order of occurrence:
+<ol><li>
+When sent from Alice to Bob:
+Alice/Bob sessionKey
+(the protocol also permits Bob's introKey if Alice and Bob do not have an established session,
+ but in the current implementation Alice always selects a Bob that is established)
+</li><li>
+When sent from Bob to Charlie:
+Bob/Charlie sessionKey
+</li><li>
+When sent from Charlie to Bob:
+Bob/Charlie sessionKey
+</li><li>
+When sent from Bob to Alice:
+Alice's introKey, as received in the Peer Test message from Alice
+</li><li>
+When sent from Charlie to Alice:
+Alice's introKey, as received in the Peer Test message from Bob
+</li><li>
+When sent from Alice to Charlie:
+Charlie's introKey, as received in the Peer Test message from Charlie
+</li></ol>
+    </td></tr>
 </table>
 
 <p>Message format:</p>
