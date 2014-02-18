@@ -38,6 +38,7 @@ class DataSpecLexer(RegexLexer):
             (r'(\s*)([\w=;]+)', bygroups(Text, Name.Tag)),
             (r'(\s*)(\|)', bygroups(Text, Text)),
             (r'(\s*)(\()', bygroups(Text, Punctuation), 'expression'),
+            (r'(\s*)([+-])', bygroups(Text, Operator)),
         ],
         'expression': [
             (r'(\s*)(\))', bygroups(Text, Punctuation), '#pop'),
