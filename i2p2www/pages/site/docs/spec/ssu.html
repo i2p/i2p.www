@@ -265,7 +265,9 @@ This is the first message sent to establish a session.
         <li>that many byte representation of Bob's IP address</li>
         <li>N bytes, currently uninterpreted</li>
 	</ul></td></tr>
-<tr><td align="right" valign="top"><b>Key used:</b></td>
+<tr><td align="right" valign="top"><b>Crypto Key used:</b></td>
+    <td>Bob's introKey, as retrieved from the network database</td></tr>
+<tr><td align="right" valign="top"><b>MAC Key used:</b></td>
     <td>Bob's introKey, as retrieved from the network database</td></tr>
 </table>
 
@@ -323,9 +325,11 @@ This is the response to a Session Request.
             using the negotiated session key as part of the DSA block</li>
         <li>N bytes, currently uninterpreted</li>
 	</ul></td></tr>
-<tr><td align="right" valign="top"><b>Key used:</b></td>
+<tr><td align="right" valign="top"><b>Crypto Key used:</b></td>
     <td>Bob's introKey, with an additional layer of encryption over the 40 byte
         signature and the following 8 bytes padding.</td></tr>
+<tr><td align="right" valign="top"><b>MAC Key used:</b></td>
+    <td>Bob's introKey</td></tr>
 </table>
 
 <p>Message format:</p>
@@ -418,8 +422,10 @@ bits 3-0: total identity fragments (F) 1-15</pre></li>
             + Alice's new relay key + Alice's signed on time)</li>
             </li></ul>
         </ul></td></tr>
-<tr><td align="right" valign="top"><b>Key used:</b></td>
+<tr><td align="right" valign="top"><b>Crypto Key used:</b></td>
     <td>Alice/Bob sessionKey, as generated from the DH exchange</td></tr>
+<tr><td align="right" valign="top"><b>MAC Key used:</b></td>
+    <td>Alice/Bob MAC Key, as generated from the DH exchange</td></tr>
 </table>
 
 <p>
@@ -512,8 +518,10 @@ and is sent as of release 0.8.9.
 <tr><td align="right" valign="top"><b>Data:</b></td>
     <td>none
 	</td></tr>
-<tr><td align="right" valign="top"><b>Key used:</b></td>
+<tr><td align="right" valign="top"><b>Crypto Key used:</b></td>
     <td>Alice/Bob sessionKey</td></tr>
+<tr><td align="right" valign="top"><b>MAC Key used:</b></td>
+    <td>Alice/Bob MAC Key</td></tr>
 </table>
 
 
@@ -549,8 +557,10 @@ This is the first message sent from Alice to Bob to request an introduction to C
         <li>4 byte nonce of Alice's relay request</li>
         <li>N bytes, currently uninterpreted</li>
 	</ul></td></tr>
-<tr><td align="right" valign="top"><b>Key used:</b></td>
+<tr><td align="right" valign="top"><b>Crypto Key used:</b></td>
     <td>Bob's introKey, as retrieved from the network database (or Alice/Bob sessionKey, if established)</td></tr>
+<tr><td align="right" valign="top"><b>MAC Key used:</b></td>
+    <td>Bob's introKey, as retrieved from the network database (or Alice/Bob MAC Key, if established)</td></tr>
 </table>
  
 <p>Message format:</p>
@@ -622,8 +632,10 @@ This is the response to a Relay Request and is sent from Bob to Alice.
         <li>4 byte nonce sent by Alice</li>
         <li>N bytes, currently uninterpreted</li>
 	</ul></td></tr>
-<tr><td align="right" valign="top"><b>Key used:</b></td>
+<tr><td align="right" valign="top"><b>Crypto Key used:</b></td>
     <td>Alice's introKey, as received in the Relay Request (or Alice/Bob sessionKey, if established)</td></tr>
+<tr><td align="right" valign="top"><b>MAC Key used:</b></td>
+    <td>Alice's introKey, as received in the Relay Request (or Alice/Bob MAC Key, if established)</td></tr>
 </table>
 
 <p>Message format:</p>
@@ -682,8 +694,10 @@ This is the introduction for Alice, which is sent from Bob to Charlie.
         <li>that many bytes relayed from Alice</li>
         <li>N bytes, currently uninterpreted</li>
 	</ul></td></tr>
-<tr><td align="right" valign="top"><b>Key used:</b></td>
+<tr><td align="right" valign="top"><b>Crypto Key used:</b></td>
     <td>Bob/Charlie sessionKey</td></tr>
+<tr><td align="right" valign="top"><b>MAC Key used:</b></td>
+    <td>Bob/Charlie MAC Key</td></tr>
 </table>
 
 <p>Message format:</p>
@@ -789,8 +803,10 @@ byte 1
           <li>that many bytes</li></ul>
         <li>N bytes padding, uninterpreted</li>
 	</ul></td></tr>
-<tr><td align="right" valign="top"><b>Key used:</b></td>
-    <td>sessionKey</td></tr>
+<tr><td align="right" valign="top"><b>Crypto Key used:</b></td>
+    <td>Alice/Bob sessionKey</td></tr>
+<tr><td align="right" valign="top"><b>MAC Key used:</b></td>
+    <td>Alice/Bob MAC Key</td></tr>
 </table>
 
 <p>Message format:</p>
@@ -890,7 +906,7 @@ See <a href="{{ site_url('docs/transport/ssu') }}#peerTesting">the SSU overview 
         <li>Alice's or Charlie's 32-byte introduction key</li>
         <li>N bytes, currently uninterpreted</li>
 	</ul></td></tr>
-<tr><td align="right" valign="top"><b>Key used:</b></td>
+<tr><td align="right" valign="top"><b>Crypto Key used:</b></td>
     <td>
 Listed in order of occurrence:
 <ol><li>
@@ -904,6 +920,31 @@ Bob/Charlie sessionKey
 </li><li>
 When sent from Charlie to Bob:
 Bob/Charlie sessionKey
+</li><li>
+When sent from Bob to Alice:
+Alice's introKey, as received in the Peer Test message from Alice
+</li><li>
+When sent from Charlie to Alice:
+Alice's introKey, as received in the Peer Test message from Bob
+</li><li>
+When sent from Alice to Charlie:
+Charlie's introKey, as received in the Peer Test message from Charlie
+</li></ol>
+    </td></tr>
+<tr><td align="right" valign="top"><b>MAC Key used:</b></td>
+    <td>
+Listed in order of occurrence:
+<ol><li>
+When sent from Alice to Bob:
+Alice/Bob MAC Key
+(the protocol also permits Bob's introKey if Alice and Bob do not have an established session,
+ but in the current implementation Alice always selects a Bob that is established)
+</li><li>
+When sent from Bob to Charlie:
+Bob/Charlie MAC Key
+</li><li>
+When sent from Charlie to Bob:
+Bob/Charlie MAC Key
 </li><li>
 When sent from Bob to Alice:
 Alice's introKey, as received in the Peer Test message from Alice
