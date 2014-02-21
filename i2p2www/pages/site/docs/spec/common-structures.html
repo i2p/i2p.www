@@ -500,7 +500,11 @@ Defines the way to uniquely identify a particular router
 +                                       +
 |                                       |
 ~                                       ~
-
+~                                       ~
+|                                       |
++----+----+----+----+----+----+----+----+
+| padding (optional)                    |
+~                                       ~
 ~                                       ~
 |                                       |
 +----+----+----+----+----+----+----+----+
@@ -508,7 +512,6 @@ Defines the way to uniquely identify a particular router
 +                                       +
 |                                       |
 ~                                       ~
-
 ~                                       ~
 |                                       |
 +----+----+----+----+----+----+----+----+
@@ -516,10 +519,15 @@ Defines the way to uniquely identify a particular router
 +----+----+----+-//
 
 public_key :: `PublicKey`
-              length -> 256 bytes
+              length -> 256 bytes or as specified in key certificate
 
-signing_key :: `SigningPublicKey`
-               length -> 128 bytes
+padding :: random data
+              length -> 0 bytes or as specified in key certificate
+              padding length + signing_key length == 128 bytes
+
+signing__key :: `SigningPublicKey` (partial or full)
+              length -> 128 bytes or as specified in key certificate
+              padding length + signing_key length == 128 bytes
 
 certificate :: `Certificate`
                length -> >= 3 bytes
@@ -555,7 +563,11 @@ A Destination defines a particular endpoint to which messages can be directed fo
 +                                       +
 |                                       |
 ~                                       ~
-
+~                                       ~
+|                                       |
++----+----+----+----+----+----+----+----+
+| padding (optional)                    |
+~                                       ~
 ~                                       ~
 |                                       |
 +----+----+----+----+----+----+----+----+
@@ -563,18 +575,22 @@ A Destination defines a particular endpoint to which messages can be directed fo
 +                                       +
 |                                       |
 ~                                       ~
-
 ~                                       ~
 |                                       |
 +----+----+----+----+----+----+----+----+
 | certificate
-+-//
++----+----+----+-//
 
-public_key :: `PublicKey`
-              length -> 256 bytes
+public_key :: `PublicKey` (partial or full)
+              length -> 256 bytes or as specified in key certificate
 
-signing_public_key :: `SigningPublicKey`
-                      length -> 128 bytes
+padding :: random data
+              length -> 0 bytes or as specified in key certificate
+              padding length + signing_public_key_length == 128 bytes
+
+signing_public_key :: `SigningPublicKey` (partial or full)
+              length -> 128 bytes or as specified in key certificate
+              padding length + signing_public_key_length == 128 bytes
 
 certificate :: `Certificate`
                length -> >= 3 bytes
@@ -662,7 +678,6 @@ bytes signed by the <a href="#struct_Destination">Destination's</a> <a href="#ty
 +                                       +
 |                                       |
 ~                                       ~
-
 ~                                       ~
 |                                       |
 +----+----+----+----+----+----+----+----+
@@ -670,7 +685,6 @@ bytes signed by the <a href="#struct_Destination">Destination's</a> <a href="#ty
 +                                       +
 |                                       |
 ~                                       ~
-
 ~                                       ~
 |                                       |
 +----+----+----+----+----+----+----+----+
@@ -678,7 +692,6 @@ bytes signed by the <a href="#struct_Destination">Destination's</a> <a href="#ty
 +                                       +
 |                                       |
 ~                                       ~
-
 ~                                       ~
 |                                       |
 +----+----+----+----+----+----+----+----+
@@ -686,7 +699,6 @@ bytes signed by the <a href="#struct_Destination">Destination's</a> <a href="#ty
 +----+                                  +
 |                                       |
 ~                                       ~
-
 ~                                       ~
 |                                       |
 +----+----+----+----+----+----+----+----+
@@ -694,10 +706,6 @@ bytes signed by the <a href="#struct_Destination">Destination's</a> <a href="#ty
 +                                       +
 |                                       |
 ~                                       ~
-
-~                                       ~
-~                                       ~
-
 ~                                       ~
 |                                       |
 +----+----+----+----+----+----+----+----+
@@ -705,7 +713,6 @@ bytes signed by the <a href="#struct_Destination">Destination's</a> <a href="#ty
 +                                       +
 |                                       |
 ~                                       ~
-
 ~                                       ~
 |                                       |
 +----+----+----+----+----+----+----+----+
@@ -727,17 +734,18 @@ encryption_key :: `PublicKey`
                   length -> 256 bytes
 
 signing_key :: `SigningPublicKey`
-               length -> 128 bytes
+               length -> 128 bytes or as specified in destination's key certificate
 
 num :: `Integer`
        length -> 1 byte
+       Number of leases to follow
        value: 0 <= num <= 16
 
 leases :: [`Lease`]
           length -> $num*44 bytes
 
 signature :: `Signature`
-             length -> 40 bytes
+             length -> 40 bytes or as specified in destination's key certificate
 
 {% endhighlight %}
 
@@ -760,6 +768,7 @@ The signature may be verified using the signing public key of the destination.
 <li>{% trans -%}
 The signing_key is currently unused. It was intended for LeaseSet revocation, which is unimplemented.
 It is currently generated anew at every router startup, it is not persistent.
+The signing key type is always the same as the destination's signing key type.
 {%- endtrans %}</li>
 <li>{% trans -%}
 The earliest expiration of all the Leases is treated as the timestamp or version of the LeaseSet.
