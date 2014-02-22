@@ -1,4 +1,4 @@
-#!/bin/sh -x
+#!/bin/sh
 cd $(dirname $0)
 . ./etc/update.vars
 [ -f ./etc/update.vars.custom ] && . ./etc/update.vars.custom
@@ -6,7 +6,7 @@ cd $(dirname $0)
 TMP=$(mktemp XXXXXXXXXX)
 trap 'rm -f $TMP;exit' 0 1 2 15
 
-$MTN pull "mtn://$MTNURL?$MTNBRANCH"
+$MTN pull -k "" "mtn://$MTNURL?$MTNBRANCH"
 $MTN up 2>&1 | tee $TMP
 
 
