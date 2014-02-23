@@ -3,6 +3,8 @@ cd $(dirname $0)
 . ./etc/update.vars
 [ -f ./etc/update.vars.custom ] && . ./etc/update.vars.custom
 
+[ ! -f $TOUCHFILE ] && touch $TOUCHFILE
+
 TMP=$(mktemp XXXXXXXXXX)
 trap 'rm -f $TMP;exit' 0 1 2 15
 
