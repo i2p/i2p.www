@@ -11,3 +11,4 @@ else
         $PYBABEL compile -D $domain -d $TRANSDIR
     done
 fi
+touch ./.pybabel-stamp

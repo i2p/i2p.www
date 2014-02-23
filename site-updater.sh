@@ -21,3 +21,5 @@ if grep "^mtn: updating 'i2p2www/.*\.py\|^mtn: updating 'i2p2www/.*/.*\.py" "$TM
   echo "Python files changed, restarting server"
   touch $TOUCHFILE
 fi
+
+[ -f ./.pybabel-stamp ] || ./compile-messages.sh
