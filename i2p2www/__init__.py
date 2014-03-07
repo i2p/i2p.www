@@ -73,6 +73,10 @@ SUPPORTED_LANG_NAMES = {
     'uk': u'Ukrainian',
     }
 
+RTL_LANGS = [
+    'he',
+    ]
+
 DEFAULT_GETTEXT_DOMAIN = 'priority'
 GETTEXT_DOMAIN_MAPPING = {
     'about': ['about'],

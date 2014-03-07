@@ -9,7 +9,7 @@ def papers_list(tag='', choice='date'):
     if tag:
         rbib = [ b for b in rbib.entries if tag in b.get('www_tags', '').split() ]
     else:
-        rbib = rbib.entries
+        rbib = [ b for b in rbib.entries if 'tech-report' not in b.get('www_tags', '').split() ]
 
     if choice == 'topic':
         sectionType = 'Topics'

@@ -1,7 +1,7 @@
 from flask import g, request, safe_join, url_for
 import os.path
 
-from i2p2www import CANONICAL_DOMAIN, CURRENT_I2P_VERSION, SUPPORTED_LANGS, SUPPORTED_LANG_NAMES, STATIC_DIR, app
+from i2p2www import CANONICAL_DOMAIN, CURRENT_I2P_VERSION, RTL_LANGS, SUPPORTED_LANGS, SUPPORTED_LANG_NAMES, STATIC_DIR, app
 
 INPROXY = '.us'
 
@@ -34,6 +34,14 @@ def utility_processor():
         if hasattr(g, 'lang') and g.lang:
             lang = g.lang
         return url_for(endpoint, lang=lang, **args)
+
+    def is_rtl_lang(lang=None):
+        if not lang:
+            if hasattr(g, 'lang') and g.lang:
+                lang = g.lang
+            else:
+                lang = 'en'
+        return lang in RTL_LANGS
 
     # Get a specific language flag, or the flag for the current language
     def get_flag(lang=None):
@@ -102,6 +110,7 @@ def utility_processor():
                 logo_url=get_logo_for_theme,
                 site_url=get_site_url,
                 get_url=get_url_with_lang,
+                is_rtl=is_rtl_lang,
                 get_flag=get_flag,
                 ver=get_current_version,
                 canonical=get_canonical_link,
