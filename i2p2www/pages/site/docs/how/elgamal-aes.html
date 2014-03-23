@@ -1,7 +1,7 @@
 {% extends "global/layout.html" %}
 {% block title %}{% trans %}ElGamal/AES + SessionTag Encryption{% endtrans %}{% endblock %}
-{% block lastupdated %}{% trans %}February 2011{% endtrans %}{% endblock %}
-{% block accuratefor %}0.8.3{% endblock %}
+{% block lastupdated %}{% trans %}March 2014{% endtrans %}{% endblock %}
+{% block accuratefor %}0.9.12{% endblock %}
 {% block content %}
 <h2>{% trans %}Overview{% endtrans %}</h2>
 <p>{% trans -%}
@@ -328,6 +328,18 @@ If the tag is not found, the message is assumed to be a <a href="#new">New Sessi
 
 
 
+<h2 id="config">{% trans %}Session Tag Configuration Options{% endtrans %}</h2>
+<p>{% trans i2cp=site_url('docs/protocol/i2cp#options') i2cpp=site_url('docs/spec/i2cp#msg_SendMessageExpires') -%}
+As of release 0.9.2, the client may configure the default number of Session Tags to send
+and the low tag threshold for the current session.
+For brief streaming connections or datagrams, these options may be used to significantly reduce bandwidth.
+See the <a href="{{ i2cp }}">I2CP options specification</a> for details.
+The session settings may also be overridden on a per-message basis.
+See the <a href="{{ i2cpp }}">I2CP Send Message Expires specification</a> for details.
+{%- endtrans %}</p>
+
+
+
 <h2 id="future">{% trans %}Future Work{% endtrans %}</h2>
 <p>{% trans -%}
 There are many possible areas to tune the Session Key Manager's algorithms;
@@ -335,21 +347,6 @@ some may interact with the streaming library behavior, or have significant
 impact on overall performance.
 {%- endtrans %}</p>
 <ul>
-<li>{% trans -%}
-Delivery of too many tags at one time may impose substantial overhead for brief streaming connections
-or datagrams, and increase the chance of message loss.
-We currently deliver 40 tags at a time (1280 bytes).
-32 (1024 bytes) may be better for tunnel fragmentation.
-{%- endtrans %}</li>
-
-<li>{% trans -%}
-A few tags could be delivered in each of several messages, or lots of tags all at once.
-{%- endtrans %}</li>
-
-<li>{% trans -%}
-It is also important to study and tune
-the low-tag thresholds at which more tags are sent.
-{%- endtrans %}</li>
 
 <li>{% trans -%}
 The number of tags delivered could depend on message size, keeping in mind
