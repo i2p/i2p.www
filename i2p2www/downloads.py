@@ -11,6 +11,7 @@ DEFAULT_MIRROR = {
     'protocol': 'https',
     'domain':   'download.i2p2.de',
     'org':      'meeh',
+    'country':  'no',
 }
 
 
