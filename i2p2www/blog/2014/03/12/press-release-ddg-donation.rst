@@ -11,7 +11,7 @@ Search Engine DuckDuckGo Awards Invisible Internet Project $5000
 
 {% trans -%}
 **Somewhere, NH** -- Internet search company `DuckDuckGo`_ `donates`_
-$5000 to the `Invisible Internet Project` (I2P) as part of their yearly open-source
+$5000 to the `Invisible Internet Project`_ (I2P) as part of their yearly open-source
 donation program. The award was granted on the basis of `nominations`_ by members of the public
 on the DuckDuckGo community portal. With an emphasis on privacy, DuckDuckGo provides a search
 engine which does not track its users or store personal data. I2P is an anonymous network intended to
@@ -39,7 +39,7 @@ For more information about I2P, visit `our web site`_ or follow us `on Twitter`_
 .. _{% trans %}`donates`{%- endtrans %}: https://duck.co/blog/foss2014
 .. _`DuckDuckGo`: https://duckduckgo.com/
 .. _`Invisible Internet Project`: https://geti2p.net/
-.. _`our web site`: https://geti2p.net/
-.. _{% trans -%}`nominations`{%- endtrans %}: https://duck.co/forum/thread/5174/foss-donation-nomations-2014-edition
+.. _{% trans %}`our web site`{% endtrans %}: https://geti2p.net/
+.. _{% trans %}`nominations`{% endtrans %}: https://duck.co/forum/thread/5174/foss-donation-nomations-2014-edition
 .. _`Real-World Cryptography`: http://www.realworldcrypto.com/
-.. _`on Twitter`: https://twitter.com/GetI2P
+.. _{% trans %}`on Twitter`{% endtrans %}: https://twitter.com/GetI2P
