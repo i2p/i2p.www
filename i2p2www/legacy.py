@@ -7,7 +7,6 @@ from flask import g, redirect, url_for
 LEGACY_FUNCTIONS_MAP={
     'announcements': {'function': 'blog_index',       'params': {}},
     'debian':        {'function': 'downloads_debian', 'params': {}},
-    'dl':            {'function': 'downloads_list',   'params': {}},
     'download':      {'function': 'downloads_list',   'params': {}},
     'installation':  {'function': 'downloads_list',   'params': {}},
     'meetings':      {'function': 'meetings_index',   'params': {}},
