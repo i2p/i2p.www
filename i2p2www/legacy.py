@@ -1,6 +1,16 @@
 from flask import g, redirect, url_for
 
 
+############
+# Shortcodes
+#
+# Two-letter shortcodes are not allowed, they clash with language codes
+
+SHORTCODES={
+    'd':    {'function': 'downloads_list',   'params': {}},
+    'get':  {'function': 'downloads_list',   'params': {}},
+}
+
 ##############
 # Legacy paths
 
@@ -189,7 +199,9 @@ def legacy_show(f):
         lang = g.lang
     if lang == 'zh':
         lang = 'zh_CN'
-    if f in LEGACY_FUNCTIONS_MAP:
+    if f in SHORTCODES:
+        return redirect(url_for(SHORTCODES[f]['function'], lang=lang, **SHORTCODES[f]['params']), 301)
+    elif f in LEGACY_FUNCTIONS_MAP:
         return redirect(url_for(LEGACY_FUNCTIONS_MAP[f]['function'], lang=lang, **LEGACY_FUNCTIONS_MAP[f]['params']), 301)
     elif f in LEGACY_PAGES_MAP:
         return redirect(url_for('site_show', lang=lang, page=LEGACY_PAGES_MAP[f]), 301)
