@@ -1,7 +1,7 @@
 from flask import abort, redirect, render_template, safe_join, send_from_directory, url_for
 import os.path
 
-from i2p2www import STATIC_DIR, TEMPLATE_DIR
+from i2p2www import STATIC_DIR, TEMPLATE_DIR, cache
 from i2p2www.blog.helpers import get_blog_posts
 
 
@@ -13,6 +13,7 @@ def main_index():
     return redirect(url_for('site_show', lang='en'))
 
 # Site pages
+@cache.cached()
 def site_show(page):
     if page.endswith('.html'):
         return redirect(url_for('site_show', page=page[:-5]))
