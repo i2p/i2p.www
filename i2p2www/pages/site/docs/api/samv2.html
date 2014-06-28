@@ -1,7 +1,7 @@
 {% extends "global/layout.html" %}
 {% block title %}SAM V2 Specification{% endblock %}
-{% block lastupdated %}August 2010{% endblock %}
-{% block accuratefor %}0.8{% endblock %}
+{% block lastupdated %}June 2014{% endblock %}
+{% block accuratefor %}0.9.14{% endblock %}
 {% block content %}
 <p>Specified below is a simple client protocol for interacting with I2P.
 </p>
@@ -14,8 +14,9 @@ Alternatives:
 <a href="{{ site_url('docs/api/bob') }}">BOB</a>.
 </p>
 
-<p />
-<b>Version 2 Changes</b>
+<h2>Version 2 Changes</h2>
+<p>
+SAM V2 was introduced in I2P release 0.6.1.31.
 Compared to version 1, SAM v2 provides a way to manage several sockets
 on the same I2P destination <i>in parallel</i>, i.e. the client does not
 have to wait for data being successfully sent on one socket before sending
@@ -23,7 +24,18 @@ data on another socket. All data transits through the same
 client&lt;--&gt;SAM socket.
 For multiple sockets, see <a href="{{ site_url('docs/api/samv3') }}">SAM V3</a>.
 </p>
+<h3>I2P 0.9.14 Changes</h3>
+<p>
+The reported version remains "2.0".
+<ul>
+<li>DEST GENERATE now supports a SIGNATURE_TYPE parameter.
+<li>The MIN parameter in HELLO VERSION is now optional.
+<li>The MIN and MAX parameters in HELLO VERSION now support single-digit versions such as "3".
+</ul>
+</p>
 
+
+<h2>Version 2 Protocol</h2>
 <pre>
 ----------------------------------------------------------------------
 Simple Anonymous Messaging (SAM version 2.0) Specification
@@ -64,8 +76,9 @@ and
 
 ***   HELLO REPLY RESULT=$result VERSION=2.0
 
-*** In order to force protocol version 2.0, the values of $min and $max
-*** must be "2.0".
+As of I2P 0.9.14, the MIN parameter is optional.
+The MAX parameter must be provided and be greater than or equal to "2" and
+less than "3" to use version 2.
 
 The RESULT value may be one of:
 
@@ -377,6 +390,11 @@ which is answered by
  DEST REPLY
       PUB=$pubkey
       PRIV=$privkey
+
+As of I2P 0.9.14, an optional parameter SIGNATURE_TYPE is supported.
+The SIGNATURE_TYPE value may be any name (e.g. ECDSA_SHA256_P256, case insensitive) or number (e.g. 1)
+that is supported by <a href="{{ site_url('docs/spec/common_structures') }}#type_Certificate">Key Certificates</a>.
+The default is DSA_SHA1.
 
 ----------------------------------------------------------------------
 RESULT values
