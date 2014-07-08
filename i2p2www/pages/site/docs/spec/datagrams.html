@@ -1,7 +1,7 @@
 {% extends "global/layout.html" %}
 {% block title %}{% trans %}Datagram Specification{% endtrans %}{% endblock %}
-{% block lastupdated %}{% trans %}May 2013{% endtrans %}{% endblock %}
-{% block accuratefor %}0.9.6{% endblock %}
+{% block lastupdated %}{% trans %}July 2014{% endtrans %}{% endblock %}
+{% block accuratefor %}0.9.14{% endblock %}
 {% block content %}
 <p><a href="{{ site_url('docs/api/datagrams') }}">{% trans -%}
 See the Datagrams page for an overview of the Datagrams API.
@@ -39,7 +39,7 @@ currently limit messages to about 32 KB, although this may be raised in the futu
 
 <h3 id="repliable">{% trans %}Repliable Datagrams{% endtrans %}</h3>
 <p>{% trans -%}
-Repliable datagrams contain a 'from' address and a signature. These add 427 bytes of overhead.
+Repliable datagrams contain a 'from' address and a signature. These add at least 427 bytes of overhead.
 {%- endtrans %}</p>
 <h4>Format</h4>
 <pre>
@@ -70,16 +70,17 @@ Repliable datagrams contain a 'from' address and a signature. These add 427 byte
 
 
 from      :: a <a href="{{ site_url('docs/spec/common-structures') }}#struct_Destination">Destination</a>
-               length: 387+ bytes
-               The originator and signer of the datagram
+             length: 387+ bytes
+             The originator and signer of the datagram
 
 signature :: a <a href="{{ site_url('docs/spec/common-structures') }}#type_Signature">Signature</a>
-             length: 40 bytes
-             The <a href="{{ site_url('docs/how/cryptography') }}#DSA">DSA</a> signature of the SHA256 hash of the payload, which may be verified by the
-             DSA signing public key of the 'from' Destination
+             Signature type must match the signing public key type in the 'from' Destination.
+             length: 40+ bytes, as implied by the Signature type.
+             The <a href="{{ site_url('docs/spec/common-structures') }}#type_Signature">signature</a> of the hash of the payload, which may be verified by the
+             signing public key of the 'from' Destination. The hash algorithm is implied by the Signature type.
 
 payload ::  The data
-            Length: 0 - 32 KB (see notes)
+            Length: 0 to ~31.5 KB (see notes)
 
 Total length: Payload length + 427+
 
@@ -94,8 +95,9 @@ The practical length is limited by lower layers of protocols - the
 currently limit messages to about 32 KB, so the data length here is limited to about
 31.5 KB.
 {%- endtrans %}</li>
-<li>{% trans -%}
-See important notes above about the reliability of large datagrams.
+<li>{% trans dgrams=site_url('docs/api/datagrams') -%}
+See <a href={{ dgrams }}">important notes</a> about the reliability of large datagrams.
+For best results, limit the payload to about 10 KB or less.
 {%- endtrans %}</li>
 </ul>
 
