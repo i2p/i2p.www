@@ -1,6 +1,6 @@
 {% extends "global/layout.html" %}
 {% block title %}SAM V2 Specification{% endblock %}
-{% block lastupdated %}June 2014{% endblock %}
+{% block lastupdated %}July 2014{% endblock %}
 {% block accuratefor %}0.9.14{% endblock %}
 {% block content %}
 <p>Specified below is a simple client protocol for interacting with I2P.
@@ -107,10 +107,13 @@ follows:
 
 DESTINATION specifies what destination should be used for 
 sending and receiving messages/streams.  If a $name is given, the
-SAM bridge looks through its own local storage for an associated
+SAM bridge looks through its own local storage (the sam.keys file) for an associated
 destination (and private key).  If no association exists matching
 that name, it creates a new one.  If the destination is specified
 as TRANSIENT, it always creates a new one.
+
+Note that DESTINATION is an identifier, <i>not</i> Base 64 encoded data.
+To specify the Destination, you must use <a href="samv3>SAM V3</a>.
 
 The DIRECTION can be specified for STREAM sessions, instructing 
 the bridge that the client will either be creating or receiving
@@ -145,6 +148,12 @@ The RESULT value may be one of:
 
 If it's not OK, the MESSAGE should contain human-readable information
 as to why the session could not be created.
+
+Note that there is no warning given if the $name is not found and
+a transient destination is created instead.
+Note that the actual transient destination is not output in the reply.
+If you need these features, you must use <a href="samv3>SAM V3</a>.
+
 
 ----------------------------------------------------------------------
 SAM virtual streams
@@ -307,10 +316,13 @@ SAM repliable datagrams
 ----------------------------------------------------------------------
 While I2P doesn't inherently contain a FROM address, for ease of use
 an additional layer is provided as repliable datagrams - unordered
-and unreliable messages of up to 31KB in size that include a FROM 
+and unreliable messages of up to 31744 bytes that include a FROM 
 address (leaving up to 1KB for header material).  This FROM address 
 is authenticated internally by SAM (making use of the destination's 
 signing key to verify the source) and includes replay prevention.
+
+Minimum size is 1. For best delivery reliability, recommended maximum
+size is approximately 11 KB.
 
 After establishing a SAM session with STYLE=DATAGRAM, the client can
 send the SAM bridge:
@@ -336,7 +348,10 @@ SAM anonymous datagrams
 Squeezing the most out of I2P's bandwidth, SAM allows clients to send
 and receive anonymous datagrams, leaving authentication and reply 
 information up to the client themselves.  These datagrams are 
-unreliable and unordered, and may be up to 32KB in size.
+unreliable and unordered, and may be up to 32768 bytes.
+
+Minimum size is 1. For best delivery reliability, recommended maximum
+size is approximately 11 KB.
 
 After establishing a SAM session with STYLE=RAW, the client can
 send the SAM bridge:
