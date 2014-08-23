@@ -19,7 +19,8 @@ Android is finally ready to go where the users are.
 
 Also please note that we have upgraded the Android API to 9, this means that 
 Froyo Android 2.2 will not be supported anymore, and the lowest requirement is 
-now Gingerbread Android 2.3.
+now Gingerbread Android 2.3. Also if you have an earlier install of I2P, you
+need to reinstall because we have also changed the release keys.
 
 Initially, we are only releasing to Android users in Norway, as a test run.
 A timely response to PST's suggestions to mass surveillance of the Norwegian people. 
