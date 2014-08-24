@@ -199,13 +199,17 @@ The SessionConfirmed message is an exception, see below.
 
 <h2 id="keys">Keys</h2>
 <p>
-DSA signatures in the SessionCreated and SessionConfirmed messages are generated using
+Signatures in the SessionCreated and SessionConfirmed messages are generated using
 the
-<a href="{{ site_url('docs/spec/common-structures') }}#type_SigningPublicKey">signing public key</a>
+<a href="{{ site_url('docs/spec/common-structures') }}#type_SigningPublicKey">Signing Public Key</a>
 from the
-<a href="{{ site_url('docs/spec/common-structures') }}#struct_RouterIdentity">router identity</a>
+<a href="{{ site_url('docs/spec/common-structures') }}#struct_RouterIdentity">Router Identity</a>
 which is distributed out-of-band by publishing in the network database, and the associated
-<a href="{{ site_url('docs/spec/common-structures') }}#type_SigningPrivateKey">signing private key</a>.
+<a href="{{ site_url('docs/spec/common-structures') }}#type_SigningPrivateKey">Signing Private Key</a>.
+Through release 0.9.15, the signature algorithm was always DSA, with a 40 byte signature.
+As of release 0.9.16, the signature algorithm may be specified by a
+a <a href="{{ site_url('docs/spec/common-structures') }}#type_Certificate">Key Certificate</a>
+in Bob's <a href="{{ site_url('docs/spec/common-structures') }}#struct_RouterIdentity">Router Identity</a>.
 </p><p>
 Both introduction keys and session keys are 32 bytes,
 and are defined by the
@@ -316,13 +320,18 @@ This is the response to a Session Request.
         <li>4 byte relay (introduction) tag which Alice can publish (else 0x00000000)</li>
         <li>4 byte timestamp (seconds from the epoch) for use in the DSA 
             signature</li>
-        <li>40 byte <a href="{{ site_url('docs/spec/common-structures') }}#type_Signature">DSA signature</a> of the critical exchanged data 
+        <li>Bob's <a href="{{ site_url('docs/spec/common-structures') }}#type_Signature">Signature</a> of the critical exchanged data 
             (X + Y + Alice's IP + Alice's port + Bob's IP + Bob's port + Alice's
             new relay tag + Bob's signed on time), encrypted with another 
             layer of encryption using the negotiated sessionKey.  The IV 
-            is reused here.</li>
-        <li>8 bytes padding, encrypted with an additional layer of encryption
-            using the negotiated session key as part of the DSA block</li>
+            is reused here.
+            See notes for length information.
+        </li>
+        <li>0-15 bytes of padding of the signature, using random data,
+            to a multiple of 16 bytes, so that the signature + padding may be
+            encrypted with an additional layer of encryption
+            using the negotiated session key as part of the DSA block.
+        </li>
         <li>N bytes, currently uninterpreted</li>
 	</ul></td></tr>
 <tr><td align="right" valign="top"><b>Crypto Key used:</b></td>
@@ -346,15 +355,15 @@ This is the response to a Session Request.
  +----+----+----+----+----+----+----+----+
    on time |                             |
  +----+----+                             +
- |              DSA signature            |
- +                                       +
  |                                       |
+ +                                       +
+ |             signature                 |
  +                                       +
  |                                       |
  +                                       +
  |                                       |
  +         +----+----+----+----+----+----+
- |         |     (8 bytes of padding) 
+ |         |   (0-15 bytes of padding) 
  +----+----+----+----+----+----+----+----+
            |                             |
  +----+----+                             +
@@ -379,8 +388,14 @@ For the signature, Bob must use his external port, as that what Alice will use t
 If Bob's NAT/firewall has mapped his internal port to a different external port,
 and Bob is unaware of it, the verification by Alice will fail.
 </li><li>
-See <a href="#keys">the Keys section above</a> for details on DSA signatures.
+See <a href="#keys">the Keys section above</a> for details on signatures.
 Alice already has Bob's public signing key, from the network database.
+</li><li>
+Through release 0.9.15, the signature was always a 40 byte DSA signature and the
+padding was always 8 bytes. As of release 0.9.16, the signature type and length
+are implied by the type of the <a href="{{ site_url('docs/spec/common-structures') }}#type_SigningPublicKey">Signing Public Key</a>
+in Bob's <a href="{{ site_url('docs/spec/common-structures') }}#struct_RouterIdentity">Router Identity</a>.
+The padding is as necessary to a multiple of 16 bytes.
 </li><li>
 This is the only message that uses the sender's intro key.
 All others use the receiver's intro key or the established session key.
@@ -414,14 +429,17 @@ bits 3-0: total identity fragments (F) 1-15</pre></li>
         <li>After the last identity fragment only:
             <ul><li>4 byte signed-on time
             </li></ul>
-        <li>N bytes padding, currently uninterpreted
+        </li>
+        <li>N bytes padding, currently uninterpreted</li>
         <li>After the last identity fragment only:
-            <ul><li>The last 40 
-            bytes contain the <a href="{{ site_url('docs/spec/common-structures') }}#type_Signature">DSA signature</a> of the critical exchanged 
+            <ul><li>The remaining bytes contain
+            Alice's <a href="{{ site_url('docs/spec/common-structures') }}#type_Signature">Signature</a> of the critical exchanged 
             data (X + Y + Alice's IP + Alice's port + Bob's IP + Bob's port
-            + Alice's new relay key + Alice's signed on time)</li>
+            + Alice's new relay key + Alice's signed on time)
+            See notes for length information.
             </li></ul>
-        </ul></td></tr>
+        </li>
+    </ul></td></tr>
 <tr><td align="right" valign="top"><b>Crypto Key used:</b></td>
     <td>Alice/Bob sessionKey, as generated from the DH exchange</td></tr>
 <tr><td align="right" valign="top"><b>MAC Key used:</b></td>
@@ -460,15 +478,14 @@ bits 3-0: total identity fragments (F) 1-15</pre></li>
  |  signed on time   |                   |
  +----+----+----+----+                   +
  |  arbitrary amount of uninterpreted    |
- ~      data, to 40 bytes prior to       ~
+ ~      data, until the signature at     ~
  ~       end of the current packet       ~
  |  Packet length must be mult. of 16    |
  +----+----+----+----+----+----+----+----+
- | DSA signature                         |
  +                                       +
  |                                       |
  +                                       +
- |                                       |
+ |             signature                 |
  +                                       +
  |                                       |
  +                                       +
@@ -484,6 +501,8 @@ Typical size including header, in current implementation: 480 bytes
 <h4>Notes</h4>
 <ul><li>
 In the current implementation, the maximum fragment size is 512 bytes.
+This should be extended so that longer signatures will work without fragmentation.
+The current implementation does not correctly process signatures split across two fragments.
 </li><li>
 The typical <a href="{{ site_url('docs/spec/common-structures') }}#struct_RouterIdentity">Router Identity</a>
 is 387 bytes, so no fragmentation is ever necessary.
@@ -501,6 +520,12 @@ Signed-on time appears to be unused or unverified in the current implementation.
 Since the signature is at the end, the padding in the last or only packet must pad the total packet to
 a multiple of 16 bytes, or the signature will not get decrypted correctly.
 This is different from all the other message types, where the padding is at the end.
+</li><li>
+Through release 0.9.15, the signature was always a 40 byte DSA signature.
+As of release 0.9.16, the signature type and length
+are implied by the type of the <a href="{{ site_url('docs/spec/common-structures') }}#type_SigningPublicKey">Signing Public Key</a>
+in Alice's <a href="{{ site_url('docs/spec/common-structures') }}#struct_RouterIdentity">Router Identity</a>.
+The padding is as necessary to a multiple of 16 bytes.
 </li></ul>
 
 
