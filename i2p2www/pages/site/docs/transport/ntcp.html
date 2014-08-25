@@ -1,7 +1,7 @@
 {% extends "global/layout.html" %}
 {% block title %}{% trans %}NTCP (NIO-based TCP){% endtrans %}{% endblock %}
-{% block lastupdated %}{% trans %}February 2014{% endtrans %}{% endblock %}
-{% block accuratefor %}0.9.11{% endblock %}
+{% block lastupdated %}{% trans %}August 2014{% endtrans %}{% endblock %}
+{% block accuratefor %}0.9.15{% endblock %}
 {% block content %}
 <p>{% trans transports=site_url('docs/transport'), ssu=site_url('docs/transport/ssu') -%}
 NTCP is one of two <a href="{{ transports }}">transports</a> currently implemented in I2P.
@@ -110,7 +110,7 @@ so as not to send a duplicate message; this is often the case when connecting to
 <p>{% trans -%}
 In the establish state, there is a 4-phase message sequence to exchange DH keys and signatures.
 In the first two messages there is a 2048-bit Diffie Hellman exchange.
-Then, DSA signatures of the critical data are exchanged to confirm the connection.
+Then, signatures of the critical data are exchanged to confirm the connection.
 {%- endtrans %}</p>
 {% highlight %}
 Alice                   contacts                      Bob
@@ -127,7 +127,7 @@ Alice                   contacts                      Bob
     X, Y: {% trans %}256 byte DH public keys{% endtrans %}
     H(): 32 byte SHA256 Hash
     E(data, session key, IV): AES256 Encrypt
-    S(): 40 byte DSA Signature
+    S(): Signature
     tsA, tsB: {% trans %}timestamps (4 bytes, seconds since epoch){% endtrans %}
     sk: {% trans %}32 byte Session key{% endtrans %}
     sz: {% trans %}2 byte size of Alice identity to follow{% endtrans %}
@@ -308,12 +308,12 @@ Alice may drop the connection if the clock skew with Bob is too high as calculat
 
 <h4>{% trans %}Message 3 (Session Confirm A){% endtrans %}</h4>
 <p>{% trans -%}
-This contains Alice's router identity, and a DSA signature of the critical data. Alice sends Bob:
+This contains Alice's router identity, and a signature of the critical data. Alice sends Bob:
 {%- endtrans %}</p>
 {% highlight %}
  E(sz+Alice.identity+tsA+padding+S(X+Y+Bob.identHash+tsA+tsB), sk, hX_xor_Bob.identHash[16:31])---&gt;
 
-    {% trans %}Size:{% endtrans %} 448 bytes (typ. for 387 byte identity)
+    {% trans %}Size:{% endtrans %} 448 bytes (typ. for 387 byte identity and DSA signature), see notes below
 {% endhighlight %}
 <p>{% trans %}Unencrypted Contents:{% endtrans %}</p>
 {% highlight lang='dataspec' %}
@@ -341,16 +341,16 @@ This contains Alice's router identity, and a DSA signature of the critical data.
  |                                       |
  +----+----+----+----+----+----+----+----+
 
-  sz :: {% trans %}2 byte size of Alice's router identity to follow (should always be 387){% endtrans %}
+  sz :: {% trans %}2 byte size of Alice's router identity to follow (387+){% endtrans %}
 
-  ident :: {% trans %}Alice's 387 byte `RouterIdentity`{% endtrans %}
+  ident :: {% trans %}Alice's 387+ byte `RouterIdentity`{% endtrans %}
 
   tsA :: {% trans %}4 byte timestamp (seconds since the epoch){% endtrans %}
 
-  padding :: {% trans %}15 bytes random data{% endtrans %}
+  padding :: {% trans %}0-15 bytes random data{% endtrans %}
 
   signature :: {% trans -%}
-the 40 byte DSA `Signature` of the following concatenated data:
+the `Signature` of the following concatenated data:
              X, Y, Bob's `RouterIdentity`, tsA, tsB.
              Alice signs it with the `SigningPrivateKey` associated with the `SigningPublicKey` in her `RouterIdentity`
 {%- endtrans %}
@@ -389,18 +389,27 @@ Bob may drop the connection if the clock skew with Alice is too high as calculat
 <li>{% trans -%}
 Alice will use the last 16 bytes of the encrypted contents of this message as the IV for the next message.
 {%- endtrans %}</li>
+<li>
+Through release 0.9.15, the router identity was always 387 bytes,
+the signature was always a 40 byte DSA signature, and the
+padding was always 15 bytes.
+As of release 0.9.16, the router identity may be longer than 387 bytes, and the signature type and length
+are implied by the type of the <a href="{{ site_url('docs/spec/common-structures') }}#type_SigningPublicKey">Signing Public Key</a>
+in Alice's <a href="{{ site_url('docs/spec/common-structures') }}#struct_RouterIdentity">Router Identity</a>.
+The padding is as necessary to a multiple of 16 bytes for the entire unencrypted contents.
+</li>
 </ul>
 
 
 
 <h4>{% trans %}Message 4 (Session Confirm B){% endtrans %}</h4>
 <p>{% trans -%}
-This is a DSA signature of the critical data. Bob sends Alice:
+This is a signature of the critical data. Bob sends Alice:
 {%- endtrans %}</p>
 {% highlight %}
  *  &lt;----------------------E(S(X+Y+Alice.identHash+tsA+tsB)+padding, sk, prev)
 
-    {% trans %}Size:{% endtrans %} 48 bytes
+    {% trans %}Size:{% endtrans %} 48 bytes (typ. for DSA signature), see notes below
 {% endhighlight %}
 <p>{% trans %}Unencrypted Contents:{% endtrans %}</p>
 {% highlight lang='dataspec' %}
@@ -419,7 +428,7 @@ This is a DSA signature of the critical data. Bob sends Alice:
  +----+----+----+----+----+----+----+----+
 
   signature :: {% trans -%}
-the 40 byte DSA `Signature` of the following concatenated data:
+the `Signature` of the following concatenated data:
              X, Y, Alice's `RouterIdentity`, tsA, tsB.
              Bob signs it with the `SigningPrivateKey` associated with the `SigningPublicKey` in his `RouterIdentity`
 {%- endtrans %}
@@ -456,6 +465,13 @@ Alice verifies the signature, and on failure, drops the connection.
 <li>{% trans -%}
 Bob will use the last 16 bytes of the encrypted contents of this message as the IV for the next message.
 {%- endtrans %}</li>
+<li>
+Through release 0.9.15, the signature was always a 40 byte DSA signature and the
+padding was always 8 bytes. As of release 0.9.16, the signature type and length
+are implied by the type of the <a href="{{ site_url('docs/spec/common-structures') }}#type_SigningPublicKey">Signing Public Key</a>
+in Bob's <a href="{{ site_url('docs/spec/common-structures') }}#struct_RouterIdentity">Router Identity</a>.
+The padding is as necessary to a multiple of 16 bytes for the entire unencrypted contents.
+</li>
 </ul>
 
 
