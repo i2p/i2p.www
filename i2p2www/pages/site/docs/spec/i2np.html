@@ -11,6 +11,77 @@ transports to use when communicating with a peer for which there are multiple
 common transports supported.
 </p>
 
+<h2 id="versions">Protocol Versions</h2>
+<p>
+All routers must publish their I2NP protocol version in the "router.version" field in the RouterInfo properties.
+This version field indicates their level of support for various I2NP protocol features,
+and is not necessarily the actual router version.
+</p><p>
+If alternative (non-Java) routers
+wish to publish any version information about the actual router implementation,
+they must do so in another property.
+Versions other than those listed below are allowed. Support will be
+determined through a numeric comparison; for example, 0.9.13 implies support for 0.9.12 features.
+Note that the "coreVersion" property is not used for determination of the I2NP protocol version.
+</p><p>
+A basic summary of the I2NP protocol versions is as follows. For details, see below.
+<table border=1>
+  <tr>
+    <th>Version</th>
+    <th>Required I2NP Features</th>
+  </tr><tr>
+    <td align="center">0.9.16</td>
+    <td align="left">RI key certs / ECDSA and EdDSA sig types<br>
+                     Note: RSA sig types also supported as of this version, but currently unused<br>
+                     DLM lookup types (DLM flag bits 3-2) (proposed)
+    </td>
+  </tr><tr>
+    <td align="center">0.9.15</td>
+    <td align="left">Dest/LS key certs w/ EdDSA Ed25519 sig type (if floodfill)</td>
+  </tr><tr>
+    <td align="center">0.9.12</td>
+    <td align="left">Dest/LS key certs w/ ECDSA P-256, P-384, and P-521 sig types (if floodfill)<br>
+                     Note: RSA sig types also supported as of this version, but currently unused<br>
+                     Nonzero expiration allowed in RouterAddress
+    </td>
+  </tr><tr>
+    <td align="center">0.9.7</td>
+    <td align="left">Encrypted DSM/DSRM replies supported (DLM flag bit 1) (if floodfill)</td>
+  </tr><tr>
+    <td align="center">0.9.6</td>
+    <td align="left">Nonzero DLM flag bits 7-1 allowed</td>
+  </tr><tr>
+    <td align="center">0.9.3</td>
+    <td align="left">Requires zero expiration in RouterAddress</td>
+  </tr><tr>
+    <td align="center">0.9</td>
+    <td align="left">Supports up to 16 leases in a DSM LS store (6 previously)</td>
+  </tr><tr>
+    <td align="center">0.7.12</td>
+    <td align="left">VTBM and VTBRM message support</td>
+  </tr><tr>
+    <td align="center">0.7.10</td>
+    <td align="left">Floodfill supports encrypted DSM stores</td>
+  </tr><tr>
+    <td align="center">0.7.9 or lower</td>
+    <td align="left">All messages and features not listed above</td>
+  </tr><tr>
+    <td align="center">0.6.1.10</td>
+    <td align="left">TBM and TBRM messages introduced<br>
+                     Minimum version compatible with current network
+    </td>
+  </tr>
+</table>
+
+</p><p>
+Note that there are also transport-related features and compatibility issues;
+see the NTCP and SSU transport documentation for details.
+</p>
+
+
+
+
+
 <h2 id="structures">Common structures</h2>
 The following structures are elements of multiple I2NP messages.
 They are not complete messages.
@@ -1115,7 +1186,8 @@ same format as `TunnelBuild` message, with `BuildResponseRecords`
 
 <h4>Definition</h4>
 <pre>
-Same format as TunnelBuildMessage, except for the addition of an "num" field in front and $num number of Build Request Records instead of 8
+Same format as TunnelBuildMessage, except for the addition of an "num" field in front
+and $num number of Build Request Records instead of 8
 
 num ::
        1 byte `Integer`
