@@ -1,7 +1,7 @@
 {% extends "global/layout.html" %}
 {% block title %}Tunnel Creation{% endblock %}
-{% block lastupdated %}June 2013{% endblock %}
-{% block accuratefor %}0.9.6{% endblock %}
+{% block lastupdated %}September 2014{% endblock %}
+{% block accuratefor %}0.9.15{% endblock %}
 {% block content %}
 
 This page documents the current tunnel build implementation.
@@ -63,7 +63,7 @@ Also specified in the
   bytes 136-167: AES-256 reply key
   bytes 168-183: AES-256 reply IV
   byte      184: flags
-  bytes 185-188: request time (in hours since the epoch)
+  bytes 185-188: request time (in hours since the epoch, rounded down)
   bytes 189-192: next message ID
   bytes 193-221: uninterpreted / random padding</pre>
 
@@ -300,6 +300,10 @@ window would work (though doing that would require a high degree of
 clock synchronization).  Alternately, perhaps individual hops could
 inject a random delay before forwarding on the request?</li>
 <li>Are there any nonfatal methods of tagging the request?</li>
+<li>
+The timestamp with a one-hour resolution is used for replay prevention.
+The constraint was not enforced until release 0.9.16.
+</li>
 </ul>
 
 <h2 id="ref">References</h2>
@@ -325,11 +329,6 @@ can see the hash prefix for the next hop), but not for outbound tunnels.
 This is to be researched and verified.
 If it is possible to use the remaining record without compromising anonymity,
 we should do so.
-<li>
-The usefulness of a timestamp with an hour resolution is questionable,
-and the constraint is not currently enforced.
-Therefore the request time field is unused.
-This should be researched and possibly changed.
 <li>
 Further analysis of possible tagging and timing attacks described in the above notes.
 </li><li>
