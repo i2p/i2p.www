@@ -93,6 +93,16 @@ Bandwidth Limits Message  <---------------------
                            --------------------->  Send Message Message
 
 {% endhighlight %}
+
+<p>Existing session, with i2cp.messageReliability=none and nonzero nonce</p>
+{% highlight %}
+    Client                                           Router
+
+                           --------------------->  Send Message Message
+  Message Status Message  <---------------------
+  (succeeded)
+{% endhighlight %}
+
 <p>Existing session, with i2cp.messageReliability=BestEffort</p>
 {% highlight %}
     Client                                           Router
@@ -149,6 +159,17 @@ A basic summary of the I2CP protocol versions is as follows. For details, see be
     <td align="left">Authentication, if enabled, is enforced before all other messages</td>
     </td>
   </tr><tr>
+    <td align="center">0.9.15</td>
+    <td align="left">Dest/LS key certs w/ EdDSA Ed25519 sig type supported</td>
+  </tr><tr>
+    <td align="center">0.9.14</td>
+    <td align="left">Per-message override of messageReliability=none with nonzero nonce</td>
+  </tr><tr>
+    <td align="center">0.9.12</td>
+    <td align="left">Dest/LS key certs w/ ECDSA P-256, P-384, and P-521 sig types supported<br>
+                     Note: RSA sig types also supported as of this version, but currently unused
+    </td>
+  </tr><tr>
     <td align="center">0.9.11</td>
     <td align="left">Host Lookup and Host Reply messages supported<br>
                      Authentication mapping in Get Date message supported
@@ -167,6 +188,9 @@ A basic summary of the I2CP protocol versions is as follows. For details, see be
   </tr><tr>
     <td align="center">0.9.2</td>
     <td align="left">Send Message Expires flag tag bits supported</td>
+  </tr><tr>
+    <td align="center">0.9</td>
+    <td align="left">Supports up to 16 leases in a lease set (6 previously)</td>
   </tr><tr>
     <td align="center">0.8.7</td>
     <td align="left">Set Date version string included.<br>
@@ -1028,6 +1052,9 @@ If the Date in the Session Config is too far (more than +/- 30 seconds) from the
 </li><li>
 The <a href="{{ site_url('docs/spec/common-structures') }}#type_Mapping">Mapping</a> in the Session Config
 must be sorted by key so that the signature will be validated correctly in the router.
+</li><li>
+Some configuration options may only be set in the Create Session message, and changes here will not be recognized by the router.
+Changes to tunnel options inbound.* and outbound.* are always recognized.
 </li></ul>
 
 
@@ -1160,6 +1187,13 @@ Prior to release 0.9.4, a nonce value of 0 was not allowed.
 As of release 0.9.4, a nonce value of 0 is allowed, and tells to the router
 that it should not send either Message Status Message, i.e. it acts as if
 i2cp.messageReliability=none for this message only.
+</p><p>
+Prior to release 0.9.14, a session with i2cp.messageReliability=none could not be overridden on a per-message basis.
+As of release 0.9.14, in a session with i2cp.messageReliability=none,
+the client may request delivery of a Message Status Message with the delivery success or failure
+by setting the nonce to a nonzero value.
+The router will not send the "accepted" Message Status Message but it will later send the client
+a Message Status Message with the same nonce, and a success or failure value.
 </p>
 
 
@@ -1190,7 +1224,8 @@ truncated from 8 bytes to 6 bytes
 <p>
 As of release 0.7.1.
 </p><p>
-As soon as the SendMessageExpiresMessage arrives fully intact, the router should return
+In "best effort" mode,
+as soon as the SendMessageExpiresMessage arrives fully intact, the router should return
 a MessageStatusMessage stating that it has been accepted for delivery.
 That message will contain the same nonce sent here.
 Later on,
@@ -1205,6 +1240,16 @@ As of release 0.9.4, a nonce value of 0 is allowed, and tells the router
 that it should not send either Message Status Message, i.e. it acts as if
 i2cp.messageReliability=none for this message only.
 </p><p>
+Prior to release 0.9.14, a session with i2cp.messageReliability=none could not be overridden on a per-message basis.
+As of release 0.9.14, in a session with i2cp.messageReliability=none,
+the client may request delivery of a Message Status Message with the delivery success or failure
+by setting the nonce to a nonzero value.
+The router will not send the "accepted" Message Status Message but it will later send the client
+a Message Status Message with the same nonce, and a success or failure value.
+</p>
+
+<h4>Flags Field</h4>
+<p>
 As of release 0.8.4, the upper two bytes of the Date are redefined to contain
 flags. The flags must default to all zeros for backward compatibility.
 The Date will not encroach on the flags field until the year 10889.
@@ -1219,21 +1264,26 @@ Bit order: 15...0
 </p><p>
 Bits 15-11: Unused, must be zero
 </p><p>
-Bits 10-9: Message Reliability Override (Preliminary, unimplemented, subject to change)
+Bits 10-9: Message Reliability Override (Unimplemented, to be removed).
+
 <table border=1>
 <tr><th>Field value<th>Description
 <tr><td align="center">00<td>Use session setting i2cp.messageReliabiltiy (default)
 <tr><td align="center">01<td>Use "best effort" message reliabiltiy for this message,
     overriding the session setting. The router will send one or more MessageStatusMessages in response.
+    Unused. Use a nonzero nonce value to override a session setting of "none".
 <tr><td align="center">10<td>Use "guaranteed" message reliabiltiy for this message,
     overriding the session setting. The router will send one or more MessageStatusMessages in response.
+    Unused. Use a nonzero nonce value to override a session setting of "none".
 <tr><td align="center">11<td>Unused. Use a nonce value of 0 to force "none" and override a session setting
     of "best effort" or "guaranteed".
 </table>
 </p><p>
-Bit 8: If 1, don't send lease set
+Bit 8: If 1, don't bundle a lease set in the garlic with this message.
+If 0, the router may bundle a lease set at its discretion.
 </p><p>
 Bits 7-4: Low tag threshold. If there are less than this many tags available, send more.
+This is advisory and does not force tags to be delivered.
 <table border=1>
 <tr><th>Field value<th>Tag threshold
 <tr><td align="center">0000<td align="center">Use session key manager settings
@@ -1255,6 +1305,7 @@ Bits 7-4: Low tag threshold. If there are less than this many tags available, se
 </table>
 </p><p>
 Bits 3-0: Number of tags to send if required.
+This is advisory and does not force tags to be delivered.
 <table border=1>
 <tr><th>Field value<th>Tags to send
 <tr><td align="center">0000<td align="center">Use session key manager settings
