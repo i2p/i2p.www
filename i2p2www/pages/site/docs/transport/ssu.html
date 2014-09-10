@@ -1,7 +1,7 @@
 {% extends "global/layout.html" %}
 {% block title %}{% trans %}Secure Semireliable UDP{% endtrans %} (SSU){% endblock %}
-{% block lastupdated %}{% trans %}February 2014{% endtrans %}{% endblock %}
-{% block accuratefor %}0.9.11{% endblock %}
+{% block lastupdated %}{% trans %}September 2014{% endtrans %}{% endblock %}
+{% block accuratefor %}0.9.15{% endblock %}
 {% block content %}
 
 <p>{% trans transports=site_url('docs/transport'), ntcp=site_url('docs/transport/ntcp') -%}
@@ -17,6 +17,11 @@ In a standard I2P installation, the router uses both NTCP and SSU for outbound c
 SSU-over-IPv6 is supported as of version 0.9.8.
 {%- endtrans %}</p>
 
+<p>{% trans -%}
+SSU is called "semireliable" because it will repeatedly retransmit unacknowledged messages,
+but only up to a maximum number of times. After that, the message is dropped.
+{%- endtrans %}</p>
+
 <h2>{% trans %}SSU Services{% endtrans %}</h2>
 
 <p>{% trans -%}
@@ -30,6 +35,39 @@ Unique to SSU, it also provides IP detection and NAT traversal services, includi
 <li>{% trans %}Communication of firewall status and local IP, and changes to either to NTCP{% endtrans %}</li>
 <li>{% trans %}Communication of firewall status and local IP, and changes to either, to the router and the user interface{% endtrans %}</li>
 </ul>
+
+<h2><a name="ra">{% trans %}Router Address Specification{% endtrans %}</a></h2>
+
+<p>{% trans -%}
+The following properties are stored in the network database.
+{%- endtrans %}</p>
+
+<ul>
+<li><b>Transport name:</b> SSU
+</li><li><b>caps:</b> [B,C] <a href="#capabilities">{% trans %}See below{%- endtrans %}</a>.
+</li><li><b>host:</b> IP (IPv4 or IPv6) or host name.
+  Shortened IPv6 address (with "::") is allowed.
+  May or may not be present if firewalled.
+</li><li><b>ihost[0-2]:</b> Introducer's IP (IPv4 or IPv6) or host name.
+  Shortened IPv6 address (with "::") is allowed.
+  Only present if firewalled, and introducers are required.
+  <a href="#introduction">{% trans %}See below{%- endtrans %}</a>.
+</li><li><b>ikey[0-2]:</b> Introducer's Base 64 introduction key. <a href="#key">{% trans %}See below{%- endtrans %}</a>.
+  Only present if firewalled, and introducers are required.
+  <a href="#introduction">{% trans %}See below{%- endtrans %}</a>.
+</li><li><b>iport[0-2]:</b> Introducer's port 1024 - 65535.
+  Only present if firewalled, and introducers are required.
+  <a href="#introduction">{% trans %}See below{%- endtrans %}</a>.
+</li><li><b>key:</b> Base 64 introduction key. <a href="#key">{% trans %}See below{%- endtrans %}</a>.
+</li><li><b>mtu:</b> Optional. Default and max is 1484. Min is 620.
+  Must be present for IPv6, where the min is 1280 and the max is 1472.
+  IPv6 MTU must be a multiple of 16.
+  (IPv4 MTU + 4) must be a multiple of 16.
+  <a href="#mtu">{% trans %}See below{%- endtrans %}</a>.
+</li><li><b>port:</b> 1024 - 65535
+  May or may not be present if firewalled.
+</li></ul>
+
 
 
 <h1>{% trans %}Protocol Details{% endtrans %}</h1>
