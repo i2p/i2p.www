@@ -1,6 +1,6 @@
 {% extends "global/layout.html" %}
 {% block title %}SSU Protocol Specification{% endblock %}
-{% block lastupdated %}August 2014{% endblock %}
+{% block lastupdated %}September 2014{% endblock %}
 {% block accuratefor %}0.9.15{% endblock %}
 {% block content %}
 
@@ -791,27 +791,29 @@ This message is used for data transport and acknowledgment.
               sequence of 7 bit arrays represent whether a fragment has been
               received - if a bit is 1, the fragment has been received.  To 
               clarify, assuming fragments 0, 2, 5, and 9 have been received,
-              the bitfield bytes would be as follows:<pre>
-byte 0
+              the bitfield bytes would be as follows:
+<pre>
+byte 0:
    Bit order: 76543210 (bit 7 is MSB)
    bit 7: 1 (further bitfield bytes follow)
-   bit 6: 1 (fragment 0 received)
-   bit 5: 0 (fragment 1 not received)
-   bit 4: 1 (fragment 2 received)
+   bit 6: 0 (fragment 6 not received)
+   bit 5: 1 (fragment 5 received)
+   bit 4: 0 (fragment 4 not received)
    bit 3: 0 (fragment 3 not received)
-   bit 2: 0 (fragment 4 not received)
-   bit 1: 1 (fragment 5 received)
-   bit 0: 0 (fragment 6 not received)
-byte 1
+   bit 2: 1 (fragment 2 received)
+   bit 1: 0 (fragment 1 not received)
+   bit 0: 1 (fragment 0 received)
+byte 1:
    Bit order: 76543210 (bit 7 is MSB)
    bit 7: 0 (no further bitfield bytes)
-   bit 6: 0 (fragment 7 not received)
-   bit 5: 0 (fragment 8 not received)
-   bit 4: 1 (fragment 9 received)
+   bit 6: 0 (fragment 13 not received)
+   bit 5: 0 (fragment 12 not received)
+   bit 4: 0 (fragment 11 not received)
    bit 3: 0 (fragment 10 not received)
-   bit 2: 0 (fragment 11 not received)
-   bit 1: 0 (fragment 12 not received)
-   bit 0: 0 (fragment 13 not received)</pre></li>
+   bit 2: 1 (fragment 9 received)
+   bit 1: 0 (fragment 8 not received)
+   bit 0: 0 (fragment 7 not received)
+</pre></li>
 	  </ul></li>
         <li>If extended data included:<ul>
           <li>1 byte data size</li>
@@ -823,7 +825,7 @@ byte 1
    Bit order: 76543210 (bit 7 is MSB)
    bits 23-17: fragment # 0 - 127
    bit 16: isLast (1 = true)
-   bits 15-14: unused
+   bits 15-14: unused, set to 0 for compatibility with future uses
    bits 13-0: fragment size 0 - 16383</pre></li>
           <li>that many bytes</li></ul>
         <li>N bytes padding, uninterpreted</li>
@@ -879,8 +881,8 @@ fragments is greater then zero, and not set when there are no fragments.
 </li><li>
 Extended data is unimplemented and never present.
 </li><li>
-The current implementation does not pack multiple fragments into a single packet;
-the number of fragments is always 0 or 1.
+Reception of multiple fragments is supported in all releases.
+Transmission of multiple fragments is implemented in release 0.9.16.
 </li><li>
 As currently implemented, maximum fragments is 64
 (maximum fragment number = 63).
