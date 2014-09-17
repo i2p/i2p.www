@@ -10,6 +10,8 @@ I2P_TO_CLEAR = {
     'trac.i2p2.i2p': 'trac.i2p2.de',
     'mail.i2p': 'i2pmail.org',
     'lists.i2p2.i2p': 'lists.i2p2.de',
+    'stats.i2p': 'stats.i2p', # Inproxy disabled at request of site owner
+    'zzz.i2p': 'zzz.i2p',     # Inproxy disabled at request of site owner
     }
 
 
