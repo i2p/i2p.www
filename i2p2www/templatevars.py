@@ -3,7 +3,7 @@ import os.path
 
 from i2p2www import CANONICAL_DOMAIN, CURRENT_I2P_VERSION, RTL_LANGS, SUPPORTED_LANGS, SUPPORTED_LANG_NAMES, STATIC_DIR, app
 
-INPROXY = '.us'
+INPROXY = '.rocks' # Run by psi
 
 I2P_TO_CLEAR = {
     'forum.i2p': 'forum.i2p', # Don't convert forum.i2p, it is not accessible outside I2P
