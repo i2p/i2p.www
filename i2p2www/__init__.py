@@ -40,6 +40,7 @@ SUPPORTED_LANGS = [
     'de',
     'fr',
     'he',
+    'ar',
     'it',
     'ja',
     'ko',
@@ -61,6 +62,7 @@ SUPPORTED_LANG_NAMES = {
     'de': u'Deutsch',
     'fr': u'Français',
     'he': u'Hebrew',
+    'ar': u'Arabic',
     'it': u'Italiano',
     'ja': u'Japanese',
     'ko': u'Korean',
@@ -77,6 +79,7 @@ SUPPORTED_LANG_NAMES = {
 
 RTL_LANGS = [
     'he',
+    'ar',
     ]
 
 DEFAULT_GETTEXT_DOMAIN = 'priority'
