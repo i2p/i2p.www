@@ -1,7 +1,7 @@
 {% extends "global/layout.html" %}
 {% block title %}{% trans %}Blockfile and Hosts Database Specification{% endtrans %}{% endblock %}
-{% block lastupdated %}{% trans %}January 2012{% endtrans %}{% endblock %}
-{% block accuratefor %}0.8.12{% endblock %}
+{% block lastupdated %}{% trans %}JNovember 2014{% endtrans %}{% endblock %}
+{% block accuratefor %}0.9.17{% endblock %}
 {% block content %}
 <h3>{% trans %}Overview{% endtrans %}</h3>
 <p>{% trans naming=site_url('docs/naming') -%} 
@@ -39,6 +39,7 @@ The metaindex skiplist is always at page 2, i.e. starting at byte 1024 in the fi
 <p>{% trans -%}
 All 2-byte integer values are unsigned.
 All 4-byte integer values (page numbers) are signed and negative values are illegal.
+All integer values are stored in network byte order (big endian).
 {%- endtrans %}</p>
 
 <p>{% trans -%}
@@ -53,12 +54,14 @@ Superblock format:
 Byte	Contents
 0-5	Magic number	0x3141de493250 ("1A" 0xde "I2P")
 6	Major version	0x01
-7	Minor version	0x01
+7	Minor version	0x02
 8-15	File length	Total length in bytes
 16-19	First free list page
 20-21	Mounted flag	0x01 = yes
-22-23	Span size	max number of key/value pairs per span (16 for hostsdb)
-24-1023	unused
+22-23	Span size	Max number of key/value pairs per span (16 for hostsdb)
+			Used for new skip lists.
+24-27	Page size	As of version 1.2. Prior to 1.2, 1024 is assumed.
+28-1023	unused
 {% endhighlight %}
 
 <p>{% trans -%}
@@ -72,7 +75,10 @@ Byte	Contents
 16-19	Size (total number of keys - may only be valid at startup)
 20-23	Spans (total number of spans - may only be valid at startup)
 24-27	Levels (total number of levels - may only be valid at startup)
-28-1023	unused
+28-29	Span size - As of version 1.2. Max number of key/value pairs per span.
+                    Prior to that, specified for all skiplists in the superblock.
+                    Used for new spans in this skip list.
+30-1023	unused
 {% endhighlight %}
 
 
@@ -173,7 +179,7 @@ The maximum number of entries per span is 16.
 {%- endtrans %}</p>
 <pre>
     "info": a Properties (UTF-8 String/String Map), serialized as a <a href="{{ site_url('docs/spec/common-structures') }}#type_Mapping">Mapping</a>:
-            "version":   "2"
+            "version":   "3"
             "created":   Java long time (ms)
             "upgraded":  Java long time (ms) (as of database version 2)
             "lists":     Comma-separated list of host databases, to be
