@@ -1,7 +1,7 @@
 {% extends "global/layout.html" %}
 {% block title %}{% trans %}I2P Software Update Specification{% endtrans %}{% endblock %}
-{% block lastupdated %}{% trans %}August 2014{% endtrans %}{% endblock %}
-{% block accuratefor %}0.9.14.1{% endblock %}
+{% block lastupdated %}{% trans %}November 2014{% endtrans %}{% endblock %}
+{% block accuratefor %}0.9.17{% endblock %}
 {% block content %}
 <h3>{% trans %}Overview{% endtrans %}</h3>
 <p>{% trans -%}
@@ -25,6 +25,7 @@ if configured to do so.
 
 <h3>{% trans %}News File Specification{% endtrans %}</h3>
 <p>{% trans -%}
+This format is replaced by the su3 news format as of release 0.9.17.
 The news.xml file may contain the following elements:
 {%- endtrans %}</p>
 <pre>
@@ -252,6 +253,8 @@ existing version checkers
 25	<td>File type
 		<ul><li>0x00 = zip file
 		</li><li>0x01 = xml file (as of 0.9.15)
+		</li><li>0x02 = html file (as of 0.9.17)
+		</li><li>0x03 = xml.gz file (as of 0.9.17)
 		</li></ul>
 <tr><td>
 26	<td>unused
@@ -279,6 +282,144 @@ xx+	<td>Signature, length specified in header, covers everything starting at byt
 <p>{% trans -%}
 All unused fields must be set to 0 for compatibility with future versions.
 {%- endtrans %}</p>
+
+<h4>{% trans %}Notes{% endtrans %}</h4>
+<p>
+The content type specifies the trust domain.
+For each content type, clients maintain a set of X.509 public key certificates for
+parties trusted to sign that content.
+Only certificates for the specified content type may be used.
+The certificate is looked up by the ID of the signer.
+Clients must verify that the content type is that expected for the application.
+</p>
+
+
+<h3>{% trans %}SU3 News File Specification{% endtrans %}</h3>
+<p>{% trans -%}
+As of 0.9.17, the news is delivered in an "su3" file format.
+{%- endtrans %}</p>
+
+<h4>{% trans %}Goals:{% endtrans %}</h4>
+
+<ul>
+<li>{% trans -%}
+Signed news with strong signatures and trusted certificates
+{%- endtrans %}</li>
+<li>{% trans -%}
+Use su3 file format already used for updates, reseeding, and plugins
+{%- endtrans %}</li>
+<li>{% trans -%}
+Standard XML format for use with standard parsers
+{%- endtrans %}</li>
+<li>{% trans -%}
+Standard Atom format for use with standard feed readers and generators
+{%- endtrans %}</li>
+<li>{% trans -%}
+Sanitization and verification of HTML before displaying on console
+{%- endtrans %}</li>
+<li>{% trans -%}
+Suitable for easy implementation on Android and other platforms without an HTML console
+{%- endtrans %}</li>
+</ul>
+
+<h4>{% trans %}Specification:{% endtrans %}</h4>
+
+<p>SU3 Details:</p>
+<ul><li>
+SU3 Content Type: 4 (NEWS)
+</li><li>
+SU3 File TYpe: 1 (XML) or 3 (XML.GZ)
+</li><li>
+File Format: XML or gzipped XML, containing an <a href="http://tools.ietf.org/html/rfc4287">RFC 4287 (Atom) XML Feed</a>.
+Charset must be UTF-8.
+</li></ul>
+
+
+<p>Atom &lt;feed&gt; Details:</p>
+The following &lt;feed&gt; elements are used:
+<ul><li>
+&lt;entry&gt; A news item. See below.
+</li><li>
+&lt;i2p:release&gt; I2P update metadata. See below.
+</li><li>
+&lt;updated&gt; Timestamp for the feed (conforming to
+<a href="http://tools.ietf.org/html/rfc4287">RFC 4287 (Atom) section 3.3</a> and
+<a href="http://tools.ietf.org/html/rfc3339">RFC 3339</a>. (required)
+</li></ul>
+
+
+<p>Atom &lt;entry&gt; Details:</p>
+Each Atom &lt;entry&gt; in the news feed may be parsed and displayed in the router console.
+The following elements are used:
+<ul><li>
+&lt;author&gt; (optional) containing:
+  <ul><li>
+  &lt;name&gt; The name of the entry author
+  </li></ul>
+</li><li>
+&lt;content&gt; Content, must be type="xhtml".
+The XHTML will be sanitized with a whitelist of allowed elements
+and a blacklist of disallowed attributes.
+Clients may ignore an element, or the enclosing entry, or the entire feed
+when a non-whitelisted element is encountered. (required)
+</li><li>
+&lt;link&gt; Link for further information (optional)
+</li><li>
+&lt;summary&gt; Short summary, suitable for a tooltip (optional)
+</li><li>
+&lt;title&gt; Title of the news entry (required)
+</li><li>
+&lt;updated&gt; Timestamp for this entry (conforming to
+<a href="http://tools.ietf.org/html/rfc4287">RFC 4287 (Atom) section 3.3</a> and
+<a href="http://tools.ietf.org/html/rfc3339">RFC 3339</a>. (required)
+</li></ul>
+
+
+<p>Atom &lt;i2p:release&gt; Details:</p>
+There must be one &lt;i2p:release&gt; entity in the feed, containing the following attributes and entities:
+<ul><li>
+date (attribute): Timestamp for this entry (conforming to
+<a href="http://tools.ietf.org/html/rfc4287">RFC 4287 (Atom) section 3.3</a> and
+<a href="http://tools.ietf.org/html/rfc3339">RFC 3339</a>. (required)
+The date also may be in truncated format yyyy-mm-dd (without the 'T').
+</li><li>
+minJavaVersion (attribute): If present, the minimum version of Java required to run the current version.
+</li><li>
+minVersion (attribute):
+If present, the minimum version of the router required to update to the current version.
+If a router is older than this, the user must (manually?) update to an intermediate version first.
+</li><li>
+&lt;i2p:version&gt; Required. The latest current router version available.
+</li><li>
+&lt;i2p:clearnet&gt; Out-of-network direct download links (zero or more)
+  <ul><li>
+  type (attribute): "sud", "su2", or "su3"
+  </li><li>
+  href (attribute): a standard clearnet http link
+  </li></ul>
+</li><li>
+&lt;i2p:clearnetssl&gt; Out-of-network direct download links (zero or more)
+  <ul><li>
+  type (attribute): "sud", "su2", or "su3"
+  </li><li>
+  href (attribute): a standard clearnet https link
+  </li></ul>
+</li><li>
+&lt;i2p:torrent&gt; In-network magnet links (zero or more)
+  <ul><li>
+  type (attribute): "sud", "su2", or "su3"
+  </li><li>
+  href (attribute): a magnet link
+  </li></ul>
+</li><li>
+&lt;i2p:url&gt; In-network direct download links (zero or more)
+  <ul><li>
+  type (attribute): "sud", "su2", or "su3"
+  </li><li>
+  href (attribute): an in-network http .i2p link
+  </li></ul>
+</li></ul>
+
 
 
 <h3>{% trans %}Future Work{% endtrans %}</h3>
