@@ -1,7 +1,7 @@
 {% extends "global/layout.html" %}
 {% block title %}{% trans %}Low-level Cryptography Details{% endtrans %}{% endblock %}
-{% block lastupdated %}{% trans %}March 2014{% endtrans %}{% endblock %}
-{% block accuratefor %}0.9.12{% endblock %}
+{% block lastupdated %}{% trans %}November 2014{% endtrans %}{% endblock %}
+{% block accuratefor %}0.9.16{% endblock %}
 {% block content %}
 <p>{% trans -%}
 This page specifies the low-level details of the cryptography in I2P.
@@ -284,15 +284,19 @@ It may be quite difficult to make any change backward-compatible.
 </ul>
 
 
-<h2><a name="DSA">DSA</a></h2>
+<h2><a name="sig">{% trans %}Digital Signatures{% endtrans %}</a></h2>
+
+<p>{% trans -%}
+DSA is the default signature algorithm, but we are in the process of migrating to more secure algorithms. See below.
+{%- endtrans %}</p>
+
+<h3><a name="DSA">DSA</a></h3>
 
 <p>{% trans code='https://github.com/i2p/i2p.i2p/tree/master/core/java/src/net/i2p/crypto/DSAEngine.java' -%}
 Signatures are generated and verified with 1024 bit DSA (L=1024, N=160), as implemented in
 <a href="{{ code }}">[DSAEngine]</a>.
 DSA was chosen because it is much faster for signatures than ElGamal.
 {%- endtrans %}</p>
-
-<h3>{% trans %}The DSA constants{% endtrans %}</h3>
 
 <h4>SEED</h4>
 
@@ -381,18 +385,50 @@ If a larger prime is chosen for future purposes, this should be a strong prime, 
 <h2>{% trans %}New Signature Algorithms{% endtrans %}</h2>
 <p>{% trans -%}
 As of release 0.9.12, the router supports additional signature algorithms that are more secure than 1024-bit DSA.
-The first usage is for Destinations; support for Router Identities will be added in a future release.
+The first usage is for Destinations; support for Router Identities was added in release 0.9.16.
 Support for migrating existing Destinations from old to new signatures will be added in a future release.
-The supported signature types are as follows. Additional signature types will be added in future releases.
+Signature type is encoded in the Destination and Router Identity, so that new signature algorithms
+or curves may be added at any time.
+The current supported signature types are as follows:
 {%- endtrans %}</p>
 <ul>
+<li>DSA-SHA1</li>
 <li>ECDSA-SHA256-P256</li>
 <li>ECDSA-SHA384-P384</li>
 <li>ECDSA-SHA512-P521</li>
 <li>RSA-SHA256-2048</li>
 <li>RSA-SHA384-3072</li>
 <li>RSA-SHA512-4096</li>
+<li>EdDSA-SHA512-Ed25519 (as of release 0.9.15)</li>
 </ul>
+
+<h3>ECDSA</h3>
+
+<p>{% trans -%}
+ECDSA uses the standard NIST curves and standard SHA-2 hashes.
+We will migrate new destinations to ECDSA-SHA256-P256 in the 0.9.16 - 0.9.19 release time frame.
+Usage for Router Identities is supported as of release 0.9.16 and migration may occur in early 2015.
+{%- endtrans %}</p>
+
+
+<h3>RSA</h3>
+
+<p>{% trans -%}
+Standard RSA with the public exponent F4 = 65537.
+RSA is now used for signing all out-of-band trusted content, including router updates, reseeding, plugins, and news.
+The signatures are embedded in the "su3" format documented on the router updates page.
+4096-bit keys are recommended and used by all known signers.
+RSA is not used, or planned for use, in any in-network Destinations or Router Identities.
+{%- endtrans %}</p>
+
+
+<h3>EdDSA 25519</h3>
+
+<p>{% trans -%}
+Standard EdDSA using curve 25519 and standard 512-bit SHA-2 hashes.
+Supported as of release 0.9.15.
+Migration for Destinations and Router Identities is scheduled for mid-2015.
+{%- endtrans %}</p>
 
 
 
