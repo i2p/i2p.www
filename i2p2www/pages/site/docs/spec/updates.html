@@ -26,6 +26,8 @@ if configured to do so.
 <h3>{% trans %}News File Specification{% endtrans %}</h3>
 <p>{% trans -%}
 This format is replaced by the su3 news format as of release 0.9.17.
+{%- endtrans %}</p>
+<p>{% trans -%}
 The news.xml file may contain the following elements:
 {%- endtrans %}</p>
 <pre>
@@ -212,6 +214,9 @@ Migrate to more secure signature algorithm
 Keep version info in same format and offset for compatibility with
 existing version checkers
 {%- endtrans %}</li>
+<li>{% trans -%}
+One-pass signature verification and file extraction
+{%- endtrans %}</li>
 </ul>
 
 <h4>{% trans %}Specification:{% endtrans %}</h4>
@@ -246,7 +251,7 @@ existing version checkers
 <tr><td>
 15	<td>Signer ID length (in bytes not chars)
 <tr><td>
-16-23	<td>Compressed content length (not including header or sig)
+16-23	<td>Content length (not including header or sig)
 <tr><td>
 24	<td>unused
 <tr><td>
@@ -269,12 +274,12 @@ existing version checkers
 <tr><td>
 28-39	<td>unused
 <tr><td>
-40-55+	<td>Version, UTF-8 padded with trailing 0x00, 16 bytes min, length specified at byte 13
+40-55+	<td>Version, UTF-8 padded with trailing 0x00, 16 bytes minimum, length specified at byte 13.
+            Do not append 0x00 bytes if the length is 16 or more.
 <tr><td>
 xx+	<td>ID of signer, (e.g. "zzz@mail.i2p") UTF-8, not padded, length specified at byte 15
 <tr><td>
-xx+	<td>Compressed content, length and format specified in header
-        No requirement on the zip file comment since the sig covers the version.
+xx+	<td>Content, length and format specified in header
 <tr><td>
 xx+	<td>Signature, length specified in header, covers everything starting at byte 0
 </table>
@@ -291,6 +296,12 @@ parties trusted to sign that content.
 Only certificates for the specified content type may be used.
 The certificate is looked up by the ID of the signer.
 Clients must verify that the content type is that expected for the application.
+<p></p>
+While signature verification and content extraction may be implemented in one pass,
+an implementation must read and buffer the first 10 bytes to determine the signature type
+before starting to verify.
+<p></p>
+All values are in network byte order (big endian).
 </p>
 
 
@@ -324,18 +335,20 @@ Suitable for easy implementation on Android and other platforms without an HTML 
 
 <h4>{% trans %}Specification:{% endtrans %}</h4>
 
-<p>SU3 Details:</p>
+<p><b>SU3 Details:</b></p>
 <ul><li>
 SU3 Content Type: 4 (NEWS)
 </li><li>
-SU3 File TYpe: 1 (XML) or 3 (XML.GZ)
+SU3 File Type: 1 (XML) or 3 (XML.GZ)
+</li><li>
+SU3 Version: Seconds since the epoch, in ASCII (date +%s)
 </li><li>
 File Format: XML or gzipped XML, containing an <a href="http://tools.ietf.org/html/rfc4287">RFC 4287 (Atom) XML Feed</a>.
 Charset must be UTF-8.
 </li></ul>
 
 
-<p>Atom &lt;feed&gt; Details:</p>
+<p><b>Atom &lt;feed&gt; Details:</b></p>
 The following &lt;feed&gt; elements are used:
 <ul><li>
 &lt;entry&gt; A news item. See below.
@@ -348,7 +361,7 @@ The following &lt;feed&gt; elements are used:
 </li></ul>
 
 
-<p>Atom &lt;entry&gt; Details:</p>
+<p><b>Atom &lt;entry&gt; Details:</b></p>
 Each Atom &lt;entry&gt; in the news feed may be parsed and displayed in the router console.
 The following elements are used:
 <ul><li>
@@ -375,7 +388,7 @@ when a non-whitelisted element is encountered. (required)
 </li></ul>
 
 
-<p>Atom &lt;i2p:release&gt; Details:</p>
+<p><b>Atom &lt;i2p:release&gt; Details:</b></p>
 There must be one &lt;i2p:release&gt; entity in the feed, containing the following attributes and entities:
 <ul><li>
 date (attribute): Timestamp for this entry (conforming to
