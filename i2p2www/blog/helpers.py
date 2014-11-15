@@ -104,7 +104,7 @@ def render_blog_post(slug):
     rendered_content = render_template_string(content)
 
     # publish the post with docutils
-    return publish_parts(source=rendered_content, source_path="Blog", writer_name="html")
+    return publish_parts(source=rendered_content, source_path=BLOG_DIR, writer_name="html")
 
 def get_metadata_from_meta(meta):
     metaLines = meta.split('\n')
