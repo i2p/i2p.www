@@ -1,7 +1,7 @@
 {% extends "global/layout.html" %}
 {% block title %}{% trans %}NTCP (NIO-based TCP){% endtrans %}{% endblock %}
-{% block lastupdated %}{% trans %}October 2014{% endtrans %}{% endblock %}
-{% block accuratefor %}0.9.15{% endblock %}
+{% block lastupdated %}{% trans %}November 2014{% endtrans %}{% endblock %}
+{% block accuratefor %}0.9.17{% endblock %}
 {% block content %}
 <p>{% trans transports=site_url('docs/transport'), ssu=site_url('docs/transport/ssu') -%}
 NTCP is one of two <a href="{{ transports }}">transports</a> currently implemented in I2P.
@@ -390,6 +390,7 @@ the `Signature` of the following concatenated data:
 448 bytes <a href="{{ cryptography }}#AES">AES encrypted</a> using the DH session key and
                   the last 16 bytes of HXxorHI (i.e., the last 16 bytes of message #1) as the IV
 {%- endtrans %}
+448 is the typical length, but it could be longer, see below.
 
 </pre>
 
@@ -413,6 +414,14 @@ As of release 0.9.16, the router identity may be longer than 387 bytes, and the 
 are implied by the type of the <a href="{{ site_url('docs/spec/common-structures') }}#type_SigningPublicKey">Signing Public Key</a>
 in Alice's <a href="{{ site_url('docs/spec/common-structures') }}#struct_RouterIdentity">Router Identity</a>.
 The padding is as necessary to a multiple of 16 bytes for the entire unencrypted contents.
+</li><li>
+The total length of the message cannot be determined without partially decrypting it to read the Router Identity.
+As the minimum length of the Router Identity is 387 bytes, and the minimum Signature length is 40 (for DSA),
+the minimum total message size is 2 + 387 + 4 + (signature length) + (padding to 16 bytes),
+or 2 + 387 + 4 + 40 + 15 = 448 for DSA.
+The receiver could read that minimum amount before decrypting to determine the actual Router Identity length.
+For small Certificates in the Router Identity, that will probably be the entire message, and
+there will not be any more bytes in the message to require an additional decryption operation.
 </li>
 </ul>
 
