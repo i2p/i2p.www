@@ -51,12 +51,12 @@ the signing key.
 {%- endtrans %}
 
 {% trans -%}
-The fingerprint of the new signing key is:
+The fingerprint (SHA-256) of the new signing key is:
 {%- endtrans %}
 
 ::
 
-    Certificate fingerprint (SHA1): A9:37:13:2C:04:8A:CE:18:01:8D:07:69:D8:77:08:C9:1E:50:55:5F
+    AD 1E 11 C2 58 46 3E 68 15 A9 86 09 FF 24 A4 8B C0 25 86 C2 36 00 84 9C 16 66 53 97 2F 39 7A 90
 
 .. _`I2P Android 0.9.17`: {{ get_url('downloads_list') }}#android
 .. _`Bote 0.3`: https://download.i2p.io/android/bote/releases/0.3/Bote.apk
@@ -98,15 +98,16 @@ F-Droid
 {% trans -%}
 Don't think we have forgotten about you, F-Droid users! In addition to the two
 locations above, we have set up our own F-Droid repository. If you are reading
-this post on your phone, `click here`_ to add it to F-Droid. Or, you can type
-in the URL below:
+this post on your phone, `click here`_ to add it to F-Droid (this only works in
+some Android browsers). Or, you can manually add the URL below to your F-Droid
+repository list:
 {%- endtrans %}
 
 https://f-droid.i2p.io/repo
 
 {% trans -%}
 If you would like to manually verify the fingerprint (SHA-256) of the repository
-signing key, here it is: 
+signing key, or type it in when adding the repository, here it is:
 {%- endtrans %}
 
 ::
