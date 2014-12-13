@@ -1,6 +1,6 @@
 {% extends "global/layout.html" %}
 {% block title %}{% trans %}I2P Software Update Specification{% endtrans %}{% endblock %}
-{% block lastupdated %}{% trans %}November 2014{% endtrans %}{% endblock %}
+{% block lastupdated %}{% trans %}December 2014{% endtrans %}{% endblock %}
 {% block accuratefor %}0.9.17{% endblock %}
 {% block content %}
 <h3>{% trans %}Overview{% endtrans %}</h3>
@@ -23,7 +23,7 @@ The router may optionally download, or download and install, the new version
 if configured to do so.
 {%- endtrans %}</p>
 
-<h3>{% trans %}News File Specification{% endtrans %}</h3>
+<h3>{% trans %}Old News File Specification{% endtrans %}</h3>
 <p>{% trans -%}
 This format is replaced by the su3 news format as of release 0.9.17.
 {%- endtrans %}</p>
@@ -141,7 +141,7 @@ verifes that the zip file comment matches the header version, as explained above
 {%- endtrans %}</p>
 
 <p>{% trans -%}
-The zip file is extracted in the base $I2P installation directory.
+The zip file is extracted and copied to "i2pupdate.zip" in the I2P configuration directory (~/.i2p on Linux).
 {%- endtrans %}</p>
 
 <p>{% trans -%}
@@ -173,10 +173,12 @@ The router will then delete the deletelist.txt file.
 {%- endtrans %}</p>
 
 
-<h3 id="su3">{% trans %}New "su3" Update File Specification{% endtrans %}</h3>
+
+<h3 id="su3">{% trans %}SU3 File Specification{% endtrans %}</h3>
 
 <p>{% trans -%}
-This specification is used for router updates as of release 0.9.9, and reseed data as of release 0.9.14.
+This specification is used for router updates as of release 0.9.9, reseed data as of release 0.9.14,
+and the news file as of release 0.9.17.
 {%- endtrans %}</p>
 
 <h4>{% trans %}Issues with the previous .sud/.su2 format:{% endtrans %}</h4>
@@ -279,9 +281,11 @@ One-pass signature verification and file extraction
 <tr><td>
 xx+	<td>ID of signer, (e.g. "zzz@mail.i2p") UTF-8, not padded, length specified at byte 15
 <tr><td>
-xx+	<td>Content, length and format specified in header
+xx+	<td>Content: Length specified in header at bytes 16-23,
+                     format specified in header at byte 25,
+                     content specified in header at byte 27
 <tr><td>
-xx+	<td>Signature, length specified in header, covers everything starting at byte 0
+xx+	<td>Signature: Length is specified in header, covers everything starting at byte 0
 </table>
 
 <p>{% trans -%}
@@ -303,6 +307,25 @@ before starting to verify.
 <p></p>
 All values are in network byte order (big endian).
 </p>
+
+
+
+
+<h3>{% trans %}SU3 Router Update File Specification{% endtrans %}</h3>
+
+<p><b>SU3 Details:</b></p>
+<ul><li>
+SU3 Content Type: 1 (ROUTER UPDATE)
+</li><li>
+SU3 File Type: 0 (ZIP)
+</li><li>
+SU3 Version: The router version
+</li><li>
+Jar and war files in the zip are compressed with pack200 as documented above for "su2" files.
+If the client does not support pack200, it must download the update in a "sud" format.
+</li></ul>
+
+
 
 
 <h3>{% trans %}SU3 Reseed File Specification{% endtrans %}</h3>
