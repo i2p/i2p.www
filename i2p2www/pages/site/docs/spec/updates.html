@@ -233,7 +233,7 @@ One-pass signature verification and file extraction
 7	<td>su3 file format version = 0
 <tr><td>
 8-9	<td>Signature type
-		<ul><li>0x0000 = DSA-160
+		<ul><li>0x0000 = DSA-SHA1
 		</li><li>0x0001 = ECDSA-SHA256-P256
 		</li><li>0x0002 = ECDSA-SHA384-P384
 		</li><li>0x0003 = ECDSA-SHA512-P521
@@ -242,20 +242,22 @@ One-pass signature verification and file extraction
 		</li><li>0x0006 = RSA-SHA512-4096
 		</li></ul>
 <tr><td>
-10-11	<td>Signature length, e.g. 40 (0x0028) for DSA-160
+10-11	<td>Signature length, e.g. 40 (0x0028) for DSA-SHA1.
+            Must match that specified for the signature type on the
+            <a href="{{ site_url('docs/spec/common-structures') }}#type_Signature">common structures page</a>.
 <tr><td>
-12	<td>unused
+12	<td>unused = 0
 <tr><td>
 13	<td>Version length (in bytes not chars, including padding)
         must be at least 16 (0x10) for compatibility
 <tr><td>
-14	<td>unused
+14	<td>unused = 0
 <tr><td>
 15	<td>Signer ID length (in bytes not chars)
 <tr><td>
 16-23	<td>Content length (not including header or sig)
 <tr><td>
-24	<td>unused
+24	<td>unused = 0
 <tr><td>
 25	<td>File type
 		<ul><li>0x00 = zip file
@@ -264,7 +266,7 @@ One-pass signature verification and file extraction
 		</li><li>0x03 = xml.gz file (as of 0.9.17)
 		</li></ul>
 <tr><td>
-26	<td>unused
+26	<td>unused = 0
 <tr><td>
 27	<td>Content type
 		<ul><li>0x00 = unknown
@@ -274,7 +276,7 @@ One-pass signature verification and file extraction
 		</li><li>0x04 = news feed (as of 0.9.15)
 		</li></ul>
 <tr><td>
-28-39	<td>unused
+28-39	<td>unused = 0
 <tr><td>
 40-55+	<td>Version, UTF-8 padded with trailing 0x00, 16 bytes minimum, length specified at byte 13.
             Do not append 0x00 bytes if the length is 16 or more.
@@ -285,12 +287,34 @@ xx+	<td>Content: Length specified in header at bytes 16-23,
                      format specified in header at byte 25,
                      content specified in header at byte 27
 <tr><td>
-xx+	<td>Signature: Length is specified in header, covers everything starting at byte 0
+xx+	<td>Signature: Length is specified in header at bytes 10-11, covers everything starting at byte 0
 </table>
 
 <p>{% trans -%}
 All unused fields must be set to 0 for compatibility with future versions.
 {%- endtrans %}</p>
+
+
+<h4>{% trans %}Signature Details{% endtrans %}</h4>
+<p>
+The signature covers the entire header starting at byte 0,
+through the end of the content.
+We use raw signatures. Take the hash of the data (using the hash type
+implied by the signature type at bytes 8-9) and pass that
+to a "raw" sign or verify function (e.g. "NONEwithRSA" in Java).
+<p></p>
+While signature verification and content extraction may be implemented in one pass,
+an implementation must read and buffer the first 10 bytes to determine the hash type
+before starting to verify.
+<p></p>
+Signature lengths for the various signature types are specified on the
+<a href="{{ site_url('docs/spec/common-structures') }}#type_Signature">common structures page</a>.
+Pad the signature with leading zeros if ncecessary.
+See <a href="{{ site_url('docs/how/cryptography') }}#sig">the cryptography details page</a>
+for parameters of the various signature types.
+</p>
+
+
 
 <h4>{% trans %}Notes{% endtrans %}</h4>
 <p>
@@ -300,10 +324,6 @@ parties trusted to sign that content.
 Only certificates for the specified content type may be used.
 The certificate is looked up by the ID of the signer.
 Clients must verify that the content type is that expected for the application.
-<p></p>
-While signature verification and content extraction may be implemented in one pass,
-an implementation must read and buffer the first 10 bytes to determine the signature type
-before starting to verify.
 <p></p>
 All values are in network byte order (big endian).
 </p>
