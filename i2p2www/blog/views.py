@@ -29,6 +29,8 @@ def blog_post(slug):
     if parts:
         meta = get_metadata_from_meta(parts['meta'])
         meta['date'] = meta['date'] if meta['date'] else get_date_from_slug(slug)
+        # add notification to any error messages
+        parts['fragment'] = parts['fragment'].replace('Docutils System Messages', 'There are errors in this translation. Please comment on <a href="https://trac.i2p2.de/ticket/1396">this ticket</a> with the URL of this page.')
         # remove BLOG_DIR from any error messages
         parts['fragment'] = parts['fragment'].replace(BLOG_DIR, 'Blog')
         # now just pass to simple template file and we are done
