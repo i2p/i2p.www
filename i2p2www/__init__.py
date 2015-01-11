@@ -34,15 +34,17 @@ BLOG_POSTS_PER_FEED = 10
 BLOG_POSTS_PER_PAGE = 10
 MEETINGS_PER_PAGE = 20
 
+# This list defines the order that languages appear in the dropdown.
 SUPPORTED_LANGS = [
     'en',
-    'es',
-    'zh',
     'de',
-    'fi',
+    'es',
     'fr',
-    'he',
+    'ru',
+    'zh',
     'ar',
+    'fi',
+    'he',
     'it',
     'ja',
     'ko',
@@ -52,32 +54,31 @@ SUPPORTED_LANGS = [
     'pt',
     'pt_BR',
     'ro',
-    'ru',
     'sv',
     'uk',
     ]
 
 SUPPORTED_LANG_NAMES = {
+    'ar': u'العربية',
+    'de': u'Deutsch',
     'en': u'English',
     'es': u'Castellano',
-    'zh': u'Chinese',
-    'de': u'Deutsch',
-    'fi': u'Finnish',
+    'fi': u'Suomi',
     'fr': u'Français',
-    'he': u'Hebrew',
-    'ar': u'Arabic',
+    'he': u'עברית',
     'it': u'Italiano',
-    'ja': u'Japanese',
-    'ko': u'Korean',
-    'mg': u'Malagasy',
+    'ja': u'日本語',
+    'ko': u'한국어',
+    'mg': u'Fiteny Malagasy',
     'nl': u'Nederlands',
-    'pl': u'Polish',
-    'pt': u'Portugese',
-    'pt_BR': u'Brazilian Portugese',
-    'ro': u'Romanian',
-    'ru': u'Russian',
+    'pl': u'Polski',
+    'pt': u'Português',
+    'pt_BR': u'Português do Brasil',
+    'ro': u'Român',
+    'ru': u'Русский язык',
     'sv': u'Svenska',
-    'uk': u'Ukrainian',
+    'uk': u'Українська',
+    'zh': u'中文',
     }
 
 RTL_LANGS = [
