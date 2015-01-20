@@ -113,9 +113,9 @@ Tails
 -----
 
 {% trans -%}
-We had a nice discussion with Biting Bird of Tails. They are very happy with our
+We had a nice discussion with BitingBird of Tails. They are very happy with our
 rapid response to the `vulnerability disclosure`_ last summer, resulting in our
-`0.9.14 release`_. Our vulnerability was initially blamed on TAILS, and they
+`0.9.14 release`_. Our vulnerability was initially blamed on Tails, and they
 took `great offense`_ to that and the lack of private notification. We thanked
 them for taking the heat and fighting back.
 {%- endtrans %}
