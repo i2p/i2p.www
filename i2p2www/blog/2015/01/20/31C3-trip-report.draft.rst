@@ -5,7 +5,7 @@
 {%- endtrans %}
 .. meta::
    :author: zzz
-   :date: 2015-12-20
+   :date: 2015-01-20
    :excerpt: {% trans %}{% endtrans %}
 
 *Attending:* `Apekatten`_, `Echelon`_, `Hottuna`_, `Marielle`_, `Meeh`_, Sindu, `zzz`_
