@@ -92,7 +92,7 @@ def render_blog_post(slug):
     path = safe_join(BLOG_DIR, slug + ".rst")
     if not os.path.exists(path):
         # check for drafts
-        path = safe_join(BLOG_DIR, slug + ".rst.draft")
+        path = safe_join(BLOG_DIR, slug + ".draft.rst")
         if not os.path.exists(path):
             abort(404)
 
