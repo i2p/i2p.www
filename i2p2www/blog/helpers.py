@@ -67,8 +67,8 @@ def get_blog_slugs(num=0):
         # iterate over all files
         slugbase = os.path.relpath(v[0], BLOG_DIR)
         for f in v[2]:
-            # ignore all non-.rst files
-            if not f.endswith('.rst'):
+            # ignore all non-.rst files and drafts
+            if not f.endswith('.rst') or f.endswith('.draft.rst'):
                 continue
             slugs.append(safe_join(slugbase, f[:-4]))
     slugs.sort()
