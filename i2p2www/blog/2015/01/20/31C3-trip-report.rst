@@ -70,7 +70,7 @@ We also discussed the `Special-Use Domain Names of Peer-to-Peer Systems draft`_.
 A new, greatly simplified version 3 was posted in December. The prospects for
 approval remain unclear. The best way to monitor or participate in the
 discussion is via the `IETF DNSOP WG mailing list`_. We will attempt to do so
-on our side, and also give Hellican a new point-of-contact for this topic.
+on our side, and also give Hellekin a new point-of-contact for this topic.
 {%- endtrans %}
 
 .. _{{ _('`Special-Use Domain Names of Peer-to-Peer Systems draft`') }}: https://datatracker.ietf.org/doc/draft-grothoff-iesg-special-use-p2p-names/
