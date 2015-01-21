@@ -6,7 +6,7 @@
 .. meta::
    :author: zzz
    :date: 2015-01-20
-   :excerpt: {% trans %}{% endtrans %}
+   :excerpt: {% trans %}CCC has always been a productive time for us, and 31C3 was no exception. Here is a summary of our various meetings and discussions.{% endtrans %}
 
 *Attending:* `Apekatten`_, `Echelon`_, `Hottuna`_, `Marielle`_, `Meeh`_, Sindu, `zzz`_
 
