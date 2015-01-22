@@ -78,7 +78,7 @@ on our side, and also give Hellekin a new point-of-contact for this topic.
 
 {% trans -%}
 We apologized to Christian for not being organized enough to have a talk at his
-`We Fix The Net assembly`_. One of our biggest failures is a project is our
+`We Fix The Net assembly`_. One of our biggest failures as a project is our
 seeming inability to submit talks at conferences. We'll have to do better in the
 new year.
 {%- endtrans %}
@@ -104,9 +104,8 @@ He said, well, try the new process, it works great, should be no problem at all
 if your package is in good shape. The people in Debian that run this process are
 eager volunteers who want nothing more than to get more packages in. We said our
 package is indeed in fantastic shape, and we would try out the new process as
-soon as possible. As best as we can tell, we are orphaned in the old process and
-have to restart in the new process? If all this is true, we will be in the next
-Debian release in late 2015. This would be very very cool.
+soon as possible. If all this is true, we will be in the next Debian release in
+late 2015. This would be very very cool.
 {%- endtrans %}
 
 Tails
@@ -125,7 +124,7 @@ them for taking the heat and fighting back.
 .. _{{ _('`great offense`') }}: https://tails.boum.org/news/On_0days_exploits_and_disclosure/index.en.html
 
 {% trans -%}
-Biting Bird also handles support, and she tells us the number one issue is how
+BitingBird also handles support, and she tells us the number one issue is how
 long I2P takes to start up and be useful for browsing I2P sites. Her standard
 answer is "wait ten more minutes" and that seems to be effective. I2P is
 particularly slow to startup on Tails since it does not persist peer data by
@@ -231,7 +230,7 @@ I2P project topics
 
 {% trans -%}
 * We agreed to purchase a second root server for development, testing, and
-  services. Echelon will be adminstering it. Contact him is you would like a VM.
+  services. Echelon will be adminstering it. Contact him if you would like a VM.
 {%- endtrans %}
 
 {% trans -%}
