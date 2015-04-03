@@ -1,7 +1,7 @@
 {% extends "global/layout.html" %}
 {% block title %}{% trans %}Embedding I2P in your Application{% endtrans %}{% endblock %}
-{% block lastupdated %}{% trans %}November 2014{% endtrans %}{% endblock %}
-{% block accuratefor %}0.9.17{% endblock %}
+{% block lastupdated %}{% trans %}April 2015{% endtrans %}{% endblock %}
+{% block accuratefor %}0.9.19{% endblock %}
 {% block content %}
 
 <h2>{% trans %}Overview{% endtrans %}</h2>
@@ -227,6 +227,15 @@ We plan to migrate to Java 7 in 2015.
 If you're building Debian / Ubuntu packages, you should require the I2P package from our PPA instead of bundling it.
 You almost certainly do not need susimail, susidns, the router console, and i2psnark, for example.
 {%- endtrans %}</p>
+<p>{% trans -%}
+The following files should be included in the I2P installation directory, specified with the "i2p.dir.base" property.
+Don't forget certificates/reseed and certificates/ssl, required for reseeding, and blocklist.txt for IP validation.
+The geoip directory is optional, but recommended so the router can make decisions based on location.
+The hosts.txt file may be necessary, you may modify it to include any hosts your application uses.
+You may add a router.config file to the base directory to override initial defaults.
+<p>{% trans -%}
+License requirements may require you to include the LICENSES.txt file and the licenses directory.
+{%- endtrans %}</p>
 
 <p>
 <ul>
@@ -298,9 +307,24 @@ import net.i2p.router.Router;
 
 	Properties p = new Properties();
         // add your configuration settings, directories, etc.
+        // where to find the I2P installation files
+	p.addProperty("i2p.dir.base", baseDir);
+        // where to find the I2P data files
+	p.addProperty("i2p.dir.config", configDir);
+        // bandwidth limits in K bytes per second
+	p.addProperty("i2np.inboundKBytesPerSecond", "50");
+	p.addProperty("i2np.outboundKBytesPerSecond", "50");
+	p.addProperty("router.sharePercentage", "80");
 	p.addProperty("foo", "bar");
 	Router r = new Router(p);
+        // don't call exit() when the router stops
+	r.setKillVMOnEnd(false);
 	r.runRouter();
+
+	...
+
+	r.shutdownGracefully();
+	// will shutdown in 11 minutes or less
 </pre>
 
 <p>{% trans -%}
@@ -310,6 +334,8 @@ together with Jetty webapps,
 as is done in our Java packages.
 As always, state management is the difficult part.
 {%- endtrans %}</p>
-
+<p>
+See also: <a href="http://docs.i2p-projekt.de/javadoc/net/i2p/router/Router.html">the Router javadocs</a>.
+</p>
 
 {% endblock %}
