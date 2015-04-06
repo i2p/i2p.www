@@ -1,7 +1,7 @@
 {% extends "global/layout.html" %}
 {% block title %}{% trans %}Common structures Specification{% endtrans %}{% endblock %}
-{% block lastupdated %}{% trans %}January 2015{% endtrans %}{% endblock %}
-{% block accuratefor %}0.9.17{% endblock %}
+{% block lastupdated %}{% trans %}April 2015{% endtrans %}{% endblock %}
+{% block accuratefor %}0.9.19{% endblock %}
 {% block content %}
 <p>{% trans i2np=site_url('docs/protocol/i2np'),
 i2cp=site_url('docs/protocol/i2cp'),
@@ -21,6 +21,7 @@ This document describes some data types common to all I2P protocols, like
 <tr><td><a href="#struct_Destination">Destination</a></td></tr>
 <tr><td><a href="#type_Hash">Hash</a></td></tr>
 <tr><td><a href="#type_Integer">Integer</a></td></tr>
+<tr><td><a href="#struct_KeysAndCert">KeysAndCert</a></td></tr>
 <tr><td><a href="#struct_Lease">Lease</a></td></tr>
 <tr><td><a href="#struct_LeaseSet">LeaseSet</a></td></tr>
 <tr><td><a href="#type_Mapping">Mapping</a></td></tr>
@@ -533,10 +534,10 @@ Total length limit is 65535 bytes, plus the 2 byte size field, or 65537 total.
 
 <h1>{% trans %}Common structure specification{% endtrans %}</h1>
 
-<h2 id="struct_RouterIdentity">RouterIdentity</h2>
+<h2 id="struct_KeysAndCert">KeysAndCert</h2>
 <h4>{% trans %}Description{% endtrans %}</h4>
 <p>{% trans -%}
-Defines the way to uniquely identify a particular router
+An encryption public key, a signing public key, and a certificate, used as either a RouterIdentity or a Destination.
 {% endtrans %}</p>
 <h4>{% trans %}Contents{% endtrans %}</h4>
 <p>{% trans -%}
@@ -585,10 +586,8 @@ total length: 387+ bytes
 
 <h4>{% trans %}Notes{% endtrans %}</h4>
 <ul><li>{% trans -%}
-The certificate for a RouterIdentity is currently unused and is always NULL.
-{%- endtrans %}</li><li>
-Do not assume that RouterIdentities are always 387 bytes!
-They are 387 bytes plus the certificate length specified at bytes 385-386, which may be non-zero in a future release.
+Do not assume that these are always 387 bytes!
+They are 387 bytes plus the certificate length specified at bytes 385-386, which may be non-zero.
 </li><li>
 As of release 0.9.12, if the certificate is a Key Certificate, the boundaries of the
 key fields may vary. See the Key Certificate section above for details.
@@ -597,7 +596,33 @@ The Crypto Public Key is aligned at the start and the Signing Public Key is alig
 The padding (if any) is in the middle.
 </li></ul>
 
-<h4><a href="http://docs.i2p-projekt.de/javadoc/net/i2p/data/RouterIdentity.html">Javadoc</a></h4>
+<h4><a href="http://docs.i2p-projekt.de/javadoc/net/i2p/data/KeysAndCert.html">Javadoc</a></h4>
+
+<h2 id="struct_RouterIdentity">RouterIdentity</h2>
+<h4>{% trans %}Description{% endtrans %}</h4>
+<p>{% trans -%}
+Defines the way to uniquely identify a particular router
+{% endtrans %}</p>
+<h4>{% trans %}Contents{% endtrans %}</h4>
+<p>{% trans -%}
+Identical to KeysAndCert.
+{% endtrans %}</p>
+
+<h4>{% trans %}Notes{% endtrans %}</h4>
+<ul><li>{% trans -%}
+The certificate for a RouterIdentity was always NULL until release 0.9.12.
+{%- endtrans %}</li><li>
+Do not assume that these are always 387 bytes!
+They are 387 bytes plus the certificate length specified at bytes 385-386, which may be non-zero.
+</li><li>
+As of release 0.9.12, if the certificate is a Key Certificate, the boundaries of the
+key fields may vary. See the Key Certificate section above for details.
+</li><li>
+The Crypto Public Key is aligned at the start and the Signing Public Key is aligned at the end.
+The padding (if any) is in the middle.
+</li></ul>
+
+<h4><a href="http://docs.i2p-projekt.de/javadoc/net/i2p/data/router/RouterIdentity.html">Javadoc</a></h4>
 
 <h2 id="struct_Destination">Destination</h2>
 <h4>{% trans %}Description{% endtrans %}</h4>
@@ -606,48 +631,8 @@ A Destination defines a particular endpoint to which messages can be directed fo
 {% endtrans %}</p>
 <h4>{% trans %}Contents{% endtrans %}</h4>
 <p>{% trans -%}
-<a href="#type_PublicKey">PublicKey</a> followed by a <a href="#type_SigningPublicKey">SigningPublicKey</a> and then a <a href="#type_Certificate">Certificate</a>
+Identical to KeysAndCert.
 {% endtrans %}</p>
-{% highlight lang='dataspec' %}
-+----+----+----+----+----+----+----+----+
-| public_key                            |
-+                                       +
-|                                       |
-~                                       ~
-~                                       ~
-|                                       |
-+----+----+----+----+----+----+----+----+
-| padding (optional)                    |
-~                                       ~
-~                                       ~
-|                                       |
-+----+----+----+----+----+----+----+----+
-| signing_public_key                    |
-+                                       +
-|                                       |
-~                                       ~
-~                                       ~
-|                                       |
-+----+----+----+----+----+----+----+----+
-| certificate
-+----+----+----+-//
-
-public_key :: `PublicKey` (partial or full)
-              length -> 256 bytes or as specified in key certificate
-
-padding :: random data
-              length -> 0 bytes or as specified in key certificate
-              padding length + signing_public_key length == 128 bytes
-
-signing_public_key :: `SigningPublicKey` (partial or full)
-              length -> 128 bytes or as specified in key certificate
-              padding length + signing_public_key length == 128 bytes
-
-certificate :: `Certificate`
-               length -> >= 3 bytes
-
-total length: 387+ bytes
-{% endhighlight %}
 
 <h4>Notes</h4>
 <ul><li>
@@ -656,7 +641,7 @@ which was disabled in version 0.6, it is currently unused
 except for the IV for LeaseSet encryption,
 which is deprecated. The public key in the LeaseSet is used instead.
 </li><li>
-Do not assume that Destinations are always 387 bytes!
+Do not assume that these are always 387 bytes!
 They are 387 bytes plus the certificate length specified at bytes 385-386, which may be non-zero.
 </li><li>
 As of release 0.9.12, if the certificate is a Key Certificate, the boundaries of the
@@ -908,7 +893,7 @@ The following options, while not required, are standard and expected to be prese
 </ul>
 
 
-<h4><a href="http://docs.i2p-projekt.de/javadoc/net/i2p/data/RouterAddress.html">Javadoc</a></h4>
+<h4><a href="http://docs.i2p-projekt.de/javadoc/net/i2p/data/router/RouterAddress.html">Javadoc</a></h4>
 
 <h2 id="struct_RouterInfo">RouterInfo</h2>
 <h4>{% trans %}Description{% endtrans %}</h4>
@@ -1007,7 +992,7 @@ for standard options that are expected to be present in all router infos.
 {%- endtrans %}</li>
 </ul>
 
-<h4><a href="http://docs.i2p-projekt.de/javadoc/net/i2p/data/RouterInfo.html">Javadoc</a></h4>
+<h4><a href="http://docs.i2p-projekt.de/javadoc/net/i2p/data/router/RouterInfo.html">Javadoc</a></h4>
 
 
 <h2 id="struct_DeliveryInstructions">Delivery Instructions</h2>
