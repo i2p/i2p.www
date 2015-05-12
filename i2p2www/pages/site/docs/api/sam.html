@@ -1,7 +1,7 @@
 {% extends "global/layout.html" %}
 {% block title %}SAM V1 Specification{% endblock %}
-{% block lastupdated %}September 2014{% endblock %}
-{% block accuratefor %}0.9.15{% endblock %}
+{% block lastupdated %}May 2015{% endblock %}
+{% block accuratefor %}0.9.20{% endblock %}
 {% block content %}
 <p>Specified below is version 1 of a simple client protocol for interacting with
 I2P.
@@ -53,6 +53,10 @@ each message must stay in their specific order, the ordering of
 the key=value pairs can change (e.g. "ONE TWO A=B C=D" or 
 "ONE TWO C=D A=B" are both perfectly valid constructions).  In
 addition, the protocol is case-sensitive.
+
+SAM messages are interpreted in UTF-8. Key=value pairs must be separated by
+a single space. Values may be enclosed in double quotes if they contain spaces,
+e.g. key="long value text". There is no escaping mechanism.
 
 Communication can take three distinct forms:
 * <a href="{{ site_url('docs/api/streaming') }}">Virtual streams</a>
@@ -164,11 +168,16 @@ forth to manage the streams, as listed below:
 
   STREAM CONNECT
          ID=$id
-         DESTINATION=$base64key
+         DESTINATION=$destination
 
 This establishes a new virtual connection from the local destination
 to the specified peer, marking it with the session-scoped unique ID.
 The unique ID is an ASCII base 10 integer from 1 through (2^31-1).
+
+The $destination is the base 64 of the <a href="{{ site_url('docs/spec/common-structures') }}#type_Destination">Destination</a>,
+which is 516 or more base 64 characters (387 or more bytes in binary),
+depending on signature type.
+
 The SAM bridge must reply to this with a stream status message:
 
   STREAM STATUS
@@ -193,13 +202,17 @@ On the receiving end, the SAM bridge simply notifies the client as
 follows:
   
   STREAM CONNECTED
-         DESTINATION=$base64key
+         DESTINATION=$destination
          ID=$id
 
 This tells the client that the given destination has created a virtual
 connection with them.  The following data stream will be marked with
 the given unique ID, that is an ASCII base 10 integer from -1 through
 -(2^31-1).
+
+The $destination is the base 64 of the <a href="{{ site_url('docs/spec/common-structures') }}#type_Destination">Destination</a>,
+which is 516 or more base 64 characters (387 or more bytes in binary),
+depending on signature type.
 
 When the client wants to send data on the virtual connection, they
 do so as follows:
@@ -272,14 +285,18 @@ After establishing a SAM session with STYLE=DATAGRAM, the client can
 send the SAM bridge:
 
   DATAGRAM SEND
-           DESTINATION=$base64key
+           DESTINATION=$destination
            SIZE=$numBytes\n[$numBytes of data]
 
 When a datagram arrives, the bridge delivers it to the client via:
 
   DATAGRAM RECEIVED
-           DESTINATION=$base64key
+           DESTINATION=$destination
            SIZE=$numBytes\n[$numBytes of data]
+
+The $destination is the base 64 of the <a href="{{ site_url('docs/spec/common-structures') }}#type_Destination">Destination</a>,
+which is 516 or more base 64 characters (387 or more bytes in binary),
+depending on signature type.
 
 The SAM bridge never exposes to the client the authentication headers
 or other fields, merely the data that the sender provided.  This 
@@ -301,8 +318,12 @@ After establishing a SAM session with STYLE=RAW, the client can
 send the SAM bridge:
 
   RAW SEND
-      DESTINATION=$base64key
+      DESTINATION=$destination
       SIZE=$numBytes\n[$numBytes of data]
+
+The $destination is the base 64 of the <a href="{{ site_url('docs/spec/common-structures') }}#type_Destination">Destination</a>,
+which is 516 or more base 64 characters (387 or more bytes in binary),
+depending on signature type.
 
 When a raw datagram arrives, the bridge delivers it to the client 
 via:
@@ -324,7 +345,7 @@ which is answered by
  NAMING REPLY 
         RESULT=$result
         NAME=$name 
-        [VALUE=$base64key]
+        [VALUE=$destination]
         [MESSAGE=$message]
 
 
@@ -334,10 +355,14 @@ The RESULT value may be one of:
     INVALID_KEY
     KEY_NOT_FOUND
 
-If NAME=ME, then the reply will contain the base64key used by the
+If NAME=ME, then the reply will contain the destination used by the
 current session (useful if you're using a TRANSIENT one).  If $result
 is not OK, MESSAGE may convey a descriptive message, such as "bad
 format", etc.
+
+The $destination is the base 64 of the <a href="{{ site_url('docs/spec/common-structures') }}#type_Destination">Destination</a>,
+which is 516 or more base 64 characters (387 or more bytes in binary),
+depending on signature type.
 
 Public and private base64 keys can be generated using the following
 message:
@@ -347,13 +372,24 @@ message:
 which is answered by
 
  DEST REPLY
-      PUB=$pubkey
+      PUB=$destination
       PRIV=$privkey
 
 As of I2P 0.9.14, an optional parameter SIGNATURE_TYPE is supported.
 The SIGNATURE_TYPE value may be any name (e.g. ECDSA_SHA256_P256, case insensitive) or number (e.g. 1)
 that is supported by <a href="{{ site_url('docs/spec/common-structures') }}#type_Certificate">Key Certificates</a>.
 The default is DSA_SHA1.
+
+The $destination is the base 64 of the <a href="{{ site_url('docs/spec/common-structures') }}#type_Destination">Destination</a>,
+which is 516 or more base 64 characters (387 or more bytes in binary),
+depending on signature type.
+
+The $privkey is the base 64 of the concatenation of the <a href="{{ site_url('docs/spec/common-structures') }}#type_Destination">Destination</a>
+followed by the <a href="{{ site_url('docs/spec/common-structures') }}#type_PrivateKey">Private Key</a>
+followed by the <a href="{{ site_url('docs/spec/common-structures') }}#type_SigningPrivateKey">Signing Private Key</a>,
+which is 884 or more base 64 characters (663 or more bytes in binary),
+depending on signature type.
+The binary format is specified in <a href="http://docs.i2p-projekt.de/javadoc/net/i2p/data/PrivateKeyFile.html">Private Key File</a>.
 
 ----------------------------------------------------------------------
 RESULT values
