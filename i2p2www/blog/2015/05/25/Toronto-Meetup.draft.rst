@@ -39,7 +39,7 @@ Schedule
 
 {% trans -%}
 August 15 - 5PM
----------
+---------------
 {%- endtrans %}
 
 - {% trans %}I2P Presentation{% endtrans %}
@@ -49,7 +49,7 @@ August 15 - 5PM
 
 {% trans -%}
 August 16 - 3PM
----------
+---------------
 {%- endtrans %}
 
 - {% trans %}I2P Technical presentation{% endtrans %}
