@@ -37,7 +37,6 @@ Location
 
 
 {% trans -%}
-========
 Schedule
 ========
 {%- endtrans %}
