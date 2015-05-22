@@ -11,8 +11,13 @@ Toronto Meetup
 
 {% trans -%}
 The I2P team is proud to announce that we are going to host a meetup in Toronto on August 15-16.
-A number of our members will be in attendance and are going to host talks, workshops and discussions about and relating to I2P.
+A number of members of our community will be attending and are going to host talks, workshops and discussions about and relating to I2P. This event is not just for I2P people though, it's meant for everyone.
 {%- endtrans %}
+
+{% trans -%}
+If you're curious about I2P, interested in privacy/cryptography/anonymity or just want to come by and talk to us, please do. This is an event for everyone. If you're not familiar with any of these topics, come by anyway and we'll show you how I2P works and what you can do with it.
+{%- endtrans %}
+
 
 {% trans -%}
 The meetup couldn't have been arranged without our friends at `Toronto Crypto <https://torontocrypto.org/>`_ which have been helping us organize the event, and our friends at `Hacklab <https://hacklab.to/>`_ which are providing us with a space. 
