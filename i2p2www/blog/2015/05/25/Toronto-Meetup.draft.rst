@@ -20,7 +20,7 @@ If you're curious about I2P, interested in privacy/cryptography/anonymity or jus
 
 
 {% trans -%}
-The meetup couldn't have been arranged without our friends at `Toronto Crypto <https://torontocrypto.org/>`_ which have been helping us organize the event, and our friends at `Hacklab <https://hacklab.to/>`_ which are providing us with a space. 
+The meetup couldn't have been arranged without our friends at `Toronto Crypto <https://torontocrypto.org/>`_ which have been helping us organize the event, and our friends at `Hacklab <https://hacklab.to/>`_ which are providing us with a very nice space.
 {%- endtrans %}
 
 {% trans -%}
