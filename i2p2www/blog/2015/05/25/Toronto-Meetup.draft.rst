@@ -32,10 +32,14 @@ The meetup couldn't have been arranged without our friends at `Toronto Crypto <h
 
 
 {% trans -%}
+Details
+=======
+{%- endtrans %}
+
+{% trans -%}
 Location
 --------
 {%- endtrans %}
-
 
 {% trans -%}
 `Hacklab <https://hacklab.to/>`_ at 1266 Queen Street West, Toronto.
