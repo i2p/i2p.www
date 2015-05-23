@@ -25,11 +25,10 @@ The meetup couldn't have been arranged without our friends at `Toronto Crypto <h
 {%- endtrans %}
 
 {% trans -%}
- If you have any questions, feel free to contact us on twitter.
-.. _`Echelon`: https://twitter.com/echeloni2p
-.. _`zzz`: https://twitter.com/i2p
+ If you have any questions, feel free to contact us on `@geti2p`_.
 {%- endtrans %}
 
+.. _`@geti2p`: https://twitter.com/geti2p
 
 
 {% trans -%}
