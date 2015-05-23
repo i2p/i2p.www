@@ -16,12 +16,21 @@ A number of members of our community will be attending and are going to host tal
 
 {% trans -%}
 If you're curious about I2P, interested in privacy/cryptography/anonymity or just want to come by and talk to us, please do. This is an event for everyone. If you're not familiar with any of these topics, come by anyway and we'll show you how I2P works and what you can do with it.
-{%- endtrans %}
 
+The event is entirely free, you don't need to sign up or register.
+{%- endtrans %}
 
 {% trans -%}
 The meetup couldn't have been arranged without our friends at `Toronto Crypto <https://torontocrypto.org/>`_ which have been helping us organize the event, and our friends at `Hacklab <https://hacklab.to/>`_ which are providing us with a very nice space.
 {%- endtrans %}
+
+{% trans -%}
+ If you have any questions, feel free to contact us on twitter.
+.. _`Echelon`: https://twitter.com/echeloni2p
+.. _`zzz`: https://twitter.com/i2p
+{%- endtrans %}
+
+
 
 {% trans -%}
 Location
@@ -44,6 +53,10 @@ August 15 - 5PM
 ---------------
 {%- endtrans %}
 
+{% trans -%}
+The focus will be on an introduction to topics surrounding I2P, privacy and anonymity online. People of all backgrounds and knowledge levels are welcome to attend.
+{%- endtrans %}
+
 - {% trans %}I2P Presentation{% endtrans %}
 - {% trans %}Crypto party introduction{% endtrans %}
 - {% trans %}Crypto party{% endtrans %}
@@ -52,6 +65,10 @@ August 15 - 5PM
 {% trans -%}
 August 16 - 3PM
 ---------------
+{%- endtrans %}
+
+{% trans -%}
+The focus will be on in-depth topics surrounding I2P, the roadmap and development. Anyone is welcome to attend, but the content will be somewhat technical.
 {%- endtrans %}
 
 - {% trans %}I2P Technical presentation{% endtrans %}
