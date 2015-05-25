@@ -45,14 +45,8 @@ Location
 `Hacklab <https://hacklab.to/>`_ at 1266 Queen Street West, Toronto.
 {%- endtrans %}
 
-
 {% trans -%}
-Schedule
-========
-{%- endtrans %}
-
-{% trans -%}
-August 15 - 5PM
+Day 1, August 15 - 5PM
 ---------------
 {%- endtrans %}
 
@@ -66,7 +60,7 @@ The focus will be on an introduction to topics surrounding I2P, privacy and anon
 
 
 {% trans -%}
-August 16 - 3PM
+Day 2, August 16 - 3PM
 ---------------
 {%- endtrans %}
 
