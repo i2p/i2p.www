@@ -47,7 +47,7 @@ Location
 
 {% trans -%}
 Day 1, August 15 - 5PM
----------------
+----------------------
 {%- endtrans %}
 
 {% trans -%}
@@ -61,7 +61,7 @@ The focus will be on an introduction to topics surrounding I2P, privacy and anon
 
 {% trans -%}
 Day 2, August 16 - 3PM
----------------
+----------------------
 {%- endtrans %}
 
 {% trans -%}
