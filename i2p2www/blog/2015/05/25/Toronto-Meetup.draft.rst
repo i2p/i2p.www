@@ -58,6 +58,21 @@ The focus will be on an introduction to topics surrounding I2P, privacy and anon
 - {% trans %}Crypto party introduction{% endtrans %}
 - {% trans %}Crypto party{% endtrans %}
 
+{% trans -%}
+The crypto part will contain a number of stations where privacy/anonymity software will be demoed. The goal is to provide people with the tools they need to communicate securely.
+Currently lined up stations:
+{%- endtrans %}
+
+- {% trans %}`Telegram`_ - The secure messaging app{% endtrans %}
+- {% trans %}`Vuze/I2P`_ - Downloading torrents anonymously{% endtrans %}
+- {% trans %}`Veracrypt`_ - Encrypt your data{% endtrans %}
+- {% trans %}`I2PBote`_ - Anonymous decentralized email{% endtrans %}
+
+.. _`Telegram`: https://telegram.org/
+.. _`Vuze/I2P`: http://wiki.vuze.com/w/I2PHelper_HowTo
+.. _`Veracrypt`: https://veracrypt.codeplex.com/
+.. _`I2PBote`: http://i2pbote.i2p.us/
+
 
 {% trans -%}
 Day 2, August 16 - 3PM
