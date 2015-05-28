@@ -59,6 +59,7 @@ url('/<lang:lang>/blog/post/<path:slug>', 'blog.views.blog_post')
 url('/<lang:lang>/feed/blog/rss', 'blog.views.blog_rss')
 url('/<lang:lang>/feed/blog/atom', 'blog.views.blog_atom')
 url('/<lang:lang>/feed/blog/category/<string:category>/atom', 'blog.views.blog_atom')
+url('/b/<string:shortlink>', 'blog.views.blog_post_shortlink')
 
 url('/<lang:lang>/meetings/', 'meetings.views.meetings_index', defaults={'page': 1})
 url('/<lang:lang>/meetings/page/<int:page>', 'meetings.views.meetings_index')
