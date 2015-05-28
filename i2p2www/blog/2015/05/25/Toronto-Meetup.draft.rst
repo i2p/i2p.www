@@ -59,7 +59,7 @@ The focus will be on an introduction to topics surrounding I2P, privacy and anon
 - {% trans %}Crypto party{% endtrans %}
 
 {% trans -%}
-The crypto part will contain a number of stations where privacy/anonymity software will be demoed. The goal is to provide people with the tools they need to communicate securely.
+The crypto party will contain a number of stations where privacy/anonymity software will be demoed. The goal is to provide people with the tools they need to communicate securely.
 Currently lined up stations:
 {%- endtrans %}
 
