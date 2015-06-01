@@ -25,7 +25,7 @@ The meetup couldn't have been arranged without our friends at `Toronto Crypto <h
 {%- endtrans %}
 
 {% trans -%}
- If you have any questions, feel free to contact us on `@geti2p`_.
+If you have any questions, feel free to contact us on `@geti2p`_.
 {%- endtrans %}
 
 .. _`@geti2p`: https://twitter.com/geti2p
@@ -60,15 +60,19 @@ The focus will be on an introduction to topics surrounding I2P, privacy and anon
 
 {% trans -%}
 The crypto party will contain a number of stations where privacy/anonymity software will be demoed. The goal is to provide people with the tools they need to communicate securely.
+
 Currently lined up stations:
 {%- endtrans %}
 
-- {% trans %}`Telegram`_ - The secure messaging app{% endtrans %}
 - {% trans %}`Vuze/I2P`_ - Downloading torrents anonymously{% endtrans %}
 - {% trans %}`Veracrypt`_ - Encrypt your data{% endtrans %}
 - {% trans %}`I2PBote`_ - Anonymous decentralized email{% endtrans %}
+- {% trans %}Your station idea here{% endtrans %}
 
-.. _`Telegram`: https://telegram.org/
+{% trans -%}
+We're currently looking for help staffing the stations. If you want to help out, you can! Bring a monitor/laptop and run a station. The station could be any of the ones listed above, or any other privacy/anonymity related one you would like to run. Please contact us at `@geti2p`_ if you're interested.
+{%- endtrans %}
+
 .. _`Vuze/I2P`: http://wiki.vuze.com/w/I2PHelper_HowTo
 .. _`Veracrypt`: https://veracrypt.codeplex.com/
 .. _`I2PBote`: http://i2pbote.i2p.us/
