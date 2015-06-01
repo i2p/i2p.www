@@ -1,8 +1,9 @@
-from flask import abort, render_template, request
+from flask import abort, g, redirect, render_template, request, url_for
 from werkzeug.contrib.atom import AtomFeed
 
 from i2p2www import BLOG_DIR, BLOG_POSTS_PER_FEED, BLOG_POSTS_PER_PAGE, cache
 from i2p2www.blog.helpers import get_blog_posts, get_blog_feed_items, get_date_from_slug, get_metadata_from_meta, render_blog_post
+from i2p2www.blog.shortlinks import BLOG_SHORTLINKS
 from i2p2www.helpers import Pagination, get_for_page
 
 
@@ -37,6 +38,19 @@ def blog_post(slug):
         return render_template('blog/post.html', parts=parts, title=parts['title'], body=parts['fragment'], slug=slug, meta=meta)
     else:
         abort(404)
+
+@cache.memoize(600)
+def blog_post_shortlink(shortlink):
+    lang = 'en'
+    if hasattr(g, 'lang') and g.lang:
+        lang = g.lang
+
+    try:
+        slug = BLOG_SHORTLINKS[shortlink]
+    except KeyError:
+        abort(404)
+
+    return redirect(url_for('blog_post', lang=lang, slug=slug))
 
 def blog_rss():
     # TODO: implement
