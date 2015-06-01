@@ -60,8 +60,6 @@ The focus will be on an introduction to topics surrounding I2P, privacy and anon
 
 {% trans -%}
 The crypto party will contain a number of stations where privacy/anonymity software will be demoed. The goal is to provide people with the tools they need to communicate securely.
-
-Currently lined up stations:
 {%- endtrans %}
 
 - {% trans %}`Vuze/I2P`_ - Downloading torrents anonymously{% endtrans %}
