@@ -8,5 +8,7 @@
 # '<shortlink>': '<slug>',
 
 BLOG_SHORTLINKS = {
-    'toronto': '2015/05/25/Toronto-Meetup',
+    'toronto': '2015/06/02/Toronto-Meetup',
+    '0.9.19': '2015/04/12/0.9.19-Release',
+    '0.9.20': '2015/06/02/0.9.20-Release',
 }

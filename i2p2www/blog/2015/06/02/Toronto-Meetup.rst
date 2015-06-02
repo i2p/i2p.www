@@ -5,7 +5,7 @@ Toronto Meetup
 {%- endtrans %}
 .. meta::
    :author: hottuna
-   :date: 2015-05-25
+   :date: 2015-06-02
    :category: meetup
    :excerpt: {% trans %}I2P Meetup in Toronto on August 15-16.{% endtrans %}
 
