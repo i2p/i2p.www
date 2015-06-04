@@ -46,7 +46,7 @@ Location
 {%- endtrans %}
 
 {% trans -%}
-Day 1, August 15 - 5PM
+Day 1, August 15 - 3PM
 ----------------------
 {%- endtrans %}
 
@@ -77,7 +77,7 @@ We're currently looking for help staffing the stations. If you want to help out,
 
 
 {% trans -%}
-Day 2, August 16 - 3PM
+Day 2, August 16 - 1PM
 ----------------------
 {%- endtrans %}
 
