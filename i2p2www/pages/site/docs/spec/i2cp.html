@@ -1,7 +1,7 @@
 {% extends "global/layout.html" %}
 {% block title %}I2CP Specification{% endblock %}
 {% block lastupdated %}June 2015{% endblock %}
-{% block accuratefor %}0.9.20{% endblock %}
+{% block accuratefor %}0.9.21{% endblock %}
 {% block content %}
 <h2>Overview</h2>
 <p>
@@ -22,9 +22,11 @@ More information is on the <a href="{{ site_url('docs/protocol/i2cp') }}">I2CP O
 <h2>Sessions</h2>
 <p>
 The protocol was designed to handle multiple "sessions", each with a 2-byte session ID,
-over a single TCP connection.
-This is not fully implemented.
-Do not attempt to use multiple sessions on a single I2CP connection.
+over a single TCP connection,
+however, Multiple sessions were not implemented until version 0.9.21.
+See the <a href="#multisession">multisession section below</a>.
+Do not attempt to use multiple sessions on a single I2CP connection
+with routers older than version 0.9.21.
 </p>
 
 <p>
@@ -136,6 +138,66 @@ Bandwidth Limits Message  <---------------------
 {% endhighlight %}
 
 
+
+
+<h2 id="notes">Multisession Notes</h2>
+<p>
+Multiple sessions on a single I2CP connection are supported as of router version 0.9.21.
+The first session that is created is the "primary session".
+Additional sessions are "subsessions".
+Subsessions are used to support multiple destinations sharing a common set of tunnels.
+The initial application is for the primary session to use ECDSA signing keys,
+while the subsession uses DSA signing keys for communication with old eepsites.
+</p><p>
+Subsessions share the same inbound and outbound tunnel pools as the primary session.
+Subsessions must use the same encryption keys as the primary session.
+This applies both to the LeaseSet encryption keys and the (unused) Destination encryption keys.
+Subsessions must use different signing keys in the destination, so the destination hash is
+different from the primary session.
+As subsessions use the same encryption keys and tunnels as the primary session,
+it is apparent to all that the Destinations are running on the same router,
+so the usual anti-correlation anonymity guarantees do not apply.
+</p><p>
+Subsessions are created by sending a CreateSession message and receiving a SessionStatus message
+in reply, as usual. Subsessions must be created after the primary session is created.
+The SessionStatus response will, on success, contain a unique Session ID, distinct from
+the ID for the primary session.
+While CreateSession messages should be processed in-order,
+there is no sure way to correlate a CreateSession message with the response, so a client
+should not have multiple CreateSession messages outstanding simultaneously.
+SessionConfig options for the subsession may not be honored where they
+are different from the primary session.
+In particular, since subsessions use the same tunnel pool as the primary session,
+tunnel options may be ignored.
+</p><p>
+The router will send separate RequestVariableLeaseSet messages for each Destination to the client,
+and the client must reply with a CreateLeaseSet message for each.
+The leases for the two Destinations will not necessarily be identical,
+even though they are selected from the same tunnel pool.
+</p><p>
+A subsession may be destroyed with the DestroySession message as usual.
+This will not destroy the primary session or stop the I2CP connection.
+Destroying the primary session will, however, destroy all subsessions and
+stop the I2CP connection.
+A Disconnect message destroys all sessions.
+</p><p>
+Note that most, but not all, I2CP messages contain a Session ID.
+For the ones that do not, clients may need additional logic to
+properly handle router responses.
+DestLookup and DestReply do not contain Session IDs; use the newer HostLookup and HostReply instead.
+GetBandwidthLimts and BandwidthLimits do not contain session IDs, however the response
+is not session-specific.
+</p><p>
+Support for multiple sessions is preliminary and subject to change.
+Support may not be complete in other parts of the API and user interface, particularly streaming and i2ptunnel.
+Current support is primarily for clients (i.e. Destinations that do not publish their leaseset
+or accept incoming connections), and is incomplete and untested for servers.
+Future releases may provide additional features and options.
+</p>
+
+
+
+
 <h2 id="notes">Version Notes</h2>
 <p>
 The initial protocol version byte (0x2a) sent by the client is not expected to change.
@@ -154,6 +216,10 @@ A basic summary of the I2CP protocol versions is as follows. For details, see be
   <tr>
     <th>Version</th>
     <th>Required I2CP Features</th>
+  </tr><tr>
+    <td align="center">0.9.21</td>
+    <td align="left">Multiple sessions on a single I2CP connection supported</td>
+    </td>
   </tr><tr>
     <td align="center">0.9.20</td>
     <td align="left">Additional SetDate messages may be sent to the client at any time</td>
