@@ -1,6 +1,6 @@
 {% extends "global/layout.html" %}
 {% block title %}SAM V3{% endblock %}
-{% block lastupdated %}May 2015{% endblock %}
+{% block lastupdated %}June 2015{% endblock %}
 {% block accuratefor %}0.9.20{% endblock %}
 {% block content %}
 <p>Specified below is a simple client protocol for interacting with I2P.
@@ -50,6 +50,38 @@ Version 3.1 was introduced in I2P release 0.9.14.
 <li>RAW SEND is now supported on the bridge socket.
 </ul>
 </p>
+
+<h3>Version 3.2 Proposal</h3>
+<p>
+Version 3.2 is not yet implemented, and the changes listed below are preliminary.
+<ul>
+<li>SESSION CREATE now supports options FROM_PORT=nnnn and TO_PORT=nnnn to set default I2P ports
+<li>SESSION CREATE STYLE=RAW now supports option PROTOCOL=nnn to set default I2P protocol (18 otherwise)
+<li>STREAM CONNECT, DATAGRAM SEND, and RAW SEND now supports new options FROM_PORT=nnnn and TO_PORT=nnnn
+    to override default I2P ports for that connection
+<li>STREAM ACCEPT now supports option TO_PORT=nnnn to accept connections on that I2P port only
+<li>RAW SEND now supports option PROTOCOL=nnn to override default I2P RAW protocol value (18)
+<li>DATAGRAM RECEIVED, RAW RECEIVED, and forwarded or received streams and datagrams, when SILENT=false,
+    now appends to the first line is FROM_PORT=nnnn TO_PORT=nnnn to indicate I2P ports
+<li>RAW RECEIVED now appendes to the first line PROTOCOL=nnn to indicate I2P protocol
+<li>DATAGRAM_SEND and RAW_SEND now supports options SEND_TAGS=nnn, TAG_THRESHOLD=nnn, EXPIRES=nnnnnnn, and SEND_LEASESET=true|false.
+    These will be passed to I2CP if supported. See <a href="..//i2cp#msg_SendMessageExpire">the I2CP specification</a> for details.
+    Support by the SAM server is optional, it will ignore these options if unsupported.
+<li>Client and server may now send: PING [arbitrary text] on the control port,
+    with the response:
+    PONG [arbitrary text from the ping], to be used for control socket keepalive.
+    Either side may close the session and socket if no response is received in a reasonable time, implementation dependent.
+<li>For authorization, client adds USER=xxx PASSWORD=yyy to the HELLO parameters.
+    On failure the server will reply with an I2P_ERROR and a message.
+<li>Multiple concurrent pending STREAM ACCEPTs are allowed on the same session ID (even with the same port).
+    It isn't clear (either in the spec or the code) if these are allowed now.
+<li>The server's control socket may optionally offer SSL/TLS support, as configured on the server and client.
+    Implementations may offer other transport layers as well; this is outside the scope of the protocol definition.
+<li>For STREAM FORWARD, client may add SSL=true to use an SSL socket
+</ul>
+</p>
+
+
 
 <h2>Version 3 Protocol</h2>
 <h3>Simple Anonymous Messaging (SAM version 3.0) Specification Overview</h3>
