@@ -1,4 +1,4 @@
-from flask import abort, redirect, render_template
+from flask import abort, redirect, render_template, request
 try:
     import json
 except ImportError:
@@ -12,6 +12,13 @@ DEFAULT_MIRROR = {
     'domain':   'download.i2p2.de',
     'org':      'sigterm.no',
     'country':  'no',
+}
+
+DEFAULT_I2P_MIRROR = {
+    'protocol': 'http',
+    'domain':   'whnxvjwjhzsske5yevyokhskllvtisv5ueokw6yvh6t7zqrpra2q.b32.i2p',
+    'org':      'sigterm.no',
+    'country':  'i2p',
 }
 
 
@@ -44,7 +51,11 @@ def read_mirrors():
 # List of downloads
 def downloads_list():
     # TODO: read mirror list or list of available files
-    return render_template('downloads/list.html', def_mirror=DEFAULT_MIRROR)
+    if request.headers.get('X-I2P-Desthash') and not request.headers.get('X-Forwarded-Server'):
+        def_mirror = DEFAULT_I2P_MIRROR
+    else:
+        def_mirror = DEFAULT_MIRROR
+    return render_template('downloads/list.html', def_mirror=def_mirror)
 
 # Debian-specific page
 def downloads_debian():
