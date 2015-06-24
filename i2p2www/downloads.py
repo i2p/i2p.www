@@ -95,7 +95,7 @@ def downloads_redirect(version, net, protocol, domain, file):
         }
 
     if not protocol:
-        protocol = mirrors.leys()[randint(0, len(mirrors) - 1)]
+        protocol = mirrors.keys()[randint(0, len(mirrors) - 1)]
     if not protocol in mirrors:
         abort(404)
     mirrors=mirrors[protocol]
