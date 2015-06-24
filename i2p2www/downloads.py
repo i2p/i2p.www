@@ -8,6 +8,7 @@ from random import randint
 from i2p2www import CURRENT_I2P_VERSION, MIRRORS_FILE
 
 DEFAULT_MIRROR = {
+    'net': 'clearnet',
     'protocol': 'https',
     'domain':   'download.i2p2.de',
     'org':      'sigterm.no',
@@ -15,6 +16,7 @@ DEFAULT_MIRROR = {
 }
 
 DEFAULT_I2P_MIRROR = {
+    'net': 'i2p',
     'protocol': 'http',
     'domain':   'whnxvjwjhzsske5yevyokhskllvtisv5ueokw6yvh6t7zqrpra2q.b32.i2p',
     'org':      'sigterm.no',
@@ -39,13 +41,16 @@ def read_mirrors():
             continue
         if 'protocol' not in obj or 'domain' not in obj or 'path' not in obj:
             continue
+        net=obj['net']
         protocol=obj['protocol']
         domain=obj['domain']
         path=obj['path']
         obj['url']='%s://%s%s' % (protocol, domain, path)
-        if protocol not in ret:
-            ret[protocol]={}
-        ret[protocol][domain]=obj
+        if net not in ret:
+            ret[net]={}
+        if protocol not in ret[net]:
+            ret[net][protocol]={}
+        ret[net][protocol][domain]=obj
     return ret
 
 # List of downloads
@@ -65,29 +70,40 @@ def downloads_debian():
 def downloads_select(version, file):
     mirrors=read_mirrors()
     obj=[]
-    for protocol in mirrors.keys():
+    for net in mirrors.keys():
         a={}
-        a['name']=protocol
-        a['mirrors']=mirrors[protocol]
+        a['key']=net
+        a['name']=net
+        a['protocols']=[]
+        for protocol in mirrors[net].keys():
+            b={}
+            b['key']=protocol
+            b['name']=protocol
+            b['domains']=mirrors[net][protocol]
+            a['protocols'].append(b)
         obj.append(a)
     return render_template('downloads/select.html', mirrors=obj, version=version, file=file)
 
-def downloads_redirect(version, protocol, domain, file):
+def downloads_redirect(version, net, protocol, domain, file):
     mirrors=read_mirrors()
-    if not protocol in mirrors:
+    if not net in mirrors:
         abort(404)
-    mirrors=mirrors[protocol]
+    mirrors=mirrors[net]
     data = {
         'version': version,
         'file': file,
         }
-    if domain:
-        if not domain in mirrors:
-            abort(404)
-        return render_template('downloads/redirect.html',
-                               version=version, protocol=protocol, domain=domain, file=file,
-                               url=mirrors[domain]['url'] % data)
-    randomain = mirrors.keys()[randint(0, len(mirrors) - 1)]
+
+    if not protocol:
+        protocol = mirrors.leys()[randint(0, len(mirrors) - 1)]
+    if not protocol in mirrors:
+        abort(404)
+    mirrors=mirrors[protocol]
+
+    if not domain:
+        domain = mirrors.keys()[randint(0, len(mirrors) - 1)]
+    if not domain in mirrors:
+        abort(404)
     return render_template('downloads/redirect.html',
                            version=version, protocol=protocol, domain=domain, file=file,
-                           url=mirrors[randomain]['url'] % data)
+                           url=mirrors[domain]['url'] % data)
