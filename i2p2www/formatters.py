@@ -37,6 +37,7 @@ _escape_html_table = {
 kinds = {
     't': 'type',
     's': 'struct',
+    'm': 'msg',
     }
 
 def escape_html(text, table=_escape_html_table):
