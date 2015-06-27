@@ -716,6 +716,10 @@ class I2PHtmlFormatter(Formatter):
 
             if tagsfile and ttype in Token.Name.Class:
                 filename, kind = self._lookup_ctag(value)
+                # Handle message types
+                if not kind and value.endswith('Message'):
+                    value = value[:-7]
+                    filename, kind = self._lookup_ctag(value)
                 if kind:
                     base, filename = os.path.split(filename)
                     if base:
