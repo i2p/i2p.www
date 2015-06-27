@@ -12,7 +12,7 @@ class DataSpecLexer(RegexLexer):
             (r'(\s+)([\+|])', bygroups(Text, Text), 'content'),
             (r'(\s*)(~)', bygroups(Text, Generic.Strong), 'content'),
             (r'(\s*)([\w=;]+)(\s[\w=;]+)*(\s)(::)(\s)', bygroups(Text, Name.Tag, Name.Tag, Text, Operator, Text)),
-            (r'(\s*)`((?:[A-Z][a-z]+)(?:[A-Z][a-z]*)*)`', bygroups(Text, Name.Class)),
+            (r'(\s*)`((?:[A-Z][a-z0-9]+)(?:[A-Z][a-z0-9]*)*)`', bygroups(Text, Name.Class)),
             (r'(\s*)([A-Z]{2,})', bygroups(Text, Name.Constant)),
             (r'(\s*)([\[\]])', bygroups(Text, Punctuation)),
             (r'(\s*)(\$\w+)', bygroups(Text, Name.Tag)),
