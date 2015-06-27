@@ -31,7 +31,7 @@ observing message size.
 After the tunnel messages are created, they are encrypted as described in
 <a href="{{ site_url('docs/tunnels/implementation') }}">the tunnel documentation</a>.
 
-<h2 id="msg_Data">Tunnel Message (Encrypted)</h2>
+<h2 id="msg_Tunnel">Tunnel Message (Encrypted)</h2>
 These are the contents of a tunnel data message after encryption.
 {% highlight lang='dataspec' %}
 +----+----+----+----+----+----+----+----+
@@ -52,7 +52,7 @@ These are the contents of a tunnel data message after encryption.
 
 <h4>Definition</h4>
 {% highlight lang='dataspec' %}
-Tunnel ID ::
+Tunnel ID :: `TunnelId`
        4 bytes
        the ID of the next hop
 
@@ -69,7 +69,7 @@ total size: 1028 Bytes
 {% endhighlight %}
 
 
-<h2 id="msg_Data">Tunnel Message (Decrypted)</h2>
+<h2>Tunnel Message (Decrypted)</h2>
 These are the contents of a tunnel data message when decrypted.
 {% highlight lang='dataspec' %}
 +----+----+----+----+----+----+----+----+
@@ -112,8 +112,8 @@ These are the contents of a tunnel data message when decrypted.
 {% endhighlight %}
 
 <h4>Definition</h4>
-<pre>
-Tunnel ID ::
+{% highlight lang='dataspec' %}
+Tunnel ID :: `TunnelId`
        4 bytes
        the ID of the next hop
 
@@ -133,10 +133,9 @@ Zero ::
        1 byte
        the value 0x00
 
-Delivery Instructions ::
+Delivery Instructions :: `TunnelMessageDeliveryInstructions`
        length varies but is typically 7, 39, 43, or 47 bytes
        Indicates the fragment and the routing for the fragment
-       See <a href="#delivery">below</a> for specification
 
 Message Fragment ::
        1 to 996 bytes, actual maximum depends on delivery instruction size
@@ -144,7 +143,7 @@ Message Fragment ::
 
 total size: 1028 Bytes
 
-</pre>
+{% endhighlight %}
 
 <h4>Notes</h4>
 <ul><li>
@@ -157,7 +156,7 @@ and take the Hash of that.
 </li></ul>
 
 
-<h2 id="delivery">Tunnel Message Delivery Instructions</h2>
+<h2 id="struct_TunnelMessageDeliveryInstructions">Tunnel Message Delivery Instructions</h2>
 
 <p>The instructions are encoded with a single control byte, followed by any
 necessary additional information.  The first bit (MSB) in that control byte determines
@@ -171,7 +170,7 @@ Note that "Delivery Instructions" are also used inside
 <a href="{{ site_url('docs/spec/i2np') }}#struct_GarlicClove">Garlic Cloves</a>,
 where the format is significantly different.
 See the
-<a href="{{ site_url('docs/spec/i2np') }}#struct_DeliveryInstructions">I2NP documentation</a>
+<a href="{{ site_url('docs/spec/i2np') }}#struct_GarlicCloveDeliveryInstructions">I2NP documentation</a>
 for details.
 Do NOT use the following specification for Garlic Clove Delivery Instructions!
 
@@ -196,8 +195,8 @@ or a complete (unfragmented) I2NP message, and the instructions are:</p>
 {% endhighlight %}
 
 <h4>Definition</h4>
-<pre>
-flag:
+{% highlight lang='dataspec' %}
+flag ::
        1 byte
        Bit order: 76543210
        bit 7: 0 to specify an initial fragment or an unfragmented message
@@ -212,39 +211,39 @@ flag:
                            If 1, extended options are included
        bits 1-0: reserved, set to 0 for compatibility with future uses
 
-Tunnel ID:
+Tunnel ID :: `TunnelId`
        4 bytes
        Optional, present if delivery type is TUNNEL
        The destination tunnel ID
 
-To Hash:
+To Hash ::
        32 bytes
        Optional, present if delivery type is DESTINATION, ROUTER, or TUNNEL
           If DESTINATION, the SHA256 Hash of the destination
           If ROUTER, the SHA256 Hash of the router
           If TUNNEL, the SHA256 Hash of the gateway router
 
-Delay:
+Delay ::
        1 byte
        Optional, present if delay included flag is set
        In tunnel messages: Unimplemented, never present; original specification:
           bit 7: type (0 = strict, 1 = randomized)
           bits 6-0: delay exponent (2^value minutes)
 
-Message ID:
+Message ID ::
        4 bytes
        Optional, present if this message is the first of 2 or more fragments
           (i.e. if the fragmented bit is 1)
        An ID that uniquely identifies all fragments as belonging to a single message
-       (the current implementation uses the <a href="{{ site_url('docs/spec/i2np') }}#struct_header">I2NP Message ID</a>)
+       (the current implementation uses `I2NPMessageHeader.msg_id`)
 
-Extended Options:
+Extended Options ::
        2 or more bytes
        Optional, present if extend options flag is set
        Unimplemented, never present; original specification:
        One byte length and then that many bytes
 
-size:
+size ::
        2 bytes
        The length of the fragment that follows
        Valid values: 1 to approx. 960 in a tunnel message
@@ -254,7 +253,7 @@ Total length: Typical length is:
        35 bytes for ROUTER / DESTINATION delivery or 39 bytes for TUNNEL delivery (unfragmented tunnel message);
        39 bytes for ROUTER delivery or 43 bytes for TUNNEL delivery (first fragment)
 
-</pre>
+{% endhighlight %}
 
 <h3>Follow-on Fragment Delivery Instructions</h3>
 <p>If the MSB of the first byte is 1, this is a follow-on fragment, and the instructions are:</p>
@@ -265,7 +264,7 @@ Total length: Typical length is:
 {% endhighlight %}
 
 <h4>Definition</h4>
-<pre>
+{% highlight lang='dataspec' %}
 frag ::
        1 byte
        Bit order: 76543210
@@ -286,7 +285,7 @@ size ::
        valid values: 1 to 996
 
 total length: 7 bytes
-</pre>
+{% endhighlight %}
 
 <h3><a href="http://docs.i2p-projekt.de/javadoc/net/i2p/data/i2np/DeliveryInstructions.html">Delivery Instructions Javadoc</a></h3>
 
