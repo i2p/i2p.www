@@ -18,6 +18,7 @@ class DataSpecLexer(RegexLexer):
             (r'(\s*)([\[\]])', bygroups(Text, Punctuation)),
             (r'(\s*)(\$\w+)', bygroups(Text, Name.Tag)),
             (r'(\s*)(0x[0-9a-f]+)', bygroups(Text, Number.Hex)),
+            (r'(\s*)([0-9]+\.[0-9]+\.\w+)', bygroups(Text, Comment.Special)), # Versions
             (r'(\s*)([0-9]+)(\+)?', bygroups(Text, Number, Punctuation)),
             (r'(-)([0-9]+)', bygroups(Punctuation, Number)),
             (r'(\s*)(->|<=|>=|\*|\^)', bygroups(Text, Operator)),
