@@ -19,7 +19,7 @@ There is a larger and more long-term goal of this event, and it is to build a co
 {% trans -%}
 The idea for this event was first spawned by our wonderful friends at `Toronto Crypto <https://torontocrypto.org/>`_.
 The venue and everything relating to it is provided by `Hacklab <https://hacklab.to/>`_.
-Without either of them this event would not have been possible, so Thank You.
+Without either of them this event would not have been possible, so thank you both.
 {%- endtrans}
 
 
