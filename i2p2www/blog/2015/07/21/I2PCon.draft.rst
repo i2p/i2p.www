@@ -29,7 +29,7 @@ can grow.
 The idea for this event was first spawned by our wonderful friends at
 `Toronto Crypto`_. The venue and everything relating to it is provided by
 `Hacklab`_. Without either of them this event would not have been possible, so
-Thank You.
+thank you both.
 {%- endtrans %}
 
 .. _`Toronto Crypto`: https://torontocrypto.org/
