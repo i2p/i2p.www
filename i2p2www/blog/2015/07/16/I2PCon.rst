@@ -5,7 +5,7 @@ I2PCon
 {%- endtrans %}
 .. meta::
    :author: hottuna
-   :date: 2015-07-20
+   :date: 2015-07-16
    :category: meetup i2pcon
    :excerpt: {% trans %}I2PCon will be in Toronto on August 15-16.{% endtrans %}
 
