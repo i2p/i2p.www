@@ -1,7 +1,7 @@
 {% extends "global/layout.html" %}
 {% block title %}{% trans %}Streaming Library{% endtrans %}{% endblock %}
-{% block lastupdated %}{% trans %}December 2013{% endtrans %}{% endblock %}
-{% block accuratefor %}0.9.9{% endblock %}
+{% block lastupdated %}{% trans %}July 2015{% endtrans %}{% endblock %}
+{% block accuratefor %}0.9.21{% endblock %}
 {% block content %}
 <h2>{% trans %}Overview{% endtrans %}</h2>
 
@@ -193,6 +193,18 @@ Whether to disable warnings in the logs when an incoming connection is rejected 
 As of release {{ release }}.
 {%- endtrans %}</td></tr>
 
+<tr><td>i2p.streaming.dsalist</td><td>null</td><td>{% trans -%}
+Comma- or space-separated list of Base64 peer Hashes or host names to be
+contacted using an alternate DSA destination.
+Only applies if multisession is enabled and the primary session is non-DSA
+(generally for shared clients only).
+This option must be set in the context properties, NOT in the createManager() options argument.
+Note that setting this in the router context will not affect clients outside the
+router in a separate JVM and context.
+{%- endtrans %} {% trans release='0.9.21' -%}
+As of release {{ release }}.
+{%- endtrans %}</td></tr>
+
 <tr><td>i2p.streaming.enforceProtocol</td><td>false</td><td>{% trans -%}
 Whether to listen only for the streaming protocol.
 Setting to true will prohibit communication with Destinations earlier than release 0.7.1
@@ -206,8 +218,11 @@ As of release {{ release }}.
 What to do on an inactivity timeout - do nothing, disconnect, or send a duplicate ack.
 {%- endtrans %}</td></tr>
 
-<tr><td>i2p.streaming.inactivityTimeout</td><td>90*1000</td></tr>
-<tr><td>i2p.streaming.initialAckDelay</td><td>2000</td></tr>
+<tr><td>i2p.streaming.inactivityTimeout</td><td>90*1000</td>
+<td>{% trans %}Idle time before sending a keepalive{% endtrans %}</td></tr>
+
+<tr><td>i2p.streaming.initialAckDelay</td><td>750</td>
+<td>{% trans %}Delay before sending an ack{% endtrans %}</td></tr>
 
 <tr><td>i2p.streaming.initialResendDelay</td><td>1000</td><td>{% trans -%}
 The initial value of the resend delay field in the packet header, times 1000.
@@ -419,7 +434,7 @@ There is no ping function at the I2CP layer (equivalent to ICMP echo) or in data
 This function is provided in streaming.
 Pings and pongs may not be combined with a standard streaming packet;
 if the ECHO option is set, then
-most other flags, options, ackThrough, sequenceNum, NACKs, payload, etc. are ignored.
+most other flags, options, ackThrough, sequenceNum, NACKs, etc. are ignored.
 {%- endtrans %}</p>
 
 <p>{% trans -%}
@@ -432,6 +447,11 @@ The sendStreamId may or may not correspond to an existing connection.
 A pong packet must have the ECHO flag set.
 The sendStreamId must be zero, and the receiveStreamId is the sendStreamId from the ping.
 The pong packet does not include any payload that was contained in the ping.
+{%- endtrans %}</p>
+
+<p>{% trans -%}
+As of release 0.9.18, pings and pongs may contain a payload.
+The payload in the ping, up to a maximum of 32 bytes, is returned in the pong.
 {%- endtrans %}</p>
 
 <p>{% trans -%}
@@ -466,18 +486,18 @@ The following Control Block Sharing parameters can be set per router:
 The following parameters are hardcoded, but may be of interest for analysis:
 {%- endtrans %}</p>
 <ul>
-<li>MIN_RESEND_DELAY = 2*1000 (minimum RTO)
-<li>MAX_RESEND_DELAY = 45*1000 (maximum RTO)
+<li>MIN_RESEND_DELAY = 100 ms (minimum RTO)
+<li>MAX_RESEND_DELAY = 45 sec (maximum RTO)
 <li>MIN_WINDOW_SIZE = 1
 <li>TREND_COUNT = 3
 <li>MIN_MESSAGE_SIZE = 512 (minimum MTU)
 <li>INBOUND_BUFFER_SIZE = maxMessageSize * (maxWindowSize + 2)
-<li>INITIAL_TIMEOUT (valid only before RTT is sampled) = 9000
+<li>INITIAL_TIMEOUT (valid only before RTT is sampled) = 9 sec
 <li>"alpha" ( RTT dampening factor as per RFC 6298 ) = 0.125</li>
 <li>"beta" ( RTTDEV dampening factor as per RFC 6298 ) = 0.25</li>
 <li>"K" ( RTDEV multiplier as per RFC 6298 ) = 4</li>
-<li>PASSIVE_FLUSH_DELAY = 250
-<li>Maximum RTT estimate: 60*1000
+<li>PASSIVE_FLUSH_DELAY = 175 ms
+<li>Maximum RTT estimate: 60 sec
 </ul>
 </p>
 

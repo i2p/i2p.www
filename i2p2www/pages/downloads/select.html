@@ -3,13 +3,18 @@
 {% block content %}
 <h1>{{ _('Mirror selection') }}</h1>
 <h2>{{ _('File:') }} /{{ file }}</h2>
-{% for protocol in mirrors -%}
-<div class="protocol">
-  <h3>{{ protocol.name | upper }}</h3>
+{% for net in mirrors -%}
+<div class="net">
+  <h3>{{ net.name | upper }}</h3>
   <ul>
-    <li><a href="{{ url_for('downloads_redirect', version=version, protocol=protocol.name, file=file) }}">{{ _('Any mirror') }}</a></li>
-    {% for domain, mirror in protocol.mirrors.items() -%}
-    <li><img src="{{ url_for('static', filename='images/flags/'+mirror.country+'.png') }}" />&nbsp;{% if mirror.org_url %}<a href="{{ mirror.org_url }}">{% endif %}{{ mirror.org }}{% if mirror.org_url %}</a>{% endif %} <a href="{{ url_for('downloads_redirect', version=version, protocol=protocol.name, domain=domain, file=file) }}">[{{ _('Download') }}]</a> <a href="{{ url_for('downloads_redirect', version=version, protocol=protocol.name, domain=domain, file=file+'.sig') }}">[sig]</a></li>
+    <li><a href="{{ url_for('downloads_redirect', version=version, net=net.key, file=file) }}">{{ _('Any mirror') }}</a></li>
+    {% for protocol in net.protocols -%}
+    <li><a href="{{ url_for('downloads_redirect', version=version, net=net.key, protocol=protocol.key, file=file) }}">{{ protocol.key | upper }}</a>
+    <ul>
+      {% for domain, mirror in protocol.domains.items() -%}
+      <li>{% if mirror.country %}<img src="{{ url_for('static', filename='images/flags/'+mirror.country+'.png') }}" />&nbsp;{% endif %}{% if mirror.org_url %}<a href="{{ mirror.org_url }}">{% endif %}{{ mirror.org }}{% if mirror.org_url %}</a>{% endif %} <a href="{{ url_for('downloads_redirect', version=version, net=net.key, protocol=protocol.key, domain=domain, file=file) }}">[{{ _('Download') }}]</a> <a href="{{ url_for('downloads_redirect', version=version, net=net.key, protocol=protocol.key, domain=domain, file=file+'.sig') }}">[sig]</a></li>
+      {%- endfor %}
+    </ul></li>
     {%- endfor %}
   </ul>
 </div>

@@ -90,7 +90,7 @@ see the NTCP and SSU transport documentation for details.
 The following structures are elements of multiple I2NP messages.
 They are not complete messages.
 
-<h3 id="struct_header">I2NP message header</h3>
+<h3 id="struct_I2NPMessageHeader">I2NP message header</h3>
 <h4>Description</h4>
 <p>
   Common header to all I2NP messages, which contains important information like a checksum, expiration date, etc.
@@ -122,7 +122,7 @@ Short (SSU, 5 bytes):
 {% endhighlight %}
 
 <h4>Definition</h4>
-<pre>
+{% highlight lang='dataspec' %}
 type :: `Integer`
         length -> 1 byte
         
@@ -155,11 +155,11 @@ chks :: `Integer`
         purpose -> checksum of the payload
                    SHA256 hash truncated to the first byte
 
-data :: Data
+data ::
         length -> $size bytes
         
         purpose -> actual message contents
-</pre>
+{% endhighlight %}
 
 <h4>Notes</h4>
 <ul><li>
@@ -274,11 +274,12 @@ ElGamal and AES encrypted:
 {% endhighlight %}
 
 <h4>Definition</h4>
-<pre>
+{% highlight lang='dataspec' %}
 unencrypted:
 
 receive_tunnel :: `TunnelId`
                   length -> 4 bytes
+
 our_ident :: `Hash`
              length -> 32 bytes
 
@@ -335,7 +336,7 @@ encrypted_data :: ElGamal and AES encrypted data
 
 total length: 528
 
-</pre>
+{% endhighlight %}
 
 <h4>Notes</h4>
 <ul><li>
@@ -369,18 +370,18 @@ unencrypted:
 +----+----+----+----+----+----+----+----+
 {% endhighlight %}
 <h4>Definition</h4>
-<pre>
+{% highlight lang='dataspec' %}
 unencrypted:
 bytes 0-31   : SHA-256 Hash of bytes 32-527
 bytes 32-526 : random data
 byte  527    : reply
 
 encrypted:
-bytes 0-527: AES-encrypted record(note: same size as BuildRequestRecord)
+bytes 0-527: AES-encrypted record (note: same size as `BuildRequestRecord`)
 
 total length: 528
 
-</pre>
+{% endhighlight %}
 
 <h4>Notes</h4>
 <ul><li>
@@ -411,7 +412,7 @@ unencrypted:
 +----+----+----+----+----+----+----+
 {% endhighlight %}
 <h4>Definition</h4>
-<pre>
+{% highlight lang='dataspec' %}
 unencrypted:
 Delivery Instructions :: as defined below
        Length varies but is typically 1, 33, or 37 bytes
@@ -424,7 +425,7 @@ Expiration :: `Date` (8 bytes)
 
 Certificate :: Always NULL in the current implementation (3 bytes total, all zeroes)
 
-</pre>
+{% endhighlight %}
 
 <h4>Notes</h4>
 <ul>
@@ -450,7 +451,7 @@ Certificate :: Always NULL in the current implementation (3 bytes total, all zer
 </ul>
 
 
-<h3 id="struct_DeliveryInstructions">Garlic Clove Delivery Instructions</h3>
+<h3 id="struct_GarlicCloveDeliveryInstructions">Garlic Clove Delivery Instructions</h3>
 
 <p>
 This specification is for Delivery Instructions inside Garlic Cloves only.
@@ -458,7 +459,7 @@ Note that "Delivery Instructions" are also used inside
 Tunnel Messages,
 where the format is significantly different.
 See the
-<a href="{{ site_url('docs/spec/tunnel-message') }}#delivery">Tunnel Message documentation</a>
+<a href="{{ site_url('docs/spec/tunnel-message') }}#struct_TunnelMessageDeliveryInstructions">Tunnel Message documentation</a>
 for details.
 Do NOT use the following specification for Tunnel Message Delivery Instructions!
 
@@ -488,8 +489,8 @@ Do NOT use the following specification for Tunnel Message Delivery Instructions!
 {% endhighlight %}
 
 <h4>Definition</h4>
-<pre>
-flag:
+{% highlight lang='dataspec' %}
+flag ::
        1 byte
        Bit order: 76543210
        bit 7: encrypted? Unimplemented, always 0
@@ -500,33 +501,33 @@ flag:
                 If 1, four delay bytes are included
        bits 3-0: reserved, set to 0 for compatibility with future uses
 
-Session Key:
+Session Key ::
        32 bytes
-       Optional, present encrypt flag bit is set. Unimplemented, never set, never present.
+       Optional, present if encrypt flag bit is set. Unimplemented, never set, never present.
 
-To Hash:
+To Hash ::
        32 bytes
        Optional, present if delivery type is DESTINATION, ROUTER, or TUNNEL
           If DESTINATION, the SHA256 Hash of the destination
           If ROUTER, the SHA256 Hash of the router
           If TUNNEL, the SHA256 Hash of the gateway router
 
-Tunnel ID:
+Tunnel ID :: `TunnelId`
        4 bytes
        Optional, present if delivery type is TUNNEL
        The destination tunnel ID
 
-Delay:
+Delay :: `Integer`
        4 bytes
        Optional, present if delay included flag is set
-       Not fully implemented. A 4 byte integer specifying the delay in seconds.
+       Not fully implemented. Specifies the delay in seconds.
 
 Total length: Typical length is:
        1 byte for LOCAL delivery;
        33 bytes for ROUTER / DESTINATION delivery;
        37 bytes for TUNNEL delivery
 
-</pre>
+{% endhighlight %}
 
 
 
@@ -606,9 +607,9 @@ with reply token:
 +                                       +
 |                                       |
 +----+----+----+----+----+----+----+----+
-|type| reply token       | reply tunnel-
+|type| reply token       |reply_tunnelId
 +----+----+----+----+----+----+----+----+
- Id  | SHA256 of the gateway RouterInfo |
+     | SHA256 of the gateway RouterInfo |
 +----+                                  +
 |                                       |
 +                                       +
@@ -633,12 +634,12 @@ with reply token == 0:
 +----+----+----+----+----+-//
 {% endhighlight %}
 <h4>Definition</h4>
-<pre>
-key:
+{% highlight lang='dataspec' %}
+key ::
     32 bytes
     SHA256 hash
 
-type:
+type ::
      1 byte
      type identifier
      bit 0:
@@ -648,32 +649,32 @@ type:
             Through release 0.9.17, must be 0
             As of release 0.9.18, ignored, reserved for future options, set to 0 for compatibility
 
-reply token:
+reply token ::
             4 bytes
-            If greater than zero, a <a href="#msg_DeliveryStatus">Delivery Status Message</a>
+            If greater than zero, a `DeliveryStatusMessage`
             is requested with the Message ID set to the value of the Reply Token.
             A floodfill router is also expected to flood the data to the closest floodfill peers
             if the token is greater than zero.
 
-reply tunnelId:
-               4 byte `TunnelID`
+reply_tunnelId ::
+               4 byte `TunnelId`
                Only included if reply token &gt; 0
-               This is the <a href="{{ site_url('docs/spec/common-structures') }}#type_TunnelId">tunnel ID</a> of the inbound gateway of the tunnel the response should be sent to
-               If the tunnelId is zero, the reply is sent directy to the reply gateway router.
+               This is the `TunnelId` of the inbound gateway of the tunnel the response should be sent to
+               If $reply_tunnelId is zero, the reply is sent directy to the reply gateway router.
 
-reply gateway:
+reply gateway ::
               32 bytes
-              Hash of the routerInfo entry to reach the gateway
+              Hash of the `RouterInfo` entry to reach the gateway
               Only included if reply token &gt; 0
-              If the tunnelId is nonzero, this is the router hash of the inbound gateway
+              If $reply_tunnelId is nonzero, this is the router hash of the inbound gateway
               of the tunnel the response should be sent to.
-              If the tunnelId is zero, this is the router hash the response should be sent to.
+              If $reply_tunnelId is zero, this is the router hash the response should be sent to.
 
-data:
-     If type == 0, data is a 2-byte integer specifying the number of bytes that follow,
+data ::
+     If type == 0, data is a 2-byte `Integer` specifying the number of bytes that follow,
                    followed by a gzip-compressed `RouterInfo`.
      If type == 1, data is an uncompressed `LeaseSet`.
-</pre>
+{% endhighlight %}
 
 <h4>Notes</h4>
 <ul><li>
@@ -744,7 +745,7 @@ The key is the "real" hash of the RouterIdentity or Destination, NOT the routing
 {% endhighlight %}
 
 <h4>Definition</h4>
-<pre>
+{% highlight lang='dataspec' %}
 key ::
     32 bytes
     SHA256 hash of the object to lookup
@@ -772,10 +773,10 @@ flags ::
              through release 0.9.5, must be set to 00
              as of release 0.9.6, ignored
              as of release 0.9.16:
-             00  => normal lookup, return RI or LS or DSRM
-             01  => LS lookup, return LS or DSRM
-             10  => RI lookup, return RI or DSRM
-             11  => exploration lookup, return DSRM containing non-floodfill routers only
+             00  => normal lookup, return `RouterInfo` or `LeaseSet` or `DatabaseSearchReplyMessage`
+             01  => LS lookup, return `LeaseSet` or `DatabaseSearchReplyMessage`
+             10  => RI lookup, return `RouterInfo` or `DatabaseSearchReplyMessage`
+             11  => exploration lookup, return `DatabaseSearchReplyMessage` containing non-floodfill routers only
                     (replaces an excludedPeer of all zeroes)
      bits 7-4:
              through release 0.9.5, must be set to 0
@@ -789,14 +790,14 @@ reply_tunnelId ::
 size ::
      2 byte `Integer`
      valid range: 0-512
-     number of peers to exclude from the DatabaseSearchReply Message
+     number of peers to exclude from the `DatabaseSearchReplyMessage`
 
 excludedPeers ::
               $size SHA256 hashes of 32 bytes each (total $size*32 bytes)
               if the lookup fails, these peers are requested to be excluded from the list in
-              the DatabaseSearchReply Message.
+              the `DatabaseSearchReplyMessage`.
               if excludedPeers includes a hash of all zeroes, the request is exploratory, and
-              the DatabaseSearchReply Message is requested to list non-floodfill routers only.
+              the `DatabaseSearchReplyMessage` is requested to list non-floodfill routers only.
 
 reply_key ::
      32 byte `SessionKey`
@@ -809,10 +810,10 @@ tags ::
      only included if encryptionFlag == 1, only as of release 0.9.7
 
 reply_tags ::
-     one or more 32 byte `SessionTags` (typically one)
+     one or more 32 byte `SessionTag`s (typically one)
      only included if encryptionFlag == 1, only as of release 0.9.7
 
-</pre>
+{% endhighlight %}
 
 <h4>Notes</h4>
 <ul><li>
@@ -850,17 +851,13 @@ The lookup key and exclude keys are the "real" hashes, NOT routing keys.
 +                                       +
 |                                       |
 +----+----+----+----+----+----+----+----+
-|num | peer_hash $1                     |
+|num | peer_hashes                      |
 +----+                                  +
 |                                       |
 +                                       +
 |                                       |
 +                                       +
 |                                       |
-+    +----+----+----+----+----+----+----+
-|    |                                  |
-+----+ $num peer_hashes                 +
-
 +    +----+----+----+----+----+----+----+
 |    | from                             |
 +----+                                  +
@@ -877,7 +874,7 @@ The lookup key and exclude keys are the "real" hashes, NOT routing keys.
 {% endhighlight %}
 
 <h4>Definition</h4>
-<pre>
+{% highlight lang='dataspec' %}
 key ::
     32 bytes
     SHA256 of the object being searched
@@ -886,14 +883,14 @@ num ::
     1 byte `Integer`
     number of peer hashes that follow, 0-255
 
-peer_hash ($num entries) ::
-          32 bytes
+peer_hashes ::
+          $num SHA256 hashes of 32 bytes each (total $num*32 bytes)
           SHA256 of the `RouterIdentity` that the other router thinks is close to the key
 
 from ::
      32 bytes
      SHA256 of the `RouterInfo` of the router this reply was sent from
-</pre>
+{% endhighlight %}
 
 <h4>Notes</h4>
 <ul><li>
@@ -927,15 +924,15 @@ The lookup key, peer hashes, and from hash are "real" hashes, NOT routing keys.
 {% endhighlight %}
 
 <h4>Definition</h4>
-<pre>
-msg_id ::
+{% highlight lang='dataspec' %}
+msg_id :: `Integer`
        4 bytes
-       unique ID of the message we deliver the DeliveryStatus for (see common I2NP header for details)
+       unique ID of the message we deliver the DeliveryStatus for (see `I2NPMessageHeader` for details)
 
-time_stamp :: Date
+time_stamp :: `Date`
              8 bytes
              time the message was successfully created or delivered
-</pre>
+{% endhighlight %}
 
 <h4>Notes</h4>
 <ul><li>
@@ -990,11 +987,11 @@ unencrypted data:
 {% endhighlight %}
 
 <h4>Definition</h4>
-<pre>
+{% highlight lang='dataspec' %}
 Encrypted:
 
 length ::
-       4 byte Integer
+       4 byte `Integer`
        number of bytes that follow 0 - 64 KB
 
 data ::
@@ -1005,7 +1002,7 @@ data ::
 Unencrypted data:
 
 num ::
-     1 byte Integer number of `GarlicCloves` to follow
+     1 byte `Integer` number of `GarlicClove`s to follow
 
 clove ::  a `GarlicClove`
 
@@ -1015,7 +1012,7 @@ Message_ID :: 4 byte `Integer`
 
 Expiration :: `Date` (8 bytes)
 
-</pre>
+{% endhighlight %}
 
 <h4>Notes</h4>
 <ul>
@@ -1065,15 +1062,15 @@ Expiration :: `Date` (8 bytes)
 {% endhighlight %}
 
 <h4>Definition</h4>
-<pre>
+{% highlight lang='dataspec' %}
 tunnelId ::
-         4 byte `TunnelID`
+         4 byte `TunnelId`
          identifies the tunnel this message is directed at
 
 data ::
      1024 bytes
      payload data.. fixed to 1024 bytes
-</pre>
+{% endhighlight %}
 
 <h4>Notes</h4>
 <ul>
@@ -1097,9 +1094,9 @@ data ::
 {% endhighlight %}
 
 <h4>Definition</h4>
-<pre>
+{% highlight lang='dataspec' %}
 tunnelId ::
-         4 byte `TunnelID`
+         4 byte `TunnelId`
          identifies the tunnel this message is directed at
 
 length ::
@@ -1109,7 +1106,7 @@ length ::
 data ::
      $length bytes
      actual payload of this message
-</pre>
+{% endhighlight %}
 
 <h4>Notes</h4>
 <ul>
@@ -1134,7 +1131,7 @@ data ::
 {% endhighlight %}
 
 <h4>Definition</h4>
-<pre>
+{% highlight lang='dataspec' %}
 length ::
        4 bytes
        length of the payload
@@ -1142,7 +1139,7 @@ length ::
 data ::
      $length bytes
      actual payload of this message
-</pre>
+{% endhighlight %}
 
 <h3 id="msg_TunnelBuild">TunnelBuild</h3>
 {% highlight lang='dataspec' %}
@@ -1162,11 +1159,11 @@ data ::
 {% endhighlight %}
 
 <h4>Definition</h4>
-<pre>
-Just 8 `BuildRequestRecords` attached together
+{% highlight lang='dataspec' %}
+Just 8 `BuildRequestRecord`s attached together
 record size: 528 bytes
 total size: 8*528 = 4224 bytes
-</pre>
+{% endhighlight %}
 
 <h4>Notes</h4>
 <ul>
@@ -1179,7 +1176,7 @@ total size: 8*528 = 4224 bytes
 
 <h3 id="msg_TunnelBuildReply">TunnelBuildReply</h3>
 {% highlight lang='dataspec' %}
-same format as `TunnelBuild` message, with `BuildResponseRecords`
+Same format as `TunnelBuildMessage`, with `BuildResponseRecord`s
 {% endhighlight %}
 
 <h4>Notes</h4>
@@ -1198,17 +1195,17 @@ same format as `TunnelBuild` message, with `BuildResponseRecords`
 {% endhighlight %}
 
 <h4>Definition</h4>
-<pre>
-Same format as TunnelBuildMessage, except for the addition of an "num" field in front
-and $num number of Build Request Records instead of 8
+{% highlight lang='dataspec' %}
+Same format as `TunnelBuildMessage`, except for the addition of a $num field in front
+and $num number of `BuildRequestRecord`s instead of 8
 
 num ::
        1 byte `Integer`
        Valid values: 1-8
 
 record size: 528 bytes
-total size: 1 + $num*528
-</pre>
+total size: 1+$num*528
+{% endhighlight %}
 
 <h4>Notes</h4>
 <ul>
@@ -1228,7 +1225,9 @@ total size: 1 + $num*528
 {% endhighlight %}
 
 <h4>Definition</h4>
-Same format as VariableTunnelBuild message, with Build Response Records.
+{% highlight lang='dataspec' %}
+Same format as `VariableTunnelBuildMessage`, with `BuildResponseRecord`s.
+{% endhighlight %}
 
 
 <h4>Notes</h4>

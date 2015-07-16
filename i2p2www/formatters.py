@@ -37,6 +37,7 @@ _escape_html_table = {
 kinds = {
     't': 'type',
     's': 'struct',
+    'm': 'msg',
     }
 
 def escape_html(text, table=_escape_html_table):
@@ -715,6 +716,10 @@ class I2PHtmlFormatter(Formatter):
 
             if tagsfile and ttype in Token.Name.Class:
                 filename, kind = self._lookup_ctag(value)
+                # Handle message types
+                if not kind and value.endswith('Message'):
+                    value = value[:-7]
+                    filename, kind = self._lookup_ctag(value)
                 if kind:
                     base, filename = os.path.split(filename)
                     if base:
