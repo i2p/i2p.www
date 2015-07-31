@@ -90,7 +90,7 @@ Day 1, August 15
 3:30PM  Nick Johnston  "TOS and PII - What happens to your data when the company gets bought and sold?" Different terms of service from popular web apps
 4:30PM                 *Break*
 5:00PM  zzz            "Growing the Network, Spreading the Word" 
-5:45PM  Lance James    "Privacy vs. Intelligence - Why can't we all just get along?" 
+5:45PM  Lance James    Keynote: "Privacy vs. Intelligence - Why can't we all just get along?" 
 6:45PM  dnj            Crypto party intro
 7:00PM                 Crypto Party, Mingle
 ======  =============  =======
