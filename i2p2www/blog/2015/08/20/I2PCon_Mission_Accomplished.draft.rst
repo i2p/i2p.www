@@ -37,20 +37,20 @@ Photos
 ======
 {%- endtrans %}
 
-.. image:: images/i2pcon/2015_i2pcon_1.jpg
+.. image:: {{ url_for('static', filename='images/i2pcon/2015_i2pcon_1.jpg') }}
    :align: center
    :width: 700px
    :alt: {% trans %}The learn how to setup I2P crypto party station{% endtrans %}
 
-.. image:: images/i2pcon/2015_i2pcon_2.jpg
+.. image:: {{ url_for('static', filename='images/i2pcon/2015_i2pcon_2.jpg') }}
    :align: center
    :width: 700px
-   :alt: {% trans %}The learn how to setup I2P crypto party station{% endtrans %}
+   :alt: {% trans %}The learn how use I2P and Vuze party station{% endtrans %}
 
-.. image:: images/i2pcon/2015_i2pcon_3.jpg
+.. image:: {{ url_for('static', filename='images/i2pcon/2015_i2pcon_3.jpg') }}
    :align: center
    :width: 700px
-   :alt: {% trans %}The learn how to setup I2P crypto party station{% endtrans %}
+   :alt: {% trans %}David Dagons wonderful talk{% endtrans %}
 
 {% trans -%}
 Thanks
