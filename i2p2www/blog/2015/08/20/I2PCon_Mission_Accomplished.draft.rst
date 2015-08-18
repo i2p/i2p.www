@@ -11,7 +11,7 @@ I2PCon: Mission Accomplished
 
 
 {% trans -%}
-I2PCon has been a giant success. For us, the I2P contributors, it represent a
+I2PCon has been a giant success. For us, the I2P contributors, it represents a
 leap forward in terms of what we're capable of pulling off as a community, how we
 communicate the usecases of I2P and reach out to privacy conscious individuals.
 
