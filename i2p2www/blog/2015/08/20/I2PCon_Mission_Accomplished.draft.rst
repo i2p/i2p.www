@@ -121,7 +121,7 @@ with you.
 .. _`Nick Johnston`: https://twitter.com/NickInfoSec
 .. _`Lance James`: https://twitter.com/lancejssc
 .. _`David Dagon`: http://pgp.cs.uu.nl/stats/0FDCE717.html
-.. _`zzz`_: https://twitter.com/i2p
+.. _`zzz`: https://twitter.com/i2p
 .. _`@z3r0fox`: https://twitter.com/z3r0fox
 .. _`@str4d`: https://twitter.com/str4d
 .. _`psi`: https://twitter.com/GetI2P
