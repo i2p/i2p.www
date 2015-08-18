@@ -59,8 +59,11 @@ Thanks
 
 {% trans -%}
 We've had some wonderful speakers, from both inside- and outside of our community.
+
 `David Dagon`_ talked to us about the way forward and how I2P could handle potential abuse.
+
 `Lance James`_ - the creator of our predecessor iip - said Hi and gave us his thoughts about how far I2P has come.
+
 `Nick Johnston`_ gave us a wonderful talk about why privacy matters and why you should care.
 {%- endtrans %}
 
