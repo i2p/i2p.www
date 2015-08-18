@@ -108,7 +108,7 @@ Thanks for all the pizza `@Panago_Pizza`_, it keept us going. You very much made
 {% trans -%}
 Finally I would like to thank everyone else who just showed up to the event and helped out in any way
 they could.
-ComradeNosebleed, LazyGravy, `cacapo`_, Xmz, ZeroRax, `echelon`_, it was most excellent hang out
+ComradeNosebleed, LazyGravy, `cacapo`_, Xmz, ZeroRax, `echelon`_, it was most excellent to hang out
 with you.
 {%- endtrans %}
 
