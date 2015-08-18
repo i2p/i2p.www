@@ -37,17 +37,17 @@ Photos
 ======
 {%- endtrans %}
 
-.. image:: 2015_i2pcon_1.jpg
+.. image:: images/i2pcon/2015_i2pcon_1.jpg
    :align: center
    :width: 700px
    :alt: {% trans %}The learn how to setup I2P crypto party station{% endtrans %}
 
-.. image:: 2015_i2pcon_2.jpg
+.. image:: images/i2pcon/2015_i2pcon_2.jpg
    :align: center
    :width: 700px
    :alt: {% trans %}The learn how to setup I2P crypto party station{% endtrans %}
 
-.. image:: 2015_i2pcon_3.jpg
+.. image:: images/i2pcon/2015_i2pcon_3.jpg
    :align: center
    :width: 700px
    :alt: {% trans %}The learn how to setup I2P crypto party station{% endtrans %}
