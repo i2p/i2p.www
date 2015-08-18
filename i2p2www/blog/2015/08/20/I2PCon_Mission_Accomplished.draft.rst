@@ -28,6 +28,7 @@ community, and as such it's been large success.
 Minutiae
 ========
 On day 2 we had two short discussion sessions. A more general discussion and a roadmapping discussion.
+
 The minutiae can be found here: `I2P Roadmap session minutiae`_ and `I2P Discussion session minutiae`_
 {%- endtrans %}
 
