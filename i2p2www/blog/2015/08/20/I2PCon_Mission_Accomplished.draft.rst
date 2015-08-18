@@ -71,7 +71,7 @@ is going to be important for us going forward.
 {%- endtrans %}
 
 {% trans -%}
-I would like to thank `Sadie`_ and `Siew`_ for helping us out with marketing and graphics.
+I would like to thank `Sadie`_ and Siew for helping us out with marketing and graphics.
 Without you I2PCon would've been a very different event.
 {%- endtrans %}
 
@@ -121,7 +121,6 @@ with you.
 .. _`Nick Johnston`: https://twitter.com/NickInfoSec
 .. _`Lance James`: https://twitter.com/lancejssc
 .. _`David Dagon`: http://pgp.cs.uu.nl/stats/0FDCE717.html
-.. _`Siew`_: https://www.behance.net/siewlingc
 .. _`zzz`_: https://twitter.com/i2p
 .. _`@z3r0fox`: https://twitter.com/z3r0fox
 .. _`@str4d`: https://twitter.com/str4d
