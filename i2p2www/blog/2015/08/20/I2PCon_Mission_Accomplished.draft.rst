@@ -104,7 +104,7 @@ Thanks for all the pizza `@Panago_Pizza`_, it keept us going. You very much made
 {% trans -%}
 Finally I would like to thank everyone else who just showed up to the event and helped out in any way
 they could.
-ComradeNosebleed, LazyGravy, `cacapo`_, Xmz, ZeroRax, `@echeloni2p`_, it was most excellent hang out
+ComradeNosebleed, LazyGravy, `cacapo`_, Xmz, ZeroRax, `echelon`_, it was most excellent hang out
 with you.
 {%- endtrans %}
 
@@ -128,6 +128,6 @@ with you.
 .. _`@Panago_Pizza`: https://twitter.com/Panago_Pizza
 .. _`@robinlevinson`: https://twitter.com/robinlevinson
 .. _`@killyourtv_i2p`: https://twitter.com/KillYourTV_I2P
-.. _`@echeloni2p`: https://twitter.com/echeloni2p
+.. _`echelon`: https://twitter.com/echeloni2p
 .. _`cacapo`: https://twitter.com/i2cacapo
 
