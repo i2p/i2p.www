@@ -20,7 +20,7 @@ only lurked on our irc channels, or run our software or possibly hadn't even hea
 of I2P are now a part of our comminuty.
 
 This event has been our first active step towards building a large and inclusive
-community, and as such it's been large success.
+community, and as such it's been great success.
 {%- endtrans %}
 
 
