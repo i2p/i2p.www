@@ -66,6 +66,7 @@ def blog_atom(category=None):
     for item in items:
         feed.add(item['title'],
                  item['content'],
+                 author=item['author'],
                  content_type='html',
                  url=item['url'],
                  updated=item['updated'])

@@ -32,6 +32,7 @@ def get_blog_feed_items(num=0, category=None):
         a = {}
         a['title'] = meta['title']
         a['content'] = meta['excerpt'] if len(meta['excerpt']) > 0 else parts['fragment']
+        a['author'] = meta['author']
         a['url'] = url_for('blog_post', lang=g.lang, slug=post[0])
         a['updated'] = datetime.datetime.strptime(meta['date'], '%Y-%m-%d')
         items.append(a)
