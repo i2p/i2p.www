@@ -668,7 +668,7 @@ class I2PHtmlFormatter(Formatter):
         style = '; '.join(style)
 
         yield 0, ('<div' + (self.cssclass and ' class="%s"' % self.cssclass)
-                  + (style and (' style="%s"' % style)) + '>')
+                  + (style and (' style="%s"' % style)) + ' dir=ltr>')
         for tup in inner:
             yield tup
         yield 0, '</div>\n'
