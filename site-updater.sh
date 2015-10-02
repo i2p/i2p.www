@@ -17,6 +17,8 @@ if grep "^mtn: \(add\|patch\|dropp\|updat\)\(ed\|ing\) 'i2p2www/translations/" "
   ./compile-messages.sh
 fi
 
+echo "Monotone revision: $(mtn log --no-files --no-graph --to h: | grep Revision | sed 's/Revision: //')" >./i2p2www/pages/include/mtnversion
+
 if grep "^mtn: updating 'i2p2www/.*\.py\|^mtn: updating 'i2p2www/.*/.*\.py" "$TMP" >/dev/null ; then
   echo "Python files changed, restarting server"
   touch $TOUCHFILE
