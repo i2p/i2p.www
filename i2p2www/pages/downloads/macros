@@ -1,0 +1,98 @@
+{% set i2pinstall_windows_hash = '3f59e4604531c07b39c6564712b45660a836f0ed7fc52c2a2602320e2da0d591' %}
+{% set i2pinstall_jar_hash     = 'ee5297b2746e324c9ca33b19513ff09b50724ae3b9f588e4ccc31fc389ce50aa' %}
+{% set i2psource_hash          = '91ac91f7a3e202d248f5294f4951f6b7d8b9bde32991adf7a813ae1bb9188898' %}
+{% set i2pupdate_hash          = '33d969e859c772ba7def142ab0ebbe0c2e8ec52a832bbe31141eaad0eaf556d3' %}
+{% set i2p_android_hash        = 'b14e3cc5ea12eb2e8bccb81dd2e86eeea3baba6695eb1a9f4d9053e76aeb131d' %}
+
+{% set i2p_android_version = '0.9.22' %}
+{% set i2p_android_version_kytv = '0.9.22' %}
+{% set i2p_android_version_fdroid = '0.9.19' %}
+
+
+{% macro package_outer(type, name, icon) -%}
+<div class="package" id="{{ type }}">
+  <div class="os">
+    <img src="{{ url_for('static', filename=icon) }}" alt="{{ name }}" title="{{ name }}" />
+  </div>
+  <div class="details">
+    {{ caller() }}
+  </div>
+</div>
+{%- endmacro %}
+
+{% macro package(type) -%}
+{%- if type == 'windows' -%}
+  {%- set name     = 'Windows' -%}
+  {%- set icon     = 'images/download/windows.png' -%}
+  {%- set filename = 'i2pinstall_%s_windows.exe' -%}
+  {%- set signame  = 'i2pinstall_%s_windows.exe.sig' -%}
+  {%- set hash     = i2pinstall_windows_hash -%}
+{%- elif type == 'android' -%}
+  {%- set name     = 'Android' -%}
+  {%- set icon     = 'images/download/android.png' -%}
+  {%- set hash     = i2p_android_hash -%}
+{%- elif type == 'source' -%}
+  {%- set name     = _('Source package') -%}
+  {%- set icon     = 'images/download/source.png' -%}
+  {%- set filename = 'i2psource_%s.tar.bz2' -%}
+  {%- set signame  = 'i2psource_%s.tar.bz2.sig' -%}
+  {%- set hash     = i2psource_hash -%}
+{%- elif type == 'update' -%}
+  {%- set name     = _('Manual updates') -%}
+  {%- set icon     = 'images/download/update-manual.png' -%}
+  {%- set filename = 'i2pupdate_%s.zip' -%}
+  {%- set signame  = 'i2pupdate_%s.zip.sig' -%}
+  {%- set hash     = i2pupdate_hash -%}
+{%- else -%}
+  {%- if type == 'mac' -%}
+    {%- set name     = 'Mac OS X' -%}
+    {%- set icon     = 'images/download/mac-osx.png' -%}
+  {%- elif type == 'unix' -%}
+    {%- set name     = 'GNU/Linux / BSD / Solaris' -%}
+    {%- set icon     = 'images/download/freebsd-tux.png' -%}
+  {%- endif -%}
+  {%- set filename = 'i2pinstall_%s.jar' -%}
+  {%- set signame  = 'i2pinstall_%s.jar.sig' -%}
+  {%- set hash     = i2pinstall_jar_hash -%}
+{%- endif -%}
+
+{%- set details = caller() -%}
+{% call package_outer(type, name, icon) %}
+    <div class="file">
+    {%- if type == 'android' %}
+      {% trans %}Outside I2P{% endtrans %}:
+      <!-- do not use url_for here -->
+      <a class="default" href="https://download.i2p2.de/android/current/i2p.apk">I2P {{ i2p_android_version }}</a>
+      <br>
+      {% trans %}Inside I2P{% endtrans %}:
+      <!-- do not use i2pconv here -->
+      <a class="default" href="http://update.killyourtv.i2p/i2p.apk">I2P {{ i2p_android_version_kytv }}</a>
+      <br>
+      Google Play:
+      <a class="default" href="https://play.google.com/store/apps/details?id=net.i2p.android">I2P {{ i2p_android_version }}</a>
+      <br>
+      {% trans %}Our F-Droid repository{% endtrans %}:
+      <a class="default" href="https://f-droid.i2p.io/">I2P {{ i2p_android_version }}</a>
+      <br>
+      F-Droid:
+      <a class="default" href="https://f-droid.org/app/net.i2p.android.router">I2P {{ i2p_android_version_fdroid }}</a>
+      <br>
+      {% trans %}Development Builds{% endtrans %}:
+      {% trans str4durl='http://'+i2pconv('str4d.i2p')+'/android/' -%}
+      <a class="default" href="{{ str4durl }}">str4d's eepsite</a>
+      {%- endtrans %}
+    {% else %}
+      <a class="default" href="{{ url_for('downloads_redirect', version=ver(), net=def_mirror.net, protocol=def_mirror.protocol, domain=def_mirror.domain, file=ver(filename)) }}">
+        <span class="name">{{ ver(filename) }}</span><br />
+        <span class="mirror">{{ _('Mirror:') }} <img src="{{ url_for('static', filename='images/flags/'+def_mirror.country+'.png') }}" /> {{ def_mirror.org }}</span>
+      </a>
+      <a class="mirrors" href="{{ get_url('downloads_select', version=ver(), file=ver(filename)) }}">{{ _('select alternate mirror') }}</a>
+      <a class="sig" href="{{ url_for('downloads_redirect', version=ver(), net=def_mirror.net, protocol=def_mirror.protocol, domain=def_mirror.domain, file=ver(signame)) }}">sig</a>
+    {% endif -%}
+    </div>
+    <div class="hash">
+      <code>{{ hash }}</code>
+    </div>
+    {{ details }}
+{% endcall %}
+{%- endmacro %}

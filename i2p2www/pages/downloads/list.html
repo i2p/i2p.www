@@ -1,10 +1,6 @@
 {% extends "global/layout.html" %}
+{%- from "downloads/macros" import package, package_outer with context -%}
 {% block title %}{{ _('Download') }}{% endblock %}
-{% set i2pinstall_windows_hash = '3f59e4604531c07b39c6564712b45660a836f0ed7fc52c2a2602320e2da0d591' %}
-{% set i2pinstall_jar_hash     = 'ee5297b2746e324c9ca33b19513ff09b50724ae3b9f588e4ccc31fc389ce50aa' %}
-{% set i2psource_hash          = '91ac91f7a3e202d248f5294f4951f6b7d8b9bde32991adf7a813ae1bb9188898' %}
-{% set i2pupdate_hash          = '33d969e859c772ba7def142ab0ebbe0c2e8ec52a832bbe31141eaad0eaf556d3' %}
-{% set i2p_android_hash        = 'b14e3cc5ea12eb2e8bccb81dd2e86eeea3baba6695eb1a9f4d9053e76aeb131d' %}
 {% block content %}
 <h3>{{ _('Dependency') }}</h3>
 <p>{% trans java='http://java.com/download/',
@@ -43,44 +39,13 @@ or type <tt>java -version</tt> at your command prompt.
 <h3>{{ _('Clean installs') }}</h3>
 <div class="downloadlist">
 
-<div class="package" id="windows">
-  <div class="os">
-    <img src="{{ url_for('static', filename='images/download/windows.png') }}" alt="Windows" title="Windows" />
-  </div>
-  <div class="details">
-    <div class="file">
-      <a class="default" href="{{ url_for('downloads_redirect', version=ver(), net=def_mirror.net, protocol=def_mirror.protocol, domain=def_mirror.domain, file=ver('i2pinstall_%s_windows.exe')) }}">
-        <span class="name">i2pinstall_{{ ver() }}_windows.exe</span><br />
-        <span class="mirror">{{ _('Mirror:') }} <img src="{{ url_for('static', filename='images/flags/'+def_mirror.country+'.png') }}" /> {{ def_mirror.org }}</span>
-      </a>
-      <a class="mirrors" href="{{ get_url('downloads_select', version=ver(), file=ver('i2pinstall_%s_windows.exe')) }}">{{ _('select alternate mirror') }}</a><!--
-   --><a class="sig" href="{{ url_for('downloads_redirect', version=ver(), net=def_mirror.net, protocol=def_mirror.protocol, domain=def_mirror.domain, file=ver('i2pinstall_%s_windows.exe.sig')) }}">sig</a>
-    </div>
-    <div class="hash">
-      <code>{{ i2pinstall_windows_hash }}</code>
-    </div>
+{% call package('windows') %}
     <p>{% trans -%}
     Download that file and run it.
     {%- endtrans %}</p>
-  </div>
-</div>
+{% endcall %}
 
-<div class="package" id="mac">
-  <div class="os">
-    <img src="{{ url_for('static', filename='images/download/mac-osx.png') }}" alt="Mac OS X" title="Mac OS X" />
-  </div>
-  <div class="details">
-    <div class="file">
-      <a class="default" href="{{ url_for('downloads_redirect', version=ver(), net=def_mirror.net, protocol=def_mirror.protocol, domain=def_mirror.domain, file=ver('i2pinstall_%s.jar')) }}">
-        <span class="name">i2pinstall_{{ ver() }}.jar</span><br />
-        <span class="mirror">{{ _('Mirror:') }} <img src="{{ url_for('static', filename='images/flags/'+def_mirror.country+'.png') }}" /> {{ def_mirror.org }}</span>
-      </a>
-      <a class="mirrors" href="{{ get_url('downloads_select', version=ver(), file=ver('i2pinstall_%s.jar')) }}">{{ _('select alternate mirror') }}</a><!--
-   --><a class="sig" href="{{ url_for('downloads_redirect', version=ver(), net=def_mirror.net, protocol=def_mirror.protocol, domain=def_mirror.domain, file=ver('i2pinstall_%s.jar.sig')) }}">sig</a>
-    </div>
-    <div class="hash">
-      <code>{{ i2pinstall_jar_hash }}</code>
-    </div>
+{% call package('mac') %}
     <p>{% trans i2pversion=ver() -%}
     Download that file and double-click it (if that works) or
     type <code>java -jar i2pinstall_{{ i2pversion }}.jar</code> in a terminal to run the
@@ -94,25 +59,9 @@ or type <tt>java -version</tt> at your command prompt.
     Download the {{ i2pversion }} OSX graphical installer file above and
     run <code>java -jar i2pinstall_{{ i2pversion }}.jar -console</code> from the command line.
     {%- endtrans %}
-  </div>
-</div>
+{% endcall %}
 
-<div class="package" id="*nix">
-  <div class="os">
-    <img src="{{ url_for('static', filename='images/download/freebsd-tux.png') }}" alt="GNU/Linux / BSD / Solaris" title="GNU/Linux / BSD / Solaris" />
-  </div>
-  <div class="details">
-    <div class="file">
-      <a class="default" href="{{ url_for('downloads_redirect', version=ver(), net=def_mirror.net, protocol=def_mirror.protocol, domain=def_mirror.domain, file=ver('i2pinstall_%s.jar')) }}">
-        <span class="name">i2pinstall_{{ ver() }}.jar</span><br />
-        <span class="mirror">{{ _('Mirror:') }} <img src="{{ url_for('static', filename='images/flags/'+def_mirror.country+'.png') }}" /> {{ def_mirror.org }}</span>
-      </a>
-      <a class="mirrors" href="{{ get_url('downloads_select', version=ver(), file=ver('i2pinstall_%s.jar')) }}">{{ _('select alternate mirror') }}</a><!--
-   --><a class="sig" href="{{ url_for('downloads_redirect', version=ver(), net=def_mirror.net, protocol=def_mirror.protocol, domain=def_mirror.domain, file=ver('i2pinstall_%s.jar.sig')) }}">sig</a>
-    </div>
-    <div class="hash">
-      <code>{{ i2pinstall_jar_hash }}</code>
-    </div>
+{% call package('unix') %}
     <p>{% trans i2pversion=ver() -%}
     Download that file and double-click it (if that works) or
     type <code>java -jar i2pinstall_{{ i2pversion }}.jar</code> in a terminal to run the
@@ -126,51 +75,15 @@ or type <tt>java -version</tt> at your command prompt.
     Download the graphical installer file above and
     run <code>java -jar i2pinstall_{{ i2pversion }}.jar -console</code> from the command line.
     {%- endtrans %}
-  </div>
-</div>
+{% endcall %}
 
-<div class="package" id="deb">
-  <div class="os">
-    <img src="{{ url_for('static', filename='images/download/debian-ubuntu.png') }}" alt="Debian / Ubuntu" title="Debian / Ubuntu" />
-  </div>
-  <div class="details">
+{% call package_outer('deb', 'Debian / Ubuntu', 'images/download/debian-ubuntu.png') %}
     <div class="file">
       <a class="default" href="{{ get_url('downloads_debian') }}">{% trans %}Packages for Debian &amp; Ubuntu are available.{% endtrans %}</a>
     </div>
-  </div>
-</div>
+{% endcall %}
 
-<div class="package" id="android">
-  <div class="os">
-    <img src="{{ url_for('static', filename='images/download/android.png') }}" alt="Android" title="Android" />
-  </div>
-  <div class="details">
-    <div class="file">
-      {% trans %}Outside I2P{% endtrans %}:
-      <!-- do not use url_for here -->
-      <a class="default" href="https://download.i2p2.de/android/current/i2p.apk">I2P-0.9.22</a>
-      <br>
-      {% trans %}Inside I2P{% endtrans %}:
-      <!-- do not use i2pconv here -->
-      <a class="default" href="http://update.killyourtv.i2p/i2p.apk">I2P-0.9.22</a>
-      <br>
-      Google Play:
-      <a class="default" href="https://play.google.com/store/apps/details?id=net.i2p.android">I2P-0.9.22</a>
-      <br>
-      {% trans %}Our F-Droid repository{% endtrans %}:
-      <a class="default" href="https://f-droid.i2p.io/">I2P-0.9.22</a>
-      <br>
-      F-Droid:
-      <a class="default" href="https://f-droid.org/app/net.i2p.android.router">I2P-0.9.19</a>
-      <br>
-      {% trans %}Development Builds{% endtrans %}:
-      {% trans str4durl='http://'+i2pconv('str4d.i2p')+'/android/' -%}
-      <a class="default" href="{{ str4durl }}">str4d's eepsite</a>
-      {%- endtrans %}
-    </div>
-    <div class="hash">
-      <code>{{ i2p_android_hash }}</code>
-    </div>
+{% call package('android') %}
     <p>&nbsp;</p>
     <div class="warning">
       {% trans -%}
@@ -186,25 +99,9 @@ or type <tt>java -version</tt> at your command prompt.
       the other.
       {%- endtrans %}
     </div>
-  </div>
-</div>
+{% endcall %}
 
-<div class="package" id="source">
-  <div class="os">
-    <img src="{{ url_for('static', filename='images/download/source.png') }}" alt="{{ _('Source package') }}" title="{{ _('Source package') }}" />
-  </div>
-  <div class="details">
-    <div class="file">
-      <a class="default" href="{{ url_for('downloads_redirect', version=ver(), net=def_mirror.net, protocol=def_mirror.protocol, domain=def_mirror.domain, file=ver('i2psource_%s.tar.bz2')) }}">
-        <span class="name">i2psource_{{ ver() }}.tar.bz2</span><br />
-        <span class="mirror">{{ _('Mirror:') }} <img src="{{ url_for('static', filename='images/flags/'+def_mirror.country+'.png') }}" /> {{ def_mirror.org }}</span>
-      </a>
-      <a class="mirrors" href="{{ get_url('downloads_select', version=ver(), file=ver('i2psource_%s.tar.bz2')) }}">{{ _('select alternate mirror') }}</a><!--
-   --><a class="sig" href="{{ url_for('downloads_redirect', version=ver(), net=def_mirror.net, protocol=def_mirror.protocol, domain=def_mirror.domain, file=ver('i2psource_%s.tar.bz2.sig')) }}">sig</a>
-    </div>
-    <div class="hash">
-      <code>{{ i2psource_hash }}</code>
-    </div>
+{% call package('source') %}
     <p>{% trans monotoneurl=site_url('get-involved/guides/new-developers'),
              gitrepo='http://'+i2pconv('git.repo.i2p')+'/w/i2p.i2p.git',
              github='https://github.com/i2p/i2p.i2p',
@@ -222,8 +119,7 @@ or type <tt>java -version</tt> at your command prompt.
     Android builds require the I2P source.
     See the documentation in the Android source for additional build requirements and instructions.
     {%- endtrans %}</p>
-  </div>
-</div>
+{% endcall %}
 
 </div>
 
@@ -241,11 +137,7 @@ The files are signed by zzz,
 Both automatic and manual upgrades are available for the release.
 {%- endtrans %}</p>
 
-<div class="package">
-  <div class="os">
-    <img src="{{ url_for('static', filename='images/download/update-auto.png') }}" alt="{{ _('Automatic updates') }}" title="{{ _('Automatic updates') }}" />
-  </div>
-  <div class="details">
+{% call package_outer('auto', _('Automatic updates'), 'images/download/update-auto.png') %}
 <p>{% trans -%}
 If you are running 0.7.5 or later, your router should detect the
 new release. To upgrade simply click the 'Download Update' button on your router console
@@ -291,25 +183,9 @@ receive the release.
 </li>
 </ol>
     </div>
-  </div>
-</div>
+{% endcall %}
 
-<div class="package" id="update">
-  <div class="os">
-    <img src="{{ url_for('static', filename='images/download/update-manual.png') }}" alt="{{ _('Manual updates') }}" title="{{ _('Manual updates') }}" />
-  </div>
-  <div class="details">
-    <div class="file">
-      <a class="default" href="{{ url_for('downloads_redirect', version=ver(), net=def_mirror.net, protocol=def_mirror.protocol, domain=def_mirror.domain, file=ver('i2pupdate_%s.zip')) }}">
-        <span class="name">i2pupdate_{{ ver() }}.zip</span><br />
-        <span class="mirror">{{ _('Mirror:') }} <img src="{{ url_for('static', filename='images/flags/'+def_mirror.country+'.png') }}" /> {{ def_mirror.org }}</span>
-      </a>
-      <a class="mirrors" href="{{ get_url('downloads_select', version=ver(), file=ver('i2pupdate_%s.zip')) }}">{{ _('select alternate mirror') }}</a><!--
-   --><a class="sig" href="{{ url_for('downloads_redirect', version=ver(), net=def_mirror.net, protocol=def_mirror.protocol, domain=def_mirror.domain, file=ver('i2pupdate_%s.zip.sig')) }}">sig</a>
-    </div>
-    <div class="hash">
-      <code>{{ i2pupdate_hash }}</code>
-    </div>
+{% call package('update') %}
 <ol>
 <li>
     {% trans -%}
@@ -331,8 +207,7 @@ receive the release.
     {%- endtrans %}
 </li>
 </ol>
-  </div>
-</div>
+{% endcall %}
 
 {% trans signingkey=site_url('get-involved/develop/release-signing-key') -%}
 The file is signed by zzz,
