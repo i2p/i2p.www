@@ -9,6 +9,16 @@ def get_for_page(items, page, per_page):
     to_item = page*per_page
     return items[from_item:to_item]
 
+def get_metadata_from_meta(meta, supported_metatags, list_metatags):
+    metaLines = meta.split('\n')
+    ret = {}
+    for metaTag in supported_metatags:
+        metaLine = [s for s in metaLines if 'name="%s"' % metaTag in s]
+        ret[metaTag] = metaLine[0].split('content="')[1].split('"')[0] if len(metaLine) > 0 else supported_metatags[metaTag]
+        if metaTag in list_metatags and ret[metaTag]:
+            ret[metaTag] = [s.strip() for s in ret[metaTag].split(',')]
+    return ret
+
 
 ########################
 # General helper classes
