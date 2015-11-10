@@ -103,6 +103,7 @@ GETTEXT_DOMAIN_MAPPING = {
 
 TEMPLATE_DIR = os.path.join(os.path.dirname(__file__), 'pages')
 STATIC_DIR = os.path.join(os.path.dirname(__file__), 'static')
+SPEC_DIR = os.path.join(os.path.dirname(__file__), 'spec')
 BLOG_DIR = os.path.join(os.path.dirname(__file__), 'blog')
 MEETINGS_DIR = os.path.join(os.path.dirname(__file__), 'meetings/logs')
 SITE_DIR = os.path.join(TEMPLATE_DIR, 'site')

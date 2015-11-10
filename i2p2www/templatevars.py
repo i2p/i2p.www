@@ -30,6 +30,9 @@ def utility_processor():
         else:
             return url_for('site_show', lang=lang)
 
+    def get_spec_url(name):
+        return url_for('spec_show', name=name, _external=True)
+
     # Shorthand for getting a language-specific url
     def get_url_with_lang(endpoint, **args):
         lang = 'en'
@@ -111,6 +114,7 @@ def utility_processor():
                 change_theme=change_theme,
                 logo_url=get_logo_for_theme,
                 site_url=get_site_url,
+                spec_url=get_spec_url,
                 get_url=get_url_with_lang,
                 is_rtl=is_rtl_lang,
                 get_flag=get_flag,
