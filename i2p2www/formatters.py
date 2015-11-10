@@ -23,7 +23,7 @@ try:
 except ImportError:
     ctags = None
 
-__all__ = ['I2PHtmlFormatter']
+__all__ = ['I2PHtmlFormatter', 'TextSpecFormatter']
 
 
 _escape_html_table = {
@@ -829,3 +829,70 @@ class I2PHtmlFormatter(Formatter):
 
         for t, piece in source:
             outfile.write(piece)
+
+
+class TextSpecFormatter(Formatter):
+    """
+    Output the text unchanged without any formatting.
+    """
+    name = 'Text spec'
+    aliases = ['textspec']
+    filenames = ['*.txt']
+
+    def __init__(self, **options):
+        Formatter.__init__(self, **options)
+        self.tagsfile = self._decodeifneeded(options.get('tagsfile', ''))
+        self.tagurlformat = self._decodeifneeded(options.get('tagurlformat', ''))
+
+        if self.tagsfile:
+            if not ctags:
+                raise RuntimeError('The "ctags" package must to be installed '
+                                   'to be able to use the "tagsfile" feature.')
+            self._ctags = ctags.CTags(self.tagsfile)
+
+    def _decodeifneeded(self, value):
+        if isinstance(value, bytes):
+            if self.encoding:
+                return value.decode(self.encoding)
+            return value.decode()
+        return value
+
+    def format(self, tokensource, outfile):
+        enc = self.encoding
+        tagsfile = self.tagsfile
+        refs = {}
+
+        for ttype, value in tokensource:
+            if tagsfile and ttype in Token.Name.Class:
+                filename, kind = self._lookup_ctag(value)
+                # Handle message types
+                if not kind and value.endswith('Message'):
+                    value = value[:-7]
+                    filename, kind = self._lookup_ctag(value)
+                if kind:
+                    base, filename = os.path.split(filename)
+                    if base:
+                        base += '/'
+                    filename, extension = os.path.splitext(filename)
+                    url = self.tagurlformat % {'path': base, 'fname': filename,
+                                               'fext': extension}
+                    refs[value] = '\n[%s]: %s#%s_%s' % (value, url, kinds[kind], value)
+                    value = '[%s]' % value
+
+            if enc:
+                outfile.write(value.encode(enc))
+            else:
+                outfile.write(value)
+
+        for ref in refs.values():
+            if enc:
+                outfile.write(ref.encode(enc))
+            else:
+                outfile.write(ref)
+
+    def _lookup_ctag(self, token):
+        entry = ctags.TagEntry()
+        if self._ctags.find(entry, token, 0):
+            return entry['file'], entry['kind']
+        else:
+            return None, None

@@ -17,7 +17,7 @@ except ImportError:
 
 from flask import g
 
-from i2p2www.formatters import I2PHtmlFormatter
+from i2p2www.formatters import I2PHtmlFormatter, TextSpecFormatter
 from i2p2www.lexers import DataSpecLexer
 
 
@@ -55,13 +55,14 @@ class HighlightExtension(Extension):
         # extract the language if available
         # Any additional parameters are passed to HtmlFormatter
         lang = None
+        formatter = None
         parameters = []
         while parser.stream.current.type != 'block_end':
             if lang or parameters:
                 parser.stream.expect('comma')
 
             name = parser.stream.expect('name')
-            if name.value in parameters or (name.value == 'lang' and lang):
+            if name.value in parameters or (name.value == 'lang' and lang) or (name.value == 'formatter' and formatter):
                 parser.fail('parameter %r defined twice.' %
                             name.value, name.lineno,
                             exc=TemplateAssertionError)
@@ -70,20 +71,24 @@ class HighlightExtension(Extension):
                 next(parser.stream)
                 if name.value == 'lang':
                     lang = parser.parse_expression()
+                elif name.value == 'formatter':
+                    formatter = parser.parse_expression()
                 else:
                     parameters.append(nodes.Pair(nodes.Const(name.value), parser.parse_expression()))
 
         if lang == None:
             lang = nodes.Const(None)
+        if formatter == None:
+            formatter = nodes.Const('html')
         parameters = nodes.Dict(parameters)
 
         # body of the block
         body = parser.parse_statements(['name:endhighlight'], drop_needle=True)
 
-        return nodes.CallBlock(self.call_method('_highlight', [lang, parameters]),
+        return nodes.CallBlock(self.call_method('_highlight', [lang, formatter, parameters]),
                                [], [], body).set_lineno(lineno)
 
-    def _highlight(self, lang, parameters, caller=None):
+    def _highlight(self, lang, formatter, parameters, caller=None):
         # highlight code using Pygments
         body = caller()
         try:
@@ -108,6 +113,9 @@ class HighlightExtension(Extension):
                     lang = g.lang
                 parameters['tagurlformat'] = '/' + lang + '/%(path)s%(fname)s'
 
-        formatter = I2PHtmlFormatter(**parameters)
+        if formatter == 'textspec':
+            formatter = TextSpecFormatter(**parameters)
+        else:
+            formatter = I2PHtmlFormatter(**parameters)
         code = highlight(Markup(body).unescape(), lexer, formatter)
         return code
