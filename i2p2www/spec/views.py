@@ -44,6 +44,7 @@ def spec_index():
             spec.update(meta)
             specs.append(spec)
 
+    specs.sort(key=lambda s: s['name'])
     return render_template('spec/index.html', specs=specs)
 
 def spec_show(name, txt=False):
