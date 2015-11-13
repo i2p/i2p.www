@@ -1,7 +1,7 @@
 {% trans -%}
-==============
+==================
 Community Outreach
-==============
+==================
 {%- endtrans %}
 .. meta::
    :author: lazygravy
@@ -20,7 +20,7 @@ Since many awesome events are happening *inside* the network, we think it will b
 **{% trans %}A Call for Feedback{% endtrans %}**
 
 {% trans -%}
-Let’s face it -- our console needs improvement.
+Let's face it -- our console needs improvement.
 Our site could use an update as well.
 We are looking for feedback on how to improve the usability of I2P for new and existing users!
 {%- endtrans %}
@@ -29,7 +29,7 @@ We are looking for feedback on how to improve the usability of I2P for new and e
 Any and all feedback is welcome.
 Please contact `@GetI2P`_, `@str4d`_, or `@YrB1rd`_.
 If you don't feel comfortable using Twitter, we are always available via the in-network IRC channel.
-You don’t have to be a long time user.
+You don't have to be a long time user.
 We want to hear from all sorts of people!
 {%- endtrans %}
 
@@ -54,7 +54,7 @@ I2Pwiki.i2p (a backup of ugha.i2p, an older wiki) was accepted, as was lenta.i2p
 {%- endtrans %}
 
 {% trans -%}
-str4d proposed blocking off the \*.i2p.i2p namespace so they can be used for developer’s services.
+str4d proposed blocking off the \*.i2p.i2p namespace so they can be used for developer's services.
 He also suggested a more formalized technical proposal system, with more prominence on the main website.
 {%- endtrans %}
 
@@ -74,8 +74,8 @@ Thank you to `TorontoCrypto`_ for hosting the newest I2P reseed server!
 .. _`TorontoCrypto`: https://torontocrypto.org/
 
 {% trans -%}
-Translation deadline Thursday, 12 November, translators please update. All translations are done via `Transfix`_ .
+Translation deadline Thursday, 12 November, translators please update. All translations are done via `Transifex`_ .
 {%- endtrans %}
 
-.. _`Transfix`: https://www.transifex.com/otf/I2P/
+.. _`Transifex`: https://www.transifex.com/otf/I2P/
 
