@@ -296,7 +296,7 @@ below.
 Common structures
 =================
 
-.. _struct-i2cpmessageheader:
+.. _struct-I2CPMessageHeader:
 
 I2CP message header
 -------------------
@@ -316,7 +316,7 @@ Notes
 `````
 Actual message length limit is about 64 KB.
 
-.. _struct-messageid:
+.. _struct-MessageId:
 
 Message ID
 ----------
@@ -335,7 +335,7 @@ Notes
 `````
 Message IDs are unique within a session only; they are not globally unique.
 
-.. _struct-payload:
+.. _struct-Payload:
 
 Payload
 -------
@@ -355,7 +355,7 @@ Notes
 The payload is in a gzip format as specified on the I2CP Overview page
 [I2CP-FORMAT]_.
 
-.. _struct-sessionconfig:
+.. _struct-SessionConfig:
 
 Session Config
 --------------
@@ -382,7 +382,7 @@ Notes
 * The creation date must be within +/- 30 seconds of the current time when
   processed by the router, or the config will be rejected.
 
-.. _struct-sessionid:
+.. _struct-SessionId:
 
 Session ID
 ----------
@@ -438,7 +438,7 @@ SessionStatusMessage_             R -> C     20
 SetDateMessage_                   R -> C     33
 ===============================  =========  ====  =====
 
-.. _msg_bandwidthlimits:
+.. _msg-BandwidthLimits:
 
 BandwidthLimitsMessage
 ----------------------
@@ -466,7 +466,7 @@ Currently, the client limits are the only values set, and are actually the
 router limits. All the values labeled as router limits are always 0.  As of
 release 0.7.2.
 
-.. _msg-createleaseset:
+.. _msg-CreateLeaseSet:
 
 CreateLeaseSetMessage
 ---------------------
@@ -532,7 +532,7 @@ Notes
 * The [Mapping]_ in the Session Config must be sorted by key so that the
   signature will be validated correctly in the router.
 
-.. _msg-destlookup:
+.. _msg-DestLookup:
 
 DestLookupMessage
 -----------------
@@ -577,7 +577,7 @@ to the lookups.  To correlate a Destination response with a request, take the
 Hash of the Destination.  Prior to release 0.8.3, the response was empty on
 failure.
 
-.. _msg-destroysession:
+.. _msg-DestroySession:
 
 DestroySessionMessage
 ---------------------
@@ -596,7 +596,7 @@ Notes
 `````
 The router at this point should release all resources related to the session.
 
-.. _msg-disconnect:
+.. _msg-Disconnect:
 
 DisconnectMessage
 -----------------
@@ -712,7 +712,7 @@ Notes
 * Base 32 host name lookup is supported but it is preferred to convert it to a
   Hash first.
 
-.. _msg-hostreply:
+.. _msg-HostReply:
 
 HostReplyMessage
 ----------------
@@ -737,7 +737,7 @@ Notes
 * The result code is 0 for success, 1-255 for failure. Only 1 is used for
   failure now, more specific failure codes may be defined in the future.
 
-.. _msg-messagepayload:
+.. _msg-MessagePayload:
 
 MessagePayloadMessage
 ---------------------
@@ -758,7 +758,7 @@ Contents
 Notes
 `````
 
-.. _msg-messagestatus:
+.. _msg-MessageStatus:
 
 MessageStatusMessage
 --------------------
@@ -900,7 +900,7 @@ When status = 1 (accepted), the nonce matches the nonce in the
 SendMessageMessage_, and the included Message ID will be used for subsequent
 success or failure notification.  Otherwise, the nonce may be ignored.
 
-.. _msg-receivemessagebegin:
+.. _msg-ReceiveMessageBegin:
 
 ReceiveMessageBeginMessage
 --------------------------
@@ -926,7 +926,7 @@ DisconnectMessage_.
 This is unused in "fast receive" mode, which is the default as of release
 0.9.4.
 
-.. _msg-receivemessageend:
+.. _msg-ReceiveMessageEnd:
 
 ReceiveMessageEndMessage
 ------------------------
@@ -951,7 +951,7 @@ delivers a message's payload.
 This is unused in "fast receive" mode, which is the default as of release
 0.9.4.
 
-.. _msg-reconfiguresession:
+.. _msg-ReconfigureSession:
 
 ReconfigureSessionMessage
 -------------------------
@@ -981,7 +981,7 @@ Notes
   changes here will not be recognized by the router. Changes to tunnel options
   inbound.* and outbound.* are always recognized.
 
-.. _msg-reportabuse:
+.. _msg-ReportAbuse:
 
 ReportAbuseMessage
 ------------------
@@ -1009,7 +1009,7 @@ Notes
 Unused.  Not fully implemented. Both router and client can generate a
 ReportAbuseMessage_, but neither has a handler for the message when received.
 
-.. _msg-requestleaseset:
+.. _msg-RequestLeaseSet:
 
 RequestLeaseSetMessage
 ----------------------
@@ -1037,7 +1037,7 @@ This requests a [LeaseSet]_ with all [Leases]_ set to expire at the same time.
 For client versions 0.9.7 or higher, RequestVariableLeaseSetMessage_ is
 preferred.
 
-.. _msg-requestvariableleaseset:
+.. _msg-RequestVariableLeaseSet:
 
 RequestVariableLeaseSetMessage
 ------------------------------
@@ -1063,7 +1063,7 @@ This requests a [LeaseSet]_ with an individual expiration time for each
 As of release 0.9.7.  For clients before that release, use
 RequestLeaseSetMessage_.
 
-.. _msg-sendmessage:
+.. _msg-SendMessage:
 
 SendMessageMessage
 ------------------
@@ -1106,7 +1106,7 @@ to a nonzero value.  The router will not send the "accepted"
 MessageStatusMessage_ but it will later send the client a MessageStatusMessage_
 with the same nonce, and a success or failure value.
 
-.. _msg-sendmessageexpires:
+.. _msg-SendMessageExpires:
 
 SendMessageExpiresMessage
 -------------------------
@@ -1249,7 +1249,7 @@ Field value  Tags to send
    1111          160
 ===========  ============
 
-.. _msg-sessionstatus:
+.. _msg-SessionStatus:
 
 SessionStatusMessage
 --------------------
@@ -1294,7 +1294,7 @@ Status values include 0 for destroyed, 1 for created, 2 for updated, and 3 for
 invalid session.  If created, the Session ID is the identifier to be used for
 the rest of the session.
 
-.. _msg-setdate:
+.. _msg-SetDate:
 .. _SetDateMessage:
 
 Set Date

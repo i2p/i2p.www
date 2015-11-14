@@ -90,7 +90,7 @@ Common structures
 The following structures are elements of multiple I2NP messages.
 They are not complete messages.
 
-.. _struct-i2npmessageheader:
+.. _struct-I2NPMessageHeader:
 
 I2NP message header
 -------------------
@@ -172,7 +172,7 @@ Notes
   research to determine points in the protocol stack where the far-end router's
   version is known and checksum generation can be disabled.
 
-.. _struct-buildrequestrecord:
+.. _struct-BuildRequestRecord:
 
 BuildRequestRecord
 ------------------
@@ -346,7 +346,7 @@ Notes
 * See the tunnel creation specification [TUNNEL-CREATION]_ for details on field
   contents.
 
-.. _struct-buildresponserecord:
+.. _struct-BuildResponseRecord:
 
 BuildResponseRecord
 -------------------
@@ -391,7 +391,7 @@ Notes
 * See the tunnel creation specification [TUNNEL-CREATION]_ for details on the
   reply field.
 
-.. _struct-garlicclove:
+.. _struct-GarlicClove:
 .. _Garlic Cloves:
 
 GarlicClove
@@ -453,7 +453,7 @@ Notes
 * The Clove ID is generally set to a random number on transmit and is checked
   for duplicates on receive (same message ID space as top-level Message IDs)
 
-.. _struct-garlicclovedeliveryinstructions:
+.. _struct-GarlicCloveDeliveryInstructions:
 
 Garlic Clove Delivery Instructions
 ----------------------------------
@@ -549,7 +549,7 @@ VariableTunnelBuild_        23
 VariableTunnelBuildReply_   24
 =========================  ====
 
-.. _msg-databasestore:
+.. _msg-DatabaseStore:
 
 DatabaseStore
 -------------
@@ -650,7 +650,7 @@ Notes
 * The key is the "real" hash of the RouterIdentity or Destination, NOT the
   routing key.
 
-.. _msg-databaselookup:
+.. _msg-DatabaseLookup:
 
 DatabaseLookup
 --------------
@@ -805,7 +805,7 @@ Notes
 
 * The lookup key and exclude keys are the "real" hashes, NOT routing keys.
 
-.. _msg-databasesearchreply:
+.. _msg-DatabaseSearchReply:
 
 DatabaseSearchReply
 -------------------
@@ -879,7 +879,7 @@ Notes
 * The lookup key, peer hashes, and from hash are "real" hashes, NOT routing
   keys.
 
-.. _msg-deliverystatus:
+.. _msg-DeliveryStatus:
 
 DeliveryStatus
 --------------
@@ -922,7 +922,7 @@ Notes
   "arrival time" is set to the current network-wide ID, which is 2 (i.e.
   0x0000000000000002).
 
-.. _msg-garlic:
+.. _msg-Garlic:
 
 Garlic
 ------
@@ -1017,7 +1017,7 @@ Notes
 * In the future, the certificate could possibly be used for a HashCash to "pay"
   for the routing.
 
-.. _msg-tunneldata:
+.. _msg-TunnelData:
 
 TunnelData
 ----------
@@ -1060,7 +1060,7 @@ Notes
 
 * See also the Tunnel Message Specification [TUNNEL-MSG]_
 
-.. _msg-tunnelgateway:
+.. _msg-TunnelGateway:
 
 TunnelGateway
 -------------
@@ -1095,7 +1095,7 @@ Notes
 `````
 * The payload is an I2NP message with a standard 16-byte header.
 
-.. _msg-data:
+.. _msg-Data:
 
 Data
 ----
@@ -1124,7 +1124,7 @@ A length Integer, followed by opaque data.
        actual payload of this message
 {% endhighlight %}
 
-.. _msg_TunnelBuild:
+.. _msg-TunnelBuild:
 
 TunnelBuild
 -----------
@@ -1159,7 +1159,7 @@ Notes
 * The I2NP message ID for this message must be set according to the tunnel
   creation specification.
 
-.. _msg-tunnelbuildreply:
+.. _msg-TunnelBuildReply:
 
 TunnelBuildReply
 ----------------
@@ -1177,7 +1177,7 @@ Notes
 * The I2NP message ID for this message must be set according to the tunnel
   creation specification.
 
-.. _msg-variabletunnelbuild:
+.. _msg-VariableTunnelBuild:
 
 VariableTunnelBuild
 -------------------
@@ -1210,7 +1210,7 @@ Notes
 * The I2NP message ID for this message must be set according to the tunnel
   creation specification.
 
-msg_VariableTunnelBuildReply:
+.. _msg-VariableTunnelBuildReply:
 
 VariableTunnelBuildReply
 ------------------------

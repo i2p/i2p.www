@@ -64,7 +64,7 @@ Index
 Common type specification
 =========================
 
-.. _type-integer:
+.. _type-Integer:
 
 Integer
 -------
@@ -77,7 +77,7 @@ Contents
 ````````
 1 to 8 bytes in network byte order representing an unsigned integer
 
-.. _type-date:
+.. _type-Date:
 
 Date
 ----
@@ -91,7 +91,7 @@ Contents
 ````````
 8 byte Integer_
 
-.. _type-string:
+.. _type-String:
 
 String
 ------
@@ -107,7 +107,7 @@ in the string and the remaining 0-255 bytes are the non-null terminated UTF-8
 encoded character array.  Length limit is 255 bytes (not characters). Length
 may be 0.
 
-.. _type-boolean:
+.. _type-Boolean:
 
 Boolean
 -------
@@ -125,7 +125,7 @@ Notes
 `````
 Deprecated - unused
 
-.. _type-publickey:
+.. _type-PublicKey:
 
 PublicKey
 ---------
@@ -142,7 +142,7 @@ Contents
 
 JavaDoc: http://docs.i2p-projekt.de/javadoc/net/i2p/data/PublicKey.html
 
-.. _type-privatekey:
+.. _type-PrivateKey:
 
 PrivateKey
 ----------
@@ -159,7 +159,7 @@ Contents
 
 JavaDoc: http://docs.i2p-projekt.de/javadoc/net/i2p/data/PrivateKey.html
 
-.. _type-sessionkey:
+.. _type-SessionKey:
 
 SessionKey
 ----------
@@ -174,7 +174,7 @@ Contents
 
 JavaDoc: http://docs.i2p-projekt.de/javadoc/net/i2p/data/SessionKey.html
 
-.. _type-signingpublickey:
+.. _type-SigningPublicKey:
 
 SigningPublicKey
 ----------------
@@ -213,7 +213,7 @@ Notes
 
 JavaDoc: http://docs.i2p-projekt.de/javadoc/net/i2p/data/SigningPublicKey.html
 
-.. _type-signingprivatekey:
+.. _type-SigningPrivateKey:
 
 SigningPrivateKey
 -----------------
@@ -251,7 +251,7 @@ Notes
 
 JavaDoc: http://docs.i2p-projekt.de/javadoc/net/i2p/data/SigningPrivateKey.html
 
-.. _type-signature:
+.. _type-Signature:
 
 Signature
 ---------
@@ -290,7 +290,7 @@ Notes
 
 JavaDoc: http://docs.i2p-projekt.de/javadoc/net/i2p/data/Signature.html
 
-.. _type-hash:
+.. _type-Hash:
 
 Hash
 ----
@@ -305,7 +305,7 @@ Contents
 
 JavaDoc: http://docs.i2p-projekt.de/javadoc/net/i2p/data/Hash.html
 
-.. _type-sessiontag:
+.. _type-SessionTag:
 
 Session Tag
 -----------
@@ -320,7 +320,7 @@ Contents
 
 JavaDoc: http://docs.i2p-projekt.de/javadoc/net/i2p/data/SessionTag.html
 
-.. _type-tunnelid:
+.. _type-TunnelId:
 
 TunnelId
 --------
@@ -337,7 +337,7 @@ Contents
 
 JavaDoc: http://docs.i2p-projekt.de/javadoc/net/i2p/data/TunnelId.html
 
-.. _type-certificate:
+.. _type-Certificate:
 
 Certificate
 -----------
@@ -499,7 +499,7 @@ EdDSA_SHA512_Ed25519        96                        0
 
 JavaDoc: http://docs.i2p-projekt.de/javadoc/net/i2p/data/Certificate.html
 
-.. _type-mapping:
+.. _type-Mapping:
 
 Mapping
 -------
@@ -577,7 +577,7 @@ JavaDoc: http://docs.i2p-projekt.de/javadoc/net/i2p/data/DataHelper.html
 Common structure specification
 ==============================
 
-.. _struct-keysandcert:
+.. _struct-KeysAndCert:
 
 KeysAndCert
 -----------
@@ -648,7 +648,7 @@ Notes
 
 JavaDoc: http://docs.i2p-projekt.de/javadoc/net/i2p/data/KeysAndCert.html
 
-.. _struct-routeridentity:
+.. _struct-RouterIdentity:
 
 RouterIdentity
 --------------
@@ -677,7 +677,7 @@ Notes
 
 JavaDoc: http://docs.i2p-projekt.de/javadoc/net/i2p/data/router/RouterIdentity.html
 
-.. _struct-destination:
+.. _struct-Destination:
 
 Destination
 -----------
@@ -710,7 +710,7 @@ Notes
 
 JavaDoc: http://docs.i2p-projekt.de/javadoc/net/i2p/data/Destination.html
 
-.. _struct-lease:
+.. _struct-Lease:
 
 Lease
 -----
@@ -758,7 +758,7 @@ Notes
 
 JavaDoc: http://docs.i2p-projekt.de/javadoc/net/i2p/data/Lease.html
 
-.. _struct-leaseset:
+.. _struct-LeaseSet:
 
 LeaseSet
 --------
@@ -894,7 +894,7 @@ Notes
 
 JavaDoc: http://docs.i2p-projekt.de/javadoc/net/i2p/data/LeaseSet.html
 
-.. _struct-routeraddress:
+.. _struct-RouterAddress:
 
 RouterAddress
 -------------
@@ -966,7 +966,7 @@ Notes
 
 JavaDoc: http://docs.i2p-projekt.de/javadoc/net/i2p/data/router/RouterAddress.html
 
-.. _struct-routerinfo:
+.. _struct-RouterInfo:
 
 RouterInfo
 ----------
@@ -1067,7 +1067,7 @@ Notes
 
 JavaDoc: http://docs.i2p-projekt.de/javadoc/net/i2p/data/router/RouterInfo.html
 
-.. _struct-deliveryinstructions:
+.. _struct-DeliveryInstructions:
 
 Delivery Instructions
 ---------------------

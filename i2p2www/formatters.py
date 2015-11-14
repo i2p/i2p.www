@@ -727,8 +727,8 @@ class I2PHtmlFormatter(Formatter):
                     filename, extension = os.path.splitext(filename)
                     url = self.tagurlformat % {'path': base, 'fname': filename,
                                                'fext': extension}
-                    parts[0] = "<a href=\"%s#%s_%s\">%s" % \
-                        (url, kinds[kind], value, parts[0])
+                    parts[0] = "<a href=\"%s#%s-%s\">%s" % \
+                        (url, kinds[kind], value.lower(), parts[0])
                     parts[-1] = parts[-1] + "</a>"
 
             # for all but the last line
@@ -876,7 +876,7 @@ class TextSpecFormatter(Formatter):
                     filename, extension = os.path.splitext(filename)
                     url = self.tagurlformat % {'path': base, 'fname': filename,
                                                'fext': extension}
-                    refs[value] = '\n[%s]: %s#%s_%s' % (value, url, kinds[kind], value)
+                    refs[value] = '\n[%s]: %s#%s-%s' % (value, url, kinds[kind], value.lower())
                     value = '[%s]' % value
 
             if enc:

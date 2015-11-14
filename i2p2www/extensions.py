@@ -105,13 +105,13 @@ class HighlightExtension(Extension):
 
         if ctags:
             if 'tagsfile' not in parameters:
-                parameters['tagsfile'] = module_path() + '/pages/site/spectags'
+                parameters['tagsfile'] = module_path() + '/spec/spectags'
 
             if 'tagurlformat' not in parameters:
                 lang = 'en'
                 if hasattr(g, 'lang') and g.lang:
                     lang = g.lang
-                parameters['tagurlformat'] = '/' + lang + '/%(path)s%(fname)s'
+                parameters['tagurlformat'] = '/spec/%(path)s%(fname)s'
 
         if formatter == 'textspec':
             formatter = TextSpecFormatter(**parameters)

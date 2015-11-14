@@ -30,7 +30,7 @@ of attacks that are possible from observing message size.
 After the tunnel messages are created, they are encrypted as described in the
 tunnel documentation [TUNNEL-IMPL]_.
 
-.. _msg-tunnel:
+.. _msg-Tunnel:
 
 Tunnel Message (Encrypted)
 --------------------------
@@ -158,7 +158,7 @@ Notes
   IV, and take the Hash of that.
 
 
-.. _struct-tunnelmessagedeliveryinstructions:
+.. _struct-TunnelMessageDeliveryInstructions:
 
 Tunnel Message Delivery Instructions
 ====================================
