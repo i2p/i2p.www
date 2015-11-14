@@ -21,14 +21,14 @@ I2P_TO_CLEAR = {
 @app.context_processor
 def utility_processor():
     # Shorthand for getting a site url
-    def get_site_url(path=None):
+    def get_site_url(path=None, external=False):
         lang = 'en'
         if hasattr(g, 'lang') and g.lang:
             lang = g.lang
         if path:
-            return url_for('site_show', lang=lang, page=path)
+            return url_for('site_show', lang=lang, page=path, _external=external)
         else:
-            return url_for('site_show', lang=lang)
+            return url_for('site_show', lang=lang, _external=external)
 
     def get_spec_url(name):
         return url_for('spec_show', name=name, _external=True)
