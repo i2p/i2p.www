@@ -1,7 +1,8 @@
+import ctags
 from flask import g, request, safe_join, url_for
 import os.path
 
-from i2p2www import CANONICAL_DOMAIN, CURRENT_I2P_VERSION, RTL_LANGS, SUPPORTED_LANGS, SUPPORTED_LANG_NAMES, STATIC_DIR, app
+from i2p2www import CANONICAL_DOMAIN, CURRENT_I2P_VERSION, RTL_LANGS, SUPPORTED_LANGS, SUPPORTED_LANG_NAMES, SPEC_DIR, STATIC_DIR, app
 
 INPROXY = '.xyz' # http://zzz.i2p/topics/1771-i2p-xyz-inproxy
 
@@ -20,6 +21,13 @@ I2P_TO_CLEAR = {
 
 @app.context_processor
 def utility_processor():
+    _ctags = ctags.CTags(os.path.join(SPEC_DIR, 'spectags'))
+    kinds = {
+        't': 'type',
+        's': 'struct',
+        'm': 'msg',
+        }
+
     # Shorthand for getting a site url
     def get_site_url(path=None, external=False):
         lang = 'en'
@@ -31,7 +39,30 @@ def utility_processor():
             return url_for('site_show', lang=lang, _external=external)
 
     def get_spec_url(name):
-        return url_for('spec_show', name=name, _external=True)
+        url = url_for('spec_show', name=name, _external=True)
+        # Remove ?lang=xx
+        return url[:url.index('?')]
+
+    def get_ctags_url(value):
+        filename, kind = _lookup_ctag(value)
+        # Handle message types
+        if not kind and value.endswith('Message'):
+            value = value[:-7]
+            filename, kind = _lookup_ctag(value)
+        if kind:
+            specname, _ = os.path.splitext(filename)
+            url = get_spec_url(specname)
+            return '%s#%s-%s' % \
+                (url, kinds[kind], value.lower())
+        else:
+            return ''
+
+    def _lookup_ctag(token):
+        entry = ctags.TagEntry()
+        if _ctags.find(entry, token, 0):
+            return entry['file'], entry['kind']
+        else:
+            return None, None
 
     # Shorthand for getting a language-specific url
     def get_url_with_lang(endpoint, **args):
@@ -115,6 +146,7 @@ def utility_processor():
                 logo_url=get_logo_for_theme,
                 site_url=get_site_url,
                 spec_url=get_spec_url,
+                ctags_url=get_ctags_url,
                 get_url=get_url_with_lang,
                 is_rtl=is_rtl_lang,
                 get_flag=get_flag,
