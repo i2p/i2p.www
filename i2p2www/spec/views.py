@@ -62,6 +62,7 @@ def spec_show(name, txt=False):
         content = content.replace('.. meta::\n', '')
         content = content.replace('.. raw:: html\n\n', '')
         content = content.replace('\n.. [', '\n[')
+        content = content.replace(']_.', '].')
         content = content.replace(']_', '] ')
         # Change highlight formatter
         content = content.replace('{% highlight', "{% highlight formatter='textspec'")
