@@ -41,7 +41,9 @@ def utility_processor():
     def get_spec_url(name):
         url = url_for('spec_show', name=name, _external=True)
         # Remove ?lang=xx
-        return url[:url.index('?')]
+        if '?' in url:
+            url = url[:url.index('?')]
+        return url
 
     def get_ctags_url(value):
         filename, kind = _lookup_ctag(value)
