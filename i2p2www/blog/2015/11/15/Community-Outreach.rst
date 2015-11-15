@@ -5,7 +5,7 @@ Community Outreach
 {%- endtrans %}
 .. meta::
    :author: lazygravy
-   :date: 2015-11-11
+   :date: 2015-11-15
    :category: release
    :excerpt: {% trans %}A start to more frequent community status reports.{% endtrans %}
 
@@ -20,7 +20,7 @@ Since many awesome events are happening *inside* the network, we think it will b
 **{% trans %}A Call for Feedback{% endtrans %}**
 
 {% trans -%}
-Let’s face it -- our console needs improvement.
+Let's face it -- our console needs improvement.
 Our site could use an update as well.
 We are looking for feedback on how to improve the usability of I2P for new and existing users!
 {%- endtrans %}
@@ -29,7 +29,7 @@ We are looking for feedback on how to improve the usability of I2P for new and e
 Any and all feedback is welcome.
 Please contact `@GetI2P`_, `@str4d`_, or `@YrB1rd`_.
 If you don't feel comfortable using Twitter, we are always available via the in-network IRC channel.
-You don’t have to be a long time user.
+You don't have to be a long time user.
 We want to hear from all sorts of people!
 {%- endtrans %}
 
@@ -37,7 +37,7 @@ We want to hear from all sorts of people!
 .. _`@str4d`: https://twitter.com/str4d
 .. _`@YrB1rd`: https://twitter.com/YrB1rd
 
-PICTURE??
+**{% trans %}Developer Meeting Synopsis{% endtrans %}**
 
 {% trans -%}
 On 03 November there was an I2P developer meeting (`log`_).
@@ -64,8 +64,6 @@ More details are to come on this, but we can promise there will be stickers.
 {%- endtrans %}
 
 **{% trans %}General Announcements{% endtrans %}**
-
-PICTURE?
 
 {% trans -%}
 Thank you to `TorontoCrypto`_ for hosting the newest I2P reseed server!
