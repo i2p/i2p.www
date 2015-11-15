@@ -1,7 +1,7 @@
 {% trans -%}
-==============
+==================
 Community Outreach
-==============
+==================
 {%- endtrans %}
 .. meta::
    :author: lazygravy
@@ -54,7 +54,7 @@ I2Pwiki.i2p (a backup of ugha.i2p, an older wiki) was accepted, as was lenta.i2p
 {%- endtrans %}
 
 {% trans -%}
-str4d proposed blocking off the \*.i2p.i2p namespace so they can be used for developer’s services.
+str4d proposed blocking off the \*.i2p.i2p namespace so they can be used for developer's services.
 He also suggested a more formalized technical proposal system, with more prominence on the main website.
 {%- endtrans %}
 
@@ -72,8 +72,8 @@ Thank you to `TorontoCrypto`_ for hosting the newest I2P reseed server!
 .. _`TorontoCrypto`: https://torontocrypto.org/
 
 {% trans -%}
-Translation deadline Thursday, 12 November, translators please update. All translations are done via `Transfix`_ .
+Translation deadline Thursday, 12 November, translators please update. All translations are done via `Transifex`_ .
 {%- endtrans %}
 
-.. _`Transfix`: https://www.transifex.com/otf/I2P/
+.. _`Transifex`: https://www.transifex.com/otf/I2P/
 
