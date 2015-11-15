@@ -176,16 +176,16 @@ References
 ==========
 
 .. [Destination]
-    {{ spec_url('common-structures') }}#struct-destination
+    {{ ctags_url('Destination') }}
 
 .. [Integer]
-    {{ spec_url('common-structures') }}#type-integer
+    {{ ctags_url('Integer') }}
 
 .. [Signature]
-    {{ spec_url('common-structures') }}#type-signature
+    {{ ctags_url('Signature') }}
 
 .. [SigningPrivateKey]
-    {{ spec_url('common-structures') }}#type-signingprivatekey
+    {{ ctags_url('SigningPrivateKey') }}
 
 .. [STREAMING]
     {{ site_url('docs/api/streaming', True) }}

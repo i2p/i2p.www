@@ -234,14 +234,14 @@ Hostname keys are stored in lower-case and always end in ".i2p".
 References
 ==========
 
-.. [NAMING]
-    {{ site_url('docs/naming', True) }}
+.. [Destination]
+    {{ ctags_url('Destination') }}
+
+.. [Mapping]
+    {{ ctags_url('Mapping') }}
 
 .. [METANOTION]
     http://www.metanotion.net/software/sandbox/block.html
 
-.. [Mapping]
-    {{ spec_url('common-structures') }}#type-mapping
-
-.. [Destination]
-    {{ spec_url('common-structures') }}#struct-destination
+.. [NAMING]
+    {{ site_url('docs/naming', True) }}

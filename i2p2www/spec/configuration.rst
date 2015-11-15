@@ -425,7 +425,7 @@ References
     http://docs.i2p-projekt.de/javadoc/net/i2p/data/DataHelper.html
 
 .. [Mapping]
-    {{ spec_url('common-structures') }}#type-mapping
+    {{ ctags_url('Mapping') }}
 
 .. [PLUGIN]
     {{ spec_url('plugin') }}

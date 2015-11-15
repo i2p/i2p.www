@@ -1111,7 +1111,7 @@ References
     {{ site_url('docs/how/cryptography', True) }}#udp
 
 .. [Date]
-    {{ spec_url('common-structures') }}#type-date
+    {{ ctags_url('Date') }}
 
 .. [I2P-SRC]
     https://github.com/i2p/i2p.i2p
@@ -1126,19 +1126,19 @@ References
     {{ spec_url('common-structures') }}#key-certificates
 
 .. [RouterIdentity]
-    {{ spec_url('common-structures') }}#struct-routeridentity
+    {{ ctags_url('RouterIdentity') }}
 
 .. [SESSIONKEY]
-    {{ spec_url('common-structures') }}#type-sessionkey
+    {{ ctags_url('SessionKey') }}
 
 .. [Signature]
-    {{ spec_url('common-structures') }}#type-signature
+    {{ ctags_url('Signature') }}
 
 .. [SigningPrivateKey]
-    {{ spec_url('common-structures') }}#type-signingprivatekey
+    {{ ctags_url('SigningPrivateKey') }}
 
 .. [SigningPublicKey]
-    {{ spec_url('common-structures') }}#type-signingpublickey
+    {{ ctags_url('SigningPublicKey') }}
 
 .. [SSU]
     {{ site_url('docs/transport/ssu', True) }}

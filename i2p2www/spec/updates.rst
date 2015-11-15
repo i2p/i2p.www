@@ -555,7 +555,7 @@ References
     http://tools.ietf.org/html/rfc4287
 
 .. [Signature]
-    {{ spec_url('common-structures') }}#type-signature
+    {{ ctags_url('Signature') }}
 
 .. [SigningPublicKey]
-    {{ spec_url('common-structures') }}#type-signingpublickey
+    {{ ctags_url('SigningPublicKey') }}

@@ -1325,13 +1325,13 @@ References
 ==========
 
 .. [Date]
-    {{ spec_url('common-structures') }}#type-date
+    {{ ctags_url('Date') }}
 
 .. [Destination]
-    {{ spec_url('common-structures') }}#struct-destination
+    {{ ctags_url('Destination') }}
 
 .. [Hash]
-    {{ spec_url('common-structures') }}#struct-hash
+    {{ ctags_url('Hash') }}
 
 .. [I2CP]
     {{ site_url('docs/protocol/i2cp', True) }}
@@ -1343,35 +1343,41 @@ References
     http://docs.i2p-projekt.de/javadoc/net/i2p/data/i2cp/package-summary.html
 
 .. [Integer]
-    {{ spec_url('common-structures') }}#type-integer
+    {{ ctags_url('Integer') }}
 
 .. [Leases]
 .. [Lease]
-    {{ spec_url('common-structures') }}#struct-lease
+    {{ ctags_url('Lease') }}
 
 .. [LeaseSet]
-    {{ spec_url('common-structures') }}#struct-leaseset
+    {{ ctags_url('LeaseSet') }}
 
 .. [Mapping]
-    {{ spec_url('common-structures') }}#type-mapping
+    {{ ctags_url('Mapping') }}
 
 .. [MSM-JAVADOCS]
     http://docs.i2p-projekt.de/javadoc/net/i2p/data/i2cp/MessageStatusMessage.html
 
 .. [PrivateKey]
-    {{ spec_url('common-structures') }}#type-privatekey
+    {{ ctags_url('PrivateKey') }}
+
+.. [PublicKey]
+    {{ ctags_url('PublicKey') }}
 
 .. [RouterIdentity]
-    {{ spec_url('common-structures') }}#struct-routeridentity
+    {{ ctags_url('RouterIdentity') }}
 
 .. [Signature]
-    {{ spec_url('common-structures') }}#type-signature
+    {{ ctags_url('Signature') }}
 
 .. [SigningPrivateKey]
-    {{ spec_url('common-structures') }}#type-signingprivatekey
+    {{ ctags_url('SigningPrivateKey') }}
+
+.. [SigningPublicKey]
+    {{ ctags_url('SigningPublicKey') }}
 
 .. [String]
-    {{ spec_url('common-structures') }}#struct-string
+    {{ ctags_url('String') }}
 
 .. [TunnelId]
-    {{ spec_url('common-structures') }}#tunnelid
+    {{ ctags_url('TunnelId') }}

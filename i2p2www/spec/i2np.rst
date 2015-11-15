@@ -1243,7 +1243,7 @@ References
     {{ site_url('docs/how/cryptography', True) }}#elgamal
 
 .. [Date]
-    {{ spec_url('common-structures') }}#type-date
+    {{ ctags_url('Date') }}
 
 .. [ElG-AES]
     {{ site_url('docs/how/elgamal-aes', True) }}
@@ -1252,16 +1252,16 @@ References
     {{ site_url('docs/how/garlic-routing', True) }}
 
 .. [Hash]
-    {{ spec_url('common-structures') }}#struct-hash
+    {{ ctags_url('Hash') }}
 
 .. [I2NP]
     {{ site_url('docs/protocol/i2np', True) }}
 
 .. [Integer]
-    {{ spec_url('common-structures') }}#type-integer
+    {{ ctags_url('Integer') }}
 
 .. [RouterIdentity]
-    {{ spec_url('common-structures') }}#struct-routeridentity
+    {{ ctags_url('RouterIdentity') }}
 
 .. [SSU]
     {{ site_url('docs/transport/ssu', True) }}
@@ -1270,7 +1270,7 @@ References
     {{ site_url('docs/transport/ssu', True) }}#establishDirect
 
 .. [TMDI]
-    {{ spec_url('tunnel-message') }}#struct-tunnelmessagedeliveryinstructions
+    {{ ctags_url('TunnelMessageDeliveryInstructions') }}
 
 .. [TUNNEL-CREATION]
     {{ spec_url('tunnel-creation') }}
@@ -1282,4 +1282,4 @@ References
     {{ site_url('docs/tunnels/implementation', True) }}
 
 .. [TunnelId]
-    {{ spec_url('common-structures') }}#tunnelid
+    {{ ctags_url('TunnelId') }}

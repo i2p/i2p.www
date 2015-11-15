@@ -1089,7 +1089,7 @@ References
     {{ site_url('docs/how/elgamal-aes', True) }}
 
 .. [GARLIC-DELIVERY]
-    {{ site_url('docs/protocol/i2np', True) }}#struct-garlicclovedeliveryinstructions
+    {{ ctags_url('GarlicCloveDeliveryInstructions') }}
 
 .. [I2CP]
     {{ site_url('docs/protocol/i2cp', True) }}
@@ -1104,4 +1104,4 @@ References
     {{ site_url('docs/transport/ssu', True) }}
 
 .. [TUNNEL-DELIVERY]
-    {{ site_url('docs/spec/tunnel-message', True) }}#struct-tunnelmessagedeliveryinstructions
+    {{ ctags_url('TunnelMessageDeliveryInstructions') }}

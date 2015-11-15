@@ -313,7 +313,7 @@ References
 ==========
 
 .. [BRR]
-    {{ spec_url('i2np') }}#struct_BuildRequestRecord
+    {{ ctags_url('BuildRequestRecord') }}
 
 .. [CRYPTO-AES]
     {{ site_url('docs/how/cryptography', True) }}#AES
@@ -334,10 +334,10 @@ References
     http://forensics.umass.edu/pubs/wright.tissec.2008.pdf
 
 .. [TBM]
-    {{ spec_url('i2np') }}#msg_TunnelBuild
+    {{ ctags_url('TunnelBuild') }}
 
 .. [TBRM]
-    {{ spec_url('i2np') }}#msg_TunnelBuildReply
+    {{ ctags_url('TunnelBuildReply') }}
 
 .. [TUNBUILD-REASONING]
     http://osdir.com/ml/network.i2p/2005-10/msg00129.html
@@ -352,7 +352,7 @@ References
     {{ site_url('docs/tunnels/implementation', True) }}#tunnel.operation
 
 .. [VTBM]
-    {{ spec_url('i2np') }}#msg_VariableTunnelBuild
+    {{ ctags_url('VariableTunnelBuild') }}
 
 .. [VTBRM]
-    {{ spec_url('i2np') }}#msg_VariableTunnelBuildReply
+    {{ ctags_url('VariableTunnelBuildReply') }}

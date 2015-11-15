@@ -125,4 +125,4 @@ References
     {{ site_url('docs/transport', True) }}
 
 .. [TUNMSG]
-    {{ site_url('docs/spec/tunnel-message', True) }}#notes
+    {{ spec_url('tunnel-message') }}#notes

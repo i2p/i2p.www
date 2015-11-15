@@ -342,10 +342,10 @@ References
     {{ site_url('docs/protocol/i2np', True) }}
 
 .. [I2NP-GC]
-    {{ spec_url('i2np') }}#struct-garlicclove
+    {{ ctags_url('GarlicClove') }}
 
 .. [I2NP-GCDI]
-    {{ spec_url('i2np') }}#struct-garlicclovedeliveryinstructions
+    {{ ctags_url('GarlicCloveDeliveryInstructions') }}
 
 .. [TUNNEL-IMPL]
     {{ site_url('docs/tunnels/implementation', True) }}
