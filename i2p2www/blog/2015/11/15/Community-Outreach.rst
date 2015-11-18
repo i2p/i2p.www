@@ -6,7 +6,7 @@ Community Outreach
 .. meta::
    :author: lazygravy
    :date: 2015-11-15
-   :category: release
+   :category: community
    :excerpt: {% trans %}A start to more frequent community status reports.{% endtrans %}
 
 **{% trans %}Meta{% endtrans %}**
