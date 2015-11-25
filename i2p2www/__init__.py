@@ -179,9 +179,12 @@ def pull_lang(endpoint, values):
 def set_lang(endpoint, values):
     if not values:
         return
-    if endpoint == 'static':
+    if endpoint == 'static' or \
+            endpoint.startswith('spec_'):
         # Static urls shouldn't have a lang flag
         # (causes complete reload on lang change)
+        # Spec urls shouldn't have a lang flag
+        # (adds a spurious ?lang=xx to the url)
         return
     if 'lang' in values:
         return
