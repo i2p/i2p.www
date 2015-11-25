@@ -31,10 +31,14 @@ def spec_index():
     for f in os.listdir(SPEC_DIR):
         if f.endswith('.rst'):
             path = safe_join(SPEC_DIR, f)
-            # read file
+            # read file header
+            header = ''
             with codecs.open(path, encoding='utf-8') as fd:
-                content = fd.read()
-            parts = publish_parts(source=content, source_path=SPEC_DIR, writer_name="html")
+                for line in fd:
+                    header += line
+                    if not line.strip():
+                        break
+            parts = publish_parts(source=header, source_path=SPEC_DIR, writer_name="html")
             meta = get_metadata_from_meta(parts['meta'])
 
             spec = {
