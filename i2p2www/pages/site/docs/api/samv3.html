@@ -59,10 +59,12 @@ Version 3.2 is not yet implemented, and the changes listed below are preliminary
 <li>SESSION CREATE STYLE=RAW now supports option PROTOCOL=nnn to set default I2P protocol (18 otherwise)
 <li>STREAM CONNECT, DATAGRAM SEND, and RAW SEND now support new options FROM_PORT=nnnn and TO_PORT=nnnn
     to override default I2P ports for that connection
-<li>STREAM ACCEPT now supports option TO_PORT=nnnn to accept connections on that I2P port only
 <li>RAW SEND now supports option PROTOCOL=nnn to override default I2P RAW protocol value (18)
-<li>DATAGRAM RECEIVED, RAW RECEIVED, and forwarded or received streams and datagrams, when SILENT=false,
+<li>DATAGRAM RECEIVED, RAW RECEIVED, and forwarded or received streams and repliable datagrams,
     now appends to the first line is FROM_PORT=nnnn TO_PORT=nnnn to indicate I2P ports
+<li>For a RAW session forwarded to an external port, if the option HEADER=true is provided,
+    the forwarded raw datagram will be prepended with a line containing PROTOCOL=nnn FROM_PORT=nnnn TO_PORT=nnnn
+    The line ends with \n.
 <li>The first line of datagrams sent through port 7655 may now start with any 3.x version
 <li>The first line of datagrams sent through port 7655 may have, after the destination,
     any of the options FROM_PORT=nnnn TO_PORT=nnnn PROTOCOL=nnn
@@ -100,6 +102,7 @@ Version 3.3 is not yet implemented, and the changes listed below are preliminary
 <ul>
 <li>The same session ID may be used for streams, datagrams, and raw simultaneously.
     Incoming packets and streams will be routed based on I2P protocol and to-port.
+<li>STREAM ACCEPT now supports option TO_PORT=nnnn to accept connections on that I2P port only
 </ul>
 </p>
 
@@ -578,8 +581,8 @@ For an alternate method of sending repliable datagrams, see <a href="#dgsend">DA
 <h3>SAM Repliable Datagrams : Receiving a Datagram</h3>
 <p>
 Received datagrams are written by SAM on the socket from which the
-datagram session was opened, unless specified otherwise by the CREATE
-command.
+datagram session was opened, if a forwarding PORT is not specified in the SESSION CREATE
+command. This is the v1/v2-compatible way of receiving datagrams.
 
 </p><p>
 When a datagram arrives, the bridge delivers it to the client via the
@@ -588,7 +591,8 @@ message:
 <pre>
 &lt;-  DATAGRAM RECEIVED
            DESTINATION=$destination
-           SIZE=$numBytes\n[$numBytes of data]
+           SIZE=$numBytes\n
+       [$numBytes of data]
 </pre>
 
 </p><p>
@@ -602,7 +606,7 @@ or other fields, merely the data that the sender provided.  This
 continues until the session is closed (by the client dropping the
 connection).
 
-<h3>SAM Repliable Datagrams : Forwarding Datagrams</h3>
+<h3>SAM Datagrams : Forwarding Raw or Repliable Datagrams</h3>
 <p>
 When creating a datagram session, the client can ask SAM to forward
 incoming messages to a specified ip:port. It does so by issuing the
@@ -610,7 +614,7 @@ CREATE command with PORT and HOST options:
 
 <pre>
 -&gt; SESSION CREATE 
-          STYLE=DATAGRAM
+          STYLE={DATAGRAM,RAW}
           ID=$nickname
           DESTINATION={$privkey,TRANSIENT}
           PORT=$port
@@ -634,6 +638,8 @@ CREATE command with PORT and HOST options:
 </p><p>
  $port is the port number of the datagram server to which SAM
      will forward datagrams.
+ If $port is not set, datagrams will NOT be forwarded, they will be received on the control socket,
+ in the v1/v2-compatible way.
 
 </p><p>
 Additional options given are passed to the I2P session 
@@ -641,13 +647,22 @@ configuration if not interpreted by the SAM bridge (e.g.
 outbound.length=0). These options <a href="#options">are documented below</a>..
 
 </p><p>
-Forwarded datagrams are always prefixed with the destination
-(SILENT=false); SILENT=true is not honored.
-When a datagram arrives, the bridge sends to the specified host:port
+Forwarded repliable datagrams are always prefixed with the destination.
+When a repliable datagram arrives, the bridge sends to the specified host:port
 a UDP packet containing the following data:
 
 <pre>
-$destination\n$datagram_payload
+$destination\n
+$datagram_payload
+</pre>
+
+</p><p>
+Forwarded raw datagrams are forwarded as-is
+to the specified host:port without a prefix.
+The UDP packet contains the following data:
+
+<pre>
+$datagram_payload
 </pre>
 
 </p><p>
@@ -678,12 +693,14 @@ Both ways of receiving datagrams are also available for anonymous
 datagrams.
 
 </p><p>
-When anonymous datagrams are to be written to the socket that created
-the session,the bridge delivers it to the client via:
+Received datagrams are written by SAM on the socket from which the
+datagram session was opened, if a forwarding PORT is not specified in the SESSION CREATE
+command. This is the v1/v2-compatible way of receiving datagrams.
 
 <pre>
 &lt;- RAW RECEIVED
-      SIZE=$numBytes\n[$numBytes of data]
+          SIZE=$numBytes\n
+      [$numBytes of data]
 </pre>
 
 </p><p>
