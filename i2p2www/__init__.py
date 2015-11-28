@@ -22,7 +22,7 @@ except ImportError:
 ###########
 # Constants
 
-CURRENT_I2P_VERSION = '0.9.22'
+CURRENT_I2P_VERSION = '0.9.23'
 
 CANONICAL_DOMAIN = 'geti2p.net'
 
@@ -44,6 +44,7 @@ SUPPORTED_LANGS = [
     'zh',
     'ar',
     'id',
+    'el',
     'he',
     'it',
     'ja',
@@ -68,6 +69,7 @@ SUPPORTED_LANG_NAMES = {
     'en': u'English',
     'es': u'Castellano',
     'fr': u'Français',
+    'el': u'Greek Ελληνικά',
     'he': u'Hebrew עברית',
     'it': u'Italiano',
     'ja': u'Japanese 日本語',

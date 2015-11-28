@@ -1,7 +1,7 @@
 {% extends "global/layout.html" %}
 {% block title %}SAM V3{% endblock %}
-{% block lastupdated %}June 2015{% endblock %}
-{% block accuratefor %}0.9.20{% endblock %}
+{% block lastupdated %}November 2015{% endblock %}
+{% block accuratefor %}0.9.24{% endblock %}
 {% block content %}
 <p>Specified below is a simple client protocol for interacting with I2P.
 </p>
@@ -59,15 +59,16 @@ Version 3.2 is not yet implemented, and the changes listed below are preliminary
 <li>SESSION CREATE STYLE=RAW now supports option PROTOCOL=nnn to set default I2P protocol (18 otherwise)
 <li>STREAM CONNECT, DATAGRAM SEND, and RAW SEND now support new options FROM_PORT=nnnn and TO_PORT=nnnn
     to override default I2P ports for that connection
-<li>STREAM ACCEPT now supports option TO_PORT=nnnn to accept connections on that I2P port only
 <li>RAW SEND now supports option PROTOCOL=nnn to override default I2P RAW protocol value (18)
-<li>DATAGRAM RECEIVED, RAW RECEIVED, and forwarded or received streams and datagrams, when SILENT=false,
+<li>DATAGRAM RECEIVED, RAW RECEIVED, and forwarded or received streams and repliable datagrams,
     now appends to the first line is FROM_PORT=nnnn TO_PORT=nnnn to indicate I2P ports
+<li>For a RAW session forwarded to an external port, if the option HEADER=true is provided,
+    the forwarded raw datagram will be prepended with a line containing PROTOCOL=nnn FROM_PORT=nnnn TO_PORT=nnnn
+    The line ends with \n.
 <li>The first line of datagrams sent through port 7655 may now start with any 3.x version
+<li>The first line of datagrams sent through port 7655 may have, after the destination,
+    any of the options FROM_PORT=nnnn TO_PORT=nnnn PROTOCOL=nnn
 <li>RAW RECEIVED now appends to the first line PROTOCOL=nnn to indicate I2P protocol
-<li>DATAGRAM SEND and RAW SEND now supports options SEND_TAGS=nnn, TAG_THRESHOLD=nnn, EXPIRES=nnnnnnn, and SEND_LEASESET=true|false.
-    These will be passed to I2CP if supported. See <a href="..//i2cp#msg_SendMessageExpire">the I2CP specification</a> for details.
-    Support by the SAM server is optional, it will ignore these options if unsupported.
 <li>Client and server may now send: PING [arbitrary text] on the control port,
     with the response:
     PONG [arbitrary text from the ping], to be used for control socket keepalive.
@@ -82,12 +83,26 @@ Version 3.2 is not yet implemented, and the changes listed below are preliminary
     <li>AUTH REMOVE USER=foo removes this user
   </ul>
 <li>Multiple concurrent pending STREAM ACCEPTs are allowed on the same session ID (even with the same port).
-    It isn't clear (either in the spec or the code) if these are allowed now.
-<li>The same session ID may be used for streams, datagrams, and raw simultaneously.
-    Incoming packets and streams will be routed based on I2P protocol and to-port.
+    Prior to 3.2, concurrent accepts would fail with ALREADY_ACCEPTING.
 <li>The server's control socket may optionally offer SSL/TLS support, as configured on the server and client.
     Implementations may offer other transport layers as well; this is outside the scope of the protocol definition.
 <li>For STREAM FORWARD, client may add SSL=true to use an SSL socket
+<li>New commands QUIT, STOP and EXIT will close the session and socket
+</ul>
+</p>
+
+
+
+<h3>Version 3.3 Proposal</h3>
+<p>
+Version 3.3 is not yet implemented, and the changes listed below are preliminary.
+<ul>
+<li>The same session ID may be used for streams, datagrams, and raw simultaneously.
+    Incoming packets and streams will be routed based on I2P protocol and to-port.
+<li>STREAM ACCEPT now supports option TO_PORT=nnnn to accept connections on that I2P port only
+<li>DATAGRAM SEND and RAW SEND now supports options SEND_TAGS=nnn, TAG_THRESHOLD=nnn, EXPIRES=nnnnnnn, and SEND_LEASESET=true|false.
+    These will be passed to I2CP if supported. See <a href="..//i2cp#msg_SendMessageExpire">the I2CP specification</a> for details.
+    Support by the SAM server is optional, it will ignore these options if unsupported.
 </ul>
 </p>
 
@@ -158,11 +173,11 @@ As of version 3.1 (I2P 0.9.14), the MIN and MAX parameters are optional.
 SAM will always return the highest version possible given the
 MIN and MAX constraints, or 3.1 if no constraints are given.
 
-If the SAM bridge cannot find a suitable version, it replies with :
+If the SAM bridge cannot find a suitable version, it replies with:
 <pre>
 &lt;- HELLO REPLY RESULT=NOVERSION
 </pre>
-If some error occurred, such as a bad request format, it replies with :
+If some error occurred, such as a bad request format, it replies with:
 <pre>
 &lt;- HELLO REPLY RESULT=I2P_ERROR MESSAGE=$message
 </pre>
@@ -179,7 +194,7 @@ Each registered I2P Destination is uniquely associated with a session ID
 (or nickname).
 
 </p><p>
-Each session is uniquely associated with :
+Each session is uniquely associated with:
 <ul><li>
 the socket from which the client creates the session
 </li><li>
@@ -235,7 +250,7 @@ After receiving the session create message, the SAM bridge will reply
 with a session status message, as follows:
 
 </p><p>
-If the creation was successful :
+If the creation was successful:
 <pre>
 &lt;-  SESSION STATUS RESULT=OK DESTINATION=$privkey
 </pre>
@@ -249,25 +264,25 @@ depending on signature type.
 The binary format is specified in <a href="http://docs.i2p-projekt.de/javadoc/net/i2p/data/PrivateKeyFile.html">Private Key File</a>.
 
 </p><p>
-If the nickname is already associated with a session :
+If the nickname is already associated with a session:
 <pre>
 &lt;-  SESSION STATUS RESULT=DUPLICATED_ID
 </pre>
 
 </p><p>
-If the destination is already in use :
+If the destination is already in use:
 <pre>
 &lt;-  SESSION STATUS RESULT=DUPLICATED_DEST
 </pre>
 
 </p><p>
-If the destination is not a valid private destination key :
+If the destination is not a valid private destination key:
 <pre>
 &lt;-  SESSION STATUS RESULT=INVALID_KEY
 </pre>
 
 </p><p>
-If some other error has occurred :
+If some other error has occurred:
 <pre>
 &lt;-  SESSION STATUS RESULT=I2P_ERROR MESSAGE=$message
 </pre>
@@ -301,13 +316,13 @@ he wants to listen to requests coming from other I2P destinations.
 
 <h3>SAM Virtual Streams : CONNECT</h3>
 <p>
-A client asks for a connection by :
+A client asks for a connection by:
 <ul><li>
 opening a new socket with the SAM bridge
 </li><li>
 passing the same HELLO handshake as above
 </li><li>
-sending the connection command :  
+sending the STREAM CONNECT command:  
 </li></ul>
 
 <pre>
@@ -328,7 +343,7 @@ depending on signature type.
 
 </p><p>
 If SILENT=true is passed, the SAM bridge won't issue any other message
-on the socket : if the connection fails, the socket will be closed.
+on the socket. If the connection fails, the socket will be closed.
 If the connection succeeds, all remaining data passing through the
 current socket is forwarded from and to the connected I2P destination
 peer.
@@ -336,7 +351,7 @@ peer.
 </p><p>
 If SILENT=false, which is the default value, the SAM bridge sends a
 last message to its client before forwarding or shutting down the
-socket :
+socket:
 
 <pre>
 &lt;-  STREAM STATUS 
@@ -367,13 +382,13 @@ socket.
 
 <h3>SAM Virtual Streams : ACCEPT</h3>
 <p>
-A client waits for an incoming connection request by :
+A client waits for an incoming connection request by:
 <ul><li>
 opening a new socket with the SAM bridge
 </li><li>
 passing the same HELLO handshake as above
 </li><li>
-sending the accept command :  
+sending the STREAM ACCEPT command:  
 </li></ul>
 
 <pre>
@@ -387,7 +402,18 @@ This makes the session ${nickname} listen for one incoming
 connection request from the I2P network.
 
 </p><p>
-The SAM bridge answers with :
+If SILENT=true is passed, the SAM bridge won't issue any other message
+on the socket. If the accept fails, the socket will be closed.
+If the accept succeeds, all remaining data passing through the
+current socket is forwarded from and to the connected I2P destination
+peer. 
+For reliability, and to receive the destination for incoming connections,
+SILENT=false is recommended.
+
+
+</p><p>
+If SILENT=false, which is the default value,
+the SAM bridge answers with:
 
 <pre>
 &lt;-  STREAM STATUS 
@@ -408,11 +434,11 @@ The RESULT value may be one of:
 If the result is not OK, the socket is closed immediately by the SAM
 bridge. If the result is OK, the SAM bridge starts waiting for an
 incoming connection request from another I2P peer. When a request
-arrives, the SAM bridge accepts it and :
+arrives, the SAM bridge accepts it and:
 
 </p><p>
 If SILENT=true was passed, the SAM bridge won't issue any other message
-on the client socket : all remaining data passing through the
+on the client socket. All remaining data passing through the
 current socket is forwarded from and to the connected I2P destination
 peer.
 
@@ -427,13 +453,13 @@ I2P destination peer, until one of the peer closes the socket.
 <h3>SAM Virtual Streams : FORWARD</h3>
 <p>
 A client can use a regular socket server and wait for connection requests
-coming from I2P. For that, the client has to :
+coming from I2P. For that, the client must:
 <ul><li>
 open a new socket with the SAM bridge
 </li><li>
 pass the same HELLO handshake as above
 </li><li>
-send the forward command :
+send the forward command:
 </ul></li>
 
 <pre>
@@ -449,7 +475,12 @@ This makes the session ${nickname} listen for incoming
 connection requests from the I2P network.
 
 </p><p>
-The SAM bridge answers with :
+SILENT defaults to false.
+Whether SILENT is true or false,
+the SAM bridge always answers with a STREAM STATUS message.
+Note that this is a different behavior from STREAM ACCEPT and STREAM CONNECT
+when SILENT=true.
+The STREAM STATUS message is:
 
 <pre>
 &lt;-  STREAM STATUS 
@@ -478,7 +509,7 @@ forward connection requests. It is mandatory.
 </p><p>
 When a connection request arrives from I2P, the SAM bridge requests a
 socket connection from $host:$port. If it is accepted after no more
-than 3 seconds, SAM will accept the connection from I2P, and then :
+than 3 seconds, SAM will accept the connection from I2P, and then:
 
 </p><p>
 If SILENT=true was passed, all data passing through the obtained
@@ -520,8 +551,8 @@ After establishing a SAM session with STYLE=DATAGRAM, the client can
 send datagrams through SAM's UDP port (7655).
 
 </p><p>
-The first line of a datagram sent through this port has to be in the
-following format :
+The first line of a datagram sent through this port must be in the
+following format:
 
 <p>
 3.0 $nickname $destination
@@ -541,7 +572,7 @@ following format :
 
 </p><p>
 The first line will be discarded by SAM before sending the remaining
-of the message to the specified destination.
+data of the message to the specified destination.
 
 </p><p>
 For an alternate method of sending repliable datagrams, see <a href="#dgsend">DATAGRAM SEND</a>.
@@ -550,17 +581,18 @@ For an alternate method of sending repliable datagrams, see <a href="#dgsend">DA
 <h3>SAM Repliable Datagrams : Receiving a Datagram</h3>
 <p>
 Received datagrams are written by SAM on the socket from which the
-datagram session was opened, unless specified otherwise by the CREATE
-command.
+datagram session was opened, if a forwarding PORT is not specified in the SESSION CREATE
+command. This is the v1/v2-compatible way of receiving datagrams.
 
 </p><p>
 When a datagram arrives, the bridge delivers it to the client via the
-message :
+message:
 
 <pre>
 &lt;-  DATAGRAM RECEIVED
            DESTINATION=$destination
-           SIZE=$numBytes\n[$numBytes of data]
+           SIZE=$numBytes\n
+       [$numBytes of data]
 </pre>
 
 </p><p>
@@ -574,15 +606,15 @@ or other fields, merely the data that the sender provided.  This
 continues until the session is closed (by the client dropping the
 connection).
 
-<h3>SAM Repliable Datagrams : Forwarding Datagrams</h3>
+<h3>SAM Datagrams : Forwarding Raw or Repliable Datagrams</h3>
 <p>
 When creating a datagram session, the client can ask SAM to forward
 incoming messages to a specified ip:port. It does so by issuing the
-CREATE command with PORT and HOST options :
+CREATE command with PORT and HOST options:
 
 <pre>
 -&gt; SESSION CREATE 
-          STYLE=DATAGRAM
+          STYLE={DATAGRAM,RAW}
           ID=$nickname
           DESTINATION={$privkey,TRANSIENT}
           PORT=$port
@@ -606,6 +638,8 @@ CREATE command with PORT and HOST options :
 </p><p>
  $port is the port number of the datagram server to which SAM
      will forward datagrams.
+ If $port is not set, datagrams will NOT be forwarded, they will be received on the control socket,
+ in the v1/v2-compatible way.
 
 </p><p>
 Additional options given are passed to the I2P session 
@@ -613,13 +647,22 @@ configuration if not interpreted by the SAM bridge (e.g.
 outbound.length=0). These options <a href="#options">are documented below</a>..
 
 </p><p>
-Forwarded datagrams are always prefixed with the destination
-(SILENT=false); SILENT=true is not honored.
-When a datagram arrives, the bridge sends to the specified host:port
-a UDP packet containing the following data :
+Forwarded repliable datagrams are always prefixed with the destination.
+When a repliable datagram arrives, the bridge sends to the specified host:port
+a UDP packet containing the following data:
 
 <pre>
-$destination\n$datagram_payload
+$destination\n
+$datagram_payload
+</pre>
+
+</p><p>
+Forwarded raw datagrams are forwarded as-is
+to the specified host:port without a prefix.
+The UDP packet contains the following data:
+
+<pre>
+$datagram_payload
 </pre>
 
 </p><p>
@@ -650,18 +693,20 @@ Both ways of receiving datagrams are also available for anonymous
 datagrams.
 
 </p><p>
-When anonymous datagrams are to be written to the socket that created
-the session,the bridge delivers it to the client via:
+Received datagrams are written by SAM on the socket from which the
+datagram session was opened, if a forwarding PORT is not specified in the SESSION CREATE
+command. This is the v1/v2-compatible way of receiving datagrams.
 
 <pre>
 &lt;- RAW RECEIVED
-      SIZE=$numBytes\n[$numBytes of data]
+          SIZE=$numBytes\n
+      [$numBytes of data]
 </pre>
 
 </p><p>
 When anonymous datagrams are to be forwarded to some host:port,
 the bridge sends to the specified host:port a message containing 
-the following data :
+the following data:
 
 <pre>
 $datagram_payload

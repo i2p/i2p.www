@@ -1,7 +1,7 @@
 {% extends "global/layout.html" %}
 {% block title %}SSU Protocol Specification{% endblock %}
-{% block lastupdated %}February 2015{% endblock %}
-{% block accuratefor %}0.9.18{% endblock %}
+{% block lastupdated %}November 2015{% endblock %}
+{% block accuratefor %}0.9.24{% endblock %}
 {% block content %}
 
 <p>
@@ -113,16 +113,8 @@ being less than 64 bytes is vanishingly small.
 <h3>Header Format</h3>
 <p>Within the AES encrypted payload, there is a minimal common structure
 to the various messages - a one byte flag and a four byte sending 
-timestamp (seconds since the unix epoch).  The flag byte contains 
-the following bitfields:</p>
-{% highlight %}
-  Bit order: 76543210 (bit 7 is MSB)
-
-  bits 7-4: payload type
-     bit 3: rekey, always 0, unimplemented
-     bit 2: extended options included, always 0, unimplemented
-  bits 1-0: reserved, set to 0 for compatibility with future uses
-{% endhighlight %}
+timestamp (seconds since the unix epoch).
+</p>
 
 <p>The header format is:</p>
 
@@ -154,9 +146,18 @@ the following bitfields:</p>
  +----+----+----+----+----+----+----+----+
 {% endhighlight %}
 
+<p>The flag byte contains the following bitfields:</p>
+{% highlight %}
+  Bit order: 76543210 (bit 7 is MSB)
+
+  bits 7-4: payload type
+     bit 3: If 1, rekey data is included. Always 0, unimplemented
+     bit 2: If 1, extended options are included. Always 0 before release 0.9.24.
+  bits 1-0: reserved, set to 0 for compatibility with future uses
+{% endhighlight %}
+
 <p>
-Note that rekeying and extended options are unimplemented, so the
-current header size is exactly 37 bytes.
+Without rekeying and extended options, the header size is 37 bytes.
 </p>
 
 
@@ -179,9 +180,15 @@ around briefly, to address packet loss and reordering.</p>
 <p>
 If the extended options flag is set, a one byte option 
 size value is appended, followed by that many extended option 
-bytes.</p>
-
-<p>NOTE: Extended options is currently unimplemented.</p>
+bytes.
+Extended options has always been part of the specification, but was unimplemented until release 0.9.24.
+When present, the option format is specific to the message type.
+See message documentation below on whether extended options are expected
+for the given message, and the specified format.
+While Java routers have always recognized the flag and options length,
+other implementations have not. Therefore, do not send extended options to
+routers older than release 0.9.24.
+</p>
 
 <h2 id="padding">Padding</h2>
 <p>
@@ -230,7 +237,8 @@ See the documentation of individual messages below for details on IPv6 support.
 
 <h3 id="time">Timestamps</h3>
 While most of I2P uses 8-byte <a href="{{ site_url('docs/spec/common-structures') }}#type_Date">Date</a> timestamps with
-millisecond resolution, SSU uses a 4-byte timestamp with one-second resolution.
+millisecond resolution, SSU uses 4-byte unsigned integer timestamps with one-second resolution.
+Because these values are unsigned, they will not roll over until February 2106.
 
 
 
@@ -293,6 +301,22 @@ This is the first message sent to establish a session.
 Typical size including header, in current implementation: 304 (IPv4) or 320 (IPv6) bytes
 (before non-mod-16 padding)
 </p>
+
+<h4>Extended Options</h4>
+<p>
+<i>Note: This is a proposal, to be implemented in 0.9.24. Subject to change.</i>
+</p>
+<ul><li>
+Minimum length: 3 (option length byte + 2 bytes)
+</li><li>Option length: 2 minimum
+</li><li>2 bytes flags:<pre>
+Bit order: 15...76543210 (bit 15 is MSB)
+   bit 0: 1 for Alice to request a relay tag from Bob in the SessionCreated response,
+          0 if Alice does not need a relay tag.
+          Note that "1" is the default if no extended options are present
+   bits 15-1: unused, set to 0 for compatibility with future uses
+</pre></ul>
+
 
 <h4>Notes</h4>
 <ul><li>
@@ -403,6 +427,8 @@ All others use the receiver's intro key or the established session key.
 Signed-on time appears to be unused or unverified in the current implementation.
 </li><li>
 The uninterpreted data could possibly be used in the future for challenges.
+</li><li>
+Extended options in the header: Not expected, undefined.
 </li></ul>
 
 
@@ -526,6 +552,8 @@ As of release 0.9.16, the signature type and length
 are implied by the type of the <a href="{{ site_url('docs/spec/common-structures') }}#type_SigningPublicKey">Signing Public Key</a>
 in Alice's <a href="{{ site_url('docs/spec/common-structures') }}#struct_RouterIdentity">Router Identity</a>.
 The padding is as necessary to a multiple of 16 bytes.
+</li><li>
+Extended options in the header: Not expected, undefined.
 </li></ul>
 
 
@@ -559,6 +587,8 @@ Typical size including header, in current implementation: 48 bytes
 <h4>Notes</h4>
 <ul><li>
 Destroy messages received with the sender's or receiver's intro key will be ignored.
+</li><li>
+Extended options in the header: Not expected, undefined.
 </li></ul>
 
 
@@ -638,6 +668,8 @@ between Alice and Bob.
 In practice, there must be an established session, as Alice will only get the
 nonce (introduction tag) from the session created message, and
 Bob will mark the introduction tag invalid once the session is destroyed.
+</li><li>
+Extended options in the header: Not expected, undefined.
 </li></ul>
 
 
@@ -701,6 +733,8 @@ There are no plans to implement relaying for IPv6.
 Prior to release 0.9.12, Alice's intro key was always used.
 As of release 0.9.12, the session key is used if there is an established session
 between Alice and Bob.
+</li><li>
+Extended options in the header: Not expected, undefined.
 </li></ul>
 
 
@@ -756,6 +790,8 @@ This message must be sent via an established IPv4 connection, as that's the only
 Bob knows Charlie's IPv4 address to return to Alice in the RelayResponse.
 </li><li>
 Challenge is unimplemented, challenge size is always zero
+</li><li>
+Extended options in the header: Not expected, undefined.
 </li></ul>
 
 
@@ -924,6 +960,8 @@ more than the number of fragments divided by 7.
 For example, if the highest fragment the receiver has seen is number 4, only
 one byte is required to be sent, even if there may be 13 fragments total.
 Up to 10 bytes (i.e. (64 / 7) + 1) may be included for each message ID acked.
+</li><li>
+Extended options in the header: Not expected, undefined.
 </li></ul>
 
 
@@ -1048,6 +1086,8 @@ Otherwise, if the IP is not present and the port is 0, this is a new test and yo
 Otherwise, this is a new test and you are Charlie.
 </li><li>
 As of release 0.9.15, Alice must have an established session with Bob and use the session key.
+</li><li>
+Extended options in the header: Not expected, undefined.
 </li></ul>
 
 <h3 id="holePunch">HolePunch</h3>
