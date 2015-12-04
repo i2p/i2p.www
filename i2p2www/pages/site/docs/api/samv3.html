@@ -53,7 +53,8 @@ Version 3.1 was introduced in I2P release 0.9.14.
 
 <h3>Version 3.2 Proposal</h3>
 <p>
-Version 3.2 is not yet implemented, and the changes listed below are preliminary.
+Version 3.2 is scheduled for inclusion in I2P release 0.9.24, and the changes listed below are preliminary.
+The following changes will be incorporated in the main part of this document soon.
 <ul>
 <li>SESSION CREATE now supports options FROM_PORT=nnnn and TO_PORT=nnnn to set default I2P ports
 <li>SESSION CREATE STYLE=RAW now supports option PROTOCOL=nnn to set default I2P protocol (18 otherwise)
@@ -73,21 +74,35 @@ Version 3.2 is not yet implemented, and the changes listed below are preliminary
     with the response:
     PONG [arbitrary text from the ping], to be used for control socket keepalive.
     Either side may close the session and socket if no response is received in a reasonable time, implementation dependent.
-<li>For authorization, client adds USER=xxx PASSWORD=yyy to the HELLO parameters.
+<li>For authorization, client adds USER="xxx" PASSWORD="yyy" to the HELLO parameters.
+    Double quotes for user and password are recommended but not required.
+    A double quote inside a user or password must be escaped with a backslash.
     On failure the server will reply with an I2P_ERROR and a message.
-<li>(optional feature) Authorization configuration with the AUTH command:
+<li>(optional feature) Authorization configuration with the AUTH command.
+    A SAM server may implement these commands to facilite persistent storage of credentials.
   <ul>
     <li>AUTH ENABLE enables authorization on subsequent connections
     <li>AUTH DISABLE disables authorization on subsequent connections
-    <li>AUTH ADD USER=foo PASSWORD=bar adds a user/password
-    <li>AUTH REMOVE USER=foo removes this user
+    <li>AUTH ADD USER="foo" PASSWORD="bar" adds a user/password
+    <li>AUTH REMOVE USER="foo" removes this user
   </ul>
+    Double quotes for user and password are recommended but not required.
+    A double quote inside a user or password must be escaped with a backslash.
+    On failure the server will reply with an I2P_ERROR and a message.
 <li>Multiple concurrent pending STREAM ACCEPTs are allowed on the same session ID (even with the same port).
     Prior to 3.2, concurrent accepts would fail with ALREADY_ACCEPTING.
 <li>The server's control socket may optionally offer SSL/TLS support, as configured on the server and client.
     Implementations may offer other transport layers as well; this is outside the scope of the protocol definition.
 <li>For STREAM FORWARD, client may add SSL=true to use an SSL socket
-<li>New commands QUIT, STOP and EXIT will close the session and socket
+<li>New commands QUIT, STOP and EXIT will close the session and socket. Implementation is optional,
+    for ease in testing via telnet.
+<li>Command parsing will properly handle UTF-8
+<li>Command parsing reliably handles whitespace inside quotes
+<li>A backslash '\' may escape quotes on the command line
+<li>It is recommended but not required that the server map commands to upper case, for ease in testing via telnet.
+    Do not map keys to upper case, as this would corrupt I2CP options.
+<li>Empty option values such as PROTOCOL or PROTOCOL= may be allowed, implementation dependent.
+<li>Servers may implement timeouts for the HELLO or subsequent commands, implementation dependent.
 </ul>
 </p>
 
