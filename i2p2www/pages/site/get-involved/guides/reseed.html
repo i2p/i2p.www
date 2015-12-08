@@ -29,7 +29,7 @@ You must have a secure SSL setup with either a self-signed certificate or a cert
 The SSL configuration must conform to current best practices on allowed ciphers and protocols, and the CN/SAN host name must match the URL
 {%- endtrans %}</li>
 <li>{% trans -%}
-The scripts are designed to deliver different router info bundles to different requestors for nextwork diversity
+The scripts are designed to deliver different router info bundles to different requestors for network diversity
 {%- endtrans %}</li>
 <li>{% trans -%}
 The scripts are designed to deliver the same bundle to the same repeated requestor to prevent scraping
@@ -68,7 +68,7 @@ Unfortunately, he is not generally on IRC. The reseed setup is somewhat speciali
 {%- endtrans %}</p>
 
 <p>{% trans -%}
-For actual implementation, details are at the links below. In summary, there are two solutions we have to offer:
+For actual implementation, details below. In summary, there are two solutions we have to offer:
 {%- endtrans %}</p>
 
 <ol>
@@ -93,18 +93,18 @@ Thank you!
 </li><li>
 <a href="https://github.com/MDrollette/i2p-tools">Go reseed server source on github</a>
 </li><li>
-<a href="/en/docs/spec/updates">SU3 Reseed File Format Sspecification"</a>
+<a href="/en/docs/spec/updates">SU3 Reseed File Format Sspecification</a>
 </li></ul>
 
 <h2>{% trans %}Detailed Instructions{% endtrans %}</h2>
 
+
+<h3>Revision History</h3>
 <pre>
 
-
--------------------------------------------------------------------------------
 2015-05-09 backup
  * new chapter: reverse-proxy setup (idea by kytv and review from matt)
- * ==> howto_public_reseed_server_v6.txt
+ * ==&gt; howto_public_reseed_server_v6.txt
 
 2015-03-23 backup (with much help from matt)
  * Script - su3.php - added support for running INSIDE i2p-net (DESTB32)
@@ -117,14 +117,14 @@ Thank you!
  * new chapter: matt's go solution - Run the reseed server
  * new chapter: matt's go solution - Draft for startup script
  * new chapter: matt's go solution - Convert existing java keystore to crt- and pem-file
- * ==> howto_public_reseed_server_v5.txt
+ * ==&gt; howto_public_reseed_server_v5.txt
 
 2015-01-22 backup	
  * Script - cronjob_i2p.sh - minor code cleanups with shell script validator/parser
  * Script - su3.php - minor code cleanup (404 redirect), thanks to "drgr33n"
  * we want only HTTPS accessible reseed server
  * Testings - added some wget options for the ssl-certificate, thanks to "drgr33n"
- * ==> howto_public_reseed_server_v4.txt
+ * ==&gt; howto_public_reseed_server_v4.txt
 
 2014-12-26 backup
  * Script - cronjob_i2p.sh - config variable "target" without ending "/"
@@ -132,98 +132,105 @@ Thank you!
  * new chapter: reseed server domain/url/port exchange
  * chapter "requirements" expanded - traffic volume, attacks, webserver-port!=443
  * chapter "Create self-signed ssl-certificate" - use rsa, not ecdsa
- * ==> howto_public_reseed_server_v3.txt
+ * ==&gt; howto_public_reseed_server_v3.txt
 
 2014-12-13 backup
  * new chapter: Create self-signed ssl-certificate
  * new chapter: Seamless ssl-cert exchange
  * meeh's solution removed
  * cronjob_i2p.sh: example target path changed to "/var/www/su3/" for clarification
- * ==> howto_public_reseed_server_v2.txt
+ * ==&gt; howto_public_reseed_server_v2.txt
 
 2014-10-17 backup
  * initial release v1
 
+</pre>
+
+
+<h3>How-to Public reseed servers - su3</h3>
+
+<ul>
+<li>Some parts of this how-to are copied from <a href="http://zzz.i2p">zzz.i2p</a> and are modified.
+<li>Fetching individual RI (dat-files -the legacy/old style-) is not part of this how-to.
+<li>Questions can be placed on <a href="http://zzz.i2p/forums/18">zzz.i2p</a> - in the Reseeding sub-forum.
+</ul>
 
 
 
--------------------------------------------------------------------------------
-How-to Public reseed servers - su3
+<h3>Table of contents</h3>
 
-- Some parts of this how-to are copied from http://zzz.i2p and are modified.
-- Fetching individual RI (dat-files -the legacy/old style-) is not part of this how-to.
-- Questions can be placed on http://zzz.i2p/forums/18 - in the Reseeding sub-forum.
-
-
-
-
--------------------------------------------------------------------------------
-0. Table of contents
-
-1. Intro
-2. Requirements
-3. Short overview
-4. su3-file guidelines for reseeding
-5. How to prepare your key pair for su3-files
-6. su3 server-side implementation
-7. unix shell script for cronjob
-8. Setup cronjob
-9. php script for webserver
-10. url rewrite rule for webserver
-11. Create self-signed ssl-certificate
-12. Seamless ssl-certificate exchange
-13. reseed server domain/url/port exchange
-14. Testings
-15. Contact reseed maintainer
-16. Script - cronjob_i2p.sh
-17. Script - su3.php
-18. Optional - setup a manual reseed method
-19. matt's go solution - Overview
-20. matt's go solution - Building from source
-21. matt's go solution - Run the reseed server
-22. matt's go solution - Draft for startup script
-23. matt's go solution - reverse-proxy setup
-24. matt's go solution - Convert existing java keystore to crt- and pem-file
+<ol>
+<li>Intro
+<li>Requirements
+<li>Short overview
+<li>su3-file guidelines for reseeding
+<li>How to prepare your key pair for su3-files
+<li>su3 server-side implementation
+<li>unix shell script for cronjob
+<li>Setup cronjob
+<li>php script for webserver
+<li>url rewrite rule for webserver
+<li>Create self-signed ssl-certificate
+<li>Seamless ssl-certificate exchange
+<li>reseed server domain/url/port exchange
+<li>Testings
+<li>Contact reseed maintainer
+<li>Script - cronjob_i2p.sh
+<li>Script - su3.php
+<li>Optional - setup a manual reseed method
+<li>matt's go solution - Overview
+<li>matt's go solution - Building from source
+<li>matt's go solution - Run the reseed server
+<li>matt's go solution - Draft for startup script
+<li>matt's go solution - reverse-proxy setup
+<li>matt's go solution - Convert existing java keystore to crt- and pem-file
+</ol>
 
 
 
-
--------------------------------------------------------------------------------
-1. Intro
-
+<h3>1. Intro</h3>
+<p>
 Public reseed servers are necessary to bootstrap into the i2p net.
 New installed i2p routers needs one-time a handful RouterInfo's (RI) as jump start.
 
+<p>
 RI contains IP and Port from other i2p-routers and are stored in dat-files in the netDB folder.
 
+<p>
 A random bunch of dat-files from the netDB are zipped, then signed to a su3-file
 and finally offered to i2p-routers seeking reseed service.
 
+<p>
 To secure bootstrap and enable a trusted start, HTTPS/TLS and signed su3-files are mandatory.
 
+<p>
 It is essential not to publish all RI from netDB, or all RI to one client.
 So a cronjob will be setup providing only a part of all available RI.
 
+<p>
 A php script ensures that requests to the public reseed server provides only
 one su3-file within 24h for one client IP.
 
+</p>
 
 
+<h3>2. Requirements</h3>
 
--------------------------------------------------------------------------------
-2. Requirements
-
+<p>
 Requirements for running a public reseed server:
-- well integrated running i2p router @ 24/7
-- server with static IPv4 (2 cpu/ 2GB ram is already fine)
-- unix to run the shell script, cronjobs or matts solution
-- own domain, a third level domain is fine too and may provide you with more anonymity.
-- a self signed ssl-certificate is ok
-- web-space (HTTPS only) with php5+rewrite-rule
-- HTTPS only, with TLS 1.2, only with good ciphers
-- enough bandwidth and traffic volume (due to a annoying botnet expect up to 1TB per month)
-- fail2ban to protect you from the botnet
+<ul>
+<li>well integrated running i2p router @ 24/7
+<li>server with static IPv4 (2 cpu/ 2GB ram is already fine)
+<li>unix to run the shell script, cronjobs or matts solution
+<li>own domain, a third level domain is fine too and may provide you with more anonymity.
+<li>a self signed ssl-certificate is ok
+<li>web-space (HTTPS only) with php5+rewrite-rule
+<li>HTTPS only, with TLS 1.2, only with good ciphers
+<li>enough bandwidth and traffic volume (due to a annoying botnet expect up to 1TB per month)
+<li>fail2ban to protect you from the botnet
+</ul>
 
+<p>
 This How-to is tested with Ubuntu/Debian
 The web-space has to be public reachable from all over the world, an eepsite inside i2p can be setup in addition.
 Also frequent or infrequent attempts to scrape all your reseed files, and of course attacks on your server.
@@ -232,64 +239,81 @@ The webserver doesn't need to listen at default SSL/TSL port 443 - any other por
 
 
 
--------------------------------------------------------------------------------
-3. Short overview
+<h3>3. Short overview</h3>
 
-- permanent: run your i2p router
-- once: generate a private and public key pair for signing the reseed files
-- once: setup the php script on the web-space
-- once: setup a rewrite rule at webserver (*.su3 --> su3.php)
-- regularly: run the unix shell script to generate up-to-date su3-files
-- regularly: transfer su3-files to local /var/www/ or with (s)ftp to your remote web-space
+<ul>
+<li>permanent: run your i2p router
+<li>once: generate a private and public key pair for signing the reseed files
+<li>once: setup the php script on the web-space
+<li>once: setup a rewrite rule at webserver (*.su3 --&gt; su3.php)
+<li>regularly: run the unix shell script to generate up-to-date su3-files
+<li>regularly: transfer su3-files to local /var/www/ or with (s)ftp to your remote web-space
+</ul>
 
 
 
+<h3>4. su3-file guidelines for reseeding</h3>
 
--------------------------------------------------------------------------------
-4. su3-file guidelines for reseeding
-
-(From http://zzz.i2p/topics/1648)
-- The su3-file must be named "i2pseeds.su3"
-- The file must be in the same directory as the routerinfos on the web server
-- Router will first try to fetch (index url)/i2pseeds.su3;
+<p>
+(From <a href="http://zzz.i2p/topics/1648">zzz.i2p</a>)
+<ul>
+<li>The su3-file must be named "i2pseeds.su3"
+<li>The file must be in the same directory as the routerinfos on the web server
+<li>Router will first try to fetch (index url)/i2pseeds.su3;
   if that fails it will fetch (index url) and then fetch the individual RI files, old-style
-- Once a reseed from a host succeeds, it won't try any other URLs from that host
+<li>Once a reseed from a host succeeds, it won't try any other URLs from that host
   (either http or https, ignoring ports... ports are now implemented)
-- RI files in the zip file (in the su3-file) must be at the "top level",
+<li>RI files in the zip file (in the su3-file) must be at the "top level",
   i.e. no directories in the zip file
-- su3 content type must be RESEED (-c 3 or -c RESEED)
-- su3 signature type should be RSA 4096 (-t 6 or -t RSA_SHA512_4096).
+<li>su3 content type must be RESEED (-c 3 or -c RESEED)
+<li>su3 signature type should be RSA 4096 (-t 6 or -t RSA_SHA512_4096).
   If you're very low on CPU power you could use a shorter key, but you only need to do the signing process once a day or so.
   Any sig type will work, but RSA 4096 is the best in this case.
-- Of course we must have your su3 signing public key checked in
+<li>Of course we must have your su3 signing public key checked in
   under the same name as you are using in the signing process,
   e.g. for you@mail.i2p the file name must be you_at_mail.i2p.crt, in the certificates/reseed/ directory
+</ul>
 
 
 
+<h3>5. How to prepare your key pair for su3-files</h3>
 
--------------------------------------------------------------------------------
-5. How to prepare your key pair for su3-files
+<p>
+( from <a href="http://zzz.i2p/topics/1643">zzz.i2p</a>)
+<ul>
+<li>Details are posted here from zzz: <a href="http://zzz.i2p/topics/1473">zzz.i2p</a>
+<li>Who? All owner of a public reseed server.
+<li>Why? su3 reseed files will be signed with your private key.
+<li>This ensures a secure bootstrap for i2p routers.
+<li>Corresponding public keys will be included in i2p router package.
+</ul>
 
-( from http://zzz.i2p/topics/1643)
-Details are posted here from zzz: http://zzz.i2p/topics/1473
-Who? All owner of a public reseed server.
-Why? su3 reseed files will be signed with your private key.
-This ensures a secure bootstrap for i2p routers.
-Corresponding public keys will be included in i2p router package.
+<p>
 Example to create your key pair:
+<pre>
 	su - i2puser
 	I2P=/home/i2puser/i2p
 	cd $I2P
 	java -cp $I2P/lib/i2p.jar net.i2p.crypto.SU3File keygen -t RSA_SHA512_4096 backup_at_mail.i2p.crt keystore.ks backup@mail.i2p
+</pre>
+<p>
 Short usage help:
+<pre>
 	SU3File keygen [-t type|code] publicKeyFile keystore.ks you@mail.i2p
+</pre>
+<p>
 Get more help:
+<pre>
 	java -cp $I2P/lib/i2p.jar net.i2p.crypto.SU3File
+</pre>
+<p>
 Provide a strong password for your private key.
 In this example two new files will be created in the working folder:
-- backup_at_mail.i2p.crt	will contain the public key
-- keystore.ks			is the Java keystore file and contains your private key
+<ul>
+<li>backup_at_mail.i2p.crt	will contain the public key
+<li>keystore.ks			is the Java keystore file and contains your private key
+</ul>
+<p>
 Backup and store public key, private key and your password!
 Remember also the used key size/type when not using default RSA_SHA512_4096.
 Send the public .crt key file to us, to include it into i2p/certificates/reseed/
@@ -300,66 +324,81 @@ There is no requirement that it be xxx@mail.i2p, any email is fine, or for that 
 
 
 
--------------------------------------------------------------------------------
-6. su3 server-side implementation
-
-(from http://zzz.i2p/topics/1647)
+<h3>6. su3 server-side implementation</h3>
+	
+<p>
+(from <a href="http://zzz.i2p/topics/1647">zzz.i2p</a>)
 This describes a mechanism for creating and distributing the RI in new su3 format.
 It's independent from legacy way of doing (fetching dat-files) and can be used in parallel.
 This idea don't need mysql, only some Unix shell tools and a simple web-space with php works fine.
 
+<p>
 A requesting client gets ~75 RI packed into one zip, signed and converted to a su3-file.
 Don't provide unlimited RI to one clients.
 But don't try to keep track of million client IP's in a database, e.g think of ipv6.
-Keep it simple: make a fix n:m one-direction matching: n*ip --> m*su3-file by modulo.
+Keep it simple: make a fix n:m one-direction matching: n*ip --&gt; m*su3-file by modulo.
 n is the unlimited IPv4+IPv6 address space, and m are e.g. 100 pre-calculated su3-files.
 A client with one IP gets always the same su3-file, until the su3-file is updated or the client has a new IP.
 A number of clients (n/m ratio) gets the same su3-file - the same set of RI, so m is subject to be monitored in i2p net grow.
 
+<p>
 Once or twice a week (or daily): pre-calculate ~100 new su3-files, each includes ~75 RI.
 The RI are fetched from a well running i2p router's netdb directory.
 Transfer the pre-calculate su3-files to your web-space, e.g. by sftp or copy them locally to /var/www/su3/.
 In the web-space a php script will match one client IP to one of the 100 su3-files by hash+modulo.
 This has the advantage to split su3-generation and publishing in web-space .
 
+<p>
 Requirements for su3-file generation:
-- 24/7 running i2p-router with up to date netdb
-- ziptool, e.g. "zip" (Debian/Ubuntu: sudo apt-get install zip)
-- Unix shell: find, awk, cat, ...
-- your reseed keys: e.g. backup_at_mail.i2p.crt + keystore.ks + password
+<ul>
+<li>24/7 running i2p-router with up to date netdb
+<li>ziptool, e.g. "zip" (Debian/Ubuntu: sudo apt-get install zip)
+<li>Unix shell: find, awk, cat, ...
+<li>your reseed keys: e.g. backup_at_mail.i2p.crt + keystore.ks + password
+</ul>
 Requirements for web-space :
-- php5
-- rewrite rule (*.su3 --> php)
+<ul>
+<li>php5
+<li>rewrite rule (*.su3 --&gt; php)
+</ul>
 
 The following solution for a public reseed server consists of three parts:
-- unix shell script for cronjob
-- php script
-- url rewrite rule
+<ul>
+<li>unix shell script for cronjob
+<li>php script
+<li>url rewrite rule
+</ul>
 They are described on the following chapters in more detail.
 
 
 
 
--------------------------------------------------------------------------------
-7. unix shell script for cronjob
+<h3>7. unix shell script for cronjob</h3>
 
+<p>
 This script pre-calculates n su3-files.
 Requirements: unix shell, java, i2p, zip-tool, your private reseed signing key
 Main Steps:
+<pre>
 # CONFIG
 # CHECK REQUIREMENT
 # CREATE index files from netdB: use only 66% and max. 10h old
 # CREATE zip files
 # CREATE su3 files
 # FINALIZE
+</pre>
+<p>
 Please check and edit #CONFIG sections, please review code before use.
 The resulting su3-files are placed in the "target" folder which can be changed in config section with "target".
 Configure file permissions and file owner e.g. 'www-data' - see deactivated example lines.
 The cronjob script runs ca. 10 seconds for generating 100 pre-calculated su3 files on a modern cpu.
 The number of dat-files per su3 package is random. If you configure 75, it results in ca. 50...100 dat-files per su3-file.
 The number of generated su3-files is random too, it depends on your netdb size and adapts automatically:
-- 1000 netdb entries: used for publishing:  ~666, results in  ~66 su3-files, each with ~75 dat-files
-- 3000 netdb entries: used for publishing: ~1999, results in ~199 su3-files, each with ~75 dat-files
+<ul>
+<li>1000 netdb entries: used for publishing:  ~666, results in  ~66 su3-files, each with ~75 dat-files
+<li>3000 netdb entries: used for publishing: ~1999, results in ~199 su3-files, each with ~75 dat-files
+</ul>
+<p>
 Only 66% of all RI from your netdb are used, netdb may be not older than 10h.
 It is possible to separate cronjob script from php script:
 Run the cronjob script on your i2p machine and then transfer the final su3-files via (s)ftp/ssh
@@ -368,79 +407,102 @@ to your webserver from time to time. su3 file-size in this setup is between 50 a
 
 
 
--------------------------------------------------------------------------------
-8. Setup cronjob
+<h3>8. Setup cronjob</h3>
 
+<p>
 Please add a cronjob, e.g. to run it every few days.
 Add the shell script in crontab, e.g.:
+<pre>
 	crontab -e
 	23 59 * * * /usr/local/bin/cronjob_i2p.sh
+</pre>
+<p>
 The hard limit for the su3-file age is 30 days.
 Recommendation is to update the su3-files once every 1..10 days.
 
 
 
 
--------------------------------------------------------------------------------
-9. php script for webserver
+<h3>9. php script for webserver</h3>
 
+<p>
 The su3.php script maps always one client IP to one pre-calculated su3-file.
 Requirements: a webserver with php5
 Main Steps:
+<pre>
 # CONFIG
 # HEALTH CHECK
 # COUNT su3 files
 # MAPPING Client IP to one SU3
 # PROVIDE SU3
+</pre>
+<p>
 Please check and edit #CONFIG sections, please review code before use.
 
+<p>
 The date() function in the salt ensures a rotate once a day, even if su3-files are not updated daily.
 To avoid scraping from attackers with big IPv4 subnet resources
 (or even IPv6) some lower bytes of the client IP address are discarded:
-- IPv4:  4 byte  --> 1 lowest byte
-- IPv6: 16 bytes --> 8 lowest bytes
+<ul>
+<li>IPv4:  4 byte  --&gt; 1 lowest byte
+<li>IPv6: 16 bytes --&gt; 8 lowest bytes
+</ul>
 Clients in the same "subnet" gets the same su3-file
 
+<p>
 A clients gets only different su3-file package in following circumstances:
-- when he gets a new IP (respecting the discarded bytes in the IPv4/v6 address)
-- at 00:00 every date (date function in php)
-- when the unix cronjob updates the su3 files
+<ul>
+<li>when he gets a new IP (respecting the discarded bytes in the IPv4/v6 address)
+<li>at 00:00 every date (date function in php)
+<li>when the unix cronjob updates the su3 files
+</ul>
 
 
 
 
 
--------------------------------------------------------------------------------
-10. url rewrite rule for webserver
+<h3>10. url rewrite rule for webserver</h3>
 
+<p>
 It is mandatory that clients does not have direct access to the su3-files at the webserver.
 Please activate a rewrite rule for su3-files in your webserver pointing to the su3.php file:
-	*.su3 --> su3.php?file=$1
+<pre>
+	*.su3 --&gt; su3.php?file=$1
+</pre>
 
+<p>
 Apache in ".htaccess":
+<pre>
 	Options +FollowSymlinks
 	RewriteEngine On
 	RewriteRule ^(.*\.su3)$ /su3.php?file=$1 [L]
+</pre>
 
+<p>
 lighttpd in "/etc/lighttpd/lighttpd.conf":
+<pre>
 	server.modules += ( "mod_rewrite" )
-	url.rewrite-once = ( "^(.*\.su3)$" => "/su3.php?file=$1" )
+	url.rewrite-once = ( "^(.*\.su3)$" =&gt; "/su3.php?file=$1" )
+</pre>
 
+<p>
 We want only HTTPS accessible reseed server.
 Sorted by best solution:
- * please deactivate plain HTTP, or
- * use a redirect rule in your webserver, or
- * implement the redirect to HTTPS in the php-code
+<ul>
+<li>please deactivate plain HTTP, or
+<li>use a redirect rule in your webserver, or
+<li>implement the redirect to HTTPS in the php-code
+</ul>
 
 
 
+<h3>11. Create self-signed ssl-certificate</h3>
 
--------------------------------------------------------------------------------
-11. Create self-signed ssl-certificate
-
+<p>
 How-to generate a new self-signed ssl-certificate for HTTPS/TLS with openssl.
 Example command line in Debian/Ubuntu for your.server.com:
 
+<pre>
 $ openssl req -x509 -nodes -days 1500 -newkey rsa:4096 -sha256 -keyout your.server.com.pem -out your.server.com.pem
 ...
 Country Name (2 letter code) [AU]:UK
@@ -450,120 +512,150 @@ Organization Name (eg, company) [Internet Widgits Pty Ltd]:your.server.com
 Organizational Unit Name (eg, section) []:your.server.com
 Common Name (e.g. server FQDN or YOUR name) []:your.server.com
 Email Address []:your.server.com
+</pre>
 
---> The result is stored in "your.server.com.pem" file
+<p>
+The result is stored in "your.server.com.pem" file
 
+<p>
 Remarks:
-- Please fill out all fields, don't use blanks
-- rsa:4096 - key size, do not use 1024, you can use 2048 bits too, impact on server cpu
-- use rsa, not ecdsa (ecdsa will break currently RetHat users)
-- days 1500 - validity period in days (choose at will between 1100-2000 (3-5 years))
-- sha256 - important, without this option openssl currently uses weak sha1 by default
-- Do NOT reveal the private .pem key file to anyone - keep it save - keep a backup.
+<ul>
+<li>Please fill out all fields, don't use blanks
+<li>rsa:4096 - key size, do not use 1024, you can use 2048 bits too, impact on server cpu
+<li>use rsa, not ecdsa (ecdsa will break currently RetHat users)
+<li>days 1500 - validity period in days (choose at will between 1100-2000 (3-5 years))
+<li>sha256 - important, without this option openssl currently uses weak sha1 by default
+<li>Do NOT reveal the private .pem key file to anyone - keep it save - keep a backup.
+</ul>
 
+<p>
 Next step:
-- Open the created pem-file with a simple text editor.
-- You see the section with the private key and the section with the public key.
-- Copy the public section (starting with -----BEGIN CERTIFICATE-----) to another new file
-- and save the new file as your.server.com.crt file
---> Send this to us - the .crt file with the public key section will we included in every i2p router.
---> The .pem file with your private key is only for you and your webserver.
+<ul>
+Open the created pem-file with a simple text editor.
+You see the section with the private key and the section with the public key.
+Copy the public section (starting with -----BEGIN CERTIFICATE-----) to another new file
+and save the new file as your.server.com.crt file
+</ul>
+
+<p>
+Send this to us - the .crt file with the public key section will we included in every i2p router.
+The .pem file with your private key is only for you and your webserver.
 
 
 
 
--------------------------------------------------------------------------------
-12. Seamless ssl-certificate exchange
+<h3>12. Seamless ssl-certificate exchange</h3>
 
+<p>
 The update/exchange of an already existing self-signed certificates has to be correct timed
 on server *and* client side. Considering thousands of clients (many with older i2p version) the exchange
 will not be seamless possible and will have very bad impact on many clients: reseed won't work for them.
 
+<p>
 To avoid this issue and make the exchange as smooth as possible follow these simple steps:
 
-1. generate a new ssl-certificate NOW, but do NOT implement it on server
-2. send the new ssl-certificate to us to perform a roll-out towards clients NOW
-3. WAIT some month, e.g. 3-4 i2p-releases
-4. new ssl-certificate is now hopefully present on many clients (in parallel to the current/old one)
-5. THEN exchange the ssl-certificate on server
+<ol>
+<li>generate a new ssl-certificate NOW, but do NOT implement it on server
+<li>send the new ssl-certificate to us to perform a roll-out towards clients NOW
+<li>WAIT some month, e.g. 3-4 i2p-releases
+<li>new ssl-certificate is now hopefully present on many clients (in parallel to the current/old one)
+<li>THEN exchange the ssl-certificate on server
+</ol>
 
+<p>
 This idea based on the fact, that you can provide in i2p/certificates/ssl more than one crt-file for a server, e.g.
 server.com.crt and server.com2.crt
 
 
 
 
--------------------------------------------------------------------------------
-13. reseed server domain/url/port exchange
+<h3>13. reseed server domain/url/port exchange</h3>
 
 
+<p>
 You are already operating a reseed server but want to change your domain/url/port?
 To make the exchange as smooth as possible for many clients please follow these steps if possible:
 
-a) Setup an additional reseed instance at the new domain/url/port
-b) we include the new url into i2p source NOW and delete the old url NOW
-c) both of your reseed instances have to run some time in parallel
-d) WAIT some month, e.g. 3-4 i2p-releases
-e) new url is now hopefully present on many clients
-f) THEN shutdown the old reseed instance
+<ol>
+<li>Setup an additional reseed instance at the new domain/url/port
+<li>we include the new url into i2p source NOW and delete the old url NOW
+<li>both of your reseed instances have to run some time in parallel
+<li>WAIT some month, e.g. 3-4 i2p-releases
+<li>new url is now hopefully present on many clients
+<li>THEN shutdown the old reseed instance
+</ol>
 
 
 
+<h3>14. Testings</h3>
 
--------------------------------------------------------------------------------
-14. Testings
-
+<p>
 Some simple pre-test: test the website and fetch
+<pre>
 	wget --user-agent="Wget/1.11.4" -O /tmp/test.su3 --no-check-certificate https://your-server.com:PORT/i2pseeds.su3
+</pre>
 Replace "PORT" with default 443 or your chosen server setting.
 Inspect the fetched file:
+Some simple pre-test: test the website and fetch
 	zipinfo -z /tmp/test.su3
+</pre>
 
+<p>
 Replace "--no-check-certificate" with "--ca-certificate=~/i2p/certificates/ssl/your-server.com.crt"
 which contains the path to your local public ssl-certificate to check also your ssl-certificate chain.
 
+<p>
 Everything ok:
-- ssl-certificate chain valid?
-- The su3-files can be downloaded?
-- contains >50 dat-files?
-- and is always the same for one client-IP?
-- other client-IP's gets another file?
-- Clients has no direct access to complete folder e.g. https://your-server.com/su3/ ?
+<ul>
+<li>ssl-certificate chain valid?
+<li>The su3-files can be downloaded?
+<li>contains >50 dat-files?
+<li>and is always the same for one client-IP?
+<li>other client-IP's gets another file?
+<li>Clients has no direct access to complete folder e.g. https://your-server.com/su3/ ?
+</ul>
 
+<p>
 Do a real reseed test on *another* i2p router machine:
-- include manually new ssl-certificate into i2p installation:	~/i2p/certificates/ssl/
-- include manually new public reseed key into i2p installation:	~/i2p/certificates/reseed/
-- http://localhost:7657/configreseed --> remove all reseed hosts
-- add the new reseed host e.g. "https://your-server.com/" *without* trailing "i2pseeds.su3"
-- Save and Shutdown router.
-- clear netdb: empty folder ./i2p/netDb.
-- Restart i2p and watch the i2p router log:
+<ul>
+<li>include manually new ssl-certificate into i2p installation:	~/i2p/certificates/ssl/
+<li>include manually new public reseed key into i2p installation:	~/i2p/certificates/reseed/
+<li>http://localhost:7657/configreseed --&gt; remove all reseed hosts
+<li>add the new reseed host e.g. "https://your-server.com/" *without* trailing "i2pseeds.su3"
+<li>Save and Shutdown router.
+<li>clear netdb: empty folder ./i2p/netDb.
+<li>Restart i2p and watch the i2p router log:
+<pre>
 2014/10/13 23:01:02 | Reseed start
 2014/10/13 23:01:02 | Reseeding from https://your-server/i2pseeds.su3
 2014/10/13 23:01:05 | INFO: xx files extracted to /tmp/i2p-V2qudTbd.tmp/reseeds-1010682701
 2014/10/13 23:01:05 | Reseed got xx router infos from https://your-server.com/i2pseeds.su3 with 0 errors
 2014/10/13 23:01:06 | Reseed complete, xx received
+</pre>
+</ul>
 
 
 
 
--------------------------------------------------------------------------------
-15. Contact reseed maintainer
+<h3>15. Contact reseed maintainer</h3>
 
+<p>
 Contact us per email backup@mail.i2p (fallback is killyourtv@mail.i2p or the reseed section at zzz's forum)
 Provide us details about the new
- - reseed website url,
- - public part of ssl-certificate
- - public su3-key
- - your contact email
+<ul>
+<li>reseed website url,
+<li>public part of ssl-certificate
+<li>public su3-key
+<li>your contact email
+</ul>
+<p>
 Feel free to contact backup@mail.i2p in case of questions or problems or post your question at zzz's forum in the reseed section.
 
 
 
 
--------------------------------------------------------------------------------
-16. Script - cronjob_i2p.sh
-
+<h3>16. Script - cronjob_i2p.sh</h3>
+<pre>
 ###############################################################################
 #!/bin/sh
 version="v5"
@@ -612,10 +704,10 @@ find "${source}" -type f -mmin -600 -name 'routerInfo-*.dat' | awk -v ri_seed="$
 		ri_su3=int(ri_use/10);
 		stepy=ri_use/ri_all;
 		stepx=ri_seed/ri_use;
-		for (y=0;y<ri_all; y++) if (rand()<=stepy) {
-			for (x=0; x<ri_su3; x++) if (rand()<=stepx) {
+		for (y=0;y&lt;ri_all; y++) if (rand()&lt;=stepy) {
+			for (x=0; x&lt;ri_su3; x++) if (rand()&lt;=stepx) {
 				file=target_tmp"/"x".index";
-				print data[y] >> file
+				print data[y] &gt;&gt; file
 			}
 		}
 	}'
@@ -623,7 +715,7 @@ find "${source}" -type f -mmin -600 -name 'routerInfo-*.dat' | awk -v ri_seed="$
 
 # CREATE zip-files from index-files
 find "${target_tmp}" -type f -name '*.index' | sort | while read i; do
-	"${tool_zip}" --update --quiet --junk-paths "${target_tmp}/$(basename "$i" .index)" -@ < "$i"
+	"${tool_zip}" --update --quiet --junk-paths "${target_tmp}/$(basename "$i" .index)" -@ &lt; "$i"
 done
 
 
@@ -655,15 +747,14 @@ echo      "$(basename "$0")" "${version} ${target} ${c_su3} x${ri_seed}"
 logger -t "$(basename "$0")" "${version} ${target} ${c_su3} x${ri_seed}"
 exit 0
 ###############################################################################
+</pre>
 
 
 
-
--------------------------------------------------------------------------------
-17. Script - su3.php
-
+<h3>17. Script - su3.php</h3>
+<pre>
 ###############################################################################
-<?php
+&lt;?php
 $version="v5";
 
 
@@ -699,13 +790,13 @@ if (	empty($_SERVER['HTTP_USER_AGENT'])
 	|| (strcmp(basename($_GET['file']), $file_su3) != 0)
 	|| (strcmp($_SERVER['HTTP_USER_AGENT'], $user_agent) != 0)
 	|| !filter_var($_SERVER['REMOTE_ADDR'], FILTER_VALIDATE_IP)
-	|| $count_su3<1
+	|| $count_su3&lt;1
     ) { header($_SERVER["SERVER_PROTOCOL"]." 404 Not Found", true, 404); die(); }
 
 
 # MAPPING Client IP to one su3-file
 $remote_id = inet_pton($_SERVER['REMOTE_ADDR']);
-$shrink=3; if (strlen($remote_id)>8) { $shrink=8; };
+$shrink=3; if (strlen($remote_id)&gt;8) { $shrink=8; };
 $remote_id = abs(crc32(md5(substr($remote_id,0,$shrink).$salt))) % $count_su3;
 $file_id = $path_su3."/".$remote_id.".su3";
 
@@ -723,192 +814,247 @@ header('Content-Disposition: attachment; filename='.$file_su3);
 ob_clean(); flush();
 if (!readfile($file_id)) { header($_SERVER["SERVER_PROTOCOL"]." 404 Not Found", true, 404); die(); }
 exit;
-?>
+?&gt;
 ###############################################################################
+</pre>
 
 
 
-
--------------------------------------------------------------------------------
-18. Optional - setup a manual reseed method
-
+<h3>18. Optional - setup a manual reseed method</h3>
+<p>
 For some users the automated reseeding may not work.
 This is an alternate way for users to get a valid reseed file with a normal web-browser,
 e.g. from another machine or maybe a friend. It is secured by a captcha to prevent abuse.
 
+<p>
 With this optional code users can visit https://your.reseedserver.com/reseed.php
 with any web-browser to download a su3-file after they solved the captcha.
 
+<p>
 Since 0.9.18-9 I2P has support to use reseed files from other sources:
 http://localhost:7657/configreseed
 
+<p>
 Visit https://geti2p.net/en/faq#manual_reseed to read how it works for users and see some example url's.
-[NOT DONE YET: read here: http://zzz.i2p/topics/1828-running-prototype-manually-reseed-captcha
-or test here anonymously: http://reseed.i2p/open.php]
+[NOT DONE YET: read here: <a href="http://zzz.i2p/topics/1828-running-prototype-manually-reseed-captcha">zzz.i2p</a>
+or test here anonymously: <a href="http://reseed.i2p/open.php">reseed.i2p</a>]
 
+<p>
 The changes for an exiting reseed server with the previous setup are simple:
-- use the latest su3.php from above (minimal version 5, only minor changes, no change of logic).
-- add the new reseed.php to your /var/www folder, next to to su3.php
-- install php5-gd (restart of php processes may be necessary)
-- get Securimage php-code from https://www.phpcaptcha.org/
+<ul>
+<li>use the latest su3.php from above (minimal version 5, only minor changes, no change of logic).
+<li>add the new reseed.php to your /var/www folder, next to to su3.php
+<li>install php5-gd (restart of php processes may be necessary)
+<li>get Securimage php-code from https://www.phpcaptcha.org/
+</ul>
 
+<p>
 Quote from https://www.phpcaptcha.org  (2015-03):
 "Securimage is an open-source free PHP CAPTCHA script for generating complex images and CAPTCHA codes to protect
 forms from spam and abuse. It can be easily added into existing forms on your website to provide protection from spam bots.
 It can run on most any webserver as long as you have PHP installed, and GD support within PHP.
 Securimage does everything from generating the CAPTCHA images to validating the typed code."
 
+<p>
 Short overview about installing Securimage:
- 1. download at https://www.phpcaptcha.org/download/
- 2. extract to /var/www/securimage
- 3. download and extract the "Test Script" (securimage_test.php) from the same url
- 4. test your server and visit https://.../securimage_test.php with your browser
+<ol>
+<li>download at https://www.phpcaptcha.org/download/
+<li>extract to /var/www/securimage
+<li>download and extract the "Test Script" (securimage_test.php) from the same url
+<li>test your server and visit https://.../securimage_test.php with your browser
+</ol>
+<p>
 The "Test Script" verifies your ability to run and display the captcha code, and can be deleted after the test.
 
+<p>
 The reseed.php contains only the captcha generation and verification of the users input. It is based on the
 Quickstart Guide from Securimage. When the user solved the captcha, reseed.php sets two http variables and
 then includes the external su3.php to start the su3-file download.
 
+<p>
 The name "reseed.php" is not fixed, you can name it unremarkable/unobtrusive as you like,
 enter.php start.php go.php...
 but you have to stick with it, when it is published :-)
 
+<p>
 reseed.php:
+<pre>
 ################################################################################################
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
-<html><head><meta http-equiv="Content-Type" content="text/html;charset=utf-8"></head><body>
-<?php
+&lt;!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd"&gt;
+&lt;html&gt;&lt;head&gt;&lt;meta http-equiv="Content-Type" content="text/html;charset=utf-8"&gt;&lt;/head&gt;&lt;body&gt;
+&lt;?php
 session_start();
 include_once $_SERVER['DOCUMENT_ROOT'] . '/securimage/securimage.php';
 $securimage = new Securimage();
 
-if (!isset($_POST['captcha_code']) || $securimage->check($_POST['captcha_code']) == false) {?>
-	<form method="post" action="<?php echo(basename($_SERVER['PHP_SELF'])); ?>">
-	<img id="captcha" src="/securimage/securimage_show.php" alt="CAPTCHA Image" />
-	<p>Enter Code: <input type="text" name="captcha_code" size="10" maxlength="6" />
-	<input type="submit" value="Check Code" />
-	</form>
-<?php } else {
+if (!isset($_POST['captcha_code']) || $securimage-&gt;check($_POST['captcha_code']) == false) {?&gt;
+	&lt;form method="post" action="&lt;?php echo(basename($_SERVER['PHP_SELF'])); ?&gt;"&gt;
+	&lt;img id="captcha" src="/securimage/securimage_show.php" alt="CAPTCHA Image" /&gt;
+	&lt;p&gt;Enter Code: &lt;input type="text" name="captcha_code" size="10" maxlength="6" /&gt;
+	&lt;input type="submit" value="Check Code" /&gt;
+	&lt;/form&gt;
+&lt;?php } else {
 	$_SERVER['HTTP_USER_AGENT']="Wget/1.11.4";
 	$_GET['file']="i2pseeds.su3";
 	include_once $_SERVER['DOCUMENT_ROOT'] . "/su3.php";
-} ?>
-</body></html>
+} ?&gt;
+&lt;/body&gt;&lt;/html&gt;
 ################################################################################################
+</pre>
 
 
 
+<h3>19. matt's go solution - Overview</h3>
 
--------------------------------------------------------------------------------
-19. matt's go solution - Overview
-
+<p>
 The previous steps for reseeding involves many steps, scripts and programs.
 Most of them are easy and plain straight forward, but overall you can call it a little confusing.
 
+<p>
 Here comes now an all-in-one solution from matt (Big Thanks!) for providing
 a reseed server which merges the following functions into one binary:
 
-- create su3-files
-- create su3 signer certificate+key
-- create ssl-certificate+key
-- replaces the http-server and the php code (or run next to them in parallel)
+<ul>
+<li>create su3-files
+<li>create su3 signer certificate+key
+<li>create ssl-certificate+key
+<li>replaces the http-server and the php code (or run next to them in parallel)
+</ul>
 
+<p>
 Almost all previous used scripts and described steps are not needed with this solution,
 but to understand the overall reseed process it is recommended to read them too :-)
 
- - If you already have an ssl-certificate and su3-signer-key you can reuse them, see one of the following chapter.
- - For testing and new reseeders the required certs and keys are created automatically at first start.
- - Also take a look at the content and the naming scheme of these pem and crt files.
+<ul>
+<li>If you already have an ssl-certificate and su3-signer-key you can reuse them, see one of the following chapter.
+<li>For testing and new reseeders the required certs and keys are created automatically at first start.
+<li>Also take a look at the content and the naming scheme of these pem and crt files.
+</ul>
 
+<p>
 Of course you need an up-to-date netDB folder with routerinfos from a running i2p router.
 I2P does not have to be running on the same machine as this reseed binary.
 In this case you can setup a cronjob to transfer the netDB from the I2P machine to the reseed machine.
 
+<p>
 Matt's go solution can be used in parallel next to an already running http-server.
 For this leave the http-server running at normal port 80 and 443,
 and configure matt's go solution too use another port, e.g. port 8443.
 
+<p>
 More: at github, README.md, https://github.com/MDrollette/i2p-tools
 
 
--------------------------------------------------------------------------------
-20. matt's go solution - Building from source
+<h3>20. matt's go solution - Building from source</h3>
 
+<p>
 Requirements:
- - go1.4.2 (older versions may not work)
+<ul>
+<li>go1.4.2 (older versions may not work)
+</ul>
 
+<p>
 Install go from https://golang.org/doc/install, example for 64 bit Ubuntu/Debian:
- - wget https://storage.googleapis.com/golang/go1.4.2.linux-amd64.tar.gz
- - sudo tar -C /usr/local -xzf go1.4.2.linux-amd64.tar.gz
- - mkdir $HOME/go
- - edit /etc/profile and add:
+<ul>
+<li>wget https://storage.googleapis.com/golang/go1.4.2.linux-amd64.tar.gz
+<li>sudo tar -C /usr/local -xzf go1.4.2.linux-amd64.tar.gz
+<li>mkdir $HOME/go
+<li>edit /etc/profile and add:
+<pre>
 	export GOPATH=$HOME/go
 	export PATH=$PATH:/usr/local/go/bin:$GOPATH/bin
+</pre>
+</ul>
 
+<p>
 Verify go:
+<pre>
 $ go version
+</pre>
 which should state something like: "go version go1.4.2"
 
+<p>
 Install matt's go solution from https://github.com/MDrollette/i2p-tools into $HOME/go:
+<pre>
 $ go get github.com/MDrollette/i2p-tools
+</pre>
 
+<p>
 This will install a binary to $GOPATH/bin/i2p-tools
 
+<p>
 Run the go solution, the usage/help should be displayed, nothing more:
+<pre>
 $ i2p-tools
+</pre>
 
 
 
 
--------------------------------------------------------------------------------
-21. matt's go solution - Run the reseed server
+<h3>21. matt's go solution - Run the reseed server</h3>
 
+<pre>
 $ i2p-tools reseed --tlsHost=myserver.com --signer=myemail@mail.i2p --netdb=$HOME/.i2p/netDb
+</pre>
 
-- replace myserver.com with your real domain
-- replace myemail@mail.i2p with a valid existing email, which you want to use for reseeding purpose
-- new TLS certificate+key will be created (if they do not exist)
-- new signing certificate+key will be created (if they do not exist)
-- netdb=... should point to the netdb folder of your running i2p with the routerinfos
-- to use another port append "--port=443" to the command, default is port 8443
+<ul>
+<li>replace myserver.com with your real domain
+<li>replace myemail@mail.i2p with a valid existing email, which you want to use for reseeding purpose
+<li>new TLS certificate+key will be created (if they do not exist)
+<li>new signing certificate+key will be created (if they do not exist)
+<li>netdb=... should point to the netdb folder of your running i2p with the routerinfos
+<li>to use another port append "--port=443" to the command, default is port 8443
+</ul>
 
+<p>
 Output:
+<pre>
 2015/03/15 12:28:25 Rebuilding su3 cache...
 2015/03/15 12:28:25 Building 200 su3 files each containing 75 out of 3180 routerInfos.
 2015/03/15 12:28:35 Done rebuilding.
 2015/03/15 12:28:35 HTTPS server started on 0.0.0.0:8443
+</pre>
 
+<p>
 So you can now test to reach the server at port 8443, see a previous chapter about proper testing.
 
+<p>
 Some remarks:
-- don't run the server daemon as root
-- every port between 1024 and 49151 is fine for i2p.
-- if you want to use the privileged (https-default) port 443, create a port redirect, e.g.
+<ul>
+<li>don't run the server daemon as root
+<li>every port between 1024 and 49151 is fine for i2p.
+<li>if you want to use the privileged (https-default) port 443, create a port redirect, e.g.
     iptables -A PREROUTING -t nat -p tcp --dport 443 -j REDIRECT --to-port 8443
-- redirect the output from the go solution to a logfile, format is default apache-style combined logs
-- add a logrotate for the logfiles, since they grow big :-(
-- logfiles can be used by fail2ban
-- Both of the certificates (*.crt) will need to be sent to the reseed maintainer
+<li>redirect the output from the go solution to a logfile, format is default apache-style combined logs
+<li>add a logrotate for the logfiles, since they grow big :-(
+<li>logfiles can be used by fail2ban
+<li>Both of the certificates (*.crt) will need to be sent to the reseed maintainer
 in order for your reseed server to be included in the standard I2P package.
-- Add a proper startup script, to run the reseed server, see next chapter
+<li>Add a proper startup script, to run the reseed server, see next chapter
+</ul>
 
 
 
 
--------------------------------------------------------------------------------
-22. matt's go solution - Draft for startup script
+<h3>22. matt's go solution - Draft for startup script</h3>
 
+<p>
 The reseed server should be started automatically, so you need a init.d or some sort of startscript.
 This is only a very first draft for a simple startscript (it could be done better :-))
 The startscript can be placed in your personal crontab: @reboot   sleep 20 && /path_to/startscript
 
 
+<p>
 Two logfiles are specified:
- * reseed.log - apache-style combined logs
- * reseed.error	- any error messages
+<ul>
+<li>reseed.log - apache-style combined logs
+<li>reseed.error	- any error messages
+</ul>
 
+<p>
 startscript:
 
+<pre>
 ######################################################################################################
 #!/bin/sh
 
@@ -920,71 +1066,97 @@ cd $GOPATH
 logfile=$HOME/go/reseed.log
 errfile=$HOME/go/reseed.error
 
-i2p-tools reseed --tlsHost=myserver.com --signer=myemail@mail.i2p --netdb=$HOME/.i2p/netDb >>$logfile 2>>$errfile &
+i2p-tools reseed --tlsHost=myserver.com --signer=myemail@mail.i2p --netdb=$HOME/.i2p/netDb &gt;&gt;$logfile 2&gt;&gt;$errfile &
 disown -h
 
 exit 0
 ######################################################################################################
+</pre>
 
 
 
 
--------------------------------------------------------------------------------
-23. matt's go solution - reverse-proxy setup
+<h3>23. matt's go solution - reverse-proxy setup</h3>
 
+<p>
 You can run i2p-tools also behind your normal web-server (reverse-proxy).
 
+<p>
 The web-server handles the TLS handshake, encryption, SSL Certificate and the logfiles.
 But you don't need the scripts su3.php and the shell cronjob for creating su3-files.
 i2p-tools is running "behind" the web-server, without TLS management, only bind to
 local interface 127.0.0.1 and is handling complete building and handling of su3-files.
 
 
+<p>
 Run i2p-tools with this command:
 
+<pre>
 i2p-tools reseed --signer test@test.de --key /path_to/test_at_test.de.pem --netdb /path_to/netDb --port=8443 --ip 127.0.0.1 --trustProxy
+</pre>
 
 Important notes for this special setup:
- * do *not* specify  --tlsHost, --tlsCert or --tlsKey on the command-line
- * "ip 127.0.0.1" binds the program only to local interface
- * "trustProxy" uses the "X-Forwarded-For" to get the real client IP
+<ul>
+<li>do *not* specify  --tlsHost, --tlsCert or --tlsKey on the command-line
+<li>"ip 127.0.0.1" binds the program only to local interface
+<li>"trustProxy" uses the "X-Forwarded-For" to get the real client IP
+</ul>
+
+"trustProxy" uses the "X-Forwarded-For" to get the real client IP
 
 
+<p>
 lighttpd configuration example:
+<pre>
 	server.modules += ( "mod_proxy" )
-	proxy.server = ( ".su3" => ( ( "host" => "127.0.0.1", "port" => 8443 ) )  )
+	proxy.server = ( ".su3" =&gt; ( ( "host" =&gt; "127.0.0.1", "port" =&gt; 8443 ) )  )
+</pre>
 
 
+<p>
 nginx configuration example:
+<pre>
 	location / {
 		proxy_pass http://127.0.0.1:8443;
 	}
+</pre>
 
+<p>
 and for X-Forwarded-For:
+<pre>
      proxy_set_header        X-Real-IP       $remote_addr;
      proxy_set_header        X-Forwarded-For $proxy_add_x_forwarded_for;
+</pre>
 
 
 
 
--------------------------------------------------------------------------------
-24. matt's go solution - Convert existing java keystore to crt- and pem-file
+<h3>24. matt's go solution - Convert existing java keystore to crt- and pem-file</h3>
 
+<p>
 This describes how to convert your existing java keystore with your su3 signing key to a plain crt- and pem-file.
 This is only needed, when you already have a java keystore and want to use matt's go solution.
 If you create new keys+certs with matt's solution you can skip this chapter!
 
+<p>
 Requirements:
- * java keytool
- * openssl
- * and of course your secret password for the keystore
+<ul>
+<li>java keytool
+<li>openssl
+<li>and of course your secret password for the keystore
+</ul>
 
+<p>
 Keep in mind: the java keystore has two passwords:
- * the secret key password you have entered while creating your keystore the first time (SU3File keygen ...)
- * and a "storage" password, which is most probably default "changeit".
+<ul>
+<li>the secret key password you have entered while creating your keystore the first time (SU3File keygen ...)
+<li>and a "storage" password, which is most probably default "changeit".
+</ul>
 
+<p>
 This works in a Ubuntu/Debian shell:
 
+<pre>
 ######################################################################################################
 file="keystore.ks"
 pass_jks=changeit
@@ -992,13 +1164,13 @@ pass_jks=changeit
 # List the keystore content, show the included (email) alias
 keytool -list -storepass $pass_jks -keystore $file
 
-# Convert jks --> pkcs12, specify the correct email alias (xxxxx@mail.i2p):
+# Convert jks --&gt; pkcs12, specify the correct email alias (xxxxx@mail.i2p):
 keytool -importkeystore -srcalias xxxxx@mail.i2p -srckeystore $file -srcstoretype jks -srcstorepass $pass_jks -destkeystore ${file}.p12  -deststoretype pkcs12 -deststorepass $pass_jks -destkeypass $pass_jks
 
 # Show the pkcs12 content:
 openssl pkcs12 -passin pass:$pass_jks -in ${file}.p12 -nodes -info
 
-# Convert pkcs12 --> pem
+# Convert pkcs12 --&gt; pem
 openssl pkcs12 -passin pass:$pass_jks -in ${file}.p12 -nodes -out ${file}.pem
 
 # Decrypt the pem
@@ -1007,8 +1179,6 @@ openssl rsa  -in ${file}.pem -out xxxxx_at_mail.i2p.pem
 # Extract the certificate
 openssl x509 -in ${file}.pem -out xxxxx_at_mail.i2p.crt
 ######################################################################################################
-
-
 </pre>
 
 {% endblock %}
