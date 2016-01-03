@@ -1,6 +1,6 @@
 {% extends "global/layout.html" %}
 {% block title %}SAM V3{% endblock %}
-{% block lastupdated %}November 2015{% endblock %}
+{% block lastupdated %}January 2016{% endblock %}
 {% block accuratefor %}0.9.24{% endblock %}
 {% block content %}
 <p>Specified below is a simple client protocol for interacting with I2P.
@@ -51,10 +51,9 @@ Version 3.1 was introduced in I2P release 0.9.14.
 </ul>
 </p>
 
-<h3>Version 3.2 Proposal</h3>
+<h3>Version 3.2 Changes</h3>
 <p>
-Version 3.2 is scheduled for inclusion in I2P release 0.9.24, and the changes listed below are preliminary.
-The following changes will be incorporated in the main part of this document soon.
+Version 3.2 was introduced in I2P release 0.9.24.
 <ul>
 <li>SESSION CREATE now supports options FROM_PORT=nnnn and TO_PORT=nnnn to set default I2P ports
 <li>SESSION CREATE STYLE=RAW now supports option PROTOCOL=nnn to set default I2P protocol (18 otherwise)
@@ -111,6 +110,7 @@ The following changes will be incorporated in the main part of this document soo
 <h3>Version 3.3 Proposal</h3>
 <p>
 Version 3.3 is not yet implemented, and the changes listed below are preliminary.
+Scheduled for I2P release 0.9.25.
 <ul>
 <li>The same session ID may be used for streams, datagrams, and raw simultaneously.
     Incoming packets and streams will be routed based on I2P protocol and to-port.
@@ -131,28 +131,11 @@ all of the I2P functionality (using the streaming
 lib for virtual streams, or I2CP directly for async messages).
 
 </p><p>
-All client&lt;--&gt;SAM bridge communication is unencrypted and 
-unauthenticated.  Access to the SAM
-bridge should be protected through firewalls or other means
-(perhaps the bridge may have ACLs on what IPs it accepts 
-connections from).
-
-</p><p>
-All of these SAM messages are sent on a single line in plain ASCII,
-terminated by the newline character (\n).  The formatting shown
-below is merely for readability, and while the first two words in
-each message must stay in their specific order, the ordering of
-the key=value pairs can change (e.g. "ONE TWO A=B C=D" or 
-"ONE TWO C=D A=B" are both perfectly valid constructions).  In
-addition, the protocol is case-sensitive.
-In the following, message examples are preceded by "-&gt; " for
-messages sent by the client to the SAM bridge, and by "&lt;- " for
-messages sent by the SAM bridge to the client.
-
-</p><p>
-SAM messages are interpreted in UTF-8. Key=value pairs must be separated by
-a single space. Values may be enclosed in double quotes if they contain spaces,
-e.g. key="long value text". There is no escaping mechanism.
+The client&lt;--&gt;SAM bridge communication may unencrypted or unauthenticated.
+The SAM bridge may support SSL/TLS connections;
+configuration and implementation details are outside the scope of this specification.
+As of SAM 3.2, optional authentication in the handshake is specified
+and may be required by the bridge..
 
 </p><p>
 I2P communications can take three distinct forms:
@@ -169,6 +152,68 @@ session is bound to an address (called destination). An I2P session
 is associated with one of the three types above, and cannot carry
 communications of another type.
 </p>
+
+
+<h3>Encoding and Escaping</h3>
+<p>
+All of these SAM messages are sent on a single line,
+terminated by the newline character (\n).
+Prior to SAM 3.2, only 7-bit ASCII was supported.
+As of SAM 3.2, the encoding must be UTF-8.
+Any UTF8-encoded keys or values should work.
+
+</p><p>
+The formatting shown in this specification
+below is merely for readability, and while the first two words in
+each message must stay in their specific order, the ordering of
+the key=value pairs can change (e.g. "ONE TWO A=B C=D" or 
+"ONE TWO C=D A=B" are both perfectly valid constructions).
+In addition, the protocol is case-sensitive.
+In the following, message examples are preceded by "-&gt; " for
+messages sent by the client to the SAM bridge, and by "&lt;- " for
+messages sent by the SAM bridge to the client.
+
+</p><p>
+The basic command or response line takes one of the following forms:
+<pre>
+     COMMAND SUBCOMMAND [key=value] [key=value] ...
+     COMMAND                                           # As of SAM 3.2
+     PING[ arbitrary text]                             # As of SAM 3.2
+     PONG[ arbitrary text]                             # As of SAM 3.2
+</pre>
+COMMAND without a SUBCOMMAND is supported for some new commands in SAM 3.2 only.
+
+
+</p><p>
+Key=value pairs must be separated by
+a single space. (As of SAM 3.2, multiple spaces are allowed)
+Values may be enclosed in double quotes if they contain spaces,
+e.g. key="long value text".
+(Prior to SAM 3.2, this did not work reliably in some implementations)
+</p><p>
+Prior to SAM 3.2, there was no escaping mechanism.
+As of SAM 3.2, double quotes may be escaped with a backslash '\'
+and a backslash may be represented as two backslashes '\\'.
+</p>
+
+
+<h3>Empty values</h3>
+<p>
+As of SAM 3.2,
+empty option values such as KEY, KEY=, or KEY="" may be allowed, implementation dependent.
+</p>
+
+
+<h3>Case Sensitivity</h3>
+<p>
+The protocol, as specified, is case-sensitive.
+It is recommended but not required that the server map commands to upper case, for ease in testing via telnet.
+This would allow, for example, "hello version" to work.
+This is implementation-dependent.
+Do not map keys or values to upper case, as this would corrupt I2CP options.
+</p>
+
+
   
 <h3>SAM Connection Handshake</h3>
 <p>
@@ -176,7 +221,11 @@ No SAM communication can occur until after the client and bridge have
 agreed on a protocol version, which is done by the client sending
 a HELLO and the bridge sending a HELLO REPLY: 
 <pre>
--&gt;  HELLO VERSION MIN=$min MAX=$max
+-&gt;  HELLO VERSION
+          [MIN=$min]            # Optional as of SAM 3.1, required for 3.0 and earlier
+          [MAX=$max]            # Optional as of SAM 3.1, required for 3.0 and earlier
+          [USER="xxx"]          # As of SAM 3.2, required if authentication is enabled, see below
+          [PASSWORD="yyy"]      # As of SAM 3.2, required if authentication is enabled, see below
 </pre>
 and
 <pre>
@@ -186,7 +235,7 @@ and
 </p><p>
 As of version 3.1 (I2P 0.9.14), the MIN and MAX parameters are optional.
 SAM will always return the highest version possible given the
-MIN and MAX constraints, or 3.1 if no constraints are given.
+MIN and MAX constraints, or the current server version if no constraints are given.
 
 If the SAM bridge cannot find a suitable version, it replies with:
 <pre>
@@ -197,6 +246,63 @@ If some error occurred, such as a bad request format, it replies with:
 &lt;- HELLO REPLY RESULT=I2P_ERROR MESSAGE=$message
 </pre>
 </p>
+
+
+<h4>SSL</h4>
+<p>
+The server's control socket may optionally offer SSL/TLS support, as configured on the server and client.
+Implementations may offer other transport layers as well; this is outside the scope of the protocol definition.
+</p>
+
+
+<h4>Authorization</h4>
+<p>
+For authorization, client adds USER="xxx" PASSWORD="yyy" to the HELLO parameters.
+Double quotes for user and password are recommended but not required.
+A double quote inside a user or password must be escaped with a backslash.
+On failure the server will reply with an I2P_ERROR and a message.
+It is recommended that SSL be enabled on any SAM servers where authorization is required.
+</p>
+
+
+<h4>Timeouts</h4>
+<p>
+Servers may implement timeouts for the HELLO or subsequent commands, implementation dependent.
+Clients should promptly send the HELLO and the next command after connecting.
+</p><p>
+If a timeout occurs before the HELLO is received, the bridge replies with:
+<pre>
+&lt;- HELLO REPLY RESULT=I2P_ERROR MESSAGE=$message
+</pre>
+and then disconnects.
+</p><p>
+If a timeout occurs after the HELLO is received but before the next command, the bridge replies with:
+<pre>
+&lt;- SESSION STATUS RESULT=I2P_ERROR MESSAGE=$message
+</pre>
+and then disconnects.
+</p>
+
+
+<h3>I2CP Ports and Protocol</h3>
+<p>
+As of SAM 3.2, the I2CP ports and protocol may be specified by the
+SAM client sender to be passed through to I2CP, and
+the SAM bridge will pass the received I2CP port and protocol
+information to the SAM client.
+</p><p>
+For FROM_PORT and TO_PORT, the valid range is 0-65535, and the default is 0.
+</p><p>
+For PROTOCOL, which may be specified only for RAW, the valid range is 0-255, and the default is 18.
+</p><p>
+For SESSION commands, the specified ports and protocol are the defaults for that session.
+For individual streams or datagrams, the specified ports and protocol override the session defaults.
+For received streams or datagrams, the indicated ports and protocol are as received from I2CP.
+</p><p>
+See the I2CP specification for more information.
+</p><p>
+
+
 
 <h3>SAM Sessions</h3>
 <p>
@@ -210,13 +316,15 @@ Each registered I2P Destination is uniquely associated with a session ID
 
 </p><p>
 Each session is uniquely associated with:
+</p>
 <ul><li>
 the socket from which the client creates the session
 </li><li>
 its ID (or nickname)
 </li></ul>
 
-</p><p>
+<h4>Session Creation Request</h4>
+<p>
 The session creation message can only use one of these forms (messages 
 received through other forms are answered with an error message) :
 
@@ -225,6 +333,10 @@ received through other forms are answered with an error message) :
           STYLE={STREAM,DATAGRAM,RAW}
           ID=$nickname
           DESTINATION={$privkey,TRANSIENT}
+          [FROM_PORT=nnn]                      # SAM 3.2 or higher only, default 0
+          [TO_PORT=nnn]                        # SAM 3.2 or higher only, default 0
+          [PROTOCOL=nnn]                       # SAM 3.2 or higher only, for STYLE=RAW only, default 18
+          [HEADER={true,false}]                # SAM 3.2 or higher only, for STYLE=RAW only, default false
           [option=value]*
 </pre>
 
@@ -259,8 +371,10 @@ The SAM bridge itself should already be configured with what router
 it should communicate over I2P through (though if need be there may
 be a way to provide an override, e.g. i2cp.tcp.host=localhost and 
 i2cp.tcp.port=7654).
+</p>
 
-</p><p>
+<h4>Session Creation Response</h4>
+<p>
 After receiving the session create message, the SAM bridge will reply
 with a session status message, as follows:
 
@@ -332,19 +446,24 @@ he wants to listen to requests coming from other I2P destinations.
 <h3>SAM Virtual Streams : CONNECT</h3>
 <p>
 A client asks for a connection by:
+</p>
 <ul><li>
 opening a new socket with the SAM bridge
 </li><li>
 passing the same HELLO handshake as above
 </li><li>
-sending the STREAM CONNECT command:  
+sending the STREAM CONNECT command  
 </li></ul>
 
+<h4>Connect Request</h4>
+<p>
 <pre>
 -&gt; STREAM CONNECT
          ID=$nickname
          DESTINATION=$destination
-         [SILENT={true,false}]
+         [SILENT={true,false}]                # default false
+         [FROM_PORT=nnn]                      # SAM 3.2 or higher only, default 0
+         [TO_PORT=nnn]                        # SAM 3.2 or higher only, default 0
 </pre>
 
 </p><p>
@@ -355,8 +474,10 @@ whose ID is $nickname to the specified peer.
 The target is $destination, which is the base 64 of the <a href="{{ site_url('docs/spec/common-structures') }}#type_Destination">Destination</a>,
 which is 516 or more base 64 characters (387 or more bytes in binary),
 depending on signature type.
+</p>
 
-</p><p>
+<h4>Connect Response</h4>
+<p>
 If SILENT=true is passed, the SAM bridge won't issue any other message
 on the socket. If the connection fails, the socket will be closed.
 If the connection succeeds, all remaining data passing through the
@@ -398,25 +519,34 @@ socket.
 <h3>SAM Virtual Streams : ACCEPT</h3>
 <p>
 A client waits for an incoming connection request by:
+</p>
 <ul><li>
 opening a new socket with the SAM bridge
 </li><li>
 passing the same HELLO handshake as above
 </li><li>
-sending the STREAM ACCEPT command:  
+sending the STREAM ACCEPT command  
 </li></ul>
 
+<h4>Accept Request</h4>
+<p>
 <pre>
 -&gt; STREAM ACCEPT
          ID=$nickname
-         [SILENT={true,false}]
+         [SILENT={true,false}]                # default false
 </pre>
 
 </p><p>
 This makes the session ${nickname} listen for one incoming
 connection request from the I2P network.
-
 </p><p>
+As of SAM 3.2,
+multiple concurrent pending STREAM ACCEPTs are allowed on the same session ID (even with the same port).
+Prior to 3.2, concurrent accepts would fail with ALREADY_ACCEPTING.
+</p>
+
+<h4>Accept Response</h4>
+<p>
 If SILENT=true is passed, the SAM bridge won't issue any other message
 on the socket. If the accept fails, the socket will be closed.
 If the accept succeeds, all remaining data passing through the
@@ -460,7 +590,16 @@ peer.
 </p><p>
 If SILENT=false was passed, which is the default value, the SAM bridge
 sends the client a ASCII line containing the base64 public destination key
-of the requesting peer. After this '\n' terminated line, all remaining data 
+of the requesting peer, and additional information for SAM 3.2 only:
+
+<pre>
+    $destination
+    FROM_PORT=nnn                      # SAM 3.2 or higher only
+    TO_PORT=nnn                        # SAM 3.2 or higher only
+    \n
+</pre>
+
+After this '\n' terminated line, all remaining data 
 passing through the current socket is forwarded from and to the connected
 I2P destination peer, until one of the peer closes the socket.
 </p>
@@ -469,27 +608,33 @@ I2P destination peer, until one of the peer closes the socket.
 <p>
 A client can use a regular socket server and wait for connection requests
 coming from I2P. For that, the client must:
+</p>
 <ul><li>
 open a new socket with the SAM bridge
 </li><li>
 pass the same HELLO handshake as above
 </li><li>
-send the forward command:
+send the forward command
 </ul></li>
 
+<h4>Forward Request</h4>
+<p>
 <pre>
 -&gt; STREAM FORWARD
          ID=$nickname
          PORT=$port
          [HOST=$host]
-         [SILENT={true,false}]
+         [SILENT={true,false}]                # default false
+         [SSL={true,false}]                   # SAM 3.2 or higher only, default false
 </pre>
 
 </p><p>
 This makes the session ${nickname} listen for incoming
 connection requests from the I2P network.
+</p>
 
-</p><p>
+<h4>Forward Response</h4>
+<p>
 SILENT defaults to false.
 Whether SILENT is true or false,
 the SAM bridge always answers with a STREAM STATUS message.
@@ -534,11 +679,22 @@ peer.
 </p><p>
 If SILENT=false was passed, which is the default value, the SAM bridge
 sends on the obtained socket an ASCII line containing the base64 public
-destination key of the requesting peer. After this '\n' terminated line,
+destination key of the requesting peer, and additional information for SAM 3.2 only:
+
+<pre>
+    $destination
+    FROM_PORT=nnn                      # SAM 3.2 or higher only
+    TO_PORT=nnn                        # SAM 3.2 or higher only
+    \n
+</pre>
+
+After this '\n' terminated line,
 all remaining data passing through the socket is forwarded from and to 
 the connected I2P destination peer, until one of the sides closes the
 socket.
 
+</p><p>
+As of SAM 3.2, if SSL=true is specified, the forwarding socket is over SSL/TLS.
 
 
 </p><p>
@@ -560,6 +716,7 @@ signing key to verify the source) and includes replay prevention.
 </p><p>
 Minimum size is 1. For best delivery reliability, recommended maximum
 size is approximately 11 KB.
+Reliability is inversely proportional to message size, perhaps even exponentially.
 
 </p><p>
 After establishing a SAM session with STYLE=DATAGRAM, the client can
@@ -567,14 +724,20 @@ send datagrams through SAM's UDP port (7655).
 
 </p><p>
 The first line of a datagram sent through this port must be in the
-following format:
+following format.
+This is all on one line (space separated), shown on multiple lines for clarity:
 
-<p>
-3.0 $nickname $destination
-</p>
+<pre>
+    3.0                                  # As of SAM 3.2, any 3.x is allowed
+    $nickname
+    $destination
+    [FROM_PORT=nnn]                      # SAM 3.2 or higher only, default 0
+    [TO_PORT=nnn]                        # SAM 3.2 or higher only, default 0
+    \n
+</pre>
 
 <ul><li>
- 3.0 is the version of SAM
+ 3.0 is the version of SAM. As of SAM 3.2, any 3.x is allowed.
 </li><li>
  $nickname is the id of the DATAGRAM session that will be used
 </li><li>
@@ -606,7 +769,10 @@ message:
 <pre>
 &lt;-  DATAGRAM RECEIVED
            DESTINATION=$destination
-           SIZE=$numBytes\n
+           SIZE=$numBytes
+           FROM_PORT=nnn                      # SAM 3.2 or higher only
+           TO_PORT=nnn                        # SAM 3.2 or higher only
+           \n
        [$numBytes of data]
 </pre>
 
@@ -634,6 +800,9 @@ CREATE command with PORT and HOST options:
           DESTINATION={$privkey,TRANSIENT}
           PORT=$port
           [HOST=$host]
+          [FROM_PORT=nnn]                      # SAM 3.2 or higher only, default 0
+          [TO_PORT=nnn]                        # SAM 3.2 or higher only, default 0
+          [PROTOCOL=nnn]                       # SAM 3.2 or higher only, for STYLE=RAW only, default 18
           [option=value]*
 </pre>
 
@@ -667,8 +836,11 @@ When a repliable datagram arrives, the bridge sends to the specified host:port
 a UDP packet containing the following data:
 
 <pre>
-$destination\n
-$datagram_payload
+    $destination
+    FROM_PORT=nnn                      # SAM 3.2 or higher only
+    TO_PORT=nnn                        # SAM 3.2 or higher only
+    \n
+    $datagram_payload
 </pre>
 
 </p><p>
@@ -677,8 +849,20 @@ to the specified host:port without a prefix.
 The UDP packet contains the following data:
 
 <pre>
-$datagram_payload
+          $datagram_payload
 </pre>
+
+As of SAM 3.2, when HEADER=true is specified in SESSION CREATE,
+the forwarded raw datagram will be prepended with a header line as follows:
+
+<pre>
+          FROM_PORT=nnn
+          TO_PORT=nnn
+          PROTOCOL=nnn
+          \n
+          $datagram_payload
+</pre>
+
 
 </p><p>
 The $destination is the base 64 of the <a href="{{ site_url('docs/spec/common-structures') }}#type_Destination">Destination</a>,
@@ -714,7 +898,11 @@ command. This is the v1/v2-compatible way of receiving datagrams.
 
 <pre>
 &lt;- RAW RECEIVED
-          SIZE=$numBytes\n
+          SIZE=$numBytes
+          FROM_PORT=nnn                      # SAM 3.2 or higher only
+          TO_PORT=nnn                        # SAM 3.2 or higher only
+          PROTOCOL=nnn                       # SAM 3.2 or higher only
+          \n
       [$numBytes of data]
 </pre>
 
@@ -724,8 +912,20 @@ the bridge sends to the specified host:port a message containing
 the following data:
 
 <pre>
-$datagram_payload
+          $datagram_payload
 </pre>
+
+As of SAM 3.2, when HEADER=true is specified in SESSION CREATE,
+the forwarded raw datagram will be prepended with a header line as follows:
+
+<pre>
+          FROM_PORT=nnn
+          TO_PORT=nnn
+          PROTOCOL=nnn
+          \n
+          $datagram_payload
+</pre>
+
 
 </p><p>
 For an alternate method of sending anonymous datagrams, see <a href="#dgsend">RAW SEND</a>.
@@ -744,6 +944,12 @@ directly via the SAM bridge socket using the RAW SEND command,
 as documented in <a href="sam">SAM V1</a> and <a href="samv2">SAM V2</a>.
 
 </p><p>
+As of release 0.9.24 (version 3.2), DATAGRAM SEND and RAW SEND may include
+the parameters FROM_PORT=nnnn and/or TO_PORT=nnnn to override the default ports.
+As of release 0.9.24 (version 3.2), RAW SEND may include
+the parameter PROTOCOL=nnn to override the default protocol.
+
+</p><p>
 These commands do <i>not</i> support the ID parameter. The datagrams are
 sent to the most recently created DATAGRAM- or RAW-style session,
 as appropriate. Support for the ID parameter may be added in a future release.
@@ -751,6 +957,8 @@ as appropriate. Support for the ID parameter may be added in a future release.
 
 
 <h3>SAM Utility Commands</h3>
+
+<h4>Host Name Lookup</h4>
 <p>
 The following message can be used by the client to query the SAM
 bridge for name resolution:
@@ -793,6 +1001,7 @@ which is 516 or more base 64 characters (387 or more bytes in binary),
 depending on signature type.
 
 
+<h4>Destination Key Generation</h4>
 </p><p>
 Public and private base64 keys can be generated using the following
 message:
@@ -828,6 +1037,73 @@ followed by the <a href="{{ site_url('docs/spec/common-structures') }}#type_Sign
 which is 884 or more base 64 characters (663 or more bytes in binary),
 depending on signature type.
 The binary format is specified in <a href="http://docs.i2p-projekt.de/javadoc/net/i2p/data/PrivateKeyFile.html">Private Key File</a>.
+
+
+<h4>PING/PONG (SAM 3.2 or higher)</h4>
+<p>
+Either the client or server may send:
+<pre>
+    PING[ arbitrary text]
+</pre>
+on the control port,
+with the response:
+<pre>
+    PONG[ arbitrary text from the ping]
+</pre>
+to be used for control socket keepalive.
+Either side may close the session and socket if no response is received in a reasonable time, implementation dependent.
+</p><p>
+If a timeout occurs waiting for a PONG from the client, the bridge may send:
+<pre>
+&lt;- SESSION STATUS RESULT=I2P_ERROR MESSAGE=$message
+</pre>
+and then disconnect.
+</p><p>
+If a timeout occurs waiting for a PONG from the bridge, the client may simply disconnect.
+</p>
+
+
+<h4>QUIT/STOP/EXIT (SAM 3.2 or higher, optional features)</h4>
+<p>
+Commands QUIT, STOP and EXIT will close the session and socket.
+Implementation is optional, for ease in testing via telnet.
+Whether there is any response before the socket is closed
+(for example, a SESSION STATUS message) is
+implementation-specific and outside the scope of this specification.
+</p>
+
+
+<h4>HELP (optional feature)</h4>
+<p>
+Servers may implement a HELP command.
+Implementation is optional, for ease in testing via telnet.
+Output format and detection of the end of the output is
+implementation-specific and outside the scope of this specification.
+</p>
+
+
+
+<h4>Authorization Configuration (SAM 3.2 or higher, optional feature)</h4>
+<p>
+Authorization configuration using the AUTH command.
+A SAM server may implement these commands to facilite persistent storage of credentials.
+Configuration of authentication other than with these commands is
+implementation-specific and outside the scope of this specification.
+</p>
+<ul>
+    <li>AUTH ENABLE enables authorization on subsequent connections
+    <li>AUTH DISABLE disables authorization on subsequent connections
+    <li>AUTH ADD USER="foo" PASSWORD="bar" adds a user/password
+    <li>AUTH REMOVE USER="foo" removes this user
+</ul>
+<p>
+Double quotes for user and password are recommended but not required.
+A double quote inside a user or password must be escaped with a backslash.
+On failure the server will reply with an I2P_ERROR and a message.
+</p>
+
+
+
 
 <h3>RESULT Values</h3>
 <p>
@@ -872,12 +1148,15 @@ Some may be older and have not been updated for SAMv3 support.
 
 <h3>Default SAM Setup</h3>
 <p>
-The default SAM port is 7656. SAM is not enabled by default in the I2P Router;
+The default SAM port is 7656. SAM is not enabled by default in the Java I2P Router;
 it must be started manually, or configured to start automatically,
 on the configure clients page in the router console, or in the clients.config file.
-The default SAM UDP port is 7655, listening on 0.0.0.0.
+The default SAM UDP port is 7655, listening on 127.0.0.1.
 These may be changed by adding the arguments sam.udp.port=nnnnn and/or
 sam.udp.host=w.x.y.z to the invocation.
+
+</p><p>
+Configuration in other routers is implementation-specific.
 
 </p>
 {% endblock %}
