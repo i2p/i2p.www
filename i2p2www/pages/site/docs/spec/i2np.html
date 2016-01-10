@@ -1,7 +1,7 @@
 {% extends "global/layout.html" %}
 {% block title %}I2NP Specification{% endblock %}
-{% block lastupdated %}January 2015{% endblock %}
-{% block accuratefor %}0.9.17{% endblock %}
+{% block lastupdated %}January 2016{% endblock %}
+{% block accuratefor %}0.9.24{% endblock %}
 {% block content %}
 <p>
 The I2P Network Protocol (I2NP),
@@ -177,6 +177,9 @@ some places in the protocol stack.
 However, for compatibility with older versions, checksum generation is still required.
 It is a topic for future research to determine points in the protocol stack
 where the far-end router's version is known and checksum generation can be disabled.
+</li><li>
+The short expiration is unsigned and will wrap around on Feb. 7, 2106.
+As of that date, an offset must be added to get the correct time.
 </li></ul>
 
 
@@ -585,7 +588,17 @@ Total length: Typical length is:
     <td><a href="#msg_VariableTunnelBuildReply">VariableTunnelBuildReply</a></td>
     <td align="right">24</td>
   </tr>
+  <tr>
+    <td><i>Reserved for experimental messages</i></td>
+    <td align="right">224 - 254</td>
+  </tr>
+  <tr>
+    <td><i>Reserved for future expansion</i></td>
+    <td align="right">255</td>
+  </tr>
 </table>
+
+
 
 <h3 id="msg_DatabaseStore">DatabaseStore</h3>
 <h4>Description</h4>
@@ -1130,6 +1143,17 @@ data ::
 +----+----+----+----+----+-//-+
 {% endhighlight %}
 
+<h4>Notes</h4>
+<ul>
+<li>
+  This message contains no routing information and will never be sent "unwrapped".
+  It is only used inside Garlic messages.
+</ul>
+
+
+
+
+
 <h4>Definition</h4>
 {% highlight lang='dataspec' %}
 length ::
@@ -1171,6 +1195,10 @@ total size: 8*528 = 4224 bytes
   See also the <a href="{{ site_url('docs/spec/tunnel-creation') }}">tunnel creation specification</a>.
 <li>
   The I2NP message ID for this message must be set according to the tunnel creation specification.
+<li>
+  While this message is rarely seen in today's network, having been replaced by the VariableTunnelBuild message,
+  it may still be used for very long tunnels, and has not been deprecated.
+  Routers must implement.
 </ul>
 
 
@@ -1185,6 +1213,10 @@ Same format as `TunnelBuildMessage`, with `BuildResponseRecord`s
   See also the <a href="{{ site_url('docs/spec/tunnel-creation') }}">tunnel creation specification</a>.
 <li>
   The I2NP message ID for this message must be set according to the tunnel creation specification.
+<li>
+  While this message is rarely seen in today's network, having been replaced by the VariableTunnelBuildReply message,
+  it may still be used for very long tunnels, and has not been deprecated.
+  Routers must implement.
 </ul>
 
 <h3 id="msg_VariableTunnelBuild">VariableTunnelBuild</h3>
@@ -1215,6 +1247,8 @@ total size: 1+$num*528
   See also the <a href="{{ site_url('docs/spec/tunnel-creation') }}">tunnel creation specification</a>.
 <li>
   The I2NP message ID for this message must be set according to the tunnel creation specification.
+<li>
+  Typical number of records in today's network is 5.
 </ul>
 
 <h3 id="msg_VariableTunnelBuildReply">VariableTunnelBuildReply</h3>
@@ -1238,6 +1272,8 @@ Same format as `VariableTunnelBuildMessage`, with `BuildResponseRecord`s.
   See also the <a href="{{ site_url('docs/spec/tunnel-creation') }}">tunnel creation specification</a>.
 <li>
   The I2NP message ID for this message must be set according to the tunnel creation specification.
+<li>
+  Typical number of records in today's network is 5.
 </ul>
 
 
