@@ -1,12 +1,8 @@
 {% extends "global/layout.html" %}
 {% block title %}I2PTunnel{% endblock %}
+{% block lastupdated %}January 2016{% endblock %}
+{% block accuratefor %}0.9.24{% endblock %}
 {% block content %}
-<!--Description of i2ptunnel and tunneling modes
-
-default services
-client modes
-server modes
--->
 
 <h2 id="overview">{% trans %}Overview{% endtrans %}</h2>
 <p>{% trans naming=site_url('docs/naming') -%}
@@ -69,20 +65,28 @@ in a HTTP request. Supports proxying onto internet if an outproxy is provided. S
 {%- endtrans %}</p>
 <ul>
 <li>{% trans -%}
-<b>Accept, Accept-Charset, Accept-Encoding, Accept-Language
+<b>Accept, Accept-Charset, Accept-Language
  and Accept-Ranges</b> as they vary greatly between browsers and can be used as an identifier.
 {%- endtrans %}</li>
 <li><b>Referer:</b></li>
 <li><b>Via:</b></li>
 <li><b>From:</b></li>
 </ul>
-<p>{% trans -%}
-HTTP client/server tunnels are via I2Ptunnel force-enabling compression via the following http headers:
-{%- endtrans %}</p>
+
+<p>
+The i2ptunnel compression is requested with the HTTP header:
+</p>
 <ul>
-<li><b>Accept-Encoding: </b></li>
 <li><b>X-Accept-Encoding: </b> x-i2p-gzip;q=1.0, identity;q=0.5, deflate;q=0, gzip;q=0, *;q=0</li>
 </ul>
+
+<p>
+The response indicating i2ptunnel compression contains the following HTTP header:
+</p>
+<ul>
+<li><b>Content-Encoding: </b> x-i2p-gzip</li>
+</ul>
+
 <p>{% trans -%}
 Depending on if the tunnel is using an outproxy or not it will append the following User-Agent: 
 {%- endtrans %}</p>
@@ -92,23 +96,43 @@ Depending on if the tunnel is using an outproxy or not it will append the follow
 </ul>
 </p>
 
-<h3 id="client-mode-irc">IRC</h3>
+<h3 id="client-mode-irc">IRC Client</h3>
 <p>{% trans -%}
 Creates a connection to a random IRC server specified by the comma seprated (", ") 
 list of destinations. Only a whitelisted subset of IRC commands are allowed due to anonymity concerns.
 {%- endtrans %}
+The following whitelist is for commands inbound from the IRC server to the IRC client.
 <br>{% trans %}Whitelist:{% endtrans %}</p>
 <ul>
-<li>MODE</li>
-<li>JOIN</li>
-<li>NICK</li>
-<li>QUIT</li>
-<li>PART</li>
-<li>WALLOPS</li>
+<li>AUTHENTICATE</li>
+<li>CAP</li>
 <li>ERROR</li>
-<li>KICK</li>
 <li>H</li>
+<li>JOIN</li>
+<li>KICK</li>
+<li>MODE</li>
+<li>NICK</li>
+<li>PART</li>
+<li>PING</li>
+<li>PROTOCTL</li>
+<li>QUIT</li>
 <li>TOPIC</li>
+<li>WALLOPS</li>
+</ul>
+
+<p>
+There is also a whitelist is for commands outbound from the IRC client to the IRC server.
+It is quite large due to the number of IRC administrative commands.
+See the IRCFilter.java source for details.
+The outbound filter also modifies the following commands to strip identifying information:
+</p>
+<ul>
+<li>NOTICE</li>
+<li>PART</li>
+<li>PING</li>
+<li>PRIVMSG</li>
+<li>QUIT</li>
+<li>USER</li>
 </ul>
 
 <h3 id="client-mode-socks">SOCKS 4/4a/5</h3>
@@ -156,7 +180,7 @@ capabilities. An example application would be a web application that does client
 requests, or loopback-testing an eepsite as a diagnostic tool.
 {%- endtrans %}</p>
 
-<h3 id="server-mode-irc">IRC</h3>
+<h3 id="server-mode-irc">IRC Server</h3>
 <p>{% trans -%}
 Creates a destination that filters the reqistration sequence of a client and passes 
 the clients destination key as a hostname to the IRC-server.
