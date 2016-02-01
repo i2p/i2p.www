@@ -1,5 +1,5 @@
 {% extends "global/layout.html" %}
-{% block title %}{% trans %}Reseed Services{% endtrans %}{% endblock %}
+{% block title %}{% trans %}Reseed Hosts{% endtrans %}{% endblock %}
 {% block lastupdated %}{% trans %}January 2016{% endtrans %}{% endblock %}
 {% block accuratefor %}0.9.24{% endblock %}
 {% block content %}
@@ -16,196 +16,19 @@ Reseeding is done over an encrypted connection and all of the bootstrap informat
 {%- endtrans %}</p>
 
 
-<h2 id="howto">{% trans %}How to run a Reseed host{% endtrans %}</h2>
-Quick guide - setup a public reseed server (2016-01)
-
-<ol>
-    <li><p>
-{%-trans -%}
-Fire up your favorite webserver
-Connect a domain, sub-domain or (anonymous) third-level-domain
-Setup a state-of-the-art TLS(SSL) certificate
-Allow access only via HTTPS/TLS, no unencrypted HTTP
-Allow only very good ciphers, compatible to Java 7/8/9
-Note: A non default port other than 443 can be used; TLS certificate can be self signed; configure fail2ban as bot-net protection
-{%- endtrans -%}
-    </p></li>
-
-    <li><p>
-{%-trans -%}
-Install git and golang-go (>=1.4.2), e.g.
+<h2 id="running">{% trans %}Running a Reseed host{% endtrans %}</h2>
+<p>
+{% trans -%}
+The more reseed hosts that are run, the more resiliant the I2P network becomes, and the harder it is to prevent users of I2P from connecting to the network.
 {%- endtrans %}
-        <pre>
-sudo apt install git
-sudo apt install golang-go
-        </pre>
-    </p></li>
-
-    <li><p>
-{%-trans -%}
-Switch to user running i2p, fetch the i2p-tool source code, build and test it:
+</p>
+{% trans -%}
+There have also been cases where the reseed hosts we had, have been under heavy load due to botnet activities.
 {%- endtrans %}
-        <pre>
-export GOPATH=$HOME/go; mkdir $GOPATH; cd $GOPATH
-go get github.com/martin61/i2p-tools
-bin/i2p-tools -h
-        </pre>
-{%-trans -%}
-Note: Visit http://reseed.i2p and download a pre-build x86_64 binary, so you can skip step 2+3.
-{%- endtrans -%}
-    </p></li>
-
-    <li><p>
-{%-trans -%}
-Run i2p-tool locally, use your email:
-        <pre>
-GOPATH=$HOME/go; cd $GOPATH; bin/i2p-tools reseed --signer=backup@mail.i2p --netdb=/home/i/.i2p/netDb --port=8443 --ip=127.0.0.1 --trustProxy
-        </pre>
-{%- endtrans -%}
-    </p></li>
-
-    <li><p>
-{%-trans -%}
-New certificates
-	make a backup from the new created su3-signing key and certificate found in $GOPATH and keep it in a save password protected storage
-{%- endtrans -%}
-    </p></li>
-
-    <li><p>
-{%-trans -%}
-Enable autostart (+restart) for i2p-tool in your crontab:
-{%- endtrans %}
-        <pre>
-@reboot   GOPATH=$HOME/go; cd $GOPATH; bin/i2p-tools reseed ... >/dev/null 2>&1
-9 * * * * GOPATH=$HOME/go; cd $GOPATH; bin/i2p-tools reseed ... >/dev/null 2>&1
-        </pre>
-    </p></li>
-
-    <li><p>
-{%-trans -%}
-Connect your webserver via reverse-proxy-setup to the i2p-tool, examples:
-{%- endtrans %}
-        <pre>
-lighttpd configuration example:
-	server.modules += ( "mod_proxy" )
-	proxy.server = ( "i2pseeds.su3" => ( ( "host" => "127.0.0.1", "port" => 8443 ) ) )
-nginx configuration example:
-	location / {
-		proxy_pass http://127.0.0.1:8443;
-	}
-apache (sorry: untested - feedback would be appreciated)
-	ProxyRequests Off
-	<Proxy *>
-		Order deny,allow
-		Allow from all
-	</Proxy>
-	ProxyPass / http://127.0.0.1:8443/
-	ProxyPassReverse / http://127.0.0.1:8443/
-        </pre>
-{%-trans -%}
-Note: i2p-tool has also an build-in standalone webserver with tls support which can be used without a webserver.
-{%- endtrans -%}
-    </p></li>
-
-    <li><p>
-{%-trans -%}
-Final test from another computer with i2p running:
-        <ul>
-            <li>
-	        place your su3-certificate (*.crt) in i2p/certificates/reseed/
-	        </li>
-	        <li>
-	place your tls-certificate (*.crt) in i2p/certificates/ssl/
-	        </li>
-	        <li>
-	visit with your webbrowser http://localhost:7657/configreseed
-	        </li>
-	        <li>
-	enter your new reseed-url and delete all others, hit "Save changes and reseed now"
-	        </li>
-	        <li>
-	check the i2p logs for "Reseed got 77 router infos from ... with 0 errors, Reseed complete, 77 received"
-		    </li>
-	    </ul>
-{%- endtrans -%}
-    </p></li>
-
-    <li><p>
-{%-trans -%}
-Go public, the following to backup@mail.i2p.de (pgp signed welcomed :-)
-        <ul>
-            <li>
-	domain/url/port
-	        </li>
-	        <li>
-	su3-signing certificate
-	        </li>
-	        <li>
-	tls certificate (if self signed)
-	        </li>
-        </ul>
-{%- endtrans -%}
-    </p></li>
-
-    <li><p>
-{%-trans -%}
-public pgp key: backup@mail.i2p (0x47C68B7B):
-{%- endtrans%}
-        <pre>
------BEGIN PGP PUBLIC KEY BLOCK-----
-Version: GnuPG v2
-
-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
-=W/+s
------END PGP PUBLIC KEY BLOCK-----
-        </pre>
-    </p></li>
-</ol>
+</p>
+<p>
+<a href="{{ site_url('get-involved/guides/reseed') }}">How to run a Reseed host</a>
+</p>
 
 <h2 id="thank you">{% trans %}Thank you{% endtrans %}</h2>
 <p>
