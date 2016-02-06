@@ -1,7 +1,7 @@
 {% extends "global/layout.html" %}
 {% block title %}SAM V3{% endblock %}
-{% block lastupdated %}January 2016{% endblock %}
-{% block accuratefor %}0.9.24{% endblock %}
+{% block lastupdated %}February 2016{% endblock %}
+{% block accuratefor %}0.9.25{% endblock %}
 {% block content %}
 <p>Specified below is a simple client protocol for interacting with I2P.
 </p>
@@ -104,9 +104,9 @@ Version 3.2 was introduced in I2P release 0.9.24.
 Version 3.3 is not yet implemented, and the changes listed below are preliminary.
 Scheduled for I2P release 0.9.25.
 <ul>
-<li>The same session ID may be used for streams, datagrams, and raw simultaneously.
+<li>The same session may be used for streams, datagrams, and raw simultaneously.
     Incoming packets and streams will be routed based on I2P protocol and to-port.
-<li>STREAM ACCEPT now supports option TO_PORT=nnnn to accept connections on that I2P port only
+    See <a href="#master">the MASTER section below</a>.
 <li>DATAGRAM SEND and RAW SEND now supports options SEND_TAGS=nnn, TAG_THRESHOLD=nnn, EXPIRES=nnnnnnn, and SEND_LEASESET=true|false.
     These will be passed to I2CP if supported. See <a href="..//i2cp#msg_SendMessageExpire">the I2CP specification</a> for details.
     Support by the SAM server is optional, it will ignore these options if unsupported.
@@ -331,7 +331,7 @@ received through other forms are answered with an error message) :
           [TO_PORT=nnn]                        # SAM 3.2 or higher only, default 0
           [PROTOCOL=nnn]                       # SAM 3.2 or higher only, for STYLE=RAW only, default 18
           [HEADER={true,false}]                # SAM 3.2 or higher only, for STYLE=RAW only, default false
-          [option=value]*
+          [option=value]*                      # I2CP and streaming options
 </pre>
 
 </p><p>
@@ -367,7 +367,7 @@ be a way to provide an override, e.g. i2cp.tcp.host=localhost and
 i2cp.tcp.port=7654).
 </p>
 
-<h4>Session Creation Response</h4>
+<h4 id="sessionresponse">Session Creation Response</h4>
 <p>
 After receiving the session create message, the SAM bridge will reply
 with a session status message, as follows:
@@ -799,7 +799,7 @@ CREATE command with PORT and HOST options:
           [FROM_PORT=nnn]                      # SAM 3.2 or higher only, default 0
           [TO_PORT=nnn]                        # SAM 3.2 or higher only, default 0
           [PROTOCOL=nnn]                       # SAM 3.2 or higher only, for STYLE=RAW only, default 18
-          [option=value]*
+          [option=value]*                      # I2CP options
 </pre>
 
 </p><p>
@@ -950,6 +950,135 @@ the parameter PROTOCOL=nnn to override the default protocol.
 These commands do <i>not</i> support the ID parameter. The datagrams are
 sent to the most recently created DATAGRAM- or RAW-style session,
 as appropriate. Support for the ID parameter may be added in a future release.
+
+
+<h3 id="master">MASTER Sessions (V3.3 and higher)</h3>
+
+<p><i>
+Version 3.3 is scheduled for I2P release 0.9.25.
+The specification below is preliminary and subject to change.
+</i></p>
+
+<p>
+SAM v3.3 adds support for running streaming, datagrams, and raw subsessions on the same
+master session, and for running multiple subsessions of the same style.
+All subsession traffic uses a single destination, or set of tunnels.
+Routing of traffic from I2P is based on the port and protocol options for the subsessions.
+</p>
+
+<p>
+To create multiplexed subsessions, you must create a master session
+and then add subsessions to the master session.
+Each subsession must have a unique id and a unique listen protocol and port.
+Subsessions may also be removed from the master session.
+</p>
+
+<h4>Creating a MASTER Session</h4>
+
+<pre>
+-&gt;  SESSION CREATE 
+          STYLE=MASTER
+          ID=$nickname
+          DESTINATION={$privkey,TRANSIENT}
+          [option=value]*                      # I2CP and streaming options
+</pre>
+
+<p>
+The SAM bridge will respond with success or failure as in <a href="#sessionresponse">the response to a standard SESSION CREATE</a>.
+</p><p>
+Do not set the PORT, HOST, FROM_PORT, TO_PORT, PROTOCOL, LISTEN_PORT, LISTEN_PROTOCOL, or HEADER options on a master session.
+You may not send any data on a MASTER session ID or on the control socket. All commands such as
+STREAM CONNECT, DATAGRAM SEND, etc. must use the subsession ID on a separate socket.
+</p><p>
+The MASTER session connects to the router and builds tunnels. When the SAM bridge responds,
+tunnels have been built and the session is ready for subsessions to be added.
+All I2CP options pertaining to tunnel parameters such as length, quantity, and nickname must
+be provided in the master's SESSION CREATE.
+</p><p>
+All utility commands are supported on a master session.
+</p><p>
+When the master session is closed, all subsessions get closed also.
+</p>
+
+
+<h4>Creating a Subsession</h4>
+
+<p>
+Using the same control socket on which the MASTER session was created:
+</p>
+
+<pre>
+-&gt;  SESSION ADD
+          STYLE={STREAM,DATAGRAM,RAW}
+          ID=$nickname                         # must be unique
+          [PORT=$port]                         # Required for DATAGRAM and RAW, invalid for STREAM
+          [HOST=$host]                         # Optional for DATAGRAM and RAW, invalid for STREAM
+          [FROM_PORT=nnn]                      # For outbound traffic, default 0
+          [TO_PORT=nnn]                        # For outbound traffic, default 0
+          [PROTOCOL=nnn]                       # For outbound traffic for STYLE=RAW only, default 18
+          [LISTEN_PORT=nnn]                    # For inbound traffic, default is the FROM_PORT value.
+                                               # For STYLE=STREAM, only the FROM_PORT value or 0 is allowed.
+          [LISTEN_PROTOCOL=nnn]                # For inbound traffic for STYLE=RAW only.
+                                               # Default is the PROTOCOL value; 6 (streaming) is disallowed
+          [HEADER={true,false}]                # For STYLE=RAW only, default false
+          [option=value]*                      # I2CP and streaming options
+</pre>
+
+<p>
+The SAM bridge will respond with success or failure as in <a href="#sessionresponse">the response to a standard SESSION CREATE</a>.
+As the tunnels were already built in the master SESSION CREATE, the SAM bridge should respond immediately.
+</p><p>
+Do not set the DESTINATION option on a SESSION ADD.
+The subsession will use the destination specified in the master session.
+All subsessions must be added on the control socket, i.e. the same connection that you created the master session on.
+</p><p>
+Multiple subsessions must have options sufficiently unique
+that incoming data can be routed correctly.
+In particular, multiple sessions of the same style must have
+different LISTEN_PORT options (and/or LISTEN_PROTOCOL, for RAW only).
+A SESSION ADD with listen port and protocol that duplicates an existing subsession will result in an error.
+</p><p>
+The LISTEN_PORT is the local I2P port, i.e. the receive (TO) port for
+incoming data.
+If the LISTEN_PORT is not specified, the FROM_PORT value will be used.
+If the LISTEN_PORT and FROM_PORT are not specified, incoming routing will be based on
+STYLE and PROTOCOL alone.
+For LISTEN_PORT and LISTEN_PROTOCOL, 0 means any value, that is, a wildcard.
+If both LISTEN_PORT and LISTEN_PROTOCOL are 0,
+this subsession will be the default for incoming traffic that does not get routed to another subsession.
+Incoming streaming traffic (protocol 6) will never be routed to a RAW subsession, even if its LISTEN_PROTCOL is 0.
+A RAW subsession may not set a LISTEN_PROTOCOL of 6.
+If there is no default or subsession that matching the protocol and port of incoming traffic, that data will be dropped.
+</p><p>
+Use the subsession ID, not the master session ID, for sending and receiving data.
+All commands such as STREAM CONNECT, DATAGRAM SEND, etc.
+must use the subsession ID.
+
+</p><p>
+All utility commands are supported on a master session or subsession.
+v1/v2 datagram/raw sending/receiving are not supported on a master session or on subsessions.
+</p>
+
+
+<h4>Stopping a Subsession</h4>
+<p>
+Using the same control socket on which the MASTER session was created:
+</p>
+
+<pre>
+-&gt;  SESSION REMOVE
+          ID=$nickname
+</pre>
+
+<p>
+This removes a subsession from the master session.
+Do not set any other options on a SESSION REMOVE.
+Subsessions must be removed on the control socket, i.e. the same connection that you created the master session on.
+After a subsession is removed, it is closed and may not be used to send or receive data.
+</p><p>
+The SAM bridge will respond with success or failure as in <a href="#sessionresponse">the response to a standard SESSION CREATE</a>.
+</p>
+
 
 
 
