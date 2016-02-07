@@ -107,9 +107,7 @@ Scheduled for I2P release 0.9.25.
 <li>The same session may be used for streams, datagrams, and raw simultaneously.
     Incoming packets and streams will be routed based on I2P protocol and to-port.
     See <a href="#master">the MASTER section below</a>.
-<li>DATAGRAM SEND and RAW SEND now supports options SEND_TAGS=nnn, TAG_THRESHOLD=nnn, EXPIRES=nnnnnnn, and SEND_LEASESET=true|false.
-    These will be passed to I2CP if supported. See <a href="..//i2cp#msg_SendMessageExpire">the I2CP specification</a> for details.
-    Support by the SAM server is optional, it will ignore these options if unsupported.
+<li>DATAGRAM SEND and RAW SEND now support options SEND_TAGS, TAG_THRESHOLD, EXPIRES, and SEND_LEASESET.
 </ul>
 </p>
 
@@ -332,6 +330,7 @@ received through other forms are answered with an error message) :
           [TO_PORT=nnn]                        # SAM 3.2 or higher only, default 0
           [PROTOCOL=nnn]                       # SAM 3.2 or higher only, for STYLE=RAW only, default 18
           [HEADER={true,false}]                # SAM 3.2 or higher only, for STYLE=RAW only, default false
+          [v3.3 datagram and raw options]      # see below
           [option=value]*                      # I2CP and streaming options
 </pre>
 
@@ -701,7 +700,7 @@ soon as the "forwarding" socket is closed.
 
 
 
-<h3>SAM Repliable Datagrams : Sending a Datagram</h3>
+<h3 id="v3dgsend">SAM Datagrams : Sending Repliable or Raw Datagrams</h3>
 <p>
 While I2P doesn't inherently contain a FROM address, for ease of use
 an additional layer is provided as repliable datagrams - unordered
@@ -716,8 +715,8 @@ size is approximately 11 KB.
 Reliability is inversely proportional to message size, perhaps even exponentially.
 
 </p><p>
-After establishing a SAM session with STYLE=DATAGRAM, the client can
-send datagrams through SAM's UDP port (7655).
+After establishing a SAM session with STYLE=DATAGRAM or STYLE=RAW, the client can
+send repliable or raw datagrams through SAM's UDP port (7655).
 
 </p><p>
 The first line of a datagram sent through this port must be in the
@@ -730,6 +729,15 @@ This is all on one line (space separated), shown on multiple lines for clarity:
     $destination
     [FROM_PORT=nnn]                      # SAM 3.2 or higher only, default 0
     [TO_PORT=nnn]                        # SAM 3.2 or higher only, default 0
+    [PROTOCOL=nnn]                       # SAM 3.2 or higher only, only for RAW sessions, default 18
+    [SEND_TAGS=nnn]                      # SAM 3.3 or higher only, number of session tags to send
+                                         # Default is router-dependent (40 for Java router)
+    [TAG_THRESHOLD=nnn]                  # SAM 3.3 or higher only, low session tag threshold
+                                         # Default is router-dependent (30 for Java router)
+    [EXPIRES=nnn]                        # SAM 3.3 or higher only, expiration from now in seconds
+                                         # Default is router-dependent (60 for Java router)
+    [SEND_LEASESET={true,false}]         # SAM 3.3 or higher only, whether to send our leaseset
+                                         # Default is true
     \n
 </pre>
 
@@ -742,6 +750,12 @@ This is all on one line (space separated), shown on multiple lines for clarity:
    which is 516 or more base 64 characters (387 or more bytes in binary),
    depending on signature type.
 </li><li>
+ All options are per-datagram settings that override the defaults specified in the SESSION CREATE.
+</li><li>
+ Version 3.3 options SEND_TAGS, TAG_THRESHOLD, EXPIRES, and SEND_LEASESET
+ will be passed to I2CP if supported. See <a href="..//i2cp#msg_SendMessageExpire">the I2CP specification</a> for details.
+ Support by the SAM server is optional, it will ignore these options if unsupported.
+</li><li>
  this line is '\n' terminated.
 </li></ul>
 
@@ -750,7 +764,7 @@ The first line will be discarded by SAM before sending the remaining
 data of the message to the specified destination.
 
 </p><p>
-For an alternate method of sending repliable datagrams, see <a href="#dgsend">DATAGRAM SEND</a>.
+For an alternate method of sending repliable and raw datagrams, see <a href="#dgsend">DATAGRAM SEND and RAW SEND</a>.
 </p>
 
 <h3>SAM Repliable Datagrams : Receiving a Datagram</h3>
@@ -800,6 +814,14 @@ CREATE command with PORT and HOST options:
           [FROM_PORT=nnn]                      # SAM 3.2 or higher only, default 0
           [TO_PORT=nnn]                        # SAM 3.2 or higher only, default 0
           [PROTOCOL=nnn]                       # SAM 3.2 or higher only, for STYLE=RAW only, default 18
+          [SEND_TAGS=nnn]                      # SAM 3.3 or higher only, number of session tags to send
+                                               # Default is router-dependent (40 for Java router)
+          [TAG_THRESHOLD=nnn]                  # SAM 3.3 or higher only, low session tag threshold
+                                               # Default is router-dependent (30 for Java router)
+          [EXPIRES=nnn]                        # SAM 3.3 or higher only, expiration from now in seconds
+                                               # Default is router-dependent (60 for Java router)
+          [SEND_LEASESET={true,false}]         # SAM 3.3 or higher only, whether to send our leaseset
+                                               # Default is true
           [option=value]*                      # I2CP options
 </pre>
 
@@ -869,7 +891,7 @@ depending on signature type.
 </p>
 
 
-<h3>SAM Anonymous Datagrams</h3>
+<h3>SAM Anonymous (Raw) Datagrams</h3>
 <p>
 Squeezing the most out of I2P's bandwidth, SAM allows clients to send
 and receive anonymous datagrams, leaving authentication and reply 
@@ -883,7 +905,7 @@ size is approximately 11 KB.
 </p><p>
 After establishing a SAM session with STYLE=RAW, the client can
 send anonymous datagrams through the SAM bridge exactly the same way
-he sends non anonymous datagrams.
+as <a href="v3dgsend">sending repliable datagrams</a>.
 
 </p><p>
 Both ways of receiving datagrams are also available for anonymous
