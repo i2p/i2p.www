@@ -2,8 +2,8 @@
 Plugin Specification
 ====================
 .. meta::
-    :lastupdated: May 2015
-    :accuratefor: 0.9.20
+    :lastupdated: February 2016
+    :accuratefor: 0.9.25
 
 
 Overview
@@ -154,7 +154,7 @@ The following properties are used to add a link on the console summary bar:
     consoleLinkTooltip_xx
         lang xx as of 0.7.12-6
 
-The following optional property may be used to add a custom icon on the
+The following optional properties may be used to add a custom icon on the
 console:
 
     console-icon
@@ -164,6 +164,14 @@ console:
 
         A path within the webapp to a 32x32 image, e.g. /icon.png
         Applies to all webapps in the plugin.
+
+    icon-code
+        supported as of 0.9.25
+
+        Provides a console icon for plugins without web resources.
+
+        A B64 string produced by calling `net.i2p.data.Base64 encode FILE` on a
+        32x32 png image file.
 
 The following properties are used by the plugin installer:
 
@@ -547,17 +555,49 @@ Classpaths
 
 The following jars in $I2P/lib can be assumed to be in the standard classpath
 for all I2P installations, no matter how old or how new the original
-installation::
+installation:
 
-    i2p.jar, router.jar, jbigi.jar, sam.jar, mstreaming.jar, streaming.jar, i2ptunnel.jar,
-    org.mortbay.jetty.jar, javax.servlet.jar, jasper-compiler.jar, jasper-runtime.jar,
-    commons-logging.jar, commons-el.jar, wrapper.jar, systray.jar, systray4j.jar
+=====================  ============================  =====
+         Jar                     Contains            Usage
+=====================  ============================  =====
+commons-logging.jar    Apache Logging                For plugins requiring Apache logging.
+                                                     Prior to Jetty 6 (release 0.9), this
+                                                     contained Apache Commons Logging only.
+                                                     From release 0.9 to release 0.9.23, this
+                                                     contained both Commons Logging and Tomcat JULI.
+                                                     As of release 0.9.24, this contains
+                                                     Apache Tomcat JULI logging only.
+
+commons-el.jar         JSP Expressions Language      For plugins with JSPs that use EL
+i2p.jar                Core API                      Almost all plugins will need
+i2ptunnel.jar          I2PTunnel                     For plugins with HTTP or other servers
+jasper-compiler.jar    nothing                       Empty since Jetty 6 (release 0.9)
+jasper-runtime.jar     Jasper Compiler and Runtime,  Needed for plugins with JSPs
+                       and some Tomcat utils
+javax.servlet.jar      Servlet API                   Needed for plugins with JSPs
+jbigi.jar              Binaries                      No plugin should need
+mstreaming.jar         Streaming API                 Almost all plugins will need
+org.mortbay.jetty.jar  Jetty Base                    Only plugins starting their own Jetty instance
+                                                     will need. Recommended way of starting Jetty
+                                                     is with net.i2p.jetty.JettyStart in jetty-i2p.jar.
+router.jar             Router                        Only plugins using router context will need; most will not
+sam.jar                SAM API                       No plugin should need
+streaming.jar          Streaming Implementation      Almost all plugins will need
+systray.jar            URL Launcher                  Most plugins should not need
+systray4j.jar          Systray                       No plugin should need
+wrapper.jar            Router                        Most plugins should not need
+=====================  ============================  =====
 
 The following jars in $I2P/lib can be assumed to be present for all I2P
 installations, no matter how old or how new the original installation, but are
-not necessarily in the classpath::
+not necessarily in the classpath:
 
-    jstl.jar, standard.jar
+============  ===============  =====
+    Jar          Contains      Usage
+============  ===============  =====
+jstl.jar      Standard Taglib  For plugins using JSP tags
+standard.jar  Standard Taglib  For plugins using JSP tags
+============  ===============  =====
 
 Anything not listed above may not be present in everybody's classpath, even if
 you have it in the classpath in YOUR version of i2p.  If you need any jar not
@@ -575,29 +615,28 @@ required classpath for each client.
 Java Version Notes
 ==================
 
-While most I2P users are running a 1.6 (6.0) JVM, we support 1.5 (5.0) and
-higher JVMs.  Unless you require 1.6 features, you should create your plugin so
-it works on 1.5.
+I2P has required Java 7 since release 0.9.24 (January 2016).
+I2P has required Java 6 since release 0.9.12 (April 2014).
+Any I2P users on the latest release should be running a 1.7 (7.0) JVM.
+In early 2016, unless you require 1.7 language or library features, you should
+create your plugin so it works on 1.6. Later in the year, most of the network
+will be on 0.9.24 or higher with Java 7.
 
-If your plugin **does not require 1.6**:
+If your plugin **does not require 1.7**:
 
-* Ensure that all java and jsp files are compiled with source="1.5"
-  target="1.5".
+* Ensure that all java and jsp files are compiled with source="1.6"
+  target="1.6".
 
-* Ensure that all bundled library jars are also for 1.5 or lower.
+* Ensure that all bundled library jars are also for 1.6 or lower.
 
-* If you are using pack200, any 1.6 classes in a jar will cause pack200 to
-  create a 1.6 pack format, and plugin installation will fail on a 1.5 system
-  with the misleading message "plugin is corrupt".
-
-If your plugin **requires 1.6**:
+If your plugin **requires 1.7**:
 
 * Note that on your download page.
 
-* Add min-java-version=1.6 to your plugin.config
+* Add min-java-version=1.7 to your plugin.config
 
-* If you are using pack200, plugin installation will fail on a 1.5 system with
-  the misleading message "plugin is corrupt".
+In any case, you **must** set a bootclasspath when compiling with Java 8 to
+prevent runtime crashes.
 
 
 JVM Crashes When Updating

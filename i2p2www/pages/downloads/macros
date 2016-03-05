@@ -1,7 +1,7 @@
-{% set i2pinstall_windows_hash = '306c0eeb4d0ff210b42cb0a6babe46da59d0f80317451f3fd40381bb79b54852' %}
-{% set i2pinstall_jar_hash     = '843a8059830b009d10c47cc7c85e260ad88f7c3c16e289bbf80c0eb178318823' %}
-{% set i2psource_hash          = '24e303f2af1b7b14ed3a6e17cc7d1b6432ec99d8d00246a88486922941c72345' %}
-{% set i2pupdate_hash          = 'd7f2f2349520071a3d19a4130a83ae1fb109f7924cb1eff5da020678787d3ad3' %}
+{% set i2pinstall_windows_hash = '40a9d162b218c3280170b5e6e5e0f459a2c5348c9488222955be5312144eade9' %}
+{% set i2pinstall_jar_hash     = 'f5a06c4ed7e3c22048eef18901b85baa1f9bed3e507c212700723701036e2bb3' %}
+{% set i2psource_hash          = '134481ae5ef934a411545330d1b22e768189c424a65db47058db0f7d9cf51e7d' %}
+{% set i2pupdate_hash          = 'b8ee5d9c88924f631ae03ffcbed4ac0b06542e51cdd144e20dbaad69a8fdcef4' %}
 {% set i2p_android_hash        = 'b14e3cc5ea12eb2e8bccb81dd2e86eeea3baba6695eb1a9f4d9053e76aeb131d' %}
 
 {% set i2p_android_version = '0.9.22' %}
@@ -37,7 +37,7 @@
   {%- set filename = 'i2psource_%s.tar.bz2' -%}
   {%- set signame  = 'i2psource_%s.tar.bz2.sig' -%}
   {%- set hash     = i2psource_hash -%}
-{%- elif type == 'update' -%}
+{%- elif type == 'update-file' -%}
   {%- set name     = _('Manual updates') -%}
   {%- set icon     = 'images/download/update-manual.png' -%}
   {%- set filename = 'i2pupdate_%s.zip' -%}
@@ -60,27 +60,14 @@
 {% call package_outer(type, name, icon) %}
     <div class="file">
     {%- if type == 'android' %}
-      {% trans %}Outside I2P{% endtrans %}:
       <!-- do not use url_for here -->
-      <a class="default" href="https://download.i2p2.de/android/current/i2p.apk">I2P {{ i2p_android_version }}</a>
-      <br>
-      {% trans %}Inside I2P{% endtrans %}:
+      <a class="default" href="https://download.i2p2.de/android/current/i2p.apk">{% trans %}Outside I2P{% endtrans %} ({{ i2p_android_version }})</a>
       <!-- do not use i2pconv here -->
-      <a class="default" href="http://update.killyourtv.i2p/i2p.apk">I2P {{ i2p_android_version_kytv }}</a>
-      <br>
-      Google Play:
-      <a class="default" href="https://play.google.com/store/apps/details?id=net.i2p.android">I2P {{ i2p_android_version }}</a>
-      <br>
-      {% trans %}Our F-Droid repository{% endtrans %}:
-      <a class="default" href="https://f-droid.i2p.io/">I2P {{ i2p_android_version }}</a>
-      <br>
-      F-Droid:
-      <a class="default" href="https://f-droid.org/app/net.i2p.android.router">I2P {{ i2p_android_version_fdroid }}</a>
-      <br>
-      {% trans %}Development Builds{% endtrans %}:
-      {% trans str4durl='http://'+i2pconv('str4d.i2p')+'/android/' -%}
-      <a class="default" href="{{ str4durl }}">str4d's eepsite</a>
-      {%- endtrans %}
+      <a class="default" href="http://update.killyourtv.i2p/i2p.apk">{% trans %}Inside I2P{% endtrans %} ({{ i2p_android_version_kytv }})</a>
+      <a class="default" href="https://play.google.com/store/apps/details?id=net.i2p.android">Google Play ({{ i2p_android_version }})</a>
+      <a class="default" href="https://f-droid.i2p.io/">{% trans %}Our F-Droid repository{% endtrans %} ({{ i2p_android_version }})</a>
+      <a class="default" href="https://f-droid.org/app/net.i2p.android.router">F-Droid ({{ i2p_android_version_fdroid }})</a>
+      <a class="default" href="{{ 'http://'+i2pconv('str4d.i2p')+'/android/' }}">{% trans %}Development Builds{% endtrans %}</a>
     {% else %}
       <a class="default" href="{{ url_for('downloads_redirect', version=ver(), net=def_mirror.net, protocol=def_mirror.protocol, domain=def_mirror.domain, file=ver(filename)) }}">
         <span class="name">{{ ver(filename) }}</span><br />
@@ -90,8 +77,10 @@
       <a class="sig" href="{{ url_for('downloads_redirect', version=ver(), net=def_mirror.net, protocol=def_mirror.protocol, domain=def_mirror.domain, file=ver(signame)) }}">sig</a>
     {% endif -%}
     </div>
-    <div class="hash">
-      <code>{{ hash }}</code>
+    <div class="meta">
+      <div class="hash">
+        <code>{{ hash }}</code>
+      </div>
     </div>
     {{ details }}
 {% endcall %}

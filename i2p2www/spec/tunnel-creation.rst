@@ -2,8 +2,8 @@
 Tunnel Creation Specification
 =============================
 .. meta::
-    :lastupdated: September 2014
-    :accuratefor: 0.9.15
+    :lastupdated: January 2016
+    :accuratefor: 0.9.24
 
 
 .. _tunnelCreate.overview:
@@ -126,8 +126,15 @@ When a hop receives a TunnelBuildMessage, it looks through the records
 contained within it for one starting with their own identity hash (trimmed to
 16 bytes).  It then decrypts the ElGamal block from that record and retrieves
 the protected cleartext.  At that point, they make sure the tunnel request is
-not a duplicate by feeding the AES-256 reply key into a bloom filter.
-Duplicates or invalid requests are dropped.
+not a duplicate by feeding the AES-256 reply key into a Bloom filter.
+Duplicates or invalid requests are dropped. Records that are not stamped with
+the current hour, or the previous hour if shortly after the top of the hour,
+must be dropped. For example, take the hour in the timestamp, convert to a full
+time, then if it's more than 65 minutes behind or 5 minutes ahead of the current
+time, it is invalid. The Bloom filter must have a duration of at least one hour
+(plus a few minutes, to allow for clock skew), so that duplicate records in the
+current hour that are not rejected by checking the hour timestamp in the record,
+will be rejected by the filter.
 
 After deciding whether they will agree to participate in the tunnel or not,
 they replace the record that had contained the request with an encrypted reply
@@ -295,8 +302,6 @@ Future Work
 
 * Further analysis of possible tagging and timing attacks described in the
   above notes.
-
-* The Bloom filter rotation time should be evaluated.
 
 * Use only VTBM; do not select old peers that don't support it.
 

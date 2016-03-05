@@ -2,8 +2,8 @@
 Configuration File Specification
 ================================
 .. meta::
-    :lastupdated: November 2015
-    :accuratefor: 0.9.24
+    :lastupdated: February 2016
+    :accuratefor: 0.9.25
 
 
 Overview
@@ -376,8 +376,22 @@ Properties are as follows::
     # an inproxy. Default false.
     tunnel.N.option.rejectInproxy=true|false
 
+    # HTTP Servers only. Whether to reject incoming connections containing a
+    # referer header. Default false. Since 0.9.25.
+    tunnel.N.option.rejectReferer=true|false
+
+    # HTTP Servers only. Whether to reject incoming connections containing
+    # specific user-agent headers. Default false. Since 0.9.25. See
+    # tunnel.N.option.userAgentRejectList
+    tunnel.N.option.rejectUserAgents=true|false
+
     # Servers only. Overrides targetHost and targetPort for incoming port NNNN.
     tunnel.N.option.targetForPort.NNNN=hostnameOrIP:nnnn
+
+    # HTTP Servers only. Comma-separated list of strings to match in the
+    # user-agent header. Since 0.9.25. Example: "Mozilla,Opera". Case-sensitive.
+    # See tunnel.N.option.rejectUserAgents
+    tunnel.N.option.userAgentRejectList=string1[,string2]*
 
     # Default false. For servers, use SSL for connections to local server. For
     # clients, SSL is required for connections from local clients.
@@ -440,7 +454,7 @@ References
 ==========
 
 .. [DATAHELPER]
-    http://docs.i2p-projekt.de/javadoc/net/i2p/data/DataHelper.html
+    http://{{ i2pconv('i2p-javadocs.i2p') }}/net/i2p/data/DataHelper.html
 
 .. [Mapping]
     {{ ctags_url('Mapping') }}

@@ -2,8 +2,8 @@
 Common structures Specification
 ===============================
 .. meta::
-    :lastupdated: April 2015
-    :accuratefor: 0.9.19
+    :lastupdated: February 2016
+    :accuratefor: 0.9.24
 
 
 This document describes some data types common to all I2P protocols, like
@@ -140,7 +140,7 @@ Contents
 ````````
 256 bytes
 
-JavaDoc: http://docs.i2p-projekt.de/javadoc/net/i2p/data/PublicKey.html
+JavaDoc: http://{{ i2pconv('i2p-javadocs.i2p') }}/net/i2p/data/PublicKey.html
 
 .. _type-PrivateKey:
 
@@ -157,7 +157,7 @@ Contents
 ````````
 256 bytes
 
-JavaDoc: http://docs.i2p-projekt.de/javadoc/net/i2p/data/PrivateKey.html
+JavaDoc: http://{{ i2pconv('i2p-javadocs.i2p') }}/net/i2p/data/PrivateKey.html
 
 .. _type-SessionKey:
 
@@ -172,7 +172,7 @@ Contents
 ````````
 32 bytes
 
-JavaDoc: http://docs.i2p-projekt.de/javadoc/net/i2p/data/SessionKey.html
+JavaDoc: http://{{ i2pconv('i2p-javadocs.i2p') }}/net/i2p/data/SessionKey.html
 
 .. _type-SigningPublicKey:
 
@@ -189,18 +189,19 @@ Key type and length are inferred from context or are specified in the Key
 Certificate of a Destination.  The default type is DSA_SHA1.  As of release
 0.9.12, other types may be supported, depending on context.
 
-====================  ==============  ======
-        Type          Length (bytes)  Since
-====================  ==============  ======
-DSA_SHA1                   128
-ECDSA_SHA256_P256           64        0.9.12
-ECDSA_SHA384_P384           96        0.9.12
-ECDSA_SHA512_P521          132        0.9.12
-RSA_SHA256_2048            256        0.9.12
-RSA_SHA384_3072            384        0.9.12
-RSA_SHA512_4096            512        0.9.12
-EdDSA_SHA512_Ed25519        32        0.9.15
-====================  ==============  ======
+======================  ==============  ======  =====
+         Type           Length (bytes)  Since   Usage
+======================  ==============  ======  =====
+DSA_SHA1                     128                Legacy Router Identities and Destinations
+ECDSA_SHA256_P256             64        0.9.12  Recent Destinations
+ECDSA_SHA384_P384             96        0.9.12  Rarely used for Destinations
+ECDSA_SHA512_P521            132        0.9.12  Rarely used for Destinations
+RSA_SHA256_2048              256        0.9.12  Offline signing, never used for Router Identities or Destinations
+RSA_SHA384_3072              384        0.9.12  Offline signing, never used for Router Identities or Destinations
+RSA_SHA512_4096              512        0.9.12  Offline signing, never used for Router Identities or Destinations
+EdDSA_SHA512_Ed25519          32        0.9.15  Recent Router Identities and Destinations
+EdDSA_SHA512_Ed25519ph        32        0.9.25  Offline signing, never used for Router Identities or Destinations
+======================  ==============  ======  =====
 
 Notes
 `````
@@ -211,7 +212,7 @@ Notes
 * All types are Big Endian, except for EdDSA, which is stored and transmitted
   in a Little Endian format.
 
-JavaDoc: http://docs.i2p-projekt.de/javadoc/net/i2p/data/SigningPublicKey.html
+JavaDoc: http://{{ i2pconv('i2p-javadocs.i2p') }}/net/i2p/data/SigningPublicKey.html
 
 .. _type-SigningPrivateKey:
 
@@ -227,18 +228,19 @@ Contents
 Key type and length are specified when created.  The default type is DSA_SHA1.
 As of release 0.9.12, other types may be supported, depending on context.
 
-====================  ==============  ======
-        Type          Length (bytes)  Since
-====================  ==============  ======
-DSA_SHA1                    20
-ECDSA_SHA256_P256           32        0.9.12
-ECDSA_SHA384_P384           48        0.9.12
-ECDSA_SHA512_P521           66        0.9.12
-RSA_SHA256_2048            512        0.9.12
-RSA_SHA384_3072            768        0.9.12
-RSA_SHA512_4096           1024        0.9.12
-EdDSA_SHA512_Ed25519        32        0.9.15
-====================  ==============  ======
+======================  ==============  ======  =====
+         Type           Length (bytes)  Since   Usage
+======================  ==============  ======  =====
+DSA_SHA1                      20                Legacy Router Identities and Destinations
+ECDSA_SHA256_P256             32        0.9.12  Recent Destinations
+ECDSA_SHA384_P384             48        0.9.12  Rarely used for Destinations
+ECDSA_SHA512_P521             66        0.9.12  Rarely used for Destinations
+RSA_SHA256_2048              512        0.9.12  Offline signing, never used for Router Identities or Destinations
+RSA_SHA384_3072              768        0.9.12  Offline signing, never used for Router Identities or Destinations
+RSA_SHA512_4096             1024        0.9.12  Offline signing, never used for Router Identities or Destinations
+EdDSA_SHA512_Ed25519          32        0.9.15  Recent Router Identities and Destinations
+EdDSA_SHA512_Ed25519ph        32        0.9.25  Offline signing, never used for Router Identities or Destinations
+======================  ==============  ======  =====
 
 Notes
 `````
@@ -249,7 +251,7 @@ Notes
 * All types are Big Endian, except for EdDSA, which is stored and transmitted
   in a Little Endian format.
 
-JavaDoc: http://docs.i2p-projekt.de/javadoc/net/i2p/data/SigningPrivateKey.html
+JavaDoc: http://{{ i2pconv('i2p-javadocs.i2p') }}/net/i2p/data/SigningPrivateKey.html
 
 .. _type-Signature:
 
@@ -266,18 +268,19 @@ Signature type and length are inferred from the type of key used.  The default
 type is DSA_SHA1.  As of release 0.9.12, other types may be supported,
 depending on context.
 
-====================  ==============  ======
-        Type          Length (bytes)  Since
-====================  ==============  ======
-DSA_SHA1                    40
-ECDSA_SHA256_P256           64        0.9.12
-ECDSA_SHA384_P384           96        0.9.12
-ECDSA_SHA512_P521          132        0.9.12
-RSA_SHA256_2048            256        0.9.12
-RSA_SHA384_3072            384        0.9.12
-RSA_SHA512_4096            512        0.9.12
-EdDSA_SHA512_Ed25519        64        0.9.15
-====================  ==============  ======
+======================  ==============  ======  =====
+         Type           Length (bytes)  Since   Usage
+======================  ==============  ======  =====
+DSA_SHA1                      40                Legacy Router Identities and Destinations
+ECDSA_SHA256_P256             64        0.9.12  Recent Destinations
+ECDSA_SHA384_P384             96        0.9.12  Rarely used for Destinations
+ECDSA_SHA512_P521            132        0.9.12  Rarely used for Destinations
+RSA_SHA256_2048              256        0.9.12  Offline signing, never used for Router Identities or Destinations
+RSA_SHA384_3072              384        0.9.12  Offline signing, never used for Router Identities or Destinations
+RSA_SHA512_4096              512        0.9.12  Offline signing, never used for Router Identities or Destinations
+EdDSA_SHA512_Ed25519          64        0.9.15  Recent Router Identities and Destinations
+EdDSA_SHA512_Ed25519ph        64        0.9.25  Offline signing, never used for Router Identities or Destinations
+======================  ==============  ======  =====
 
 Notes
 `````
@@ -288,7 +291,7 @@ Notes
 * All types are Big Endian, except for EdDSA, which is stored and transmitted
   in a Little Endian format.
 
-JavaDoc: http://docs.i2p-projekt.de/javadoc/net/i2p/data/Signature.html
+JavaDoc: http://{{ i2pconv('i2p-javadocs.i2p') }}/net/i2p/data/Signature.html
 
 .. _type-Hash:
 
@@ -303,7 +306,7 @@ Contents
 ````````
 32 bytes
 
-JavaDoc: http://docs.i2p-projekt.de/javadoc/net/i2p/data/Hash.html
+JavaDoc: http://{{ i2pconv('i2p-javadocs.i2p') }}/net/i2p/data/Hash.html
 
 .. _type-SessionTag:
 
@@ -318,7 +321,7 @@ Contents
 ````````
 32 bytes
 
-JavaDoc: http://docs.i2p-projekt.de/javadoc/net/i2p/data/SessionTag.html
+JavaDoc: http://{{ i2pconv('i2p-javadocs.i2p') }}/net/i2p/data/SessionTag.html
 
 .. _type-TunnelId:
 
@@ -335,7 +338,7 @@ Contents
 ````````
 4 byte Integer_
 
-JavaDoc: http://docs.i2p-projekt.de/javadoc/net/i2p/data/TunnelId.html
+JavaDoc: http://{{ i2pconv('i2p-javadocs.i2p') }}/net/i2p/data/TunnelId.html
 
 .. _type-Certificate:
 
@@ -415,16 +418,15 @@ Key           5             4+             7+      Since 0.9.12. See below for d
 
 Key Certificates
 ````````````````
-Key certificates are preliminary, and are scheduled to be introduced in release
-0.9.12.  Prior to that release, all PublicKeys were 256-byte ElGamal keys, and
-all SigningPublicKeys were 128-byte DSA-SHA1 keys.  A key certificate provides
-a mechanism to indicate the type of the PublicKey and SigningPublicKey in the
-Destination or RouterIdentity, and to package any key data in excess of the
-standard lengths.
+Key certificates were introduced in release 0.9.12.  Prior to that release, all
+PublicKeys were 256-byte ElGamal keys, and all SigningPublicKeys were 128-byte
+DSA-SHA1 keys.  A key certificate provides a mechanism to indicate the type of
+the PublicKey and SigningPublicKey in the Destination or RouterIdentity, and to
+package any key data in excess of the standard lengths.
 
 By maintaining exactly 384 bytes before the certificate, and putting any excess
 key data inside the certificate, we maintain compatibility for any software
-that parses Destinations and RouterIdentities.
+that parses Destinations and Router Identities.
 
 The key certificate payload contains:
 
@@ -439,26 +441,31 @@ Excess Crypto Public Key Data         0+
 
 The defined Signing Public Key types are:
 
-====================  =========  =======================  ======
-       Type           Type Code  Total Public Key Length  Since
-====================  =========  =======================  ======
-DSA_SHA1                  0                 128           0.9.12
-ECDSA_SHA256_P256         1                  64           0.9.12
-ECDSA_SHA384_P384         2                  96           0.9.12
-ECDSA_SHA512_P521         3                 132           0.9.12
-RSA_SHA256_2048           4                 256           0.9.12
-RSA_SHA384_3072           5                 384           0.9.12
-RSA_SHA512_4096           6                 512           0.9.12
-EdDSA_SHA512_Ed25519      7                  32           0.9.15
-====================  =========  =======================  ======
+======================  ===========  =======================  ======  =====
+        Type             Type Code   Total Public Key Length  Since   Usage
+======================  ===========  =======================  ======  =====
+DSA_SHA1                     0                  128           0.9.12  Legacy Router Identities and Destinations, never explicitly set
+ECDSA_SHA256_P256            1                   64           0.9.12  Recent Destinations
+ECDSA_SHA384_P384            2                   96           0.9.12  Sometimes used for Destinations
+ECDSA_SHA512_P521            3                  132           0.9.12  Sometimes used for Destinations
+RSA_SHA256_2048              4                  256           0.9.12  Offline only; never used in Key Certificates for Router Identities or Destinations
+RSA_SHA384_3072              5                  384           0.9.12  Offline only; never used in Key Certificates for Router Identities or Destinations
+RSA_SHA512_4096              6                  512           0.9.12  Offline only; never used in Key Certificates for Router Identities or Destinations
+EdDSA_SHA512_Ed25519         7                   32           0.9.15  Recent Router Identities and Destinations
+EdDSA_SHA512_Ed25519ph       8                   32           0.9.25  Offline only; never used in Key Certificates for Router Identities or Destinations
+reserved                65280-65534                                   Reserved for experimental use
+reserved                   65535                                      Reserved for future expansion
+======================  ===========  =======================  ======  =====
 
 The defined Crypto Public Key types are:
 
-=======  =========  =======================
- Type    Type Code  Total Public Key Length
-=======  =========  =======================
-ElGamal      0               256
-=======  =========  =======================
+========  ===========  =======================  =====
+  Type     Type Code   Total Public Key Length  Usage
+========  ===========  =======================  =====
+ElGamal        0                 256            All Router Identities and Destinations
+reserved  65280-65534                           Reserved for experimental use
+reserved     65535                              Reserved for future expansion
+========  ===========  =======================  =====
 
 When a Key Certificate is not present, the preceeding 384 bytes in the
 Destination or RouterIdentity are defined as the 256-byte ElGamal PublicKey
@@ -484,20 +491,21 @@ future revision of this document.
 Example layouts using an ElGamal Crypto Public Key and the Signing Public Key
 type indicated:
 
-====================  ==============  ===============================
-  Signing Key Type    Padding Length  Excess Signing Key Data in Cert
-====================  ==============  ===============================
-DSA_SHA1                     0                        0
-ECDSA_SHA256_P256           64                        0
-ECDSA_SHA384_P384           32                        0
-ECDSA_SHA512_P521            0                        4
-RSA_SHA256_2048              0                      128
-RSA_SHA384_3072              0                      256
-RSA_SHA512_4096              0                      384
-EdDSA_SHA512_Ed25519        96                        0
-====================  ==============  ===============================
+======================  ==============  ===============================
+   Signing Key Type     Padding Length  Excess Signing Key Data in Cert
+======================  ==============  ===============================
+DSA_SHA1                       0                        0
+ECDSA_SHA256_P256             64                        0
+ECDSA_SHA384_P384             32                        0
+ECDSA_SHA512_P521              0                        4
+RSA_SHA256_2048                0                      128
+RSA_SHA384_3072                0                      256
+RSA_SHA512_4096                0                      384
+EdDSA_SHA512_Ed25519          96                        0
+EdDSA_SHA512_Ed25519ph        96                        0
+======================  ==============  ===============================
 
-JavaDoc: http://docs.i2p-projekt.de/javadoc/net/i2p/data/Certificate.html
+JavaDoc: http://{{ i2pconv('i2p-javadocs.i2p') }}/net/i2p/data/Certificate.html
 
 .. _type-Mapping:
 
@@ -571,7 +579,7 @@ Notes
 
 .. _I2CP SessionConfig: {{ site_url('docs/spec/i2cp') }}#struct_SessionConfig
 
-JavaDoc: http://docs.i2p-projekt.de/javadoc/net/i2p/data/DataHelper.html
+JavaDoc: http://{{ i2pconv('i2p-javadocs.i2p') }}/net/i2p/data/DataHelper.html
 
 
 Common structure specification
@@ -646,7 +654,7 @@ Notes
 * The Crypto Public Key is aligned at the start and the Signing Public Key is
   aligned at the end. The padding (if any) is in the middle.
 
-JavaDoc: http://docs.i2p-projekt.de/javadoc/net/i2p/data/KeysAndCert.html
+JavaDoc: http://{{ i2pconv('i2p-javadocs.i2p') }}/net/i2p/data/KeysAndCert.html
 
 .. _struct-RouterIdentity:
 
@@ -675,7 +683,7 @@ Notes
 * The Crypto Public Key is aligned at the start and the Signing Public Key is
   aligned at the end. The padding (if any) is in the middle.
 
-JavaDoc: http://docs.i2p-projekt.de/javadoc/net/i2p/data/router/RouterIdentity.html
+JavaDoc: http://{{ i2pconv('i2p-javadocs.i2p') }}/net/i2p/data/router/RouterIdentity.html
 
 .. _struct-Destination:
 
@@ -708,7 +716,7 @@ Notes
 * The Crypto Public Key is aligned at the start and the Signing Public Key is
   aligned at the end. The padding (if any) is in the middle.
 
-JavaDoc: http://docs.i2p-projekt.de/javadoc/net/i2p/data/Destination.html
+JavaDoc: http://{{ i2pconv('i2p-javadocs.i2p') }}/net/i2p/data/Destination.html
 
 .. _struct-Lease:
 
@@ -756,7 +764,7 @@ Notes
 `````
 * Total size: 44 bytes
 
-JavaDoc: http://docs.i2p-projekt.de/javadoc/net/i2p/data/Lease.html
+JavaDoc: http://{{ i2pconv('i2p-javadocs.i2p') }}/net/i2p/data/Lease.html
 
 .. _struct-LeaseSet:
 
@@ -892,7 +900,7 @@ Notes
   publishes the actual lease expiration for each lease. This is an
   implementation detail and not part of the structures specification.
 
-JavaDoc: http://docs.i2p-projekt.de/javadoc/net/i2p/data/LeaseSet.html
+JavaDoc: http://{{ i2pconv('i2p-javadocs.i2p') }}/net/i2p/data/LeaseSet.html
 
 .. _struct-RouterAddress:
 
@@ -964,7 +972,7 @@ Notes
   present in most router addresses: "host" (an IPv4 or IPv6 address or host
   name) and "port".
 
-JavaDoc: http://docs.i2p-projekt.de/javadoc/net/i2p/data/router/RouterAddress.html
+JavaDoc: http://{{ i2pconv('i2p-javadocs.i2p') }}/net/i2p/data/router/RouterAddress.html
 
 .. _struct-RouterInfo:
 
@@ -1065,7 +1073,7 @@ Notes
 * See the network database page [NETDB-ROUTERINFO]_ for standard options that
   are expected to be present in all router infos.
 
-JavaDoc: http://docs.i2p-projekt.de/javadoc/net/i2p/data/router/RouterInfo.html
+JavaDoc: http://{{ i2pconv('i2p-javadocs.i2p') }}/net/i2p/data/router/RouterInfo.html
 
 .. _struct-DeliveryInstructions:
 

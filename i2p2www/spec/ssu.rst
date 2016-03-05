@@ -659,6 +659,9 @@ Notes
 * If Alice includes her address/port, Bob may perform additional validation
   before continuing.
 
+  * Prior to release 0.9.24, Java I2P rejected any address or port that was
+    different from the connection.
+
 * Challenge is unimplemented, challenge size is always zero
 
 * There are no plans to implement relaying for IPv6.

@@ -300,7 +300,7 @@ instructions are:
   total length: 7 bytes
 {% endhighlight %}
 
-JavaDoc: http://docs.i2p-projekt.de/javadoc/net/i2p/data/i2np/DeliveryInstructions.html
+JavaDoc: http://{{ i2pconv('i2p-javadocs.i2p') }}/net/i2p/data/i2np/DeliveryInstructions.html
 
 
 Notes

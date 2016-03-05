@@ -1,7 +1,7 @@
 {% extends "global/layout.html" %}
 {% block title %}{% trans %}ElGamal/AES + SessionTag Encryption{% endtrans %}{% endblock %}
-{% block lastupdated %}{% trans %}March 2014{% endtrans %}{% endblock %}
-{% block accuratefor %}0.9.12{% endblock %}
+{% block lastupdated %}{% trans %}January 2016{% endtrans %}{% endblock %}
+{% block accuratefor %}0.9.24{% endblock %}
 {% block content %}
 <h2>{% trans %}Overview{% endtrans %}</h2>
 <p>{% trans -%}
@@ -180,7 +180,8 @@ and the encrypted block is 514 bytes long.
 <p>{% trans -%}
 The unencrypted data in the AES block contains the following:
 {%- endtrans %}</p>
-<pre>
+
+{% highlight lang='dataspec' %}
    +----+----+----+----+----+----+----+----+
    |tag count|                             |
    +----+----+                             +
@@ -220,42 +221,38 @@ The unencrypted data in the AES block contains the following:
    +----+----+----//---+----+              +
    |          Padding to 16 bytes          |
    +----+----+----+----+----+----+----+----+
+{% endhighlight %}
 
-tag count: {% trans commonstructures=site_url('docs/spec/common-structures') -%}
-2-byte <a href="{{ commonstructures }}#type_Integer">Integer</a>, 0-200
-{%- endtrans %}
+<h4>Definition</h4>
+{% highlight lang='dataspec' %}
+tag count:
+2-byte `Integer`, 0-200
 
-Session Tags: {% trans commonstructures=site_url('docs/spec/common-structures') -%}
-That many 32-byte <a href="{{ commonstructures }}#type_SessionTag">Session Tags</a>
-{%- endtrans %}
+Session Tags:
+That many 32-byte `SessionTag`s
 
-payload size: {% trans commonstructures=site_url('docs/spec/common-structures') -%}
-4-byte <a href="{{ commonstructures }}#type_Integer">Integer</a>
-{%- endtrans %}
+payload size:
+4-byte `Integer`
 
-Payload Hash: {% trans commonstructures=site_url('docs/spec/common-structures') -%}
-The 32-byte <a href="{{ commonstructures }}#type_Hash">SHA256 Hash</a> of the payload
-{%- endtrans %}
+Payload Hash:
+The 32-byte SHA256 `Hash` of the payload
 
-flag: {% trans -%}
+flag:
 A one-byte value. Normally == 0. If == 0x01, a Session Key follows
-{%- endtrans %}
 
-New Session Key: {% trans commonstructures=site_url('docs/spec/common-structures') -%}
-A 32-byte <a href="{{ commonstructures }}#type_SessionKey">Session Key</a>,
+New Session Key:
+A 32-byte `SessionKey`,
                  to replace the old key, and is only present if preceding flag is 0x01
-{%- endtrans %}
 
-Payload: {% trans %}the data{% endtrans %}
+Payload: the data
 
-Padding: {% trans -%}
+Padding:
 Random data to a multiple of 16 bytes for the total length.
          May contain more than the minimum required padding.
-{%- endtrans %}
+{% endhighlight %}
 
 {% trans %}Minimum length: 48 bytes{% endtrans %}
 
-</pre>
 
 <p>{% trans cryptography=site_url('docs/how/cryptography') -%}
 The data is then <a href="{{ cryptography }}">AES Encrypted</a>,
@@ -287,7 +284,8 @@ ElGamal block.
 The existing session message is
 as follows:
 {%- endtrans %}</p>
-<pre>
+
+{% highlight lang='dataspec' %}
    +----+----+----+----+----+----+----+----+
    |                                       |
    +                                       +
@@ -305,15 +303,17 @@ as follows:
    +                                       +
    |                                       |
    +----+----+----+----+----+----+----+----+
+{% endhighlight %}
 
-Session Tag: {% trans commonstructures=site_url('docs/spec/common-structures') -%}
-A 32-byte <a href="{{ commonstructures }}#type_SessionTag">Session Tag</a>
+<h4>Definition</h4>
+{% highlight lang='dataspec' %}
+Session Tag:
+A 32-byte `SessionTag`
              previously delivered in an AES block
-{%- endtrans %}
 
-AES Encrypyted Block: {% trans %}As specified <a href="#aes">above</a>.{% endtrans %}
+AES Encrypyted Block: As specified above.
+{% endhighlight %}
 
-</pre>
 
 <p>{% trans -%}
 The session tag also serves as

@@ -2,8 +2,8 @@
 I2NP Specification
 ==================
 .. meta::
-    :lastupdated: January 2015
-    :accuratefor: 0.9.17
+    :lastupdated: January 2016
+    :accuratefor: 0.9.24
 
 
 Overview
@@ -171,6 +171,9 @@ Notes
   versions, checksum generation is still required. It is a topic for future
   research to determine points in the protocol stack where the far-end router's
   version is known and checksum generation can be disabled.
+
+* The short expiration is unsigned and will wrap around on Feb. 7, 2106. As of
+  that date, an offset must be added to get the correct time.
 
 .. _struct-BuildRequestRecord:
 
@@ -532,22 +535,24 @@ Delivery Instructions!
 Messages
 ========
 
-=========================  ====
-         Message           Type
-=========================  ====
-DatabaseStore_               1
-DatabaseLookup_              2
-DatabaseSearchReply_         3
-DeliveryStatus_             10
-Garlic_                     11
-TunnelData_                 18
-TunnelGateway_              19
-Data_                       20
-TunnelBuild_                21
-TunnelBuildReply_           22
-VariableTunnelBuild_        23
-VariableTunnelBuildReply_   24
-=========================  ====
+==================================  =======
+             Message                 Type
+==================================  =======
+DatabaseStore_                         1
+DatabaseLookup_                        2
+DatabaseSearchReply_                   3
+DeliveryStatus_                        10
+Garlic_                                11
+TunnelData_                            18
+TunnelGateway_                         19
+Data_                                  20
+TunnelBuild_                           21
+TunnelBuildReply_                      22
+VariableTunnelBuild_                   23
+VariableTunnelBuildReply_              24
+Reserved for experimental messages  224-254
+Reserved for future expansion         255
+==================================  =======
 
 .. _msg-DatabaseStore:
 
@@ -1124,6 +1129,11 @@ A length Integer, followed by opaque data.
        actual payload of this message
 {% endhighlight %}
 
+Notes
+`````
+* This message contains no routing information and will never be sent
+  "unwrapped". It is only used inside `Garlic` messages.
+
 .. _msg-TunnelBuild:
 
 TunnelBuild
@@ -1159,6 +1169,10 @@ Notes
 * The I2NP message ID for this message must be set according to the tunnel
   creation specification.
 
+* While this message is rarely seen in today's network, having been replaced by
+  the `VariableTunnelBuild` message, it may still be used for very long tunnels,
+  and has not been deprecated. Routers must implement.
+
 .. _msg-TunnelBuildReply:
 
 TunnelBuildReply
@@ -1176,6 +1190,10 @@ Notes
 
 * The I2NP message ID for this message must be set according to the tunnel
   creation specification.
+
+* While this message is rarely seen in today's network, having been replaced by
+  the `VariableTunnelBuildReply` message, it may still be used for very long
+  tunnels, and has not been deprecated. Routers must implement.
 
 .. _msg-VariableTunnelBuild:
 
@@ -1210,6 +1228,8 @@ Notes
 * The I2NP message ID for this message must be set according to the tunnel
   creation specification.
 
+* Typical number of records in today's network is 5.
+
 .. _msg-VariableTunnelBuildReply:
 
 VariableTunnelBuildReply
@@ -1234,6 +1254,8 @@ Notes
 
 * The I2NP message ID for this message must be set according to the tunnel
   creation specification.
+
+* Typical number of records in today's network is 5.
 
 
 References

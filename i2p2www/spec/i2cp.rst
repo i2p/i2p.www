@@ -1340,7 +1340,7 @@ References
     {{ site_url('docs/protocol/i2cp', True) }}#format
 
 .. [I2CP-JAVADOCS]
-    http://docs.i2p-projekt.de/javadoc/net/i2p/data/i2cp/package-summary.html
+    http://{{ i2pconv('i2p-javadocs.i2p') }}/net/i2p/data/i2cp/package-summary.html
 
 .. [Integer]
     {{ ctags_url('Integer') }}
@@ -1356,7 +1356,7 @@ References
     {{ ctags_url('Mapping') }}
 
 .. [MSM-JAVADOCS]
-    http://docs.i2p-projekt.de/javadoc/net/i2p/data/i2cp/MessageStatusMessage.html
+    http://{{ i2pconv('i2p-javadocs.i2p') }}/net/i2p/data/i2cp/MessageStatusMessage.html
 
 .. [PrivateKey]
     {{ ctags_url('PrivateKey') }}
