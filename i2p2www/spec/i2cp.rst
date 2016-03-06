@@ -5,6 +5,8 @@ I2CP Specification
     :lastupdated: June 2015
     :accuratefor: 0.9.21
 
+.. contents::
+
 
 Overview
 ========

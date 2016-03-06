@@ -5,6 +5,8 @@ Streaming Library Specification
     :lastupdated: June 2015
     :accuratefor: 0.9.20
 
+.. contents::
+
 
 Overview
 ========

@@ -5,6 +5,8 @@ Configuration File Specification
     :lastupdated: February 2016
     :accuratefor: 0.9.25
 
+.. contents::
+
 
 Overview
 ========

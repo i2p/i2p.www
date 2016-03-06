@@ -5,6 +5,8 @@ Software Update Specification
     :lastupdated: May 2015
     :accuratefor: 0.9.20
 
+.. contents::
+
 
 Overview
 ========

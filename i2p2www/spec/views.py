@@ -1,5 +1,9 @@
 import codecs
-from docutils.core import publish_parts
+from docutils.core import (
+    publish_doctree,
+    publish_from_doctree,
+    publish_parts,
+)
 from flask import (
     abort,
     g,
@@ -13,7 +17,7 @@ from flask import (
 )
 import os.path
 
-from i2p2www import SPEC_DIR
+from i2p2www import PROPOSAL_DIR, SPEC_DIR
 from i2p2www import helpers
 
 
@@ -64,6 +68,7 @@ def spec_show(name, txt=False):
     if txt:
         # Strip out RST
         content = content.replace('.. meta::\n', '')
+        content = content.replace('.. contents::\n\n', '')
         content = content.replace('.. raw:: html\n\n', '')
         content = content.replace('\n.. [', '\n[')
         content = content.replace(']_.', '].')
@@ -81,11 +86,21 @@ def spec_show(name, txt=False):
         r.mimetype = 'text/plain'
         return r
 
-    # publish the post with docutils
+    # Render the ToC
+    doctree = publish_doctree(source=rendered_content)
+    bullet_list = doctree[1][1]
+    doctree.clear()
+    doctree.append(bullet_list)
+    toc = publish_from_doctree(doctree, writer_name='html')
+
+    # Remove the ToC from the main document
+    rendered_content = rendered_content.replace('.. contents::\n', '')
+
+    # publish the spec with docutils
     parts = publish_parts(source=rendered_content, source_path=SPEC_DIR, writer_name="html")
     meta = get_metadata_from_meta(parts['meta'])
 
-    return render_template('spec/show.html', title=parts['title'], body=parts['fragment'], name=name, meta=meta)
+    return render_template('spec/show.html', title=parts['title'], toc=toc, body=parts['fragment'], name=name, meta=meta)
 
 def spec_show_txt(name):
     return spec_show(name, True)

@@ -5,6 +5,8 @@ I2NP Specification
     :lastupdated: January 2016
     :accuratefor: 0.9.24
 
+.. contents::
+
 
 Overview
 ========

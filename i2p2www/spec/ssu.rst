@@ -5,6 +5,8 @@ SSU Protocol Specification
     :lastupdated: November 2015
     :accuratefor: 0.9.24
 
+.. contents::
+
 
 Overview
 ========

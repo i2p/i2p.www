@@ -5,60 +5,11 @@ Common structures Specification
     :lastupdated: February 2016
     :accuratefor: 0.9.24
 
+.. contents::
+
 
 This document describes some data types common to all I2P protocols, like
 [I2NP]_, [I2CP]_, [SSU]_, etc.
-
-Index
-=====
-
-+--------------------------+
-| Type                     |
-+==========================+
-| Boolean_                 |
-+--------------------------+
-| Certificate_             |
-+--------------------------+
-| Date_                    |
-+--------------------------+
-| `Delivery Instructions`_ |
-+--------------------------+
-| Destination_             |
-+--------------------------+
-| Hash_                    |
-+--------------------------+
-| Integer_                 |
-+--------------------------+
-| KeysAndCert_             |
-+--------------------------+
-| Lease_                   |
-+--------------------------+
-| LeaseSet_                |
-+--------------------------+
-| Mapping_                 |
-+--------------------------+
-| PrivateKey_              |
-+--------------------------+
-| PublicKey_               |
-+--------------------------+
-| RouterAddress_           |
-+--------------------------+
-| RouterIdentity_          |
-+--------------------------+
-| RouterInfo_              |
-+--------------------------+
-| `Session Tag`_           |
-+--------------------------+
-| Signature_               |
-+--------------------------+
-| PrivateKey_              |
-+--------------------------+
-| SigningPublicKey_        |
-+--------------------------+
-| String_                  |
-+--------------------------+
-| TunnelId_                |
-+--------------------------+
 
 
 Common type specification

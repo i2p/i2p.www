@@ -5,6 +5,8 @@ Blockfile and Hosts Database Specification
     :lastupdated: November 2014
     :accuratefor: 0.9.17
 
+.. contents::
+
 
 Overview
 ========

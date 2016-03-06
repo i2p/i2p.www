@@ -5,6 +5,8 @@ Datagram Specification
     :lastupdated: July 2014
     :accuratefor: 0.9.14
 
+.. contents::
+
 
 Overview
 ========

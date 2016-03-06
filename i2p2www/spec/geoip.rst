@@ -5,6 +5,8 @@ GeoIP File Specification
     :lastupdated: December 2013
     :accuratefor: 0.9.9
 
+.. contents::
+
 
 Overview
 ========
