@@ -105,6 +105,7 @@ GETTEXT_DOMAIN_MAPPING = {
 
 TEMPLATE_DIR = os.path.join(os.path.dirname(__file__), 'pages')
 STATIC_DIR = os.path.join(os.path.dirname(__file__), 'static')
+SPEC_DIR = os.path.join(os.path.dirname(__file__), 'spec')
 BLOG_DIR = os.path.join(os.path.dirname(__file__), 'blog')
 MEETINGS_DIR = os.path.join(os.path.dirname(__file__), 'meetings/logs')
 SITE_DIR = os.path.join(TEMPLATE_DIR, 'site')
@@ -178,9 +179,12 @@ def pull_lang(endpoint, values):
 def set_lang(endpoint, values):
     if not values:
         return
-    if endpoint == 'static':
+    if endpoint == 'static' or \
+            endpoint.startswith('spec_'):
         # Static urls shouldn't have a lang flag
         # (causes complete reload on lang change)
+        # Spec urls shouldn't have a lang flag
+        # (adds a spurious ?lang=xx to the url)
         return
     if 'lang' in values:
         return

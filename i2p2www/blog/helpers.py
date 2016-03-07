@@ -6,16 +6,17 @@ import os
 import os.path
 
 from i2p2www import BLOG_DIR
+from i2p2www import helpers
 
 
-SUPPORTED_METATAGS = {
+BLOG_METATAGS = {
     'author': u'I2P devs',
     'category': None,
     'date': None,
     'excerpt': u'',
     }
 
-LIST_METATAGS = [
+BLOG_LIST_METATAGS = [
     'category',
     ]
 
@@ -108,11 +109,4 @@ def render_blog_post(slug):
     return publish_parts(source=rendered_content, source_path=BLOG_DIR, writer_name="html")
 
 def get_metadata_from_meta(meta):
-    metaLines = meta.split('\n')
-    ret = {}
-    for metaTag in SUPPORTED_METATAGS:
-        metaLine = [s for s in metaLines if 'name="%s"' % metaTag in s]
-        ret[metaTag] = metaLine[0].split('content="')[1].split('"')[0] if len(metaLine) > 0 else SUPPORTED_METATAGS[metaTag]
-        if metaTag in LIST_METATAGS and ret[metaTag]:
-            ret[metaTag] = [s.strip() for s in ret[metaTag].split(',')]
-    return ret
+    return helpers.get_metadata_from_meta(meta, BLOG_METATAGS, BLOG_LIST_METATAGS)

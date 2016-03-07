@@ -44,6 +44,10 @@ url('/', 'views.main_index')
 url('/<lang:lang>/', 'views.site_show', defaults={'page': 'index'})
 url('/<lang:lang>/<path:page>', 'views.site_show')
 
+url('/spec', 'spec.views.spec_index')
+url('/spec/<string:name>', 'spec.views.spec_show')
+url('/spec/<string:name>.txt', 'spec.views.spec_show_txt')
+
 url('/<lang:lang>/papers/', 'anonbib.views.papers_list')
 url('/<lang:lang>/papers/bibtex', 'anonbib.views.papers_bibtex')
 url('/<lang:lang>/papers/by-<string:choice>', 'anonbib.views.papers_list')
