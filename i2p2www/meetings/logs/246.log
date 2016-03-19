@@ -1,0 +1,132 @@
+20:00:01 <zzz> 0) Hi
+20:00:01 <zzz> 1) 0.9.27-29 roadmap: http://i2p-projekt.i2p/en/get-involved/roadmap
+20:00:05 <zzz> 0) Hi
+20:00:07 <zzz> hi
+20:00:35 <zzz> 1) 0.9.27-29 roadmap: http://i2p-projekt.i2p/en/get-involved/roadmap
+20:00:57 <str4d> hi
+20:01:17 <z3r0fox> hi
+20:01:17 <zzz> my goal today is to split up the 27-29 roadmap into 27 and 28-29, at a minimum
+20:02:05 <zzz> keeping in mind my two long-term goals: 1) grow the network; 2) improve security
+20:02:55 <zzz> so let's look at the 27-29 list. Anything jump out as being high-priority that we need to have in 27, or at least start working on?
+20:05:08 <str4d> "Crypto migration for existing hidden services" <-- I assume this is adding the backend and UI bits to enable people to do the migration?
+20:05:13 <str4d> (as well as doing so on stats.i2p etc.)
+20:05:49 <str4d> "Initial work on new crypto" <-- This rates very highly for me, but implementation is still blocking on design work
+20:05:51 <zzz> yeah, building off the subscription feed work in 26
+20:06:21 <zzz> we could call it 'initial design work'
+20:06:34 <str4d> Mmm
+20:06:41 <str4d> Let's figure out the actual dependency graph here
+20:06:53 <str4d> (for the other first few items)
+20:07:11 <str4d> a - Initial work on NTCP2
+20:07:24 <str4d> b - Initial work on New DH
+20:07:29 <str4d> c - Initial work on new crypto
+20:07:29 <str4d> d - Initial work on LS2 with multi-destination support
+20:07:33 <str4d> e - Initial work on new netdb ("next backend")
+20:08:23 <zzz> anything labeled 'initial work' probably doesn't have dependencies
+20:08:23 <str4d> LS2 requires new netDB code to support, no?
+20:08:46 <str4d> Well yes, if it is internal support for the router parsing bits of it
+20:09:23 <str4d> But how the router gets that data to parse will have dependencies
+20:09:39 <zzz> 'new netdb' is the tuna stuff like R5N, so it's orthogonal to LS2
+20:09:51 * str4d is trying to separate the things we can implement sooner from the things we need to focus design work on that may be blocking other tasks
+20:09:54 <str4d> Okay
+20:10:34 <str4d> c depends on d, at least
+20:10:52 <str4d> because at the e2e layer, the crypto is in the LS
+20:11:08 <str4d> What do you mean by b?
+20:11:27 <str4d> (because b would appear to be a prerequisite for a otherwise)
+20:12:08 <zzz> b = make a list of DH candidates, with info on code availability, speed, etc
+20:13:04 <str4d> Okay, then b *is* semi-independent of a :)
+20:13:04 <zzz> c = make a plan, make a list
+20:13:51 <zzz> a lot of this 'initial work' stuff is pretty much dead on the vine. Nobody's thought about it in months or years, no recent discussion
+20:14:04 <zzz> somebody's got to get their head back into it
+20:14:07 <str4d> Ah, I see my mistake. I assumed that everything on the list was referring to things actually landing as code
+20:15:41 <zzz> maybe, maybe not
+20:15:52 <str4d> Okay, my priorities now are all of them at once ;D
+20:16:25 <str4d> But probably starting with something that will have a shorter turnaround
+20:16:30 <zzz> a lot of it requires consensus building and design with i2pd and kovri before coding
+20:17:02 <str4d> Mmm
+20:18:34 <str4d> What needs to happen IMHO for a and d is a small group of people reviewing all the existing proposals and getting some clarity, then having some kind of design discussion meeting
+20:18:48 <str4d> With as little meeting as possible ideally :P
+20:19:28 <str4d> b will have some impact on a from a design perspective, but can be delayed
+20:20:14 <zzz> I'd be happy with revitalizing the discussions on zzz.i2p for starters. We have 20-30 proposals up now, most have landed with a thud or are forgotten.
+20:20:37 <str4d> Likewise with c on d
+20:20:37 <str4d> Of those five though, e will probably have the most effect on network reliability...
+20:20:40 <zzz> As a result we are very poorly positioned for future development atm
+20:21:39 <str4d> At this point we're putting aside tunnel-level crypto, which I have no problem doing (we want to wait a bit and see what comes out of the Tor work here)
+20:21:47 <zzz> which is another reason why summer of x could be a better place to put resources. At least what needs to be done for all the x's is more clear
+20:22:21 <zzz> is 'tunnel-level crypto' even on a list or post at all?
+20:22:41 <str4d> IDK
+20:22:53 <str4d> This is something we will figure out better once I get the proposals on the website :P
+20:23:40 * str4d will be working on the precursor to that today.
+20:23:51 <zzz> I would ask you what you'd most want to work on, but that seems silly given that you have months and months of past-due things on your list atm
+20:24:43 <str4d> Well, a lot of that was just overly ambitious and unrealistic todo scheduling on my part
+20:25:21 <str4d> (not taking into account the actual work required, like e.g. the Android release...)
+20:25:55 <zzz> I'm pretty pessimistic about progress right now, even for .26, which I haven't started yet and could take quite a while
+20:26:03 <str4d> For 0.9.26 we already have a list of things that need implementing. But we can also get started on design discussions.
+20:26:16 <zzz> And I may have to take several weeks off of coding to figure out launchpad and debian
+20:26:30 <str4d> Hmm, yeah..
+20:27:04 <zzz> so at this point 27 feels a long way off
+20:27:21 <str4d> Okay, let's say we can only do one of [ transport encryption | e2e encryption ]
+20:27:33 <str4d> (in terms of doing design planning alongside other implementation stuff)
+20:27:41 <str4d> Which is more important to get finished?
+20:28:26 <str4d> Transport encryption is important wrt third-party adversaries
+20:28:56 <str4d> E2E encryption is important wrt OBEPs and IBGWs who see that encrypted packet, and also to tunnel performance
+20:29:09 <zzz> I'm leaning toward transport stuff DH/NTCP2/padding/PT. It's less blue-sky and we have more sketched out already. THe path is more clear
+20:30:29 <str4d> Then let's focus on that for .27
+20:31:52 <zzz> you think that's more impt than LS2? LS2 is in a similar state as transport stuff. Lots of proposals, zero recent discussion
+20:32:28 <str4d> Ideally I'd like to work on them both in parallel
+20:32:41 <str4d> But I'm trying to be realistic here about what we will actually achieve :)
+20:32:47 <zzz> gun to head, pick one
+20:33:30 <str4d> transport
+20:33:39 <zzz> ok, agreed
+20:33:46 <psi> tls lookalike transport when?
+20:34:08 <str4d> Transport stuff is beneficial to the anonymity properties we provide our *current* users
+20:34:21 <str4d> LS2 stuff is beneficial to *future* users (as well as current)
+20:34:26 <zzz> not on any list or proposal iirc psi
+20:34:34 <str4d> Also I have many more questions in my head re: LS2 than transport
+20:34:47 <psi> kk
+20:35:12 <zzz> str4d, if you could get those q's into the zzz.i2p threads that would be a start
+20:35:19 <str4d> zzz, not sure that's true, I know at the very least it is on the Trac wiki
+20:36:19 <zzz> basically there's about 20 proposals on zzz.i2p dying for participation from str4d, psi, orignal, anonimal. If we move a couple to the top of the list as we just did today, hopefully they will get more eyeballs
+20:36:19 <str4d> Might be more apt to say "question marks"
+20:36:36 <str4d> mmm
+20:36:38 <zzz> sure, some of the LS2 stuff is pretty throw-it-at-the-wall
+20:37:01 <str4d> So in my mind, my #1 todo task right now is getting the proposals onto the website
+20:37:31 <zzz> in my mind, android is #1 for you
+20:37:42 <str4d> (and my other #1 todo task is fixing the ProGuard bug in I2P Android)
+20:37:50 <str4d> Yah
+20:38:08 <orignal> I'm fine with any proposal as soon as they get moved forward
+20:38:08 <str4d> Worst-case, I just back out the Samsung 4.2 fix for this release
+20:38:09 <zzz> so for 27, the list is transport stuff: progress on DH, NTCP, and PT
+20:38:21 <zzz> anything else for 27?
+20:38:39 <str4d> Mmm. Put LS2 design work into .28
+20:39:17 <str4d> zzz, initial console design planning would be nice
+20:39:45 <orignal> I personally can't wait for a new crypto, especially for destinations, so LS2 should be implemented asap
+20:40:08 <str4d> (inasmuch as deciding on a direction and roadmap, no actual implementing)
+20:40:08 <zzz> ok
+20:41:18 <zzz> I think that's a pretty ambitious 27: crypto migration for existing hidden svcs + the transport stuff
+20:41:20 <str4d> orignal, likewise; hence I want to make sure we get it right :)
+20:41:43 <zzz> I'll put LS2 and related stuff in 28 and move everything else to 29?
+20:42:35 <str4d> Sounds reasonable
+20:42:35 <str4d> .27 then has a good mix of design and implementation
+20:42:38 <zzz> anything else on 1) roadmap ?
+20:43:18 <str4d> Not from me at this time.
+20:43:27 <zzz> any other topics?
+20:43:34 <str4d> We want to revisit this of course, probably part-way through .26
+20:44:08 <str4d> (to ensure we are on-track with the necessary prep for .27)
+20:44:50 <str4d> 2) How are we doing re: kytv disappearance recovery?
+20:44:55 <zzz> Next monthly meeting is April 5. I want to say in advance that if nobody reports that they've done anything since the March 3 meeting, I'm going to declare this new project management style a failure. If nobody's doing anything, there's nothing to manage and no need to have monthly meetings
+20:45:33 <str4d> You mentioned launchpad and debian above. Is there anything else you consider urgent to recovery?
+20:45:35 <zzz> 2) Meeh was doing some research on launchpad/debian which is our major outage. I need to compare notes with him
+20:46:05 <zzz> echelon and I traded emails with tails, they are worried about him and looking for a replacement.
+20:46:18 <zzz> I told them it's not going to happen from our side soon, their problem for now
+20:46:58 <zzz> all the other stuff around the build (geoip, tx) I have covered.
+20:47:16 <zzz> but launchpad/deb is a disaster. Nobody else knows anything, and nothing's written down
+20:47:58 <zzz> and what he did for 24 is incomplete, so there's even some more work to do on 24 before we get to 25
+20:48:16 <zzz> anything else on 2) ?
+20:48:42 <str4d> Would it be useful to put out a call for a new packager?
+20:48:50 <str4d> (e.g. Twitter?)
+20:48:53 <zzz> sure
+20:49:07 * zzz reaches for the baffer
+20:49:20 <str4d> sadie can figure out precise wording of the call
+20:49:49 <str4d> (we want it to be welcoming and encouraging without being too panicked ;) )
+20:49:56 <zzz> don't delegate every tweet to sadie, you are allowed to tweet also :)
+20:50:04 * zzz *bafffs* the meeting closed
