@@ -22,7 +22,7 @@ except ImportError:
 ###########
 # Constants
 
-CURRENT_I2P_VERSION = '0.9.24'
+CURRENT_I2P_VERSION = '0.9.25'
 
 CANONICAL_DOMAIN = 'geti2p.net'
 

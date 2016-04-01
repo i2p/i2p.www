@@ -2,8 +2,8 @@
 Software Update Specification
 =============================
 .. meta::
-    :lastupdated: May 2015
-    :accuratefor: 0.9.20
+    :lastupdated: March 2016
+    :accuratefor: 0.9.25
 
 .. contents::
 
@@ -418,6 +418,9 @@ The following <feed> elements are used:
     <i2p:release>
         I2P update metadata. See below.
 
+    <i2p:revocations>
+        Certificate revocations. See below.
+
     <updated>
         Required
 
@@ -529,6 +532,33 @@ following attributes and entities:
             href (attribute)
                 An in-network http .i2p link
 
+**Atom <i2p:revocations> Details:**
+
+This entity is optional and there is at most one <i2p:revocations> entity in the
+feed. This feature is scheduled for implementation in release 0.9.26. The
+specification below is preliminary and subject to change.
+
+The <i2p:revocations> entity contains one or more <i2p:crl> entities. The
+<i2p:crl> entity contains the following attributes:
+
+    date (attribute)
+        Required
+
+        Timestamp for this entry (conforming to [RFC-4287]_ (Atom) section 3.3
+        and [RFC-3339]_.
+
+        The date also may be in truncated format yyyy-mm-dd (without the 'T');
+        this is the "full-date" format in [RFC-3339]_. In this format the time
+        is assumed to be 00:00:00 UTC for any processing.
+
+    id (attribute)
+        A unique id for the creator of this CRL.
+
+The content of the <i2p:crl> entity is a standard base 64 encoded Certificate
+Revocation List (CRL) with newlines, starting with the line
+'<tt>-----BEGIN X509 CRL-----</tt>' and ending with the line
+'<tt>-----END X509 CRL-----</tt>'. See [RFC-5280]_ for more information on CRLs.
+
 
 Future Work
 ===========
@@ -551,10 +581,13 @@ References
     {{ spec_url('plugin') }}
 
 .. [RFC-3339]
-    http://tools.ietf.org/html/rfc3339
+    https://tools.ietf.org/html/rfc3339
 
 .. [RFC-4287]
-    http://tools.ietf.org/html/rfc4287
+    https://tools.ietf.org/html/rfc4287
+
+.. [RFC-5280]
+    https://tools.ietf.org/html/rfc5280
 
 .. [Signature]
     {{ ctags_url('Signature') }}
