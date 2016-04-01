@@ -75,6 +75,9 @@ def spec_show(name, txt=False):
         content = content.replace(']_', '] ')
         # Change highlight formatter
         content = content.replace('{% highlight', "{% highlight formatter='textspec'")
+        # Other string changes
+        content = content.replace('    :lastupdated', '- Last updated')
+        content = content.replace('    :accuratefor', '- Accurate for')
 
     # render the post with Jinja2 to handle URLs etc.
     rendered_content = render_template_string(content)
