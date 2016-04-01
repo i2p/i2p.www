@@ -17,7 +17,7 @@ from flask import (
 )
 import os.path
 
-from i2p2www import PROPOSAL_DIR, SPEC_DIR
+from i2p2www import SPEC_DIR
 from i2p2www import helpers
 
 
