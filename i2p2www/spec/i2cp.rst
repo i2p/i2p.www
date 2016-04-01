@@ -284,8 +284,9 @@ below.
 
    0.7.2        Get Bandwidth Limits and Bandwidth Limits messages supported
 
-   0.7.1        Send Message Expires message supported<br>
-                     Reconfigure Session message supported
+   0.7.1        Send Message Expires message supported
+
+                Reconfigure Session message supported
 
    0.7          Dest Lookup and Dest Reply messages supported
 
