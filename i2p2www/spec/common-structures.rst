@@ -2,6 +2,7 @@
 Common structures Specification
 ===============================
 .. meta::
+    :category: Design
     :lastupdated: February 2016
     :accuratefor: 0.9.24
 

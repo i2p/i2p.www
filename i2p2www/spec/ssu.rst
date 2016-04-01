@@ -2,6 +2,7 @@
 SSU Protocol Specification
 ==========================
 .. meta::
+    :category: Transports
     :lastupdated: November 2015
     :accuratefor: 0.9.24
 

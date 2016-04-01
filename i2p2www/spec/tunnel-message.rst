@@ -2,6 +2,7 @@
 Tunnel Message Specification
 ============================
 .. meta::
+    :category: Design
     :lastupdated: February 2014
     :accuratefor: 0.9.11
 

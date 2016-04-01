@@ -2,6 +2,7 @@
 I2CP Specification
 ==================
 .. meta::
+    :category: Protocols
     :lastupdated: June 2015
     :accuratefor: 0.9.21
 

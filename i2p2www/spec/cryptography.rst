@@ -2,6 +2,7 @@
 Low-level Cryptography Specification
 ====================================
 .. meta::
+    :category: Design
     :lastupdated: December 2014
     :accuratefor: 0.9.17
 

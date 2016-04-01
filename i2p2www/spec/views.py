@@ -23,11 +23,18 @@ from i2p2www import helpers
 
 SPEC_METATAGS = {
     'accuratefor': None,
+    'category': '',
     'lastupdated': None,
     }
 
 SPEC_LIST_METATAGS = [
     ]
+SPEC_CATEGORY_SORT = {
+    'Design': 1,
+    'Transports': 2,
+    'Protocols': 3,
+    '': 999,
+    }
 
 
 def spec_index():
@@ -52,7 +59,7 @@ def spec_index():
             spec.update(meta)
             specs.append(spec)
 
-    specs.sort(key=lambda s: s['name'])
+    specs.sort(key=lambda s: (SPEC_CATEGORY_SORT[s['category']], s['title']))
     return render_template('spec/index.html', specs=specs)
 
 def spec_show(name, txt=False):
@@ -76,8 +83,9 @@ def spec_show(name, txt=False):
         # Change highlight formatter
         content = content.replace('{% highlight', "{% highlight formatter='textspec'")
         # Other string changes
-        content = content.replace('    :lastupdated', '- Last updated')
         content = content.replace('    :accuratefor', '- Accurate for')
+        content = content.replace('    :category', '- Category')
+        content = content.replace('    :lastupdated', '- Last updated')
 
     # render the post with Jinja2 to handle URLs etc.
     rendered_content = render_template_string(content)

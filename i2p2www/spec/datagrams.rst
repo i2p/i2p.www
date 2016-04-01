@@ -2,6 +2,7 @@
 Datagram Specification
 ======================
 .. meta::
+    :category: Protocols
     :lastupdated: July 2014
     :accuratefor: 0.9.14
 

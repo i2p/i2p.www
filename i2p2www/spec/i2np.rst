@@ -2,6 +2,7 @@
 I2NP Specification
 ==================
 .. meta::
+    :category: Protocols
     :lastupdated: January 2016
     :accuratefor: 0.9.24
 
