@@ -559,17 +559,18 @@ The following jars in $I2P/lib can be assumed to be in the standard classpath
 for all I2P installations, no matter how old or how new the original
 installation:
 
-=====================  ============================  =====
-         Jar                     Contains            Usage
-=====================  ============================  =====
+=====================  ============================  ==============================================
+         Jar                     Contains                         Usage
+=====================  ============================  ==============================================
 commons-logging.jar    Apache Logging                For plugins requiring Apache logging.
-                                                     Prior to Jetty 6 (release 0.9), this
-                                                     contained Apache Commons Logging only.
-                                                     From release 0.9 to release 0.9.23, this
-                                                     contained both Commons Logging and Tomcat JULI.
-                                                     As of release 0.9.24, this contains
-                                                     Apache Tomcat JULI logging only.
 
+                                                     * Prior to Jetty 6 (release 0.9), this
+                                                       contained Apache Commons Logging only.
+                                                     * From release 0.9 to release 0.9.23, this
+                                                       contained both Commons Logging and Tomcat
+                                                       JULI.
+                                                     * As of release 0.9.24, this contains
+                                                       Apache Tomcat JULI logging only.
 commons-el.jar         JSP Expressions Language      For plugins with JSPs that use EL
 i2p.jar                Core API                      Almost all plugins will need
 i2ptunnel.jar          I2PTunnel                     For plugins with HTTP or other servers
@@ -581,14 +582,16 @@ jbigi.jar              Binaries                      No plugin should need
 mstreaming.jar         Streaming API                 Almost all plugins will need
 org.mortbay.jetty.jar  Jetty Base                    Only plugins starting their own Jetty instance
                                                      will need. Recommended way of starting Jetty
-                                                     is with net.i2p.jetty.JettyStart in jetty-i2p.jar.
-router.jar             Router                        Only plugins using router context will need; most will not
+                                                     is with `net.i2p.jetty.JettyStart` in
+                                                     jetty-i2p.jar.
+router.jar             Router                        Only plugins using router context will need;
+                                                     most will not
 sam.jar                SAM API                       No plugin should need
 streaming.jar          Streaming Implementation      Almost all plugins will need
 systray.jar            URL Launcher                  Most plugins should not need
 systray4j.jar          Systray                       No plugin should need
 wrapper.jar            Router                        Most plugins should not need
-=====================  ============================  =====
+=====================  ============================  ==============================================
 
 The following jars in $I2P/lib can be assumed to be present for all I2P
 installations, no matter how old or how new the original installation, but are
