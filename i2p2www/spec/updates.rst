@@ -554,10 +554,11 @@ The <i2p:revocations> entity contains one or more <i2p:crl> entities. The
     id (attribute)
         A unique id for the creator of this CRL.
 
-The content of the <i2p:crl> entity is a standard base 64 encoded Certificate
-Revocation List (CRL) with newlines, starting with the line
-'<tt>-----BEGIN X509 CRL-----</tt>' and ending with the line
-'<tt>-----END X509 CRL-----</tt>'. See [RFC-5280]_ for more information on CRLs.
+    content
+        A standard base 64 encoded Certificate Revocation List (CRL) with
+        newlines, starting with the line '<tt>-----BEGIN X509 CRL-----</tt>' and
+        ending with the line '<tt>-----END X509 CRL-----</tt>'. See [RFC-5280]_
+        for more information on CRLs.
 
 
 Future Work
