@@ -44,6 +44,7 @@ SUPPORTED_LANGS = [
     'zh',
     'ar',
     'id',
+    'zh_TW',
     'el',
     'he',
     'it',
@@ -58,6 +59,7 @@ SUPPORTED_LANGS = [
     'ro',
     'fi',
     'sv',
+    'tr',
     'uk',
     ]
 
@@ -65,6 +67,7 @@ SUPPORTED_LANG_NAMES = {
     'ar': u'Arabic العربية',
     'id': u'Bahasa Indonesia',
     'zh': u'Chinese 中文',
+    'zh_TW': u'Chinese 中文 (繁體中文, 台灣)',
     'de': u'Deutsch',
     'en': u'English',
     'es': u'Castellano',
@@ -84,6 +87,7 @@ SUPPORTED_LANG_NAMES = {
     'ru': u'Russian Русский язык',
     'fi': u'Suomi',
     'sv': u'Svenska',
+    'tr': u'Türkçe',
     'uk': u'Ukrainian Українська',
     }
 
