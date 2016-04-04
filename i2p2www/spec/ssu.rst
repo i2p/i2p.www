@@ -3,8 +3,8 @@ SSU Protocol Specification
 ==========================
 .. meta::
     :category: Transports
-    :lastupdated: November 2015
-    :accuratefor: 0.9.24
+    :lastupdated: April 2016
+    :accuratefor: 0.9.25
 
 .. contents::
 
@@ -322,7 +322,7 @@ Typical size including header, in current implementation: 304 (IPv4) or 320
 
 Extended options
 ````````````````
-*Note: This is a proposal, to be implemented in 0.9.24. Subject to change.*
+*Note: Implemented in 0.9.24.
 
 * Minimum length: 3 (option length byte + 2 bytes)
 
