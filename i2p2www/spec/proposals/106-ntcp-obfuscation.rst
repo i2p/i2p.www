@@ -6,7 +6,7 @@ NTCP Obfuscation
     :created: 2010-11-23
     :thread: http://zzz.i2p/topics/774
     :lastupdated: 2014-01-03
-    :status: Draft
+    :status: Rejected
 
 .. contents::
 
@@ -14,11 +14,20 @@ NTCP Obfuscation
 Introduction
 ============
 
-This is fairly heavyweight but it prevents any detection by DPI equipment.
+NTCP data is encrypted after the first message (and the first message appears to
+be random data), thus preventing protocol identification through "payload
+analysis". It is still vulnerable to protocol identification through "flow
+analysis". That's because the first 4 messages (i.e. the handshake) are fixed
+length (288, 304, 448, and 48 bytes).
+
+By adding random amounts of random data to each of the messages, we can make it
+a lot harder.
 
 
 Modifications to NTCP
 =====================
+
+This is fairly heavyweight but it prevents any detection by DPI equipment.
 
 The following data will be added to the end of the 288-byte message 1:
 
