@@ -64,6 +64,7 @@ METATAG_LABELS = {
     'lastupdated': u'Last updated',
     'status': u'Status',
     'supercededby': u'Superceded by',
+    'supercedes': u'Supercedes',
     'thread': u'Thread',
     }
 
