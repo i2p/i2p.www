@@ -2,7 +2,17 @@ import ctags
 from flask import g, request, safe_join, url_for
 import os.path
 
-from i2p2www import CANONICAL_DOMAIN, CURRENT_I2P_VERSION, RTL_LANGS, SUPPORTED_LANGS, SUPPORTED_LANG_NAMES, SPEC_DIR, STATIC_DIR, app
+from i2p2www import (
+    CANONICAL_DOMAIN,
+    CURRENT_I2P_VERSION,
+    PROPOSAL_DIR,
+    RTL_LANGS,
+    SUPPORTED_LANGS,
+    SUPPORTED_LANG_NAMES,
+    SPEC_DIR,
+    STATIC_DIR,
+    app,
+)
 
 INPROXY = '.xyz' # http://zzz.i2p/topics/1771-i2p-xyz-inproxy
 
@@ -41,6 +51,20 @@ def utility_processor():
 
     def get_spec_url(name):
         url = url_for('spec_show', name=name, _external=True)
+        # Remove ?lang=xx
+        if '?' in url:
+            url = url[:url.index('?')]
+        return url
+
+    def get_proposal_url(identifier):
+        name = None
+        for f in os.listdir(PROPOSAL_DIR):
+            if f.startswith(identifier):
+                name = f[:-4]
+                break
+        if not name:
+            return ''
+        url = url_for('proposal_show', name=name, _external=True)
         # Remove ?lang=xx
         if '?' in url:
             url = url[:url.index('?')]
@@ -149,6 +173,7 @@ def utility_processor():
                 logo_url=get_logo_for_theme,
                 site_url=get_site_url,
                 spec_url=get_spec_url,
+                proposal_url=get_proposal_url,
                 ctags_url=get_ctags_url,
                 get_url=get_url_with_lang,
                 is_rtl=is_rtl_lang,

@@ -1,0 +1,209 @@
+======
+NTCP 2
+======
+.. meta::
+    :author: zzz
+    :created: 2014-02-13
+    :thread: http://zzz.i2p/topics/1577
+    :lastupdated: 2014-09-21
+    :status: Draft
+    :supercedes: 106
+
+.. contents::
+
+
+Introduction
+============
+
+NTCP data is encrypted after the first message (and the first message appears to
+be random data), thus preventing protocol identification through "payload
+analysis". It is still vulnerable to protocol identification through "flow
+analysis". That's because the first 4 messages (i.e. the handshake) are fixed
+length (288, 304, 448, and 48 bytes).
+
+By adding random amounts of random data to each of the messages, we can make it
+a lot harder.
+
+
+Goals
+=====
+
+- Support NTCP 1 and 2 on a single port, auto-detect.
+- Add random padding to all NTCP messages including handshake and data messages
+  (i.e. length obfuscation so all messages aren't a multiple of 16 bytes)
+- Obfuscate the contents of messages that aren't encrypted (1 and 2), sufficiently
+  so that DPI boxes can't classify them. Also ensure that the messages going to
+  a single peer or set of peers do not have a similar pattern of bits
+- Fix loss of bits in DH due to Java format (ticket #1112)
+- Add "probing resistance" (as Tor calls it), this includes replay resistance
+- Add options/version in handshake for future extensibility
+- Add resistance to malicious MitM segmentation if possible
+- Don't add significantly to CPU required for connection setup
+- Minimize changes
+
+
+
+Router Address
+==============
+
+Transport identifier is "NTCP" as before.
+
+Routers would publish "ver=1,2" in the Router Address (not the Router Info)
+if they support both NTCP 1 and NTCP 2 on the same port.
+That's what we would do in Java.
+
+"ver=1" is NTCP 1 only. This is the default if no "ver" is present.
+
+"ver=2" is NTCP 2 only. This can't be used for a long time, as it's not
+backwards-compatible. But sometime in the future, implementers could
+support version 2 only.
+
+Alternative: Make it something easier to parse, where it's the integer
+representation of a bitfield. ver=3 means you support version 1 and 2.
+ver=7 means you support versions 1, 2, and 3.
+
+
+Messages
+========
+
+1) Session Request
+------------------
+
+Message 1 is obfuscated with random padding,
+and the options block is AES-encrypted with Bob's (publicly known) router hash
+as a cheap form of obfuscation.
+There is no requirement that the session request be unbreakably encrypted,
+e.g. with Bob's encryption key, as there's nothing secret in here and that would be
+too expensive.
+
+
+current:
+- 256 byte X
+- 32 byte H(x) ^ H(RI)
+
+proposed:
+
+- 16 byte MAC
+- 16 byte AES-encrypted options block
+  - 1 byte protocol version (2)
+  - 3 bytes options (nothing now, all 0)
+  - 2 byte DH type (implies length of X)
+
+    0. Old ElG with leading zero (256 bytes) (unused in NTCP 2)
+    1. New ElG without leading zero (256 bytes)
+    2. ECDH? 25519?
+
+  - 2 byte block/stream cipher type
+
+    0. AES CBC
+    1. Salsa20? ChaCha?
+
+  - 4 byte timestamp (seconds since epoch, wrap around in 2038)
+  - 2 bytes unused, set to 0
+  - 2 byte padding count beyond X, to a minimum packet size of 289 bytes
+- DH X (256 bytes or as implied by DH type)
+- Random padding bytes as specified, to a minimum of 289 bytes.
+  No requirement for total message size to be a multiple of 16.
+
+Options block is AES ECB encrypted with Bob's 32-byte router hash as the key.
+This is the only portion of the message that is encrypted.
+
+MAC: Standard 16-byte HMAC-MD5 (not the nonstandard one we use in SSU)
+MAC covers only the options block.
+MAC key is the first 16 bytes of Bob's router hash.
+Encrypt-then-MAC.
+
+To determine if incoming message is version 1 or version 2:
+
+  Method 1
+	Read 32 bytes.
+	If the MAC is good then assume it is version 2, otherwise it is version 1.
+        There's a tiny chance the MAC could be good but it's really version 1.
+
+  Method 2
+	Read 288 bytes.
+	If there is a 289th byte pending, assume it is version 2, otherwise it is version 1.
+	This method is vulnerable to MiTM segmentation at 288 bytes.
+
+Timestamp is used for replay detection. Keep a cache of recent MACs for a time period,
+reject duplicates, and reject timestamps beyond the cache lifetime or too far in future.
+
+
+2) Session Created
+------------------
+
+The only change is adding a variable amount of padding at the end.
+TODO: Replace this with the full spec
+
+- Y type and length as specified in message 1
+- The last 16 bytes of Y are used as the IV.
+- Take the (former) first two padding bytes and make them the number
+  of padding bytes to follow, 0 - 65535
+- Padding up to the first multiple of 16 (0-15 bytes) is required and encrypted.
+- Padding after that is not encrypted, not used for next IV,
+  no requirement for total message size to be a multiple of 16.
+- The last 16 encrypted bytes are used as the next IV in message 4
+
+
+3) Session Confirm A
+--------------------
+
+The only change is adding a variable amount of padding at the end.
+TODO: Replace this with the full spec
+
+- The last 16 bytes of X from message 1 are used as the IV.
+- Take the (former) first two padding bytes and make them the number
+  of padding bytes to follow after the sig, 0 - 65535
+- Then pad with 0-15 bytes so that the message through the signature is a multiple of 16 bytes.
+- Then the signature
+- Padding after that is not encrypted, not used for next IV,
+  no requirement for total message size to be a multiple of 16.
+- The last 16 encrypted bytes are used as the next IV in the first data transfer.
+
+
+4) Session Confirm B
+--------------------
+
+The only change is adding a variable amount of padding at the end.
+TODO: Replace this with the full spec
+
+- The last 16 bytes of the encrypted contents of message 2 are used as the IV.
+- Take the (former) first two padding bytes and make them the number
+  of padding bytes to follow, 0 - 65535
+- Padding up to the first multiple of 16 (0-15 bytes) is required and encrypted.
+- Padding after that is not encrypted, not used for next IV,
+  no requirement for total message size to be a multiple of 16.
+- The last 16 encrypted bytes are used as the next IV in the first data transfer.
+
+
+5) Data Packets
+---------------
+
+Add non-mod-16 padding after the checksum:
+
+
+- Old:
+  - 2 byte data length
+  - Data
+  - Padding to multiple of 16 (including checksum)
+  - 4 byte checksum
+
+- New:
+  - 2 byte data length
+  - Data
+  - 2 byte post-checksum padding count, 0-65535
+  - 0-15 bytes Padding to multiple of 16 (including checksum)
+  - 4 byte checksum
+  - Random Padding (unencrypted, not used in IV, not covered by checksum)
+
+
+Alternatives
+============
+
+- Poly1305 instead of HMAC-MD5?
+- Something else instead of AES for obfuscating the options block in message 1?
+- ECDH or 25519 DH instead of ElG DH?
+- Salsa20 (or derivatives) instead of AES?
+
+When we add support for any new DH or block/stream cipher types,
+we will have to bump the advertised version in the Router Address.
