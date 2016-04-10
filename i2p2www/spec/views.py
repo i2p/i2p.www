@@ -152,7 +152,9 @@ def render_rst(directory, name, meta_parser, template):
     # publish the spec with docutils
     parts = publish_parts(source=rendered_content, source_path=directory, writer_name="html")
     meta = meta_parser(parts['meta'])
-    meta['num'] = int(name[:3])
+
+    if (directory == PROPOSAL_DIR):
+        meta['num'] = int(name[:3])
 
     return render_template(template, title=parts['title'], toc=toc, body=parts['fragment'], name=name, meta=meta)
 
