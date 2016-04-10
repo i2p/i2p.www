@@ -43,9 +43,12 @@ PROPOSAL_METATAGS = {
     'created': None,
     'lastupdated': None,
     'status': u'Draft',
+    'supercededby': None,
+    'supercedes': None,
     'thread': None,
     }
 PROPOSAL_LIST_METATAGS = [
+    'supercedes',
     ]
 PROPOSAL_STATUS_SORT = {
     'Draft': 1,
@@ -60,6 +63,7 @@ METATAG_LABELS = {
     'created': u'Created',
     'lastupdated': u'Last updated',
     'status': u'Status',
+    'supercededby': u'Superceded by',
     'thread': u'Thread',
     }
 

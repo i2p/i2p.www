@@ -7,6 +7,7 @@ NTCP Obfuscation
     :thread: http://zzz.i2p/topics/774
     :lastupdated: 2014-01-03
     :status: Rejected
+    :supercededby: 111
 
 .. contents::
 
