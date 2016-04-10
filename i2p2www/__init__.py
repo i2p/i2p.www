@@ -137,6 +137,9 @@ cache = Cache(app, config=CACHE_CONFIG)
 
 @babel.localeselector
 def get_locale():
+    # If viewing specs, require English
+    if request.path.startswith('/spec'):
+        return 'en'
     # If the language is already set from the url, use that
     if hasattr(g, 'lang'):
         return g.lang
