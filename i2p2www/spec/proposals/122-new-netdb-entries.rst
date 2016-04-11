@@ -378,16 +378,19 @@ Format
   - Signature of floodfill (40+ bytes)
 
 To verify signature of the Service List:
+
 - prepend the hash of the service name
 - remove the hash of the creator
 - Check signature of the modified contents
 
 To verify signature of each Short Service Record:
+
 - Fetch destination
 - Check signature of (published timestamp + expires + flags + port + Hash of
   service name)
 
 To verify signature of each Revocation Record:
+
 - Fetch destination
 - Check signature of (published timestamp + 4 zero bytes + flags + port + Hash
   of service name)
