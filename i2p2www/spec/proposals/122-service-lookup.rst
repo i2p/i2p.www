@@ -6,16 +6,22 @@ Service Lookup
     :created: 2016-01-13
     :thread: http://zzz.i2p/topics/2048
     :lastupdated: 2016-01-13
-    :status: Draft
+    :status: Rejected
+    :supercedes: 102
+    :supercededby: 123
 
 .. contents::
 
 
-Introduction
-============
+Overview
+========
 
 This is the full-monty bombastic anything-goes-in-the-netdb proposal. AKA
 anycast. This would be the 4th proposed LS2 subtype.
+
+
+Motivation
+==========
 
 Say you wanted to advertise your destination as an outproxy, or a GNS node, or a
 Tor gateway, or a Bittorrent DHT or imule or i2phex or Seedless bootstrap, etc.
@@ -51,8 +57,8 @@ When somebody did a lookup, they would get back a list of those records:
 Expirations would be relatively long, hours at least.
 
 
-Considerations
-==============
+Security implications
+=====================
 
 The downside is that this could turn into the Bittorrent DHT or worse. At a
 minimum, the floodfills would have to severely rate- and capacity-limit the

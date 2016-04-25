@@ -6,13 +6,21 @@ LeaseSet 2
     :created: 2014-01-22
     :thread: http://zzz.i2p/topics/1560
     :lastupdated: 2016-04-04
-    :status: Draft
+    :status: Rejected
+    :supercededby: 123
 
 .. contents::
 
 
-Introduction
-============
+Overview
+========
+
+This proposal is about a new LeaseSet format with support for newer encryption
+types.
+
+
+Motivation
+==========
 
 The end-to-end cryptography used through I2P tunnels has separate encryption and
 signing keys. The signing keys are in the tunnel Destination, which has already
@@ -27,8 +35,8 @@ will be guaranteed to have support for any encryption types introduced alongside
 it.
 
 
-Format
-======
+Specification
+=============
 
 The basic LS2 format would be like this:
 

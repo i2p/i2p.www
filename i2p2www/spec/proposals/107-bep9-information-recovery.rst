@@ -6,13 +6,20 @@ BEP9 Information Recovery
     :created: 2011-02-23
     :thread: http://zzz.i2p/topics/860
     :lastupdated: 2011-02-23
-    :status: Draft
+    :status: Dead
 
 .. contents::
 
 
-Problem
-=======
+Overview
+========
+
+This proposal is about adding full information recovery to I2P's implementation
+of BEP9.
+
+
+Motivation
+==========
 
 BEP9 does not send the entire torrent file, thus losing several important
 dictionary items, and changes the torrent files total SHA1. This is bad for

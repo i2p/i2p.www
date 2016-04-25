@@ -6,7 +6,7 @@ Restricted Routes
     :created: 2008-09-14
     :thread: http://zzz.i2p/topics/114
     :lastupdated: 2008-10-13
-    :status: Draft
+    :status: Reserve
 
 .. contents::
 

@@ -11,8 +11,15 @@ Multipath TCP for Streaming
 .. contents::
 
 
-Introduction
-============
+Overview
+========
+
+This proposal is about extending streaming to use multiple tunnels per
+connection, similar to multipath TCP.
+
+
+Motivation
+==========
 
 Client tunnels are used by the streaming lib in a fairly standard TCP manner.
 
@@ -24,7 +31,7 @@ tunnels are used based on individual characteristics like:
 - Availability
 
 
-Proposal
-========
+Design
+======
 
 TBD

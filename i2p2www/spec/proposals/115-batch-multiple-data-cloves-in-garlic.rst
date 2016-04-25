@@ -6,15 +6,22 @@ Batch Multiple Data Cloves in Garlic
     :created: 2015-01-22
     :thread: http://zzz.i2p/topics/1797
     :lastupdated: 2015-01-22
-    :status: Draft
+    :status: Needs-Research
 
 .. contents::
 
 
-Introduction
-============
+Overview
+========
+
+This proposal is about sending multiple Data Garlic Cloves inside an end-to-end
+Garlic Message, instead of just one.
 
 
+Motivation
+==========
+
+Not clear.
 
 
 Required Changes
@@ -25,9 +32,6 @@ ClientMessagePool. As there is no queue now, a new queue and some delay would be
 necessary. Any batching would have to honor a max garlic size to minimize
 dropping. Perhaps 3KB? Would want to instrument things first to measure how
 often this would get used.
-
-This is backward-compatible, as the garlic receiver will already process all
-cloves it receives.
 
 
 Thoughts
@@ -43,3 +47,10 @@ uncompressible. What does this leave? I2pd doesn't currently do the x-i2p-gzip
 compression so it may help there a lot more. But stated goal of not running out
 of tags is better fixed with proper windowing implementation in his streaming
 library.
+
+
+Compatibility
+=============
+
+This is backward-compatible, as the garlic receiver will already process all
+cloves it receives.

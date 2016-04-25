@@ -6,13 +6,21 @@ Meta-LeaseSet for Multihoming
     :created: 2016-01-09
     :thread: http://zzz.i2p/topics/2045
     :lastupdated: 2016-01-11
-    :status: Draft
+    :status: Rejected
+    :supercededby: 123
 
 .. contents::
 
 
-Introduction
-============
+Overview
+========
+
+This proposal is about implementing proper multihoming support in I2P that can
+scale up to large sites.
+
+
+Motivation
+==========
 
 Multihoming is a hack and presumably won't work for e.g. facebook.i2p at scale.
 Say we had 100 multihomes each with 16 tunnels, that's 1600 LS publishes every
@@ -24,10 +32,10 @@ would be long-lived, a lot longer than 10 minutes. So it's a two-stage lookup
 for the LS, but the first stage could be cached for hours.
 
 
-Format
-======
+Specification
+=============
 
-::
+The meat-LeaseSet would have the following format::
 
   - Destination
   - Published Time stamp

@@ -6,20 +6,26 @@ Bigger I2NP Messages
     :created: 2009-04-05
     :thread: http://zzz.i2p/topics/258
     :lastupdated: 2009-05-27
-    :status: Draft
+    :status: Dead
 
 .. contents::
 
 
-Introduction
-============
+Overview
+========
+
+This proposal is about increasing the size limit on I2NP messages.
+
+
+Motivation
+==========
 
 iMule's use of 12KB datagrams exposed lots of problems. The actual limit today
 is more like 10KB.
 
 
-Thoughts
-========
+Design
+======
 
 To do:
 

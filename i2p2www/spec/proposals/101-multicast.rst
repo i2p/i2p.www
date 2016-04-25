@@ -6,20 +6,20 @@ Multicast
     :created: 2008-12-08
     :thread: http://zzz.i2p/topics/172
     :lastupdated: 2009-03-25
-    :status: Draft
+    :status: Dead
 
 .. contents::
 
 
-Introduction
-============
+Overview
+========
 
 Basic idea: Send one copy through your outbound tunnel, outbound endpoint
 distributes to all the inbound gateways. End-end encryption precluded.
 
 
-Thoughts
-========
+Design
+======
 
 - New multicast tunnel message type (delivery type = 0x03)
 - Outbound endpoint multicast distribute

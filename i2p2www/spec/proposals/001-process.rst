@@ -6,7 +6,7 @@ The I2P Proposal Process
     :created: 2016-04-10
     :thread: http://zzz.i2p/topics/1980
     :lastupdated: 2016-04-10
-    :status: Draft
+    :status: Meta
 
 .. contents::
 

@@ -6,7 +6,7 @@ Addressbook Subscription Feed Commands
     :created: 2014-09-15
     :thread: http://zzz.i2p/topics/1704
     :lastupdated: 2016-04-17
-    :status: Draft
+    :status: Open
 
 .. contents::
 

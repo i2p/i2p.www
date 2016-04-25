@@ -6,20 +6,21 @@ New netDB Entries
     :created: 2016-01-16
     :thread: http://zzz.i2p/topics/2051
     :lastupdated: 2016-01-16
-    :status: Draft
+    :status: Open
+    :supercedes: 110, 120, 121, 122
 
 .. contents::
 
 
-Introduction
-============
+Overview
+========
 
 This is an update and aggregation of the following 4 proposals:
 
-- LS2
-- Encrypted LS2
-- Meta LS2 for massive multihoming
-- Unauthenticated service lookup (anycasting)
+- 110 LS2
+- 120 Meta LS2 for massive multihoming
+- 121 Encrypted LS2
+- 122 Unauthenticated service lookup (anycasting)
 
 These proposals are mostly independent, but for sanity we define and use a
 common format for several of them.

@@ -11,8 +11,15 @@ LeaseSet Key Persistence
 .. contents::
 
 
-Introduction
-============
+Overview
+========
+
+This proposal is about persisting additional data in the LeaseSet that is
+currently ephemeral.
+
+
+Motivation
+==========
 
 In 0.9.17 persistence was added for the netDb slicing key, stored in
 i2ptunnel.config. This helps prevent some attacks by keeping the same slice

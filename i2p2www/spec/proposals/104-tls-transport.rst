@@ -11,8 +11,14 @@ TLS Transport
 .. contents::
 
 
-Introduction
-============
+Overview
+========
+
+This proposal is about implementing a TLS-based transport.
+
+
+Motivation
+==========
 
 It's a frequently-suggested-suggestion that we have a snoop-resistant transport
 so that we are resistant to fingerprinting and blocking by ISPs and state-level
@@ -20,7 +26,7 @@ adversaries, like what Tor has (i.e. tries to look like a Firefox HTTPS
 session).
 
 
-Proposal
-========
+Design
+======
 
 TBD

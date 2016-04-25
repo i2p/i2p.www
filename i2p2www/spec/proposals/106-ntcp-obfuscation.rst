@@ -12,8 +12,15 @@ NTCP Obfuscation
 .. contents::
 
 
-Introduction
-============
+Overview
+========
+
+This proposal is about overhauling the NTCP transport to improve its resistance
+to automated identification.
+
+
+Motivation
+==========
 
 NTCP data is encrypted after the first message (and the first message appears to
 be random data), thus preventing protocol identification through "payload

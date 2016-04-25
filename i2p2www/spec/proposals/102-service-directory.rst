@@ -6,13 +6,23 @@ Service Directory
     :created: 2009-01-01
     :thread: http://zzz.i2p/topics/180
     :lastupdated: 2009-01-06
-    :status: Draft
+    :status: Rejected
+    :supercededby: 122
 
 .. contents::
 
 
-Introduction
-============
+Overview
+========
+
+This proposal is for a protocol apps could use to register and look up services
+in a directory.
+
+
+Motivation
+==========
+
+The most straightforward way to support onioncat is with a service directory.
 
 This is similar to a proposal Sponge had a while back on IRC. I don't think he
 wrote it up, but his idea was to put it in the netDb. I'm not in favor of that,
@@ -23,8 +33,8 @@ I could probably hack this up pretty quickly using HTTP and the collection of
 perl scripts I use for the add key form.
 
 
-Directory Interface
-===================
+Specification
+=============
 
 Here's how an app would interface with the directory:
 

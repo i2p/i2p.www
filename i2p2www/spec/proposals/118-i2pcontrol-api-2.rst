@@ -6,15 +6,15 @@ I2PControl API 2
     :created: 2016-01-23
     :thread: http://zzz.i2p/topics/2030
     :lastupdated: 2016-02-01
-    :status: Draft
+    :status: Open
 
 .. contents::
 
 
-Introduction
-============
+Overview
+========
 
-This page will outline the API2 for i2pcontrol
+This proposal outlines API2 for I2PControl.
 
 
 Developer headsup!
@@ -25,8 +25,8 @@ compatibility with API1 implementations. The reasons for this is to provide
 users of >=API2 with simplest most coherent possible API.
 
 
-API 2
-=====
+API 2 Specification
+===================
 
 .. raw:: html
 

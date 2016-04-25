@@ -11,8 +11,15 @@ Opt-in Statistics Collection
 .. contents::
 
 
-Introduction
-============
+Overview
+========
+
+This proposal is about an opt-in automated reporting system for network
+statistics.
+
+
+Motivation
+==========
 
 Currently there are several network parameters which have been determined by
 educated guessing. It is suspected that some of those can be tweaked to improve
@@ -20,8 +27,8 @@ the overall performance of the network in terms of speed, reliability and so on.
 However, changing them without proper research is very risky.
 
 
-Proposal
-========
+Design
+======
 
 The router supports vast collection of stats which can be used to analyze
 network-wide properties. What we need is an automated reporting system which

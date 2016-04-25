@@ -6,9 +6,15 @@ Name Translation for GarliCat
     :created: 2009-12-04
     :thread: http://zzz.i2p/topics/453
     :lastupdated: 2009-12-04
-    :status: Draft
+    :status: Dead
 
 .. contents::
+
+
+Overview
+========
+
+This proposal is about adding support for DNS reverse lookups to I2P.
 
 
 Current Translation Mechanism

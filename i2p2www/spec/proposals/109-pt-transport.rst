@@ -6,21 +6,32 @@ PT Transport
     :created: 2014-01-09
     :thread: http://zzz.i2p/topics/1551
     :lastupdated: 2014-09-28
-    :status: Draft
+    :status: Open
 
 .. contents::
 
 
-Introduction
-============
-
-The general idea is to use Pluggable Transports (PTs) as an I2P transport for
-communication between routers. It would be an easy way to experiment with
-alternative protocols, and get ready for I2P blocking resistance.
-
-
-Thoughts
+Overview
 ========
+
+This proposal is for creating an I2P transport that connects to other routers
+through Pluggable Transports.
+
+
+Motivation
+==========
+
+Pluggable Transports (PTs) were developed by Tor as a way to add obfuscation
+transports to Tor bridges in a modular way.
+
+I2P already has a modular transport system that decreases the barrier to adding
+alternative transports. Adding support for PTs would provide I2P with an easy
+way to experiment with alternative protocols, and get ready for blocking
+resistance.
+
+
+Design
+======
 
 There are a few potential layers of implementation:
 

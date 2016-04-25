@@ -6,20 +6,30 @@ Prefer Nearby Routers in Keyspace
     :created: 2015-04-25
     :thread: http://zzz.i2p/topics/1874
     :lastupdated: 2015-04-25
-    :status: Draft
+    :status: Needs-Research
 
 .. contents::
 
 
-Introduction
-============
+Overview
+========
 
-This is an idea to improve tunnel build success, by organizing peers so that
-they prefer connecting to other peers that are close to them in keyspace.
+This is a proposal to organize peers so that they prefer connecting to other
+peers that are close to them in keyspace.
 
+
+Motivation
+==========
+
+The idea is to improve tunnel build success, by increasing the probability that
+a router is already connected to another.
+
+
+Design
+======
 
 Required Changes
-================
+----------------
 
 This change would require:
 
@@ -29,7 +39,7 @@ This change would require:
 
 
 Advantages for Tunnel Building
-==============================
+------------------------------
 
 If you build a tunnel::
 

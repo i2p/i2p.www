@@ -6,32 +6,42 @@ Bidirectional Tunnels
     :created: 2016-01-07
     :thread: http://zzz.i2p/topics/2041
     :lastupdated: 2016-01-07
-    :status: Draft
+    :status: Needs-Research
 
 .. contents::
 
 
-Introduction
-============
+Overview
+========
+
+This proposal is about implementing bidirectional tunnels in I2P.
+
+
+Motivation
+==========
 
 i2pd is going to introduce bi-directional tunnels build through other i2pd
 routers only for now. For the network their will appear as regular inbound and
 outbound tunnels.
 
+
+Design
+======
+
 Goals
-=====
+-----
 
 1. Reduce network and CPU usage by reducing number of TunnelBuild messages
 2. Ability to know instantly if a participant has gone away.
 3. More accurate profiling and stats
 4. Use other darknets as intermediate peers
 
+
 Tunnel modifications
-====================
+--------------------
 
 TunnelBuild
------------
-
+```````````
 Tunnels are built the same way as inbound tunnels. No reply message is required.
 There is special type of participant called "entrance" marked by flag, serving
 as IBGW and OBEP at the same time. Message has the same format as
@@ -49,8 +59,7 @@ It will also contain field mentioning what darknet next peer belong to and some
 additional information if it's not I2P.
 
 TunnelTermination
------------------
-
+`````````````````
 If peer want to go away it creates TunnelTermination messages encrypts with
 layer key and send in "in" direction. If a participant receive such message it
 encrypts it over with it's layer key and send to next peer. Once a messsage
