@@ -1,4 +1,5 @@
 import codecs
+from collections import defaultdict
 from docutils import io
 from docutils.core import (
     Publisher,
@@ -31,40 +32,52 @@ SPEC_METATAGS = {
     }
 SPEC_LIST_METATAGS = [
     ]
-SPEC_CATEGORY_SORT = {
+SPEC_CATEGORY_SORT = defaultdict(lambda: 999, {
     'Design': 1,
     'Transports': 2,
     'Protocols': 3,
-    '': 999,
-    }
+    })
 
 PROPOSAL_METATAGS = {
     'author': u'I2P devs',
     'created': None,
+    'implementedin': None,
     'lastupdated': None,
     'status': u'Draft',
     'supercededby': None,
     'supercedes': None,
+    'target': None,
     'thread': None,
     }
 PROPOSAL_LIST_METATAGS = [
     'supercedes',
     ]
-PROPOSAL_STATUS_SORT = {
-    'Draft': 1,
+PROPOSAL_STATUS_SORT = defaultdict(lambda: 999, {
+    'Open': 1,
+    'Accepted': 2,
+    'Finished': 3,
+    'Closed': 90,
     'Rejected': 100,
-    '': 999,
-    }
+    'Draft': 10,
+    'Needs-Revision': 11,
+    'Dead': 20,
+    'Needs-Research': 15,
+    'Meta': 0,
+    'Reserve': 50,
+    'Informational': 80,
+    })
 
 METATAG_LABELS = {
     'accuratefor': u'Accurate for',
     'author': u'Author',
     'category': u'Category',
     'created': u'Created',
+    'implementedin': u'Implemented in',
     'lastupdated': u'Last updated',
     'status': u'Status',
     'supercededby': u'Superceded by',
     'supercedes': u'Supercedes',
+    'target': u'Target',
     'thread': u'Thread',
     }
 
@@ -121,6 +134,7 @@ def render_rst(directory, name, meta_parser, template):
         content = content.replace('.. raw:: html\n\n', '')
         content = content.replace('\n.. [', '\n[')
         content = content.replace(']_.', '].')
+        content = content.replace(']_,', '],')
         content = content.replace(']_', '] ')
         # Change highlight formatter
         content = content.replace('{% highlight', "{% highlight formatter='textspec'")
