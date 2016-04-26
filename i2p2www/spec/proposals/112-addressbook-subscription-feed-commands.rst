@@ -5,7 +5,7 @@ Addressbook Subscription Feed Commands
     :author: zzz
     :created: 2014-09-15
     :thread: http://zzz.i2p/topics/1704
-    :lastupdated: 2016-04-17
+    :lastupdated: 2016-04-26
     :status: Open
 
 .. contents::
@@ -24,7 +24,7 @@ Motivation
 Right now, the hosts.txt subscription servers just send data in a hosts.txt
 format, which is as follows::
 
-    foo.i2p=b64destination
+    example.i2p=b64destination
 
 There are several problems with this:
 
@@ -74,7 +74,7 @@ This proposal adds two new types of lines:
 
 1. Add and Change commands::
 
-     foo.i2p=b64destination#!key1=val1#key2=val2 ...
+     example.i2p=b64destination#!key1=val1#key2=val2 ...
 
 2. Remove commands::
 
@@ -110,9 +110,9 @@ Other common keys:
 action
   A command
 name
-  The hostname, only present if not preceded by name=dest
+  The hostname, only present if not preceded by example.i2p=b64dest
 dest
-  The b64 destination, only present if not preceded by name=dest
+  The b64 destination, only present if not preceded by example.i2p=b64dest
 date
   In seconds since epoch
 expires
@@ -125,7 +125,7 @@ Commands
 All commands except the "Add" command must contain an "action=command"
 key/value.
 
-For compatibility with older clients, most commands are preceded by name=dest,
+For compatibility with older clients, most commands are preceded by example.i2p=b64dest,
 as noted below. For changes, these are always the new values. Any old values
 are included in the key/value section.
 
@@ -134,7 +134,7 @@ not defined here.
 
 Add hostname
 ````````````
-Preceded by name=dest
+Preceded by example.i2p=b64dest
   YES, this is the new host name and destination.
 action
   NOT included, it is implied.
@@ -143,11 +143,11 @@ sig
 
 Example::
 
-  name=dest#!sig=b64sig
+  example.i2p=b64dest#!sig=b64sig
 
 Change hostname
 ```````````````
-Preceded by name=dest
+Preceded by example.i2p=b64dest
   YES, this is the new host name and old destination.
 action
   changename
@@ -158,11 +158,11 @@ sig
 
 Example::
 
-  name=dest#!action=changename#oldname=oldhostname#sig=b64sig
+  example.i2p=b64dest#!action=changename#oldname=oldhostname#sig=b64sig
 
 Change destination
 ``````````````````
-Preceded by name=dest
+Preceded by example.i2p=b64dest
   YES, this is the old host name and new destination.
 action
   changedest
@@ -175,11 +175,11 @@ sig
 
 Example::
 
-  name=dest#!action=changedest#olddest=oldb64dest#oldsig=b64sig#sig=b64sig
+  example.i2p=b64dest#!action=changedest#olddest=oldb64dest#oldsig=b64sig#sig=b64sig
 
 Add hostname alias
 ``````````````````
-Preceded by name=dest
+Preceded by example.i2p=b64dest
   YES, this is the new (alias) host name and old destination.
 action
   addname
@@ -190,13 +190,13 @@ sig
 
 Example::
 
-  name=dest#!action=addname#oldname=oldhostname#sig=b64sig
+  example.i2p=b64dest#!action=addname#oldname=oldhostname#sig=b64sig
 
 Add destination alias
 `````````````````````
 (Used for crypto upgrade)
 
-Preceded by name=dest
+Preceded by example.i2p=b64dest
   YES, this is the old host name and new (alternate) destination.
 action
   adddest
@@ -209,11 +209,11 @@ sig
 
 Example::
 
-  name=dest#!action=adddest#olddest=oldb64dest#oldsig=b64sig#sig=b64sig
+  example.i2p=b64dest#!action=adddest#olddest=oldb64dest#oldsig=b64sig#sig=b64sig
 
 Add subdomain
 `````````````
-Preceded by name=dest
+Preceded by example.i2p=b64dest
   YES, this is the new host subdomain name and destination.
 action
   addsubdomain
@@ -228,11 +228,11 @@ sig
 
 Example::
 
-  name=dest#!action=addsubdomain#oldname=oldhostname#olddest=oldb64dest#oldsig=b64sig#sig=b64sig
+  example.i2p=b64dest#!action=addsubdomain#oldname=oldhostname#olddest=oldb64dest#oldsig=b64sig#sig=b64sig
 
 Update metadata
 ```````````````
-Preceded by name=dest
+Preceded by example.i2p=b64dest
   YES, this is the old host name and destination.
 action
   update
@@ -243,11 +243,11 @@ sig
 
 Example::
 
-  name=dest#!action=update#k1=v1#k2=v2#sig=b64sig
+  example.i2p=b64dest#!action=update#k1=v1#k2=v2#sig=b64sig
 
 Remove hostname
 ```````````````
-Preceded by name=dest
+Preceded by example.i2p=b64dest
   NO, these are specified in the options
 action
   remove
@@ -260,11 +260,11 @@ sig
 
 Example::
 
-  #!action=removeall#name=hostname#dest=b64destsig=b64sig
+  #!action=removeall#name=example.i2p#dest=b64destsig=b64sig
 
 Remove all with this destination
 ````````````````````````````````
-Preceded by name=dest
+Preceded by example.i2p=b64dest
   NO, these are specified in the options
 action
   removeall
@@ -277,7 +277,7 @@ sig
 
 Example::
 
-  #!action=removeall#name=hostname#dest=b64destsig=b64sig
+  #!action=removeall#name=example.i2p#dest=b64destsig=b64sig
 
 
 Signatures
@@ -309,14 +309,20 @@ To generate a byte stream to create or verify the signature, serialize as follow
 
 - Remove the "sig" key
 - If verifying with oldsig, also remove the "oldsig" key
-- For Add or Change commands:
-- output name=b64dest (name must be lower-case)
+- For Add or Change commands only,
+  output example.i2p=b64dest
 - If any keys remain, output "#!"
 - Sort the options by UTF-8 key, fail if duplicate keys
 - For each key/value, output key=value, followed by (if not the last key/value)
   a '#'
+
+Notes
+
 - Do not output a newline
 - Output encoding is UTF-8
+- All destination and signature encoding is in Base 64 using the I2P alphabet
+- Keys and values are case-sensitive
+- Host names must be in lower-case
 
 
 Compatibility
