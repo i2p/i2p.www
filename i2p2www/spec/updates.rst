@@ -2,7 +2,7 @@
 Software Update Specification
 =============================
 .. meta::
-    :lastupdated: March 2016
+    :lastupdated: April 2016
     :accuratefor: 0.9.25
 
 .. contents::
@@ -541,7 +541,7 @@ specification below is preliminary and subject to change.
 The <i2p:revocations> entity contains one or more <i2p:crl> entities. The
 <i2p:crl> entity contains the following attributes:
 
-    date (attribute)
+    updated (attribute)
         Required
 
         Timestamp for this entry (conforming to [RFC-4287]_ (Atom) section 3.3
@@ -552,12 +552,14 @@ The <i2p:revocations> entity contains one or more <i2p:crl> entities. The
         is assumed to be 00:00:00 UTC for any processing.
 
     id (attribute)
+        Required
         A unique id for the creator of this CRL.
 
-    content
+    (entity content)
+        Required
         A standard base 64 encoded Certificate Revocation List (CRL) with
-        newlines, starting with the line '<tt>-----BEGIN X509 CRL-----</tt>' and
-        ending with the line '<tt>-----END X509 CRL-----</tt>'. See [RFC-5280]_
+        newlines, starting with the line '-----BEGIN X509 CRL-----' and
+        ending with the line '-----END X509 CRL-----'. See [RFC-5280]_
         for more information on CRLs.
 
 
