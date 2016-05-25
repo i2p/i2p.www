@@ -3,8 +3,8 @@ SSU Protocol Specification
 ==========================
 .. meta::
     :category: Transports
-    :lastupdated: April 2016
-    :accuratefor: 0.9.25
+    :lastupdated: May 2016
+    :accuratefor: 0.9.26
 
 .. contents::
 
@@ -1066,10 +1066,13 @@ Notes
   always 4 bytes in the current implementation. IPv6 testing is not currently
   supported.
 
-* IPv6 Notes: Only testing of IPv4 addresses is supported. Therefore, all
+* IPv6 Notes: Through release 0.9.26, only testing of IPv4 addresses is supported. Therefore, all
   Alice-Bob and Alice-Charlie communication must be via IPv4. Bob-Charlie
   communication, however, may be via IPv4 or IPv6. Alice's address, when
   specified in the PeerTest message, must be 4 bytes.
+  As of release 0.9.27, testing of IPv6 addresses is supported,
+  and Alice-Bob and Alice-Charlie communication may be via IPv6.
+  See Proposal 126 for details.
 
 * A peer must maintain a table of active test states (nonces). On reception of
   a PeerTest message, look up the nonce in the table. If found, it's an
