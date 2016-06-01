@@ -112,8 +112,8 @@ contributors taking part (or possibly other pending I2P goodies)!
 {% trans -%}
 Likewise, if you are an application developer who wants a hand with integrating
 I2P, or even just to chat about the concepts or details - get in touch! If you
-want to get involved in our July Apps month, contact `@GetI2P`_ or `@str4d`_ on
-Twitter, or find us in #i2p-dev on OFTC or FreeNode.
+want to get involved in our July Apps month, contact `@GetI2P`_, `@i2p`_ or
+`@str4d`_ on Twitter, or find us in #i2p-dev on OFTC or FreeNode.
 {%- endtrans %}
 
 {% trans -%}
@@ -123,5 +123,6 @@ summer!
 {%- endtrans %}
 
 .. _`@GetI2P`: https://twitter.com/GetI2P
+.. _`@i2p`: https://twitter.com/i2p
 .. _`@str4d`: https://twitter.com/str4d
 .. _`#I2PSDev`: https://twitter.com/hashtag/I2PSDev
