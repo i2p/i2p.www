@@ -7,14 +7,14 @@ I2P Summer Dev
     :author: str4d
     :date: 2016-06-01
     :category: summer-dev
-    :excerpt: {% trans %}We are pleased to announce that this summer, I2P will be embarking on a development programme aimed at improving the privacy software ecosystem, both for developers wanting to leverage I2P in their applications, and for users trying to configure and run their apps through I2P.{% endtrans %}
+    :excerpt: {% trans %}We are pleased to announce that this summer, I2P will be embarking on a development program aimed at improving the privacy software ecosystem for both developers and users.{% endtrans %}
 
 {% trans -%}
 Over the last few years, the need for users to be in control of their own data
 has become increasingly apparent. Some excellent progress had been made in this
-regard with the rise of messaging apps like Signal_ and file storage systems
-like Tahoe-LAFS_, as well as the ongoing work of `Let's Encrypt`_ to bring HTTPS
-to the whole world.
+regard with the rise of messaging apps like Signal_, and file storage systems
+like Tahoe-LAFS_. The ongoing work of `Let's Encrypt`_ to bring HTTPS to the
+whole world is steadily gaining traction.
 {%- endtrans %}
 
 {% trans -%}
@@ -39,9 +39,9 @@ Helping developers help their users
 
 {% trans -%}
 We are pleased to announce that this summer, I2P will be embarking on a
-development programme aimed at improving the privacy software ecosystem, both
-for developers wanting to leverage I2P in their applications, and for users
-trying to configure and run their apps through I2P.
+development program aimed at improving the privacy software ecosystem. Our goal
+is to make life easier both for developers wanting to leverage I2P in their
+applications, and for users trying to configure and run their apps through I2P.
 {%- endtrans %}
 
 {% trans -%}
@@ -56,7 +56,7 @@ June: APIs
 {% trans -%}
 In June, we will be updating the various libraries that exist for interfacing
 with I2P. We have made significant progress this year on extending our SAM_ API
-with additional features, such as support for datagrams and ports; we plan to
+with additional features, such as support for datagrams and ports. We plan to
 make these features easily accessible in our C++ and Python libraries.
 {%- endtrans %}
 
@@ -103,7 +103,7 @@ Take part in Summer Dev!
 {% trans -%}
 We have many more ideas for things we'd like to get done in these areas. If
 you're interested in hacking on privacy and anonymity software, designing usable
-websites or interfaces, or writing guides for users - come and chat with us on
+websites or interfaces, or writing guides for users: come and chat with us on
 IRC or Twitter! We are always happy to "see" new "faces" in our community, both
 inside and outside I2P. We'll be sending I2P stickers out to all new
 contributors taking part (or possibly other pending I2P goodies)!
@@ -111,18 +111,18 @@ contributors taking part (or possibly other pending I2P goodies)!
 
 {% trans -%}
 Likewise, if you are an application developer who wants a hand with integrating
-I2P, or even just to chat about the concepts or details - get in touch! If you
+I2P, or even just to chat about the concepts or details: get in touch! If you
 want to get involved in our July Apps month, contact `@GetI2P`_, `@i2p`_ or
-`@str4d`_ on Twitter, or find us in #i2p-dev on OFTC or FreeNode.
+`@str4d`_ on Twitter. You can also find us in #i2p-dev on OFTC or FreeNode.
 {%- endtrans %}
 
 {% trans -%}
 We'll be posting here as we go, but you can also follow our progress, and share
-your own ideas and work, with the hashtag `#I2PSDev`_ on Twitter. Bring on the
+your own ideas and work, with the hashtag `#I2PSummer`_ on Twitter. Bring on the
 summer!
 {%- endtrans %}
 
 .. _`@GetI2P`: https://twitter.com/GetI2P
 .. _`@i2p`: https://twitter.com/i2p
 .. _`@str4d`: https://twitter.com/str4d
-.. _`#I2PSDev`: https://twitter.com/hashtag/I2PSDev
+.. _`#I2PSummer`: https://twitter.com/hashtag/I2PSummer
