@@ -377,8 +377,7 @@ Contents
 
 Notes
 `````
-* The options are specified on the
-<a href="{{ site_url('docs/protocol/i2cp') }}#options">I2CP Overview page</a>.
+* The options are specified on the I2CP Overview page [I2CP-OPTIONS]_.
 
 * The [Mapping]_ must be sorted by key so that the signature will be validated
   correctly in the router.
@@ -1342,6 +1341,9 @@ References
 
 .. [I2CP-FORMAT]
     {{ site_url('docs/protocol/i2cp', True) }}#format
+
+.. [I2CP-OPTIONS]
+    {{ site_url('docs/protocol/i2cp', True) }}#options
 
 .. [I2CP-JAVADOCS]
     http://{{ i2pconv('i2p-javadocs.i2p') }}/net/i2p/data/i2cp/package-summary.html
