@@ -3,8 +3,8 @@ I2CP Specification
 ==================
 .. meta::
     :category: Protocols
-    :lastupdated: June 2015
-    :accuratefor: 0.9.21
+    :lastupdated: June 2016
+    :accuratefor: 0.9.26
 
 .. contents::
 
@@ -485,23 +485,29 @@ Sent from Client to Router.
 Contents
 ````````
 1. `Session ID`_
-2. [SigningPrivateKey]_
+2. DSA [SigningPrivateKey]_ or 20 bytes ignored
 3. [PrivateKey]_
 4. [LeaseSet]_
 
 Notes
 `````
 The SigningPrivateKey matches the [SigningPublicKey]_ from within the LeaseSet,
-as does the PrivateKey with the [PublicKey]_. The signing key is necessary to
+only if the signing key type is DSA. This is for LeaseSet revocation,
+which is unimplemented and is unlikely to ever be implemented.
+If the signing key type is not DSA, this field contains 20 bytes of random data.
+The length of this field is always 20 bytes,
+it does not ever equal the length of a non-DSA signing private key.
+
+The PrivateKey matches the [PublicKey]_ from the LeaseSet. The signing key is necessary to
 allow the router to revoke the LeaseSet if the client goes offline, and the
 encryption key is necessary for decrypting garlic routed messages. The LeaseSet
 granted may include Lease structures for tunnels pointing at another router if
 the client is actively connected to multiple routers with Leases granted to
 each.
 
-**XXX** Really?
 Revocation is unimplemented.
-Connection to multiple routers is untested.
+Connection to multiple routers is unimplemented in any client library.
+
 
 .. _msg-CreateSession:
 
