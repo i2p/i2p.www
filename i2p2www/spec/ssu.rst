@@ -3,8 +3,8 @@ SSU Protocol Specification
 ==========================
 .. meta::
     :category: Transports
-    :lastupdated: May 2016
-    :accuratefor: 0.9.26
+    :lastupdated: June 2016
+    :accuratefor: 0.9.27
 
 .. contents::
 
@@ -1073,6 +1073,11 @@ Notes
   As of release 0.9.27, testing of IPv6 addresses is supported,
   and Alice-Bob and Alice-Charlie communication may be via IPv6.
   See Proposal 126 for details.
+
+  Alice sends the request to Bob using an existing session over the transport (IPv4 or IPv6) that she wishes to test.
+  When Bob receives a request from Alice via IPv4, Bob must select a Charlie that advertises an IPv4 address.
+  When Bob receives a request from Alice via IPv6, Bob must select a Charlie that advertises an IPv6 address.
+  The actual Bob-Charlie communication may be via IPv4 or IPv6 (i.e., independent of Alice's address type).
 
 * A peer must maintain a table of active test states (nonces). On reception of
   a PeerTest message, look up the nonce in the table. If found, it's an

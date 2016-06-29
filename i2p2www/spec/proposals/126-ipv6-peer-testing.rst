@@ -5,7 +5,7 @@ IPv6 Peer Testing
     :author: zzz
     :created: 2016-05-02
     :thread: http://zzz.i2p/topics/2119
-    :lastupdated: 2016-05-02
+    :lastupdated: 2016-06-29
     :status: Open
 
 .. contents::
@@ -40,10 +40,25 @@ and then you won't get any more (after the RI expires in everybody's netdb).
 Design
 ======
 
-Implement Peer Testing for IPv6.
+Implement Peer Testing for IPv6,
+by removing previous restrictions that peer testing was only allowed for IPv4.
+The peer test message already has a field for IP length.
 
 
 Specification
 =============
 
-TBD, but basically, allow IPv6 addresses and connections in the Peer Testing protocol.
+In the Peer Testing sections of the SSU overview and SSU specification, make the following changes:
+
+IPv6 Notes:
+Through release 0.9.26, only testing of IPv4 addresses is supported.
+Only testing of IPv4 addresses is supported.
+Therefore, all Alice-Bob and Alice-Charlie communication must be via IPv4.
+Bob-Charlie communication, however, may be via IPv4 or IPv6.
+Alice's address, when specified in the PeerTest message, must be 4 bytes.
+As of release 0.9.27, testing of IPv6 addresses is supported, and Alice-Bob and Alice-Charlie communication may be via IPv6.
+
+Alice sends the request to Bob using an existing session over the transport (IPv4 or IPv6) that she wishes to test.
+When Bob receives a request from Alice via IPv4, Bob must select a Charlie that advertises an IPv4 address.
+When Bob receives a request from Alice via IPv6, Bob must select a Charlie that advertises an IPv6 address.
+The actual Bob-Charlie communication may be via IPv4 or IPv6 (i.e., independent of Alice's address type).
