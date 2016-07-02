@@ -13,7 +13,7 @@ author=$3
 thread=$4
 file=$5
 
-date=`date +%Y-%m-%d`
+date=`TZ=UTC date +%Y-%m-%d`
 num=`expr $(expr substr $(ls -r "$PROPOSAL_DIR" | head -n1) 1 3) + 1`
 titleline=`printf '%*s' "$(expr length "$title")" | tr ' ' =`
 
