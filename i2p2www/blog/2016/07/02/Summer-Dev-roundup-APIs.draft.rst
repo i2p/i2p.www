@@ -95,7 +95,7 @@ Other progress
 
 - {% trans %}zzz has been hard at work on Syndie, getting a headstart on Plugins month. You can follow his progress on `the development forum thread`_.{% endtrans %}
 
-- {% trans %}psi has been creating an I2P test network using i2pd, and in the process has fixed several i2pd bugs that will improve its compatibility with Java I2P.{% endtrans %}
+- {% trans %}psi has been creating an I2P test network using i2pd, and in the process has found and fixed several i2pd bugs that will improve its compatibility with Java I2P.{% endtrans %}
 
 .. _{% trans %}`the development forum thread`{% endtrans %}: http://zzz.i2p/topics/2064-syndie-release-july-2016
 
