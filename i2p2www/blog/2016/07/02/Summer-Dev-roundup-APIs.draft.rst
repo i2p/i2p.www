@@ -7,7 +7,7 @@ Summer Dev roundup: APIs
     :author: str4d
     :date: 2016-07-02
     :category: summer-dev
-    :excerpt: {% trans %}{% endtrans %}
+    :excerpt: {% trans %}In the first month of Summer Dev, we have improved the usability of our APIs for Java, Android, and Python developers.{% endtrans %}
 
 {% trans -%}
 Summer Dev is in full swing: we've been busy greasing wheels, sanding edges, and
