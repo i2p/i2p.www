@@ -5,7 +5,7 @@ NTCP 2
     :author: zzz
     :created: 2014-02-13
     :thread: http://zzz.i2p/topics/1577
-    :lastupdated: 2014-09-21
+    :lastupdated: 2016-07-03
     :status: Open
     :supercedes: 106
 
@@ -35,18 +35,38 @@ a lot harder.
 Design Goals
 ============
 
-- Support NTCP 1 and 2 on a single port, auto-detect.
+- Support NTCP 1 and 2 on a single port, auto-detect,
+  and published as a single "transport" (i.e. Router Address) in the netdb
+- Publish support for version 1 only, 2 only, or 1+2 in the netdb
+  in a separate field, and default to version 1 only
+  (don't bind version support to a particular router version)
+- Ensure that all implementations (java/i2pd/kovri/go) can add version 2 support
+  (or not) on their own schedules
 - Add random padding to all NTCP messages including handshake and data messages
   (i.e. length obfuscation so all messages aren't a multiple of 16 bytes)
 - Obfuscate the contents of messages that aren't encrypted (1 and 2), sufficiently
-  so that DPI boxes can't classify them. Also ensure that the messages going to
+  so that DPI boxes and AV signatures can't easily classify them.
+  Also ensure that the messages going to
   a single peer or set of peers do not have a similar pattern of bits
 - Fix loss of bits in DH due to Java format (ticket #1112)
 - Add "probing resistance" (as Tor calls it), this includes replay resistance
+- Maintain 2-way authenticated key exchange (2W-AKE).
+  1W-AKE is not sufficient for our application.
 - Add options/version in handshake for future extensibility
-- Add resistance to malicious MitM segmentation if possible
+- Add resistance to malicious MitM TCP segmentation if possible
 - Don't add significantly to CPU required for connection setup
-- Minimize changes
+- Minimize changes.
+- Support both versions in a common set of code.
+
+
+
+Non-Goals
+=========
+
+- Bullet-proof DPI resistance... that would be pluggable transports, proposal #109
+- A TLS-based transport... that would be proposal #104
+- Don't change the symmetric stream crypto, continue to use AES-CBC-256
+  (but do add flags in the handshake so we can change later)
 
 
 
@@ -209,7 +229,7 @@ Alternatives
 
 - Poly1305 instead of HMAC-MD5?
 - Something else instead of AES for obfuscating the options block in message 1?
-- ECDH or 25519 DH instead of ElG DH?
+- ECDH or 25519 ECDH instead of ElG DH? Note that "25519 ECDH" is now called "X25519"
 - Salsa20 (or derivatives) instead of AES?
 
 When we add support for any new DH or block/stream cipher types,
