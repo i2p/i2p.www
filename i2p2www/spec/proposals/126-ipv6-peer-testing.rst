@@ -5,7 +5,7 @@ IPv6 Peer Testing
     :author: zzz
     :created: 2016-05-02
     :thread: http://zzz.i2p/topics/2119
-    :lastupdated: 2016-06-29
+    :lastupdated: 2016-07-18
     :status: Open
 
 .. contents::
@@ -48,6 +48,15 @@ The peer test message already has a field for IP length.
 Specification
 =============
 
+In the Capabilities section of the SSU overview, make the following addition:
+
+Through 0.9.26, peer testing was not supported for IPv6 addresses, and
+the 'B' capability, if present for an IPv6 address, must be ignored.
+As of 0.9.27, peer testing is supported for IPv6 addresses, and
+the presence or absense of the 'B' capability in an IPv6 address
+indicates actual support (or lack of support).
+
+
 In the Peer Testing sections of the SSU overview and SSU specification, make the following changes:
 
 IPv6 Notes:
@@ -56,9 +65,22 @@ Only testing of IPv4 addresses is supported.
 Therefore, all Alice-Bob and Alice-Charlie communication must be via IPv4.
 Bob-Charlie communication, however, may be via IPv4 or IPv6.
 Alice's address, when specified in the PeerTest message, must be 4 bytes.
-As of release 0.9.27, testing of IPv6 addresses is supported, and Alice-Bob and Alice-Charlie communication may be via IPv6.
+As of release 0.9.27, testing of IPv6 addresses is supported, and Alice-Bob and Alice-Charlie communication may be via IPv6,
+if Bob and Charlie indicate support with a 'B' capability in their published IPv6 address.
 
 Alice sends the request to Bob using an existing session over the transport (IPv4 or IPv6) that she wishes to test.
 When Bob receives a request from Alice via IPv4, Bob must select a Charlie that advertises an IPv4 address.
 When Bob receives a request from Alice via IPv6, Bob must select a Charlie that advertises an IPv6 address.
 The actual Bob-Charlie communication may be via IPv4 or IPv6 (i.e., independent of Alice's address type).
+
+
+Migration
+=========
+
+Routers may either:
+
+1) Not increment their version to 0.9.27 or higher
+
+2) Remove the 'B' capability from any published IPv6 SSU addresses
+
+3) Implement IPv6 peer testing

@@ -3,7 +3,7 @@ SSU Protocol Specification
 ==========================
 .. meta::
     :category: Transports
-    :lastupdated: June 2016
+    :lastupdated: July 2016
     :accuratefor: 0.9.27
 
 .. contents::
@@ -1071,7 +1071,8 @@ Notes
   communication, however, may be via IPv4 or IPv6. Alice's address, when
   specified in the PeerTest message, must be 4 bytes.
   As of release 0.9.27, testing of IPv6 addresses is supported,
-  and Alice-Bob and Alice-Charlie communication may be via IPv6.
+  and Alice-Bob and Alice-Charlie communication may be via IPv6,
+  if Bob and Charlie indicate support with a 'B' capability in their published IPv6 address.
   See Proposal 126 for details.
 
   Alice sends the request to Bob using an existing session over the transport (IPv4 or IPv6) that she wishes to test.
