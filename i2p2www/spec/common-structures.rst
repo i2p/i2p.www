@@ -3,8 +3,8 @@ Common structures Specification
 ===============================
 .. meta::
     :category: Design
-    :lastupdated: February 2016
-    :accuratefor: 0.9.24
+    :lastupdated: August 2016
+    :accuratefor: 0.9.26
 
 .. contents::
 
@@ -1010,7 +1010,8 @@ RouterIdentity_ followed by the Date_, when the entry was published
   options :: `Mapping`
 
   signature :: `Signature`
-               length -> 40 bytes
+               length -> 40 bytes or as specified in router_ident's key
+                         certificate
 {% endhighlight %}
 
 Notes
