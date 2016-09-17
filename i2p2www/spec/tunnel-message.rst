@@ -3,8 +3,8 @@ Tunnel Message Specification
 ============================
 .. meta::
     :category: Design
-    :lastupdated: February 2014
-    :accuratefor: 0.9.11
+    :lastupdated: September 2016
+    :accuratefor: 0.9.26
 
 .. contents::
 
@@ -229,8 +229,7 @@ or a complete (unfragmented) I2NP message, and the instructions are:
 
   To Hash ::
          32 bytes
-         Optional, present if delivery type is DESTINATION, ROUTER, or TUNNEL
-            If DESTINATION, the SHA256 Hash of the destination
+         Optional, present if delivery type is ROUTER or TUNNEL
             If ROUTER, the SHA256 Hash of the router
             If TUNNEL, the SHA256 Hash of the gateway router
 
@@ -262,7 +261,7 @@ or a complete (unfragmented) I2NP message, and the instructions are:
 
   Total length: Typical length is:
          3 bytes for LOCAL delivery (tunnel message);
-         35 bytes for ROUTER / DESTINATION delivery or 39 bytes for TUNNEL
+         35 bytes for ROUTER delivery or 39 bytes for TUNNEL
          delivery (unfragmented tunnel message);
          39 bytes for ROUTER delivery or 43 bytes for TUNNEL delivery (first
          fragment)
@@ -303,7 +302,7 @@ instructions are:
   total length: 7 bytes
 {% endhighlight %}
 
-JavaDoc: http://{{ i2pconv('i2p-javadocs.i2p') }}/net/i2p/data/i2np/DeliveryInstructions.html
+JavaDoc: http://{{ i2pconv('i2p-javadocs.i2p') }}/net/i2p/router/tunnel/FragmentHandler.html
 
 
 Notes
