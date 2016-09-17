@@ -5,7 +5,7 @@ NTCP 2
     :author: zzz
     :created: 2014-02-13
     :thread: http://zzz.i2p/topics/1577
-    :lastupdated: 2016-07-05
+    :lastupdated: 2016-09-17
     :status: Open
     :supercedes: 106
 
@@ -48,21 +48,25 @@ Design Goals
   so that DPI boxes and AV signatures can't easily classify them.
   Also ensure that the messages going to
   a single peer or set of peers do not have a similar pattern of bits
-- Fix loss of bits in DH due to Java format (ticket #1112)
+- Fix loss of bits in DH due to Java format (ticket #1112),
+  possibly (probably?) by switching to X25519
 - Add "probing resistance" (as Tor calls it), this includes replay resistance
 - Maintain 2-way authenticated key exchange (2W-AKE).
   1W-AKE is not sufficient for our application.
+- Continue to use the variable-type, variable-length signatures (from the published
+  RouterIdentity signing key) for authentication. Do not rely on a separate published key.
 - Add options/version in handshake for future extensibility
 - Add resistance to malicious MitM TCP segmentation if possible
 - Don't add significantly to CPU required for connection setup;
   if possible, reduce it significantly
 - Replace HMAC-MD5 with something more secure (see RFC 6151),
-  possibly HMAC-SHA256 or Poly1305
+  possibly HMAC-SHA256 or Poly1305 (see alternatives below).
 - Any new crypto should be readily available in libraries for use
   in Java (1.7), C++, and Go router implementations.
 - Include representatives of Java, C++, and Go router developers in the design
 - Minimize changes.
-- Support both versions in a common set of code.
+- Support both versions in a common set of code
+  (this may not be possible and is implementation-dependent in any case).
 
 
 
@@ -72,9 +76,12 @@ Non-Goals
 - Bullet-proof DPI resistance... that would be pluggable transports, proposal #109
 - A TLS-based transport... that would be proposal #104
 - Don't change the symmetric stream crypto, continue to use AES-CBC-256
-  (but do add flags in the handshake so we can change later)
+  (but do add flags in the handshake so we can change later).
+  However, why is using the last 16 bytes of the previous message as the IV
+  better than just using counter mode? To be researched.
+  Salsa 20 also an option (see alternatives below)
 - Post-Quantum (PQ) Crypto resistance
-
+- Deniability (there's signatures in there)
 
 
 Related Goals
