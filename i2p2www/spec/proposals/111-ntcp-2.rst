@@ -50,6 +50,7 @@ Design Goals
   a single peer or set of peers do not have a similar pattern of bits
 - Fix loss of bits in DH due to Java format (ticket #1112),
   possibly (probably?) by switching to X25519
+- Switch to a real key derivation function (KDF) rather than using the DH result as-is?
 - Add "probing resistance" (as Tor calls it), this includes replay resistance
 - Maintain 2-way authenticated key exchange (2W-AKE).
   1W-AKE is not sufficient for our application.
@@ -61,10 +62,17 @@ Design Goals
   if possible, reduce it significantly
 - Replace HMAC-MD5 with something more secure (see RFC 6151),
   possibly HMAC-SHA256 or Poly1305 (see alternatives below).
+- If possible, reduce the 4-message, two-round-trip handshake to
+  a 3-message, one-round-trip handshake, as in SSU.
+  This would require moving Bob's signature in message 4 to message 2.
+  Research the reason for 4 messages in the ten-year-old email/status/meeting archives.
+- Maintain timestamps for replay and skew detection
+- Avoid any year 2038 issues in timestamps, must work until at least 2106
+- Increase max message size from 16K to 32K or 64K
 - Any new crypto should be readily available in libraries for use
   in Java (1.7), C++, and Go router implementations.
 - Include representatives of Java, C++, and Go router developers in the design
-- Minimize changes.
+- Minimize changes (but there will still be a lot).
 - Support both versions in a common set of code
   (this may not be possible and is implementation-dependent in any case).
 
@@ -158,7 +166,7 @@ proposed:
     0. AES CBC
     1. Salsa20? ChaCha?
 
-  - 4 byte timestamp (seconds since epoch, wrap around in 2038)
+  - 4 byte timestamp (unsigned seconds since epoch, wrap around in 2106)
   - 2 bytes unused, set to 0
   - 2 byte padding count beyond X, to a minimum packet size of 289 bytes
 - DH X (256 bytes or as implied by DH type)
