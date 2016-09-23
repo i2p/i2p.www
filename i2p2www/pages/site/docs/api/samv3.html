@@ -1,7 +1,7 @@
 {% extends "global/layout.html" %}
 {% block title %}SAM V3{% endblock %}
-{% block lastupdated %}April 2016{% endblock %}
-{% block accuratefor %}0.9.25{% endblock %}
+{% block lastupdated %}September 2016{% endblock %}
+{% block accuratefor %}0.9.26{% endblock %}
 {% block content %}
 <p>Specified below is a simple client protocol for interacting with I2P.
 </p>
@@ -1109,6 +1109,11 @@ The SAM bridge will respond with success or failure as in <a href="#sessionrespo
 
 <h3>SAM Utility Commands</h3>
 
+<p>
+Some utility commands require a pre-existing session and some do not.
+See details below.
+</p>
+
 <h4>Host Name Lookup</h4>
 <p>
 The following message can be used by the client to query the SAM
@@ -1145,11 +1150,19 @@ If NAME=ME, then the reply will contain the destination used by the
 current session (useful if you're using a TRANSIENT one).  If $result
 is not OK, MESSAGE may convey a descriptive message, such as "bad
 format", etc.
+INVALID_KEY implies that something is wrong with $name in the request,
+possibly invalid characters.
 
 </p><p>
 The $destination is the base 64 of the <a href="{{ site_url('docs/spec/common-structures') }}#type_Destination">Destination</a>,
 which is 516 or more base 64 characters (387 or more bytes in binary),
 depending on signature type.
+
+</p><p>
+NAMING LOOKUP does not require that a session has been created first.
+However, in some implementations, a .b32.i2p lookup which is uncached and requires
+a network query may fail, as no client tunnels are available for the lookup.
+</p>
 
 
 <h4>Destination Key Generation</h4>
@@ -1189,6 +1202,10 @@ which is 884 or more base 64 characters (663 or more bytes in binary),
 depending on signature type.
 The binary format is specified in <a href="http://{{ i2pconv('i2p-javadocs.i2p') }}/net/i2p/data/PrivateKeyFile.html">Private Key File</a>.
 
+</p><p>
+DEST GENERATE does not require that a session has been created first.
+</p>
+
 
 <h4>PING/PONG (SAM 3.2 or higher)</h4>
 <p>
@@ -1211,6 +1228,9 @@ If a timeout occurs waiting for a PONG from the client, the bridge may send:
 and then disconnect.
 </p><p>
 If a timeout occurs waiting for a PONG from the bridge, the client may simply disconnect.
+
+</p><p>
+PING/PONG do not require that a session has been created first.
 </p>
 
 
@@ -1221,6 +1241,9 @@ Implementation is optional, for ease in testing via telnet.
 Whether there is any response before the socket is closed
 (for example, a SESSION STATUS message) is
 implementation-specific and outside the scope of this specification.
+
+</p><p>
+QUIT/STOP/EXIT do not require that a session has been created first.
 </p>
 
 
@@ -1230,6 +1253,9 @@ Servers may implement a HELP command.
 Implementation is optional, for ease in testing via telnet.
 Output format and detection of the end of the output is
 implementation-specific and outside the scope of this specification.
+
+</p><p>
+HELP does not require that a session has been created first.
 </p>
 
 
