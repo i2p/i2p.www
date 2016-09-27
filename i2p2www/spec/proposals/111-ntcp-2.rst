@@ -5,7 +5,7 @@ NTCP 2
     :author: zzz
     :created: 2014-02-13
     :thread: http://zzz.i2p/topics/1577
-    :lastupdated: 2016-09-17
+    :lastupdated: 2016-09-27
     :status: Open
     :supercedes: 106
 
@@ -44,6 +44,9 @@ Design Goals
   (or not) on their own schedules
 - Add random padding to all NTCP messages including handshake and data messages
   (i.e. length obfuscation so all messages aren't a multiple of 16 bytes)
+  Provide options mechanism for both sides to request min and max padding
+  and/or padding distribution. Specifics of the padding distribution are
+  implementation-dependent and may or may not be specified in the protocol itself.
 - Obfuscate the contents of messages that aren't encrypted (1 and 2), sufficiently
   so that DPI boxes and AV signatures can't easily classify them.
   Also ensure that the messages going to
@@ -82,14 +85,19 @@ Non-Goals
 =========
 
 - Bullet-proof DPI resistance... that would be pluggable transports, proposal #109
-- A TLS-based transport... that would be proposal #104
+- A TLS-based (or HTTPS-lookalike) transport... that would be proposal #104
 - Don't change the symmetric stream crypto, continue to use AES-CBC-256
   (but do add flags in the handshake so we can change later).
   However, why is using the last 16 bytes of the previous message as the IV
   better than just using counter mode? To be researched.
   Salsa 20 also an option (see alternatives below)
+- Timing-based DPI resistance (inter-message timing/delays can be
+  implementation-dependent; intra-message delays can be introduced at
+  any point, including before sending the random padding, for example).
+  Artificial delays (what obfs4 calls IAT or inter-arrival time) are
+  independent of the protocol itself.
 - Post-Quantum (PQ) Crypto resistance
-- Deniability (there's signatures in there)
+- Deniability of participating in a session (there's signatures in there)
 
 
 Related Goals
@@ -118,6 +126,11 @@ support version 2 only.
 Alternative: Make it something easier to parse, where it's the integer
 representation of a bitfield. ver=3 means you support version 1 and 2.
 ver=7 means you support versions 1, 2, and 3.
+
+Alternative 2: If it's not easy to support NTCP2 on the same port,
+use "NTCP2" as the transport in a separate RouterAddress.
+Implementations could use the same or a different port, as implemented.
+
 
 
 Messages
