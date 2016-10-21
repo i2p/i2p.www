@@ -3,8 +3,8 @@ Low-level Cryptography Specification
 ====================================
 .. meta::
     :category: Design
-    :lastupdated: December 2014
-    :accuratefor: 0.9.17
+    :lastupdated: October 2016
+    :accuratefor: 0.9.27
 
 .. contents::
 
@@ -66,8 +66,8 @@ The unencrypted ElGamal contains:
 {% endhighlight %}
 
 The H(data) is the SHA256 of the data that is encrypted in the ElGamal block,
-and is preceded by a nonzero byte.  This byte could be random, but as
-implemented it is always 0xFF.  It could possibly be used for flags in the
+and is preceded by a random nonzero byte.  This byte is actually random as of 0.9.28;
+prior to that it was always 0xFF.  It could possibly be used for flags in the
 future.  The data encrypted in the block may be up to 222 bytes long.  As the
 encrypted data may contain a substantial number of zeros if the cleartext is
 smaller than 222 bytes, it is recommended that higher layers pad the cleartext
