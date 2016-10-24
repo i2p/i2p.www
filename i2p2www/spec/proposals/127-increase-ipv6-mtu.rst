@@ -14,7 +14,7 @@ Increase IPv6 MTU
 Overview
 ========
 
-This proposal is to increase the max SSU IPv6 MTU from 1472 top 1488.
+This proposal is to increase the max SSU IPv6 MTU from 1472 to 1488.
 
 
 Motivation
