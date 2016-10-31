@@ -1,6 +1,6 @@
-=================
-Increase IPv6 MTU
-=================
+=========
+Quasi DNS
+=========
 .. meta::
     :author: orignal
     :created: 2015-03-15
