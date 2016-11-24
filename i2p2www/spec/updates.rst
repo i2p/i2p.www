@@ -2,8 +2,8 @@
 Software Update Specification
 =============================
 .. meta::
-    :lastupdated: April 2016
-    :accuratefor: 0.9.25
+    :lastupdated: November 2016
+    :accuratefor: 0.9.28
 
 .. contents::
 
@@ -421,6 +421,9 @@ The following <feed> elements are used:
     <i2p:revocations>
         Certificate revocations. See below.
 
+    <i2p:blocklist>
+        Blocklist data. See below.
+
     <updated>
         Required
 
@@ -535,8 +538,7 @@ following attributes and entities:
 **Atom <i2p:revocations> Details:**
 
 This entity is optional and there is at most one <i2p:revocations> entity in the
-feed. This feature is scheduled for implementation in release 0.9.26. The
-specification below is preliminary and subject to change.
+feed. This feature is supported as of release 0.9.26.
 
 The <i2p:revocations> entity contains one or more <i2p:crl> entities. The
 <i2p:crl> entity contains the following attributes:
@@ -553,14 +555,70 @@ The <i2p:revocations> entity contains one or more <i2p:crl> entities. The
 
     id (attribute)
         Required
+
         A unique id for the creator of this CRL.
 
     (entity content)
         Required
+
         A standard base 64 encoded Certificate Revocation List (CRL) with
         newlines, starting with the line '-----BEGIN X509 CRL-----' and
         ending with the line '-----END X509 CRL-----'. See [RFC-5280]_
         for more information on CRLs.
+
+
+**Atom <i2p:blocklist> Details:**
+
+This entity is optional and there is at most one <i2p:blocklist> entity in the
+feed. This feature is scheduled for implementation in release 0.9.28. The
+specification below is preliminary and subject to change.
+
+The <i2p:blocklist> entity contains one or more <i2p:block> or <i2p:unblock> entities,
+an "updated" entity, and "signer" and "sig" attributes:
+
+    signer (attribute)
+        Required
+
+        A unique id (UTF-8) for the public key used to sign this blocklist.
+
+    sig (attribute)
+        Required
+
+        A signature in the format code:b64sig, where code is the ASCII signature
+        type number, and b64sig is the base 64 encoded signature (I2P alphabet).
+        See below for specification of data to be signed.
+
+    <updated>
+        Required
+
+        Timestamp for the blocklist (conforming to [RFC-4287]_ (Atom) section 3.3
+        and [RFC-3339]_.
+
+        The date also may be in truncated format yyyy-mm-dd (without the 'T');
+        this is the "full-date" format in [RFC-3339]_. In this format the time
+        is assumed to be 00:00:00 UTC for any processing.
+
+    <i2p:block>
+        Optional, multiple entities are allowed
+
+        A single entry, either a literal IPv4 or IPv6 address,
+        or a 44-character base 64 router hash (I2P alphabet).
+        IPv6 addresses may be in abbreviated format (containing "::").
+        Support for entries with a netmask, e.g. x.y.0.0/16, is optional.
+        Support for host names is optional.
+
+    <i2p:unblock>
+        Optional, multiple entities are allowed
+
+        Same format as <i2p:block>.
+
+
+Signature specification: To generate the data to be signed or verified,
+concatenate the following data in ASCII encoding:
+The updated string followed by a newline (ASCII 0x0a),
+then each block entry in the order received with a newline after each,
+then each unblock entry in the order received with a newline after each.
+
 
 
 Future Work
