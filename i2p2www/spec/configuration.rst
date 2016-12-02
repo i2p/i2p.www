@@ -2,8 +2,8 @@
 Configuration File Specification
 ================================
 .. meta::
-    :lastupdated: February 2016
-    :accuratefor: 0.9.25
+    :lastupdated: December 2016
+    :accuratefor: 0.9.28
 
 .. contents::
 
@@ -240,6 +240,12 @@ Properties are as follows::
     # Servers only. Default false. Originate connections to local server with a
     # unique IP per-remote-destination.
     tunnel.N.option.enableUniqueLocal=true|false
+
+    # Servers only. Persistent private leaseset key
+    tunnel.N.option.i2cp.leaseSetPrivateKey=base64
+
+    # Servers only. Persistent private leaseset key
+    tunnel.N.option.i2cp.leaseSetSigningPrivateKey=sigtype:base64
 
     # Servers only. The maximum size of the thread pool, default 65. Ignored
     # for standard servers.

@@ -5,8 +5,8 @@ LeaseSet Key Persistence
     :author: zzz
     :created: 2014-12-13
     :thread: http://zzz.i2p/topics/1770
-    :lastupdated: 2014-12-13
-    :status: Draft
+    :lastupdated: 2016-12-02
+    :status: Closed
 
 .. contents::
 
@@ -16,6 +16,7 @@ Overview
 
 This proposal is about persisting additional data in the LeaseSet that is
 currently ephemeral.
+Implemented in 0.9.18.
 
 
 Motivation
@@ -32,4 +33,4 @@ the leaseset encryption and signing keys. These are not currently persisted.
 Proposed Changes
 ================
 
-TBD
+Private keys are stored in i2ptunnel.config, as i2cp.leaseSetPrivateKey and i2cp.leaseSetSigningPrivateKey.

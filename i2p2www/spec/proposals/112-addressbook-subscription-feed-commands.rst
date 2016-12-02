@@ -5,8 +5,8 @@ Addressbook Subscription Feed Commands
     :author: zzz
     :created: 2014-09-15
     :thread: http://zzz.i2p/topics/1704
-    :lastupdated: 2016-04-26
-    :status: Open
+    :lastupdated: 2016-12-02
+    :status: Closed
 
 .. contents::
 
@@ -16,6 +16,7 @@ Overview
 
 This proposal is about extending the address subscription feed with commands, to
 enable name servers to broadcast entry updates from hostname holders.
+Implemented in 0.9.26.
 
 
 Motivation

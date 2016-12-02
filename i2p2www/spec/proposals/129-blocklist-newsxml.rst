@@ -5,8 +5,8 @@ Blocklist in News Feed
     :author: zzz
     :created: 2016-11-23
     :thread: http://zzz.i2p/topics/2191
-    :lastupdated: 2016-11-24
-    :status: Open
+    :lastupdated: 2016-12-02
+    :status: Closed
 
 .. contents::
 
@@ -16,6 +16,7 @@ Overview
 
 This proposal is to distribute blocklist updates in the news file,
 which is distributed in signed su3 format.
+Implemented in 0.9.28.
 
 
 Motivation
@@ -58,12 +59,6 @@ Migration
 =========
 
 Routers that don't support this will ignore the new XML section.
-
-
-Scheduled For
-=============
-
-0.9.28
 
 
 See Also

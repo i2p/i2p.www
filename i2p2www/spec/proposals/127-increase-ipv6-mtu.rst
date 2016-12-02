@@ -5,8 +5,8 @@ Increase IPv6 MTU
     :author: zzz
     :created: 2016-08-23
     :thread: http://zzz.i2p/topics/2181
-    :lastupdated: 2016-08-23
-    :status: Open
+    :lastupdated: 2016-12-02
+    :status: Closed
 
 .. contents::
 
@@ -15,6 +15,7 @@ Overview
 ========
 
 This proposal is to increase the max SSU IPv6 MTU from 1472 to 1488.
+Implemented in 0.9.28.
 
 
 Motivation
