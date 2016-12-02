@@ -7,6 +7,8 @@ LeaseSet Key Persistence
     :thread: http://zzz.i2p/topics/1770
     :lastupdated: 2016-12-02
     :status: Closed
+    :target: 0.9.18
+    :implementedin: 0.9.18
 
 .. contents::
 

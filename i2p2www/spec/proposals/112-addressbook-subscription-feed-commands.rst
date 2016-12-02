@@ -7,6 +7,8 @@ Addressbook Subscription Feed Commands
     :thread: http://zzz.i2p/topics/1704
     :lastupdated: 2016-12-02
     :status: Closed
+    :target: 0.9.26
+    :implementedin: 0.9.26
 
 .. contents::
 

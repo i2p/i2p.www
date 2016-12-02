@@ -7,6 +7,8 @@ IPv6 Peer Testing
     :thread: http://zzz.i2p/topics/2119
     :lastupdated: 2016-12-02
     :status: Closed
+    :target: 0.9.27
+    :implementedin: 0.9.27
 
 .. contents::
 
