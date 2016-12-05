@@ -49,10 +49,3 @@ Migration
 =========
 
 TBD
-
-
-
-See Also
-========
-
-Proposal 129
