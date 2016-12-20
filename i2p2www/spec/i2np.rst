@@ -3,8 +3,8 @@ I2NP Specification
 ==================
 .. meta::
     :category: Protocols
-    :lastupdated: January 2016
-    :accuratefor: 0.9.24
+    :lastupdated: December 2016
+    :accuratefor: 0.9.28
 
 .. contents::
 
@@ -42,6 +42,8 @@ below.
 ==============  ================================================================
    Version      Required I2NP Features
 ==============  ================================================================
+   0.9.28       RSA sig types disallowed
+
    0.9.18       DSM type bits 7-1 ignored
 
    0.9.16       RI key certs / ECDSA and EdDSA sig types
@@ -753,6 +755,8 @@ Contents
                as of release 0.9.16:
                00  => normal lookup, return `RouterInfo` or `LeaseSet` or
                       `DatabaseSearchReplyMessage`
+                      Not recommended when sending to routers
+                      with version 0.9.16 or higher.
                01  => LS lookup, return `LeaseSet` or
                       `DatabaseSearchReplyMessage`
                10  => RI lookup, return `RouterInfo` or
