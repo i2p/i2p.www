@@ -3,8 +3,8 @@ Common structures Specification
 ===============================
 .. meta::
     :category: Design
-    :lastupdated: August 2016
-    :accuratefor: 0.9.26
+    :lastupdated: January 2017
+    :accuratefor: 0.9.28
 
 .. contents::
 
@@ -1019,12 +1019,18 @@ Notes
 * The peer_size Integer_ may be followed by a list of that many router hashes.
   This is currently unused. It was intended for a form of restricted routes,
   which is unimplemented.
+  Certain implementations may require the list to be sorted so the signature is invariant.
+  To be researched before enabling this feature.
 
 * The signature may be verified using the signing public key of the
   router_ident.
 
 * See the network database page [NETDB-ROUTERINFO]_ for standard options that
   are expected to be present in all router infos.
+
+* Very old routers required the addresses to be sorted by the SHA256 of their data
+  so the signature is invariant.
+  This is no longer required, and not worth implementing for backward compatibility.
 
 JavaDoc: http://{{ i2pconv('i2p-javadocs.i2p') }}/net/i2p/data/router/RouterInfo.html
 
