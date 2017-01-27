@@ -3,7 +3,7 @@ I2NP Specification
 ==================
 .. meta::
     :category: Protocols
-    :lastupdated: December 2016
+    :lastupdated: January 2017
     :accuratefor: 0.9.28
 
 .. contents::
@@ -52,6 +52,9 @@ below.
                 currently unused
 
                 DLM lookup types (DLM flag bits 3-2)
+
+                Minimum version compatible with vast majority of current network,
+                since routers are now using the EdDSA sig type.
 
    0.9.15       Dest/LS key certs w/ EdDSA Ed25519 sig type (if floodfill)
 
