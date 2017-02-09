@@ -1,7 +1,7 @@
 {% extends "global/layout.html" %}
 {% block title %}{% trans %}Streaming Library{% endtrans %}{% endblock %}
-{% block lastupdated %}{% trans %}October 2016{% endtrans %}{% endblock %}
-{% block accuratefor %}0.9.27{% endblock %}
+{% block lastupdated %}{% trans %}February 2017{% endtrans %}{% endblock %}
+{% block accuratefor %}0.9.29{% endblock %}
 {% block content %}
 <h2>{% trans %}Overview{% endtrans %}</h2>
 
@@ -420,7 +420,51 @@ mechanism or payload length field in the streaming protocol.
 {%- endtrans %}</p>
 
 
-<h3>{% trans %}Windowing{% endtrans %}</h3>
+<h3>{% trans %}Optional Delay{% endtrans %}</h3>
+<p>{% trans -%}
+Data packets may include an optional delay field specifying the requested delay,
+in ms, before the receiver should ack the packet.
+Valid values are 0 to 60000 inclusive.
+A value of 0 requests an immediate ack.
+This is advisory only, and receivers should delay slightly so that
+additional packets may be acknowledged with a single ack.
+Some implementations may include an advisory value of (measured RTT / 2) in this field.
+For nonzero optional delay values, receivers should limit the maximum delay
+before sending an ack to a few seconds at most.
+Optional delay values greater than 60000 indicate choking, see below.
+{%- endtrans %}</p>
+
+
+<h3>{% trans %}Receive Window and Choking{% endtrans %}</h3>
+<p>{% trans -%}
+TCP headers include the receive window in bytes.
+The streaming protocol does not contain a receive window, it uses only a simple choke/unchoke indication.
+Each endpoint must maintain its own estimate of the far-end receive window, in either bytes or packets.
+The recommended minimum buffer size for receiver implementations is 128 packets or 217 KB (approximately 128x1730).
+Because of I2P netowrk latency, packet drops, and the resulting congestion control,
+a buffer of this size is rarely filled.
+Overflow is, however, likely to occur on high-bandwidth "local loopback" (same-router) connections.
+{%- endtrans %}</p>
+<p>{% trans -%}
+To quickly indicate and smoothly recover from overflow conditions,
+there is a simple mechanism for pushback in the streaming protocol.
+If a packet is received with an optional delay field of value of 60001 or higher,
+that indicates "choking" or a receive window of zero.
+A packet with an optional delay field of value of 60000 or less indicates "unchoking".
+Packets without an optional delay field do not affect the choke/unchoke state.
+{%- endtrans %}</p>
+<p>{% trans -%}
+After being choked, no more packets with data should be sent until the transmitter is unchoked,
+except for occasional "probe" data packets to compensate for possible lost unchoke packets.
+The choked endpoint should start a "persist timer" to control the probing, as in TCP.
+The unchoking endpoint should send several packets with this field set,
+or continue sending them periodically until data packets are received again.
+Maximum time to wait for unchoking is implementation-dependent.
+Transmitter window size and congestion control strategy after being unchoked is implementation-dependent.
+{%- endtrans %}</p>
+
+
+<h3>{% trans %}Congestion Control{% endtrans %}</h3>
 <p>{% trans -%}
 The streaming lib uses standard slow-start (exponential window growth) and congestion avoidance (linear window growth)
 phases, with exponential backoff.
