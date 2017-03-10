@@ -2,8 +2,8 @@
 Software Update Specification
 =============================
 .. meta::
-    :lastupdated: November 2016
-    :accuratefor: 0.9.28
+    :lastupdated: March 2017
+    :accuratefor: 0.9.29
 
 .. contents::
 
@@ -216,6 +216,7 @@ Bytes   Contents
         * 0x0004 = RSA-SHA256-2048
         * 0x0005 = RSA-SHA384-3072
         * 0x0006 = RSA-SHA512-4096
+        * 0x0008 = EdDSA-SHA512-Ed25519ph
 
 10-11   Signature length, e.g. 40 (0x0028) for DSA-SHA1. Must match that
         specified for the [Signature]_ type.
@@ -236,6 +237,7 @@ Bytes   Contents
         * 0x01 = xml file (as of 0.9.15)
         * 0x02 = html file (as of 0.9.17)
         * 0x03 = xml.gz file (as of 0.9.17)
+        * 0x04 = txt.gz file (as of 0.9.28)
 
  26     unused = 0
 
@@ -246,6 +248,7 @@ Bytes   Contents
         * 0x02 = plugin or plugin update
         * 0x03 = reseed data
         * 0x04 = news feed (as of 0.9.15)
+        * 0x05 = blocklist feed (as of 0.9.28)
 
 28-39   unused = 0
 
@@ -618,6 +621,12 @@ concatenate the following data in ASCII encoding:
 The updated string followed by a newline (ASCII 0x0a),
 then each block entry in the order received with a newline after each,
 then each unblock entry in the order received with a newline after each.
+
+
+Blocklist File Specification
+----------------------------
+
+TBD, unimplemented, see proposal 130
 
 
 
