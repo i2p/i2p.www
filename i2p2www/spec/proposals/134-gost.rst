@@ -32,7 +32,7 @@ Design
 ======
 
 GOST R 34.10 uses standard ellicptic curve with own parameters sets.
-Existsing groups's math can be reused
+Existing groups's math can be reused.
 However signing and verification is different and must be implemented.
 See RFC: https://www.rfc-editor.org/rfc/rfc7091.txt
 GOST R 34.10 is supposed to work together with GOST R 34.11 hash.
@@ -51,10 +51,10 @@ Openssl-based implementation in i2pd shows it faster than P256 and slower than 2
 Specification
 =============
 
-Only GOST R 34.10-2012 and GOST R 34.11-2012 are supported
+Only GOST R 34.10-2012 and GOST R 34.11-2012 are supported.
 Two new signature types:
-8 - GOSTR3410_GOSTR3411_256_CRYPTO_PRO_A stands for public key and signture type of 64 bytes, hash size of 32 bytes and parameters set CryptoProA (aka CryptoProXchA)
-9 - GOSTR3410_GOSTR3411_512_TC26_A stands for public key and signature type of 128 bytes, hash size of 64 bytes and parameters set A from TC26.
+9 - GOSTR3410_GOSTR3411_256_CRYPTO_PRO_A stands for public key and signture type of 64 bytes, hash size of 32 bytes and parameters set CryptoProA (aka CryptoProXchA)
+10 - GOSTR3410_GOSTR3411_512_TC26_A stands for public key and signature type of 128 bytes, hash size of 64 bytes and parameters set A from TC26.
 
 Migration
 =========
