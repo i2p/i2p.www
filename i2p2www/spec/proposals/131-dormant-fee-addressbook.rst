@@ -6,7 +6,7 @@ Dormant Fee for Addressbook Entries
     :created: 2016-11-28
     :thread: http://zzz.i2p/topics/2193
     :lastupdated: 2016-12-05
-    :status: Open
+    :status: Draft
 
 .. contents::
 

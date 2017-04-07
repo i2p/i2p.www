@@ -6,7 +6,7 @@ Quasi DNS
     :created: 2015-03-15
     :thread: http://zzz.i2p/topics/1840
     :lastupdated: 2016-10-30
-    :status: Open
+    :status: Draft
 
 .. contents::
 

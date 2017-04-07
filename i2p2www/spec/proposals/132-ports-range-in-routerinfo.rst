@@ -6,7 +6,7 @@ Ports Range in Routerinfo
     :created: 2016-12-05
     :thread: http://zzz.i2p/topics/2196
     :lastupdated: 2016-12-05
-    :status: Open
+    :status: Draft
 
 .. contents::
 
