@@ -92,6 +92,9 @@ which particular application a message is from.
 Specification
 =============
 
+The First Fragment Delivery Instructions [TUNNEL-DELIVERY]_ would be modified as
+follows:
+
 .. raw:: html
 
   {% highlight lang='dataspec' %}
