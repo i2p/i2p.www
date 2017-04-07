@@ -5,7 +5,7 @@ The I2P Proposal Process
     :author: str4d
     :created: 2016-04-10
     :thread: http://zzz.i2p/topics/1980
-    :lastupdated: 2016-04-10
+    :lastupdated: 2017-04-07
     :status: Meta
 
 .. contents::
@@ -123,7 +123,7 @@ These fields should be set when necessary::
 - The ``supercedes`` field is a comma-separated list of all the proposals that
   this proposal replaces. Those proposals should be Rejected and have their
   ``supercededby`` field set to the number of this proposal.
-- The ``editor`` field should be set if significant changes are made to the
+- The ``editor`` field should be set if significant changes are made to this
   proposal that don't substantially alter its content. If the content is being
   substantially altered, either an additional ``author`` should be added, or a
   new proposal created superceding this one.
