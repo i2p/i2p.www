@@ -22,6 +22,7 @@ class DataSpecLexer(RegexLexer):
             (r'(\s*)([0-9]+)(\+)?', bygroups(Text, Number, Punctuation)),
             (r'(-)([0-9]+)', bygroups(Punctuation, Number)),
             (r'(\s*)(->|<=|>=|\*|\^)', bygroups(Text, Operator)),
+            (r'(\s*)([\w=]*)(\{[\w]+\})', bygroups(Text, Text, Name.Tag)),
             (r'(\s*)([\w()-=\'<>?]+)', bygroups(Text, Comment)),
         ],
         'boundary': [

@@ -5,7 +5,7 @@ Introducer Expiration
     :author: zzz
     :created: 2017-02-05
     :thread: http://zzz.i2p/topics/2230
-    :lastupdated: 2017-02-05
+    :lastupdated: 2017-04-07
     :status: Open
 
 .. contents::
@@ -14,38 +14,49 @@ Introducer Expiration
 Overview
 ========
 
-Introducers expire after a certain time, but that info isn't published in the Router Info.
-Routers must currently use heuristics to estimate when an introducer is no longer valid.
+This proposal is about improving the success rate for introductions. See
+[TRAC-TICKET]_.
 
 
 Motivation
 ==========
 
-Improve success rate for introductions.
+Introducers expire after a certain time, but that info isn't published in the
+[RouterInfo]_. Routers must currently use heuristics to estimate when an
+introducer is no longer valid.
 
 
 Design
 ======
 
-Include new parameters in a SSU Router Address containing introducers.
+In an SSU [RouterAddress]_ containing introducers, the publisher may optionally
+include expiration times for each introducer.
 
 
 Specification
 =============
 
-In a SSU Router Address containing introducers, the publisher may optionally include expiration times for each introducer.
-The expiration is specified as iexpX=nnnnnnnnnn where X is the introducer number (0-2)
-and nnnnnnnnnn is the time in seconds (not ms) since the epoch.
+.. raw:: html
 
-Each expiration must be greater than the publish date of the Router Info,
-and less than 6 hours after the publish date of the Router Info.
+  {% highlight lang='dataspec' %}
+iexp{X}={nnnnnnnnnn}
 
-Publishing routers and introducers should attempt to keep the introducer valid until expiration,
-however there is no way for them to guarantee this.
+  X :: The introducer number (0-2)
 
-Routers should not use a published introducer after its expiration.
+  nnnnnnnnnn :: The time in seconds (not ms) since the epoch.
+{% endhighlight %}
 
-Example: iexp0=1486309470
+Notes
+`````
+* Each expiration must be greater than the publish date of the [RouterInfo]_,
+  and less than 6 hours after the publish date of the RouterInfo.
+
+* Publishing routers and introducers should attempt to keep the introducer valid
+  until expiration, however there is no way for them to guarantee this.
+
+* Routers should not use a published introducer after its expiration.
+
+Example: ``iexp0=1486309470``
 
 
 Migration
@@ -56,7 +67,14 @@ Backwards compatibility is assured, as older routers will ignore unknown paramet
 
 
 
-See Also
-========
+References
+==========
 
-Trac ticket 1352
+.. [RouterAddress]
+    {{ ctags_url('RouterAddress') }}
+
+.. [RouterInfo]
+    {{ ctags_url('RouterInfo') }}
+
+.. [TRAC-TICKET]
+    http://{{ i2pconv('trac.i2p2.i2p') }}/ticket/1352
