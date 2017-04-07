@@ -64,6 +64,22 @@ flags for [TUNNEL-DELIVERY]_, which we can leverage to implement these features.
 Security Implications
 =====================
 
+This proposal does not change the amount of information leaked about the OBGW's
+target Destination or their view of the NetDB:
+
+- An adversary that controls the OBEP and is scraping LeaseSets from the NetDB
+  can already determine whether a message is being sent to a particular
+  Destination, by searching for the [TunnelId]_ / [RouterIdentity]_ pair. At
+  worst, the presence of multiple Leases in the TMDI might make it faster to
+  find a match in the adversary's database.
+
+- An adversary that is operating a malicious Destination can already gain
+  information about a connecting victim's view of the NetDB, by publishing
+  LeaseSets containing different inbound tunnels to different floodfills, and
+  observing which tunnels the OBGW connects through. From their point of view,
+  the OBEP selecting which tunnel to use is functionally identical to the OBGW
+  making the selection.
+
 The multicast flag leaks the fact that the OBGW is multicasting to the OBEPs.
 This creates a performance vs. privacy trade-off that should be considered when
 implementing higher-level protocols. Being an optional flag, users can make
@@ -147,7 +163,7 @@ Compatibility
 
 The only peers that need to be understand the new specification are the OBGWs
 and the OBEPs. We can therefore make this change compatible with the existing
-network by making its use conditional on the target I2P version:
+network by making its use conditional on the target I2P version [VERSIONS]_:
 
 * The OBGWs must select compatible OBEPs when building outbound tunnels, based
   on the I2P version advertised in their [RouterInfo]_.
@@ -176,3 +192,9 @@ References
 
 .. [TUNNEL-DELIVERY]
     {{ ctags_url('TunnelMessageDeliveryInstructions') }}
+
+.. [TunnelId]
+    {{ ctags_url('TunnelId') }}
+
+.. [VERSIONS]
+    {{ spec_url('i2np') }}#protocol-versions
