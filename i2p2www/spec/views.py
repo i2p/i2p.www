@@ -41,6 +41,7 @@ SPEC_CATEGORY_SORT = defaultdict(lambda: 999, {
 PROPOSAL_METATAGS = {
     'author': u'I2P devs',
     'created': None,
+    'editor': None,
     'implementedin': None,
     'lastupdated': None,
     'status': u'Draft',
@@ -72,6 +73,7 @@ METATAG_LABELS = {
     'author': u'Author',
     'category': u'Category',
     'created': u'Created',
+    'editor': u'Editor',
     'implementedin': u'Implemented in',
     'lastupdated': u'Last updated',
     'status': u'Status',
