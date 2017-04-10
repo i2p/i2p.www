@@ -457,7 +457,7 @@ References
     https://github.com/i2p/i2p.i2p/tree/master/core/java/src/net/i2p/crypto/DSAEngine.java
 
 .. [ELG-AES]
-    {{ site_url('docs/how/elgamal-aes') }}
+    {{ site_url('docs/how/elgamal-aes', True) }}
 
 .. [ElGamalEngine]
     https://github.com/i2p/i2p.i2p/tree/master/core/java/src/net/i2p/crypto/ElGamalEngine.java
@@ -476,10 +476,10 @@ References
     {{ ctags_url('LeaseSet') }}
 
 .. [MEETING-51]
-    {{ get_url('meetings_show', id=51) }}
+    {{ get_url('meetings_show', id=51, _external=True) }}
 
 .. [MEETING-52]
-    {{ get_url('meetings_show', id=52) }}
+    {{ get_url('meetings_show', id=52, _external=True) }}
 
 .. [NETDB-DELIVERY]
     {{ site_url('docs/how/network-database', True) }}#delivery
@@ -526,12 +526,12 @@ References
 .. [STATUS-AES]
     Feb. 7, 2006 Status Notes
 
-    {{ get_url('blog_post', slug='2006/02/07/status') }}
+    {{ get_url('blog_post', slug='2006/02/07/status', _external=True) }}
 
 .. [STATUS-HMAC]
     Jul. 5, 2005 Status Notes
 
-    {{ get_url('blog_post', slug='2005/07/05/status') }}
+    {{ get_url('blog_post', slug='2005/07/05/status', _external=True) }}
 
 .. [TunnelBuild]
     {{ ctags_url('TunnelBuild') }}
