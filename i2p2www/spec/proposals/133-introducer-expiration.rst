@@ -5,8 +5,10 @@ Introducer Expiration
     :author: zzz
     :created: 2017-02-05
     :thread: http://zzz.i2p/topics/2230
-    :lastupdated: 2017-04-07
-    :status: Open
+    :lastupdated: 2017-04-13
+    :status: Closed
+    :target: 0.9.30
+    :implementedin: 0.9.30
 
 .. contents::
 
