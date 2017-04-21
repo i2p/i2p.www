@@ -15,7 +15,7 @@ Overview
 This page specifies the low-level details of the cryptography in I2P.
 
 There are a handful of cryptographic algorithms in use within I2P, but we have
-reduced them to a bare minimum to deal with our needs - one symmetric algorithm
+reduced them to a bare minimum to deal with our needs - one symmetric algorithm,
 one asymmetric algorithm, one signing algorithm, and one hashing algorithm.
 However, we do combine them in some particular ways to provide message
 integrity (rather than relying on a MAC).  In addition, as much as we hate
