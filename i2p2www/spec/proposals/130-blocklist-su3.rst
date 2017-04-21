@@ -2,7 +2,7 @@
 Blocklist in SU3 Format
 =======================
 .. meta::
-    :author: psi,zzz
+    :author: psi, zzz
     :created: 2016-11-23
     :thread: http://zzz.i2p/topics/2192
     :lastupdated: 2016-11-23
