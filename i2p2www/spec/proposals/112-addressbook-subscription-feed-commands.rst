@@ -5,7 +5,7 @@ Addressbook Subscription Feed Commands
     :author: zzz
     :created: 2014-09-15
     :thread: http://zzz.i2p/topics/1704
-    :lastupdated: 2016-12-02
+    :lastupdated: 2017-05-02
     :status: Closed
     :target: 0.9.26
     :implementedin: 0.9.26
@@ -216,14 +216,14 @@ Example::
 
 Add subdomain
 `````````````
-Preceded by example.i2p=b64dest
+Preceded by subdomain.example.i2p=b64dest
   YES, this is the new host subdomain name and destination.
 action
   addsubdomain
 oldname
-  the old hostname, unchanged
+  the higher-level hostname (example.i2p)
 olddest
-  the old dest, unchanged
+  the higher-level destination (for example.i2p)
 oldsig
   signature using olddest
 sig
@@ -231,7 +231,7 @@ sig
 
 Example::
 
-  example.i2p=b64dest#!action=addsubdomain#oldname=oldhostname#olddest=oldb64dest#oldsig=b64sig#sig=b64sig
+  subdomain.example.i2p=b64dest#!action=addsubdomain#oldname=example.i2p#olddest=oldb64dest#oldsig=b64sig#sig=b64sig
 
 Update metadata
 ```````````````
