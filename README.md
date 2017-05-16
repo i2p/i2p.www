@@ -44,6 +44,12 @@ If you want to mirror the I2P website, thanks! Here is a checklist:
   (look in `etc/update.vars` for the filename, your webserver should restart
   WSGI when the timestamp of this file changes).
 
+## Configuration
+
+Configuration files for the various scripts are in `etc/`. Environment variables
+in `etc/translation.vars` can be overridden by creating the file
+`etc/translation.vars.custom` and re-defining the environment variables there.
+
 ## Updating translations
 
 1. Pull new and updated translations from Transifex:

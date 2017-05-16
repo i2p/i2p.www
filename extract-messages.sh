@@ -1,5 +1,6 @@
 #!/bin/sh
 . ./etc/translation.vars
+[ -f ./etc/translation.vars.custom ] && . ./etc/translation.vars.custom
 
 export TZ=UTC
 
