@@ -57,7 +57,7 @@ High-level overview
 Imagine the following desired configuration:
 
 - A client application with one Destination.
-- Four edge routers, each managing three tunnels.
+- Four edge routers, each managing three inbound tunnels.
 - All twelve tunnels should be published in a single LeaseSet.
 
 .. raw:: html
