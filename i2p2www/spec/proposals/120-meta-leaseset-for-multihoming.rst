@@ -35,7 +35,7 @@ for the LS, but the first stage could be cached for hours.
 Specification
 =============
 
-The meat-LeaseSet would have the following format::
+The meta-LeaseSet would have the following format::
 
   - Destination
   - Published Time stamp

@@ -27,7 +27,7 @@ Motivation
 Multihoming is where multiple routers are used to host the same Destination.
 The current way to multihome with I2P is to run the same Destination on each
 router independently; the router that gets used by clients at any particular
-time is the last one to publish a LeaseSet.
+time is the last one to publish a [LeaseSet]_.
 
 This is a hack and presumably won't work for large websites at scale. Say we had
 100 multihoming routers (edges) each with 16 tunnels. That's 1600 LeaseSet
@@ -35,8 +35,8 @@ publishes every 10 minutes, or almost 3 per second. The floodfills would get
 overwhelmed and throttles would kick in. And that's before we even mention the
 lookup traffic.
 
-[Prop120]_ solves this problem with a meta-LeaseSet, which lists the 100 real
-[LeaseSet]_ hashes. A lookup becomes a two-stage process: first looking up the
+[Prop123]_ solves this problem with a meta-LeaseSet, which lists the 100 real
+LeaseSet hashes. A lookup becomes a two-stage process: first looking up the
 meta-LeaseSet, and then one of the named LeaseSets. This is a good solution to
 the lookup traffic issue, but on its own it creates a significant privacy leak:
 It is possible to determine which multihoming routers are online by monitoring
@@ -254,7 +254,7 @@ modifications:
   packet sizes. The maximum feasible LeaseSet size is defined by the MTU of the
   underlying transports, and is therefore around 16kB.
 
-- Implement [Prop120]_ for tiered LeaseSets. In combination with this proposal,
+- Implement [Prop123]_ for tiered LeaseSets. In combination with this proposal,
   the Destinations for the sub-LeaseSets could be spread across multiple edges,
   effectively acting like multiple IP addresses for a clearnet service.
 
@@ -280,5 +280,5 @@ References
 .. [LeaseSet]
     {{ ctags_url('LeaseSet') }}
 
-.. [Prop120]
-    {{ proposal_url('120') }}
+.. [Prop123]
+    {{ proposal_url('123') }}
