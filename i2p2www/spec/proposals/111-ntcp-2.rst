@@ -340,6 +340,28 @@ Raw contents:
 
   {% highlight lang='dataspec' %}
 +----+----+----+----+----+----+----+----+
+  |       AES-CBC-256 encrypted data      |
+  +     (length implied by packet size)   +
+  |                                       |
+  ~               .   .   .               ~
+  |                                       |
+  +----+----+----+----+----+----+----+----+
+  ~                padding                ~
+  +----+----+----+----+----+----+----+----+
+
+  data :: AES-256-CBC encrypted options, X and padding
+          key: RH_B
+          iv: 0x0000 0000 0000 0000
+
+  padding :: 0-15 bytes
+{% endhighlight %}
+
+Unencrypted data:
+
+.. raw:: html
+
+  {% highlight lang='dataspec' %}
++----+----+----+----+----+----+----+----+
   |                                       |
   +              options                  +
   |                                       |
@@ -363,17 +385,15 @@ Raw contents:
   |                                       |
   +----+----+----+----+----+----+----+----+
 
-  options :: AES-256-CBC encrypted options block
-             key: RH_B
-             iv: 0x0000 0000 0000 0000
+  options :: options block
 
-  ext_options :: AES-256-CBC encrypted blocks
+  ext_options :: additional options blocks, format currently undefined
                  length: multiple of 16 bytes
 
-  X :: AES-256-CBC encrypted, padded to multiple of 16
+  X :: padded to multiple of 16
 {% endhighlight %}
 
-Unencrypted options block:
+Options block:
 
 .. raw:: html
 
@@ -398,6 +418,7 @@ Unencrypted options block:
              IV  = included before the encrypted data and MAC (for first
                    message)
                  = last encrypted block of (your own) previous message
+                   [XXX: alternative IV approaches to be investigated]
           ... (Proposed alternatives are listed in Appendix B.)
 
   padLen :: Length of the padding
@@ -411,8 +432,22 @@ Unencrypted options block:
 
 Notes
 `````
-- The timestamp and padding length ensure that the encrypted options block is
-  different for every session.
+- The timestamp and padding length in the initial AES block ensure that the
+  ciphertext is different for every session, even with IV = 0.
+
+  - [XXX: The simple assumption is that Alice will not send multiple different
+    SessionRequest messages to the same Bob within a second. This assumption
+    could potentially be broken by a system time change, but the packets are
+    still protected if there is sufficient randomness in the padding length,
+    which will depend on the padding algorithm.]
+
+  - [XXX: Alternatively, the SessionRequest message could be prepended with a
+    random IV. This would ensure cryptographic indistinguishability, but at the
+    expense of packet size identifiability: the base packet size would be 16
+    bytes larger, reducing the range of potential packet sizes that the padding
+    algorithm could generate. Given the fact that additional options blocks may
+    be included, the random IV may in fact be negligible overhead - to be
+    investigated.]
 
 - Reserved options must be set to zero if ver = 2. This increases the accuracy
   of version detection.
@@ -432,13 +467,16 @@ Notes
   transitional option, for reasons discussed below.
 
 - The options block and X are encrypted to ensure payload indistinguishably,
-  which is a necessary DPI countermeasure.
+  which is a necessary DPI countermeasure. We use AES to achieve obfuscation,
+  rather than more complicated and slower alternatives such as elligator2 (which
+  would apply to X25519). The padding does not need to be encrypted by Alice
+  [XXX: Is this valid?], but should be decrypted by Bob to inhibit timing
+  attacks.
 
-We use AES to achieve obfuscation, rather than more complicated and slower
-alternatives such as elligator2 (which would apply to X25519).
-
-In the following, B will be the block size (in bytes) of the cipher used for
-authenticated encryption (as specified in the "auth" field).
+Authenticated encryption
+````````````````````````
+In subsequent messages, B will be the block size (in bytes) of the cipher used
+for authenticated encryption (as specified in the "auth" field).
 
 Encrypted/authenticated data will be represented as 
 
