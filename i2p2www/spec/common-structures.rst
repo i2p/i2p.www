@@ -3,8 +3,8 @@ Common structures Specification
 ===============================
 .. meta::
     :category: Design
-    :lastupdated: January 2017
-    :accuratefor: 0.9.28
+    :lastupdated: August 2017
+    :accuratefor: 0.9.31
 
 .. contents::
 
@@ -405,6 +405,8 @@ RSA_SHA384_3072              5                  384           0.9.12  Offline on
 RSA_SHA512_4096              6                  512           0.9.12  Offline only; never used in Key Certificates for Router Identities or Destinations
 EdDSA_SHA512_Ed25519         7                   32           0.9.15  Recent Router Identities and Destinations
 EdDSA_SHA512_Ed25519ph       8                   32           0.9.25  Offline only; never used in Key Certificates for Router Identities or Destinations
+reserved                     9                                        Reserved, see proposal 134
+reserved                    10                                        Reserved, see proposal 134
 reserved                65280-65534                                   Reserved for experimental use
 reserved                   65535                                      Reserved for future expansion
 ======================  ===========  =======================  ======  =====

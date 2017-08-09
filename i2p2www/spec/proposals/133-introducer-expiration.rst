@@ -5,7 +5,7 @@ Introducer Expiration
     :author: zzz
     :created: 2017-02-05
     :thread: http://zzz.i2p/topics/2230
-    :lastupdated: 2017-04-13
+    :lastupdated: 2017-08-09
     :status: Closed
     :target: 0.9.30
     :implementedin: 0.9.30
@@ -57,6 +57,9 @@ Notes
   until expiration, however there is no way for them to guarantee this.
 
 * Routers should not use a published introducer after its expiration.
+
+* The introducer expirations are in the [RouterAddress]_ mapping.
+  They are not the (currently unused) 8-byte expiration field in the [RouterAddress]_.
 
 Example: ``iexp0=1486309470``
 
