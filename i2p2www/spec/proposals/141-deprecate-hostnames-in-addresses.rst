@@ -5,8 +5,10 @@ Deprecate hostnames in router addresses
     :author: zzz
     :created: 2017-08-03
     :thread: http://zzz.i2p/topics/2363
-    :lastupdated: 2017-08-03
-    :status: Open
+    :lastupdated: 2017-09-02
+    :status: Closed
+    :target: 0.9.32
+    :implementedin: 0.9.32
 
 .. contents::
 
