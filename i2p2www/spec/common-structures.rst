@@ -3,7 +3,7 @@ Common structures Specification
 ===============================
 .. meta::
     :category: Design
-    :lastupdated: August 2017
+    :lastupdated: September 2017
     :accuratefor: 0.9.31
 
 .. contents::
@@ -346,6 +346,9 @@ Notes
 * For `Destinations`_, the Certificate may be non-NULL. As of 0.9.12, a Key
   Certificate may be used to specify the signing public key type. See below.
 
+* Implementers are cautioned to prohibit excess data in Certificates.
+  The appropriate length for each certificate type should be enforced.
+
 .. _Router Identities: #struct_RouterIdentity
 .. _Garlic Cloves: {{ site_url('docs/spec/i2np') }}#struct_GarlicClove
 .. _Garlic Messages: {{ site_url('docs/spec/i2np') }}#msg_Garlic
@@ -460,6 +463,14 @@ EdDSA_SHA512_Ed25519ph        96                        0
 ======================  ==============  ===============================
 
 JavaDoc: http://{{ i2pconv('i2p-javadocs.i2p') }}/net/i2p/data/Certificate.html
+
+Notes
+`````
+
+* Implementers are cautioned to prohibit excess data in Key Certificates.
+  The appropriate length for each certificate type should be enforced.
+
+
 
 .. _type-Mapping:
 
