@@ -5,7 +5,7 @@ New netDB Entries
     :author: zzz
     :created: 2016-01-16
     :thread: http://zzz.i2p/topics/2051
-    :lastupdated: 2016-01-16
+    :lastupdated: 2017-11-12
     :status: Open
     :supercedes: 110, 120, 121, 122
 
@@ -139,6 +139,57 @@ Flag definition::
   Bits 1-15: Unused, set to 0 for compatibility with future uses.
 
 Properties is for future use, no current plans.
+
+
+Justification
+`````````````
+
+- Published: Replaces the complex logic required to determine the 'version' of the
+  leaseset. Currently, the version is the expiration of the last-expiring lease,
+  and a publishing router must increment that expiration by at least 1ms when
+  publishing a leaseset that only removes an older lease.
+- Expires: Allows for an expiration of a netdb entry to be earlier than that of
+  its last-expiring leaseset. May not be useful for LS2, where leasesets
+  are expected to remain with a 11-minute maximum expiration, but
+  for other new types, it is necessary (see Meta LS and Service Record below).
+  Max is about 49.7 days.
+- Flags: For future expansion, and the unpublished/published bit.
+- Unpublished/published: For use when sending a database store end-to-end,
+  the sending router may wish to indicate that this leaseset should not be
+  sent to others. We currently use heuristics to maintain this state.
+- Properties: Future expansion
+
+
+Discussion
+``````````
+
+This proposal continues to use the public key in the leaseset for the
+end-to-end encryption key, and leaves the public key field in the
+Destination unused, as it is now. The encryption type is not specified
+in the Destination key certificate, it will remain 0.
+
+Possible extension: Optionally include multiple encryption type/public key pairs,
+to ease transition to new encryption types.
+
+An alternative is to specify the encryption type in the Destination key certificate,
+use the public key in the Destination, and not use the public key
+in the leaseset. A formal proposal for this is in progress.
+
+Benefits of LS2:
+- Location of actual public key doesn't change.
+- Encryption type, or public key, may change without changing the Destination.
+- Removes unused revocation field
+- Basic compatibility with other DatabaseEntry types in this proposal
+- Could allow multiple encryption types
+
+Drawbacks of LS2:
+- Location of public key and encryption type differs from RouterInfo
+- Maintains unused public key in leaseset
+- Requires implementation across the network; in the alternative, experimental
+  encryption types may be used, if allowed by floodfills
+  (but see related proposals 136 and 137 about support for experimental sig types).
+  The alternative proposal could be easier to implement and test for experimental encryption types.
+
 
 Notes
 `````

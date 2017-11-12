@@ -5,7 +5,7 @@ Floodfill Support for Experimental Sig Types
     :author: zzz
     :created: 2017-03-31
     :thread: http://zzz.i2p/topics/2279
-    :lastupdated: 2017-03-31
+    :lastupdated: 2017-11-12
     :status: Open
 
 .. contents::
@@ -28,7 +28,7 @@ The GOST proposal 134 has revealed two issues with the previously-unused experim
 First, since sig types in the experimental range cannot be reserved, they may be used for
 multiple sig types at once.
 
-Second, unless a lease set with an experimental sig type can be stored at a floodfill,
+Second, unless a router info or lease set with an experimental sig type can be stored at a floodfill,
 the new sig type is difficult to fully test or use on a trial basis.
 
 
@@ -59,7 +59,7 @@ Additionally, a floodfill should overwrite an experimental netdb entry
 with a store of a non-experimental sig type that is a hash collision,
 to prevent hijacking of a previously-absent hash.
 
-Floodfills should assume the public key length is 256, or derive it from
+Floodfills should assume the signing public key length is 128, or derive it from
 the key certificate length, if longer. Some implementations may
 not support longer lengths unless the sig type is informally reserved.
 
@@ -77,10 +77,22 @@ will fail, but that's the same as it is now.
 Issues
 ======
 
-There may be additional security implications, to be researched.
+There may be additional security implications, to be researched (see proposal 137)
 
-Some implementations may not support key lengths greater than 256,
-as described above.
+Some implementations may not support key lengths greater than 128,
+as described above. Additionally, it may be necessary to enforce a maximum of 128
+(in other words, there is no excess key data in the key cert),
+to reduce the ability of attackers to generate hash collisions.
+
+Similar issues will need to be addressed with non-zero encryption types,
+which has not yet been formally proposed.
+
+
+Notes
+=====
+
+NetDB stores of unknown sig types that are not in the experimental range will continue
+to be rejected by floodfills, as the signature cannot be verified.
 
 
 See Also

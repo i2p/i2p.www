@@ -5,7 +5,7 @@ Floodfill Support for Optional Sig Types
     :author: zzz
     :created: 2017-03-31
     :thread: http://zzz.i2p/topics/2280
-    :lastupdated: 2017-03-31
+    :lastupdated: 2017-11-12
     :status: Open
 
 .. contents::
@@ -28,7 +28,7 @@ The GOST proposal 134 has revealed several issues with the previously-unused exp
 First, since sig types in the experimental range cannot be reserved, they may be used for
 multiple sig types at once.
 
-Second, unless a lease set with an experimental sig type can be stored at a floodfill,
+Second, unless a router info or lease set with an experimental sig type can be stored at a floodfill,
 the new sig type is difficult to fully test or use on a trial basis.
 
 Third, if proposal 136 is implemented, this is not secure, as anybody can overwrite an entry.
@@ -58,7 +58,10 @@ Specification
 Ref: http://i2p-projekt.i2p/en/docs/spec/common-structures
 http://i2p-projekt.i2p/en/docs/spec/i2np
 
-Add a RI property with comma-separated sig type numbers.
+A router that supports an optional sig type shall add "sigTypes" property
+to its published router info, with comma-separated sig type numbers.
+The sig types will be in sorted numerical order.
+Mandatory sig types (0-4,7) shall not be included.
 
 For example: sigTypes=9,10
 
@@ -71,7 +74,7 @@ Migration
 =========
 
 Not applicable.
-Only routers that support the optional sig type must implement.
+Only routers that support an optional sig type must implement.
 
 
 
@@ -80,6 +83,18 @@ Issues
 
 If there are not a lot of floodfills supporting the sig type, they may be difficult to find.
 
+It may not be necessary to require ECDSA 384 and 521 (sig types 2 and 3) for all floodfills.
+These types are not widely used.
+
+Similar issues will need to be addressed with non-zero encryption types,
+which has not yet been formally proposed.
+
+
+Notes
+=====
+
+NetDB stores of unknown sig types that are not in the experimental range will continue
+to be rejected by floodfills, as the signature cannot be verified.
 
 
 See Also
