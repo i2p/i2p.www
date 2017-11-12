@@ -176,6 +176,7 @@ use the public key in the Destination, and not use the public key
 in the leaseset. A formal proposal for this is in progress.
 
 Benefits of LS2:
+
 - Location of actual public key doesn't change.
 - Encryption type, or public key, may change without changing the Destination.
 - Removes unused revocation field
@@ -183,6 +184,7 @@ Benefits of LS2:
 - Could allow multiple encryption types
 
 Drawbacks of LS2:
+
 - Location of public key and encryption type differs from RouterInfo
 - Maintains unused public key in leaseset
 - Requires implementation across the network; in the alternative, experimental
