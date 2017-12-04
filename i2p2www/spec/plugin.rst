@@ -2,8 +2,8 @@
 Plugin Specification
 ====================
 .. meta::
-    :lastupdated: February 2016
-    :accuratefor: 0.9.25
+    :lastupdated: December 2017
+    :accuratefor: 0.9.32
 
 .. contents::
 
@@ -24,6 +24,9 @@ even if it doesn't know the signer's key yet.
 
 As of release 0.9.15, the SU3 file format [UPDATES]_ is supported and is
 preferred. This format enables stronger signing keys.
+
+We do not recommend distributing plugins in the xpi2p format any more.
+Use the su3 format.
 
 The standard directory structure will let users install the following types of
 addons:
@@ -98,7 +101,7 @@ to those in the installed plugin for an update plugin.
 
         This must be greater than the one in the installed plugin for an update plugin.
 
-Values for the following properties are displayed on /configclients in the
+Values for the following properties are displayed on /configplugins in the
 router console if present:
 
     date
@@ -115,6 +118,10 @@ router console if present:
 
         The update checker will check bytes 41-56 at this URL
         to determine whether a newer version is available
+
+        Not recommended. Do not use unless you previously distributed
+        plugins in the xpi2p format, and even then, routers know how
+        to update with the su3 URL, as of 0.9.15.
 
         (Should the checker fetch with ?currentVersion=1.2.3?...
         No. If the dev wants to have the URL contain the current version, just
@@ -407,8 +414,10 @@ Don't bundle library jars in the webapp; put them in lib/ and put a classpath
 in webapps.config.  Then you can make separate install and update plugins,
 where the update plugin does not contain the library jars.
 
-Don't include .java or .jsp files; otherwise jetty will recompile them at
-installation.
+Don't include .java or .jsp files; otherwise Jetty will recompile them at
+installation, which will increase the startup time.
+While most I2P installations will have a working Java and JSP
+compiler in the classpath, this is not guaranteed, and may not work in all cases.
 
 For now, a webapp needing to add classpath files in $PLUGIN must be the same
 name as the plugin.  For example, a webapp in plugin foo must be named foo.war.
@@ -475,15 +484,17 @@ file, and check for it on start.
 Other plugin guidelines
 =======================
 
-* See i2p.scripts branch or any of the sample plugins on zzz's page for a xpi2p
-  file generator to make it easy.
+* See i2p.scripts monotone branch or any of the sample plugins on zzz's page for
+  the makeplugin.sh shell script. This automates most of the tasks for
+  key generation, plugin su3 file creation, and verification.
+  You should incorporate this script into your plugin build process.
 
 * Pack200 of jars and wars is strongly recommended for plugins, it generally
   shrinks plugins by 60-65&#37;. See any of the sample plugins on zzz's page for
   an example. Pack200 unpacking is supported on routers 0.7.11-5 or higher,
   which is essentially all routers that support plugins at all.
 
-* Plugins should not attempt to write anywhere in $I2P as it may be readonly,
+* Plugins must not attempt to write anywhere in $I2P as it may be readonly,
   and that isn't good policy anyway.
 
 * Plugins may write to $CONFIG but keeping files in $PLUGIN only is recommended.
@@ -506,6 +517,9 @@ Other plugin guidelines
 
 * See [ZZZ-16]_ for info on generating signing keys and generating/verifying
   keys and sud files.
+
+* See [ZZZ-1473]_ for info on generating signing keys and generating/verifying
+  keys for su3 files.
 
 * All config files must be UTF-8.
 
@@ -557,7 +571,15 @@ Classpaths
 
 The following jars in $I2P/lib can be assumed to be in the standard classpath
 for all I2P installations, no matter how old or how new the original
-installation:
+installation.
+
+All recent public APIs in i2p jars have the since-release number specified in the Javadocs.
+For bundled jars, see the API guidelines below.
+If your plugin requires certain features only available in recent versions, be sure to set the
+properties min-i2p-version, min-jetty-version, or both, in the plugin.config file.
+This will give your users a clear error message on installation if
+the requirements are not met.
+
 
 =====================  ============================  ==============================================
          Jar                     Contains                         Usage
@@ -571,26 +593,40 @@ commons-logging.jar    Apache Logging                For plugins requiring Apach
                                                        JULI.
                                                      * As of release 0.9.24, this contains
                                                        Apache Tomcat JULI logging only.
+                                                     * As of release 0.9.30 (Jetty 9),
+                                                       this is empty.
 commons-el.jar         JSP Expressions Language      For plugins with JSPs that use EL
-i2p.jar                Core API                      Almost all plugins will need
+
+                                                     * Prior to release 0.9.30, this contained
+                                                       the EL 2.1 API.
+                                                     * As of release 0.9.30 (Jetty 9), this contains
+                                                       the EL 3.0 API.
+i2p.jar                Core API                      All plugins will need
 i2ptunnel.jar          I2PTunnel                     For plugins with HTTP or other servers
 jasper-compiler.jar    nothing                       Empty since Jetty 6 (release 0.9)
 jasper-runtime.jar     Jasper Compiler and Runtime,  Needed for plugins with JSPs
                        and some Tomcat utils
 javax.servlet.jar      Servlet API                   Needed for plugins with JSPs
+
+                                                     * Prior to release 0.9.30, this contained
+                                                       the Servlet 2.5 and JSP 2.1 APIs.
+                                                     * As of release 0.9.30 (Jetty 9), this contains
+                                                       the Servlet 3.1 and JSP 2.3 APIs.
 jbigi.jar              Binaries                      No plugin should need
-mstreaming.jar         Streaming API                 Almost all plugins will need
+mstreaming.jar         Streaming API                 Most plugins will need
 org.mortbay.jetty.jar  Jetty Base                    Only plugins starting their own Jetty instance
                                                      will need. Recommended way of starting Jetty
                                                      is with `net.i2p.jetty.JettyStart` in
-                                                     jetty-i2p.jar.
+                                                     jetty-i2p.jar. This will insulate your code
+                                                     from Jetty API changes.
 router.jar             Router                        Only plugins using router context will need;
                                                      most will not
 sam.jar                SAM API                       No plugin should need
-streaming.jar          Streaming Implementation      Almost all plugins will need
+streaming.jar          Streaming Implementation      Most plugins will need
 systray.jar            URL Launcher                  Most plugins should not need
-systray4j.jar          Systray                       No plugin should need
-wrapper.jar            Router                        Most plugins should not need
+systray4j.jar          Systray                       No plugin should need. As of 0.9.26,
+                                                     no longer present.
+wrapper.jar            Router                        No plugin should need
 =====================  ============================  ==============================================
 
 The following jars in $I2P/lib can be assumed to be present for all I2P
@@ -692,3 +728,6 @@ References
 
 .. [ZZZ-633]
     http://{{ i2pconv('zzz.i2p') }}/topics/633
+
+.. [ZZZ-1473]
+    http://{{ i2pconv('zzz.i2p') }}/topics/1473
