@@ -2,8 +2,8 @@
 Configuration File Specification
 ================================
 .. meta::
-    :lastupdated: December 2016
-    :accuratefor: 0.9.28
+    :lastupdated: January 2018
+    :accuratefor: 0.9.33
 
 .. contents::
 
@@ -398,6 +398,7 @@ Properties are as follows::
 
     # HTTP Servers only. Comma-separated list of strings to match in the
     # user-agent header. Since 0.9.25. Example: "Mozilla,Opera". Case-sensitive.
+    # As of 0.9.33, a string of "none" may be used to match an empty user-agent.
     # See tunnel.N.option.rejectUserAgents
     tunnel.N.option.userAgentRejectList=string1[,string2]*
 
