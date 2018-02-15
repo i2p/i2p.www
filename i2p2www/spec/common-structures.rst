@@ -745,7 +745,7 @@ structure. The LeaseSet is one of the two structures stored in the network
 database (the other being RouterInfo_), and is keyed under the SHA256 of the
 contained Destination_.
 
-.. _Leases: _Lease
+.. _Leases: #struct-lease
 
 Contents
 ````````
