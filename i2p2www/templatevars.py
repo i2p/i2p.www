@@ -17,7 +17,7 @@ from i2p2www import (
 INPROXY = '.xyz' # http://zzz.i2p/topics/1771-i2p-xyz-inproxy
 
 I2P_TO_CLEAR = {
-    'forum.i2p': 'forum.i2p', # Don't convert forum.i2p, it is not accessible outside I2P
+    'i2pforum.i2p': 'i2pforum.net', # New I2P Forum
     'trac.i2p2.i2p': 'trac.i2p2.de',
     'mail.i2p': 'i2pmail.org',
     'lists.i2p2.i2p': 'lists.i2p2.de',
