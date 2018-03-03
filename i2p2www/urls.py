@@ -48,6 +48,7 @@ url('/spec', 'spec.views.spec_index')
 url('/spec/<string:name>', 'spec.views.spec_show')
 url('/spec/<string:name>.txt', 'spec.views.spec_show_txt')
 url('/spec/proposals', 'spec.views.proposal_index')
+url('/spec/proposals/<int:number>', 'spec.views.proposal_number')
 url('/spec/proposals/<string:name>', 'spec.views.proposal_show')
 url('/spec/proposals/<string:name>.txt', 'spec.views.proposal_show_txt')
 

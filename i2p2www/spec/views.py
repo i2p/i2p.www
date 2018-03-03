@@ -119,6 +119,14 @@ def proposal_index():
     proposals.sort(key=lambda s: (PROPOSAL_STATUS_SORT[s['status']], s['num']))
     return render_template('spec/proposal-index.html', proposals=proposals)
 
+def proposal_number(number):
+    proposals = get_rsts(PROPOSAL_DIR, proposal_meta)
+    for proposal in proposals:
+        if int(proposal['name'][:3]) == number:
+            return proposal_show(proposal['name'])
+    else:
+        abort(404)
+
 def render_rst(directory, name, meta_parser, template):
     # check if that file actually exists
     path = safe_join(directory, name + '.rst')
