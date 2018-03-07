@@ -3,8 +3,8 @@ I2NP Specification
 ==================
 .. meta::
     :category: Protocols
-    :lastupdated: January 2017
-    :accuratefor: 0.9.28
+    :lastupdated: March 2018
+    :accuratefor: 0.9.34
 
 .. contents::
 
@@ -308,12 +308,14 @@ Cleartext:
 
   receive_tunnel :: `TunnelId`
                     length -> 4 bytes
+                    nonzero
 
   our_ident :: `Hash`
                length -> 32 bytes
 
   next_tunnel :: `TunnelId`
                  length -> 4 bytes
+                 nonzero
 
   next_ident :: `Hash`
                 length -> 32 bytes

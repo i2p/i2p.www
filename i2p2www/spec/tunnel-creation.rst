@@ -3,8 +3,8 @@ Tunnel Creation Specification
 =============================
 .. meta::
     :category: Design
-    :lastupdated: January 2016
-    :accuratefor: 0.9.24
+    :lastupdated: March 2018
+    :accuratefor: 0.9.34
 
 .. contents::
 
@@ -58,9 +58,9 @@ Also specified in the I2NP Specification [BRR]_.
 
 Cleartext of the record, visible only to the hop being asked::
 
-  bytes     0-3: tunnel ID to receive messages as
+  bytes     0-3: tunnel ID to receive messages as, nonzero
   bytes    4-35: local router identity hash
-  bytes   36-39: next tunnel ID
+  bytes   36-39: next tunnel ID, nonzero
   bytes   40-71: next router identity hash
   bytes  72-103: AES-256 tunnel layer key
   bytes 104-135: AES-256 tunnel IV key
@@ -95,7 +95,7 @@ set, the hop will be an intermediate participant.  Both cannot be set at once.
 
 Request Record Creation
 ```````````````````````
-Every hop gets a random Tunnel ID.
+Every hop gets a random Tunnel ID, nonzero.
 The current and next-hop Tunnel IDs are filled in.
 Every record gets a random tunnel IV key, reply IV, layer key, and reply key.
 
