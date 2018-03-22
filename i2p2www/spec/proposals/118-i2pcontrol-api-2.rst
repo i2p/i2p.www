@@ -5,8 +5,8 @@ I2PControl API 2
     :author: hottuna
     :created: 2016-01-23
     :thread: http://zzz.i2p/topics/2030
-    :lastupdated: 2016-02-01
-    :status: Open
+    :lastupdated: 2018-03-22
+    :status: Rejected
 
 .. contents::
 
@@ -16,6 +16,8 @@ Overview
 
 This proposal outlines API2 for I2PControl.
 
+This proposal was rejected and will not be implemented, because it breaks backwards compatibility.
+See the discussion thread link for details.
 
 Developer headsup!
 ------------------
