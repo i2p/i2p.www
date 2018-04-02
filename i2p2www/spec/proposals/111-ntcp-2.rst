@@ -1415,7 +1415,7 @@ This is the Split() function, exactly as defined in the Noise spec.
 
 .. raw:: html
 
-  {% highlight lang='dataspec' %}
+  {% highlight lang='text' %}
 
 ck = from handshake phase
 
@@ -1523,7 +1523,7 @@ Following is from obfs4:
 
 .. raw:: html
 
-  {% highlight lang='dataspec' %}
+  {% highlight lang='text' %}
 
    Once both sides have completed the handshake, they transfer application
    data broken up into "packets", that are then encrypted and authenticated in
@@ -1573,7 +1573,7 @@ Raw contents
 
   {% highlight lang='dataspec' %}
 +----+----+----+----+----+----+----+----+
-  |obf. size|                             |
+  |obf size |                             |
   +----+----+                             +
   |                                       |
   +   ChaCha/Poly frame                   +
@@ -1588,9 +1588,11 @@ Raw contents
   |                                       |
   +----+----+----+----+----+----+----+----+
 
-Maximum size is 65537 bytes.
-Obfuscated length is 2 bytes.
-Maximum ChaCha/poly frame is 65535 bytes.
+  obf size :: 2 bytes length obfuscated with SipHash
+
+  Maximum size is 65537 bytes.
+  Obfuscated length is 2 bytes.
+  Maximum ChaCha/poly frame is 65535 bytes.
 
 {% endhighlight %}
 
@@ -1639,14 +1641,15 @@ so the max unencrypted data is 65519 bytes.
          254 for padding
          255 reserved for future extension
   size :: size of data to follow, 0 - 65516
+  data :: the data
 
-Maximum ChaCha/Poly frame is 65535 bytes.
-Poly1305 tag is 16 bytes
-Maximum total block size is 65519 bytes
-Maximum single block size is 65519 bytes
-Block type is 1 byte
-Block length is 2 bytes
-Maximum single block data size is 65516 bytes.
+  Maximum ChaCha/Poly frame is 65535 bytes.
+  Poly1305 tag is 16 bytes
+  Maximum total block size is 65519 bytes
+  Maximum single block size is 65519 bytes
+  Block type is 1 byte
+  Block length is 2 bytes
+  Maximum single block data size is 65516 bytes.
 
 {% endhighlight %}
 
@@ -1690,23 +1693,23 @@ Options include: Min and max padding.
   size :: size of options to follow TBD
   options :: Format TBD
 
-Requested padding parameters.
-Min is for desired DPI resistance
-Max is for bandwidth limits.
-4 bytes tx_pad_min, tx_pad_max, rx_pad_min, rx_pad_max
-Each is a 4.4 fixed-point float representing 0 to 15.9375
-This is the ratio of padding to data. Examples:
-Value of 0x00 means no padding
-Value of 0x01 means add 6% padding
-Value of 0x10 means add 100% padding
-Value of 0x80 means add 800% (8x) padding
-Alice and Bob will negotiate the minimum and maximum in each direction.
-These are guidelines, there is no enforcement.
-Sender should honor receiver's maximum.
-Sender may or may not honor receiver's minimum, within bandwidth constraints.
+  Requested padding parameters.
+  Min is for desired DPI resistance
+  Max is for bandwidth limits.
+  4 bytes tx_pad_min, tx_pad_max, rx_pad_min, rx_pad_max
+  Each is a 4.4 fixed-point float representing 0 to 15.9375
+  This is the ratio of padding to data. Examples:
+  Value of 0x00 means no padding
+  Value of 0x01 means add 6% padding
+  Value of 0x10 means add 100% padding
+  Value of 0x80 means add 800% (8x) padding
+  Alice and Bob will negotiate the minimum and maximum in each direction.
+  These are guidelines, there is no enforcement.
+  Sender should honor receiver's maximum.
+  Sender may or may not honor receiver's minimum, within bandwidth constraints.
 
-Padding distribution specified as additional parameters?
-Random delay specified as additional parameters?
+  Padding distribution specified as additional parameters?
+  Random delay specified as additional parameters?
 
 {% endhighlight %}
 
@@ -2076,15 +2079,20 @@ To detect the version of an incoming NTCP connection, Bob proceeds as follows:
 - If the initial received data is 288 or more bytes, the incoming connection
   is version 1.
 - If less than 288 bytes, either
+
    -  Wait for a short time for more data
       (good strategy before widespread NTCP2 adoption)
       if at least 288 total received, it's NTCP 1.
+
    -  Try the first stages of decoding as version 2, if it fails, wait a short time for more data
       (good strategy after widespread NTCP2 adoption)
+
       - Decrypt the first 32 bytes (the X key)
         of the SessionRequest packet using AES-256 with key RH_B.
+
       - Verify a valid point on the curve.
         If it fails, wait a short time for more data for NTCP 1
+
       - Verify the AEAD block.
         If it fails, wait a short time for more data for NTCP 1
 
