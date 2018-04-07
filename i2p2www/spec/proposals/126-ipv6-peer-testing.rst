@@ -5,7 +5,7 @@ IPv6 Peer Testing
     :author: zzz
     :created: 2016-05-02
     :thread: http://zzz.i2p/topics/2119
-    :lastupdated: 2016-12-02
+    :lastupdated: 2018-03-19
     :status: Closed
     :target: 0.9.27
     :implementedin: 0.9.27
@@ -64,7 +64,6 @@ In the Peer Testing sections of the SSU overview and SSU specification, make the
 
 IPv6 Notes:
 Through release 0.9.26, only testing of IPv4 addresses is supported.
-Only testing of IPv4 addresses is supported.
 Therefore, all Alice-Bob and Alice-Charlie communication must be via IPv4.
 Bob-Charlie communication, however, may be via IPv4 or IPv6.
 Alice's address, when specified in the PeerTest message, must be 4 bytes.

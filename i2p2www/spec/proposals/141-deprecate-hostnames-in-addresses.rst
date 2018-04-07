@@ -5,7 +5,7 @@ Deprecate hostnames in router addresses
     :author: zzz
     :created: 2017-08-03
     :thread: http://zzz.i2p/topics/2363
-    :lastupdated: 2017-09-02
+    :lastupdated: 2018-03-17
     :status: Closed
     :target: 0.9.32
     :implementedin: 0.9.32
@@ -121,6 +121,10 @@ Specification
 Change the NTCP and SSU transport specs to indicate that the "host" parameter must be
 an IP, not a hostname, and that routers should ignore individual
 router addresses that contain hostnames.
+
+This also applies to "ihost0", "ihost1", and "ihost2" parameters in an SSU address.
+Routers should ignore introducer addresses that contain hostnames.
+
 The relevant section is "Router Address Specification" in the transport specifications:
 http://i2p-projekt.i2p/en/docs/transport/ntcp
 and

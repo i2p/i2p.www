@@ -463,7 +463,7 @@ References
 ==========
 
 .. [DATAHELPER]
-    http://{{ i2pconv('i2p-javadocs.i2p') }}/net/i2p/data/DataHelper.html
+    http://{{ i2pconv('echelon.i2p/javadoc') }}/net/i2p/data/DataHelper.html
 
 .. [Mapping]
     {{ ctags_url('Mapping') }}

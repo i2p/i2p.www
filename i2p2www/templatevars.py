@@ -23,6 +23,7 @@ I2P_TO_CLEAR = {
     'mail.i2p': 'i2pmail.org',
     'lists.i2p2.i2p': 'lists.i2p2.de',
     'i2p-javadocs.i2p': 'docs.i2p-projekt.de/javadoc', # Hacky to include the path, but it works!
+    'echelon.i2p/javadoc': 'docs.i2p-projekt.de/javadoc', # Hacky to include the path, but it works!
     'stats.i2p': 'stats.i2p', # Inproxy disabled at request of site owner
     'zzz.i2p': 'zzz.i2p',     # Inproxy disabled at request of site owner
     }

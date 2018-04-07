@@ -92,7 +92,7 @@ Contents
 ````````
 256 bytes
 
-JavaDoc: http://{{ i2pconv('i2p-javadocs.i2p') }}/net/i2p/data/PublicKey.html
+JavaDoc: http://{{ i2pconv('echelon.i2p/javadoc') }}/net/i2p/data/PublicKey.html
 
 .. _type-PrivateKey:
 
@@ -109,7 +109,7 @@ Contents
 ````````
 256 bytes
 
-JavaDoc: http://{{ i2pconv('i2p-javadocs.i2p') }}/net/i2p/data/PrivateKey.html
+JavaDoc: http://{{ i2pconv('echelon.i2p/javadoc') }}/net/i2p/data/PrivateKey.html
 
 .. _type-SessionKey:
 
@@ -124,7 +124,7 @@ Contents
 ````````
 32 bytes
 
-JavaDoc: http://{{ i2pconv('i2p-javadocs.i2p') }}/net/i2p/data/SessionKey.html
+JavaDoc: http://{{ i2pconv('echelon.i2p/javadoc') }}/net/i2p/data/SessionKey.html
 
 .. _type-SigningPublicKey:
 
@@ -164,7 +164,7 @@ Notes
 * All types are Big Endian, except for EdDSA, which is stored and transmitted
   in a Little Endian format.
 
-JavaDoc: http://{{ i2pconv('i2p-javadocs.i2p') }}/net/i2p/data/SigningPublicKey.html
+JavaDoc: http://{{ i2pconv('echelon.i2p/javadoc') }}/net/i2p/data/SigningPublicKey.html
 
 .. _type-SigningPrivateKey:
 
@@ -203,7 +203,7 @@ Notes
 * All types are Big Endian, except for EdDSA, which is stored and transmitted
   in a Little Endian format.
 
-JavaDoc: http://{{ i2pconv('i2p-javadocs.i2p') }}/net/i2p/data/SigningPrivateKey.html
+JavaDoc: http://{{ i2pconv('echelon.i2p/javadoc') }}/net/i2p/data/SigningPrivateKey.html
 
 .. _type-Signature:
 
@@ -243,7 +243,7 @@ Notes
 * All types are Big Endian, except for EdDSA, which is stored and transmitted
   in a Little Endian format.
 
-JavaDoc: http://{{ i2pconv('i2p-javadocs.i2p') }}/net/i2p/data/Signature.html
+JavaDoc: http://{{ i2pconv('echelon.i2p/javadoc') }}/net/i2p/data/Signature.html
 
 .. _type-Hash:
 
@@ -258,7 +258,7 @@ Contents
 ````````
 32 bytes
 
-JavaDoc: http://{{ i2pconv('i2p-javadocs.i2p') }}/net/i2p/data/Hash.html
+JavaDoc: http://{{ i2pconv('echelon.i2p/javadoc') }}/net/i2p/data/Hash.html
 
 .. _type-SessionTag:
 
@@ -273,7 +273,7 @@ Contents
 ````````
 32 bytes
 
-JavaDoc: http://{{ i2pconv('i2p-javadocs.i2p') }}/net/i2p/data/SessionTag.html
+JavaDoc: http://{{ i2pconv('echelon.i2p/javadoc') }}/net/i2p/data/SessionTag.html
 
 .. _type-TunnelId:
 
@@ -290,7 +290,7 @@ Contents
 ````````
 4 byte Integer_
 
-JavaDoc: http://{{ i2pconv('i2p-javadocs.i2p') }}/net/i2p/data/TunnelId.html
+JavaDoc: http://{{ i2pconv('echelon.i2p/javadoc') }}/net/i2p/data/TunnelId.html
 
 .. _type-Certificate:
 
@@ -462,7 +462,7 @@ EdDSA_SHA512_Ed25519          96                        0
 EdDSA_SHA512_Ed25519ph        96                        0
 ======================  ==============  ===============================
 
-JavaDoc: http://{{ i2pconv('i2p-javadocs.i2p') }}/net/i2p/data/Certificate.html
+JavaDoc: http://{{ i2pconv('echelon.i2p/javadoc') }}/net/i2p/data/Certificate.html
 
 Notes
 `````
@@ -544,7 +544,7 @@ Notes
 
 .. _I2CP SessionConfig: {{ site_url('docs/spec/i2cp') }}#struct_SessionConfig
 
-JavaDoc: http://{{ i2pconv('i2p-javadocs.i2p') }}/net/i2p/data/DataHelper.html
+JavaDoc: http://{{ i2pconv('echelon.i2p/javadoc') }}/net/i2p/data/DataHelper.html
 
 
 Common structure specification
@@ -619,7 +619,7 @@ Notes
 * The Crypto Public Key is aligned at the start and the Signing Public Key is
   aligned at the end. The padding (if any) is in the middle.
 
-JavaDoc: http://{{ i2pconv('i2p-javadocs.i2p') }}/net/i2p/data/KeysAndCert.html
+JavaDoc: http://{{ i2pconv('echelon.i2p/javadoc') }}/net/i2p/data/KeysAndCert.html
 
 .. _struct-RouterIdentity:
 
@@ -648,7 +648,7 @@ Notes
 * The Crypto Public Key is aligned at the start and the Signing Public Key is
   aligned at the end. The padding (if any) is in the middle.
 
-JavaDoc: http://{{ i2pconv('i2p-javadocs.i2p') }}/net/i2p/data/router/RouterIdentity.html
+JavaDoc: http://{{ i2pconv('echelon.i2p/javadoc') }}/net/i2p/data/router/RouterIdentity.html
 
 .. _struct-Destination:
 
@@ -681,7 +681,7 @@ Notes
 * The Crypto Public Key is aligned at the start and the Signing Public Key is
   aligned at the end. The padding (if any) is in the middle.
 
-JavaDoc: http://{{ i2pconv('i2p-javadocs.i2p') }}/net/i2p/data/Destination.html
+JavaDoc: http://{{ i2pconv('echelon.i2p/javadoc') }}/net/i2p/data/Destination.html
 
 .. _struct-Lease:
 
@@ -729,7 +729,7 @@ Notes
 `````
 * Total size: 44 bytes
 
-JavaDoc: http://{{ i2pconv('i2p-javadocs.i2p') }}/net/i2p/data/Lease.html
+JavaDoc: http://{{ i2pconv('echelon.i2p/javadoc') }}/net/i2p/data/Lease.html
 
 .. _struct-LeaseSet:
 
@@ -865,7 +865,7 @@ Notes
   publishes the actual lease expiration for each lease. This is an
   implementation detail and not part of the structures specification.
 
-JavaDoc: http://{{ i2pconv('i2p-javadocs.i2p') }}/net/i2p/data/LeaseSet.html
+JavaDoc: http://{{ i2pconv('echelon.i2p/javadoc') }}/net/i2p/data/LeaseSet.html
 
 .. _struct-RouterAddress:
 
@@ -937,7 +937,7 @@ Notes
   present in most router addresses: "host" (an IPv4 or IPv6 address or host
   name) and "port".
 
-JavaDoc: http://{{ i2pconv('i2p-javadocs.i2p') }}/net/i2p/data/router/RouterAddress.html
+JavaDoc: http://{{ i2pconv('echelon.i2p/javadoc') }}/net/i2p/data/router/RouterAddress.html
 
 .. _struct-RouterInfo:
 
@@ -1045,7 +1045,7 @@ Notes
   so the signature is invariant.
   This is no longer required, and not worth implementing for backward compatibility.
 
-JavaDoc: http://{{ i2pconv('i2p-javadocs.i2p') }}/net/i2p/data/router/RouterInfo.html
+JavaDoc: http://{{ i2pconv('echelon.i2p/javadoc') }}/net/i2p/data/router/RouterInfo.html
 
 .. _struct-DeliveryInstructions:
 

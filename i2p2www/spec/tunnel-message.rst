@@ -302,7 +302,7 @@ instructions are:
   total length: 7 bytes
 {% endhighlight %}
 
-JavaDoc: http://{{ i2pconv('i2p-javadocs.i2p') }}/net/i2p/router/tunnel/FragmentHandler.html
+JavaDoc: http://{{ i2pconv('echelon.i2p/javadoc') }}/net/i2p/router/tunnel/FragmentHandler.html
 
 
 Notes

@@ -560,6 +560,7 @@ TunnelBuild_                           21
 TunnelBuildReply_                      22
 VariableTunnelBuild_                   23
 VariableTunnelBuildReply_              24
+Reserved                               0
 Reserved for experimental messages  224-254
 Reserved for future expansion         255
 ==================================  =======
