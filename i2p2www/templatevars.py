@@ -1,6 +1,7 @@
 import ctags
 from flask import g, request, safe_join, url_for
 import os.path
+from urlparse import urlsplit, urlunsplit
 
 from i2p2www import (
     CANONICAL_DOMAIN,
@@ -26,6 +27,11 @@ I2P_TO_CLEAR = {
     'stats.i2p': 'stats.i2p', # Inproxy disabled at request of site owner
     'zzz.i2p': 'zzz.i2p',     # Inproxy disabled at request of site owner
     }
+
+CLEAR_HTTP = [
+    'stats.i2p',
+    'zzz.i2p',
+    ]
 
 
 ####################
@@ -137,6 +143,27 @@ def utility_processor():
             # The I2P site has no known clearnet address, so use an inproxy
             return value + INPROXY
 
+    # Convert an I2P url to an equivalent clearnet one, including HTTPS if necessary
+    def convert_url_to_clearnet_inc_https(value):
+        parts = urlsplit(value)
+        if not parts[1].endswith('.i2p'):
+            # The url being passed in isn't an I2P url, so just return it
+            return value
+        if request.headers.get('X-I2P-Desthash') and not request.headers.get('X-Forwarded-Server'):
+            # The request is from within I2P, so use I2P url
+            return value
+        # The request is either directly from clearnet or through an inproxy
+        try:
+            # Return the known clearnet url corresponding to the I2P url
+            scheme = parts[0]
+            host = I2P_TO_CLEAR[parts[1]]
+            if scheme == 'http' and host not in CLEAR_HTTP:
+                scheme = 'https'
+            return urlunsplit([scheme, host] + list(parts[2:]))
+        except KeyError:
+            # The I2P site has no known clearnet address, so use an inproxy
+            return urlunsplit([parts[0], parts[1] + INPROXY] + list(parts[2:]))
+
     # Convert a paginated URL to that of another page
     def url_for_other_page(page):
         args = request.view_args.copy()
@@ -169,6 +196,7 @@ def utility_processor():
         return CURRENT_I2P_VERSION
 
     return dict(i2pconv=convert_url_to_clearnet,
+                i2pclr=convert_url_to_clearnet_inc_https,
                 url_for_other_page=url_for_other_page,
                 change_theme=change_theme,
                 logo_url=get_logo_for_theme,
