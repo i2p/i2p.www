@@ -6,7 +6,7 @@ NTCP 2
     :editor: manas, str4d
     :created: 2014-02-13
     :thread: http://zzz.i2p/topics/1577
-    :lastupdated: 2018-04-04
+    :lastupdated: 2018-04-12
     :status: Open
     :supercedes: 106
 
@@ -421,11 +421,11 @@ Alice                           Bob
 {% endhighlight %}
 
 Using Noise terminology, the establishment and data sequence is as follows:
-Payload Security Properties
 
 .. raw:: html
 
   {% highlight lang='text' %}
+Payload Security Properties
 XK(s, rs):           Authentication   Confidentiality
     <- s
     ...
@@ -519,8 +519,8 @@ Output of the encryption function, input to the decryption function:
   +----+----+----+----+----+----+----+----+
 
   Obfs Len :: Length of MAC + encryptd data to follow
-               Obfuscation TBD; obfs4 uses SipHash
-               Not used in message 1 or 2, where the length is fixed
+              Obfuscation using SipHash (see below)
+              Not used in message 1 or 2, where the length is fixed
 
   MAC :: Poly1305 message authentication code
 
@@ -537,22 +537,17 @@ Notes
   Additional keystream bytes are discarded.
 
 - The key for the cipher (256 bits) is agreed upon by means of the SHA256 KDF.
-  The one-time key for Poly1305 is generated pseudorandomly
-  as in [RFC-7539]_, i.e. using the Salsa20 or the ChaCha20 block function.
+  The details of the KDF for each message are in separate sections below.
 
+- ChaCha/Poly blocks for messages 1, 2, and the first part of message 3,
+  are of known size. Starting with the second part of message 3,
+  blocks are of variable size, and are prepended with a two-byte length
+  obfuscated with SipHash as in obfs4.
 
-The first encrypted and authenticated data (separate for Alice and Bob) starts
-with hash XXX TBD
-
-Issues
-``````
-- Should the padding be inside the authenticated data, not outside?
-  It's inside for obfs4. Noise implies it should be inside.
-
-- ChaCha/Poly block must be of known size. Otherwise, we must prepend an
-  obfuscated length field. obfs4 uses SipHash.
-  We may do something different for message 2 (where it may be of known size?)
-  and subsequent messages.
+- Padding is outside the authenticated data block for messages 1 and 2.
+  The padding is used in the KDF for the next message so tampering will
+  be detected. Starting in message 3, padding is inside the authenticated
+  data block.
 
 
 
@@ -670,11 +665,11 @@ Noise content: Alice's ephemeral key X
 Noise payload: 16 byte option block
 Non-noise payload: Random padding
 
-Payload Security Properties
 
 .. raw:: html
 
   {% highlight lang='text' %}
+Payload Security Properties
 XK(s, rs):           Authentication   Confidentiality
     -> e, es                  0                2
 
@@ -701,7 +696,7 @@ XK(s, rs):           Authentication   Confidentiality
 
 {% endhighlight %}
 
-The X value and options blocks are encrypted to ensure payload indistinguishably
+The X value is encrypted to ensure payload indistinguishably
 and uniqueness, which are necessary DPI countermeasures.
 We use AES encryption to achieve this,
 rather than more complex and slower alternatives such as elligator2.
@@ -713,7 +708,7 @@ AES encryption is for DPI resistance only.
 Any party knowing Bob's router hash, and IV, which are published in the network database,
 may decrypt the X value in this message.
 
-The padding does not need to be encrypted by Alice.
+The padding is not encrypted by Alice.
 It may be necessary for Bob to decrypt the padding,
 to inhibit timing attacks.
 
@@ -740,24 +735,27 @@ Raw contents:
   +   n = 0                               +
   |                                       |
   +----+----+----+----+----+----+----+----+
-  |     unencrypted, unauthenticated      |
+  |     unencrypted, authenticated        |
   ~         padding (optional)            ~
   |     length defined in options block   |
   +----+----+----+----+----+----+----+----+
 
   X :: AES-256-CBC encrypted X, little endian
           key: RH_B
-          iv: 0x0000 0000 0000 0000
+          iv: As published in Bobs netdb
 
   padding :: Random data, 0 or more bytes.
              Total message length must be 65535 bytes or less.
              Total message length must be 287 bytes or less if
              Bob is publishing his address as "NTCP"
              (see Version Detection section below)
+             Alice and Bob will use the padding data in the KDF for message 2.
+             It is authenticated in that any tampering will cause the
+             next message to fail.
 
 {% endhighlight %}
 
-Unencrypted data:
+Unencrypted data (Poly1305 auth tag not shown):
 
 .. raw:: html
 
@@ -771,15 +769,11 @@ Unencrypted data:
   +                                       +
   |                                       |
   +----+----+----+----+----+----+----+----+
-  |       Poly1305 auth tag               |
-  +              (16 bytes)               +
-  |                                       |
-  +----+----+----+----+----+----+----+----+
   |               options                 |
   +              (16 bytes)               +
   |                                       |
   +----+----+----+----+----+----+----+----+
-  |     unencrypted, unauthenticated      |
+  |     unencrypted, authenticated        |
   +         padding (optional)            +
   |     length defined in options block   |
   ~               .   .   .               ~
@@ -798,6 +792,9 @@ Unencrypted data:
              Total message length must be 287 bytes or less if
              Bob is publishing his address as "NTCP"
              (see Version Detection section below)
+             Alice and Bob will use the padding data in the KDF for message 2.
+             It is authenticated in that any tampering will cause the
+             next message to fail.
 
 {% endhighlight %}
 
@@ -895,11 +892,10 @@ Notes
 
 Issues
 ``````
-- Prepend a "type byte" to support 0-RTT, or put it in the options?
-  See Noise section 10.2
+- Is the fixed-size option block big enough?
 
-- Does all the padding go into the initial hash for associated data?
-  (yes?)
+- KE and auth bytes may not be needed, or may be redefined
+
 
 
 Key Derivation Function (KDF) (for handshake message 2)
@@ -978,11 +974,11 @@ Noise content: Bob's ephemeral key Y
 Noise payload: 8 byte option block
 Non-noise payload: Random padding
 
-Payload Security Properties
 
 .. raw:: html
 
   {% highlight lang='text' %}
+Payload Security Properties
 XK(s, rs):           Authentication   Confidentiality
     <- e, ee                  2                1
 
@@ -1040,7 +1036,7 @@ Raw contents:
   +   k from KDF for msg 2                +
   |   n = 0                               |
   +----+----+----+----+----+----+----+----+
-  |     unencrypted, unauthenticated      |
+  |     unencrypted, authenticated        |
   +         padding (optional)            +
   |     length defined in options block   |
   ~               .   .   .               ~
@@ -1049,11 +1045,11 @@ Raw contents:
 
   Y :: AES-256-CBC encrypted Y, little endian
           key: RH_B
-          iv: 0x0000 0000 0000 0000
+          iv: As published in Bobs netdb
 
 {% endhighlight %}
 
-Unencrypted data:
+Unencrypted data (Poly1305 auth tag not shown):
 
 .. raw:: html
 
@@ -1067,13 +1063,9 @@ Unencrypted data:
   +                                       +
   |                                       |
   +----+----+----+----+----+----+----+----+
-  |       Poly1305 auth tag               |
-  +              (16 bytes)               +
-  |                                       |
-  +----+----+----+----+----+----+----+----+
   | padLen  |       tsB         | Rsrvd(0)|
   +----+----+----+----+----+----+----+----+
-  |     unencrypted, unauthenticated      |
+  |     unencrypted, authenticated        |
   +         padding (optional)            +
   |     length defined in options block   |
   ~               .   .   .               ~
@@ -1090,6 +1082,12 @@ Unencrypted data:
          Wraps around in 2106
 
   Reserved :: 2 bytes, set to 0 for compatiblity with future options
+
+  padding :: Random data, 0 or more bytes.
+             Total message length must be 65535 bytes or less.
+             Alice and Bob will use the padding data in the KDF for message 3 part 1.
+             It is authenticated in that any tampering will cause the
+             next message to fail.
 
 {% endhighlight %}
 
@@ -1131,20 +1129,18 @@ Issues
   with timestamps? This is what SSU does, but it doesn't seem to be necessary
   as X and Y also have to match.
 
-- Unlike in NTCP, Bob is not able to sign Alice's RI. This should not be an
-  issue, but further investigations would be appropriate.
-
 - Should the padding be inside the authenticated data, not outside?
   It's inside for obfs4. Noise implies it should be inside.
-  The arbitrary padding is neither encrypted nor authenticated. This appears
-  to be unnecessary, but it should be investigated. The same applies to all
-  other messages with random padding.
+  The arbitrary padding is not encrypted but it is used in the KDF
+  for message 3 part 1, so any tampering will cause the handshake to fail.
 
 - Include min/max padding options here?
 
 - ChaCha/Poly block must be of known size. Otherwise, we must prepend an
   obfuscated length field. If we must do that, we may as well prepend
   a 16-byte options block, and AES encrypt it, same as message 1.
+
+- Is the fixed-size option block big enough?
 
 
 
@@ -1248,11 +1244,11 @@ Noise content: Alice's static key
 Noise payload: Alice's RouterInfo and random padding
 Non-noise payload: none
 
-Payload Security Properties
 
 .. raw:: html
 
   {% highlight lang='text' %}
+Payload Security Properties
 XK(s, rs):           Authentication   Confidentiality
     -> s, se                  2                5
 
@@ -1295,10 +1291,10 @@ Raw contents:
   {% highlight lang='dataspec' %}
 +----+----+----+----+----+----+----+----+
   |                                       |
-  +   ChaCha/Poly frame                   +
+  +   ChaCha/Poly frame (48 bytes)        +
   |   Encrypted and authenticated         |
   +   Alice's static key                  +
-  |      (48 bytes)                       |
+  |      (32 bytes)                       |
   +                                       +
   |     k from KDF for msg 1              |
   +     n = 1                             +
@@ -1330,16 +1326,12 @@ Raw contents:
 
 {% endhighlight %}
 
-Unencrypted data:
+Unencrypted data (Poly1305 auth tag not shown):
 
 .. raw:: html
 
   {% highlight lang='dataspec' %}
 +----+----+----+----+----+----+----+----+
-  |       Poly1305 auth tag               |
-  +              (16 bytes)               +
-  |                                       |
-  +----+----+----+----+----+----+----+----+
   |                                       |
   +                                       +
   |                                       |
@@ -1351,10 +1343,6 @@ Unencrypted data:
   +----+----+----+----+----+----+----+----+
   |  size   |                             |
   +----+----+                             +
-  |       Poly1305 auth tag               |
-  +              (16 bytes)     +----+----+
-  |                             |         |
-  +----+----+----+----+----+----+         +
   |                                       |
   +                                       +
   |       Alice's RouterInfo block        |
@@ -1373,6 +1361,9 @@ Unencrypted data:
   ~               .   .   .               ~
   |                                       |
   +----+----+----+----+----+----+----+----+
+
+  size :: Size of frame to follow, plus 16 for the
+          Poly1305 auth tag (not shown)
 
 {% endhighlight %}
 
@@ -1482,12 +1473,12 @@ Types include date/time, I2NP message, options, termination, and padding.
 Note: Bob may, but is not required, to send his RouterInfo to Alice as
 his first message to Alice in the data phase.
 
-Payload Security Properties
 
 
 .. raw:: html
 
   {% highlight lang='text' %}
+Payload Security Properties
 XK(s, rs):           Authentication   Confidentiality
     <-                        2                5
     ->                        2                5
@@ -1941,6 +1932,8 @@ to indicate NTCP2 support:
   Value shortened from Noise_XK_25519_ChaChaPoly_SHA256.
   Future values will be named similarly, with 6 chars to represent
   the 5 Noise name fields.
+  TODO: There may be value in using the "official" noise name,
+  at a cost of 26 bytes per address.
 
 - s=(Base64 key)
   The current Noise static public key (s) for this RouterAddress.
@@ -2007,14 +2000,14 @@ The option name is N(shortened Noise name)(NTCP2 Version)s.
 Public Key and IV Rotation
 --------------------------
 
-Due to caching of RouterInfos, routers must not rotate the static public key
+Due to caching of RouterInfos, routers must not rotate the static public key or IV
 while the router is up, whether in a published address or not. Routers must
-persistently store this key for reuse after an immediate restart, so incoming
+persistently store this key and IV for reuse after an immediate restart, so incoming
 connections will continue to work, and restart times are not exposed.  Routers
 must persistently store, or otherwise determine, last-shutdown time, so that
 the previous downtime may be calculated at startup.
 
-Subject to concerns about exposing restart times, routers may rotate this key
+Subject to concerns about exposing restart times, routers may rotate this key or IV
 at startup if the router was previously down for some time (a couple hours at
 least).
 
@@ -2032,17 +2025,18 @@ SSU), the minimum downtime before rotation may be as short as two hours, even
 if the IP address changes, unless the router "rekeys".
 
 If the router "rekeys" to a different Router Hash, it should generate a new
-noise key as well.
+noise key and IV as well.
 
-Implementations must be aware that changing the static public key will prohibit
+Implementations must be aware that changing the static public key or IV will prohibit
 incoming NTCP2 connections from routers that have cached an older RouterInfo.
 RouterInfo publishing, tunnel peer selection (including both OBGW and IB
 closest hop), zero-hop tunnel selection, transport selection, and other
 implementation strategies must take this into account.
 
-IV rotation is subject to identical rules, except that IVs are not present
+IV rotation is subject to identical rules as key rotation, except that IVs are not present
 except in published RouterAddresses, so there is no IV for hidden or firewalled
-routers.
+routers. If anything changes (version, key, options?) it is recommended that
+the IV change as well.
 
 Note: The minimum downtime before rekeying may be modified to ensure network
 health, and to prevent reseeding by a router down for a moderate amount of
