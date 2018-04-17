@@ -6,7 +6,7 @@ NTCP 2
     :editor: manas, str4d
     :created: 2014-02-13
     :thread: http://zzz.i2p/topics/1577
-    :lastupdated: 2018-04-16
+    :lastupdated: 2018-04-17
     :status: Open
     :supercedes: 106
 
@@ -312,7 +312,8 @@ Noise Protocol Framework
 ========================
 
 This proposal provides the requirements based on the Noise Protocol Framework
-[NOISE]_. Noise has similar properties to the Station-To-Station protocol
+[NOISE]_ (Revision 33, 2017-10-04).
+Noise has similar properties to the Station-To-Station protocol
 [STS]_, which is the basis for the [SSU]_ protocol.  In Noise parlance, Alice
 is the initiator, and Bob is the responder.
 
@@ -1609,16 +1610,12 @@ and treat them as padding.
 Encrypted data is 65535 bytes max, including a 16-byte authentication header,
 so the max unencrypted data is 65519 bytes.
 
-
+(Poly1305 auth tag not shown):
 
 .. raw:: html
 
   {% highlight lang='dataspec' %}
 +----+----+----+----+----+----+----+----+
-  |       Poly1305 auth tag               |
-  +              (16 bytes)               +
-  |                                       |
-  +----+----+----+----+----+----+----+----+
   |blk |  size   |       data             |
   +----+----+----+                        +
   |                                       |
@@ -1678,6 +1675,9 @@ Options
 Pass updated options.
 Options include: Min and max padding.
 
+Options block will be variable length.
+
+
 .. raw:: html
 
   {% highlight lang='dataspec' %}
@@ -1698,6 +1698,7 @@ Options include: Min and max padding.
   Max is for bandwidth limits.
   4 bytes tx_pad_min, tx_pad_max, rx_pad_min, rx_pad_max
   Each is a 4.4 fixed-point float representing 0 to 15.9375
+  (or think of it as an unsigned 8-bit integer divided by 16.0).
   This is the ratio of padding to data. Examples:
   Value of 0x00 means no padding
   Value of 0x01 means add 6% padding
@@ -1713,6 +1714,11 @@ Options include: Min and max padding.
 
 {% endhighlight %}
 
+
+Options Issues
+``````````````
+- Options format is TBD.
+- Options negotiation is TBD.
 
 
 RouterInfo
@@ -1838,9 +1844,11 @@ This should be the last non-padding block.
          5: incompatible options
          6: incompatible sig type
          7: clock skew
-         8: other error
+         8: padding violation
+         9: AEAD framing error
+         10: payload framing error
           ...
-  last valid nonce received: The nonce for the last valid AEAD block received
+  last valid nonce received: The nonce (counter) for the last valid AEAD block received
                              8 bytes
 
   Note: Not all reasons may actually be used; handshake failures will
@@ -1863,6 +1871,7 @@ Updated options may be sent during the data phase.
 See options block information above.
 
 
+
 .. raw:: html
 
   {% highlight lang='dataspec' %}
@@ -1880,6 +1889,19 @@ See options block information above.
 
 {% endhighlight %}
 
+Padding Issues
+``````````````
+- Padding strategies TBD.
+- Minimum padding TBD.
+- Need for padding-only messages TBD.
+- Padding defaults TBD.
+- Padding parameter negotiation TBD.
+- Is padding important for data phase or only handshake?
+- How to ensure low-bandwidth routers aren't "swamped"
+- How to ensure high-bandwidth routers send/receive enough padding
+- Noise limits messages to 64KB, any other padding (except in handshake msg 1/2)
+  would have to be outside Noise.
+- Disconnect if negotiated padding is violated or can't negotiate?
 
 
 Other block types
@@ -1969,13 +1991,15 @@ When published as "NTCP2" with "n", "s", "i", and "v" options,
 the router accepts incoming connections on that host and port
 for the NTCP2 protocol only.
 
+If a router supports both NTCP1 and NTCP2 connections but
+does not implement automatic version detection for incoming connections,
+it must advertise both "NTCP" and "NTCP2" addresses, and include
+the ntcp2 options in the "NTCP2" address only.
+
 If multiple NTCP2 RouterAddresses (either as "NTCP" or "NTCP2") are published
 in the same RouterInfo (for additional IP addresses or ports),
-all must contain the identical three options and values.
-In particular, all must contain the same static key "s".
-
-TBD: May different RouterAddresses for different IP addresses/ports
-contain different IV options? This may cause problems on Windows.
+all addressses specifying the same port must contain the identical ntcp2 options and values.
+In particular, all must contain the same static key and iv.
 
 
 
@@ -1995,6 +2019,8 @@ The option name is N(shortened Noise name)(NTCP2 Version)s.
   Base 64 encoded using the standard I2P Base 64 alphabet.
   32 bytes in binary, 44 bytes as Base 64 encoded,
   little-endian X25519 public key.
+  TODO: There may be value in using the "official" noise name,
+  at a cost of 26 bytes per address.
 
 
 
