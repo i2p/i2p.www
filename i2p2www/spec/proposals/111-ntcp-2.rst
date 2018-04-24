@@ -6,7 +6,7 @@ NTCP 2
     :editor: manas, str4d
     :created: 2014-02-13
     :thread: http://zzz.i2p/topics/1577
-    :lastupdated: 2018-04-17
+    :lastupdated: 2018-04-24
     :status: Open
     :supercedes: 106
 
@@ -110,6 +110,10 @@ Design Goals
   one-round-trip handshake, as in [SSU]_. This would require moving Bob's
   signature in message 4 to message 2. Research the reason for 4 messages in
   the ten-year-old email/status/meeting archives.
+
+- Minimize protocol overhead before padding. While padding will be added,
+  and possibly lots of it, overhead before padding is still overhead.
+  Low-bandwidth nodes must be able to use NTCP2.
 
 - Maintain timestamps for replay and skew detection.
 
@@ -486,6 +490,7 @@ k :: 32 byte cipher key, as generated from KDF
   nonce :: Counter-based nonce, 12 bytes.
            Starts at 0 and incremented for each message.
            First four bytes are always zero.
+           Last eight bytes are the counter, little-endian encoded.
            Maximum value is 2**64 - 2.
            Connection must be dropped and restarted after
            it reaches that value.
@@ -508,24 +513,24 @@ Output of the encryption function, input to the decryption function:
   {% highlight lang='dataspec' %}
 
 +----+----+----+----+----+----+----+----+
-  |Obfs Len |        MAC                  |
-  +----+----+                             +
-  |  Poly1305 Message Authetication Code  |
-  +         +----+----+----+----+----+----+
-  |16 bytes |                             |
+  |Obfs Len |                             |
   +----+----+                             +
   |       ChaCha20 encrypted data         |
   ~               .   .   .               ~
   |                                       |
   +----+----+----+----+----+----+----+----+
+  |  Poly1305 Message Authetication Code  |
+  +              (MAC)                    +
+  |             16 bytes                  |
+  +----+----+----+----+----+----+----+----+
 
-  Obfs Len :: Length of MAC + encryptd data to follow
+  Obfs Len :: Length of encrypted data + MAC to follow
               Obfuscation using SipHash (see below)
-              Not used in message 1 or 2, where the length is fixed
-
-  MAC :: Poly1305 message authentication code
+              Not used in message 1 or 2, or message 3 part 1, where the length is fixed
 
   encrypted data :: Same size as plaintext data
+
+  MAC :: Poly1305 message authentication code
 
 {% endhighlight %}
 
@@ -551,6 +556,22 @@ Notes
   data block.
 
 
+AEAD Error Handling
+```````````````````
+
+- In messages 1, 2, and the first part of message 3, where there is no length field,
+  on an AEAD authenticatiion failure, recipient must halt further message processing and close the
+  connection without responding.  This should be an abnormal close (TCP RST).
+
+- In message 3 part 2, and in the data phase, where there is a length field,
+  care must be taken to avoid creating a decryption oracle.
+  On an AEAD authentication failure, the recipient should
+  set a random timeout (range TBD) and then read a random number of bytes (range TBD).
+  After the read, or on read timeout, the recipient should send a payload
+  with a termination block containing an "AEAD failure" reason code,
+  and close the connection.
+
+- Take the same error action for an invalid length field value.
 
 
 Key Derivation Function (KDF) (for handshake message 1 and message 3 part 1)
@@ -878,6 +899,14 @@ Notes
 - On any error, including AEAD, DH, timestamp, apparent replay, or key
   validation failure, Bob must halt further message processing and close the
   connection without responding.  This should be an abnormal close (TCP RST).
+
+- DoS Mitigation: DH is a relatively expensive operation. As with the previous NTCP protocol,
+  routers should take all necessary measures to prevent CPU or connection exhaustion.
+  Place limits on maximum active connections and maximum connection setups in progress.
+  Enforce read timeouts (both per-read and total for "slowloris").
+  Limit repeated or simultaneous connections from the same source.
+  Maintain blacklists for sources that repeatedly fail.
+  Do not respond to AEAD failure.
 
 - To facilitate rapid version detection and handshaking, implementations must
   ensure that Alice buffers and then flushes the entire contents of the first
