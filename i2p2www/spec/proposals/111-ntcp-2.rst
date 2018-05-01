@@ -6,7 +6,7 @@ NTCP 2
     :editor: manas, str4d
     :created: 2014-02-13
     :thread: http://zzz.i2p/topics/1577
-    :lastupdated: 2018-04-24
+    :lastupdated: 2018-05-01
     :status: Open
     :supercedes: 106
 
@@ -15,8 +15,8 @@ NTCP 2
 
 Note
 ====
-Major revisions in progress. For now, not necessarily complete or even
-consistent.  Not ready for implementation.
+Minor revisions in progress. Ready for test implementations only.
+Not ready for network deployment.
 
 
 Overview
@@ -354,8 +354,10 @@ Noise_XK_25519_ChaChaPoly_SHA256.  These generally follow the guidelines in
    Random AEAD padding is added to message 3 and data phase messages.
 
 3) A two-byte frame length field is added, as is required for Noise over TCP,
-   and as in obfs4. This is used in message 3 and data phase messages.
+   and as in obfs4. This is used in the data phase messages.
    Message 1 and 2 AEAD frames are fixed length.
+   Message 3 part 1 AEAD frame is fixed length.
+   Message 3 part 2 AEAD frame length is specified in message 1.
 
 4) The two-byte frame length field is obfuscated with SipHash,
    as in obfs4.
@@ -524,13 +526,14 @@ Output of the encryption function, input to the decryption function:
   |             16 bytes                  |
   +----+----+----+----+----+----+----+----+
 
-  Obfs Len :: Length of encrypted data + MAC to follow
+  Obfs Len :: Length of (encrypted data + MAC) to follow, 16 - 65535
               Obfuscation using SipHash (see below)
               Not used in message 1 or 2, or message 3 part 1, where the length is fixed
+              Not used in message 3 part 1, as the length is specified in message 1
 
-  encrypted data :: Same size as plaintext data
+  encrypted data :: Same size as plaintext data, 0 - 65519 bytes
 
-  MAC :: Poly1305 message authentication code
+  MAC :: Poly1305 message authentication code, 16 bytes
 
 {% endhighlight %}
 
@@ -545,15 +548,16 @@ Notes
 - The key for the cipher (256 bits) is agreed upon by means of the SHA256 KDF.
   The details of the KDF for each message are in separate sections below.
 
-- ChaCha/Poly blocks for messages 1, 2, and the first part of message 3,
+- ChaCha/Poly frames for messages 1, 2, and the first part of message 3,
   are of known size. Starting with the second part of message 3,
-  blocks are of variable size, and are prepended with a two-byte length
+  frames are of variable size. The message 3 part 1 size is specified in message 1.
+  Starting with the data phase, frames are prepended with a two-byte length
   obfuscated with SipHash as in obfs4.
 
-- Padding is outside the authenticated data block for messages 1 and 2.
+- Padding is outside the authenticated data frame for messages 1 and 2.
   The padding is used in the KDF for the next message so tampering will
   be detected. Starting in message 3, padding is inside the authenticated
-  data block.
+  data frame.
 
 
 AEAD Error Handling
@@ -806,9 +810,6 @@ Unencrypted data (Poly1305 auth tag not shown):
 
   options :: options block, 16 bytes
 
-  ext_options :: Optional. Additional options blocks, format currently undefined.
-                 If present, length is multiple of 16 bytes
-
   padding :: Random data, 0 or more bytes.
              Total message length must be 65535 bytes or less.
              Total message length must be 287 bytes or less if
@@ -827,29 +828,21 @@ Note: All fields are big-endian.
 
   {% highlight lang='dataspec' %}
 +----+----+----+----+----+----+----+----+
-  |   ver   |    KE   |   auth  |  padLen |
+  |   ver   |  padLen | m3p2len | rsvd(0) |
   +----+----+----+----+----+----+----+----+
   |        tsA        |   Reserved (0)    |
   +----+----+----+----+----+----+----+----+
 
   ver :: Protocol version (currently 2)
 
-  KE  :: Key exchange mechanism used
-            0: Unsupported, reserved for old NTCP
-               Diffie-Hellman in Z/pZ [RFC-3526], 2048 bit p
-               KDF = SHA256
-            1: X25519
-               KDF = HMAC-SHA256 as defined below
-
-  auth :: Authenticated encryption mode
-          Key = K, to be agreed upon using KE
-          0: Unsupported, reserved for old NTCP
-             AES-CBC-256/HMAC-MD5 [RFC-2104]
-          1: ChaCha20/Poly1305, 12 byte nonce with first 4 bytes set to zero.
-
   padLen :: Length of the padding, 0 or more
             Min/max guidelines TBD. Random size from 0 to 31 bytes minimum?
             (Distribution to be determined, see Appendix A.)
+
+  m3p2Len :: Length of the the second AEAD frame in SessionConfirmed
+             (message 3 part 2) See notes below
+
+  rsvd :: 2 bytes, set to 0 for compatiblity with future options
 
   tsA :: Unix timestamp, unsigned seconds.
          Wraps around in 2106
@@ -919,12 +912,27 @@ Notes
   This is also for efficiency and to ensure the effectiveness of the random
   padding.
 
+- "ver" field: The overall noise protocol (Noise_XK_25519_ChaChaPoly_SHA256) is
+  advertised in the Router Info; the NTCP protocol including payload definitions
+  and other details is NTCP2. This field may be used to indicate support for
+  future changes to these details.
+
+- Message 3 part 2 length: This is the size of the second AEAD frame (including 16-byte MAC)
+  containing Alice's Router Info and optional padding that will be sent in
+  the SessionConfirmed message. As routers periodically regenerate and republish
+  their Router Info, the size of the current Router Info may change before
+  message 3 is sent. Implementations must choose one of two strategies:
+  a) save the current Router Info to be sent in message 3, so the size is known,
+     and optionally add room for padding;
+  b) increase the specified size enough to allow for possible increase in
+     the Router Info size, and always add padding when message 3 is actually sent.
+  In either case, the "m3p2len" length included in message 1 must be exactly the
+  size of that frame when sent in message 3.
+
 
 Issues
 ``````
 - Is the fixed-size option block big enough?
-
-- KE and auth bytes may not be needed, or may be redefined
 
 
 
@@ -1093,7 +1101,7 @@ Unencrypted data (Poly1305 auth tag not shown):
   +                                       +
   |                                       |
   +----+----+----+----+----+----+----+----+
-  | padLen  |       tsB         | Rsrvd(0)|
+  | padLen  | Rsrvd(0)|      tsB          |
   +----+----+----+----+----+----+----+----+
   |     unencrypted, authenticated        |
   +         padding (optional)            +
@@ -1108,10 +1116,10 @@ Unencrypted data (Poly1305 auth tag not shown):
             Min/max guidelines TBD. Random size from 0 to 31 bytes minimum?
             (Distribution to be determined, see Appendix A.)
 
+  Reserved :: 2 bytes, set to 0 for compatiblity with future options
+
   tsB :: Unix timestamp, unsigned seconds.
          Wraps around in 2106
-
-  Reserved :: 2 bytes, set to 0 for compatiblity with future options
 
   padding :: Random data, 0 or more bytes.
              Total message length must be 65535 bytes or less.
@@ -1165,10 +1173,6 @@ Issues
   for message 3 part 1, so any tampering will cause the handshake to fail.
 
 - Include min/max padding options here?
-
-- ChaCha/Poly block must be of known size. Otherwise, we must prepend an
-  obfuscated length field. If we must do that, we may as well prepend
-  a 16-byte options block, and AES encrypt it, same as message 1.
 
 - Is the fixed-size option block big enough?
 
@@ -1333,8 +1337,8 @@ Raw contents:
   +                                       +
   |                                       |
   +----+----+----+----+----+----+----+----+
-  |obf. size|                             |
-  +----+----+                             +
+  |                                       |
+  +     Length specified in message 1     +
   |                                       |
   +   ChaCha/Poly frame                   +
   |   Encrypted and authenticated         |
@@ -1352,12 +1356,11 @@ Raw contents:
   |                                       |
   +----+----+----+----+----+----+----+----+
 
-  obf. size :: Size of frame to follow, obfuscated with SipHash
-               KDF for SipHash TBD
+
 
 {% endhighlight %}
 
-Unencrypted data (Poly1305 auth tag not shown):
+Unencrypted data (Poly1305 auth tags not shown):
 
 .. raw:: html
 
@@ -1372,8 +1375,8 @@ Unencrypted data (Poly1305 auth tag not shown):
   |                                       |
   +                                       +
   +----+----+----+----+----+----+----+----+
-  |  size   |                             |
-  +----+----+                             +
+  |                                       |
+  +                                       +
   |                                       |
   +                                       +
   |       Alice's RouterInfo block        |
@@ -1393,8 +1396,6 @@ Unencrypted data (Poly1305 auth tag not shown):
   |                                       |
   +----+----+----+----+----+----+----+----+
 
-  size :: Size of frame to follow, plus 16 for the
-          Poly1305 auth tag (not shown)
 
 {% endhighlight %}
 
@@ -1425,12 +1426,35 @@ Notes
 
 - To facilitate rapid handshaking, implementations must ensure that Alice
   buffers and then flushes the entire contents of the third message at once,
-  including both AEAD blocks.
+  including both AEAD frames.
   This increases the likelihood that the data will be contained in a single TCP
   packet (unless segmented by the OS or middleboxes), and received all at once
   by Bob.  This is also for efficiency and to ensure the effectiveness of the
   random padding.
 
+- Message 3 part 2 frame length: The length of this frame (including MAC) is
+  sent by Alice in message 1. See that message for important notes on allowing
+  enough room for padding.
+
+- Message 3 part 2 frame content: This format of this frame is the same as the
+  format of data phase frames, except that the length of the frame is sent
+  by Alice in message 1. See below for the data phase frame format.
+  The frame must contain 1 to 3 blocks in the following order:
+  1) Alice's Router Info block (required)
+  2) Options block (optional)
+  3) Padding block (optional)
+  This frame must never contain any other block type.
+
+- Message 3 part 2 padding is not required if Alice appends a data phase frame
+  (optionally containing padding) to the end of message 3 and sends both at once,
+  as it will appear as one big stream of bytes to an observer.
+  As Alice will generally, but not always, have an I2NP message to send to Bob
+  (that's why she connected to him), this is the recommended implementation,
+  for efficiency and to ensure the effectiveness of the random padding.
+
+- Total length of both Message 3 AEAD frames (parts 1 and 2) is 65535 bytes;
+  part 1 is 48 bytes so part 2 max frame length is 65487;
+  part 2 max plaintext length excluding MAC is 65471.
 
 
 Key Derivation Function (KDF) (for data phase)
@@ -1533,7 +1557,7 @@ Notes
 `````
 - For efficiency and to minimize identification of the length field,
   implementations must ensure that the sender buffers and then flushes the entire contents
-  of data messages at once, including the length field and the AEAD block.
+  of data messages at once, including the length field and the AEAD frame.
   This increases the likelihood that the data will be contained in a single TCP packet
   (unless segmented by the OS or middleboxes), and received all at once the other party.
   This is also for efficiency and to ensure the effectiveness of the random padding.
@@ -1584,9 +1608,6 @@ Following is from obfs4:
    and does not include the padding.  It is possible for the payload length to
    be 0 in which case all the remaining data is authenticated and decrypted,
    but ignored.
-
-   The maximum allowed frame length is 1448 bytes, which allows up to 1427
-   bytes of useful payload to be transmitted per "frame".
 
 {% endhighlight %}
 
@@ -1812,7 +1833,7 @@ I2NP Message
 
 An single I2NP message with a modified header.
 I2NP messages may not be fragmented across blocks or
-across chacha/poly segments.
+across chacha/poly frames.
 
 This removes 7 bytes from the NTCP I2NP header:
 The one-byte SHA-256 checksum,
@@ -1877,7 +1898,7 @@ This should be the last non-padding block.
          9: AEAD framing error
          10: payload framing error
           ...
-  last valid nonce received: The nonce (counter) for the last valid AEAD block received
+  last valid nonce received: The nonce (counter) for the last valid AEAD frame received
                              8 bytes
 
   Note: Not all reasons may actually be used; handshake failures will
@@ -2157,7 +2178,7 @@ To detect the version of an incoming NTCP connection, Bob proceeds as follows:
       - Verify a valid point on the curve.
         If it fails, wait a short time for more data for NTCP 1
 
-      - Verify the AEAD block.
+      - Verify the AEAD frame.
         If it fails, wait a short time for more data for NTCP 1
 
 Note that changes or additional strategies may be recommended if we detect
