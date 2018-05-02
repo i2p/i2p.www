@@ -5,7 +5,7 @@ New Encryption Proposal Template
     :author: zzz
     :created: 2018-01-11
     :thread: http://zzz.i2p/topics/2499
-    :lastupdated: 2017-01-20
+    :lastupdated: 2018-01-20
     :status: Meta
 
 .. contents::
