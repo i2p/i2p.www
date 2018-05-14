@@ -6,7 +6,7 @@ NTCP 2
     :editor: manas, str4d
     :created: 2014-02-13
     :thread: http://zzz.i2p/topics/1577
-    :lastupdated: 2018-05-07
+    :lastupdated: 2018-05-14
     :status: Open
     :supercedes: 106
 
@@ -31,6 +31,10 @@ of all protocol messages is given. Finally, router addresses and version
 identification are discussed. An appendix discussing a generic attack on common
 padding schemes is also included, as well as an appendix containing a number of
 candidates for the authenticated cipher.
+
+As with other I2P transports, NTCP2 is defined solely
+for point-to-point (router-to-router) transport of I2NP messages.
+It is not a general-purpose data pipe.
 
 
 Motivation
@@ -366,6 +370,20 @@ Noise_XK_25519_ChaChaPoly_SHA256.  These generally follow the guidelines in
    It of course is not defined in Noise.
 
 
+New Cryptographic Primitives for I2P
+====================================
+
+Existing I2P router implementations will require implementations for
+the following standard cryptographic primitives,
+which are not required for current I2P protocols:
+
+1) X25519 key generation and DH
+
+2) ChaCha/Poly1305 AEAD
+
+3) SipHash
+
+
 Processing overhead estimate
 ============================
 
@@ -373,12 +391,12 @@ Message sizes for the 3 messages:
 
 1) 64 bytes + padding   (NTCP was 288 bytes)
 2) 56 bytes + padding   (NTCP was 304 bytes)
-3) 66 bytes + Alice router info + padding   Average router info is about 750
-   bytes   Total average 816 bytes   (NTCP was 448 bytes)
+3) approx. 64 bytes + Alice router info + padding   Average router info is about 750
+   bytes   Total average 814 bytes   (NTCP was 448 bytes)
 4) not required in NTCP2   (NTCP was 48 bytes)
 
 Total before padding:
-NTCP2: 936 bytes
+NTCP2: 934 bytes
 NTCP: 1088 bytes
 Note that if Alice connected to Bob for the purpose of sending
 a DatabaseStore Message of her RouterInfo, that message is not required,
@@ -392,8 +410,8 @@ the handshake and start the data phase:
   all connections) (not including HMAC-SHA256)
 - HMAC-SHA256: 15
 - ChaCha/Poly: 4
+- X25519 Keygen: 1
 - X25519 DH: 3
-- SipHash: 1
 - Signature verification: 1 (Bob) (Alice previously signed when generating her
   RI)  Presumably Ed25519 (dependent on RI sigtype)
 
@@ -759,7 +777,7 @@ Raw contents:
   +             (32 bytes)                +
   |   k = KDF from KDF for msg 1          |
   +   n = 0                               +
-  |                                       |
+  |   see KDF for associated data         |
   +----+----+----+----+----+----+----+----+
   |     unencrypted, authenticated        |
   ~         padding (optional)            ~
@@ -943,7 +961,6 @@ Key Derivation Function (KDF) (for handshake message 2)
 
   {% highlight lang='text' %}
 
-// probably do this also:
   h = SHA256(h || random padding from message 1)
 
   This is the "e" message pattern:
@@ -1072,7 +1089,7 @@ Raw contents:
   +   Encrypted and authenticated data    +
   |   24 bytes                            |
   +   k from KDF for msg 2                +
-  |   n = 0                               |
+  |   n = 0; see KDF for associated data  |
   +----+----+----+----+----+----+----+----+
   |     unencrypted, authenticated        |
   +         padding (optional)            +
@@ -1185,7 +1202,6 @@ Encryption for for handshake message 3 part 1, using message 1 KDF)
 
   {% highlight lang='text' %}
 
-// probably do this also:
   h = SHA256(h || random padding from message 2)
   // h is used as the associated data for the AEAD in message 3 part 1, below
 
@@ -1252,16 +1268,6 @@ This is the "se" message pattern:
   // retain the chaining key ck for the data phase KDF
 
   End of "se" message pattern.
-
-  KDF for SipHash for length field:
-  SipHash uses two 8-byte keys (big endian) and 8 byte IV for first data.
-
-  Alice to Bob SipHash k1, k2, IV:
-
-  sipkeys_ab = HMAC-SHA256(temp_key, k_ba || byte(0x03)).
-  sipk1_ab = sipkeys[0:7]
-  sipk2_ab = sipkeys[8:15]
-  sipiv_ab = sipkeys[16:23]
 
   // overwrite the temp_key in memory, no longer needed
   temp_key = (all zeros)
@@ -1333,7 +1339,7 @@ Raw contents:
   +                                       +
   |     k from KDF for msg 1              |
   +     n = 1                             +
-  |                                       |
+  |     see KDF for associated data       |
   +                                       +
   |                                       |
   +----+----+----+----+----+----+----+----+
@@ -1351,7 +1357,7 @@ Raw contents:
   +                                       +
   |     k from KDF for msg 3 part 2       |
   +     n = 0                             +
-  |                                       |
+  |     see KDF for associated data       |
   ~               .   .   .               ~
   |                                       |
   +----+----+----+----+----+----+----+----+
@@ -1511,8 +1517,8 @@ ck = from handshake phase
 
 
 
-4) Data and TimeSync
---------------------
+4) Data Phase
+-------------
 
 Noise payload: As defined below, including random padding
 Non-noise payload: none
@@ -1567,8 +1573,8 @@ Notes
 
 
 
-SipHash obfuscated length?
-``````````````````````````
+SipHash obfuscated length
+`````````````````````````
 
 Reference: [SipHash]_
 
@@ -1632,8 +1638,8 @@ Raw contents
   +   k = KDF for data phase              +
   |   n starts at 0 and increments        |
   +     for each frame                    +
-  |   16 bytes minimum                    |
-  +                                       +
+  |   no associated data                  |
+  +   16 bytes minimum                    +
   |                                       |
   ~               .   .   .               ~
   |                                       |
@@ -1792,7 +1798,7 @@ Used optionally in the data phase.
   +----+----+----+----+----+----+----+----+
 
   blk :: 2
-  size :: size of router info to follow
+  size :: size of flag + router info to follow
   flg :: 1 byte flag
          bit order: 76543210
          bit 0: 0 for local store, 1 for flood request
@@ -1820,6 +1826,10 @@ Notes
   must not flood the RouterInfo unless there are published
   RouterAddresses in it.
 
+- Implementers must ensure that when reading a block,
+  malformed or malicious data will not cause reads to
+  overrun into the next block.
+
 
 Issues
 ``````
@@ -1835,10 +1845,11 @@ An single I2NP message with a modified header.
 I2NP messages may not be fragmented across blocks or
 across chacha/poly frames.
 
-This removes 7 bytes from the NTCP I2NP header:
-The one-byte SHA-256 checksum,
-go from 8 to 4 bytes for expiration,
-and remove the 2 byte length (use the block size - 9).
+This uses the first 9 bytes from the standard NTCP I2NP header,
+and removes the last 7 bytes of the header, as follows:
+truncate the expiration from 8 to 4 bytes,
+remove the 2 byte length (use the block size - 9),
+and remove the one-byte SHA-256 checksum.
 
 
 .. raw:: html
@@ -1855,7 +1866,7 @@ and remove the 2 byte length (use the block size - 9).
   +----+----+----+----+----+----+----+----+
 
   blk :: 3
-  size :: size of type + msg id + exp + data to follow
+  size :: size of type + msg id + exp + message to follow
           I2NP message body size is (size - 9).
   type :: I2NP msg type, see I2NP spec
   msg id :: I2NP msg id, 4 bytes
@@ -1864,6 +1875,13 @@ and remove the 2 byte length (use the block size - 9).
   message :: I2NP message body
 
 {% endhighlight %}
+
+Notes
+`````
+- Implementers must ensure that when reading a block,
+  malformed or malicious data will not cause reads to
+  overrun into the next block.
+
 
 
 Termination
@@ -1878,13 +1896,13 @@ This should be the last non-padding block.
 
   {% highlight lang='dataspec' %}
 +----+----+----+----+----+----+----+----+
-  | 4  |    1    |rsn |   last valid      
+  | 4  |    9    |rsn |   last valid      
   +----+----+----+----+----+----+----+----+
      nonce received   |
   +----+----+----+----+
 
   blk :: 4
-  size :: 0
+  size :: 9
   rsn :: reason, 1 byte:
          0: unspecified
          1: termination received
@@ -1902,7 +1920,7 @@ This should be the last non-padding block.
                              8 bytes
 
   Note: Not all reasons may actually be used; handshake failures will
-        generally result in immediate close with TCP RST instead.
+        generally result in a close with TCP RST instead.
 
 {% endhighlight %}
 
@@ -1957,7 +1975,8 @@ Padding Issues
 Other block types
 `````````````````
 Implementations should ignore unknown block types for
-forward compatibility.
+forward compatibility, except in message 3 part 2, where
+unknown blocks are not allowed.
 
 
 Future work
