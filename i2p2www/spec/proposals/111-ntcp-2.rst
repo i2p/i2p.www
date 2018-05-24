@@ -6,7 +6,7 @@ NTCP 2
     :editor: manas, str4d
     :created: 2014-02-13
     :thread: http://zzz.i2p/topics/1577
-    :lastupdated: 2018-05-21
+    :lastupdated: 2018-05-24
     :status: Open
     :supercedes: 106
 
@@ -407,7 +407,7 @@ The following crypto operations are required by each party to complete
 the handshake and start the data phase:
 
 - AES: 2
-- SHA256: 8 (Alice), 6 (Bob) (not including 4 Alice, 6 Bob precalculated for
+- SHA256: 7 (Alice), 6 (Bob) (not including 1 Alice, 2 Bob precalculated for
   all connections) (not including HMAC-SHA256)
 - HMAC-SHA256: 15
 - ChaCha/Poly: 4
@@ -597,8 +597,8 @@ AEAD Error Handling
 - Take the same error action for an invalid length field value.
 
 
-Key Derivation Function (KDF) (for handshake message 1 and message 3 part 1)
-----------------------------------------------------------------------------
+Key Derivation Function (KDF) (for handshake message 1)
+-------------------------------------------------------
 
 The KDF generates a handshake phase ciper key k from the DH result,
 using HMAC-SHA256(key, data) as defined in [RFC-2104]_.
@@ -616,7 +616,7 @@ This is the "e" message pattern:
    (US-ASCII encoded, no NULL termination).
 
   Define Hash h = 32 bytes
-  h = SHA256(protocol_name);
+  h = protocol_name;
 
   Define ck = 32 byte chaining key.
   Set ck = h
@@ -624,12 +624,6 @@ This is the "e" message pattern:
   Define rs = Bob's 32-byte static key as published in the RouterInfo
 
   // MixHash(null prologue)
-  h = SHA256(h);
-  // No Alice static key
-  // MixHash(null s)
-  h = SHA256(h);
-  // No Alice ephemeral key
-  // MixHash(null e)
   h = SHA256(h);
 
   // up until here, can all be precalculated by Alice for all outgoing connnections
@@ -640,9 +634,6 @@ This is the "e" message pattern:
   // MixHash(rs)
   // || below means append
   h = SHA256(h || rs);
-  // No Bob ephemeral key
-  // MixHash(null re)
-  h = SHA256(h);
 
   // up until here, can all be precalculated by Bob for all incoming connnections
 
@@ -955,13 +946,18 @@ Issues
 
 
 
-Key Derivation Function (KDF) (for handshake message 2)
--------------------------------------------------------
+Key Derivation Function (KDF) (for handshake message 2 and message 3 part 1)
+----------------------------------------------------------------------------
 
 .. raw:: html
 
   {% highlight lang='text' %}
 
+  // MixHash(ciphertext)
+  h = SHA256(h || 32 byte encrypted payload from message 1)
+
+  // MixHash(padding)
+  // Only if padding length is nonzero
   h = SHA256(h || random padding from message 1)
 
   This is the "e" message pattern:
@@ -1196,13 +1192,18 @@ Issues
 
 
 
-Encryption for for handshake message 3 part 1, using message 1 KDF)
+Encryption for for handshake message 3 part 1, using message 2 KDF)
 -------------------------------------------------------------------
 
 .. raw:: html
 
   {% highlight lang='text' %}
 
+  // MixHash(ciphertext)
+  h = SHA256(h || 24 byte encrypted payload from message 2)
+
+  // MixHash(padding)
+  // Only if padding length is nonzero
   h = SHA256(h || random padding from message 2)
   // h is used as the associated data for the AEAD in message 3 part 1, below
 
@@ -1338,7 +1339,7 @@ Raw contents:
   +   Alice's static key                  +
   |      (32 bytes)                       |
   +                                       +
-  |     k from KDF for msg 1              |
+  |     k from KDF for msg 2              |
   +     n = 1                             +
   |     see KDF for associated data       |
   +                                       +
