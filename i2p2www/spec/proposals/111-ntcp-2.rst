@@ -6,7 +6,7 @@ NTCP 2
     :editor: manas, str4d
     :created: 2014-02-13
     :thread: http://zzz.i2p/topics/1577
-    :lastupdated: 2018-05-24
+    :lastupdated: 2018-06-05
     :status: Open
     :supercedes: 106
 
@@ -326,7 +326,9 @@ Noise has similar properties to the Station-To-Station protocol
 is the initiator, and Bob is the responder.
 
 The Noise Protocol Identifier for NTCP2 is Noise_XK_25519_ChaChaPoly_SHA256.
-This uses the following primitives:
+(Actual identifier for initial key derivation function may be different,
+to indicate I2P extensions - see KDF 1 section below)
+This Noise protocol uses the following primitives:
 
 - Handshake Pattern: XK
   Alice transmits her key to Bob (X)
@@ -359,7 +361,7 @@ Noise_XK_25519_ChaChaPoly_SHA256.  These generally follow the guidelines in
    Random AEAD padding is added to message 3 and data phase messages.
 
 3) A two-byte frame length field is added, as is required for Noise over TCP,
-   and as in obfs4. This is used in the data phase messages.
+   and as in obfs4. This is used in the data phase messages only.
    Message 1 and 2 AEAD frames are fixed length.
    Message 3 part 1 AEAD frame is fixed length.
    Message 3 part 2 AEAD frame length is specified in message 1.
@@ -368,7 +370,7 @@ Noise_XK_25519_ChaChaPoly_SHA256.  These generally follow the guidelines in
    as in obfs4.
 
 5) The payload format is defined for messages 1,2,3, and the data phase.
-   It of course is not defined in Noise.
+   Of course, this is not defined in Noise.
 
 
 New Cryptographic Primitives for I2P
@@ -611,10 +613,15 @@ exactly as defined in the Noise spec.
 
 This is the "e" message pattern:
 
+  //NOTE: This is for testing only.
+  //Will probably change to add I2P extension names in the final version.
   Define protocol_name.
   Set protocol_name = "Noise_XK_25519_ChaChaPoly_SHA256" which is 32 bytes
    (US-ASCII encoded, no NULL termination).
 
+  //NOTE: This is for testing only.
+  //When protocol_name changes to be longer than 32 bytes, this will
+  //be changed to h = SHA256(protocol_name).
   Define Hash h = 32 bytes
   h = protocol_name;
 
@@ -922,10 +929,9 @@ Notes
   This is also for efficiency and to ensure the effectiveness of the random
   padding.
 
-- "ver" field: The overall noise protocol (Noise_XK_25519_ChaChaPoly_SHA256) is
-  advertised in the Router Info; the NTCP protocol including payload definitions
-  and other details is NTCP2. This field may be used to indicate support for
-  future changes to these details.
+- "ver" field: The overall Noise protocol, extensions, and NTCP protocol
+  including payload specifications, incidating NTCP2.
+  This field may be used to indicate support for future changes.
 
 - Message 3 part 2 length: This is the size of the second AEAD frame (including 16-byte MAC)
   containing Alice's Router Info and optional padding that will be sent in
@@ -1097,7 +1103,7 @@ Raw contents:
 
   Y :: AES-256-CBC encrypted Y, little endian
           key: RH_B
-          iv: As published in Bobs netdb
+          iv: Using AES state from message 1
 
 {% endhighlight %}
 
@@ -1648,7 +1654,9 @@ Raw contents
   +----+----+----+----+----+----+----+----+
 
   obf size :: 2 bytes length obfuscated with SipHash
+              when de-obfuscated: 16 - 65535
 
+  Minimum size is 18 bytes.
   Maximum size is 65537 bytes.
   Obfuscated length is 2 bytes.
   Maximum ChaCha/poly frame is 65535 bytes.
@@ -2018,16 +2026,8 @@ protocol identifier of either "NTCP" or "NTCP2".
 The RouterAddress must contain "host" and "port" options, as in
 the current NTCP protocol.
 
-The RouterAddress must contain four options
+The RouterAddress must contain three options
 to indicate NTCP2 support:
-
-- n=NXK2CS
-  The Noise Protocol Name.
-  Value shortened from Noise_XK_25519_ChaChaPoly_SHA256.
-  Future values will be named similarly, with 6 chars to represent
-  the 5 Noise name fields.
-  TODO: There may be value in using the "official" noise name,
-  at a cost of 26 bytes per address.
 
 - s=(Base64 key)
   The current Noise static public key (s) for this RouterAddress.
@@ -2053,12 +2053,12 @@ to indicate NTCP2 support:
 Alice must verify that all three options are present and valid
 before connecting using the NTCP2 protocol.
 
-When published as "NTCP" with "n", "s", "i", and "v" options,
+When published as "NTCP" with "s", "i", and "v" options,
 the router must accept incoming connections on that host and port
 for both NTCP and NTCP2 protocols, and automatically detect the protocol
 version.
 
-When published as "NTCP2" with "n", "s", "i", and "v" options,
+When published as "NTCP2" with "s", "i", and "v" options,
 the router accepts incoming connections on that host and port
 for the NTCP2 protocol only.
 
@@ -2066,6 +2066,8 @@ If a router supports both NTCP1 and NTCP2 connections but
 does not implement automatic version detection for incoming connections,
 it must advertise both "NTCP" and "NTCP2" addresses, and include
 the ntcp2 options in the "NTCP2" address only.
+The router should set a lower cost value (higher priority)
+in the "NTCP2" address than the "NTCP" address, so NTCP2 is preferred.
 
 If multiple NTCP2 RouterAddresses (either as "NTCP" or "NTCP2") are published
 in the same RouterInfo (for additional IP addresses or ports),
@@ -2081,17 +2083,13 @@ If Alice does not publish her NTCP2 address (as "NTCP" or "NTCP2),
 she must include her Noise static public key in her RouterInfo options.
 The option name is N(shortened Noise name)(NTCP2 Version)s.
 
-- NNXK2CS2s=(Base64 key)
-  Name shortened from (N)TCP2 (N)oise_(XK)_(2)5519_(C)haChaPoly_(S)HA256
-  version (2) (s)tatic key.
-  Future options will be named similarly, with 6 chars to represent
-  the 5 Noise name fields.
+- N2s=(Base64 key)
+  Name shortened from (N)oise version (2) (s)tatic key.
+  Future options will be named similarly.
   The current Noise static public key (s) for this Router.
   Base 64 encoded using the standard I2P Base 64 alphabet.
   32 bytes in binary, 44 bytes as Base 64 encoded,
   little-endian X25519 public key.
-  TODO: There may be value in using the "official" noise name,
-  at a cost of 26 bytes per address.
 
 
 
