@@ -3,7 +3,7 @@ I2NP Specification
 ==================
 .. meta::
     :category: Protocols
-    :lastupdated: March 2018
+    :lastupdated: June 2018
     :accuratefor: 0.9.34
 
 .. contents::
@@ -451,7 +451,7 @@ Notes
   Session Key immediately follows the flag byte. Clove encryption is not fully
   implemented.
 
-* See also the garlic routing specification [GARLIC]_.
+* See also the garlic routing specification [GARLICSPEC]_.
 
 * Maximum length is a function of the total length of all the cloves and the
   maximum length of the GarlicMessage.
@@ -1283,7 +1283,7 @@ References
 .. [ElG-AES]
     {{ site_url('docs/how/elgamal-aes', True) }}
 
-.. [GARLIC]
+.. [GARLICSPEC]
     {{ site_url('docs/how/garlic-routing', True) }}
 
 .. [Hash]
