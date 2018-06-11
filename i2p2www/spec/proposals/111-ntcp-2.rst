@@ -6,7 +6,7 @@ NTCP 2
     :editor: manas, str4d
     :created: 2014-02-13
     :thread: http://zzz.i2p/topics/1577
-    :lastupdated: 2018-06-05
+    :lastupdated: 2018-06-11
     :status: Open
     :supercedes: 106
 
@@ -625,7 +625,7 @@ This is the "e" message pattern:
   Define Hash h = 32 bytes
   h = protocol_name;
 
-  Define ck = 32 byte chaining key.
+  Define ck = 32 byte chaining key. Copy the h data to ck.
   Set ck = h
 
   Define rs = Bob's 32-byte static key as published in the RouterInfo
@@ -670,7 +670,7 @@ This is the "e" message pattern:
   Define temp_key = 32 bytes
   Define HMAC-SHA256(key, data) as in [RFC-2104]_
   // Generate a temp key from the chaining key and DH result
-  // ck is the chaining key, which is the hash of the noise name, defined above
+  // ck is the chaining key, defined above
   temp_key = HMAC-SHA256(ck, input_key_material)
   // overwrite the DH result in memory, no longer needed
   input_key_material = (all zeros)
@@ -783,15 +783,15 @@ Raw contents:
   |     length defined in options block   |
   +----+----+----+----+----+----+----+----+
 
-  X :: AES-256-CBC encrypted X, little endian
+  X :: 32 bytes, AES-256-CBC encrypted X25519 ephemeral key, little endian
           key: RH_B
           iv: As published in Bobs netdb
 
   padding :: Random data, 0 or more bytes.
              Total message length must be 65535 bytes or less.
              Total message length must be 287 bytes or less if
-             Bob is publishing his address as "NTCP"
-             (see Version Detection section below)
+             Bob is publishing his address as NTCP
+             (see Version Detection section below).
              Alice and Bob will use the padding data in the KDF for message 2.
              It is authenticated in that any tampering will cause the
              next message to fail.
@@ -823,7 +823,7 @@ Unencrypted data (Poly1305 auth tag not shown):
   |                                       |
   +----+----+----+----+----+----+----+----+
 
-  X :: 32 bytes, little endian
+  X :: 32 bytes, X25519 ephemeral key, little endian
 
   options :: options block, 16 bytes
 
@@ -850,18 +850,18 @@ Note: All fields are big-endian.
   |        tsA        |   Reserved (0)    |
   +----+----+----+----+----+----+----+----+
 
-  ver :: Protocol version (currently 2)
+  ver :: 2 bytes, protocol version (currently 2)
 
-  padLen :: Length of the padding, 0 or more
+  padLen :: 2 bytes, length of the padding, 0 or more
             Min/max guidelines TBD. Random size from 0 to 31 bytes minimum?
             (Distribution to be determined, see Appendix A.)
 
-  m3p2Len :: Length of the the second AEAD frame in SessionConfirmed
+  m3p2Len :: 2 bytes, length of the the second AEAD frame in SessionConfirmed
              (message 3 part 2) See notes below
 
   rsvd :: 2 bytes, set to 0 for compatiblity with future options
 
-  tsA :: Unix timestamp, unsigned seconds.
+  tsA :: 4 bytes, Unix timestamp, unsigned seconds.
          Wraps around in 2106
 
   Reserved :: 4 bytes, set to 0 for compatiblity with future options
@@ -945,6 +945,9 @@ Notes
   In either case, the "m3p2len" length included in message 1 must be exactly the
   size of that frame when sent in message 3.
 
+- Bob must fail the connection if any incoming data remains after validating
+  message 1 and reading in the padding. There should be no extra data from Alice,
+  as Bob has not responded with message 2 yet.
 
 Issues
 ``````
@@ -1101,7 +1104,7 @@ Raw contents:
   |                                       |
   +----+----+----+----+----+----+----+----+
 
-  Y :: AES-256-CBC encrypted Y, little endian
+  Y :: 32 bytes, AES-256-CBC encrypted X25519 ephemeral key, little endian
           key: RH_B
           iv: Using AES state from message 1
 
@@ -1130,15 +1133,15 @@ Unencrypted data (Poly1305 auth tag not shown):
   |                                       |
   +----+----+----+----+----+----+----+----+
 
-  Y :: 32 bytes, little endian
+  Y :: 32 bytes, X25519 ephemeral key, little endian
 
-  padLen :: Length of the padding, 0 or more
+  padLen :: 2 bytes, big endian, length of the padding, 0 or more
             Min/max guidelines TBD. Random size from 0 to 31 bytes minimum?
             (Distribution to be determined, see Appendix A.)
 
   Reserved :: 2 bytes, set to 0 for compatiblity with future options
 
-  tsB :: Unix timestamp, unsigned seconds.
+  tsB :: 4 bytes, big endian, Unix timestamp, unsigned seconds.
          Wraps around in 2106
 
   padding :: Random data, 0 or more bytes.
@@ -1179,19 +1182,12 @@ Notes
   received all at once by Alice.  This is also for efficiency and to ensure the
   effectiveness of the random padding.
 
+- Alice must fail the connection if any incoming data remains after validating
+  message 2 and reading in the padding. There should be no extra data from Bob,
+  as Alice has not responded with message 3 yet.
 
 Issues
 ``````
-- Is it good practice to include the IP and port of both parties in the
-  signature to avoid replay attacks within the bounds of what is undetectable
-  with timestamps? This is what SSU does, but it doesn't seem to be necessary
-  as X and Y also have to match.
-
-- Should the padding be inside the authenticated data, not outside?
-  It's inside for obfs4. Noise implies it should be inside.
-  The arbitrary padding is not encrypted but it is used in the KDF
-  for message 3 part 1, so any tampering will cause the handshake to fail.
-
 - Include min/max padding options here?
 
 - Is the fixed-size option block big enough?
@@ -1342,7 +1338,7 @@ Raw contents:
   |                                       |
   +   ChaCha/Poly frame (48 bytes)        +
   |   Encrypted and authenticated         |
-  +   Alice's static key                  +
+  +   Alice's static key S                +
   |      (32 bytes)                       |
   +                                       +
   |     k from KDF for msg 2              |
@@ -1370,7 +1366,8 @@ Raw contents:
   |                                       |
   +----+----+----+----+----+----+----+----+
 
-
+  S :: 32 bytes, ChaCha/Poly encrypted Alice's X25519 static key, little endian
+       inside 48 byte ChaCha/Poly frame
 
 {% endhighlight %}
 
@@ -1382,7 +1379,7 @@ Unencrypted data (Poly1305 auth tags not shown):
 +----+----+----+----+----+----+----+----+
   |                                       |
   +                                       +
-  |                                       |
+  |              S                        |
   +       Alice's static key              +
   |          (32 bytes)                   |
   +                                       +
@@ -1409,6 +1406,8 @@ Unencrypted data (Poly1305 auth tags not shown):
   ~               .   .   .               ~
   |                                       |
   +----+----+----+----+----+----+----+----+
+
+  S :: 32 bytes, Alice's X25519 static key, little endian
 
 
 {% endhighlight %}
@@ -1696,14 +1695,15 @@ so the max unencrypted data is 65519 bytes.
   +----+----+----+----+----+----+----+----+
   ~               .   .   .               ~
 
-  blk :: 0 for datetime,
+  blk :: 1 byte
+         0 for datetime,
          1 for options,
          2 for RouterInfo,
          3 for I2NP msg,
          4 for termination,
          254 for padding
          255 reserved for future extension
-  size :: size of data to follow, 0 - 65516
+  size :: 2 bytes, big endian, size of data to follow, 0 - 65516
   data :: the data
 
   Maximum ChaCha/Poly frame is 65535 bytes.
@@ -1715,6 +1715,24 @@ so the max unencrypted data is 65519 bytes.
   Maximum single block data size is 65516 bytes.
 
 {% endhighlight %}
+
+
+Block Ordering Rules
+````````````````````
+In the handshake message 3 part 2, order must be:
+RouterInfo, followed by Options if present, followed by Padding if present.
+No other blocks are allowed.
+
+In the data phase, order is unspecified, except for the
+following requirements:
+Padding, if present, must be the last block.
+Termination, if present, must be the last block except for Padding.
+
+There may be multiple I2NP blocks in a single frame.
+Multiple Padding blocks are not allowed in a single frame.
+Other block types probably won't have multiple blocks in
+a single frame, but it is not prohibited.
+
 
 
 DateTime
@@ -1729,7 +1747,7 @@ Special case for time synchronization:
   +----+----+----+----+----+----+----+
 
   blk :: 0
-  size :: 4
+  size :: 2 bytes, big endian, value = 4
   timestamp :: Unix timestamp, unsigned seconds.
                Wraps around in 2106
 
@@ -1748,35 +1766,37 @@ Options block will be variable length.
 
   {% highlight lang='dataspec' %}
 +----+----+----+----+----+----+----+----+
-  | 1  |  size   |     options            |
-  +----+----+----+                        +
-  |                                       |
+  | 1  |  size   |tmin|tmax|rmin|rmax|    |
+  +----+----+----+----+----+----+----+    +
+  |            more_options               |
   ~               .   .   .               ~
   |                                       |
   +----+----+----+----+----+----+----+----+
 
   blk :: 1
-  size :: size of options to follow TBD
-  options :: Format TBD
+  size :: 2 bytes, big endian, size of options to follow, 4 bytes minimum TBD
 
-  Requested padding parameters.
-  Min is for desired DPI resistance
-  Max is for bandwidth limits.
-  4 bytes tx_pad_min, tx_pad_max, rx_pad_min, rx_pad_max
-  Each is a 4.4 fixed-point float representing 0 to 15.9375
-  (or think of it as an unsigned 8-bit integer divided by 16.0).
-  This is the ratio of padding to data. Examples:
-  Value of 0x00 means no padding
-  Value of 0x01 means add 6% padding
-  Value of 0x10 means add 100% padding
-  Value of 0x80 means add 800% (8x) padding
-  Alice and Bob will negotiate the minimum and maximum in each direction.
-  These are guidelines, there is no enforcement.
-  Sender should honor receiver's maximum.
-  Sender may or may not honor receiver's minimum, within bandwidth constraints.
+  tmin, tmax, rmin, rmax :: requested padding limits
+      tmin and rmin are for desired resistance to traffic analysis.
+      tmax and rmax are for bandwidth limits.
+      tmin and tmax are the transmit limits for the router sending this options block.
+      rmin and rmax are the receive limits for the router sending this options block.
+      Each is a 4.4 fixed-point float representing 0 to 15.9375
+      (or think of it as an unsigned 8-bit integer divided by 16.0).
+      This is the ratio of padding to data. Examples:
+      Value of 0x00 means no padding
+      Value of 0x01 means add 6% padding
+      Value of 0x10 means add 100% padding
+      Value of 0x80 means add 800% (8x) padding
+      Alice and Bob will negotiate the minimum and maximum in each direction.
+      These are guidelines, there is no enforcement.
+      Sender should honor receiver's maximum.
+      Sender may or may not honor receiver's minimum, within bandwidth constraints.
 
   Padding distribution specified as additional parameters?
   Random delay specified as additional parameters?
+
+  more_options :: Format TBD
 
 {% endhighlight %}
 
@@ -1808,7 +1828,7 @@ Used optionally in the data phase.
   +----+----+----+----+----+----+----+----+
 
   blk :: 2
-  size :: size of flag + router info to follow
+  size :: 2 bytes, big endian, size of flag + router info to follow
   flg :: 1 byte flag
          bit order: 76543210
          bit 0: 0 for local store, 1 for flood request
@@ -1846,6 +1866,9 @@ Issues
 - Could also be used in data phase, instead of a I2NP DatabaseStoreMessage.
   For example, Bob could use it to start off the data phase.
 
+- Is it allowed for this to contain the RI for routers other than the
+  originator, as a general replacement for DatabaseStoreMessages,
+  e.g. for flooding by floodfills?
 
 
 I2NP Message
@@ -1876,11 +1899,11 @@ and remove the one-byte SHA-256 checksum.
   +----+----+----+----+----+----+----+----+
 
   blk :: 3
-  size :: size of type + msg id + exp + message to follow
+  size :: 2 bytes, big endian, size of type + msg id + exp + message to follow
           I2NP message body size is (size - 9).
-  type :: I2NP msg type, see I2NP spec
-  msg id :: I2NP msg id, 4 bytes
-  short exp :: I2NP message expiration, Unix timestamp, unsigned seconds.
+  type :: 1 byte, I2NP msg type, see I2NP spec
+  msg id :: 4 bytes, big endian, I2NP message ID
+  short exp :: 4 bytes, big endian, I2NP message expiration, Unix timestamp, unsigned seconds.
                Wraps around in 2106
   message :: I2NP message body
 
@@ -1899,54 +1922,70 @@ Termination
 Noise recommends an explicit termination message.
 Original NTCP doesn't have one.
 Drop the connection.
-This should be the last non-padding block.
+This must be the last non-padding block in the frame.
 
 
 .. raw:: html
 
   {% highlight lang='dataspec' %}
 +----+----+----+----+----+----+----+----+
-  | 4  |    9    |rsn |   last valid      
+  | 4  |  size   |    valid data frames   |
   +----+----+----+----+----+----+----+----+
-     nonce received   |
-  +----+----+----+----+
+      received   | rsn|     addl data     |
+  +----+----+----+----+                   +
+  ~               .   .   .               ~
+  +----+----+----+----+----+----+----+----+
 
   blk :: 4
-  size :: 9
+  size :: 2 bytes, big endian, value = 9 or more
+  valid data frames received :: The number of valid AEAD data phase frames received
+                                (current receive nonce value)
+                                0 if error occurs in handshake phase
+                                8 bytes, big endian
   rsn :: reason, 1 byte:
-         0: unspecified
+         0: normal close or unspecified
          1: termination received
          2: idle timeout
          3: router shutdown
-         4: AEAD failure
+         4: data phase AEAD failure
          5: incompatible options
          6: incompatible sig type
          7: clock skew
          8: padding violation
          9: AEAD framing error
-         10: payload framing error
-          ...
-  last valid nonce received: The nonce (counter) for the last valid AEAD frame received
-                             8 bytes
-
-  Note: Not all reasons may actually be used; handshake failures will
-        generally result in a close with TCP RST instead.
+         10: payload format error
+         11: message 1 error
+         12: message 2 error
+         13: message 3 error
+         14: intra-frame read timeout
+  addl data :: optional, 0 or more bytes, for future expansion or debugging,
+               format unspecified and may vary based on reason code
 
 {% endhighlight %}
+
+Notes
+`````
+Not all reasons may actually be used, implementation dependent.
+Handshake failures will generally result in a close with TCP RST instead.
+See notes in handshake message sections above.
+Additional reasons listed are for consistency, logging, debugging, or if policy changes.
+
 
 
 
 Padding
 ```````
-This is for padding inside AEAD.
-Padding for messages 1 and 2 are outside AEAD.
-All padding for message 3 and the data phase is inside AEAD.
+This is for padding inside AEAD frames.
+Padding for messages 1 and 2 are outside AEAD frames.
+All padding for message 3 and the data phase are inside AEAD frames.
 
 Padding inside AEAD should roughly adhere to the negotiated parameters.
 Bob sent his requested tx/rx min/max parameters in message 2.
 Alice sent her requested tx/rx min/max parameters in message 3.
 Updated options may be sent during the data phase.
 See options block information above.
+
+If present, this must be the last block in the frame.
 
 
 
@@ -1962,24 +2001,21 @@ See options block information above.
   +----+----+----+----+----+----+----+----+
 
   blk :: 254
-  size :: size of padding to follow
+  size :: 2 bytes, big endian, size of padding to follow
   padding :: random data
 
 {% endhighlight %}
 
-Padding Issues
-``````````````
+Notes
+`````
 - Padding strategies TBD.
 - Minimum padding TBD.
-- Need for padding-only messages TBD.
+- Padding-only frames are allowed.
 - Padding defaults TBD.
-- Padding parameter negotiation TBD.
-- Is padding important for data phase or only handshake?
-- How to ensure low-bandwidth routers aren't "swamped"
-- How to ensure high-bandwidth routers send/receive enough padding
-- Noise limits messages to 64KB, any other padding (except in handshake msg 1/2)
-  would have to be outside Noise.
-- Disconnect if negotiated padding is violated or can't negotiate?
+- See options block for padding parameter negotiation
+- See options block for min/max padding parameters
+- Noise limits messages to 64KB. If more padding is necessary, send multiple frames.
+- Router response on violation of negotiated padding is implementation-dependent.
 
 
 Other block types
@@ -2218,9 +2254,8 @@ Variants, Fallbacks, and General Issues
 
 - If Alice and Bob both support NTCP2, Alice should connect with NTCP2.
 
-- If Alice fails to connect to Bob using NTCP2 for any reason, the connection
-  fails.
-  Alice may not retry using old NTCP 1.
+- If Alice fails to connect to Bob using NTCP2 for any reason, the connection fails.
+  Alice may not retry using NTCP 1.
 
 - Fallback to XX pattern if Bob changes his keys? This would require a type
   byte prepended?
