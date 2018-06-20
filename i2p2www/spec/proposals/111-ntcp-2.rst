@@ -778,7 +778,7 @@ Raw contents:
   +   n = 0                               +
   |   see KDF for associated data         |
   +----+----+----+----+----+----+----+----+
-  |     unencrypted, authenticated        |
+  |     unencrypted authenticated         |
   ~         padding (optional)            ~
   |     length defined in options block   |
   +----+----+----+----+----+----+----+----+
@@ -816,7 +816,7 @@ Unencrypted data (Poly1305 authentication tag not shown):
   +              (16 bytes)               +
   |                                       |
   +----+----+----+----+----+----+----+----+
-  |     unencrypted, authenticated        |
+  |     unencrypted authenticated         |
   +         padding (optional)            +
   |     length defined in options block   |
   ~               .   .   .               ~
@@ -1101,7 +1101,7 @@ Raw contents:
   +                                       +
   |                                       |
   +----+----+----+----+----+----+----+----+
-  |     unencrypted, authenticated        |
+  |     unencrypted authenticated         |
   +         padding (optional)            +
   |     length defined in options block   |
   ~               .   .   .               ~
@@ -1132,7 +1132,7 @@ Unencrypted data (Poly1305 auth tag not shown):
   +              (16 bytes)               +
   |                                       |
   +----+----+----+----+----+----+----+----+
-  |     unencrypted, authenticated        |
+  |     unencrypted authenticated         |
   +         padding (optional)            +
   |     length defined in options block   |
   ~               .   .   .               ~
@@ -1178,6 +1178,9 @@ Notes
   message 2 and reading in the padding. There should be no extra data from Bob,
   as Alice has not responded with message 3 yet.
 
+
+Options block:
+Note: All fields are big-endian.
 
 .. raw:: html
 
@@ -1373,7 +1376,7 @@ Raw contents:
   |                                       |
   +   ChaChaPoly frame (48 bytes)         +
   |   Encrypted and authenticated         |
-  +   Alice's static key S                +
+  +   Alice static key S                  +
   |      (32 bytes)                       |
   +                                       +
   |     k from KDF for message 2          |
@@ -1388,9 +1391,9 @@ Raw contents:
   +   ChaChaPoly frame                    +
   |   Encrypted and authenticated         |
   +                                       +
-  |       Alice's RouterInfo              |
+  |       Alice RouterInfo                |
   +       using block format 2            +
-  |       Alice's Options (optional)      |
+  |       Alice Options (optional)        |
   +       using block format 1            +
   |       Arbitrary padding               |
   +       using block format 254          +
@@ -1417,7 +1420,7 @@ Unencrypted data (Poly1305 auth tags not shown):
   |                                       |
   +                                       +
   |              S                        |
-  +       Alice's static key              +
+  +       Alice static key                +
   |          (32 bytes)                   |
   +                                       +
   |                                       |
@@ -1427,7 +1430,7 @@ Unencrypted data (Poly1305 auth tags not shown):
   +                                       +
   |                                       |
   +                                       +
-  |       Alice's RouterInfo block        |
+  |       Alice RouterInfo block          |
   ~               .   .   .               ~
   |                                       |
   +----+----+----+----+----+----+----+----+
@@ -1682,10 +1685,6 @@ Following is from obfs4:
 {% endhighlight %}
 
 
-Maximum size
-````````````
-
-
 
 Raw contents
 ````````````
@@ -1843,9 +1842,9 @@ Options block will be variable length.
       (or think of it as an unsigned 8-bit integer divided by 16.0).
       This is the ratio of padding to data. Examples:
       Value of 0x00 means no padding
-      Value of 0x01 means add 6% padding
-      Value of 0x10 means add 100% padding
-      Value of 0x80 means add 800% (8x) padding
+      Value of 0x01 means add 6 percent padding
+      Value of 0x10 means add 100 percent padding
+      Value of 0x80 means add 800 percent (8x) padding
       Alice and Bob will negotiate the minimum and maximum in each direction.
       These are guidelines, there is no enforcement.
       Sender should honor receiver's maximum.
@@ -1878,9 +1877,9 @@ Used optionally in the data phase.
 +----+----+----+----+----+----+----+----+
   | 2  |  size   |flg |    RouterInfo     |
   +----+----+----+----+                   +
-  |  (Alice's in handshake msg 3 part 2)  |
-  ~  (Alice's or Bob's in data phase)     ~
-  |                                       |
+  | (Alice RI in handshake msg 3 part 2)  |
+  ~ (Alice, Bob, or third-party           ~
+  |  RI in data phase)                    |
   ~               .   .   .               ~
   |                                       |
   +----+----+----+----+----+----+----+----+
@@ -2023,7 +2022,7 @@ This must be the last non-padding block in the frame.
          13: message 3 error
          14: intra-frame read timeout
          15: RI signature verification fail
-         16: "s" missing, invalid, or mismatched in RI
+         16: s parameter missing, invalid, or mismatched in RouterInfo
          17: banned
   addl data :: optional, 0 or more bytes, for future expansion or debugging,
                format unspecified and may vary based on reason code
