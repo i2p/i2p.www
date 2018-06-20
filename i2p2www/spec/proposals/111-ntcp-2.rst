@@ -774,7 +774,7 @@ Raw contents:
   +                                       +
   |   ChaChaPoly frame                    |
   +             (32 bytes)                +
-  |   k = KDF from KDF for message 1      |
+  |   k defined in KDF for message 1      |
   +   n = 0                               +
   |   see KDF for associated data         |
   +----+----+----+----+----+----+----+----+
@@ -1096,7 +1096,7 @@ Raw contents:
   |   ChaChaPoly frame                    |
   +   Encrypted and authenticated data    +
   |   32 bytes                            |
-  +   k from KDF for message 2            +
+  +   k defined in KDF for message 2      +
   |   n = 0; see KDF for associated data  |
   +                                       +
   |                                       |
@@ -1379,7 +1379,7 @@ Raw contents:
   +   Alice static key S                  +
   |      (32 bytes)                       |
   +                                       +
-  |     k from KDF for message 2          |
+  |     k defined in KDF for message 2    |
   +     n = 1                             +
   |     see KDF for associated data       |
   +                                       +
@@ -1399,7 +1399,7 @@ Raw contents:
   +       using block format 254          +
   |                                       |
   +                                       +
-  |     k from KDF for message 3 part 2   |
+  | k defined in KDF for message 3 part 2 |
   +     n = 0                             +
   |     see KDF for associated data       |
   ~               .   .   .               ~
@@ -1696,11 +1696,13 @@ Raw contents
   |obf size |                             |
   +----+----+                             +
   |                                       |
-  +   ChaChaPoly frame                   +
+  +   ChaChaPoly frame                    +
   |   Encrypted and authenticated         |
-  +   k = KDF for data phase              +
+  +   key is k_ab for Alice to Bob        +
+  |   key is k_ba for Bob to Alice        |
+  +   as defined in KDF for data phase    +
   |   n starts at 0 and increments        |
-  +     for each frame                    +
+  +   for each frame in that direction    +
   |   no associated data                  |
   +   16 bytes minimum                    +
   |                                       |
@@ -1711,8 +1713,8 @@ Raw contents
   obf size :: 2 bytes length obfuscated with SipHash
               when de-obfuscated: 16 - 65535
 
-  Minimum size is 18 bytes.
-  Maximum size is 65537 bytes.
+  Minimum size including length field is 18 bytes.
+  Maximum size including length field is 65537 bytes.
   Obfuscated length is 2 bytes.
   Maximum ChaChaPoly frame is 65535 bytes.
 
