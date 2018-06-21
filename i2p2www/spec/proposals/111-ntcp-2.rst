@@ -6,7 +6,7 @@ NTCP 2
     :editor: manas, str4d, zzz
     :created: 2014-02-13
     :thread: http://zzz.i2p/topics/1577
-    :lastupdated: 2018-06-20
+    :lastupdated: 2018-06-21
     :status: Open
     :supercedes: 106
 
@@ -1565,15 +1565,15 @@ ck = from handshake phase
   sip_master = (all zeros)
 
   sipkeys_ab = HMAC-SHA256(temp_key, byte(0x01)).
-  sipk1_ab = sipkeys_ab[0:7]
-  sipk2_ab = sipkeys_ab[8:15]
+  sipk1_ab = sipkeys_ab[0:7], big endian
+  sipk2_ab = sipkeys_ab[8:15], big endian
   sipiv_ab = sipkeys_ab[16:23]
 
   Bob to Alice SipHash k1, k2, IV:
 
   sipkeys_ba = HMAC-SHA256(temp_key, sipkeys_ab || byte(0x02)).
-  sipk1_ba = sipkeys_ba[0:7]
-  sipk2_ba = sipkeys_ba[8:15]
+  sipk1_ba = sipkeys_ba[0:7], big endian
+  sipk2_ba = sipkeys_ba[8:15], big endian
   sipiv_ba = sipkeys_ba[16:23]
 
   // overwrite the temp_key in memory, no longer needed
@@ -1642,48 +1642,37 @@ Notes
 
 SipHash obfuscated length
 `````````````````````````
-
 Reference: [SipHash]_
 
-Following is from obfs4:
+Once both sides have completed the handshake, they transfer payloads
+that are then encrypted and authenticated in ChaChaPoly "frames".
 
+Each frame is preceded by a two-byte length, big endian.
+This length specifies the number of encrypted frame bytes to follow,
+including the MAC.
+To avoid transmitting identifiable length fields in stream, the frame length
+is obfuscated by XORing a mask derived from SipHash, as initialized
+from the data phase KDF.
+Note that the two directions have unique SipHash keys and IVs from the KDF.
 
 .. raw:: html
 
   {% highlight lang='text' %}
-
- Once both sides have completed the handshake, they transfer application
-   data broken up into "packets", that are then encrypted and authenticated in
-   NaCl crypto_secretbox_xsalsa20poly1305 [5] "frames".
-
-   +------------+----------+--------+--------------+------------+------------+
-   |  2 bytes   | 16 bytes | 1 byte |   2 bytes    | (optional) | (optional) |
-   | Frame len. |   Tag    |  Type  | Payload len. |  Payload   |  Padding   |
-   +------------+----------+--------+--------------+------------+------------+
-    \_ Obfs.  _/ \___________ NaCl secretbox (Poly1305/XSalsa20) ___________/
-
-   The frame length refers to the length of the succeeding secretbox.  To
-   avoid transmitting identifiable length fields in stream, the frame length
-   is obfuscated by XORing a mask derived from SipHash-2-4 in OFB mode.
-
-      K = The SipHash-2-4 key from the KDF.  (two 8-byte long integers)
-      IV[0] = The SipHash-2-4 OFB from the KDF. (8 bytes)
-      For each packet:
-        IV[n] = SipHash-2-4(K, IV[n-1])
+      sipk1, sipk2 = The SipHash keys from the KDF.  (two 8-byte long integers)
+      IV[0] = sipiv = The SipHash IV from the KDF. (8 bytes)
+      For each frame:
+        IV[n] = SipHash-2-4(sipk1, sipk2, IV[n-1])
         Mask[n] = First 2 bytes of IV[n]
         obfuscatedLength = length ^ Mask[n]
 
-   As the receiver has the SipHash-2-4 key and IV, decoding the length is done
-   via deriving the mask used to obfsucate the length and XORing the truncated
-   digest to obtain the length of the secretbox.
-
-   The payload length refers to the length of the payload portion of the frame
-   and does not include the padding.  It is possible for the payload length to
-   be 0 in which case all the remaining data is authenticated and decrypted,
-   but ignored.
+      The first length output will be XORed with with IV[1].
 
 {% endhighlight %}
 
+The receiver has the identical SipHash keys and IV.
+Decoding the length is done by deriving the mask used to obfsucate the length and XORing the truncated
+digest to obtain the length of the frame.
+The frame length is the total length of the encrypted frame including the MAC.
 
 
 Raw contents
