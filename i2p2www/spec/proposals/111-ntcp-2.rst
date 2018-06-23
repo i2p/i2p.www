@@ -6,7 +6,7 @@ NTCP 2
     :editor: manas, str4d, zzz
     :created: 2014-02-13
     :thread: http://zzz.i2p/topics/1577
-    :lastupdated: 2018-06-21
+    :lastupdated: 2018-06-26
     :status: Open
     :supercedes: 106
 
@@ -367,7 +367,7 @@ Noise_XK_25519_ChaChaPoly_SHA256.  These generally follow the guidelines in
    Message 3 part 1 AEAD frame is fixed length.
    Message 3 part 2 AEAD frame length is specified in message 1.
 
-4) The two-byte frame length field is obfuscated with SipHash,
+4) The two-byte frame length field is obfuscated with SipHash-2-4,
    as in obfs4.
 
 5) The payload format is defined for messages 1,2,3, and the data phase.
@@ -385,7 +385,7 @@ which are not required for current I2P protocols:
 
 2) AEAD_ChaCha20_Poly1305 (abbreviated as ChaChaPoly below)
 
-3) SipHash
+3) SipHash-2-4
 
 
 Processing overhead estimate
@@ -1660,6 +1660,7 @@ Note that the two directions have unique SipHash keys and IVs from the KDF.
   {% highlight lang='text' %}
       sipk1, sipk2 = The SipHash keys from the KDF.  (two 8-byte long integers)
       IV[0] = sipiv = The SipHash IV from the KDF. (8 bytes)
+      length is big endian.
       For each frame:
         IV[n] = SipHash-2-4(sipk1, sipk2, IV[n-1])
         Mask[n] = First 2 bytes of IV[n]
@@ -1673,6 +1674,13 @@ The receiver has the identical SipHash keys and IV.
 Decoding the length is done by deriving the mask used to obfsucate the length and XORing the truncated
 digest to obtain the length of the frame.
 The frame length is the total length of the encrypted frame including the MAC.
+
+Notes
+`````
+- If you use a SipHash library function that returns an unsigned long integer,
+  use the least significant two bytes as the Mask.
+  Convert the long integer to the next IV as little endian.
+
 
 
 Raw contents
@@ -1814,15 +1822,17 @@ Options block will be variable length.
 
   {% highlight lang='dataspec' %}
 +----+----+----+----+----+----+----+----+
-  | 1  |  size   |tmin|tmax|rmin|rmax|    |
-  +----+----+----+----+----+----+----+    +
-  |            more_options               |
+  | 1  |  size   |tmin|tmax|rmin|rmax|tdmy|
+  +----+----+----+----+----+----+----+----+
+  |tdmy|  rdmy   |  tdelay |  rdelay |    |
+  ~----+----+----+----+----+----+----+    ~
+  |              more_options             |
   ~               .   .   .               ~
   |                                       |
   +----+----+----+----+----+----+----+----+
 
   blk :: 1
-  size :: 2 bytes, big endian, size of options to follow, 4 bytes minimum TBD
+  size :: 2 bytes, big endian, size of options to follow, 12 bytes minimum
 
   tmin, tmax, rmin, rmax :: requested padding limits
       tmin and rmin are for desired resistance to traffic analysis.
@@ -1840,6 +1850,11 @@ Options block will be variable length.
       These are guidelines, there is no enforcement.
       Sender should honor receiver's maximum.
       Sender may or may not honor receiver's minimum, within bandwidth constraints.
+
+  tdmy: Max dummy traffic willing to send, 2 bytes big endian, bytes/sec average
+  rdmy: Requested dummy traffic, 2 bytes big endian, bytes/sec average
+  tdelay: Max intra-message delay willing to insert, 2 bytes big endian, msec average
+  rdelay: Requested intra-message delay, 2 bytes big endian, msec average
 
   Padding distribution specified as additional parameters?
   Random delay specified as additional parameters?
@@ -2015,8 +2030,9 @@ This must be the last non-padding block in the frame.
          15: RI signature verification fail
          16: s parameter missing, invalid, or mismatched in RouterInfo
          17: banned
-  addl data :: optional, 0 or more bytes, for future expansion or debugging,
-               format unspecified and may vary based on reason code
+  addl data :: optional, 0 or more bytes, for future expansion, debugging,
+               or reason text.
+               Format unspecified and may vary based on reason code.
 
 {% endhighlight %}
 
