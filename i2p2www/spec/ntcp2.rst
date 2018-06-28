@@ -2,327 +2,42 @@
 NTCP 2
 ======
 .. meta::
-    :author: EinMByte, orignal, psi, str4d, zzz
-    :editor: manas, str4d, zzz
-    :created: 2014-02-13
-    :thread: http://zzz.i2p/topics/1577
-    :lastupdated: 2018-06-23
-    :status: Closed
-    :supercedes: 106
-    :target: 0.9.36
-    :implementedin: 0.9.36
+    :category: Transports
+    :lastupdated: 2018-06-28
+    :accuratefor: 0.9.36
 
 .. contents::
 
 
 Note
 ====
-Proposal phase is closed.
-See [SPEC]_ for the official specification.
-This proposal may still be referenced for background information.
+Network deployment and testing in progress.
+Subject to minor revisions.
+See [Prop111]_ for the original proposal, including background discussion and additional information.
 
 
 Overview
 ========
 
-This proposal describes an authenticated key agreement protocol to improve the
+NTCP2 is an authenticated key agreement protocol that improves the
 resistance of [NTCP]_ to various forms of automated identification and attacks.
 
-The proposal is organized as follows: the security goals are presented,
-followed by a discussion of the basic protocol. Next, a complete specification
-of all protocol messages is given. Finally, router addresses and version
-identification are discussed. An appendix discussing a generic attack on common
-padding schemes is also included, as well as an appendix containing a number of
-candidates for the authenticated cipher.
+NTCP2 is designed for flexibility and coexistence with NTCP.
+It may be supported on the same port as NTCP, or a different port, or without simultaneous NTCP support at all.
+See the Published Router Info section below for details.
 
 As with other I2P transports, NTCP2 is defined solely
 for point-to-point (router-to-router) transport of I2NP messages.
 It is not a general-purpose data pipe.
 
+NTCP2 is supported as of version 0.9.36.
 
-Motivation
-==========
-
-[NTCP]_ data is encrypted after the first message (and the first message
-appears to be random data), thus preventing protocol identification through
-"payload analysis". It is still vulnerable to protocol identification through
-"flow analysis". That's because the first 4 messages (i.e. the handshake) are
-fixed length (288, 304, 448, and 48 bytes).
-
-By adding random amounts of random data to each of the messages, we can make it
-a lot harder.
-
-The authors acknowledge that standard security practices would suggest to use
-an existing protocol such as TLS, but this is [Prop104]_ and it has problems of
-its own. Wherever appropriate, "future work" paragraphs have been added to
-indicate missing features or subjects of discussion.
-
-
-Design Goals
-============
-
-- Support NTCP 1 and 2 on a single port, auto-detect, and published as a single
-  "transport" (i.e. [RouterAddress]_) in the [NetDB]_.
-
-- Publish support for version 1 only, 2 only, or 1+2 in the NetDB in a separate
-  field, and default to version 1 only (don't bind version support to a
-  particular router version)
-
-- Ensure that all implementations (Java/i2pd/Kovri/go) can add version 2
-  support (or not) on their own schedules
-
-- Add random padding to all NTCP messages including handshake and data messages
-  (i.e. length obfuscation so all messages aren't a multiple of 16 bytes)
-  Provide options mechanism for both sides to request min and max padding
-  and/or padding distribution. Specifics of the padding distribution are
-  implementation-dependent and may or may not be specified in the protocol
-  itself.
-
-- Obfuscate the contents of messages that aren't encrypted (1 and 2),
-  sufficiently so that DPI boxes and AV signatures can't easily classify them.
-  Also ensure that the messages going to a single peer or set of peers do not
-  have a similar pattern of bits.
-
-- Fix loss of bits in DH due to Java format [Ticket1112]_, possibly (probably?)
-  by switching to X25519.
-
-- Switch to a real key derivation function (KDF) rather than using the DH
-  result as-is?
-
-- Add "probing resistance" (as Tor calls it); this includes replay resistance.
-
-- Maintain 2-way authenticated key exchange (2W-AKE). 1W-AKE is not sufficient
-  for our application.
-
-- Continue to use the variable-type, variable-length signatures (from the
-  published [RouterIdentity]_ signing key) as a part of authentication.  Rely
-  on a static public key published in the RouterInfo as another part of
-  authentication.
-
-- Add options/version in handshake for future extensibility.
-
-- Add resistance to malicious MitM TCP segmentation if possible.
-
-- Don't add significantly to CPU required for connection setup; if possible,
-  reduce it significantly.
-
-- Add message authentication (MAC), possibly HMAC-SHA256 and Poly1305, and
-  remove Adler checksum.
-
-- Shorten and simplify I2NP header:
-  Shorten expiration to 4 bytes, as in SSU.
-  Remove one-byte truncated SHA256 checksum.
-
-- If possible, reduce the 4-message, two-round-trip handshake to a 3-message,
-  one-round-trip handshake, as in [SSU]_. This would require moving Bob's
-  signature in message 4 to message 2. Research the reason for 4 messages in
-  the ten-year-old email/status/meeting archives.
-
-- Minimize protocol overhead before padding. While padding will be added,
-  and possibly lots of it, overhead before padding is still overhead.
-  Low-bandwidth nodes must be able to use NTCP2.
-
-- Maintain timestamps for replay and skew detection.
-
-- Avoid any year 2038 issues in timestamps, must work until at least 2106.
-
-- Increase max message size from 16K to 32K or 64K.
-
-- Any new cryptographic primitives should be readily available in libraries for use in Java
-  (1.7), C++, and Go router implementations.
-
-- Include representatives of Java, C++, and Go router developers in the design.
-
-- Minimize changes (but there will still be a lot).
-
-- Support both versions in a common set of code (this may not be possible and
-  is implementation-dependent in any case).
-
-
-Non-Goals
----------
-
-- Bullet-proof DPI resistance... that would be pluggable transports,
-  [Prop109]_.
-
-- A TLS-based (or HTTPS-lookalike) transport... that would be [Prop104]_.
-
-- It's OK to change the symmetric stream cryptography.
-
-- Timing-based DPI resistance (inter-message timing/delays can be
-  implementation-dependent; intra-message delays can be introduced at any
-  point, including before sending the random padding, for example). Artificial
-  delays (what obfs4 calls IAT or inter-arrival time) are independent of the
-  protocol itself.
-
-- Deniability of participating in a session (there's signatures in there).
-
-Non-goals that may be partially reconsidered or discussed:
-
-- The degree of protection against Deep Packet Inspection (DPI)
-
-- Post-Quantum (PQ) security
-
-- Deniability
-
-
-
-Related Goals
--------------
-
-- Implement a NTCP 1/2 test setup
-
-
-Security Goals
-==============
-
-We consider three parties:
-
-- Alice, who wishes to establish a new session.
-- Bob, with whom Alice wishes to establish a session.
-- Mallory, the "man in the middle" between Alice and Bob.
-
-At most two participants can engage in active attacks.
-
-Alice and Bob are both in possession of a static key pair, which is contained
-in their [RouterIdentity]_.
-
-The proposed protocol attempts to allow Alice and Bob to agree on a shared
-secret key (K) under the following requirements:
-
-1) Private key security: neither Bob nor Mallory learns anything about Alice's
-   static private key. Symmetrically, Alice does not learn anything about Bob's
-   static private key.
-
-2) The session key K is only known by Alice and Bob.
-
-3) Perfect forward secrecy: the agreed upon session key remains secret in the
-   future, even when the static private keys of Alice and/or Bob are revealed
-   after the key has been agreed upon. 
-
-4) Two-way authentication: Alice is certain that she has established a session
-   with Bob, and vice versa.
-
-5) Protection against online DPI: Ensure that it is not trivial to detect that
-   Alice and Bob are engaged in the protocol using only straightforward deep
-   packet inspection (DPI) techniques. See below.
-
-6) Limited deniability: neither Alice nor Bob can deny participation in the
-   protocol, but if either leaks the shared key the other party can deny the
-   authenticity of the contents of the transmitted data.
-
-The present proposal attempts to provide all five requirements based on the
-Station-To-Station (STS) protocol [STS]_. Note that this protocol is also the
-basis for the [SSU]_ protocol.
-
-
-Additional DPI Discussion
--------------------------
-
-We assume two DPI components:
-
-1) Online DPI
-`````````````
-
-Online DPI inspecting all flows in real-time. Connections may be blocked or
-otherwise tampered with. Connection data or metadata may be identified and
-stored for offline analysis.  The online DPI does not have access to the I2P
-network database.  The online DPI has only limited real-time computational
-capability, including length calculation, field inspection, and simple
-calculations such as XOR.  The online DPI does have the capability of fast
-real-time cryptographic functions such as AES, AEAD, and hashing, but these
-would be too expensive to apply to most or all flows. Any application of these
-cryptographic operations would apply only to flows on IP/Port combinations
-previously identified by offline analysis.  The online DPI does not have the
-capability of high-overhead cryptographic functions such as DH or elligator2.
-The online DPI is not designed specifically to detect I2P, although it may have
-limited classification rules for that purpose.
-
-It is a goal to prevent protocol identification by an online DPI.
-
-The notion of online or "straightforward" DPI is here taken to include the
-following adversary capabilities:
-
-1) The ability to inspect all data sent or received by the target.
-
-2) The ability to perform operations on the observed data, such as
-   applying block ciphers or hash functions.
-
-3) The ability to store and compare with previously sent messages.
-
-4) The ability to modify, delay or fragment packets.
-
-However, the online DPI is assumed to have the following restrictions:
-
-5) The inability to map IP addresses to router hashes. While this is trivial
-   with real-time access to the network database,
-   it would require a DPI system specifically designed to target I2P.
-
-6) The inability to use timing information to detect the protocol. 
-
-7) Generally speaking, the online DPI toolbox does not contain any built-in
-   tools that are specifically designed for I2P detection. This includes
-   creating "honeypots", which would for example include nonrandom padding in
-   their messages. Note that this does not exclude machine learning systems or
-   highly configurable DPI tools as long as they meet the other requirements.
-
-To counter payload analysis, it is ensured that all messages are
-indistinguishable from random. This also requires their length to be random,
-which is more complicated than just adding random padding. In fact, in Appendix
-A, the authors argue that a naive (i.e. uniform) padding scheme does not
-resolve the problem. Appendix A therefore proposes to include either random
-delays or to develop an alternate padding scheme that can provide reasonable
-protection for the proposed attack.
-
-To protect against the sixth entry above, implementations should include random
-delays in the protocol. Such techniques are not covered by this proposal, but
-they could also resolve the padding length issues. In summary, the proposal
-provides good protection against payload analysis (when the considerations in
-Appendix A are taken into account), but only limited protection against flow
-analysis.
-
-
-2) Offline DPI
-``````````````
-
-Offline DPI inspecting data stored by the online DPI for later analysis.
-The offline DPI may be designed specifically to detect I2P.
-The offline DPI does have real-time access to the I2P network database.
-The offline DPI does have access to this and other I2P specifications.
-The offline DPI has unlimited computational capability, including
-all cryptographic functions defined in this specification.
-
-The offline DPI does not have the ability to block existing connections.  The
-offline DPI does have the capability to do near-realtime (within minutes of
-setup) sending to host/port of parties, for example TCP RST.  The offline DPI
-does have the capability to do near-realtime (within minutes of setup) replay
-of previous messages (modified or not) for "probing" or other reasons.
-
-It is not a goal to prevent protocol identification by an offline DPI.
-All decoding of obfuscated data in the first two messages, which
-is implemented by I2P routers, may also be implemented by the offline DPI.
-
-It is a goal to reject attempted connections using replay of previous messages.
-
-
-Future work
-```````````
-
-- Consider the behavior of the protocol when packets are dropped or reordered
-  by an attacker. Recent interesting work in this area can be found in
-  [IACR-1150]_.
-
-- Provide a more accurate classification of DPI systems, taking into account
-  the existing literature related to the subject.
-
-- Discuss the formal security of the proposed protocol, ideally taking into
-  account the DPI attacker model.
 
 
 Noise Protocol Framework
 ========================
 
-This proposal provides the requirements based on the Noise Protocol Framework
+NTCP2 uses the Noise Protocol Framework
 [NOISE]_ (Revision 33, 2017-10-04).
 Noise has similar properties to the Station-To-Station protocol
 [STS]_, which is the basis for the [SSU]_ protocol.  In Noise parlance, Alice
@@ -352,12 +67,12 @@ This Noise protocol uses the following primitives:
 Additions to the Framework
 ==========================
 
-This proposal defines the following enhancements to
+NTCP2 defines the following enhancements to
 Noise_XK_25519_ChaChaPoly_SHA256.  These generally follow the guidelines in
 [NOISE]_ section 13.
 
 1) Cleartext ephemeral keys are obfuscated with AES encryption using a known
-   key and IV.  This is quicker than elligator2.
+   key and IV.
 
 2) Random cleartext padding is added to messages 1 and 2.
    The cleartext padding is included in the handshake hash (MixHash) calculation.
@@ -374,59 +89,7 @@ Noise_XK_25519_ChaChaPoly_SHA256.  These generally follow the guidelines in
    as in obfs4.
 
 5) The payload format is defined for messages 1,2,3, and the data phase.
-   Of course, this is not defined in Noise.
-
-
-New Cryptographic Primitives for I2P
-====================================
-
-Existing I2P router implementations will require implementations for
-the following standard cryptographic primitives,
-which are not required for current I2P protocols:
-
-1) X25519 key generation and DH
-
-2) AEAD_ChaCha20_Poly1305 (abbreviated as ChaChaPoly below)
-
-3) SipHash-2-4
-
-
-Processing overhead estimate
-============================
-
-Message sizes for the 3 messages:
-
-1) 64 bytes + padding   (NTCP was 288 bytes)
-2) 64 bytes + padding   (NTCP was 304 bytes)
-3) approx. 64 bytes + Alice router info + padding   Average router info is about 750
-   bytes   Total average 814 bytes before padding (NTCP was 448 bytes)
-4) not required in NTCP2   (NTCP was 48 bytes)
-
-Total before padding:
-NTCP2: 942 bytes
-NTCP: 1088 bytes
-Note that if Alice connected to Bob for the purpose of sending
-a DatabaseStore Message of her RouterInfo, that message is not required,
-saving approximately 800 bytes.
-
-The following cryptographic operations are required by each party to complete
-the handshake and start the data phase:
-
-- AES: 2
-- SHA256: 7 (Alice), 6 (Bob) (not including 1 Alice, 2 Bob precalculated for
-  all connections) (not including HMAC-SHA256)
-- HMAC-SHA256: 19
-- ChaChaPoly: 4
-- X25519 key generation: 1
-- X25519 DH: 3
-- Signature verification: 1 (Bob) (Alice previously signed when generating her
-  RI)  Presumably Ed25519 (dependent on RI signature type)
-
-
-The following cryptographic operations are required by each party for each data phase message:
-
-- SipHash: 1
-- ChaChaPoly: 1
+   Of course, these are not defined in the framework.
 
 
 
@@ -859,7 +522,7 @@ Note: All fields are big-endian.
 
   padLen :: 2 bytes, length of the padding, 0 or more
             Min/max guidelines TBD. Random size from 0 to 31 bytes minimum?
-            (Distribution to be determined, see Appendix A.)
+            (Distribution is implementation-dependent)
 
   m3p2Len :: 2 bytes, length of the the second AEAD frame in SessionConfirmed
              (message 3 part 2) See notes below
@@ -905,7 +568,7 @@ Notes
 - Padding should be limited to a reasonable amount.  Bob may reject connections
   with excessive padding.  Bob will specify his padding options in message 2.
   Min/max guidelines TBD. Random size from 0 to 31 bytes minimum?
-  (Distribution to be determined, see Appendix A.)
+  (Distribution is implementation-dependent)
 
 - On any error, including AEAD, DH, timestamp, apparent replay, or key
   validation failure, Bob must halt further message processing and close the
@@ -1164,7 +827,7 @@ Notes
   Alice may reject connections with excessive padding.
   Alice will specify her padding options in message 3.
   Min/max guidelines TBD. Random size from 0 to 31 bytes minimum?
-  (Distribution to be determined, see Appendix A.)
+  (Distribution is implementation-dependent)
 
 - On any error, including AEAD, DH, timestamp, apparent replay, or key
   validation failure, Alice must halt further message processing and close the
@@ -1199,7 +862,7 @@ Note: All fields are big-endian.
 
   padLen :: 2 bytes, big endian, length of the padding, 0 or more
             Min/max guidelines TBD. Random size from 0 to 31 bytes minimum?
-            (Distribution to be determined, see Appendix A.)
+            (Distribution is implementation-dependent)
 
   tsB :: 4 bytes, big endian, Unix timestamp, unsigned seconds.
          Wraps around in 2106
@@ -2107,8 +1770,7 @@ Future work
   estimates of the length distribution, or random delays should be added.
   These countermeasures are to be included to resist DPI, as message sizes
   would otherwise reveal that I2P traffic is being carried by the transport
-  protocol. The exact padding scheme is an area of future work, Appendix A
-  provides more information on the topic.
+  protocol. The exact padding scheme is an area of future work.
 
 
 5) Termination
@@ -2258,36 +1920,6 @@ time.
 
 
 
-
-Identity Hiding
-```````````````
-Deniability is not a goal. See overview above.
-
-Each pattern is assigned properties describing the confidentiality supplied to
-the initiator's static public key, and to the responder's static public key.
-The underlying assumptions are that ephemeral private keys are secure, and that
-parties abort the handshake if they receive a static public key from the other
-party which they don't trust.
-
-This section only considers identity leakage through static public key fields
-in handshakes.  Of course, the identities of Noise participants might be
-exposed through other means, including payload fields, traffic analysis, or
-metadata such as IP addresses.
-
-Alice: (8) Encrypted with forward secrecy to an authenticated party.
-
-Bob: (3) Not transmitted, but a passive attacker can check candidates for the
-responder's private key and determine whether the candidate is correct.
-
-Bob publishes his static public key in the netdb. Alice may or may not?
-
-
-
-Issues
-``````
-- If Bob changes his static key, could fallback to a "XX" pattern?
-
-
 Version Detection
 =================
 
@@ -2339,132 +1971,6 @@ Variants, Fallbacks, and General Issues
 - If Alice fails to connect to Bob using NTCP2 for any reason, the connection fails.
   Alice may not retry using NTCP 1.
 
-- Fallback to XX pattern if Bob changes his keys? This would require a type
-  byte prepended?
-
-- "Fall forward" to KK pattern if Alice reconnects, assuming Bob still has her
-  static key?  This doesn't save any round trips and uses 4 DH rounds compared
-  to 3 for XK.  Probably not.
-
-.. raw:: html
-
-  {% highlight lang='dataspec' %}
-    KK(s, rs):
-      -> s
-      <- s
-      ...
-      -> e, es, ss
-      <- e, ee, se
-{% endhighlight %}
-
-
-Appendix A: Padding Scheme
-==========================
-
-This section discusses an attack on typical padding schemes that allows
-attackers to discover the probability distribution of the length of the
-unpadded messages, by only observing the length of the padded messages. Let N
-be a random variable describing the number of unpadded bytes, and P likewise
-for the number of padding bytes. The total message size is then N + P.
-
-Assume that for an unpadded size of n, at least ``P_min(n) >= 0`` and at most
-``P_max(n) >= P_min(n)`` bytes of padding are added in a padding scheme. The
-obvious scheme uses padding of length P uniformly chosen at random:
-
-::
-
-  Pr[P = p | N = n] = 1 / (P_max(n) - P_min(n)) if P_min(n) <= p <= P_max(n),
-                      0                         otherwise.
-
-A naive padding scheme would simply ensure that the size of the padded message
-does not exceed N_max:
-
-::
-
-  P_max(n) = N_max - n, n <= N_max
-  P_min(n) = 0.
-
-However, this leaks information about the unpadded length.
-
-An attacker can easily estimate ``Pr[x <= N + P <= y]``, for example by means
-of a histogram.
-
-- From this, he can also try to estimate ``Pr[n_1 <= N <= n_2]``, indeed:
-
-::
-
-  Pr[N + P = m] = Σ_n Pr[N = n] Pr[P = m - n | N = n].
-
-In the naive scheme,
-
-::
-
-  Pr[N + P = m] = Σ_{n <= m} Pr[N = n] / (N_max - n).
-
-It's pretty obvious, as it was before doing the above calculation, that this
-leaks information about ``Pr[N = n]``: if the length of packets is almost
-always more than m, then N + P <= m will almost never be observed. This is not
-the largest issue though, although being able to observe the minimum message
-length can be considered to be a problem by itself.
-
-A bigger issue is that it is possible to determine ``Pr[N = n]`` exactly:
-
-::
-
-  Pr[N + P = m] - Pr[N + P = m-1] = Pr[N = m] / (N_max - m),
-
-that is
-
-::
-
-  Pr[N = n] = (N_max - n)(Pr[N + P = n] - Pr[N + P = n - 1])
-
-To distinguish NTCP2, then, the attacker can use any of the following:
-
-- Estimate ``Pr[kB <= N <= (k + 1)B - 1]`` for positive integers k. It will
-  always be zero for NTCP2.
-
-- Estimate ``Pr[N = kB]`` and compare with a standard I2P profile.
-
-This simple attack hence partially destroys the purpose of padding, which
-attempts to obfuscate the size distribution of the unpadded messages. The
-amount of messages that the attacker has to observe to distinguish the protocol
-depends on the desired accuracy and on the minimum and maximum unpadded message
-sizes that occur in practice. Note that it is easy to gather many messages for
-the attacker, since he can use all traffic sent from and to the particular port
-that the target is using.
-
-In some forms (e.g. estimation of ``Pr[kB <= N <= (k + 1)B - 1]``) the attack
-requires only a few bytes of memory (one integer is enough) and it could be
-argued that such an attack might be included in many slightly more advanced but
-nevertheless standard DPI frameworks.
-
-This proposal suggests using one of the following countermeasures:
-
-- Develop an alternate padding scheme that takes into account the (estimated)
-  distribution of N by using a non-uniform padding length distribution. A good
-  padding scheme would probably require maintaining a histogram of the number
-  of blocks per message.
-
-- Add random delays between (randomly sized) fragments of messages.
-
-The second option is more generally preferred, because it can be simultaneously
-used as a countermeasure against flow analysis. However, such delays may be out
-of scope for the NTCP2 protocol, such that the first option, which is also
-easier to implement, may be preferred instead. 
-
-
-
-Appendix B: Random Delays
-=========================
-
-Timing-based DPI resistance (inter-message timing/delays can be
-implementation-dependent; intra-message delays can be introduced at any
-point, including before sending the random padding, for example). Artificial
-delays (what obfs4 calls IAT or inter-arrival time) are independent of the
-protocol itself.
-
-
 
 
 References
@@ -2487,6 +1993,9 @@ References
 
 .. [Prop109]
     {{ proposal_url('109') }}
+
+.. [Prop111]
+    {{ proposal_url('111') }}
 
 .. [RFC-2104]
     https://tools.ietf.org/html/rfc2104
@@ -2521,9 +2030,6 @@ References
 
 .. [SipHash]
     https://www.131002.net/siphash/
-
-.. [SPEC]
-    {{ site_url('docs/spec/ntcp2', True) }}
 
 .. [SSU]
     {{ site_url('docs/transport/ssu', True) }}

@@ -3,8 +3,8 @@ Low-level Cryptography Specification
 ====================================
 .. meta::
     :category: Design
-    :lastupdated: October 2016
-    :accuratefor: 0.9.27
+    :lastupdated: June 2018
+    :accuratefor: 0.9.36
 
 .. contents::
 
@@ -401,16 +401,14 @@ encrypted with AES (as above).  The primary reason to do the DH negotiation
 instead of using ElGamalAES+SessionTag [ELG-AES]_ is that it provides
 '(perfect) forward secrecy' [PFS]_, while ElGamalAES+SessionTag does not.
 
-In order to migrate to a more standardized implementation (TLS/SSL or even
-SSH), the following issues must be addressed:
-
-1. Can we somehow reestablish sessions securely (ala session tags) or do we
-   need to do full negotiation each time?
-
-2. Can we simplify/avoid the x509 or other certificate formats and use our own
-   RouterInfo structure (which contains the ElGamal and DSA keys)?
-
 See the NTCP specification [NTCP]_ for details.
+
+NTCP2 connections
+-----------------
+
+NTCP2 connections use X25519 Diffie-Hellman and ChaCha20_Poly1305 authenticated encryption.
+
+See the NTCP2 specification [NTCP2]_ for details and references.
 
 .. _udp:
 
@@ -489,6 +487,9 @@ References
 
 .. [NTCP]
     {{ site_url('docs/transport/ntcp', True) }}
+
+.. [NTCP2]
+    {{ site_url('docs/spec/ntcp2', True) }}
 
 .. [PFS]
     http://en.wikipedia.org/wiki/Perfect_forward_secrecy
