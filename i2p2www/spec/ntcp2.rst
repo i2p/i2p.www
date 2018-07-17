@@ -3,7 +3,7 @@ NTCP 2
 ======
 .. meta::
     :category: Transports
-    :lastupdated: 2018-06-28
+    :lastupdated: 2018-07-17
     :accuratefor: 0.9.36
 
 .. contents::
@@ -1615,7 +1615,8 @@ across ChaChaPoly frames.
 
 This uses the first 9 bytes from the standard NTCP I2NP header,
 and removes the last 7 bytes of the header, as follows:
-truncate the expiration from 8 to 4 bytes,
+shorten the expiration from 8 to 4 bytes
+(seconds instead of milliseconds, same as for SSU),
 remove the 2 byte length (use the block size - 9),
 and remove the one-byte SHA256 checksum.
 
