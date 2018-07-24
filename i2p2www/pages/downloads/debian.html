@@ -6,8 +6,7 @@
 <h2 id="bionic">{{ _('Debian Sid, Ubuntu Bionic 18.04') }}</h2>
 {% trans -%}
 I2P is available in the official repositories for Ubuntu Bionic 18.04 and Debian Sid.
-Install the "i2p" package using your package manager, as you would any other package.
-The instructions below are not required.
+Install the "i2p" package using your package manager, as you would any other package.  The instructions below are not required.
 {%- endtrans %}
 
 <h2 id="others">{{ _('Debian Stretch and older, Ubuntu Artful 17.10 and older') }}</h2>
@@ -88,75 +87,103 @@ part of <a href="#Post-install_work">starting I2P</a> and configuring it for you
 
 <h2 id="debian">{{ _('Instructions for Debian') }}</h2>
 
-<em>Currently supported architectures include amd64, i386, armel, armhf (for Raspbian).</em>
+<em>{% trans -%}Currently supported architectures include amd64, i386, armel, armhf (for Raspbian).{%- endtrans %}</em>
 
 <p>{% trans -%}
 Note: The steps below should be performed with root access (i.e., switching
 user to root with "su" or by prefixing each command with "sudo").
 {%- endtrans %}</p>
 <ol>
-  <li>{% trans file='/etc/apt/sources.list.d/i2p.list' -%}
-Add lines like the following to <code>{{ file }}</code>.{% endtrans %}<br>
-For Wheezy:<br>
+  <li>{% trans -%}Ensure that <code>apt-transport-https</code> and <code>curl</code> are installed.{%- endtrans %}
+    <pre>
+    <code>sudo apt-get update
+    sudo apt-get install apt-transport-https curl</code>
+    </pre>
+  </li>
+  <li>{% trans file='/etc/apt/sources.list.d/i2p.list',file2='/etc/debian_version' %}
+    Check which version of Debian you are using on this page at the <a href="https://wiki.debian.org/LTS/" target="_blank">Debian wiki</a> 
+    and verify with <code>{{ file2 }}</code> on your system.
+    Then, add lines like the following to <code>{{ file }}</code>.{% endtrans %}<br>
+<br />
+For Stretch (stable):<br />
 <pre>
-    <code>deb https://deb.i2p2.de/ wheezy main
-    deb-src https://deb.i2p2.de/ wheezy main</code>
+    <code>deb https://deb.i2p2.de/ stretch main
+    deb-src https://deb.i2p2.de/ stretch main</code>
 </pre>
 
 <br />
-For Jessie:<br />
+For Jessie (old-stable):<br />
 <pre>
     <code>deb https://deb.i2p2.de/ jessie main
     deb-src https://deb.i2p2.de/ jessie main</code>
 </pre>
 
 <br />
-For Stretch (stable):<br />
+For Wheezy (obsolete):<br>
 <pre>
-     <code>deb https://deb.i2p2.de/ stretch main
-     deb-src https://deb.i2p2.de/ stretch main</code>
+    <code>deb https://deb.i2p2.de/ wheezy main
+    deb-src https://deb.i2p2.de/ wheezy main</code>
 </pre>
+<br />
+
+{% trans -%}Note: If you are running Debian Sid (testing), then you can install I2P directly from Debian's main repository{%- endtrans %}:
+  <pre>
+  <code>sudo apt-get install i2p</code>
+  </pre>
 
   </li>
 
   <li>{% trans repokey=url_for('static', filename='i2p-debian-repo.key.asc') -%}
-Download <a href="{{ repokey }}">the  key used to sign the repository</a> and add it to apt:
-{%- endtrans %}<br />
-&nbsp;&nbsp;&nbsp; <code>apt-key add i2p-debian-repo.key.asc</code>
+Download <a href="{{ repokey }}">the  key used to sign the repository</a>:{%- endtrans %}
+<pre>
+<code>
+  curl -o i2p-debian-repo.key.asc {{ repokey }}</code>
+</pre>
+  </li>
+
+  <br />
+
+  <li>
+    {% trans -%}Check the fingerprint and owner of the key without importing anything{%- endtrans %}:<br />
+    <pre>
+    <code>
+  gpg -n --import --import-options import-show i2p-debian-repo.key.asc</code>
+    </pre>
+  </li>
+
+  <li>
+    {% trans -%} Add the key to APT's keyring{%- endtrans %}:<br />
+    <pre>
+    <code>
+  sudo apt-key add i2p-debian-repo.key.asc</code>
+    </pre>
   </li>
 
   <li>
     {% trans %}Notify your package manager of the new repository by entering{% endtrans %}<br />
-    <code>&nbsp;&nbsp;&nbsp; apt-get update</code><br />
+    <pre>
+    <code>
+  sudo apt-get update</code>
+    </pre>
 {% trans -%}
 This command will retrieve the latest list of software from every
 repository enabled on your system, including the I2P repository added in step
 1.
 {%- endtrans %}
-  </li>
+  </li><br />
   <li>{% trans -%}
 You are now ready to install I2P! Installing the <code>i2p-keyring</code>
 package will ensure that you receive updates to the repository's GPG key.
 {%- endtrans %}<br />
-    <code>&nbsp;&nbsp;&nbsp; apt-get install i2p i2p-keyring</code></li>
+<pre>
+    <code>
+  sudo apt-get install i2p i2p-keyring</code>
+  </pre></li>
 </ol>
-
 <p>
 {% trans -%}
 After the installation process completes you can move on to the next part of <a href="#Post-install_work">starting I2P</a> and configuring it for your system.
 {%- endtrans %}
-</p>
-
-<p>
-{% trans -%}
-Note: If the https address does not work, either:
-{%- endtrans %}
-<ol><li><code>sudo apt-get install apt-transport-https</code></li>
-<li>
-{% trans -%}
-Change the repository address to http://deb.i2p2.no/
-{%- endtrans %}
-</li></ol>
 </p>
 
 <h2 id="Post-install_work">{{ _('Post-install work') }}</h2>
