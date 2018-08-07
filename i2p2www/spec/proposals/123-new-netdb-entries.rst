@@ -98,7 +98,7 @@ Types 2, 4, and 5 use the standard LS2 header, specified below:
 
 
 Format
-``````
+------
 ::
 
   Standard LS2 Header:
