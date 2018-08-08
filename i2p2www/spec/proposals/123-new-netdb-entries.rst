@@ -2,10 +2,10 @@
 New netDB Entries
 =================
 .. meta::
-    :author: zzz
+    :author: zzz, orignal, str4d
     :created: 2016-01-16
     :thread: http://zzz.i2p/topics/2051
-    :lastupdated: 2018-08-06
+    :lastupdated: 2018-08-08
     :status: Open
     :supercedes: 110, 120, 121, 122
 
@@ -386,7 +386,7 @@ publishers for the top-level or intermediate-level Meta LSes on failure.
 Mix-and-match leasesets where leases from multiple routers are combined, signed, and published
 in a single leaseset is documented in proposal 140, "invisible multihoming".
 This proposal is untenable as written, because streaming connections would not be
-"sticky" to a single router, see http://zzz.ip2/topics/2335 .
+"sticky" to a single router, see http://zzz.i2p/topics/2335 .
 
 The back-end protocol, and interaction with router and client internals, would be
 quite complex for invisible multihoming.
@@ -593,7 +593,7 @@ To verify signature of each Revocation Record:
 
 Notes
 `````
-- We use signature length instead of sigtype so we can support unknown signature
+- We use signature length instead of sig type so we can support unknown signature
   types.
 
 - There is no expiration of a service list, recipients may make their own
