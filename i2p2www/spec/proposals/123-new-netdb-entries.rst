@@ -5,7 +5,7 @@ New netDB Entries
     :author: zzz, orignal, str4d
     :created: 2016-01-16
     :thread: http://zzz.i2p/topics/2051
-    :lastupdated: 2018-08-08
+    :lastupdated: 2018-08-13
     :status: Open
     :supercedes: 110, 120, 121, 122
 
@@ -25,6 +25,11 @@ This is an update and aggregation of the following 4 proposals:
 These proposals are mostly independent, but for sanity we define and use a
 common format for several of them.
 
+The following proposals are somewhat related:
+
+- 140 Invisible Multihoming (incompatible with this proposal)
+- 142 New Crypto Template (for new symmetric crypto)
+
 
 Proposal
 ========
@@ -32,6 +37,33 @@ Proposal
 This proposal defines 5 new DatabaseEntry types and the process for
 storing them to and retrieving them from the network database,
 as well as the method for signing them and verifying those signatures.
+
+Goals
+-----
+
+- Backwards compatible
+- LS2 Usable with old-style mulithoming
+- No new crypto or primitives required for support
+- Maintain decoupling of crypto and signing; support all current and future versions
+- Enable optional offline signing keys
+- Reduce accuracy of timestamps (improved "differential privacy")
+- Enable new crypto for destinations
+- Enable massive multihoming
+- Fix multiple issues with existing encrypted LS
+- Optional blinding to reduce visibility by floodfills
+- Encrypted supports both single-key and multiple revocable keys
+- Service lookup for easier lookup of outproxies, application DHT bootstrap,
+  and other uses
+- Don't break anything that relies on 32-byte binary destination hashes, e.g. bittorrent
+- Add flexibility to leasesets via properties, like we have in routerinfos.
+- Put published timestamp and variable expiration in header, so it works even
+  if contents are encrypted (don't derive timestamp from earliest lease)
+
+
+Non-Goals
+---------
+
+- New DHT rotation algorithm or shared random generation
 
 
 Justification
@@ -58,6 +90,7 @@ New types:
 4: Meta LS2
 5: Service Record
 6: Service List
+
 
 Lookup/Store process
 --------------------
@@ -91,6 +124,13 @@ Type 6 (Service List) is an aggregation of several Service Records and has a
 different format. See below.
 
 
+Privacy/Security Considerations
+-------------------------------
+
+TBD
+
+
+
 Standard LS2 Header
 ===================
 
@@ -103,8 +143,8 @@ Format
 
   Standard LS2 Header:
   - Destination (387+ bytes)
-  - Published timestamp (8 bytes)
-  - Expires (4 bytes) (offset from published in ms)
+  - Published timestamp (4 bytes, seconds since epoch, rolls over in 2106)
+  - Expires (2 bytes) (offset from published timestamp in seconds, 18.2 hours max)
   - Flags (2 bytes)
     Bit order: 15 14 ... 3 2 1 0
     Bit 0: If 0, no offline keys; if 1, offline keys
@@ -116,6 +156,15 @@ Format
     length as implied by destination public key sig type
 
 
+
+Issues
+------
+
+- Could reduce timestamp accuracy even more (10 minutes?) but would have to add
+  version number. This could break multihoming, unless we have order preserving encryption?
+  Probably can't do without timestamps at all.
+
+- Alternative: 3 byte timestamp (epoch / 10 minutes), 1-byte version, 2-byte expires
 
 
 
@@ -162,14 +211,13 @@ Format
     Length as implied by sig type of signing key
 
 
-Flag definition::
-
-  Bit order: 15 14 ... 2 1 0
-  Bit 0: If 0, a standard published leaseset.
-         If 1, an unpublished leaseset. Should not be flooded, published, or
-         sent in response to a query. If this leaseset expires, do not query the
-         netdb for a new one.
-  Bits 1-15: Unused, set to 0 for compatibility with future uses.
+  Flag definition:
+    Bit order: 15 14 ... 2 1 0
+    Bit 0: If 0, a standard published leaseset.
+           If 1, an unpublished leaseset. Should not be flooded, published, or
+           sent in response to a query. If this leaseset expires, do not query the
+           netdb for a new one.
+    Bits 1-15: Unused, set to 0 for compatibility with future uses.
 
 Properties is for future use, no current plans.
 
@@ -230,6 +278,7 @@ Notes
 `````
 - Should we reduce the 8-byte expiration in leases to a 2-byte offset from the
   published timestamp in seconds? Or 4-byte offset in milliseconds?
+  Or 2-byte offset in seconds?
 
 - If we ever implement revocation, we can do it with an expires field of zero,
   or zero leases, or both. No need for a separate revocation key.
