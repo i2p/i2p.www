@@ -5,7 +5,7 @@ New netDB Entries
     :author: zzz, orignal, str4d
     :created: 2016-01-16
     :thread: http://zzz.i2p/topics/2051
-    :lastupdated: 2018-08-13
+    :lastupdated: 2018-08-27
     :status: Open
     :supercedes: 110, 120, 121, 122
 
@@ -64,6 +64,9 @@ Non-Goals
 ---------
 
 - New DHT rotation algorithm or shared random generation
+- This proposal is about enabling new encryption types.
+  The specific new encryption type and end-to-end encryption scheme
+  to use that new type would be in a separate proposal.
 
 
 Justification
@@ -166,6 +169,11 @@ Issues
 
 - Alternative: 3 byte timestamp (epoch / 10 minutes), 1-byte version, 2-byte expires
 
+Notes
+`````
+- Router implementations could cache the transient keys and signature to
+  avoid verification every time. In particular, floodfills, and routers at
+  both ends of long-lived connections, could benefit from this.
 
 
 New DatabaseEntry types
@@ -203,7 +211,7 @@ Format
   - Encryption key (256 bytes or depending on enc type)
   - Number of leases (1 byte)
   - Leases (44 bytes each)
-  - Properties (2 bytes if none)
+  - Properties (Mapping as specified in common structures spec, 2 zero bytes if none)
 
   Standard LS2 Signature:
   - Signature
@@ -250,11 +258,14 @@ Destination unused, as it is now. The encryption type is not specified
 in the Destination key certificate, it will remain 0.
 
 Possible extension: Optionally include multiple encryption type/public key pairs,
-to ease transition to new encryption types.
+to ease transition to new encryption types. The other way to do it
+is to publish multiple leasesets, possibly using the same tunnels,
+as we do now for DSA and EdDSA destinations. It's not clear how to
+identify the incoming encryption type on a shared tunnel.
 
-An alternative is to specify the encryption type in the Destination key certificate,
+A rejected alternative is to specify the encryption type in the Destination key certificate,
 use the public key in the Destination, and not use the public key
-in the leaseset. A formal proposal for this is in progress.
+in the leaseset. We do not plan to do this.
 
 Benefits of LS2:
 
@@ -272,6 +283,32 @@ Drawbacks of LS2:
   encryption types may be used, if allowed by floodfills
   (but see related proposals 136 and 137 about support for experimental sig types).
   The alternative proposal could be easier to implement and test for experimental encryption types.
+
+
+New Encryption Issues
+`````````````````````
+Some of this is out-of-scope for this proposal,
+but putting notes here for now as we don't have
+a separate encryption proposal yet.
+
+- Do we need a separate fields for encryption key type and
+  end-to-end encryption type, since we may change the
+  end-to-end scheme (AES+SessionTag) while keeping the same
+  key type? Or does the encryption type field represent
+  both the key type and the end-to-end encryption scheme?
+  Third option: Put supported flavors in the properties.
+
+- Do we want to support multiple encryption types and keys in the same LS?
+  Or is it sufficient to have different b32s for different types,
+  as we do now for sig types.
+  Would it be possible for a router to auto-detect incoming garlic-encrypted
+  messages, if multiple types were supported in the same tunnel?
+
+- The first new encryption type to be proposed will
+  probably be ECIES/X25519. How it's used end-to-end
+  (either a slightly modified version of ElGamal/AES+SessionTag
+  or something completely new, e.g. ChaCha/Poly) will be specified
+  in one or more separate proposals.
 
 
 Notes
@@ -482,7 +519,7 @@ Format
   - Revocations: Each revocation contains: (32 bytes)
     - Hash (32 bytes)
 
-  - Properties (2 bytes if empty)
+  - Properties (Mapping as specified in common structures spec, 2 zero bytes if none)
 
   Standard LS2 Signature:
   - Signature (40+ bytes)
