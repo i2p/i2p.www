@@ -509,7 +509,7 @@ References
     http://tools.ietf.org/html/rfc3526#section-3
 
 .. [SCI.CRYPT]
-    http://groups.google.com/group/sci.crypt/browse_thread/thread/1855a5efa7416677/339fa2f945cc9ba0#339fa2f945cc9ba0
+    https://groups.google.com/forum/#!topic/sci.crypt/GFWl76dBZnc
 
 .. [SHA-2]
     https://en.wikipedia.org/wiki/SHA-2
