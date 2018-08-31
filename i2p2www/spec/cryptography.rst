@@ -466,6 +466,8 @@ References
 .. [Koshiba2004]
     Koshiba & Kurosawa. Short Exponent Diffie-Hellman Problems. PKC 2004, LNCS 2947, pp. 173-186
 
+    Available as PDF on Archive.org: https://web.archive.org/web/\*/https://www.iacr.org/archive/pkc2004/29470171/29470171.pdf
+    
     http://www.springerlink.com/content/2jry7cftp5bpdghm/
 
     Full text: http://books.google.com/books?id=cXyiNZ2_Pa0C&amp;lpg=PA173&amp;ots=PNIz3dWe4g&amp;pg=PA173#v=onepage&amp;q&amp;f=false
@@ -545,5 +547,7 @@ References
 
 .. [vanOorschot1996]
     van Oorschot, Weiner. On Diffie-Hellman Key Agreement with Short Exponents. EuroCrypt '96
+
+    Available as PDF on Archive.org: https://web.archive.org/web/20180101000000\*/https://link.springer.com/content/pdf/10.1007%2F3-540-68339-9_29.pdf
 
     http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.14.5952&rep=rep1&type=pdf
