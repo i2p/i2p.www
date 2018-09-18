@@ -5,7 +5,7 @@ New netDB Entries
     :author: zzz, orignal, str4d
     :created: 2016-01-16
     :thread: http://zzz.i2p/topics/2051
-    :lastupdated: 2018-08-27
+    :lastupdated: 2018-09-18
     :status: Open
     :supercedes: 110, 120, 121, 122
 
@@ -29,6 +29,7 @@ The following proposals are somewhat related:
 
 - 140 Invisible Multihoming (incompatible with this proposal)
 - 142 New Crypto Template (for new symmetric crypto)
+- ECIES (see zzz.i2p thread)
 
 
 Proposal
@@ -46,7 +47,7 @@ Goals
 - No new crypto or primitives required for support
 - Maintain decoupling of crypto and signing; support all current and future versions
 - Enable optional offline signing keys
-- Reduce accuracy of timestamps (improved "differential privacy")
+- Reduce accuracy of timestamps to reduce fingerprinting
 - Enable new crypto for destinations
 - Enable massive multihoming
 - Fix multiple issues with existing encrypted LS
@@ -83,33 +84,62 @@ Service Record and Service List provide anycast services such as naming lookup
 and DHT bootstrapping.
 
 
+NetDB Data Types
+----------------
+
+The type numbers are used in the I2NP Database Lookup/Store Messages.
+
+The end-to-end column means is it sent to a Destination in a Garlic Message.
+
+
 Existing types:
-0: RI
-1: LS
+
+==================================  ============= ============
+            NetDB Data               Lookup Type   Store Type 
+==================================  ============= ============
+RI                                        0            0      
+LS                                        1            1      
+==================================  ============= ============
 
 New types:
-2: LS2
-3: Encrypted LS2
-4: Meta LS2
-5: Service Record
-6: Service List
+
+==================================  ============= ============ ================== ==================
+            NetDB Data               Lookup Type   Store Type   Std. LS2 Header?   Sent end-to-end?
+==================================  ============= ============ ================== ==================
+LS2                                       1            3             yes                 yes
+Encrypted LS2                             1            5             no                  no
+Meta LS2                                  1            7             yes                 no
+Service Record                           n/a           9             yes                 no
+Service List                             11           11             no                  no
+==================================  ============= ============ ================== ==================
+
+
+
+Issues
+``````
+- All types are odd since upper bits in the Database Store Message
+  type field are ignored by old routers.
+  We would rather have the parse fail as an LS than as a compressed RI.
+
+- Should be type be explicit or implicit or neither in the data covered by the signature?
+
 
 
 Lookup/Store process
 --------------------
 
-Types 2-4 may be returned in response to a standard leaseset lookup (type 1).
-Type 5 is never returned in response to a lookup.
-Types 6 is returned in response to a new service lookup type (type 2).
+Types 3, 5, and 7 may be returned in response to a standard leaseset lookup (type 1).
+Type 9 is never returned in response to a lookup.
+Types 11 is returned in response to a new service lookup type (type 11).
 
-Only type 2 may be sent in a client-to-client Garlic message.
+Only type 3 may be sent in a client-to-client Garlic message.
 
 
 
 Format
 ------
 
-Types 2, 4, and 5 all have a common format::
+Types 3, 7, and 9 all have a common format::
 
   Standard LS2 Header
   - as defined below
@@ -137,7 +167,7 @@ TBD
 Standard LS2 Header
 ===================
 
-Types 2, 4, and 5 use the standard LS2 header, specified below:
+Types 3, 7, and 9 use the standard LS2 header, specified below:
 
 
 Format
@@ -145,19 +175,48 @@ Format
 ::
 
   Standard LS2 Header:
+  - Type (1 byte)
+    Not actually in header, but part of data covered by signature.
+    Take from field in Database Store Message.
+    TODO to be reviewed/decided.
   - Destination (387+ bytes)
   - Published timestamp (4 bytes, seconds since epoch, rolls over in 2106)
   - Expires (2 bytes) (offset from published timestamp in seconds, 18.2 hours max)
   - Flags (2 bytes)
     Bit order: 15 14 ... 3 2 1 0
     Bit 0: If 0, no offline keys; if 1, offline keys
-    Other bits: set to 0 for compatibility with future uses
-  - If flag indicates offline keys:
+    Bit 1: If 0, a standard published leaseset.
+           If 1, an unpublished leaseset. Should not be flooded, published, or
+           sent in response to a query. If this leaseset expires, do not query the
+           netdb for a new one.
+    Bits 2-15: set to 0 for compatibility with future uses
+  - If flag indicates offline keys, the offline signature section:
+    Expires timestamp (4 bytes, seconds since epoch, rolls over in 2106)
     Transient sig type (2 bytes)
     Transient signing public key (length as implied by sig type)
-    Signature of transient sig type and public key, by the destination public key,
-    length as implied by destination public key sig type
+    Signature of expires timestamp, transient sig type, and public key, by the destination public key,
+    length as implied by destination public key sig type.
+    This section can, and should, be generated offline.
 
+
+Justification
+`````````````
+
+- Unpublished/published: For use when sending a database store end-to-end,
+  the sending router may wish to indicate that this leaseset should not be
+  sent to others. We currently use heuristics to maintain this state.
+
+- Published: Replaces the complex logic required to determine the 'version' of the
+  leaseset. Currently, the version is the expiration of the last-expiring lease,
+  and a publishing router must increment that expiration by at least 1ms when
+  publishing a leaseset that only removes an older lease.
+
+- Expires: Allows for an expiration of a netdb entry to be earlier than that of
+  its last-expiring leaseset. May not be useful for LS2, where leasesets
+  are expected to remain with a 11-minute maximum expiration, but
+  for other new types, it is necessary (see Meta LS and Service Record below).
+
+- Offline keys are optional, to reduce initial/required implementation complexity.
 
 
 Issues
@@ -169,11 +228,23 @@ Issues
 
 - Alternative: 3 byte timestamp (epoch / 10 minutes), 1-byte version, 2-byte expires
 
+- Is type explicit or implicit in data / signature? "Domain" constants for signature?
+
+
 Notes
 `````
+
+- Routers should not publish a LS more than once a second.
+  If they do, they must artificially increment the published timestamp by 1
+  over the previously published LS.
+
 - Router implementations could cache the transient keys and signature to
   avoid verification every time. In particular, floodfills, and routers at
   both ends of long-lived connections, could benefit from this.
+
+- Offline keys and signature are only appropriate for long-lived destinations,
+  i.e. servers, not clients.
+
 
 
 New DatabaseEntry types
@@ -192,7 +263,7 @@ Changes from existing LeaseSet:
 Lookup with:
     Standard LS flag (1)
 Store with:
-    Standard LS2 type (2)
+    Standard LS2 type (3)
 Store at:
     Hash of destination, with daily rotation, as for LS 1
 Typical expiration:
@@ -206,47 +277,34 @@ Format
 
   Standard LS2 Header as specified above
 
+  Properties:
+  - A Mapping, for future use, no current plans.
+
   Standard LS2 Type-Specific Part
-  - Encryption type (2 bytes)
-  - Encryption key (256 bytes or depending on enc type)
-  - Number of leases (1 byte)
-  - Leases (44 bytes each)
   - Properties (Mapping as specified in common structures spec, 2 zero bytes if none)
+  - Encryption type (2 bytes)
+  - Encryption key length (2 bytes)
+    This is explicit, so floodfills can parse LS2 with unknown encryption types.
+  - Encryption key (number of bytes specified)
+  - Number of lease2s (1 byte)
+  - Lease2s (40 bytes each)
+    These are leases, but with a 4-byte instead of an 8-byte expiration,
+    seconds since the epoch (rolls over in 2106)
 
   Standard LS2 Signature:
   - Signature
     If flag indicates offline keys, this is signed by the transient pubkey, otherwise, by the destination pubkey
     Length as implied by sig type of signing key
+    The signature is of everything above.
 
 
-  Flag definition:
-    Bit order: 15 14 ... 2 1 0
-    Bit 0: If 0, a standard published leaseset.
-           If 1, an unpublished leaseset. Should not be flooded, published, or
-           sent in response to a query. If this leaseset expires, do not query the
-           netdb for a new one.
-    Bits 1-15: Unused, set to 0 for compatibility with future uses.
-
-Properties is for future use, no current plans.
 
 
 Justification
 `````````````
 
-- Published: Replaces the complex logic required to determine the 'version' of the
-  leaseset. Currently, the version is the expiration of the last-expiring lease,
-  and a publishing router must increment that expiration by at least 1ms when
-  publishing a leaseset that only removes an older lease.
-- Expires: Allows for an expiration of a netdb entry to be earlier than that of
-  its last-expiring leaseset. May not be useful for LS2, where leasesets
-  are expected to remain with a 11-minute maximum expiration, but
-  for other new types, it is necessary (see Meta LS and Service Record below).
-  Max is about 49.7 days.
-- Flags: For future expansion, and the unpublished/published bit.
-- Unpublished/published: For use when sending a database store end-to-end,
-  the sending router may wish to indicate that this leaseset should not be
-  sent to others. We currently use heuristics to maintain this state.
-- Properties: Future expansion
+- Properties: Future expansion and flexibility.
+  Placed first in case necessary for parsing of the remaining data.
 
 
 Discussion
@@ -290,32 +348,35 @@ New Encryption Issues
 Some of this is out-of-scope for this proposal,
 but putting notes here for now as we don't have
 a separate encryption proposal yet.
+See also the ECIES thread on zzz.i2p.
 
-- Do we need a separate fields for encryption key type and
-  end-to-end encryption type, since we may change the
-  end-to-end scheme (AES+SessionTag) while keeping the same
-  key type? Or does the encryption type field represent
-  both the key type and the end-to-end encryption scheme?
-  Third option: Put supported flavors in the properties.
+- The encryption type represents the combination
+  of curve, key length, and end-to-end scheme,
+  including KDF and MAC, if any.
+
+- We have included a key length field, so that the LS2 is
+  parsable and verifiable by the floodfill even for unknown encryption types.
 
 - Do we want to support multiple encryption types and keys in the same LS?
   Or is it sufficient to have different b32s for different types,
   as we do now for sig types.
   Would it be possible for a router to auto-detect incoming garlic-encrypted
   messages, if multiple types were supported in the same tunnel?
+  TODO - IMPORTANT TO DECIDE
 
 - The first new encryption type to be proposed will
   probably be ECIES/X25519. How it's used end-to-end
   (either a slightly modified version of ElGamal/AES+SessionTag
   or something completely new, e.g. ChaCha/Poly) will be specified
   in one or more separate proposals.
+  See also the ECIES thread on zzz.i2p.
 
 
 Notes
 `````
-- Should we reduce the 8-byte expiration in leases to a 2-byte offset from the
+- 8-byte expiration in leases changed to 4 bytes.
+  Alternatives: 2-byte offset from the
   published timestamp in seconds? Or 4-byte offset in milliseconds?
-  Or 2-byte offset in seconds?
 
 - If we ever implement revocation, we can do it with an expires field of zero,
   or zero leases, or both. No need for a separate revocation key.
@@ -349,7 +410,7 @@ Changes from existing encrypted LeaseSet:
 Lookup with:
     Standard LS flag (1)
 Store with:
-    Encrypted LS2 type (3)
+    Encrypted LS2 type (5)
 Store at:
     Hash of blinded sig type and public key, with daily rotation
 Typical expiration:
@@ -364,12 +425,17 @@ Note that encrypted LS2 is blinded. The Destination is not in the header.
 DHT storage location is SHA-256(sig type || blinded public key), and rotated daily.
 
 Blinding is only defined for Ed25519 signing keys (sig type 7).
-Blinding is rougly as specified in Tor's rend-spec-v3 appendices A.1 and A.2.
+Blinding is roughly as specified in Tor's rend-spec-v3 appendices A.1 and A.2.
 Exact specification including KDF is TBD.
 
+Does NOT use the standard LS2 header specified above.
 
 ::
 
+  - Type (1 byte)
+    Not actually in header, but part of data covered by signature.
+    Take from field in Database Store Message.
+    TODO to be reviewed/decided.
   - Blinded Public Key Sig Type (2 bytes)
   - Blinded Public Key (length as implied by sig type)
   - Signature of destination by blinded public key?
@@ -380,9 +446,10 @@ Exact specification including KDF is TBD.
     Bit 0: If 0, no offline keys; if 1, offline keys
     Other bits: set to 0 for compatibility with future uses
   - If flag indicates offline keys:
+    Expires timestamp (4 bytes, seconds since epoch, rolls over in 2106)
     Transient sig type (2 bytes)
     Transient signing public key (length as implied by sig type)
-    Signature of transient sig type and public key, by the destination public key,
+    Signature of expires timestamp, transient sig type, and public key, by the destination public key,
     length as implied by destination public key sig type
   - Length of IV + encrypted data (2 bytes)
   - IV (8 bytes)
@@ -406,10 +473,8 @@ Exact specification including KDF is TBD.
     When decrypted, the data for type 2 or 4, including the header,
     but without the timestamp and expires fields?
   - Signature (by blinded public key, length as implied by blinded sig type)
+    The signature is of everything above.
 
-Flags: for future use
-
-The signature is of everything above.
 
 Notes
 `````
@@ -492,7 +557,7 @@ to use those leasesets, and when to keep traversing the tree.
 Lookup with:
     Standard LS flag (1)
 Store with:
-    Meta LS2 type (4)
+    Meta LS2 type (7)
 Store at:
     Hash of destination, with daily rotation, as for LS 1
 Typical expiration:
@@ -523,6 +588,7 @@ Format
 
   Standard LS2 Signature:
   - Signature (40+ bytes)
+    The signature is of everything above.
 
 Flags and properties: for future use
 
@@ -556,7 +622,7 @@ This is not a LS2 but it uses the standard LS2 header and signature format.
 Lookup with:
     n/a, see Service List
 Store with:
-    Service Record type (5)
+    Service Record type (9)
 Store at:
     Hash of service name, with daily rotation
 Typical expiration:
@@ -576,8 +642,8 @@ Format
 
   Standard LS2 Signature:
   - Signature (40+ bytes)
+    The signature is of everything above.
 
-Flags: for future use
 
 Notes
 `````
@@ -618,9 +684,9 @@ there's no verification, and a service record could "get in" ahead of
 any other netdb type and get stored in the floodfill.
 
 Lookup with:
-    Service List lookup type (2)
+    Service List lookup type (11)
 Store with:
-    Service List type (6)
+    Service List type (11)
 Store at:
     Hash of service name, with daily rotation
 Typical expiration:
@@ -630,8 +696,14 @@ Published by:
 
 Format
 ``````
+Does NOT use the standard LS2 header specified above.
+
 ::
 
+  - Type (1 byte)
+    Not actually in header, but part of data covered by signature.
+    Take from field in Database Store Message.
+    TODO to be reviewed/decided.
   - Hash of the service name (implicit, in the Database Store message)
   - Hash of the Creator (floodfill) (32 bytes)
   - Published timestamp (8 bytes)
@@ -658,6 +730,7 @@ Format
     - Signature of dest (40+ bytes)
 
   - Signature of floodfill (40+ bytes)
+    The signature is of everything above.
 
 To verify signature of the Service List:
 
@@ -689,6 +762,129 @@ Notes
   floodfill creates, signs, and caches a Service List. The floodfill uses its
   own policy for cache time and the maximum number of service and revocation
   records.
+
+
+
+Common Structures Spec Changes Required
+=======================================
+
+TODO
+
+
+Key Certificates
+----------------
+
+Out of scope for this proposal.
+Add to ECIES proposal.
+
+
+Lease2
+------
+
+Add new structure with 4-byte expiration.
+
+
+New NetDB Types
+---------------
+
+Incorporate from above.
+
+
+
+Encryption Spec Changes Required
+================================
+
+Out of scope for this proposal.
+Add to ECIES proposal.
+
+
+
+I2NP Changes Required
+=====================
+
+TODO
+Add note: LS2 can only be published to floodfills with a minimum version.
+
+
+Database Lookup Message
+-----------------------
+
+TODO
+Add type 11 (service lookup)
+No other changes required?
+
+
+Database Store Message
+----------------------
+
+TODO
+Add note: LS2 can only be published to floodfills with a minimum version.
+
+
+
+
+I2CP Changes Required
+=====================
+
+TODO
+At least one new message.
+
+
+I2CP Options
+------------
+
+TODO
+Define new options in Mapping for requested crypto, etc.
+
+
+
+Request LS2 Message
+-------------------
+
+TODO
+Router to client.
+New message, similar to Request Variable Leaseset Message,
+but with fields and flags for LS2, and 40-byte leases.
+Support Meta, Encrypted also.
+Requires client to have a minimum version.
+
+
+Create Leaseset Message
+-----------------------
+
+TODO
+Client to router.
+Maybe no changes required other than notes to indicate the returned data
+is as requested, could be a LS or LS2.
+Support Meta, Encrypted also.
+
+
+Changes to support Meta
+-----------------------
+
+How to generate and support Meta, including inter-router communication and coordination,
+is out of scope for this proposal.
+Support may be added to I2CP, or i2pcontrol, or a new protocol.
+
+
+
+Publishing, Migration, Compatibility
+====================================
+
+LS2 is published at the same DHT location as LS1.
+There is no way to publish both a LS1 and LS2, unless LS2 were at a different location.
+
+LS2 would only be used when new features are required
+(new crypto, encrypted LS, meta, etc.).
+LS2 can only be published to floodfills of a specified version or higher.
+
+Servers publishing LS2 would know that any connecting clients support LS2.
+They could send LS2 in the garlic.
+
+Clients would send LS2 in garlics only if using new crypto.
+Shared clients would use LS1 indefinitely?
+TODO: How to have a shared clients that supports both old and new crypto?
+
 
 
 References
