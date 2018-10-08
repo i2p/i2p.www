@@ -3,8 +3,8 @@ Common structures Specification
 ===============================
 .. meta::
     :category: Design
-    :lastupdated: September 2017
-    :accuratefor: 0.9.31
+    :lastupdated: October 2018
+    :accuratefor: 0.9.37
 
 .. contents::
 
@@ -58,24 +58,6 @@ Contents
 in the string and the remaining 0-255 bytes are the non-null terminated UTF-8
 encoded character array.  Length limit is 255 bytes (not characters). Length
 may be 0.
-
-.. _type-Boolean:
-
-Boolean
--------
-
-Description
-```````````
-A boolean value, supporting null/unknown representation
-0=false, 1=true, 2=unknown/null
-
-Contents
-````````
-1 byte Integer_
-
-Notes
-`````
-Deprecated - unused
 
 .. _type-PublicKey:
 
