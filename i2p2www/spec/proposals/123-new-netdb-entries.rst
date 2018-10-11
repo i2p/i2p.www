@@ -155,10 +155,10 @@ Types 3, 7, and 9 all have a common format::
   Standard LS2 Signature:
   - Length as implied by sig type of signing key
 
-Type 3 (Encrypted) does not start with a Destination and has a
+Type 5 (Encrypted) does not start with a Destination and has a
 different format. See below.
 
-Type 6 (Service List) is an aggregation of several Service Records and has a
+Type 11 (Service List) is an aggregation of several Service Records and has a
 different format. See below.
 
 
