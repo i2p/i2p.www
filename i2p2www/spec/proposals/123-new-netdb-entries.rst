@@ -5,7 +5,7 @@ New netDB Entries
     :author: zzz, orignal, str4d
     :created: 2016-01-16
     :thread: http://zzz.i2p/topics/2051
-    :lastupdated: 2018-09-18
+    :lastupdated: 2018-10-11
     :status: Open
     :supercedes: 110, 120, 121, 122
 
@@ -97,8 +97,10 @@ Existing types:
 ==================================  ============= ============
             NetDB Data               Lookup Type   Store Type 
 ==================================  ============= ============
-RI                                        0            0      
+any                                       0           any     
 LS                                        1            1      
+RI                                        2            0      
+exploratory                               3           DSRM    
 ==================================  ============= ============
 
 New types:
@@ -110,14 +112,17 @@ LS2                                       1            3             yes        
 Encrypted LS2                             1            5             no                  no
 Meta LS2                                  1            7             yes                 no
 Service Record                           n/a           9             yes                 no
-Service List                             11           11             no                  no
+Service List                              4           11             no                  no
 ==================================  ============= ============ ================== ==================
 
 
 
-Issues
-``````
-- All types are odd since upper bits in the Database Store Message
+Notes
+`````
+- Lookup types are currently bits 3-2 in the Database Lookup Message.
+  Any additional types would require use of bit 4.
+
+- All store types are odd since upper bits in the Database Store Message
   type field are ignored by old routers.
   We would rather have the parse fail as an LS than as a compressed RI.
 
