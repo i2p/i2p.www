@@ -5,7 +5,7 @@ New netDB Entries
     :author: zzz, orignal, str4d
     :created: 2016-01-16
     :thread: http://zzz.i2p/topics/2051
-    :lastupdated: 2018-10-11
+    :lastupdated: 2018-10-12
     :status: Open
     :supercedes: 110, 120, 121, 122
 
@@ -814,16 +814,38 @@ Add note: LS2 can only be published to floodfills with a minimum version.
 Database Lookup Message
 -----------------------
 
-TODO
-Add type 11 (service lookup)
-No other changes required?
+Add the service list lookup type.
+
+Changes
+```````
+::
+
+  Flags byte: Lookup type field, currently bits 3-2, expands to bits 4-2.
+  Lookup type 0x04 is defined as the service list lookup.
+
+  Add note: Service list loookup may only be sent to floodfills with a minimum version.
+  Minimum version is 0.9.38.
 
 
 Database Store Message
 ----------------------
 
-TODO
-Add note: LS2 can only be published to floodfills with a minimum version.
+Add all the new store types.
+
+Changes
+```````
+::
+
+  Type byte: Type field, currently bit 0, expands to bits 3-0.
+  Type 3 is defined as a LS2 store.
+  Type 5 is defined as a encrypted LS2 store.
+  Type 7 is defined as a meta LS2 store.
+  Type 9 is defined as a service record store.
+  Type 11 is defined as a service list store.
+  Other types are undefined and invalid.
+
+  Add note: All new types may only be published to floodfills with a minimum version.
+  Minimum version is 0.9.38.
 
 
 
@@ -831,37 +853,48 @@ Add note: LS2 can only be published to floodfills with a minimum version.
 I2CP Changes Required
 =====================
 
-TODO
-At least one new message.
-
 
 I2CP Options
 ------------
 
-TODO
-Define new options in Mapping for requested crypto, etc.
+New options in SessionConfig Mapping:
+
+::
+
+  crypto.encType=nnn      The encryption type to be used.
+                          0: ElGamal
+                          Other values to be defined in future proposals.
+  i2cp.leaseSetType=nnn   The type of leaseset to be sent in the Create Leaseset Message
+                          Value is the same as the netdb store type in the table above.
 
 
 
-Request LS2 Message
--------------------
+Request Leaseset Message
+------------------------
 
-TODO
 Router to client.
-New message, similar to Request Variable Leaseset Message,
-but with fields and flags for LS2, and 40-byte leases.
-Support Meta, Encrypted also.
-Requires client to have a minimum version.
+No changes.
+The leases are sent with 8-byte timestamps, even if the
+returned leaseset will be a LS2 with 4-byte timestamps.
+
+
+
+Request Variable Leaseset Message
+---------------------------------
+
+Router to client.
+No changes.
+The leases are sent with 8-byte timestamps, even if the
+returned leaseset will be a LS2 with 4-byte timestamps.
 
 
 Create Leaseset Message
 -----------------------
 
-TODO
 Client to router.
-Maybe no changes required other than notes to indicate the returned data
-is as requested, could be a LS or LS2.
-Support Meta, Encrypted also.
+Private key type and length are specified in the SessionConfig crypto.encType option.
+Leaseset type is as specified in the SessionConfig i2cp.leaseSetType option.
+Minimum router version is 0.9.38.
 
 
 Changes to support Meta
