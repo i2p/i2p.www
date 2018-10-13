@@ -578,12 +578,12 @@ Format
 
   Meta LS2 Type-Specific Part
   - Number of entries (1 byte) Maximum TBD
-  - Entries. Each entry contains: (39 bytes)
+  - Entries. Each entry contains: (40 bytes)
     - Hash (32 bytes)
-    - Flags (2 bytes)
+    - Flags (3 bytes)
       TBD. Set all to zero for compatibility with future uses.
-    - Expires (4 bytes) (offset from published in ms)
     - Cost (priority) (1 byte)
+    - Expires (4 bytes) (offset from published in ms)
 
   - Number of revocations (1 byte) Maximum TBD
   - Revocations: Each revocation contains: (32 bytes)
