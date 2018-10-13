@@ -5,7 +5,7 @@ New netDB Entries
     :author: zzz, orignal, str4d
     :created: 2016-01-16
     :thread: http://zzz.i2p/topics/2051
-    :lastupdated: 2018-10-12
+    :lastupdated: 2018-10-13
     :status: Open
     :supercedes: 110, 120, 121, 122
 
@@ -444,8 +444,8 @@ Does NOT use the standard LS2 header specified above.
   - Blinded Public Key Sig Type (2 bytes)
   - Blinded Public Key (length as implied by sig type)
   - Signature of destination by blinded public key?
-  - Published timestamp (8 bytes)
-  - Expires (4 bytes) (offset from published in ms)
+  - Published timestamp (4 bytes, seconds since epoch, rolls over in 2106)
+  - Expires (2 bytes) (offset from published timestamp in seconds, 18.2 hours max)
   - Flags (2 bytes)
     Bit order: 15 14 ... 3 2 1 0
     Bit 0: If 0, no offline keys; if 1, offline keys
