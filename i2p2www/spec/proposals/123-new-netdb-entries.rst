@@ -577,6 +577,7 @@ Format
   Standard LS2 Header as specified above
 
   Meta LS2 Type-Specific Part
+  - Properties (Mapping as specified in common structures spec, 2 zero bytes if none)
   - Number of entries (1 byte) Maximum TBD
   - Entries. Each entry contains: (40 bytes)
     - Hash (32 bytes)
@@ -584,12 +585,9 @@ Format
       TBD. Set all to zero for compatibility with future uses.
     - Cost (priority) (1 byte)
     - Expires (4 bytes) (offset from published in ms)
-
   - Number of revocations (1 byte) Maximum TBD
   - Revocations: Each revocation contains: (32 bytes)
     - Hash (32 bytes)
-
-  - Properties (Mapping as specified in common structures spec, 2 zero bytes if none)
 
   Standard LS2 Signature:
   - Signature (40+ bytes)
