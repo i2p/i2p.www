@@ -61,13 +61,26 @@ Goals
   if contents are encrypted (don't derive timestamp from earliest lease)
 
 
-Non-Goals
----------
+Non-Goals / Out-of-scope
+------------------------
 
 - New DHT rotation algorithm or shared random generation
-- This proposal is about enabling new encryption types.
-  The specific new encryption type and end-to-end encryption scheme
+- The specific new encryption type and end-to-end encryption scheme
   to use that new type would be in a separate proposal.
+  No new crypto is specified or discussed here.
+- New encryption for RIs or tunnel building.
+  That would be in a separate proposal.
+- Methods of encryption, transmission, and reception of I2NP DLM / DSM / DSRM messages.
+  Not changing.
+- How to generate and support Meta, including backend inter-router communication, management, failover, and coordination.
+  Support may be added to I2CP, or i2pcontrol, or a new protocol.
+  This may or may not be standardized.
+- How to actually implement and manage longer-expiring tunnels, or cancel existing tunnels.
+  That's extremely difficult, and without it, you can't have a reasonable graceful shutdown.
+- Threat model changes
+- Offline storage format, or methods to store/retrieve/share the data.
+- Implementation details are not discussed here and are left to each project.
+
 
 
 Justification
@@ -886,6 +899,7 @@ The leases are sent with 8-byte timestamps, even if the
 returned leaseset will be a LS2 with 4-byte timestamps.
 
 
+
 Create Leaseset Message
 -----------------------
 
@@ -893,6 +907,33 @@ Client to router.
 Private key type and length are specified in the SessionConfig crypto.encType option.
 Leaseset type is as specified in the SessionConfig i2cp.leaseSetType option.
 Minimum router version is 0.9.38.
+
+
+
+Host Reply Message
+------------------
+
+Router to client.
+
+A client doesn't know a priori that a given Hash will resolve
+to a Meta LS.
+
+If a Host Lookup Message for a Hash yields a Meta LS,
+the router needs to return one or more Destinations and expirations to the client.
+Either the client must to the recursive resolution, or the router can do it.
+Not clear how it should work.
+For either method, we either need a new flavor of the Host Reply Message,
+or define a new result code that means what follows is a list of Destinations
+and expirations.
+
+If the router simply returns a single Destination whose Hash doesn't match
+that of the lookup, it may fail sanity checks on the client side,
+and the client has no way to get an alternate if that fails,
+and has no way to know the expiration time.
+
+Minimum client version is 0.9.38.
+
+There may be similar issues in BOB and SAM.
 
 
 Changes to support Meta
@@ -904,11 +945,29 @@ Support may be added to I2CP, or i2pcontrol, or a new protocol.
 
 
 
+SAM Changes Required
+====================
+
+TBD. See I2CP Host Reply Message section above.
+
+
+
+BOB Changes Required
+====================
+
+TBD. See I2CP Host Reply Message section above.
+
+
+
+
 Publishing, Migration, Compatibility
 ====================================
 
-LS2 is published at the same DHT location as LS1.
+LS2 (other than encrypted LS2) is published at the same DHT location as LS1.
 There is no way to publish both a LS1 and LS2, unless LS2 were at a different location.
+
+Encrypted LS2 is published at the hash of the blinded key type and key data,
+with daily rotation as usual.
 
 LS2 would only be used when new features are required
 (new crypto, encrypted LS, meta, etc.).
