@@ -566,7 +566,7 @@ Store with:
 Store at:
     Hash of destination, with daily rotation, as for LS 1
 Typical expiration:
-    Hours to days. Max TBD.
+    Hours. Max 18.2 hours (65535 seconds)
 Published by:
     "master" Destination or coordinator, or intermediate coordinators
 
@@ -584,7 +584,7 @@ Format
     - Flags (3 bytes)
       TBD. Set all to zero for compatibility with future uses.
     - Cost (priority) (1 byte)
-    - Expires (4 bytes) (offset from published in ms)
+    - Expires (4 bytes) (4 bytes, seconds since epoch, rolls over in 2106)
   - Number of revocations (1 byte) Maximum TBD
   - Revocations: Each revocation contains: (32 bytes)
     - Hash (32 bytes)
@@ -629,7 +629,7 @@ Store with:
 Store at:
     Hash of service name, with daily rotation
 Typical expiration:
-    Hours
+    Hours. Max 18.2 hours (65535 seconds)
 Published by:
     Destination
 
