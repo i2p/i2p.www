@@ -5,7 +5,7 @@ New netDB Entries
     :author: zzz, orignal, str4d
     :created: 2016-01-16
     :thread: http://zzz.i2p/topics/2051
-    :lastupdated: 2018-10-13
+    :lastupdated: 2018-10-15
     :status: Open
     :supercedes: 110, 120, 121, 122
 
@@ -300,10 +300,12 @@ Format
 
   Standard LS2 Type-Specific Part
   - Properties (Mapping as specified in common structures spec, 2 zero bytes if none)
-  - Encryption type (2 bytes)
-  - Encryption key length (2 bytes)
-    This is explicit, so floodfills can parse LS2 with unknown encryption types.
-  - Encryption key (number of bytes specified)
+  - Number of key sections to follow (1 byte, max TBD)
+  - Key sections:
+    - Encryption type (2 bytes)
+    - Encryption key length (2 bytes)
+      This is explicit, so floodfills can parse LS2 with unknown encryption types.
+    - Encryption key (number of bytes specified)
   - Number of lease2s (1 byte)
   - Lease2s (40 bytes each)
     These are leases, but with a 4-byte instead of an 8-byte expiration,
@@ -324,6 +326,14 @@ Justification
 - Properties: Future expansion and flexibility.
   Placed first in case necessary for parsing of the remaining data.
 
+- Multiple encryption type/public key pairs are
+  to ease transition to new encryption types. The other way to do it
+  is to publish multiple leasesets, possibly using the same tunnels,
+  as we do now for DSA and EdDSA destinations.
+  Identification of the incoming encryption type on a tunnel
+  may be done with the existing session tag mechanism,
+  and/or trial decryption using each key. Lengths of the incoming
+  messages may also provide a clue.
 
 Discussion
 ``````````
@@ -332,12 +342,6 @@ This proposal continues to use the public key in the leaseset for the
 end-to-end encryption key, and leaves the public key field in the
 Destination unused, as it is now. The encryption type is not specified
 in the Destination key certificate, it will remain 0.
-
-Possible extension: Optionally include multiple encryption type/public key pairs,
-to ease transition to new encryption types. The other way to do it
-is to publish multiple leasesets, possibly using the same tunnels,
-as we do now for DSA and EdDSA destinations. It's not clear how to
-identify the incoming encryption type on a shared tunnel.
 
 A rejected alternative is to specify the encryption type in the Destination key certificate,
 use the public key in the Destination, and not use the public key
@@ -349,7 +353,7 @@ Benefits of LS2:
 - Encryption type, or public key, may change without changing the Destination.
 - Removes unused revocation field
 - Basic compatibility with other DatabaseEntry types in this proposal
-- Could allow multiple encryption types
+- Allow multiple encryption types
 
 Drawbacks of LS2:
 
@@ -374,13 +378,6 @@ See also the ECIES thread on zzz.i2p.
 
 - We have included a key length field, so that the LS2 is
   parsable and verifiable by the floodfill even for unknown encryption types.
-
-- Do we want to support multiple encryption types and keys in the same LS?
-  Or is it sufficient to have different b32s for different types,
-  as we do now for sig types.
-  Would it be possible for a router to auto-detect incoming garlic-encrypted
-  messages, if multiple types were supported in the same tunnel?
-  TODO - IMPORTANT TO DECIDE
 
 - The first new encryption type to be proposed will
   probably be ECIES/X25519. How it's used end-to-end
