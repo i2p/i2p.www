@@ -5,7 +5,7 @@ New netDB Entries
     :author: zzz, orignal, str4d
     :created: 2016-01-16
     :thread: http://zzz.i2p/topics/2051
-    :lastupdated: 2018-10-15
+    :lastupdated: 2018-11-12
     :status: Open
     :supercedes: 110, 120, 121, 122
 
@@ -59,7 +59,10 @@ Goals
 - Add flexibility to leasesets via properties, like we have in routerinfos.
 - Put published timestamp and variable expiration in header, so it works even
   if contents are encrypted (don't derive timestamp from earliest lease)
-
+- All new types live in the same DHT space and same locations as existing leasesets,
+  so that users may migrate from the old LS to LS2,
+  or change among LS2, Meta, and Encrypted,
+  without changing their Destination.
 
 Non-Goals / Out-of-scope
 ------------------------
@@ -534,7 +537,7 @@ The tree is a DAG; loops are prohibited; clients doing lookups must detect and
 refuse to follow loops.
 
 A Meta LS2 may have a much longer expiration than a standard LS or LS2.
-The top level may have an expiration hours or days after the publication date.
+The top level may have an expiration several hours after the publication date.
 Maximum expiration time will be enforced by floodfills and clients, and is TBD.
 
 The use case for Meta LS2 is massive multihoming, but with no more
@@ -562,7 +565,7 @@ be several hours at least. Clients must cache the top-level Meta LS, and persist
 it across restarts if unexpired.
 
 We need to define some algorithm for clients to traverse the tree, including fallbacks,
-so that the usage is dispersed. Some function of hash distance and cost.
+so that the usage is dispersed. Some function of hash distance, cost, and randomness.
 If a node has both LS or LS2 and Meta LS, we need to know when it's allowed
 to use those leasesets, and when to keep traversing the tree.
 
@@ -593,6 +596,8 @@ Format
     - Hash (32 bytes)
     - Flags (3 bytes)
       TBD. Set all to zero for compatibility with future uses.
+      TODO: Use a few bits to (optionally) indicate the type of the LS it is referencing.
+      All zeros means don't know.
     - Cost (priority) (1 byte)
     - Expires (4 bytes) (4 bytes, seconds since epoch, rolls over in 2106)
   - Number of revocations (1 byte) Maximum TBD
