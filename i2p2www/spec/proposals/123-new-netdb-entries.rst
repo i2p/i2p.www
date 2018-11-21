@@ -5,7 +5,7 @@ New netDB Entries
     :author: zzz, orignal, str4d
     :created: 2016-01-16
     :thread: http://zzz.i2p/topics/2051
-    :lastupdated: 2018-11-12
+    :lastupdated: 2018-11-19
     :status: Open
     :supercedes: 110, 120, 121, 122
 
@@ -488,8 +488,8 @@ Does NOT use the standard LS2 header specified above.
     Published timestamp is the nonce
     Do we need HMAC or ChaCha only? Probably don't need HMAC, everything is signed.
     KDF TBD. Used blinded public key. Uses cookie also if per-client.
-    When decrypted, the data for type 2 or 4, including the header,
-    but without the timestamp and expires fields?
+    When decrypted, contains a type byte: 3 (LS2) or 7 (Meta LS2),
+    followed by the data, including the header and signature, for that type.
   - Signature (by blinded public key, length as implied by blinded sig type)
     The signature is of everything above.
 
@@ -517,6 +517,8 @@ Notes
 
 - Floodfills may limit the max size to a reasonable value to prevent abuse.
 
+- After decryption, several checks should be made, including that
+  the inner timestamp and expiration match those at the top level.
 
 
 
