@@ -1,0 +1,73 @@
+{% extends "global/layout.html" %}
+{% block title %}{% trans %}Internal Applications > Web Console{% endtrans %}{% endblock %}
+{% block lastupdated %}{% trans %}November 2018{% endtrans %}{% endblock %}
+{% block accuratefor %}0.9.32{% endblock %}
+{% block content %}
+
+    <h2>{% trans %}Overview{% endtrans %}</h2>
+    <p>{% trans -%}
+        This is the client that provides web access to the I2P service.
+        By default it's configured to start on port <a href="https://localhost:7657/home">localhost:7657</a>.
+    {%- endtrans %}</p>
+    <div>
+        <img src="{{ url_for('static', filename='images/routerconsole-light.png') }}" class="routerconsole"/>
+        <img src="{{ url_for('static', filename='images/console-active.png') }}" class="android"/>
+    </div>
+
+    <h2>{% trans %}Configuration{% endtrans %}</h2>
+
+    <h3><code>clients.config</code></h3>
+    <p>{% trans configuration_url=url_for('spec_show', name='configuration') -%}
+        As <a href="{{ configuration_url }}">specified</a>
+        one needs to define a <code>clientApp</code>.
+        The options for each field are listed below
+    {%- endtrans %}</p>
+
+    <div>
+        <b>clientApp.N.main</b>
+
+        <p>
+            <code>net.i2p.router.web.RouterConsoleRunner</code>
+        </p>
+    </div>
+
+    <div>
+        <b>clientApp.N.args</b>
+        <p>{% trans -%}
+            These are commandline args.
+            As of now it's <code>[[port host[,host]] [-s sslPort [host[,host]]] [webAppsDir]]</code>
+        {%- endtrans %}</p>
+
+        <p>{% trans -%}
+            One can find the up to date args and examples in the
+            <a href="https://github.com/i2p/i2p.i2p/blob/i2p-0.9.33/apps/routerconsole/java/src/net/i2p/router/web/RouterConsoleRunner.java#L133">code</a>
+            .
+        {%- endtrans %}</p>
+    </div>
+
+
+    <h4>Example</h4>
+    <pre>
+        ## There are several choices, here are some examples:
+        ## non-SSL, bind to local IPv4 only
+        #clientApp.0.args=7657 127.0.0.1 ./webapps/
+        ## non-SSL, bind to local IPv6 only
+        #clientApp.0.args=7657 ::1 ./webapps/
+        ## non-SSL, bind to all IPv4 addresses
+        #clientApp.0.args=7657 0.0.0.0 ./webapps/
+        ## non-SSL, bind to all IPv6 addresses
+        #clientApp.0.args=7657 :: ./webapps/
+        ## For SSL only, change clientApp.4.args below to https://
+        ## SSL only
+        #clientApp.0.args=-s 7657 ::1,127.0.0.1 ./webapps/
+        ## non-SSL and SSL
+        #clientApp.0.args=7657 ::1,127.0.0.1 -s 7667 ::1,127.0.0.1 ./webapps/
+        ## non-SSL only, both IPv6 and IPv4 local interfaces
+        clientApp.0.args=7657 ::1,127.0.0.1,192.168.1.10 ./webapps/
+        clientApp.0.main=net.i2p.router.web.RouterConsoleRunner
+        clientApp.0.name=I2P Router Console
+        clientApp.0.onBoot=true
+        clientApp.0.startOnLoad=true
+    </pre>
+
+{% endblock %}
