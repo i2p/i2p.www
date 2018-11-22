@@ -105,6 +105,7 @@ Goals
 - Add forward secrecy
 - Add authentication (AEAD)
 - Much more CPU-efficient than ElGamal
+- Don't rely on Java jbigi to make DH efficient
 - Minimize DH operations
 - Much more bandwidth-efficient than ElGamal (514 byte ElGamal block)
 - Eliminate several problems with session tags, including:
@@ -112,7 +113,7 @@ Goals
   - Unreliability and stalls if tag delivery assumed
   - Bandwidth inefficient, especially on first delivery
   - Huge space inefficiency to store tags
-  - Huge bandwidth overhead for datagrams
+  - Huge bandwidth overhead to deliver tags
   - Highly complex, difficult to implement
   - Difficult to tune for various use cases
   (streaming vs. datagrams, server vs. client, high vs. low bandwidth)
@@ -126,6 +127,7 @@ Goals
 - (Optimistic) Add extensions or hooks to support multicast
 - Support binding of transmit and receive sessions so that
   acknowledgements may happen within the protocol, rather than solely out-of-band.
+  This will also allow replies to have forward secrecy immediately.
 
 
 Non-Goals / Out-of-scope
@@ -133,15 +135,11 @@ Non-Goals / Out-of-scope
 
 - LS2 format (see proposal 123)
 - New DHT rotation algorithm or shared random generation
-- The specific new encryption type and end-to-end encryption scheme
-  to use that new type would be in a separate proposal.
-  No new crypto is specified or discussed here.
 - New encryption for tunnel building.
   That would be in a separate proposal.
 - Methods of encryption, transmission, and reception of I2NP DLM / DSM / DSRM messages.
   Not changing.
 - Threat model changes
-- Offline storage format, or methods to store/retrieve/share the data.
 - Implementation details are not discussed here and are left to each project.
 
 
@@ -168,6 +166,13 @@ There are five portions of the protocol to be redesigned:
   which is essentially a cryptographic, synchronized PRNG.
 - The AES payload, as defined in the ElGamal/AES+SessionTags specification,
   is replaced with a block format similar to that in NTCP2.
+
+Crypto Type
+-----------
+
+The crypto type (used in the LS2) is 1.
+This indicates a 32-byte X25519 public key,
+and the end-to-end protocol specified here.
 
 
 Sessions
@@ -427,8 +432,13 @@ Nonce should be generated randomly.
 Issues
 ``````
 
+- Obfuscation of key?
 
-2a) Existing session format
+- Do we need the nonce? Does it need to be 8 bytes? 4?
+
+
+
+1b) Existing session format
 ---------------------------
 
 Encrypted header (56 bytes)
@@ -466,7 +476,7 @@ Encrypted:
   |             16 bytes                  |
   +----+----+----+----+----+----+----+----+
 
-  Session Tag :: 32 bytes, cleartext
+  Session Tag :: 32 (?) bytes, cleartext
 
   encrypted data :: Same size as plaintext data, 40 bytes
 
@@ -500,7 +510,60 @@ Issues
 
 - Can we reduce session tag to 16 bytes? 8 bytes?
 
-- Obfuscation of key?
+
+
+1c) Identification at Receiver
+------------------------------
+
+Following are recommendations for classifying incoming messages.
+
+
+X25519 Only
+```````````
+
+On a tunnel that is solely used with this protocol, do identification
+as is done currently with ElGamal/AES+SessionTags:
+
+First, treat the initial data as a session tag, and look up the session tag.
+If found, decrypt using the stored data associated with that session tag.
+
+If not found, treat the initial data as a DH public key and nonce.
+Perform a DH operation and the specified KDF, and attempt to decrypt the remaining data.
+
+
+X25519 Shared with ElGamal/AES+SessionTags
+``````````````````````````````````````````
+
+On a tunnel that supports both this protocol and
+ElGamal/AES+SessionTags, classify incoming messages as follows:
+
+Due to a flaw in the ElGamal/AES+SessionTags specification,
+the AES block is not padded to a random non-mod-16 length.
+Therefore, the length of existing session messages mod 16 is always 0,
+and the length of new session messages mod 16 is always 2 (since the
+ElGamal block is 514 bytes long).
+
+If the length mod 16 is not 0 or 2,
+treat the initial data as a session tag, and look up the session tag.
+If found, decrypt using the stored data associated with that session tag.
+
+If not found, and the length mod 16 is not 0 or 2,
+treat the initial data as a DH public key and nonce.
+Perform a DH operation and the specified KDF, and attempt to decrypt the remaining data.
+(based on the relative traffic mix, and the relative costs of X25519 and ElGamal DH operations,
+ths step may be done last instead)
+
+Otherwise, if the length mod 16 is 0,
+treat the initial data as a ElGamal/AES session tag, and look up the session tag.
+If found, decrypt using the stored data associated with that session tag.
+
+If not found, and the data is at least 642 (514 + 128) bytes long,
+and the length mod 16 is 2,
+treat the initial data as a ElGamal block.
+Attempt to decrypt the remaining data.
+
+Note that if the ElGamal/AES+SessionTag spec is updated to allow
+non-mod-16 padding, things will need to be done differently.
 
 
 
@@ -557,15 +620,17 @@ k :: 32 byte cipher key, as generated from KDF
   nonce :: Counter-based nonce, 12 bytes.
            Starts at 0 and incremented for each message.
            First four bytes are always zero.
-           Last eight bytes are the counter, little-endian encoded.
+           In new session message:
+           Last eight bytes are the nonce from the message header.
+           In existing session message:
+           Last eight bytes are the message number (N), little-endian encoded.
            Maximum value is 2**64 - 2.
-           Connection must be dropped and restarted after
-           it reaches that value.
-           The value 2**64 - 1 must never be sent.
+           Session must be ratcheted before N reaches that value.
+           The value 2**64 - 1 must never be used.
 
   ad :: In new session message:
         Associated data, 32 bytes.
-        The SHA256 hash of all preceding data.
+        The SHA256 hash of the preceding data (public key and nonce)
         In existing session message:
         Zero bytes
 
@@ -649,17 +714,25 @@ so we can use random nonces. (SIV?)
 4) Ratchets
 -----------
 
-Ratchets replace session tags.
-Session tags also have a rekey option that we never implemented.
+We still use session tags, as before, but we use ratchets to generate them.
+Session tags also had a rekey option that we never implemented.
 So it's like a double ratchet but we never did the second one.
 
-Here we define something like Signal Double Ratchet with Header Encryption.
+Here we define something like Signal Double Ratchet.
+The session tags are generated deterministically and identically on
+the receiver and sender sides.
 
-By using ratchets, we eliminate memory usage on the sender side.
-Receiver side usage is still significant.
+By using a symmetric key/tag ratchet, we eliminate memory usage to store session tags on the sender side.
+We also eliminate the bandwidth consumption of sending tag sets.
+Receiver side usage is still significant, but we can reduce it further
+should we decide to shrink the session tag from 32 bytes to 8 or 16 bytes.
 
 We do not use header encryption as is specified (and optional) in Signal,
 we use session tags instead.
+
+By using a DH ratchet, we acheive forward secrecy, which was never implemented
+in ElGamal/AES+SessionTags.
+
 
 
 Message Numbers
@@ -680,7 +753,7 @@ is the number of skipped messages in that chain.
 
 
 Session Tag Ratchet
-``````````````````
+```````````````````
 
 Ratchets for every message, as in Signal.
 The session tag ratchet is synchronized with the symmetric key ratchet,
@@ -688,11 +761,18 @@ but the receiver key ratchet may "lag behind" to save memory.
 
 Transmitter ratchets once for each message transmitted.
 No additional tags must be stored.
+The transmitter must also keep a counter for 'N', the message number
+of the message in the current chain. The 'N' value is included
+in the sent message.
+See the Message Number block definition.
 
 Receiver must ratchet ahead by the max window size and store the tags in a "tag set",
 which is associated with the session.
 Once received, the stored tag may be discarded, and if there are no previous
 unreceived tags, the window may be advanced.
+The receiver should keep the 'N' value associated with each session tag,
+and check that the number in the sent message matches this value.
+See the Message Number block definition.
 
 
 Symmetric Key Ratchet
@@ -960,8 +1040,10 @@ Also contains the public key id, used for acks.
   blk :: 6
   size :: 6
   Key ID :: 2 bytes big endian
-  PN :: 2 bytes big endian
-  N :: 2 bytes big endian
+  PN :: 2 bytes big endian. The number of keys in the previous sending chain.
+        i.e. one more than the last 'N' sent in the previous chain.
+        Use 0 if there was no previous sending chain.
+  N :: 2 bytes big endian. Starts with 0.
 
 {% endhighlight %}
 
