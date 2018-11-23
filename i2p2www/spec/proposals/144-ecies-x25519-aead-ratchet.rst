@@ -101,6 +101,8 @@ Goals
 - No new crypto or primitives required for support
 - Maintain decoupling of crypto and signing; support all current and future versions
 - Enable new crypto for destinations
+- Enable new crypto for routers, but only for garlic messages - tunnel building would
+  be a separate proposal
 - Don't break anything that relies on 32-byte binary destination hashes, e.g. bittorrent
 - Add forward secrecy
 - Add authentication (AEAD)
@@ -148,8 +150,27 @@ Justification
 -------------
 
 
-Proposal
-========
+New Cryptographic Primitives for I2P
+====================================
+
+Existing I2P router implementations will require implementations for
+the following standard cryptographic primitives,
+which are not required for current I2P protocols:
+
+1) ECIES (but this is essentially X25519)
+
+Existing I2P router implementations that have not yet implemented NTCP2 (Proposal 111)
+will also require implementations for:
+
+1) X25519 key generation and DH
+
+2) AEAD_ChaCha20_Poly1305 (abbreviated as ChaChaPoly below)
+
+3) HKDF
+
+
+Detailed Proposal
+=================
 
 This proposal defines a new end-to-end protocol to replace ElGamal/AES+SessionTags.
 
@@ -167,12 +188,17 @@ There are five portions of the protocol to be redesigned:
 - The AES payload, as defined in the ElGamal/AES+SessionTags specification,
   is replaced with a block format similar to that in NTCP2.
 
+
 Crypto Type
 -----------
 
-The crypto type (used in the LS2) is 1.
+The crypto type (used in the LS2) is 4.
 This indicates a 32-byte X25519 public key,
 and the end-to-end protocol specified here.
+
+Crypto type 0 is ElGamal.
+Crypto types 1-3 are reserved for an upcoming ECIES-ECDH-AES-SessionTag proposal.
+
 
 
 Sessions
@@ -186,9 +212,36 @@ Acknowledgements are out-of-band using a DeliveryStatusMessage
 
 There is substantial inefficiency in a unidirectional protocol.
 Any reply must also use an expensive 'new session' message.
+This causes higher bandwidth, CPU, and memory usage.
+For this proposal, we define two mechanisms to create a bidirectional protocol -
+"pairing" and "binding".
 
-For the new protocol, a new outbound session is always paired with a new inbound session,
+
+Session Context
+```````````````
+
+As with ElGamal/AES+SessionTags, all inbound and outbound sessions
+must be in a given context, either the router's context or
+the context for a particular local destination.
+In Java I2P, this context is called the Session Key Manager.
+
+Sessions must not be shared among contexts, as that would
+allow correlation among the various local destinations,
+or between a local destination and a router.
+
+When a given destination supports both ElGamal/AES+SessionTags
+and this proposal, both types of sessions may share a context.
+See section 1c) below.
+
+
+
+Pairing Inbound and Outbound Sessions
+`````````````````````````````````````
+
+When an outbound session is created at the originator (Alice),
+a new inbound session is created and paired with the outbound session,
 unless no reply is expected (e.g. raw datagrams).
+
 A new inbound session is always paired with a new outbound session,
 unless no reply is requested (e.g. raw datagrams).
 
@@ -196,13 +249,36 @@ If a reply is requested and bound to a far-end destination or router,
 that new outbound session is bound to that destination or router,
 and replaces any previous outbound session to that destination or router.
 
+
+Binding Sessions and Destinations
+`````````````````````````````````
+
 There is only one outbound session to a given destination or router.
 There may be several current inbound sessions from a given destination or router.
 Generally, when a new inbound session is created, and traffic is received
 on that session (which serves as an ACK), any others will be marked
 to expire relatively quickly, within a minute or so.
 
+When an outbound session is created at the originator (Alice),
+it is bound to the far-end Destination (Bob),
+and any paired inbound session will also be bound to the far-end Destination.
+As the sessions ratchet, they continue to be bound to the far-end Destination.
 
+When an inbound session is created at the receiver (Bob),
+it may be bound to the far-end Destination (Alice), at Alice's option.
+If Alice includes binding information (her Destination hash and signature) in the new session message,
+the session will be bound to that destination,
+and a outbound session will be created and bound to same Destination.
+As the sessions ratchet, they continue to be bound to the far-end Destination.
+
+
+Session Timeouts
+````````````````
+
+Outbound sessions should always expire before inbound sessions.
+One an outbound session expires, and a new one is created, a new paired inbound
+session will be created as well. If there was an old inbound session,
+it will be allowed to expire.
 
 
 1) Container format
@@ -377,9 +453,7 @@ Encrypted:
   |                                       |
   +                                       +
   |       ChaCha20 encrypted data         |
-  +                                       +
-  |                                       |
-  +                                       +
+  ~                                       ~
   |                                       |
   +                                       +
   |                                       |
@@ -393,7 +467,7 @@ Encrypted:
 
   Nonce :: 8 bytes, cleartext
 
-  encrypted data :: Same size as plaintext data, 40 bytes
+  encrypted data :: Same size as plaintext data, Size varies
 
   MAC :: Poly1305 message authentication code, 16 bytes
 
@@ -436,6 +510,12 @@ Issues
 
 - Do we need the nonce? Does it need to be 8 bytes? 4?
 
+- IV is in the LS2 property? Alternative: Send a 16 byte IV instead of 8 byte nonce,
+  and use a nonce of 0.
+
+- Alternative: Encrypt the key and IV in a fixed-size AEAD block,
+  as in ElGamal. Then append a second AEAD block, as in ElGamal.
+
 
 
 1b) Existing session format
@@ -464,9 +544,7 @@ Encrypted:
   |                                       |
   +                                       +
   |       ChaCha20 encrypted data         |
-  +                                       +
-  |                                       |
-  +                                       +
+  ~                                       ~
   |                                       |
   +                                       +
   |                                       |
@@ -478,7 +556,7 @@ Encrypted:
 
   Session Tag :: 32 (?) bytes, cleartext
 
-  encrypted data :: Same size as plaintext data, 40 bytes
+  encrypted data :: Same size as plaintext data, size varies
 
   MAC :: Poly1305 message authentication code, 16 bytes
 
@@ -742,7 +820,7 @@ The Double Ratchet handles lost or out-of-order messages by including in each me
 the message's number in the sending chain (N=0,1,2,...)
 and the length (number of message keys) in the previous sending chain (PN).
 This enables the recipient to advance to the relevant message key while storing skipped message keys
- in case the skipped messages arrive later.
+in case the skipped messages arrive later.
 
 On receiving a message, if a DH ratchet step is triggered then the received PN
 minus the length of the current receiving chain is the number of skipped messages in that receiving chain.
