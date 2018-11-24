@@ -29,7 +29,7 @@ The following proposals are somewhat related:
 
 - 140 Invisible Multihoming (incompatible with this proposal)
 - 142 New Crypto Template (for new symmetric crypto)
-- ECIES (see zzz.i2p thread)
+- ECIES http://zzz.i2p/topics/2418
 
 
 Proposal

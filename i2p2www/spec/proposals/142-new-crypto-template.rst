@@ -52,7 +52,7 @@ As a review, we use ElGamal for:
 
 1) Tunnel Build messages (key is in RouterIdentity)
 
-2) Router-to-router encryption of netdb and other i2np msgs (Key is in RouterIdentity)
+2) Router-to-router encryption of netdb and other I2NP msgs (Key is in RouterIdentity)
 
 3) Client End-to-end ElGamal+AES/SessionTag (key is in LeaseSet, the Destination key is unused)
 

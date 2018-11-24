@@ -5,7 +5,7 @@ ECIES-X25519-AEAD-Ratchet
     :author: zzz
     :created: 2018-11-22
     :thread: http://zzz.i2p/topics/2639
-    :lastupdated: 2018-11-22
+    :lastupdated: 2018-11-24
     :status: Open
 
 .. contents::
@@ -213,8 +213,18 @@ Acknowledgements are out-of-band using a DeliveryStatusMessage
 There is substantial inefficiency in a unidirectional protocol.
 Any reply must also use an expensive 'new session' message.
 This causes higher bandwidth, CPU, and memory usage.
+
+There are also security weaknesses in a unidirectional protocol.
+All sessions are based on ephemeral-static DH.
+Without a return path, there is no way for Bob to "ratchet" his static key
+to an ephemeral key.
+Without knowing where a message is from, there's no way to use
+the received ephemeral key for outbound messages,
+so the initial reply also uses ephemeral-static DH.
+
 For this proposal, we define two mechanisms to create a bidirectional protocol -
 "pairing" and "binding".
+These mechanisms provide increased efficiency and security.
 
 
 Session Context
@@ -249,6 +259,10 @@ If a reply is requested and bound to a far-end destination or router,
 that new outbound session is bound to that destination or router,
 and replaces any previous outbound session to that destination or router.
 
+Pairing inbound and outbound sessions provides a bidirectional protocol
+with the capability of ratcheting the DH keys.
+
+
 
 Binding Sessions and Destinations
 `````````````````````````````````
@@ -258,6 +272,10 @@ There may be several current inbound sessions from a given destination or router
 Generally, when a new inbound session is created, and traffic is received
 on that session (which serves as an ACK), any others will be marked
 to expire relatively quickly, within a minute or so.
+The previous messages sent (PN) value is checked, and if there are no
+unreceived messages (within the window size) in the previous inbound session,
+the previous session may be deleted immediately.
+
 
 When an outbound session is created at the originator (Alice),
 it is bound to the far-end Destination (Bob),
@@ -272,6 +290,43 @@ and a outbound session will be created and bound to same Destination.
 As the sessions ratchet, they continue to be bound to the far-end Destination.
 
 
+Benefits of Binding and Pairing
+```````````````````````````````
+
+For the common, streaming case, we expect Alice and Bob to use the protocol as follows:
+
+- Alice pairs her new outbound session to a new inbound session, both bound to the far-end destination (Bob).
+- Alice includes the binding information and signature, and a reply request, in the
+  new session message sent to Bob.
+- Bob pairs his new inbound session to a new outbound session, both bound to the far-end destination (Alice).
+- Bob sends a reply (ack) to Alice in the paired session, with a ratchet to a new DH key.
+- Alice ratchets to a new outbound session with Bob's new key, paired to the existing inbound session.
+
+By binding an inbound session to a far-end Destination, and pairing the inbound session
+to an outbound session bound to the same Destination, we achieve two major benefits:
+
+1) The initial reply from Bob to Alice uses ephemeral-ephemeral DH
+
+2) After Alice receives Bob's reply and ratchets, all subsequent messages from Alice to Bob
+use ephemeral-ephemeral DH.
+
+
+Message ACKs
+````````````
+
+In ElGamal/AES+SessionTags, when a LeaseSet is bundled as a garlic clove,
+or tags are delivered, the sending router requests an ACK.
+This is a separate garlic clove containing a DeliveryStatus Message.
+For additional security, the DeliveryStatus Message is wrapped in a Garlic Message.
+This mechanism is out-of-band from the perspective of the protocol.
+
+In the new protocol, since the inbound and outbound sessions are paired,
+we can have ACKs in-band. No separate clove is required.
+In
+
+
+
+
 Session Timeouts
 ````````````````
 
@@ -281,16 +336,19 @@ session will be created as well. If there was an old inbound session,
 it will be allowed to expire.
 
 
-1) Container format
--------------------
+1) Message format
+-----------------
 
-In ElGamal/AES+SessionTags, there are two formats:
+Review of ElGamal/AES+SessionTags Message Format
+````````````````````````````````````````````````
 
-New session:
+In ElGamal/AES+SessionTags, there are two message formats:
+
+1) New session:
 - 514 byte ElGamal block
 - AES block (128 bytes minimum, multiple of 16)
 
-Existing session:
+2) Existing session:
 - 32 byte Session Tag
 - AES block (128 bytes minimum, multiple of 16)
 
@@ -306,12 +364,12 @@ We need to fix this.
 
 The receiver first attempts to look up the first 32 bytes as a Session Tag.
 If found, he decrypts the AES block.
-If not found, and the data is at least (514+16) long, he attempts to decrypt the ElGamal block.
+If not found, and the data is at least (514+16) long, he attempts to decrypt the ElGamal block,
+and if successful, decrypts the AES block.
 
 
-
-Session Tags and comparison to Signal
-`````````````````````````````````````
+New Session Tags and comparison to Signal
+`````````````````````````````````````````
 
 In Signal Double Ratchet, the header contains:
 
@@ -336,7 +394,6 @@ This would be far too many DH operations for us.
 So we separate the ack of the received key and the transmission of a new public key.
 Any message using a session tag generated from the new DH public key constitutes an ACK.
 We only transmit a new public key when we wish to rekey.
-
 
 The maximum number of messages before the DH must ratchet is 65535.
 
@@ -430,6 +487,9 @@ Some recommended strategies include:
 1a) New session format
 ----------------------
 
+Public key (32 bytes)
+Nonce (8 bytes)
+Encrypted data and MAC (see section 3 below)
 
 
 Format
@@ -463,7 +523,7 @@ Encrypted:
   |             16 bytes                  |
   +----+----+----+----+----+----+----+----+
 
-  Public Key :: 32 bytes, cleartext
+  Public Key :: 32 bytes, little endian, cleartext
 
   Nonce :: 8 bytes, cleartext
 
@@ -494,6 +554,14 @@ Nonce: From header
 Justification
 `````````````
 
+By using a ratchet (a synchronized PRNG) to generate the
+session tags, we eliminate the overhead of sending session tags
+in the new session message and subsequent messages when needed.
+For a typical tag set of 32 tags, this is 1KB.
+This also eliminates the storage of session tags on the sending side,
+thus cutting the storage requirements in half.
+
+
 Notes
 `````
 
@@ -521,8 +589,8 @@ Issues
 1b) Existing session format
 ---------------------------
 
-Encrypted header (56 bytes)
-Encrypted body (see section 3 below)
+Session tag (32? bytes)
+Encrypted data and MAC (see section 3 below)
 
 
 Format
@@ -865,7 +933,7 @@ Transmitter ratchets once for each message transmitted.
 No additional keys must be stored.
 
 When receiver gets a session tag, if it has not already ratcheted the
-symmetric key ratchet ahead to the associated key, it "catch up" to the associated key.
+symmetric key ratchet ahead to the associated key, it must "catch up" to the associated key.
 The receiver will probably cache the keys for any previous tags
 that have not yet been received.
 Once received, the stored key may be discarded, and if there are no previous
@@ -927,7 +995,7 @@ so the max unencrypted data is 65519 bytes.
 
   blk :: 1 byte
          0-2 reserved (used in NTCP2)
-         3 for I2NP message (Garlic message only)
+         3 for I2NP message (Garlic Message only)
          4 termination
          5 options
          6 message number and previous message number (ratchet)
@@ -1027,7 +1095,7 @@ This must be the last non-padding block in the frame.
 
   {% highlight lang='dataspec' %}
 +----+----+----+----+----+----+----+----+
-  | 4  |  size   |    valid data frames   |
+  | 4  |  size   |    valid data frames
   +----+----+----+----+----+----+----+----+
       received   | rsn|     addl data     |
   +----+----+----+----+                   +
@@ -1051,6 +1119,7 @@ This must be the last non-padding block in the frame.
 
 Notes
 `````
+
 Not all reasons may actually be used, implementation dependent.
 Additional reasons listed are for consistency, logging, debugging, or if policy changes.
 
@@ -1095,7 +1164,7 @@ Options Issues
 ``````````````
 - Options format is TBD.
 - Options negotiation is TBD.
-
+- Padding parameters also?
 
 
 Message Numbers
@@ -1139,6 +1208,9 @@ Next DH Ratchet Public Key
 ``````````````````````````
 This is in the header in Signal, we put it in the payload,
 and it is optional. We don't ratchet every time.
+For typical usage patterns, Alice and Bob each ratchet a single time
+at the beginning.
+
 
 .. raw:: html
 
@@ -1158,7 +1230,7 @@ and it is optional. We don't ratchet every time.
   blk :: 7
   size :: 34
   key ID :: 2 bytes, big endian, used for ack
-  Public Key :: The next public key, 32 bytes
+  Public Key :: The next public key, 32 bytes, little endian
 
   TBD :: Format TBD
 
@@ -1173,19 +1245,24 @@ Issues
 Ack
 ```
 This is only if an explicit ack is requested.
-Multiple blocks may be present to ack multiple messages.
+Multiple acks may be present to ack multiple messages.
 
 
 
 .. raw:: html
 
   {% highlight lang='dataspec' %}
-+----+----+----+----+----+----+----+
-  | 8  |  size   |  key id |   N     |
-  +----+----+----+----+----+----+----+
++----+----+----+----+----+----+----+----+
+  | 8  |  size   |  key id |   N     |    |
+  +----+----+----+----+----+----+----+----+
+  |             more acks                 |
+  ~               .   .   .               ~
+  |                                       |
+  +----+----+----+----+----+----+----+----+
 
   blk :: 8
-  size :: 4
+  size :: 4 * number of acks to follow, minimum 1 ack
+  for each ack:
   key ID :: 2 bytes, big endian, from the message being acked
   N :: 2 bytes, big endian, from the message being acked
 
