@@ -35,7 +35,7 @@ destination-to-destination commication.
 
 
 ElGamal Key Locations
-=====================
+---------------------
 
 As a review,
 ElGamal 256-byte public keys may be found in the following data structures.
@@ -59,7 +59,7 @@ Reference the common structures specification.
 
 
 EncTypes in Key Certs
-=====================
+---------------------
 
 As a review,
 we added support for encryption types when we added support for signature types.
@@ -71,7 +71,7 @@ Reference the common structures specification.
 
 
 Asymmetric Crypto Uses
-======================
+----------------------
 
 As a review, we use ElGamal for:
 
@@ -93,7 +93,7 @@ As a review, we use ElGamal for:
 
 
 Goals
-=====
+-----
 
 - Backwards compatible
 - Requires and builds on LS2 (proposal 123)
@@ -106,6 +106,8 @@ Goals
 - Don't break anything that relies on 32-byte binary destination hashes, e.g. bittorrent
 - Maintain 0-RTT message delivery using ephemeral-static DH
 - Upgrade to ephemeral-ephemeral DH after 1 RTT
+- Maintain handling of out-of-order messages
+- Maintain 256-bit security
 - Add forward secrecy
 - Add authentication (AEAD)
 - Much more CPU-efficient than ElGamal
@@ -136,7 +138,7 @@ Goals
 
 
 Non-Goals / Out-of-scope
-========================
+------------------------
 
 - LS2 format (see proposal 123)
 - New DHT rotation algorithm or shared random generation
@@ -151,6 +153,24 @@ Non-Goals / Out-of-scope
 
 Justification
 -------------
+
+ElGamal/AES+SessionTag has been our sole end-to-end protocol for around for about 15 years,
+essentially without modifications to the protocol.
+There are now cryptographic primitives that are faster.
+We need to enhance the security of the protocol.
+We have also developed heuristic strategies and workarounds to minimize the
+memory and bandwidth overhead of the protocol, but those strategies
+are fragile, difficult to tune, and render the protocol even more prone
+to break, causing the session to drop.
+
+For about the same time period, the ElGamal/AES+SessionTag specification and related
+documentation have described how bandwidth-expensive it is to deliver session tags,
+and have proposed replacing session tag delivery with a "synchronized PRNG".
+A synchronized PRNG deterministically generates the same tags at both ends,
+derived from a common seed.
+A synchronized PRNG can also be termed a "ratchet".
+This proposal (finally) specifies that ratchet mechanism, and eliminates tag delivery.
+
 
 
 New Cryptographic Primitives for I2P
@@ -460,7 +480,7 @@ Session Tag Length Analysis
 ---------------------------
 
 Current session tag length is 32 bytes.
-Research justification for 32 bytes?
+We have not yet found any justification for that length, but we are continuing to research the archives.
 
 The session tag ratchet is assumed to generate random, uniformly distributed tags.
 There is no cryptographic reason for a particular session tag length.
@@ -738,6 +758,8 @@ Decrypted:
 KDF
 ```
 
+See message key ratchet below.
+
 Key: KDF TBD
 IV: As published in a LS2 property?
 Nonce: From header
@@ -824,6 +846,8 @@ Decrypted:
 
 KDF
 ```
+
+See message key ratchet below.
 
 Key: KDF TBD
 IV: KDF TBD
@@ -1106,6 +1130,30 @@ and check that the number in the sent message matches this value.
 See the Message Number block definition.
 
 
+KDF:
+
+.. raw:: html
+
+  {% highlight lang='text' %}
+
+  Inputs:
+  1) Chain key
+     First time: output from DH ratchet
+     Subsequent times: output from previous session tag ratchet
+  2) input_key_material = constant (from where? SHA-256(some constant)?)
+
+  TBD
+
+
+  Outputs:
+  1) N (the current session tag number)
+  2) the session tag (and symmetric key, probably)
+  3) the next Chain Key (KDF input for the next session tag ratchet)
+
+
+{% endhighlight %}
+
+
 Symmetric Key Ratchet
 `````````````````````
 
@@ -1124,14 +1172,76 @@ that have not yet been received.
 Once received, the stored key may be discarded, and if there are no previous
 unreceived tags, the window may be advanced.
 
+KDF:
+
+.. raw:: html
+
+  {% highlight lang='text' %}
+
+  Probably output from the session tag ratchet, not run separately?
+
+
+{% endhighlight %}
+
 
 DH Ratchet
 ``````````
 
 Ratchets but not nearly as fast as Signal does.
 We separate the ack of the received key from generating the new key.
-In typical usage, Alice and Bob will each ratchet immediately in a new session,
+In typical usage, Alice and Bob will each ratchet (twice) immediately in a new session,
 but will not ratchet again.
+
+Note that a ratchet is for a single direction, and generates a new session tag / message key ratchet chain for that direction.
+To generate keys for both directions, you have to ratchet twice.
+
+You ratchet every time you generate and send a new key.
+You ratchet every time you receive a new key.
+
+Alice ratchets once when she initiates a new outbound session and creates the corresponding inbound session.
+Bob ratchets twice when he receives the inbound session and creates the corresponding outbound session,
+once for the new key received, and once for the new key generated.
+Alice ratchets once when she receives the new key on the inbound session and replaces the corresponding outbound session.
+So each side ratchets twice total, in the typical case.
+
+
+KDF:
+
+.. raw:: html
+
+  {% highlight lang='text' %}
+
+  Inputs:
+  1) Root key (first time from where? SHA-256(some constant)?)
+  2) input_key_material
+
+  First time:
+  Alice generates her ephemeral DH key pair e.
+
+  // DH(e, rs) == DH(s, re)
+  Define input_key_material = 32 byte DH result of Alice's ephemeral key and Bob's static key
+  Set input_key_material = X25519 DH result
+
+  After that:
+  Alice or Bob generates her or his ephemeral DH key pair e.
+
+  // DH(e, re) == DH(e, re)
+  Define input_key_material = 32 byte DH result of Alice's ephemeral key and Bob's ephemeral key
+  Set input_key_material = X25519 DH result
+
+
+  // MixKey(DH())
+
+  TBD
+
+
+  Outputs:
+  1) the chain key to initialize the session tag and symmetric key ratchets
+  2) the next Root Key (KDF input for the next ratchet)
+
+
+{% endhighlight %}
+
 
 
 
@@ -1396,6 +1506,15 @@ Notes
 
 - N is not strictly needed in an existing session message, as it's associated with the Session Tag
 
+- This is similar to what Signal does, but in Signal, PN and N are in the header.
+  Here, they're in the encrypted message body.
+
+- Key ID can be just an incrementing counter.
+  It may not be strictly necessary, but it's useful for debugging.
+  Also, we use it for explicit ACKs.
+  Signal does not use a key ID.
+
+
 
 
 Next DH Ratchet Public Key
@@ -1429,6 +1548,16 @@ at the beginning.
   TBD :: Format TBD
 
 {% endhighlight %}
+
+
+
+Notes
+``````
+
+- Key ID can be just an incrementing counter.
+  It may not be strictly necessary, but it's useful for debugging.
+  Also, we use it for explicit ACKs.
+  Signal does not use a key ID.
 
 
 Issues
