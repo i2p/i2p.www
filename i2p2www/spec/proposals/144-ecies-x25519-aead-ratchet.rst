@@ -121,6 +121,7 @@ Goals
   - Highly complex, difficult to implement
   - Difficult to tune for various use cases
   (streaming vs. datagrams, server vs. client, high vs. low bandwidth)
+  - Memory exhaustion vulnerabilities due to tag delivery
 - Support new and old crypto on same tunnel if desired
 - Recipient is able to efficiently distinguish new from old crypto coming down
   same tunnel
@@ -387,10 +388,10 @@ AES block:
 - 32 byte hash of payload
 - 1 byte flags
 - 8 byte (average) padding to 16 bytes
-81 total
+79 total
 
 Four message total (two each direction)
-3332 bytes
+3328 bytes
 
 
 For ECIES-X25519-AEAD-Ratchet
@@ -410,7 +411,7 @@ Total:
 212 bytes
 
 Bob-Alice existing session message:
-- 32 byte? session tag
+- 8 byte session tag
 - 6 byte message ID block
 - 7 byte options block
 - 37 byte next key ratchet block
@@ -419,20 +420,20 @@ Bob-Alice existing session message:
 - 16 byte Poly1305 tag
 
 Total:
-105 bytes
+81 bytes
 
 Existing session messages, same each direction
-- 32 byte? session tag
+- 8 byte session tag
 - 6 byte message ID block
 - 3 byte I2NP block overhead ?
 - 16 byte Poly1305 tag
 
 Total:
-57 bytes
+33 bytes
 
 Four message total (two each direction)
-431 bytes
-87% reduction compared to ElGamal/AEs+SessionTags
+359 bytes
+89% (approx. 10x) reduction compared to ElGamal/AEs+SessionTags
 
 
 Processing overhead estimate
@@ -452,6 +453,79 @@ a new session and do the first ratchet:
 The following cryptographic operations are required by each party for each data phase message:
 
 - ChaChaPoly: 1
+
+
+
+Session Tag Length Analysis
+---------------------------
+
+Current session tag length is 32 bytes.
+Research justification for 32 bytes?
+
+The session tag ratchet is assumed to generate random, uniformly distributed tags.
+There is no cryptographic reason for a particular session tag length.
+The session tag ratchet is synchronized to, but generates an independent output from,
+the symmetric key ratchet. The outputs of the two ratchets may be different lengths.
+
+Therefore, the only concern is session tag collision.
+It is assumed that implementations will not attempt to handle collisions
+by trying to decrypt with both sessions;
+implementations will simply associate the tag with either the previous or new
+session, and any message received with that tag on the other session
+will be dropped after the decryption fails.
+
+The goal is to select a session tag length that is large enough
+to minimize the risk of collisions, while small enough
+to minimize memory usage.
+
+For a worst case, assume a busy server with 64 new inbound sessions per second.
+Assume 15 minute inbound session tag lifetime (same as now, probably should be reduced).
+Assume inbound session tag window of 32.
+64 * 15 * 60 * 32 =  1,843,200 tags
+Current Java I2P max inbound tags is 750,000 and has never been hit as far as we know.
+
+A target of 1 in a million (1e-6) session tag collisions is probably sufficient.
+The probability of dropping a message along the way due to congestion is far higher than that.
+
+Ref: https://en.wikipedia.org/wiki/Birthday_paradox
+Probability table section.
+
+With 32 byte session tags (256 bits) the session tag space is 1.2e77.
+The probability of a collision with probability 1e-18 requires 4.8e29 entries.
+The probability of a collision with probability 1e-6 requires 4.8e35 entries.
+1.8 million tags of 32 bytes each is about 59 MB total.
+
+With 16 byte session tags (128 bits) the session tag space is 3.4e38.
+The probability of a collision with probability 1e-18 requires 2.6e10 entries.
+The probability of a collision with probability 1e-6 requires 2.6e16 entries.
+1.8 million tags of 16 bytes each is about 30 MB total.
+
+With 8 byte session tags (64 bits) the session tag space is 1.8e19.
+The probability of a collision with probability 1e-18 requires 6.1 entries.
+The probability of a collision with probability 1e-6 requires 6.1e6 (6,100,000) entries.
+1.8 million tags of 8 bytes each is about 15 MB total.
+
+6.1 million active tags is over 3x more than our worst-case estimate of 1.8 million tags.
+So the probability of collision would be less than one in a million.
+We therefore conclude that 8 byte session tags are sufficient.
+This results in a 4x reduction of storage space,
+in addition to the 2x reduction because transmit tags are not stored.
+So we will have a 8x reduction in session tag memory usage compared to ElGamal/AES+SessionTags.
+
+To maintain flexibility should these assumptions be wrong,
+we will include a session tag length field in the options,
+so that the default length may be overridden on a per-session basis.
+
+Implementations should, at a minimum, recognize session tag collisions,
+handle them gracefully, and log or count the number of collisions.
+While still extremely unlikely, they will be much more likely than
+they were for ElGamal/AES+SessionTags, and could actually happen.
+
+
+Multicast
+---------
+
+TBD
 
 
 
@@ -708,7 +782,7 @@ Issues
 1b) Existing session format
 ---------------------------
 
-Session tag (32? bytes)
+Session tag (8 bytes)
 Encrypted data and MAC (see section 3 below)
 
 
@@ -720,13 +794,7 @@ Encrypted:
 
   {% highlight lang='dataspec' %}
 +----+----+----+----+----+----+----+----+
-  |                                       |
-  +                                       +
   |       Session Tag                     |
-  +                                       +
-  |                                       |
-  +                                       +
-  |                                       |
   +----+----+----+----+----+----+----+----+
   |                                       |
   +                                       +
@@ -741,7 +809,7 @@ Encrypted:
   |             16 bytes                  |
   +----+----+----+----+----+----+----+----+
 
-  Session Tag :: 32 (?) bytes, cleartext
+  Session Tag :: 8 bytes, cleartext
 
   encrypted data :: Same size as plaintext data, size varies
 
@@ -772,8 +840,6 @@ Notes
 
 Issues
 ``````
-
-- Can we reduce session tag to 16 bytes? 8 bytes?
 
 
 
@@ -990,7 +1056,7 @@ the receiver and sender sides.
 By using a symmetric key/tag ratchet, we eliminate memory usage to store session tags on the sender side.
 We also eliminate the bandwidth consumption of sending tag sets.
 Receiver side usage is still significant, but we can reduce it further
-should we decide to shrink the session tag from 32 bytes to 8 or 16 bytes.
+as we will shrink the session tag from 32 bytes to 8 bytes.
 
 We do not use header encryption as is specified (and optional) in Signal,
 we use session tags instead.
@@ -1257,18 +1323,21 @@ Options block will be variable length.
 
   {% highlight lang='dataspec' %}
 +----+----+----+----+----+----+----+----+
-  | 5  |  size   |STL |STW |STimeout |flg |
+  | 5  |  size   |STL |OTW |STimeout |MITW|
   +----+----+----+----+----+----+----+----+
-  |              more_options             |
+  |flg |         more_options             |
+  +----+                                  +
+  |                                       |
   ~               .   .   .               ~
   |                                       |
   +----+----+----+----+----+----+----+----+
 
   blk :: 5
   size :: 2 bytes, big endian, size of options to follow, TBD bytes minimum
-  STL :: Session tag length
-  STW :: Session tag window (max lookahead)
+  STL :: Session tag length (default 8), min and max TBD
+  OTW :: Outbound Session tag window (max lookahead)
   STimeout :: Session idle timeout
+  MITW :: Max Inbound Session tag window (max lookahead)
   flg :: 1 byte flags
          bit order: 76543210
          bit 0: 1 to request a ratchet (new key), 0 if not
@@ -1277,6 +1346,12 @@ Options block will be variable length.
   more_options :: Format TBD
 
 {% endhighlight %}
+
+
+Options Notes
+`````````````
+- Support for non-default session tag length is optional,
+  probably not necessary
 
 
 Options Issues
