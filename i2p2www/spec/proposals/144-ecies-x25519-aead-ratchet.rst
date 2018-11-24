@@ -104,6 +104,8 @@ Goals
 - Enable new crypto for routers, but only for garlic messages - tunnel building would
   be a separate proposal
 - Don't break anything that relies on 32-byte binary destination hashes, e.g. bittorrent
+- Maintain 0-RTT message delivery using ephemeral-static DH
+- Upgrade to ephemeral-ephemeral DH after 1 RTT
 - Add forward secrecy
 - Add authentication (AEAD)
 - Much more CPU-efficient than ElGamal
@@ -119,7 +121,7 @@ Goals
   - Highly complex, difficult to implement
   - Difficult to tune for various use cases
   (streaming vs. datagrams, server vs. client, high vs. low bandwidth)
-- Support new and old crypto on same tunnel
+- Support new and old crypto on same tunnel if desired
 - Recipient is able to efficiently distinguish new from old crypto coming down
   same tunnel
 - Others cannot distinguish new from old crypto
@@ -322,9 +324,17 @@ This mechanism is out-of-band from the perspective of the protocol.
 
 In the new protocol, since the inbound and outbound sessions are paired,
 we can have ACKs in-band. No separate clove is required.
-In
 
+An explicit ACK is simply an existing session message with no I2NP block.
+However, in most cases, an explict ACK can be avoided, as there is reverse
+traffic. Implementations should set a short timer (a few hundred ms)
+before sending an explicit ACK.
 
+Implementations will also need to defer any ACK sending until after the
+I2NP block is processed, as the Garlic Message may contain a Database Store Message
+with a lease set. A recent lease set will be necessary to route the ACK,
+and the far-end destination (contained in the lease set) will be necessary to
+verify the binding signature.
 
 
 Session Timeouts
@@ -334,6 +344,115 @@ Outbound sessions should always expire before inbound sessions.
 One an outbound session expires, and a new one is created, a new paired inbound
 session will be created as well. If there was an old inbound session,
 it will be allowed to expire.
+
+
+Bandwidth overhead estimate
+----------------------------
+
+Message overhead for the first two messages in each direction are as follows.
+This assumes only one message in each direction before the ACK,
+or that any additional messages are sent speculatively as existing session messages.
+If there is no speculative acks of delivered session tags, the
+overhead or the old protocol is much higher.
+
+No padding assumed for the new protocol.
+
+
+For ElGamal/AES+SessionTags
+```````````````````````````
+
+New session message, Same each direction.
+
+ElGamal block:
+514 bytes
+
+AES block:
+- 2 byte tag count
+- 1024 bytes of tags (32 typical)
+- 4 byte payload size
+- 32 byte hash of payload
+- 1 byte flags
+- 8 byte (average) padding to 16 bytes
+1071 total
+
+Total:
+1585 bytes
+
+Existing session messages, same each direction
+
+AES block:
+- 32 byte session tag
+- 2 byte tag count
+- 4 byte payload size
+- 32 byte hash of payload
+- 1 byte flags
+- 8 byte (average) padding to 16 bytes
+81 total
+
+Four message total (two each direction)
+3332 bytes
+
+
+For ECIES-X25519-AEAD-Ratchet
+`````````````````````````````
+
+Alice-Bob new session message:
+- 32 byte public key
+- 8 byte nonce
+- 6 byte message ID block
+- 7 byte options block
+- 37 byte next key ratchet block
+- 103 byte ack request block
+- 3 byte I2NP block overhead ?
+- 16 byte Poly1305 tag
+
+Total:
+212 bytes
+
+Bob-Alice existing session message:
+- 32 byte? session tag
+- 6 byte message ID block
+- 7 byte options block
+- 37 byte next key ratchet block
+- 4 byte ack request block
+- 3 byte I2NP block overhead ?
+- 16 byte Poly1305 tag
+
+Total:
+105 bytes
+
+Existing session messages, same each direction
+- 32 byte? session tag
+- 6 byte message ID block
+- 3 byte I2NP block overhead ?
+- 16 byte Poly1305 tag
+
+Total:
+57 bytes
+
+Four message total (two each direction)
+431 bytes
+87% reduction compared to ElGamal/AEs+SessionTags
+
+
+Processing overhead estimate
+----------------------------
+
+
+The following cryptographic operations are required by each party to initiate
+a new session and do the first ratchet:
+
+- HMAC-SHA256: 3 per HKDF, total TBD
+- ChaChaPoly: 2 each
+- X25519 key generation: 2 Alice, 1 Bob
+- X25519 DH: 3 each
+- Signature verification: 1 (Bob)
+
+
+The following cryptographic operations are required by each party for each data phase message:
+
+- ChaChaPoly: 1
+
 
 
 1) Message format
@@ -1244,7 +1363,7 @@ Issues
 
 Ack
 ```
-This is only if an explicit ack is requested.
+This is only if an explicit ack was requested by the far end.
 Multiple acks may be present to ack multiple messages.
 
 
@@ -1268,6 +1387,11 @@ Multiple acks may be present to ack multiple messages.
 
 
 {% endhighlight %}
+
+
+Notes
+``````
+See ACK section above for more information.
 
 
 Issues
@@ -1304,25 +1428,44 @@ any message sent to that key constitutes an ack, no explicit ack is required.
   +----+----+----+----+----+----+----+----+
 
   blk :: 9
-  size :: varies, typically TBD
+  size :: varies, typically 100
   session ID :: reverse session ID, length TBD
   flg :: 1 byte flags
          bit order: 76543210
-         bit 0: 1 if signature is present, 0 if not
-         bit 1: 1 if explicit ack is requested, 0 if not
-         bits 7-2: Unused, set to 0 for future compatibility
+         bit 0: 1 if explicit ack is requested, 0 if not
+         bit 1: 1 if delivery instructions included, 0 if not
+         bit 2: 1 if signature is present, 0 if not
+         bits 7-3: Unused, set to 0 for future compatibility
   flag :: 1 byte
-  Delivery Instructions :: as defined in I2NP spec
+  Delivery Instructions :: as defined in I2NP spec, 33 bytes for DESTINATION type
   Sig Type :: Type of signature to follow
               Only present if flag is set and delivery instruction type is DESTINATION or ROUTER
+              Typically 7 (Ed25519)
   Signature :: Signature of the the next DH ratchet public key,
                by the Destination or RouterIdentity's signing private key
                (online or offline)
                Can only be verified if receiver has the RI or LS.
                Only present if flag is set and delivery instruction type is DESTINATION or ROUTER
+               Typically 64 bytes (Ed25519)
 
 
 {% endhighlight %}
+
+
+Notes
+``````
+
+- When the delivery instructions contains the hash of the destination,
+  and the session is not previously bound, this binds the session to the destination.
+
+- After a session is bound, any subsequent destination delivery instructions must contain
+  the same hash as previously, or this is an error.
+
+- If the receiving router does not have a current lease set,
+  verification of the signature must be deferred until after processing the
+  I2NP block, which will hopefully contain a clove with the lease set.
+
+- See ACK section above for more information.
 
 
 Issues
