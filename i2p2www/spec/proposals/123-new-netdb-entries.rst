@@ -524,9 +524,12 @@ outerCiphertext
     Encrypted layer 1 data. See below for key derivation and encryption algorithms.
 
 Signature
-    By blinded public key, length as implied by blinded sig type
+    Length as implied by sig type of the signing key used
 
     The signature is of everything above.
+
+    If the flag indicates offline keys, the signature is verified with the transient
+    public key. Otherwise, the signature is verified with the blinded public key.
 
 
 Layer 1 (middle)
