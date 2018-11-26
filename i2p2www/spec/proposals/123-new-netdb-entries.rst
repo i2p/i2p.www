@@ -481,7 +481,7 @@ Signature
 Published timestamp
     4 bytes
 
-    Seconds since epoch, rolls over in 2106)
+    Seconds since epoch, rolls over in 2106
 
 Expires
     2 bytes
@@ -515,14 +515,13 @@ Flags
 
         Over expires timestamp, transient sig type, and public key, by the destination public key,
 
-Length of IV + encrypted data
+lenOuterCiphertext
     2 bytes
 
-IV
-    8 bytes
+outerCiphertext
+    lenOuterCiphertext bytes
 
-Enc(layer 1)
-    AEAD ChaCha/Poly1305
+    Encrypted layer 1 data. See below for key derivation and encryption algorithms.
 
 Signature
     By blinded public key, length as implied by blinded sig type
@@ -555,10 +554,13 @@ Flag
         The same cookie is encrypted once for each recipient.
 
         Length of each field TBD.
-        KDF and encryption for cookie TBD.
 
-Enc(layer 2)
-    AEAD ChaCha/Poly1305
+        See below for per-client cookie decryption algorithm.
+
+innerCiphertext
+    Length implied by lenOuterCiphertext (whatever data remains)
+
+    Encrypted layer 2 data. See below for key derivation and encryption algorithms.
 
 
 Layer 2 (inner)
@@ -576,6 +578,29 @@ Data
     LeaseSet2 data for the given type.
 
     Includes the header and signature.
+
+
+Encryption and processing
+`````````````````````````
+Layer 1 key derivation
+~~~~~~~~~~~~~~~~~~~~~~
+TBD
+
+Layer 1 encryption
+~~~~~~~~~~~~~~~~~~
+TBD
+
+Layer 2 per-client cookie decryption
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+TBD
+
+Layer 2 key derivation
+~~~~~~~~~~~~~~~~~~~~~~
+TBD
+
+Layer 2 encryption
+~~~~~~~~~~~~~~~~~~
+TBD
 
 
 Notes
