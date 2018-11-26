@@ -511,9 +511,11 @@ Flags
         Length as implied by sig type
 
     Signature
-        Length as implied by destination public key sig type
+        Length as implied by blinded public key sig type
 
-        Over expires timestamp, transient sig type, and public key, by the destination public key,
+        Over expires timestamp, transient sig type, and transient public key.
+
+        Verified with the blinded public key.
 
 lenOuterCiphertext
     2 bytes
