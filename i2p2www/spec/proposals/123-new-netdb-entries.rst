@@ -439,6 +439,16 @@ Published by:
 
 Format
 ``````
+The encrypted LS2 format consists of three nested layers:
+
+- An outer layer containing the necessary plaintext information for storage and retrieval.
+- A middle layer that handles client authentication.
+- An inner layer that contains the actual LS2 data.
+
+The overall format looks like::
+
+    Layer 0 data + Enc(layer 1 data + Enc(layer 2 data)) + Signature
+
 Note that encrypted LS2 is blinded. The Destination is not in the header.
 DHT storage location is SHA-256(sig type || blinded public key), and rotated daily.
 
@@ -448,50 +458,124 @@ Exact specification including KDF is TBD.
 
 Does NOT use the standard LS2 header specified above.
 
-::
+Layer 0 (outer)
+~~~~~~~~~~~~~~~
+Type
+    1 byte
 
-  - Type (1 byte)
     Not actually in header, but part of data covered by signature.
     Take from field in Database Store Message.
     TODO to be reviewed/decided.
-  - Blinded Public Key Sig Type (2 bytes)
-  - Blinded Public Key (length as implied by sig type)
-  - Signature of destination by blinded public key?
-  - Published timestamp (4 bytes, seconds since epoch, rolls over in 2106)
-  - Expires (2 bytes) (offset from published timestamp in seconds, 18.2 hours max)
-  - Flags (2 bytes)
+
+Blinded Public Key Sig Type
+    2 bytes
+
+Blinded Public Key
+    Length as implied by sig type
+
+Signature
+    Length as implied by signing key sig type
+
+    Of destination by blinded public key?
+
+Published timestamp
+    4 bytes
+
+    Seconds since epoch, rolls over in 2106)
+
+Expires
+    2 bytes
+
+    Offset from published timestamp in seconds, 18.2 hours max
+
+Flags
+    2 bytes
+
     Bit order: 15 14 ... 3 2 1 0
+
     Bit 0: If 0, no offline keys; if 1, offline keys
+
     Other bits: set to 0 for compatibility with future uses
-  - If flag indicates offline keys:
-    Expires timestamp (4 bytes, seconds since epoch, rolls over in 2106)
-    Transient sig type (2 bytes)
-    Transient signing public key (length as implied by sig type)
-    Signature of expires timestamp, transient sig type, and public key, by the destination public key,
-    length as implied by destination public key sig type
-  - Length of IV + encrypted data (2 bytes)
-  - IV (8 bytes)
-  - Outer Encrypted data (AEAD ChaCha/Poly1305)
-    Published timestamp is the nonce
-    Do we need HMAC or ChaCha only? Probably don't need HMAC, everything is signed.
-    KDF TBD, uses Destination
-    When decrypted, contains:
-    1) Flag - per-client or for everybody? (1 byte)
-    If per-client, 2) and 3) are present.
-    2) number of recipients to follow (2 bytes)
-    3) that many entries of [id_i, iv_i, Encrypted cookie]
-    where the recipient looks for his ID, then decrypts the inner.
-    The same cookie is encrypted once for each recipient.
-    Length of each field TBD.
-    KDF and encryption for cookie TBD.
-  - Inner Encrypted data (AEAD ChaCha/Poly1305)
-    Published timestamp is the nonce
-    Do we need HMAC or ChaCha only? Probably don't need HMAC, everything is signed.
-    KDF TBD. Used blinded public key. Uses cookie also if per-client.
-    When decrypted, contains a type byte: 3 (LS2) or 7 (Meta LS2),
-    followed by the data, including the header and signature, for that type.
-  - Signature (by blinded public key, length as implied by blinded sig type)
+
+    If flag indicates offline keys:
+
+    Expires timestamp
+        4 bytes
+
+        Seconds since epoch, rolls over in 2106
+
+    Transient sig type
+        2 bytes
+
+    Transient signing public key
+        Length as implied by sig type
+
+    Signature
+        Length as implied by destination public key sig type
+
+        Over expires timestamp, transient sig type, and public key, by the destination public key,
+
+Length of IV + encrypted data
+    2 bytes
+
+IV
+    8 bytes
+
+Enc(layer 1)
+    AEAD ChaCha/Poly1305
+
+Signature
+    By blinded public key, length as implied by blinded sig type
+
     The signature is of everything above.
+
+
+Layer 1 (middle)
+~~~~~~~~~~~~~~~~
+Published timestamp is the nonce.
+Do we need HMAC or ChaCha only? Probably don't need HMAC, everything is signed.
+KDF TBD, uses Destination.
+
+Flag
+    1 byte
+
+    Per-client or for everybody?
+
+    If per-client:
+
+    lenAuthClient
+        2 bytes
+
+        Number of authClient entries to follow
+
+    authClient
+        [id_i, iv_i, Encrypted cookie]
+
+        The recipient looks for his ID, then decrypts the inner.
+        The same cookie is encrypted once for each recipient.
+
+        Length of each field TBD.
+        KDF and encryption for cookie TBD.
+
+Enc(layer 2)
+    AEAD ChaCha/Poly1305
+
+
+Layer 2 (inner)
+~~~~~~~~~~~~~~~
+Published timestamp is the nonce.
+Do we need HMAC or ChaCha only? Probably don't need HMAC, everything is signed.
+KDF TBD. Used blinded public key. Uses cookie also if per-client.
+
+Type
+    1 byte
+
+    Either 3 (LS2) or 7 (Meta LS2)
+
+Data
+    LeaseSet2 data for the given type.
+
+    Includes the header and signature.
 
 
 Notes
