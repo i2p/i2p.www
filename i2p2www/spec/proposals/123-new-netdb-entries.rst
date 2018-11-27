@@ -476,6 +476,14 @@ STREAM
     Instantiated with ChaCha20 as specified in [RFC-7539-S2.4]_, with the initial counter
     set to 1. This implies that S_KEY_LEN = 32 and S_IV_LEN = 12.
 
+KEY_AGREE
+    A public key agreement system, with private keys of length KA_PRIVKEY_LEN bytes,
+    public keys of length KA_PUBKEY_LEN bytes, and which produces outputs of length
+    KA_OUTPUT_LEN bytes.
+
+    Instantiated with Curve25519. This implies that KA_PRIVKEY_LEN = 32,
+    KA_PUBKEY_LEN = 32, and KA_OUTPUT_LEN = 32.
+
 KDF(ikm, salt, info, n)
     A cryptographic key derivation function which takes some input key material ikm (which
     should have good entropy but is not required to be a uniformly random string), a salt
@@ -598,6 +606,9 @@ Flag
 
     If per-client:
 
+    ephemeralPublicKey
+        PK_PUBKEY_LEN bytes
+
     lenAuthClient
         2 bytes
 
@@ -611,7 +622,7 @@ Flag
 
         Length of each field TBD.
 
-        See below for per-client cookie decryption algorithm.
+        See below for per-client authorization algorithm.
 
 innerCiphertext
     Length implied by lenOuterCiphertext (whatever data remains)
@@ -689,9 +700,9 @@ Finally, the layer 1 ciphertext is decrypted::
 
     outerPlaintext = STREAM.DECRYPT(outerKey, outerIV, outerCiphertext[S_IV_LEN..])
 
-Layer 2 per-client cookie decryption
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-TBD
+Layer 2 per-client authorization
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+TODO: Write up both DH-based client IDs and static client IDs, and pros/cons of each.
 
 Layer 2 encryption
 ~~~~~~~~~~~~~~~~~~
