@@ -1254,6 +1254,14 @@ TODO: How to have a shared clients that supports both old and new crypto?
 
 
 
+Acknowledgements
+================
+
+The encrypted LS2 design is heavily influenced by Tor's v3 hidden service descriptors,
+which had similar design goals [TOR-REND-SPEC-V3]_.
+
+
+
 References
 ==========
 
@@ -1269,6 +1277,9 @@ References
 
 .. [RFC-7539-S2.4]
     https://tools.ietf.org/html/rfc7539#section-2.4
+
+.. [TOR-REND-SPEC-V3]
+    https://spec.torproject.org/rend-spec-v3
 
 .. [UNSCIENTIFIC-KDF-SPEEDS]
     https://www.lvh.io/posts/secure-key-derivation-performance.html
