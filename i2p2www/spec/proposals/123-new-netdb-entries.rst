@@ -476,6 +476,39 @@ STREAM
     Instantiated with ChaCha20 as specified in [RFC-7539-S2.4]_, with the initial counter
     set to 1. This implies that S_KEY_LEN = 32 and S_IV_LEN = 12.
 
+SIG
+    A signature scheme. It has the following functions:
+
+    DERIVE_PUBLIC(privkey)
+        Returns the public key corresponding to the given private key.
+
+    SIGN(privkey, m)
+        Returns a signature by the private key privkey over the given message m.
+
+    VERIFY(pubkey, m, sig)
+        Verifies the signature sig against the public key pubkey and message m. Returns
+        true if the signature is valid, false otherwise.
+
+    It must also support the following key blinding operations:
+
+    BLIND_PUBKEY(pubkey, blind)
+        Blinds a public key.
+
+    BLIND_PRIVKEY(privkey, blind)
+        Blinds a private key, such that for a given keypair (privkey, pubkey) the
+        following relationship holds::
+
+            BLIND_PUBKEY(pubkey, blind) == DERIVE_PUBLIC(BLIND_PRIVKEY(privkey, blind))
+
+    Instantiated with Ed25519 (corresponding to SigType 7) and the following key-blinding
+    scheme::
+
+        TODO
+
+        Blinding is only defined for Ed25519 signing keys (sig type 7).
+        Blinding is roughly as specified in Tor's rend-spec-v3 appendices A.1 and A.2.
+        Exact specification including KDF is TBD.
+
 KEY_AGREE
     A public key agreement system, with private keys of length KA_PRIVKEY_LEN bytes,
     public keys of length KA_PUBKEY_LEN bytes, and which produces outputs of length
@@ -514,10 +547,6 @@ The overall format looks like::
 
 Note that encrypted LS2 is blinded. The Destination is not in the header.
 DHT storage location is SHA-256(sig type || blinded public key), and rotated daily.
-
-Blinding is only defined for Ed25519 signing keys (sig type 7).
-Blinding is roughly as specified in Tor's rend-spec-v3 appendices A.1 and A.2.
-Exact specification including KDF is TBD.
 
 Does NOT use the standard LS2 header specified above.
 
