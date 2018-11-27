@@ -2,10 +2,10 @@
 New netDB Entries
 =================
 .. meta::
-    :author: zzz, orignal, str4d
+    :author: zzz, str4d, orignal
     :created: 2016-01-16
     :thread: http://zzz.i2p/topics/2051
-    :lastupdated: 2018-11-19
+    :lastupdated: 2018-11-27
     :status: Open
     :supercedes: 110, 120, 121, 122
 
@@ -437,6 +437,61 @@ Published by:
     Destination
 
 
+Definitions
+```````````
+We define the following functions corresponding to the cryptographic building blocks used
+for encrypted LS2:
+
+PRNG(n)
+    n-byte output from a pseudorandom number generator backed by a strong entropy source.
+
+    The output of the PRNG MUST be hashed before use if it will appear on the network
+    (such as a salt, or encrypted padding), in order to avoid leaking raw PRNG bytes to
+    the network [PRNG-REFS]_. These instances will use the notation H(PRNG(n)) to remove
+    any ambiguity.
+
+H(p, d)
+    A cryptographic hash function that takes a personalisation string p and data d, and
+    produces an output of length HASH_LEN bytes. The hash function should be preimage- and
+    collision-resistant.
+
+    Instantiated with SHA-256 (implying HASH_LEN = 32) as follows::
+
+        H(p, d) := SHA-256(p || d)
+
+STREAM
+    A stream cipher which takes a key of length S_KEY_LEN bytes, and a nonce of length
+    S_IV_LEN bytes. It has the following functions:
+
+    ENCRYPT(k, iv, plaintext)
+        Encrypts plaintext using the cipher key k, and nonce iv which MUST be unique for
+        the key k. Returns a ciphertext that is the same size as the plaintext.
+
+        The entire ciphertext must be indistinguishable from random if the key is secret.
+
+    DECRYPT(k, iv, ciphertext)
+        Decrypts ciphertext using the cipher key k, and nonce iv. Returns the plaintext.
+
+    [Suggestion, TBD]
+    Instantiated with ChaCha20 as specified in [RFC-7539-S2.4]_, with the initial counter
+    set to 1. This implies that S_KEY_LEN = 32 and S_IV_LEN = 12.
+
+KDF(ikm, salt, info, n)
+    A cryptographic key derivation function which takes some input key material ikm (which
+    should have good entropy but is not required to be a uniformly random string), a salt
+    of length SALT_LEN bytes, and a context-specific 'info' value, and produces an output
+    of n bytes suitable for use as key material.
+
+    Instantiated with HKDF as specified in [RFC-5869]_, using the hash function SHA-256.
+    This means that SALT_LEN can be at most 32.
+
+    Note: If we care about speed, we could use keyed-BLAKE2b instead. It has an output
+    size large enough to accommodate the largest n we require (or we can call it once per
+    desired key with a counter argument). BLAKE2b is much faster than SHA-256, and
+    keyed-BLAKE2b would reduce the total number of hash function calls.
+    [UNSCIENTIFIC-KDF-SPEEDS]_
+
+
 Format
 ``````
 The encrypted LS2 format consists of three nested layers:
@@ -536,10 +591,6 @@ Signature
 
 Layer 1 (middle)
 ~~~~~~~~~~~~~~~~
-Published timestamp is the nonce.
-Do we need HMAC or ChaCha only? Probably don't need HMAC, everything is signed.
-KDF TBD, uses Destination.
-
 Flag
     1 byte
 
@@ -570,10 +621,6 @@ innerCiphertext
 
 Layer 2 (inner)
 ~~~~~~~~~~~~~~~
-Published timestamp is the nonce.
-Do we need HMAC or ChaCha only? Probably don't need HMAC, everything is signed.
-KDF TBD. Used blinded public key. Uses cookie also if per-client.
-
 Type
     1 byte
 
@@ -587,25 +634,92 @@ Data
 
 Encryption and processing
 `````````````````````````
-Layer 1 key derivation
-~~~~~~~~~~~~~~~~~~~~~~
-TBD
+Derivation of subcredentials
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+As part of the blinding process, we need to ensure that an encrypted LS2 can only be
+decrypted by someone who knows the corresponding Destination. To achieve this, we derive
+a credential from the Destination::
+
+    credential = H("credential", Destination)
+
+The personalization string ensures that the credential does not collide with any hash used
+as a DHT lookup key, such as the plain Destination hash.
+
+For a given blinded key, we can then derive a subcredential::
+
+    subcredential = H("subcredential", credential || blindedPublicKey)
+
+The subcredential is included in the key derivation processes below, which binds those
+keys to knowledge of the Destination.
 
 Layer 1 encryption
 ~~~~~~~~~~~~~~~~~~
-TBD
+First, the input to the key derivation process is prepared::
+
+    outerInput = blindedPublicKey || subcredential || publishedTimestamp
+
+Next, a random salt is generated::
+
+    outerSalt = H(PRNG(SALT_LEN))
+
+Then the key used to encrypt layer 1 is derived::
+
+    keys = KDF(outerInput, outerSalt, "ELS2_L1K", S_KEY_LEN + S_IV_LEN)
+    outerKey = keys[0..S_KEY_LEN]
+    outerIV = keys[S_KEY_LEN..(S_KEY_LEN+S_IV_LEN)]
+
+Finally, the layer 1 plaintext is encrypted and serialized::
+
+    outerCiphertext = outerSalt || STREAM.ENCRYPT(outerKey, outerIV, outerPlaintext)
+
+Layer 1 decryption
+~~~~~~~~~~~~~~~~~~
+The salt is parsed from the layer 1 ciphertext::
+
+    outerSalt = outerCiphertext[0..S_IV_LEN]
+
+Then the key used to encrypt layer 1 is derived::
+
+    outerInput = blindedPublicKey || subcredential || publishedTimestamp
+    keys = KDF(outerInput, outerSalt, "ELS2_L1K", S_KEY_LEN + S_IV_LEN)
+    outerKey = keys[0..S_KEY_LEN]
+    outerIV = keys[S_KEY_LEN..(S_KEY_LEN+S_IV_LEN)]
+
+Finally, the layer 1 ciphertext is decrypted::
+
+    outerPlaintext = STREAM.DECRYPT(outerKey, outerIV, outerCiphertext[S_IV_LEN..])
 
 Layer 2 per-client cookie decryption
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 TBD
 
-Layer 2 key derivation
-~~~~~~~~~~~~~~~~~~~~~~
-TBD
-
 Layer 2 encryption
 ~~~~~~~~~~~~~~~~~~
-TBD
+When client authorization is enabled, ``authCookie`` is calculated as described above.
+When client authorization is disabled, ``authCookie`` is the zero-length byte array.
+
+Encryption proceeds in a similar fashion to layer 1::
+
+    innerInput = blindedPublicKey || authCookie || subcredential || publishedTimestamp
+    innerSalt = H(PRNG(SALT_LEN))
+    keys = KDF(innerInput, innerSalt, "ELS2_L2K", S_KEY_LEN + S_IV_LEN)
+    innerKey = keys[0..S_KEY_LEN]
+    innerIV = keys[S_KEY_LEN..(S_KEY_LEN+S_IV_LEN)]
+    innerCiphertext = innerSalt || STREAM.ENCRYPT(innerKey, innerIV, innerPlaintext)
+
+Layer 2 decryption
+~~~~~~~~~~~~~~~~~~
+When client authorization is enabled, ``authCookie`` is calculated as described above.
+When client authorization is disabled, ``authCookie`` is the zero-length byte array.
+
+Decryption proceeds in a similar fashion to layer 1::
+
+    innerInput = blindedPublicKey || authCookie || subcredential || publishedTimestamp
+    innerSalt = innerCiphertext[0..S_IV_LEN]
+    keys = KDF(innerInput, innerSalt, "ELS2_L2K", S_KEY_LEN + S_IV_LEN)
+    innerKey = keys[0..S_KEY_LEN]
+    innerIV = keys[S_KEY_LEN..(S_KEY_LEN+S_IV_LEN)]
+    innerPlaintext = STREAM.DECRYPT(innerKey, innerIV, innerCiphertext[S_IV_LEN..])
 
 
 Notes
@@ -1103,5 +1217,18 @@ TODO: How to have a shared clients that supports both old and new crypto?
 References
 ==========
 
+.. [PRNG-REFS]
+    http://projectbullrun.org/dual-ec/ext-rand.html
+    https://lists.torproject.org/pipermail/tor-dev/2015-November/009954.html
+
 .. [RFC-4880-S5.1]
     https://tools.ietf.org/html/rfc4880#section-5.1
+
+.. [RFC-5869]
+    https://tools.ietf.org/html/rfc5869
+
+.. [RFC-7539-S2.4]
+    https://tools.ietf.org/html/rfc7539#section-2.4
+
+.. [UNSCIENTIFIC-KDF-SPEEDS]
+    https://www.lvh.io/posts/secure-key-derivation-performance.html
