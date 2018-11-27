@@ -716,7 +716,7 @@ Layer 1 decryption
 ~~~~~~~~~~~~~~~~~~
 The salt is parsed from the layer 1 ciphertext::
 
-    outerSalt = outerCiphertext[0..S_IV_LEN]
+    outerSalt = outerCiphertext[0..SALT_LEN]
 
 Then the key used to encrypt layer 1 is derived::
 
@@ -727,7 +727,7 @@ Then the key used to encrypt layer 1 is derived::
 
 Finally, the layer 1 ciphertext is decrypted::
 
-    outerPlaintext = STREAM.DECRYPT(outerKey, outerIV, outerCiphertext[S_IV_LEN..])
+    outerPlaintext = STREAM.DECRYPT(outerKey, outerIV, outerCiphertext[SALT_LEN..])
 
 Layer 2 per-client authorization
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -755,11 +755,11 @@ When client authorization is disabled, ``authCookie`` is the zero-length byte ar
 Decryption proceeds in a similar fashion to layer 1::
 
     innerInput = blindedPublicKey || authCookie || subcredential || publishedTimestamp
-    innerSalt = innerCiphertext[0..S_IV_LEN]
+    innerSalt = innerCiphertext[0..SALT_LEN]
     keys = KDF(innerInput, innerSalt, "ELS2_L2K", S_KEY_LEN + S_IV_LEN)
     innerKey = keys[0..S_KEY_LEN]
     innerIV = keys[S_KEY_LEN..(S_KEY_LEN+S_IV_LEN)]
-    innerPlaintext = STREAM.DECRYPT(innerKey, innerIV, innerCiphertext[S_IV_LEN..])
+    innerPlaintext = STREAM.DECRYPT(innerKey, innerIV, innerCiphertext[SALT_LEN..])
 
 
 Notes
