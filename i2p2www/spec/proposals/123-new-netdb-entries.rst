@@ -491,11 +491,11 @@ SIG
 
     It must also support the following key blinding operations:
 
-    BLIND_PUBKEY(pubkey, blind)
-        Blinds a public key.
-
     BLIND_PRIVKEY(privkey, blind)
-        Blinds a private key, such that for a given keypair (privkey, pubkey) the
+        Blinds a private key.
+
+    BLIND_PUBKEY(pubkey, blind)
+        Blinds a public key, such that for a given keypair (privkey, pubkey) the
         following relationship holds::
 
             BLIND_PUBKEY(pubkey, blind) == DERIVE_PUBLIC(BLIND_PRIVKEY(privkey, blind))
