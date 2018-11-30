@@ -5,7 +5,7 @@ New netDB Entries
     :author: zzz, str4d, orignal
     :created: 2016-01-16
     :thread: http://zzz.i2p/topics/2051
-    :lastupdated: 2018-11-27
+    :lastupdated: 2018-11-30
     :status: Open
     :supercedes: 110, 120, 121, 122
 
@@ -199,7 +199,6 @@ Format
   - Type (1 byte)
     Not actually in header, but part of data covered by signature.
     Take from field in Database Store Message.
-    TODO to be reviewed/decided.
   - Destination (387+ bytes)
   - Published timestamp (4 bytes, seconds since epoch, rolls over in 2106)
   - Expires (2 bytes) (offset from published timestamp in seconds, 18.2 hours max)
@@ -460,8 +459,8 @@ H(p, d)
         H(p, d) := SHA-256(p || d)
 
 STREAM
-    A stream cipher which takes a key of length S_KEY_LEN bytes, and a nonce of length
-    S_IV_LEN bytes. It has the following functions:
+    The ChaCha20 stream cipher as specified in [RFC-7539-S2.4]_, with the initial counter
+    set to 1. S_KEY_LEN = 32 and S_IV_LEN = 12.
 
     ENCRYPT(k, iv, plaintext)
         Encrypts plaintext using the cipher key k, and nonce iv which MUST be unique for
@@ -472,12 +471,10 @@ STREAM
     DECRYPT(k, iv, ciphertext)
         Decrypts ciphertext using the cipher key k, and nonce iv. Returns the plaintext.
 
-    [Suggestion, TBD]
-    Instantiated with ChaCha20 as specified in [RFC-7539-S2.4]_, with the initial counter
-    set to 1. This implies that S_KEY_LEN = 32 and S_IV_LEN = 12.
 
 SIG
-    A signature scheme. It has the following functions:
+    The Ed25519 signature scheme (corresponding to SigType 7) with key-blinding.
+    It has the following functions:
 
     DERIVE_PUBLIC(privkey)
         Returns the public key corresponding to the given private key.
@@ -493,6 +490,8 @@ SIG
 
     BLIND_PRIVKEY(privkey, blind)
         Blinds a private key.
+        Blinding is roughly as specified in Tor's rend-spec-v3 appendices A.1 and A.2.
+        TODO
 
     BLIND_PUBKEY(pubkey, blind)
         Blinds a public key, such that for a given keypair (privkey, pubkey) the
@@ -500,22 +499,12 @@ SIG
 
             BLIND_PUBKEY(pubkey, blind) == DERIVE_PUBLIC(BLIND_PRIVKEY(privkey, blind))
 
-    Instantiated with Ed25519 (corresponding to SigType 7) and the following key-blinding
-    scheme::
-
+        Blinding is roughly as specified in Tor's rend-spec-v3 appendices A.1 and A.2.
         TODO
 
-        Blinding is only defined for Ed25519 signing keys (sig type 7).
-        Blinding is roughly as specified in Tor's rend-spec-v3 appendices A.1 and A.2.
-        Exact specification including KDF is TBD.
-
-KEY_AGREE
-    A public key agreement system, with private keys of length KA_PRIVKEY_LEN bytes,
-    public keys of length KA_PUBKEY_LEN bytes, and which produces outputs of length
-    KA_OUTPUT_LEN bytes.
-
-    Instantiated with Curve25519. This implies that KA_PRIVKEY_LEN = 32,
-    KA_PUBKEY_LEN = 32, and KA_OUTPUT_LEN = 32.
+DH
+    Curve25519 public key agreement system. Pivate keys of 32 bytes,
+    public keys of 32 bytes, produces outputs of 32 bytes.
 
 KDF(ikm, salt, info, n)
     A cryptographic key derivation function which takes some input key material ikm (which
@@ -525,12 +514,6 @@ KDF(ikm, salt, info, n)
 
     Instantiated with HKDF as specified in [RFC-5869]_, using the hash function SHA-256.
     This means that SALT_LEN can be at most 32.
-
-    Note: If we care about speed, we could use keyed-BLAKE2b instead. It has an output
-    size large enough to accommodate the largest n we require (or we can call it once per
-    desired key with a counter argument). BLAKE2b is much faster than SHA-256, and
-    keyed-BLAKE2b would reduce the total number of hash function calls.
-    [UNSCIENTIFIC-KDF-SPEEDS]_
 
 
 Format
@@ -557,7 +540,6 @@ Type
 
     Not actually in header, but part of data covered by signature.
     Take from field in Database Store Message.
-    TODO to be reviewed/decided.
 
 Blinded Public Key Sig Type
     2 bytes
@@ -589,8 +571,7 @@ Flags
 
     Other bits: set to 0 for compatibility with future uses
 
-    If flag indicates offline keys:
-
+If flag indicates offline keys:
     Expires timestamp
         4 bytes
 
@@ -633,8 +614,7 @@ Flag
 
     Per-client or for everybody?
 
-    If per-client:
-
+If per-client:
     ephemeralPublicKey
         PK_PUBKEY_LEN bytes
 
@@ -710,7 +690,7 @@ Then the key used to encrypt layer 1 is derived::
 
 Finally, the layer 1 plaintext is encrypted and serialized::
 
-    outerCiphertext = outerSalt || STREAM.ENCRYPT(outerKey, outerIV, outerPlaintext)
+    outerCiphertext = outerSalt || ENCRYPT(outerKey, outerIV, outerPlaintext)
 
 Layer 1 decryption
 ~~~~~~~~~~~~~~~~~~
@@ -727,7 +707,7 @@ Then the key used to encrypt layer 1 is derived::
 
 Finally, the layer 1 ciphertext is decrypted::
 
-    outerPlaintext = STREAM.DECRYPT(outerKey, outerIV, outerCiphertext[SALT_LEN..])
+    outerPlaintext = DECRYPT(outerKey, outerIV, outerCiphertext[SALT_LEN..])
 
 Layer 2 per-client authorization
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -745,7 +725,7 @@ Encryption proceeds in a similar fashion to layer 1::
     keys = KDF(innerInput, innerSalt, "ELS2_L2K", S_KEY_LEN + S_IV_LEN)
     innerKey = keys[0..S_KEY_LEN]
     innerIV = keys[S_KEY_LEN..(S_KEY_LEN+S_IV_LEN)]
-    innerCiphertext = innerSalt || STREAM.ENCRYPT(innerKey, innerIV, innerPlaintext)
+    innerCiphertext = innerSalt || ENCRYPT(innerKey, innerIV, innerPlaintext)
 
 Layer 2 decryption
 ~~~~~~~~~~~~~~~~~~
@@ -759,7 +739,25 @@ Decryption proceeds in a similar fashion to layer 1::
     keys = KDF(innerInput, innerSalt, "ELS2_L2K", S_KEY_LEN + S_IV_LEN)
     innerKey = keys[0..S_KEY_LEN]
     innerIV = keys[S_KEY_LEN..(S_KEY_LEN+S_IV_LEN)]
-    innerPlaintext = STREAM.DECRYPT(innerKey, innerIV, innerCiphertext[SALT_LEN..])
+    innerPlaintext = DECRYPT(innerKey, innerIV, innerCiphertext[SALT_LEN..])
+
+
+Issues
+``````
+
+- Blinding spec TODO
+
+- Use AES instead of ChaCha20?
+
+- Explicit hash of PRNG is unnecessary, implementation-specific
+
+- If we care about speed, we could use keyed-BLAKE2b instead. It has an output
+  size large enough to accommodate the largest n we require (or we can call it once per
+  desired key with a counter argument). BLAKE2b is much faster than SHA-256, and
+  keyed-BLAKE2b would reduce the total number of hash function calls.
+  [UNSCIENTIFIC-KDF-SPEEDS]_
+
+- TODO: Write up both DH-based client IDs and static client IDs, and pros/cons of each.
 
 
 Notes
@@ -991,7 +989,6 @@ Does NOT use the standard LS2 header specified above.
   - Type (1 byte)
     Not actually in header, but part of data covered by signature.
     Take from field in Database Store Message.
-    TODO to be reviewed/decided.
   - Hash of the service name (implicit, in the Database Store message)
   - Hash of the Creator (floodfill) (32 bytes)
   - Published timestamp (8 bytes)
