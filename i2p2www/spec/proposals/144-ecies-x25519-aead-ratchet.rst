@@ -5,7 +5,7 @@ ECIES-X25519-AEAD-Ratchet
     :author: zzz
     :created: 2018-11-22
     :thread: http://zzz.i2p/topics/2639
-    :lastupdated: 2018-11-24
+    :lastupdated: 2018-12-01
     :status: Open
 
 .. contents::
@@ -758,12 +758,18 @@ Decrypted:
 KDF
 ```
 
+
+.. raw:: html
+
+  {% highlight lang='text' %}
+
 See message key ratchet below.
 
 Key: KDF TBD
 IV: As published in a LS2 property?
 Nonce: From header
 
+{% endhighlight %}
 
 
 Justification
@@ -847,12 +853,17 @@ Decrypted:
 KDF
 ```
 
+.. raw:: html
+
+  {% highlight lang='text' %}
+
 See message key ratchet below.
 
 Key: KDF TBD
 IV: KDF TBD
 Nonce: The message number N in the current chain, as retrieved from the associated Session Tag.
 
+{% endhighlight %}
 
 
 Justification
@@ -1141,6 +1152,8 @@ KDF:
      First time: output from DH ratchet
      Subsequent times: output from previous session tag ratchet
   2) input_key_material = constant (from where? SHA-256(some constant)?)
+     Must be unique for this chain (generated from chain key),
+     so that the sequence isn't predictable
 
   TBD
 
@@ -1212,7 +1225,7 @@ KDF:
   {% highlight lang='text' %}
 
   Inputs:
-  1) Root key (first time from where? SHA-256(some constant)?)
+  1) Root key (first time from where? see Signal section 3.3)
   2) input_key_material
 
   First time:
@@ -1463,6 +1476,9 @@ Options Notes
 - Support for non-default session tag length is optional,
   probably not necessary
 
+- The tag window is MAX_SKIP in the Signal documentation.
+
+
 
 Options Issues
 ``````````````
@@ -1577,7 +1593,7 @@ Multiple acks may be present to ack multiple messages.
   {% highlight lang='dataspec' %}
 +----+----+----+----+----+----+----+----+
   | 8  |  size   |  key id |   N     |    |
-  +----+----+----+----+----+----+----+----+
+  +----+----+----+----+----+----+----+    +
   |             more acks                 |
   ~               .   .   .               ~
   |                                       |
@@ -1782,8 +1798,6 @@ TODO
 I2CP Changes Required
 =====================
 
-TODO
-
 I2CP Options
 ------------
 
@@ -1795,11 +1809,14 @@ New options in SessionConfig Mapping:
 
   crypto.encType=nnn      The encryption type to be used.
                           0: ElGamal
+                          4: This proposal.
                           Other values to be defined in future proposals.
-  i2cp.leaseSetType=nnn   The type of leaseset to be sent in the Create Leaseset Message
-                          Value is the same as the netdb store type in the table above.
 
 
+Create Leaseset2 Message
+------------------------
+
+See proposal 123 for specification.
 
 
 SAM Changes Required

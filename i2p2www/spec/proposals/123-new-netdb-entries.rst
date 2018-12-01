@@ -5,7 +5,7 @@ New netDB Entries
     :author: zzz, str4d, orignal
     :created: 2016-01-16
     :thread: http://zzz.i2p/topics/2051
-    :lastupdated: 2018-11-30
+    :lastupdated: 2018-12-01
     :status: Open
     :supercedes: 110, 120, 121, 122
 
@@ -1143,6 +1143,7 @@ New options in SessionConfig Mapping:
 
   crypto.encType=nnn      The encryption type to be used.
                           0: ElGamal
+                          4: X25519, see proposal 144.
                           Other values to be defined in future proposals.
   i2cp.leaseSetType=nnn   The type of leaseset to be sent in the Create Leaseset Message
                           Value is the same as the netdb store type in the table above.
@@ -1156,6 +1157,7 @@ Router to client.
 No changes.
 The leases are sent with 8-byte timestamps, even if the
 returned leaseset will be a LS2 with 4-byte timestamps.
+Note that the response may be a Create Leaseset or Create Leaseset2 Message.
 
 
 
@@ -1166,16 +1168,73 @@ Router to client.
 No changes.
 The leases are sent with 8-byte timestamps, even if the
 returned leaseset will be a LS2 with 4-byte timestamps.
+Note that the response may be a Create Leaseset or Create Leaseset2 Message.
 
 
 
-Create Leaseset Message
------------------------
+Create Leaseset2 Message
+------------------------
 
 Client to router.
-Private key type and length are specified in the SessionConfig crypto.encType option.
-Leaseset type is as specified in the SessionConfig i2cp.leaseSetType option.
-Minimum router version is 0.9.38.
+New message, to use in place of Create Leaseset Message.
+
+
+Justification
+`````````````
+
+- For the router to parse the store type, the type must be in the message,
+  unless it is passed to the router before hand in the session config.
+  For for common parsing code, it's easier to have it in the message itself.
+
+- For the router to know the type and length of the private key,
+  it must be after the lease set, unless the parser knows the type before hand
+  in the session config.
+  For for common parsing code, it's easier to know it from the message itself.
+
+- The signing private key, previously defined for revocation and unused,
+  was before the leaseset so the type and length was unknown.
+  Clients always set it to the DSA length.
+  For proposal 144, the key may be required, and must match the type
+  of the destination signing key (or transient signing key if offline sigs are used).
+  For the router to know the type and length of the private key,
+  it must be after the lease set, unless the parser knows the type before hand
+  in the session config.
+  For for common parsing code, it's easier to know it from the message itself.
+
+Message Type
+````````````
+
+The message type for the Create Leaseset2 Message is 40.
+
+
+Format
+``````
+
+::
+
+  Session ID
+  Type byte: Type of lease set to follow
+             Type 1 is a LS
+             Type 3 is a LS2
+             Type 5 is a encrypted LS2
+             Type 7 is a meta LS2
+  LeaseSet: type specified above
+  Signing Private Key: type as inferred from the lease set signature
+                       (by dest signing key or transient key)
+  Encryption Private Key: type as inferred from the public key in the lease set
+
+
+Notes
+`````
+
+- Minimum router version is 0.9.38.
+
+
+
+Issues
+``````
+
+- More changes are needed to support encrypted and meta LS.
 
 
 
