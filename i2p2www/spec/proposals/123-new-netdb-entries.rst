@@ -652,6 +652,76 @@ Data
     Includes the header and signature.
 
 
+Blinding Key Derivation
+```````````````````````
+
+Copied from Tor rend-spec-v3.txt appendix A.2
+which has similar design goals [TOR-REND-SPEC-V3]_.
+
+Adjustments TODO
+
+
+::
+
+  We propose the following scheme for key blinding, based on Ed25519.
+
+  (This is an ECC group, so remember that scalar multiplication is the
+  trapdoor function, and it's defined in terms of iterated point
+  addition. See the Ed25519 paper [ED25519-REFS]_ for a fairly
+  clear writeup.)
+
+  Let B be the ed25519 basepoint as found in section 5 of [ED25519-B-REF]:
+      B = (15112221349535400772501151409588531511454012693041857206046113283949847762202,
+           46316835694926478169428394003475163141307993866256225615783033603165251855960)
+
+  Assume B has prime order l, so lB=0. Let a master keypair be written as
+  (a,A), where a is the private key and A is the public key (A=aB).
+
+  To derive the key for a nonce N and an optional secret s, compute the
+  blinding factor like this:
+
+           h = H(BLIND_STRING | A | s | B | N)
+           BLIND_STRING = "Derive temporary signing key" | INT_1(0)
+           N = "key-blind" | INT_8(period-number) | INT_8(period_length)
+           B = "(1511[...]2202, 4631[...]5960)"
+
+  then clamp the blinding factor 'h' according to the ed25519 spec:
+
+           h[0] &= 248;
+           h[31] &= 63;
+           h[31] |= 64;
+
+  and do the key derivation as follows:
+
+      private key for the period:
+
+           a' = h a mod l
+           RH' = SHA-512(RH_BLIND_STRING | RH)[:32]
+           RH_BLIND_STRING = "Derive temporary signing key hash input"
+
+      public key for the period:
+
+           A' = h A = (ha)B
+
+  Generating a signature of M: given a deterministic random-looking r
+  (see EdDSA paper), take R=rB, S=r+hash(R,A',M)ah mod l. Send signature
+  (R,S) and public key A'.
+
+  Verifying the signature: Check whether SB = R+hash(R,A',M)A'.
+
+  (If the signature is valid,
+       SB = (r + hash(R,A',M)ah)B
+          = rB + (hash(R,A',M)ah)B
+          = R + hash(R,A',M)A' )
+
+  This boils down to regular Ed25519 with key pair (a', A').
+
+  See [KEYBLIND-REFS]_ for an extensive discussion on this scheme and
+  possible alternatives. Also, see [KEYBLIND-PROOF]_ for a security
+  proof of this scheme.
+
+
+
 Encryption and processing
 `````````````````````````
 Derivation of subcredentials
@@ -1221,7 +1291,9 @@ Format
   LeaseSet: type specified above
   Signing Private Key: type as inferred from the lease set signature
                        (by dest signing key or transient key)
+                       Not present for Meta LS2
   Encryption Private Key: type as inferred from the public key in the lease set
+                          Not present for Meta LS2
 
 
 Notes
@@ -1320,6 +1392,18 @@ which had similar design goals [TOR-REND-SPEC-V3]_.
 
 References
 ==========
+
+.. [ED25519-REFS]
+    "High-speed high-security signatures" by Daniel
+    J. Bernstein, Niels Duif, Tanja Lange, Peter Schwabe, and
+    Bo-Yin Yang. http://cr.yp.to/papers.html#ed25519
+
+.. [KEYBLIND-PROOF]
+    https://lists.torproject.org/pipermail/tor-dev/2013-December/005943.html
+
+.. [KEYBLIND-REFS]
+    https://trac.torproject.org/projects/tor/ticket/8106
+    https://lists.torproject.org/pipermail/tor-dev/2012-September/004026.html
 
 .. [PRNG-REFS]
     http://projectbullrun.org/dual-ec/ext-rand.html
