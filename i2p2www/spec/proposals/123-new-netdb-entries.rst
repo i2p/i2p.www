@@ -5,7 +5,7 @@ New netDB Entries
     :author: zzz, str4d, orignal
     :created: 2016-01-16
     :thread: http://zzz.i2p/topics/2051
-    :lastupdated: 2018-12-01
+    :lastupdated: 2018-12-02
     :status: Open
     :supercedes: 110, 120, 121, 122
 
@@ -1342,6 +1342,24 @@ Changes to support Meta
 How to generate and support Meta, including inter-router communication and coordination,
 is out of scope for this proposal.
 Support may be added to I2CP, or i2pcontrol, or a new protocol.
+
+
+Changes to support Offline Keys
+-------------------------------
+
+TODO
+Offline signatures cannot be verified in streaming.
+Needs some way to get the transient key via I2CP.
+
+
+Streaming Changes Required
+==========================
+
+TODO
+Offline signatures cannot be verified in streaming.
+Needs a flag to indicate offline signed.
+Needs some way to get the transient key via I2CP.
+See I2CP section above.
 
 
 

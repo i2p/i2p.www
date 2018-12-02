@@ -1691,8 +1691,8 @@ Notes
 Issues
 ``````
 
-- Java router does not have signing private key and can't sign anything,
-  must be fixed in I2CP to deliver it
+- Java router must have the actual signing private key, not a dummy,
+  see new I2CP Create LeaseSet2 Message in proposal 123.
 
 - For easier processing, LS clove should precede Garlic clove in the message.
 
