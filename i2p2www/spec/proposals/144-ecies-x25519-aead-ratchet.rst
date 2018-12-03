@@ -5,7 +5,7 @@ ECIES-X25519-AEAD-Ratchet
     :author: zzz
     :created: 2018-11-22
     :thread: http://zzz.i2p/topics/2639
-    :lastupdated: 2018-12-01
+    :lastupdated: 2018-12-03
     :status: Open
 
 .. contents::
@@ -146,6 +146,10 @@ Non-Goals / Out-of-scope
   That would be in a separate proposal.
 - Methods of encryption, transmission, and reception of I2NP DLM / DSM / DSRM messages.
   Not changing.
+- No LS1-to-LS2 or ElGamal/AES-to-this-proposal communication is supported.
+  This proposal is a bidirectional protocol.
+  Destinations may handle backward compatibility by publishing two leasesets
+  using the same tunnels, or put both encryption types in the LS2.
 - Threat model changes
 - Implementation details are not discussed here and are left to each project.
 
@@ -497,6 +501,10 @@ will be dropped after the decryption fails.
 The goal is to select a session tag length that is large enough
 to minimize the risk of collisions, while small enough
 to minimize memory usage.
+
+This assumes that implementations limit session tag storage to
+prevent memory exhaustion attacks. This also will greatly reduce the chances that an attacker
+can create collisions. See the Implementation Considerations section below.
 
 For a worst case, assume a busy server with 64 new inbound sessions per second.
 Assume 15 minute inbound session tag lifetime (same as now, probably should be reduced).
@@ -1185,6 +1193,11 @@ that have not yet been received.
 Once received, the stored key may be discarded, and if there are no previous
 unreceived tags, the window may be advanced.
 
+For efficiency, the session tag and symmetric key ratchets should be separate so
+the session tag ratchet can run ahead of the symmetric key ratchet.
+This also provides some additional security, since the session tags go out on the wire.
+
+
 KDF:
 
 .. raw:: html
@@ -1216,6 +1229,11 @@ Bob ratchets twice when he receives the inbound session and creates the correspo
 once for the new key received, and once for the new key generated.
 Alice ratchets once when she receives the new key on the inbound session and replaces the corresponding outbound session.
 So each side ratchets twice total, in the typical case.
+
+The frequency of ratchets after the initial handshake is implementation-dependent.
+While the protocol places a limit of 65535 messages before a ratchet is required,
+more frequent ratcheting (based on message count, elapsed time, or both)
+may provide additional security.
 
 
 KDF:
@@ -1267,6 +1285,12 @@ This uses the same block format as defined in the NTCP2 specification.
 Where appropriate, the same block numbers are used.
 We do not reuse NTCP2 block numbers for different uses, so
 that implementations may share code with NTCP2.
+
+TODO there are concerns that encouraging implementers to share code
+may lead to parsing issues. Implementers should carefully consider
+the benefits and risks of sharing code, and ensure that the
+ordering and valid block rules are different for the two contexts.
+
 
 
 Unencrypted data

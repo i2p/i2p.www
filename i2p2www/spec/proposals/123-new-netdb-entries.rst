@@ -5,7 +5,7 @@ New netDB Entries
     :author: zzz, str4d, orignal
     :created: 2016-01-16
     :thread: http://zzz.i2p/topics/2051
-    :lastupdated: 2018-12-02
+    :lastupdated: 2018-12-03
     :status: Open
     :supercedes: 110, 120, 121, 122
 
@@ -503,7 +503,7 @@ SIG
         TODO
 
 DH
-    Curve25519 public key agreement system. Pivate keys of 32 bytes,
+    Curve25519 public key agreement system. Private keys of 32 bytes,
     public keys of 32 bytes, produces outputs of 32 bytes.
 
 KDF(ikm, salt, info, n)
@@ -609,10 +609,11 @@ Signature
 
 Layer 1 (middle)
 ~~~~~~~~~~~~~~~~
-Flag
-    1 byte
-
-    Per-client or for everybody?
+Flags :: 1 byte flags
+         bit order: 76543210
+         bit 0: 0 for everybody, 1 for per-client, auth section to follow
+         bits 3-1: Authentication scheme, 0 for the scheme specified below
+         bits 7-4: Unused, set to 0 for future compatibility
 
 If per-client:
     ephemeralPublicKey
@@ -655,20 +656,20 @@ Data
 Blinding Key Derivation
 ```````````````````````
 
+We propose the following scheme for key blinding, based on Ed25519.
+
+(This is an ECC group, so remember that scalar multiplication is the
+trapdoor function, and it's defined in terms of iterated point
+addition. See the Ed25519 paper [ED25519-REFS]_ for a fairly
+clear writeup.)
+
 Copied from Tor rend-spec-v3.txt appendix A.2
 which has similar design goals [TOR-REND-SPEC-V3]_.
 
-Adjustments TODO
+Changes for I2P TODO
 
 
 ::
-
-  We propose the following scheme for key blinding, based on Ed25519.
-
-  (This is an ECC group, so remember that scalar multiplication is the
-  trapdoor function, and it's defined in terms of iterated point
-  addition. See the Ed25519 paper [ED25519-REFS]_ for a fairly
-  clear writeup.)
 
   Let B be the ed25519 basepoint as found in section 5 of [ED25519-B-REF]:
       B = (15112221349535400772501151409588531511454012693041857206046113283949847762202,
@@ -716,9 +717,9 @@ Adjustments TODO
 
   This boils down to regular Ed25519 with key pair (a', A').
 
-  See [KEYBLIND-REFS]_ for an extensive discussion on this scheme and
-  possible alternatives. Also, see [KEYBLIND-PROOF]_ for a security
-  proof of this scheme.
+See [KEYBLIND-REFS]_ for an extensive discussion on this scheme and
+possible alternatives. Also, see [KEYBLIND-PROOF]_ for a security
+proof of this scheme.
 
 
 
@@ -764,6 +765,11 @@ Finally, the layer 1 plaintext is encrypted and serialized::
 
 Layer 1 decryption
 ~~~~~~~~~~~~~~~~~~
+
+.. raw:: html
+
+  {% highlight lang='text' %}
+
 The salt is parsed from the layer 1 ciphertext::
 
     outerSalt = outerCiphertext[0..SALT_LEN]
@@ -779,6 +785,8 @@ Finally, the layer 1 ciphertext is decrypted::
 
     outerPlaintext = DECRYPT(outerKey, outerIV, outerCiphertext[SALT_LEN..])
 
+{% endhighlight %}
+
 Layer 2 per-client authorization
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 TODO: Write up both DH-based client IDs and static client IDs, and pros/cons of each.
@@ -787,6 +795,11 @@ Layer 2 encryption
 ~~~~~~~~~~~~~~~~~~
 When client authorization is enabled, ``authCookie`` is calculated as described above.
 When client authorization is disabled, ``authCookie`` is the zero-length byte array.
+
+
+.. raw:: html
+
+  {% highlight lang='text' %}
 
 Encryption proceeds in a similar fashion to layer 1::
 
@@ -797,10 +810,17 @@ Encryption proceeds in a similar fashion to layer 1::
     innerIV = keys[S_KEY_LEN..(S_KEY_LEN+S_IV_LEN)]
     innerCiphertext = innerSalt || ENCRYPT(innerKey, innerIV, innerPlaintext)
 
+{% endhighlight %}
+
 Layer 2 decryption
 ~~~~~~~~~~~~~~~~~~
 When client authorization is enabled, ``authCookie`` is calculated as described above.
 When client authorization is disabled, ``authCookie`` is the zero-length byte array.
+
+
+.. raw:: html
+
+  {% highlight lang='text' %}
 
 Decryption proceeds in a similar fashion to layer 1::
 
@@ -811,6 +831,7 @@ Decryption proceeds in a similar fashion to layer 1::
     innerIV = keys[S_KEY_LEN..(S_KEY_LEN+S_IV_LEN)]
     innerPlaintext = DECRYPT(innerKey, innerIV, innerCiphertext[SALT_LEN..])
 
+{% endhighlight %}
 
 Issues
 ``````
@@ -1348,8 +1369,9 @@ Changes to support Offline Keys
 -------------------------------
 
 TODO
-Offline signatures cannot be verified in streaming.
+Offline signatures cannot be verified in streaming or repliable datagrams.
 Needs some way to get the transient key via I2CP.
+Need some way to know you need to get the transient key.
 
 
 Streaming Changes Required
@@ -1358,6 +1380,18 @@ Streaming Changes Required
 TODO
 Offline signatures cannot be verified in streaming.
 Needs a flag to indicate offline signed.
+There is room in the header options bytes for a flag.
+Needs some way to get the transient key via I2CP.
+See I2CP section above.
+
+
+Repliable Datagram Changes Required
+===================================
+
+TODO
+Offline signatures cannot be verified in the repliable datagram processing.
+Needs a flag to indicate offline signed but there's no place to put a flag.
+May require a completely new protocol number and format.
 Needs some way to get the transient key via I2CP.
 See I2CP section above.
 
