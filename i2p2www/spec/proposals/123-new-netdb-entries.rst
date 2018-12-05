@@ -571,7 +571,9 @@ Flags
 
     Other bits: set to 0 for compatibility with future uses
 
-If flag indicates offline keys:
+Transient key data
+    Present if flag indicates offline keys
+
     Expires timestamp
         4 bytes
 
@@ -609,13 +611,20 @@ Signature
 
 Layer 1 (middle)
 ~~~~~~~~~~~~~~~~
-Flags :: 1 byte flags
-         bit order: 76543210
-         bit 0: 0 for everybody, 1 for per-client, auth section to follow
-         bits 3-1: Authentication scheme, 0 for the scheme specified below
-         bits 7-4: Unused, set to 0 for future compatibility
+Flags
+    1 byte
+    
+    Bit order: 76543210
 
-If per-client:
+    Bit 0: 0 for everybody, 1 for per-client, auth section to follow
+
+    Bits 3-1: Authentication scheme, 0 for the scheme specified below
+
+    Bits 7-4: Unused, set to 0 for future compatibility
+
+Scheme 0 client auth data
+    Present if flag bit 0 is set to 1 and flag bits 3-1 are set to 0.
+
     ephemeralPublicKey
         PK_PUBKEY_LEN bytes
 
