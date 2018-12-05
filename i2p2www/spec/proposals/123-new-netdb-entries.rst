@@ -729,62 +729,91 @@ Derivation of subcredentials
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 As part of the blinding process, we need to ensure that an encrypted LS2 can only be
 decrypted by someone who knows the corresponding Destination. To achieve this, we derive
-a credential from the Destination::
+a credential from the Destination:
 
-    credential = H("credential", Destination)
+.. raw:: html
+
+  {% highlight lang='text' %}
+credential = H("credential", Destination)
+{% endhighlight %}
 
 The personalization string ensures that the credential does not collide with any hash used
 as a DHT lookup key, such as the plain Destination hash.
 
-For a given blinded key, we can then derive a subcredential::
+For a given blinded key, we can then derive a subcredential:
 
-    subcredential = H("subcredential", credential || blindedPublicKey)
+.. raw:: html
+
+  {% highlight lang='text' %}
+subcredential = H("subcredential", credential || blindedPublicKey)
+{% endhighlight %}
 
 The subcredential is included in the key derivation processes below, which binds those
 keys to knowledge of the Destination.
 
 Layer 1 encryption
 ~~~~~~~~~~~~~~~~~~
-First, the input to the key derivation process is prepared::
-
-    outerInput = blindedPublicKey || subcredential || publishedTimestamp
-
-Next, a random salt is generated::
-
-    outerSalt = H(PRNG(SALT_LEN))
-
-Then the key used to encrypt layer 1 is derived::
-
-    keys = KDF(outerInput, outerSalt, "ELS2_L1K", S_KEY_LEN + S_IV_LEN)
-    outerKey = keys[0..S_KEY_LEN]
-    outerIV = keys[S_KEY_LEN..(S_KEY_LEN+S_IV_LEN)]
-
-Finally, the layer 1 plaintext is encrypted and serialized::
-
-    outerCiphertext = outerSalt || ENCRYPT(outerKey, outerIV, outerPlaintext)
-
-Layer 1 decryption
-~~~~~~~~~~~~~~~~~~
+First, the input to the key derivation process is prepared:
 
 .. raw:: html
 
   {% highlight lang='text' %}
+outerInput = blindedPublicKey || subcredential || publishedTimestamp
+{% endhighlight %}
 
-The salt is parsed from the layer 1 ciphertext::
+Next, a random salt is generated:
 
-    outerSalt = outerCiphertext[0..SALT_LEN]
+.. raw:: html
 
-Then the key used to encrypt layer 1 is derived::
+  {% highlight lang='text' %}
+outerSalt = H(PRNG(SALT_LEN))
+{% endhighlight %}
 
-    outerInput = blindedPublicKey || subcredential || publishedTimestamp
-    keys = KDF(outerInput, outerSalt, "ELS2_L1K", S_KEY_LEN + S_IV_LEN)
-    outerKey = keys[0..S_KEY_LEN]
-    outerIV = keys[S_KEY_LEN..(S_KEY_LEN+S_IV_LEN)]
+Then the key used to encrypt layer 1 is derived:
 
-Finally, the layer 1 ciphertext is decrypted::
+.. raw:: html
 
-    outerPlaintext = DECRYPT(outerKey, outerIV, outerCiphertext[SALT_LEN..])
+  {% highlight lang='text' %}
+keys = KDF(outerInput, outerSalt, "ELS2_L1K", S_KEY_LEN + S_IV_LEN)
+  outerKey = keys[0..S_KEY_LEN]
+  outerIV = keys[S_KEY_LEN..(S_KEY_LEN+S_IV_LEN)]
+{% endhighlight %}
 
+Finally, the layer 1 plaintext is encrypted and serialized:
+
+.. raw:: html
+
+  {% highlight lang='text' %}
+outerCiphertext = outerSalt || ENCRYPT(outerKey, outerIV, outerPlaintext)
+{% endhighlight %}
+
+Layer 1 decryption
+~~~~~~~~~~~~~~~~~~
+The salt is parsed from the layer 1 ciphertext:
+
+.. raw:: html
+
+  {% highlight lang='text' %}
+outerSalt = outerCiphertext[0..SALT_LEN]
+{% endhighlight %}
+
+Then the key used to encrypt layer 1 is derived:
+
+.. raw:: html
+
+  {% highlight lang='text' %}
+outerInput = blindedPublicKey || subcredential || publishedTimestamp
+  keys = KDF(outerInput, outerSalt, "ELS2_L1K", S_KEY_LEN + S_IV_LEN)
+  outerKey = keys[0..S_KEY_LEN]
+  outerIV = keys[S_KEY_LEN..(S_KEY_LEN+S_IV_LEN)]
+{% endhighlight %}
+
+Finally, the layer 1 ciphertext is decrypted:
+
+.. raw:: html
+
+  {% highlight lang='text' %}
+outerPlaintext = DECRYPT(outerKey, outerIV, outerCiphertext[SALT_LEN..])
 {% endhighlight %}
 
 Layer 2 per-client authorization
@@ -796,20 +825,17 @@ Layer 2 encryption
 When client authorization is enabled, ``authCookie`` is calculated as described above.
 When client authorization is disabled, ``authCookie`` is the zero-length byte array.
 
+Encryption proceeds in a similar fashion to layer 1:
 
 .. raw:: html
 
   {% highlight lang='text' %}
-
-Encryption proceeds in a similar fashion to layer 1::
-
-    innerInput = blindedPublicKey || authCookie || subcredential || publishedTimestamp
-    innerSalt = H(PRNG(SALT_LEN))
-    keys = KDF(innerInput, innerSalt, "ELS2_L2K", S_KEY_LEN + S_IV_LEN)
-    innerKey = keys[0..S_KEY_LEN]
-    innerIV = keys[S_KEY_LEN..(S_KEY_LEN+S_IV_LEN)]
-    innerCiphertext = innerSalt || ENCRYPT(innerKey, innerIV, innerPlaintext)
-
+innerInput = blindedPublicKey || authCookie || subcredential || publishedTimestamp
+  innerSalt = H(PRNG(SALT_LEN))
+  keys = KDF(innerInput, innerSalt, "ELS2_L2K", S_KEY_LEN + S_IV_LEN)
+  innerKey = keys[0..S_KEY_LEN]
+  innerIV = keys[S_KEY_LEN..(S_KEY_LEN+S_IV_LEN)]
+  innerCiphertext = innerSalt || ENCRYPT(innerKey, innerIV, innerPlaintext)
 {% endhighlight %}
 
 Layer 2 decryption
@@ -817,20 +843,17 @@ Layer 2 decryption
 When client authorization is enabled, ``authCookie`` is calculated as described above.
 When client authorization is disabled, ``authCookie`` is the zero-length byte array.
 
+Decryption proceeds in a similar fashion to layer 1:
 
 .. raw:: html
 
   {% highlight lang='text' %}
-
-Decryption proceeds in a similar fashion to layer 1::
-
-    innerInput = blindedPublicKey || authCookie || subcredential || publishedTimestamp
-    innerSalt = innerCiphertext[0..SALT_LEN]
-    keys = KDF(innerInput, innerSalt, "ELS2_L2K", S_KEY_LEN + S_IV_LEN)
-    innerKey = keys[0..S_KEY_LEN]
-    innerIV = keys[S_KEY_LEN..(S_KEY_LEN+S_IV_LEN)]
-    innerPlaintext = DECRYPT(innerKey, innerIV, innerCiphertext[SALT_LEN..])
-
+innerInput = blindedPublicKey || authCookie || subcredential || publishedTimestamp
+  innerSalt = innerCiphertext[0..SALT_LEN]
+  keys = KDF(innerInput, innerSalt, "ELS2_L2K", S_KEY_LEN + S_IV_LEN)
+  innerKey = keys[0..S_KEY_LEN]
+  innerIV = keys[S_KEY_LEN..(S_KEY_LEN+S_IV_LEN)]
+  innerPlaintext = DECRYPT(innerKey, innerIV, innerCiphertext[SALT_LEN..])
 {% endhighlight %}
 
 Issues
