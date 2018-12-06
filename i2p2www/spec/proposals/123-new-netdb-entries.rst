@@ -506,8 +506,18 @@ SIG
         TODO
 
 DH
-    Curve25519 public key agreement system. Private keys of 32 bytes,
-    public keys of 32 bytes, produces outputs of 32 bytes.
+    Curve25519 public key agreement system. Private keys of 32 bytes, public keys of 32
+    bytes, produces outputs of 32 bytes. DH_PUBKEY_LEN = 32. It has the following
+    functions:
+
+    GENERATE_PRIVATE()
+        Generates a new private key.
+
+    DERIVE_PUBLIC(privkey)
+        Returns the public key corresponding to the given private key.
+
+    AGREE(privkey, pubkey)
+        Generates a shared secret from the given private and public keys.
 
 KDF(ikm, salt, info, n)
     A cryptographic key derivation function which takes some input key material ikm (which
@@ -625,11 +635,11 @@ Flags
 
     Bits 7-4: Unused, set to 0 for future compatibility
 
-Scheme 0 client auth data
+X25519 client auth data
     Present if flag bit 0 is set to 1 and flag bits 3-1 are set to 0.
 
     ephemeralPublicKey
-        PK_PUBKEY_LEN bytes
+        DH_PUBKEY_LEN bytes
 
     lenAuthClient
         2 bytes
@@ -637,12 +647,16 @@ Scheme 0 client auth data
         Number of authClient entries to follow
 
     authClient
-        [id_i, iv_i, Encrypted cookie]
+        Authorization data for a single client
 
-        The recipient looks for his ID, then decrypts the inner.
-        The same cookie is encrypted once for each recipient.
+        clientID_i
+            8 bytes
 
-        Length of each field TBD.
+        clientIV_i
+            S_IV_LEN bytes
+
+        clientCookie_i
+            32 bytes
 
         See below for per-client authorization algorithm.
 
@@ -828,13 +842,9 @@ Finally, the layer 1 ciphertext is decrypted:
 outerPlaintext = DECRYPT(outerKey, outerIV, outerCiphertext[SALT_LEN..])
 {% endhighlight %}
 
-Layer 2 per-client authorization
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-TODO: Write up both DH-based client IDs and static client IDs, and pros/cons of each.
-
 Layer 2 encryption
 ~~~~~~~~~~~~~~~~~~
-When client authorization is enabled, ``authCookie`` is calculated as described above.
+When client authorization is enabled, ``authCookie`` is calculated as described below.
 When client authorization is disabled, ``authCookie`` is the zero-length byte array.
 
 Encryption proceeds in a similar fashion to layer 1:
@@ -852,7 +862,7 @@ innerInput = blindedPublicKey || authCookie || subcredential || publishedTimesta
 
 Layer 2 decryption
 ~~~~~~~~~~~~~~~~~~
-When client authorization is enabled, ``authCookie`` is calculated as described above.
+When client authorization is enabled, ``authCookie`` is calculated as described below.
 When client authorization is disabled, ``authCookie`` is the zero-length byte array.
 
 Decryption proceeds in a similar fashion to layer 1:
@@ -868,6 +878,167 @@ innerInput = blindedPublicKey || authCookie || subcredential || publishedTimesta
   innerPlaintext = DECRYPT(innerKey, innerIV, innerCiphertext[SALT_LEN..])
 {% endhighlight %}
 
+
+Per-client authorization
+````````````````````````
+When client authorization is enabled for a Destination, the server maintains a list of
+clients they are authorizing to decrypt the encrypted LS2 data. The data stored per-client
+depends on the authorization mechanism, and includes some form of key material that each
+client generates and sends to the server via a secure out-of-band mechanism.
+
+There are two current alternatives for implementing per-client authorization:
+
+X25519 client authorization
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Each client generates an X25519 keypair ``[csk_i, cpk_i]``, and sends the public key
+``cpk_i`` to the server.
+
+Server processing
+^^^^^^^^^^^^^^^^^
+The server generates a new ``authCookie`` and an ephemeral X25519 keypair:
+
+.. raw:: html
+
+  {% highlight lang='text' %}
+authCookie = H(PRNG(32))
+  esk = DH.GENERATE_PRIVATE()
+  epk = DH.DERIVE_PUBLIC(esk)
+{% endhighlight %}
+
+Then for each authorized client, the server encrypts ``authCookie`` to its public key:
+
+.. raw:: html
+
+  {% highlight lang='text' %}
+sharedSecret = DH.AGREE(esk, cpk_i)
+  authInput = sharedSecret || subcredential || publishedTimestamp
+  okm = KDF(authInput, epk, "ELS2_XCA", 8 + S_KEY_LEN)
+  clientID_i = okm[0..8]
+  clientKey_i = okm[8..(8+S_KEY_LEN)]
+  clientIV_i = H(PRNG(S_IV_LEN))
+  clientCookie_i = ENCRYPT(clientKey_i, clientIV_i, authCookie)
+{% endhighlight %}
+
+The server places each ``[clientID_i, clientIV_i, clientCookie_i]`` tuple into layer 1 of
+the encrypted LS2, along with ``epk``.
+
+Client processing
+^^^^^^^^^^^^^^^^^
+The client uses its private key to derive its expected client identifier ``clientID_i``
+and encryption key ``clientKey_i``:
+
+.. raw:: html
+
+  {% highlight lang='text' %}
+sharedSecret = DH.AGREE(csk_i, epk)
+  authInput = sharedSecret || subcredential || publishedTimestamp
+  okm = KDF(authInput, epk, "ELS2_XCA", 8 + S_KEY_LEN)
+  clientID_i = okm[0..8]
+  clientKey_i = okm[8..(8+S_KEY_LEN)]
+{% endhighlight %}
+
+Then the client searches the layer 1 authorization data for an entry that contains
+``clientID_i``. If a matching entry exists, the client decrypts it to obtain
+``authCookie``:
+
+.. raw:: html
+
+  {% highlight lang='text' %}
+authCookie = DECRYPT(clientKey_i, clientIV_i, clientCookie_i)
+{% endhighlight %}
+
+Pre-shared key client authorization
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Each client generates a secret 32-byte key ``psk_i``, and sends it to the server.
+
+Server processing
+^^^^^^^^^^^^^^^^^
+The server generates a new ``authCookie`` and salt:
+
+.. raw:: html
+
+  {% highlight lang='text' %}
+authCookie = H(PRNG(32))
+  authSalt = H(PRNG(SALT_LEN))
+{% endhighlight %}
+
+Then for each authorized client, the server encrypts ``authCookie`` to its pre-shared key:
+
+.. raw:: html
+
+  {% highlight lang='text' %}
+authInput = psk_i || subcredential || publishedTimestamp
+  okm = KDF(authInput, authSalt, "ELS2PSKA", 8 + S_KEY_LEN)
+  clientID_i = okm[0..8]
+  clientKey_i = okm[8..(8+S_KEY_LEN)]
+  clientIV_i = H(PRNG(S_IV_LEN))
+  clientCookie_i = ENCRYPT(clientKey_i, clientIV_i, authCookie)
+{% endhighlight %}
+
+The server places each ``[clientID_i, clientIV_i, clientCookie_i]`` tuple into layer 1 of
+the encrypted LS2, along with ``authSalt``.
+
+Client processing
+^^^^^^^^^^^^^^^^^
+The client uses its pre-shared key to derive its expected client identifier ``clientID_i``
+and encryption key ``clientKey_i``:
+
+.. raw:: html
+
+  {% highlight lang='text' %}
+authInput = psk_i || subcredential || publishedTimestamp
+  okm = KDF(authInput, authSalt, "ELS2PSKA", 8 + S_KEY_LEN)
+  clientID_i = okm[0..8]
+  clientKey_i = okm[8..(8+S_KEY_LEN)]
+{% endhighlight %}
+
+Then the client searches the layer 1 authorization data for an entry that contains
+``clientID_i``. If a matching entry exists, the client decrypts it to obtain
+``authCookie``:
+
+.. raw:: html
+
+  {% highlight lang='text' %}
+authCookie = DECRYPT(clientKey_i, clientIV_i, clientCookie_i)
+{% endhighlight %}
+
+Security considerations
+~~~~~~~~~~~~~~~~~~~~~~~
+Both of the client authorization mechanisms above provide privacy for client membership.
+An entity that only knows the Destination can see how many clients are subscribed at any
+time, but cannot track which clients are being added or revoked.
+
+Servers SHOULD randomize the order of clients each time they generate an encrypted LS2, to
+prevent clients learning their position in the list and inferring when other clients have
+been added or revoked.
+
+A server MAY choose to hide the number of clients that are subscribed by inserting random
+entries into the list of authorization data.
+
+Advantages of PSK client authorization
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+- Security of the scheme is not solely dependent on the out-of-band exchange of client key
+  material. The client's private key never needs to leave their device, and so an
+  adversary that is able to intercept the out-of-band exchange, but cannot break X25519,
+  cannot decrypt the encrypted LS2, or determine how long the client is given access.
+
+Downsides of X25519 client authorization
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+- Requires N + 1 DH operations on the server side for N clients.
+- Requires one DH operation on the client side.
+
+Advantages of PSK client authorization
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+- Requires no DH operations.
+
+Downsides of PSK client authorization
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+- Security of the scheme is critically dependent on the out-of-band exchange of client key
+  material. An adversary that intercepts the exchange for a particular client can decrypt
+  any subsequent encrypted LS2 for which that client is authorized, as well as determine
+  when the client's access is revoked.
+
+
 Issues
 ``````
 
@@ -882,8 +1053,6 @@ Issues
   desired key with a counter argument). BLAKE2b is much faster than SHA-256, and
   keyed-BLAKE2b would reduce the total number of hash function calls.
   [UNSCIENTIFIC-KDF-SPEEDS]_
-
-- TODO: Write up both DH-based client IDs and static client IDs, and pros/cons of each.
 
 
 Notes
