@@ -784,7 +784,7 @@ First, the input to the key derivation process is prepared:
 .. raw:: html
 
   {% highlight lang='text' %}
-outerInput = blindedPublicKey || subcredential || publishedTimestamp
+outerInput = subcredential || publishedTimestamp
 {% endhighlight %}
 
 Next, a random salt is generated:
@@ -828,7 +828,7 @@ Then the key used to encrypt layer 1 is derived:
 .. raw:: html
 
   {% highlight lang='text' %}
-outerInput = blindedPublicKey || subcredential || publishedTimestamp
+outerInput = subcredential || publishedTimestamp
   keys = KDF(outerInput, outerSalt, "ELS2_L1K", S_KEY_LEN + S_IV_LEN)
   outerKey = keys[0..S_KEY_LEN]
   outerIV = keys[S_KEY_LEN..(S_KEY_LEN+S_IV_LEN)]
@@ -852,7 +852,7 @@ Encryption proceeds in a similar fashion to layer 1:
 .. raw:: html
 
   {% highlight lang='text' %}
-innerInput = blindedPublicKey || authCookie || subcredential || publishedTimestamp
+innerInput = authCookie || subcredential || publishedTimestamp
   innerSalt = H(PRNG(SALT_LEN))
   keys = KDF(innerInput, innerSalt, "ELS2_L2K", S_KEY_LEN + S_IV_LEN)
   innerKey = keys[0..S_KEY_LEN]
@@ -870,7 +870,7 @@ Decryption proceeds in a similar fashion to layer 1:
 .. raw:: html
 
   {% highlight lang='text' %}
-innerInput = blindedPublicKey || authCookie || subcredential || publishedTimestamp
+innerInput = authCookie || subcredential || publishedTimestamp
   innerSalt = innerCiphertext[0..SALT_LEN]
   keys = KDF(innerInput, innerSalt, "ELS2_L2K", S_KEY_LEN + S_IV_LEN)
   innerKey = keys[0..S_KEY_LEN]
