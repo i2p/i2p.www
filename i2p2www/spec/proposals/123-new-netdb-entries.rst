@@ -5,7 +5,7 @@ New netDB Entries
     :author: zzz, str4d, orignal
     :created: 2016-01-16
     :thread: http://zzz.i2p/topics/2051
-    :lastupdated: 2018-12-03
+    :lastupdated: 2018-12-06
     :status: Open
     :supercedes: 110, 120, 121, 122
 
@@ -62,7 +62,10 @@ Goals
 - All new types live in the same DHT space and same locations as existing leasesets,
   so that users may migrate from the old LS to LS2,
   or change among LS2, Meta, and Encrypted,
-  without changing their Destination.
+  without changing the Destination or hash.
+- An existing Destination may be converted to use offline keys,
+  or back to online keys, without changing the Destination or hash.
+
 
 Non-Goals / Out-of-scope
 ------------------------

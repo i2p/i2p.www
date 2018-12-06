@@ -5,7 +5,7 @@ ECIES-X25519-AEAD-Ratchet
     :author: zzz
     :created: 2018-11-22
     :thread: http://zzz.i2p/topics/2639
-    :lastupdated: 2018-12-03
+    :lastupdated: 2018-12-06
     :status: Open
 
 .. contents::
@@ -421,6 +421,9 @@ Four message total (two each direction)
 For ECIES-X25519-AEAD-Ratchet
 `````````````````````````````
 
+TODO update this section after proposal is stable.
+
+
 Alice-Bob new session message:
 - 32 byte public key
 - 8 byte nonce
@@ -463,6 +466,7 @@ Four message total (two each direction)
 Processing overhead estimate
 ----------------------------
 
+TODO update this section after proposal is stable.
 
 The following cryptographic operations are required by each party to initiate
 a new session and do the first ratchet:
@@ -723,13 +727,25 @@ Encrypted:
 +----+----+----+----+----+----+----+----+
   |                                       |
   +                                       +
-  |       DH Ratchet Public Key           |
+  |       New Session Public Key          |
   +                                       +
   |                                       |
   +                                       +
   |                                       |
   +----+----+----+----+----+----+----+----+
-  |                Nonce                  |
+  |                                       |
+  +                                       +
+  |       ChaCha20 encrypted data         |
+  +                                       +
+  |                                       |
+  +                                       +
+  |                                       |
+  +                                       +
+  |                                       |
+  +----+----+----+----+----+----+----+----+
+  |  Poly1305 Message Authentication Code |
+  +              (MAC)                    +
+  |             16 bytes                  |
   +----+----+----+----+----+----+----+----+
   |                                       |
   +                                       +
@@ -746,16 +762,44 @@ Encrypted:
 
   Public Key :: 32 bytes, little endian, cleartext
 
-  Nonce :: 8 bytes, cleartext
+  encrypted data 1 :: 40 bytes
 
-  encrypted data :: Same size as plaintext data, Size varies
+  MAC 1 :: Poly1305 message authentication code, 16 bytes
 
-  MAC :: Poly1305 message authentication code, 16 bytes
+  encrypted data 2 :: Same size as plaintext data, Size varies
+
+  MAC 2 :: Poly1305 message authentication code, 16 bytes
 
 {% endhighlight %}
 
 
-Decrypted:
+Decrypted data 1:
+
+.. raw:: html
+
+  {% highlight lang='dataspec' %}
++----+----+----+----+----+----+----+----+
+  |                                       |
+  +                                       +
+  |       DH Ratchet Public Key           |
+  +                                       +
+  |                                       |
+  +                                       +
+  |                                       |
+  +----+----+----+----+----+----+----+----+
+  |   Flags, IV, sequence number, TODO    |
+  +----+----+----+----+----+----+----+----+
+
+  Public Key :: 32 bytes, little endian
+
+  TODO :: 8 bytes
+
+{% endhighlight %}
+
+
+
+
+Decrypted data 2:
 
   See AEAD section below.
 
@@ -794,24 +838,27 @@ thus cutting the storage requirements in half.
 Notes
 `````
 
-This allows sending multiple new session messages with the same cleartext key,
-which is less privacy but much more efficient, e.g. for a POST.
-Send different nonces with each message.
-Nonce should be generated randomly.
+This allows sending multiple new session messages with the same initial ratchet key,
+which is more efficient, e.g. for a POST.
+These messages will have a different cleartext (new session) key but contain
+the same ratchet key inside the first AEAD block.
+New session keys are never reused.
+This prevents external observers from identifying a POST sequence through
+seeing duplicate cleartext keys. However, these messages may still be
+identified as containing keys, unless we use Elligator2.
+The first AEAD block will contain a sequence number and/or IV so the second block may
+be decrypted correctly.
 
 
 Issues
 ``````
 
-- Obfuscation of key?
+- Obfuscation of cleartext key? We could do Elligator 2 but that's expensive.
 
-- Do we need the nonce? Does it need to be 8 bytes? 4?
+- Do we need a nonce? Does it need to be 8 bytes? 4?
 
 - IV is in the LS2 property? Alternative: Send a 16 byte IV instead of 8 byte nonce,
   and use a nonce of 0.
-
-- Alternative: Encrypt the key and IV in a fixed-size AEAD block,
-  as in ElGamal. Then append a second AEAD block, as in ElGamal.
 
 
 
@@ -1107,6 +1154,8 @@ we use session tags instead.
 By using a DH ratchet, we acheive forward secrecy, which was never implemented
 in ElGamal/AES+SessionTags.
 
+Note: The new session public key is not part of the ratchet, its sole function
+is to encrypt Alice's initial DH ratchet key.
 
 
 Message Numbers
@@ -1241,6 +1290,8 @@ KDF:
 .. raw:: html
 
   {% highlight lang='text' %}
+
+  TODO there's two AEAD blocks in the new session message, explain KDF for both
 
   Inputs:
   1) Root key (first time from where? see Signal section 3.3)
