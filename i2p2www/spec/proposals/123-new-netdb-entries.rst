@@ -1260,16 +1260,49 @@ I2CP Changes Required
 I2CP Options
 ------------
 
-New options in SessionConfig Mapping:
+New options interpreted router-side, sent in SessionConfig Mapping:
 
 ::
 
-  crypto.encType=nnn      The encryption type to be used.
-                          0: ElGamal
-                          4: X25519, see proposal 144.
-                          Other values to be defined in future proposals.
-  i2cp.leaseSetType=nnn   The type of leaseset to be sent in the Create Leaseset Message
-                          Value is the same as the netdb store type in the table above.
+  i2cp.leaseSetType=nnn                       The type of leaseset to be sent in the Create Leaseset Message
+                                              Value is the same as the netdb store type in the table above.
+                                              Interpreted client-side, but also passed to the router in the
+                                              SessionConfig, to declare intent and check support.
+
+  i2cp.leaseSetOfflineExpiration=nnn          The expiration of the offline signature, 4 bytes,
+                                              seconds since the epoch.
+
+  i2cp.leaseSetTransientPublicKey=[type:]b64  The base 64 of the transient private key,
+                                              prefixed by an optional sig type number or name,
+                                              default DSA_SHA1.
+                                              Length as inferred from the sig type
+
+  i2cp.leaseSetOfflineSignature=b64           The base 64 of the offline signature.
+                                              Length as inferred from the destination signing public key type
+
+
+New options interpreted client-side:
+
+::
+
+  i2cp.leaseSetType=nnn     The type of leaseset to be sent in the Create Leaseset Message
+                            Value is the same as the netdb store type in the table above.
+                            Interpreted client-side, but also passed to the router in the
+                            SessionConfig, to declare intent and check support.
+
+  i2cp.leaseSetEncType=nnn  The encryption type to be used.
+                            See proposal 144.
+
+
+
+Session Config
+--------------
+
+Note that for offline signatures, the options
+i2cp.leaseSetOfflineExpiration,
+i2cp.leaseSetTransientPublicKey, and
+i2cp.leaseSetOfflineSignature are required,
+and the signature is by the transient signing private key.
 
 
 
@@ -1363,6 +1396,30 @@ Issues
 
 
 
+Host Lookup Message
+-------------------
+
+Client to router.
+
+A lookup of a hash will force the router to fetch the Lease Set,
+so extended results may be returned in the Host Reply Message.
+However, a lookup of a host name will not force the router to fetch the Lease Set
+(unless the lookup was for a b32.i2p, which is discouraged, the client side
+normally converts this to a hash lookup).
+
+To force a Lease Set lookup for a host name lookup,
+we need a new request type.
+
+
+Changes
+```````
+
+::
+
+  Add request type 3: Host name lookup and request Lease Set lookup.
+
+
+
 Host Reply Message
 ------------------
 
@@ -1384,9 +1441,44 @@ that of the lookup, it may fail sanity checks on the client side,
 and the client has no way to get an alternate if that fails,
 and has no way to know the expiration time.
 
-Minimum client version is 0.9.38.
-
 There may be similar issues in BOB and SAM.
+
+Changes
+```````
+
+::
+
+  If the client version is 0.9.38 or higher, and the result code is 0,
+  the following extended results are included after the Destination.
+  These are included no matter what the request type.
+
+  5.  LeaseSet type (1 byte)
+      0: Unknown
+      1: LS 1
+      3: LS 2
+      7: Meta LS
+  6.  LeaseSet expiration (4 bytes, seconds since the epoch)
+      0 if unknown
+  7.  Number of encryption types supported (1 byte)
+      0 if unknown
+  8.  That number of encryption types, 2 bytes each
+  9.  Lease set options, a Mapping, or 2 bytes of zeros if unknown.
+  10. Flags (2 bytes)
+      Bit order: 15 14 13...3210
+      Bit 0: 1 for offline keys, 0 if not
+      Bits 15-1: Unused, set to 0 for compatibility with future uses
+  11. If offline keys, the transient key sig type (2 bytes)
+  12. If offline keys, the transient public key (length as implied by sig type)
+  13. If LeaseSet type is Meta (7), the number of meta entries to follow (1 byte)
+  14. If LeaseSet type is Meta (7), the Meta Entries. Each entry contains: (40 bytes)
+      - Hash (32 bytes)
+      - Flags (3 bytes)
+        TBD. Set all to zero for compatibility with future uses.
+        TODO: Use a few bits to (optionally) indicate the type of the LS it is referencing.
+        All zeros means don't know.
+      - Cost (priority) (1 byte)
+      - Expires (4 bytes) (4 bytes, seconds since epoch, rolls over in 2106)
+
 
 
 Changes to support Meta
@@ -1406,6 +1498,33 @@ Needs some way to get the transient key via I2CP.
 Need some way to know you need to get the transient key.
 
 
+Private Key File Changes Required
+=================================
+
+The private key file (eepPriv.dat) format is not an official part of our specifications
+but it is documented in the Java I2P javadocs
+http://echelon.i2p/javadoc/net/i2p/data/PrivateKeyFile.html
+and other implementations do support it.
+This enables portability of private keys to different implementations.
+
+Changes are necessary to store the transient public key and
+offline signing information.
+
+Changes
+-------
+
+::
+
+  If the signing private key is all zeros, the offline information section follows:
+
+  - Expires timestamp (4 bytes, seconds since epoch, rolls over in 2106)
+  - Sig type of transient Signing Public Key (2 bytes)
+  - Transient Signing Public key (length as specified by transient sig type)
+  - Signature of above three fields by offline key (length as specified by destination sig type)
+  - Transient Signing Private key (length as specified by transient sig type)
+
+
+
 Streaming Changes Required
 ==========================
 
@@ -1415,6 +1534,30 @@ Needs a flag to indicate offline signed.
 There is room in the header options bytes for a flag.
 Needs some way to get the transient key via I2CP.
 See I2CP section above.
+
+Changes
+-------
+
+::
+
+  Change option:
+  Bit:          3
+  Flag:         SIGNATURE_INCLUDED
+  Option order: Change from 4 to 5
+
+  Add new option:
+  Bit:          11
+  Flag:         TRANSIENT_SIGTYPE
+  Option order: 4
+  Option data:  2 bytes
+  Function:     Specify the signature type
+                of the transient key that signed the data,
+                and therefore the length of the signature.
+                SIGNATURE_INCLUDED must also be set.
+
+  Add information about transient keys to the Variable Length Signature Notes section:
+  TODO
+
 
 
 Repliable Datagram Changes Required
@@ -1426,6 +1569,15 @@ Needs a flag to indicate offline signed but there's no place to put a flag.
 May require a completely new protocol number and format.
 Needs some way to get the transient key via I2CP.
 See I2CP section above.
+
+
+Changes
+-------
+
+::
+
+  Define new protocol 19 - Repliable datagram with options?
+  Put in flag and sig type for transient keys.
 
 
 

@@ -1831,10 +1831,10 @@ New options in SessionConfig Mapping:
 
 ::
 
-  crypto.encType=nnn      The encryption type to be used.
-                          0: ElGamal
-                          4: This proposal.
-                          Other values to be defined in future proposals.
+  i2cp.leaseSetEncType=nnn  The encryption type to be used.
+                            0: ElGamal
+                            4: This proposal.
+                            Other values to be defined in future proposals.
 
 
 Create Leaseset2 Message
