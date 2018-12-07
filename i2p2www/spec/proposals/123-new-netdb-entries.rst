@@ -506,7 +506,7 @@ SIG
         TODO
 
 DH
-    Curve25519 public key agreement system. Private keys of 32 bytes, public keys of 32
+    X25519 public key agreement system. Private keys of 32 bytes, public keys of 32
     bytes, produces outputs of 32 bytes. DH_PUBKEY_LEN = 32. It has the following
     functions:
 
@@ -635,7 +635,7 @@ Flags
 
     Bits 7-4: Unused, set to 0 for future compatibility
 
-X25519 client auth data
+DH client auth data
     Present if flag bit 0 is set to 1 and flag bits 3-1 are set to 0.
 
     ephemeralPublicKey
@@ -888,14 +888,14 @@ client generates and sends to the server via a secure out-of-band mechanism.
 
 There are two current alternatives for implementing per-client authorization:
 
-X25519 client authorization
-~~~~~~~~~~~~~~~~~~~~~~~~~~~
-Each client generates an X25519 keypair ``[csk_i, cpk_i]``, and sends the public key
-``cpk_i`` to the server.
+DH client authorization
+~~~~~~~~~~~~~~~~~~~~~~~
+Each client generates a DH keypair ``[csk_i, cpk_i]``, and sends the public key ``cpk_i``
+to the server.
 
 Server processing
 ^^^^^^^^^^^^^^^^^
-The server generates a new ``authCookie`` and an ephemeral X25519 keypair:
+The server generates a new ``authCookie`` and an ephemeral DH keypair:
 
 .. raw:: html
 
@@ -1015,15 +1015,16 @@ been added or revoked.
 A server MAY choose to hide the number of clients that are subscribed by inserting random
 entries into the list of authorization data.
 
-Advantages of PSK client authorization
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Advantages of DH client authorization
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 - Security of the scheme is not solely dependent on the out-of-band exchange of client key
   material. The client's private key never needs to leave their device, and so an
-  adversary that is able to intercept the out-of-band exchange, but cannot break X25519,
-  cannot decrypt the encrypted LS2, or determine how long the client is given access.
+  adversary that is able to intercept the out-of-band exchange, but cannot break the DH
+  algorithm, cannot decrypt the encrypted LS2, or determine how long the client is given
+  access.
 
-Downsides of X25519 client authorization
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Downsides of DH client authorization
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 - Requires N + 1 DH operations on the server side for N clients.
 - Requires one DH operation on the client side.
 
