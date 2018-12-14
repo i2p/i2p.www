@@ -5,7 +5,7 @@ New netDB Entries
     :author: zzz, str4d, orignal
     :created: 2016-01-16
     :thread: http://zzz.i2p/topics/2051
-    :lastupdated: 2018-12-06
+    :lastupdated: 2018-12-14
     :status: Open
     :supercedes: 110, 120, 121, 122
 
@@ -1665,10 +1665,8 @@ Support may be added to I2CP, or i2pcontrol, or a new protocol.
 Changes to support Offline Keys
 -------------------------------
 
-TODO
 Offline signatures cannot be verified in streaming or repliable datagrams.
-Needs some way to get the transient key via I2CP.
-Need some way to know you need to get the transient key.
+See sections below.
 
 
 Private Key File Changes Required
@@ -1701,12 +1699,9 @@ Changes
 Streaming Changes Required
 ==========================
 
-TODO
-Offline signatures cannot be verified in streaming.
-Needs a flag to indicate offline signed.
-There is room in the header options bytes for a flag.
-Needs some way to get the transient key via I2CP.
-See I2CP section above.
+Offline signatures cannot currently be verified in streaming.
+The change below adds the offline signing block to the options.
+This avoids having to retrieve this information via I2CP.
 
 Changes
 -------
@@ -1720,28 +1715,37 @@ Changes
 
   Add new option:
   Bit:          11
-  Flag:         TRANSIENT_SIGTYPE
+  Flag:         OFFLINE_SIGNATURE
   Option order: 4
-  Option data:  2 bytes
-  Function:     Specify the signature type
-                of the transient key that signed the data,
-                and therefore the length of the signature.
+  Option data:  Variable bytes
+  Function:     Contains the offline signature block from LS2.
                 SIGNATURE_INCLUDED must also be set.
+                Expires timestamp (4 bytes, seconds since epoch, rolls over in 2106)
+                Transient sig type (2 bytes)
+                Transient signing public key (length as implied by sig type)
+                Signature of expires timestamp, transient sig type, and public key, by the destination public key,
+                length as implied by destination public key sig type.
 
   Add information about transient keys to the Variable Length Signature Notes section:
-  TODO
+  The offline signature option does not needed to be added for a CLOSE packet if
+  a SYN packet containing the option was previously acked.
+  More info TODO
+
+
+Notes
+-----
+
+- Alternative is to just add a flag, and retrieve the transient public key via I2CP
+  (See Host Lookup / Host Reply Message sections above)
 
 
 
 Repliable Datagram Changes Required
 ===================================
 
-TODO
 Offline signatures cannot be verified in the repliable datagram processing.
 Needs a flag to indicate offline signed but there's no place to put a flag.
-May require a completely new protocol number and format.
-Needs some way to get the transient key via I2CP.
-See I2CP section above.
+Will require a completely new protocol number and format.
 
 
 Changes
@@ -1750,8 +1754,26 @@ Changes
 ::
 
   Define new protocol 19 - Repliable datagram with options?
-  Put in flag and sig type for transient keys.
+  - Destination (387+ bytes)
+  - Flags (2 bytes)
+    Bit order: 15 14 ... 3 2 1 0
+    Bit 0: If 0, no offline keys; if 1, offline keys
+    Bits 1-15: set to 0 for compatibility with future uses
+  - If flag indicates offline keys, the offline signature section:
+    Expires timestamp (4 bytes, seconds since epoch, rolls over in 2106)
+    Transient sig type (2 bytes)
+    Transient signing public key (length as implied by sig type)
+    Signature of expires timestamp, transient sig type, and public key, by the destination public key,
+    length as implied by destination public key sig type.
+    This section can, and should, be generated offline.
+  - Data
 
+Notes
+-----
+
+- Alternative is to just add a flag, and retrieve the transient public key via I2CP
+  (See Host Lookup / Host Reply Message sections above)
+- Any other options we should add now that we have flag bytes?
 
 
 SAM Changes Required
