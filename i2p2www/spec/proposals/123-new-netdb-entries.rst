@@ -3,7 +3,7 @@ New netDB Entries
 =================
 .. meta::
     :author: zzz, str4d, orignal
-    :created: 2016-01-16
+    :created: 2016-01-17
     :thread: http://zzz.i2p/topics/2051
     :lastupdated: 2018-12-14
     :status: Open
@@ -521,7 +521,7 @@ DH
     AGREE(privkey, pubkey)
         Generates a shared secret from the given private and public keys.
 
-KDF(ikm, salt, info, n)
+KDF(salt, ikm, info, n)
     A cryptographic key derivation function which takes some input key material ikm (which
     should have good entropy but is not required to be a uniformly random string), a salt
     of length SALT_LEN bytes, and a context-specific 'info' value, and produces an output
@@ -802,7 +802,7 @@ Then the key used to encrypt layer 1 is derived:
 .. raw:: html
 
   {% highlight lang='text' %}
-keys = KDF(outerInput, outerSalt, "ELS2_L1K", S_KEY_LEN + S_IV_LEN)
+keys = KDF(outerSalt, outerInput, "ELS2_L1K", S_KEY_LEN + S_IV_LEN)
   outerKey = keys[0..S_KEY_LEN]
   outerIV = keys[S_KEY_LEN..(S_KEY_LEN+S_IV_LEN)]
 {% endhighlight %}
@@ -831,7 +831,7 @@ Then the key used to encrypt layer 1 is derived:
 
   {% highlight lang='text' %}
 outerInput = subcredential || publishedTimestamp
-  keys = KDF(outerInput, outerSalt, "ELS2_L1K", S_KEY_LEN + S_IV_LEN)
+  keys = KDF(outerSalt, outerInput, "ELS2_L1K", S_KEY_LEN + S_IV_LEN)
   outerKey = keys[0..S_KEY_LEN]
   outerIV = keys[S_KEY_LEN..(S_KEY_LEN+S_IV_LEN)]
 {% endhighlight %}
@@ -856,7 +856,7 @@ Encryption proceeds in a similar fashion to layer 1:
   {% highlight lang='text' %}
 innerInput = authCookie || subcredential || publishedTimestamp
   innerSalt = CSRNG(SALT_LEN)
-  keys = KDF(innerInput, innerSalt, "ELS2_L2K", S_KEY_LEN + S_IV_LEN)
+  keys = KDF(innerSalt, innerInput, "ELS2_L2K", S_KEY_LEN + S_IV_LEN)
   innerKey = keys[0..S_KEY_LEN]
   innerIV = keys[S_KEY_LEN..(S_KEY_LEN+S_IV_LEN)]
   innerCiphertext = innerSalt || ENCRYPT(innerKey, innerIV, innerPlaintext)
@@ -874,7 +874,7 @@ Decryption proceeds in a similar fashion to layer 1:
   {% highlight lang='text' %}
 innerInput = authCookie || subcredential || publishedTimestamp
   innerSalt = innerCiphertext[0..SALT_LEN]
-  keys = KDF(innerInput, innerSalt, "ELS2_L2K", S_KEY_LEN + S_IV_LEN)
+  keys = KDF(innerSalt, innerInput, "ELS2_L2K", S_KEY_LEN + S_IV_LEN)
   innerKey = keys[0..S_KEY_LEN]
   innerIV = keys[S_KEY_LEN..(S_KEY_LEN+S_IV_LEN)]
   innerPlaintext = DECRYPT(innerKey, innerIV, innerCiphertext[SALT_LEN..])
@@ -914,7 +914,7 @@ Then for each authorized client, the server encrypts ``authCookie`` to its publi
   {% highlight lang='text' %}
 sharedSecret = DH.AGREE(esk, cpk_i)
   authInput = sharedSecret || subcredential || publishedTimestamp
-  okm = KDF(authInput, epk, "ELS2_XCA", 8 + S_KEY_LEN)
+  okm = KDF(epk, authInput, "ELS2_XCA", 8 + S_KEY_LEN)
   clientID_i = okm[0..8]
   clientKey_i = okm[8..(8+S_KEY_LEN)]
   clientIV_i = CSRNG(S_IV_LEN)
@@ -934,7 +934,7 @@ and encryption key ``clientKey_i``:
   {% highlight lang='text' %}
 sharedSecret = DH.AGREE(csk_i, epk)
   authInput = sharedSecret || subcredential || publishedTimestamp
-  okm = KDF(authInput, epk, "ELS2_XCA", 8 + S_KEY_LEN)
+  okm = KDF(epk, authInput, "ELS2_XCA", 8 + S_KEY_LEN)
   clientID_i = okm[0..8]
   clientKey_i = okm[8..(8+S_KEY_LEN)]
 {% endhighlight %}
@@ -970,7 +970,7 @@ Then for each authorized client, the server encrypts ``authCookie`` to its pre-s
 
   {% highlight lang='text' %}
 authInput = psk_i || subcredential || publishedTimestamp
-  okm = KDF(authInput, authSalt, "ELS2PSKA", 8 + S_KEY_LEN)
+  okm = KDF(authSalt, authInput, "ELS2PSKA", 8 + S_KEY_LEN)
   clientID_i = okm[0..8]
   clientKey_i = okm[8..(8+S_KEY_LEN)]
   clientIV_i = CSRNG(S_IV_LEN)
@@ -989,7 +989,7 @@ and encryption key ``clientKey_i``:
 
   {% highlight lang='text' %}
 authInput = psk_i || subcredential || publishedTimestamp
-  okm = KDF(authInput, authSalt, "ELS2PSKA", 8 + S_KEY_LEN)
+  okm = KDF(authSalt, authInput, "ELS2PSKA", 8 + S_KEY_LEN)
   clientID_i = okm[0..8]
   clientKey_i = okm[8..(8+S_KEY_LEN)]
 {% endhighlight %}
