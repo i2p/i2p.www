@@ -913,7 +913,7 @@ Then for each authorized client, the server encrypts ``authCookie`` to its publi
 
   {% highlight lang='text' %}
 sharedSecret = DH.AGREE(esk, cpk_i)
-  authInput = sharedSecret || subcredential || publishedTimestamp
+  authInput = sharedSecret || cpk_i || subcredential || publishedTimestamp
   okm = KDF(epk, authInput, "ELS2_XCA", 8 + S_KEY_LEN)
   clientID_i = okm[0..8]
   clientKey_i = okm[8..(8+S_KEY_LEN)]
@@ -933,7 +933,7 @@ and encryption key ``clientKey_i``:
 
   {% highlight lang='text' %}
 sharedSecret = DH.AGREE(csk_i, epk)
-  authInput = sharedSecret || subcredential || publishedTimestamp
+  authInput = sharedSecret || cpk_i || subcredential || publishedTimestamp
   okm = KDF(epk, authInput, "ELS2_XCA", 8 + S_KEY_LEN)
   clientID_i = okm[0..8]
   clientKey_i = okm[8..(8+S_KEY_LEN)]
