@@ -444,13 +444,15 @@ Definitions
 We define the following functions corresponding to the cryptographic building blocks used
 for encrypted LS2:
 
-PRNG(n)
-    n-byte output from a pseudorandom number generator backed by a strong entropy source.
+CSRNG(n)
+    n-byte output from a cryptographically-secure random number generator.
 
-    The output of the PRNG MUST be hashed before use if it will appear on the network
-    (such as a salt, or encrypted padding), in order to avoid leaking raw PRNG bytes to
-    the network [PRNG-REFS]_. These instances will use the notation H(PRNG(n)) to remove
-    any ambiguity.
+    In addition to the requirement of CSRNG being cryptographically-secure (and thus
+    suitable for generating key material), it MUST be instantiated such that it is safe
+    for some n-byte output to be used for key material when the byte sequences immediately
+    preceding and following it are exposed on the network (such as in a salt, or encrypted
+    padding). Implementations that rely on a potentially-untrustworthy source should hash
+    any output that is to be exposed on the network [PRNG-REFS]_.
 
 H(p, d)
     A cryptographic hash function that takes a personalisation string p and data d, and
@@ -792,7 +794,7 @@ Next, a random salt is generated:
 .. raw:: html
 
   {% highlight lang='text' %}
-outerSalt = H(PRNG(SALT_LEN))
+outerSalt = CSRNG(SALT_LEN)
 {% endhighlight %}
 
 Then the key used to encrypt layer 1 is derived:
@@ -853,7 +855,7 @@ Encryption proceeds in a similar fashion to layer 1:
 
   {% highlight lang='text' %}
 innerInput = authCookie || subcredential || publishedTimestamp
-  innerSalt = H(PRNG(SALT_LEN))
+  innerSalt = CSRNG(SALT_LEN)
   keys = KDF(innerInput, innerSalt, "ELS2_L2K", S_KEY_LEN + S_IV_LEN)
   innerKey = keys[0..S_KEY_LEN]
   innerIV = keys[S_KEY_LEN..(S_KEY_LEN+S_IV_LEN)]
@@ -900,7 +902,7 @@ The server generates a new ``authCookie`` and an ephemeral DH keypair:
 .. raw:: html
 
   {% highlight lang='text' %}
-authCookie = H(PRNG(32))
+authCookie = CSRNG(32)
   esk = DH.GENERATE_PRIVATE()
   epk = DH.DERIVE_PUBLIC(esk)
 {% endhighlight %}
@@ -915,7 +917,7 @@ sharedSecret = DH.AGREE(esk, cpk_i)
   okm = KDF(authInput, epk, "ELS2_XCA", 8 + S_KEY_LEN)
   clientID_i = okm[0..8]
   clientKey_i = okm[8..(8+S_KEY_LEN)]
-  clientIV_i = H(PRNG(S_IV_LEN))
+  clientIV_i = CSRNG(S_IV_LEN)
   clientCookie_i = ENCRYPT(clientKey_i, clientIV_i, authCookie)
 {% endhighlight %}
 
@@ -958,8 +960,8 @@ The server generates a new ``authCookie`` and salt:
 .. raw:: html
 
   {% highlight lang='text' %}
-authCookie = H(PRNG(32))
-  authSalt = H(PRNG(SALT_LEN))
+authCookie = CSRNG(32)
+  authSalt = CSRNG(SALT_LEN)
 {% endhighlight %}
 
 Then for each authorized client, the server encrypts ``authCookie`` to its pre-shared key:
@@ -971,7 +973,7 @@ authInput = psk_i || subcredential || publishedTimestamp
   okm = KDF(authInput, authSalt, "ELS2PSKA", 8 + S_KEY_LEN)
   clientID_i = okm[0..8]
   clientKey_i = okm[8..(8+S_KEY_LEN)]
-  clientIV_i = H(PRNG(S_IV_LEN))
+  clientIV_i = CSRNG(S_IV_LEN)
   clientCookie_i = ENCRYPT(clientKey_i, clientIV_i, authCookie)
 {% endhighlight %}
 
@@ -1046,8 +1048,6 @@ Issues
 - Blinding spec TODO
 
 - Use AES instead of ChaCha20?
-
-- Explicit hash of PRNG is unnecessary, implementation-specific
 
 - If we care about speed, we could use keyed-BLAKE2b instead. It has an output
   size large enough to accommodate the largest n we require (or we can call it once per
