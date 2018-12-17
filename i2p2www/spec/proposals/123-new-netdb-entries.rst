@@ -654,9 +654,6 @@ DH client auth data
         clientID_i
             8 bytes
 
-        clientIV_i
-            S_IV_LEN bytes
-
         clientCookie_i
             32 bytes
 
@@ -914,29 +911,30 @@ Then for each authorized client, the server encrypts ``authCookie`` to its publi
   {% highlight lang='text' %}
 sharedSecret = DH.AGREE(esk, cpk_i)
   authInput = sharedSecret || cpk_i || subcredential || publishedTimestamp
-  okm = KDF(epk, authInput, "ELS2_XCA", 8 + S_KEY_LEN)
-  clientID_i = okm[0..8]
-  clientKey_i = okm[8..(8+S_KEY_LEN)]
-  clientIV_i = CSRNG(S_IV_LEN)
+  okm = KDF(epk, authInput, "ELS2_XCA", S_KEY_LEN + S_IV_LEN + 8)
+  clientKey_i = okm[0..S_KEY_LEN]
+  clientIV_i = okm[S_KEY_LEN..(S_KEY_LEN+S_IV_LEN)]
+  clientID_i = okm[(S_KEY_LEN+S_IV_LEN)..(S_KEY_LEN+S_IV_LEN+8)]
   clientCookie_i = ENCRYPT(clientKey_i, clientIV_i, authCookie)
 {% endhighlight %}
 
-The server places each ``[clientID_i, clientIV_i, clientCookie_i]`` tuple into layer 1 of
-the encrypted LS2, along with ``epk``.
+The server places each ``[clientID_i, clientCookie_i]`` tuple into layer 1 of the
+encrypted LS2, along with ``epk``.
 
 Client processing
 ^^^^^^^^^^^^^^^^^
-The client uses its private key to derive its expected client identifier ``clientID_i``
-and encryption key ``clientKey_i``:
+The client uses its private key to derive its expected client identifier ``clientID_i``,
+encryption key ``clientKey_i``, and encryption IV ``clientIV_i``:
 
 .. raw:: html
 
   {% highlight lang='text' %}
 sharedSecret = DH.AGREE(csk_i, epk)
   authInput = sharedSecret || cpk_i || subcredential || publishedTimestamp
-  okm = KDF(epk, authInput, "ELS2_XCA", 8 + S_KEY_LEN)
-  clientID_i = okm[0..8]
-  clientKey_i = okm[8..(8+S_KEY_LEN)]
+  okm = KDF(epk, authInput, "ELS2_XCA", S_KEY_LEN + S_IV_LEN + 8)
+  clientKey_i = okm[0..S_KEY_LEN]
+  clientIV_i = okm[S_KEY_LEN..(S_KEY_LEN+S_IV_LEN)]
+  clientID_i = okm[(S_KEY_LEN+S_IV_LEN)..(S_KEY_LEN+S_IV_LEN+8)]
 {% endhighlight %}
 
 Then the client searches the layer 1 authorization data for an entry that contains
@@ -970,28 +968,29 @@ Then for each authorized client, the server encrypts ``authCookie`` to its pre-s
 
   {% highlight lang='text' %}
 authInput = psk_i || subcredential || publishedTimestamp
-  okm = KDF(authSalt, authInput, "ELS2PSKA", 8 + S_KEY_LEN)
-  clientID_i = okm[0..8]
-  clientKey_i = okm[8..(8+S_KEY_LEN)]
-  clientIV_i = CSRNG(S_IV_LEN)
+  okm = KDF(authSalt, authInput, "ELS2PSKA", S_KEY_LEN + S_IV_LEN + 8)
+  clientKey_i = okm[0..S_KEY_LEN]
+  clientIV_i = okm[S_KEY_LEN..(S_KEY_LEN+S_IV_LEN)]
+  clientID_i = okm[(S_KEY_LEN+S_IV_LEN)..(S_KEY_LEN+S_IV_LEN+8)]
   clientCookie_i = ENCRYPT(clientKey_i, clientIV_i, authCookie)
 {% endhighlight %}
 
-The server places each ``[clientID_i, clientIV_i, clientCookie_i]`` tuple into layer 1 of
-the encrypted LS2, along with ``authSalt``.
+The server places each ``[clientID_i, clientCookie_i]`` tuple into layer 1 of the
+encrypted LS2, along with ``authSalt``.
 
 Client processing
 ^^^^^^^^^^^^^^^^^
-The client uses its pre-shared key to derive its expected client identifier ``clientID_i``
-and encryption key ``clientKey_i``:
+The client uses its pre-shared key to derive its expected client identifier ``clientID_i``,
+encryption key ``clientKey_i``, and encryption IV ``clientIV_i``:
 
 .. raw:: html
 
   {% highlight lang='text' %}
 authInput = psk_i || subcredential || publishedTimestamp
-  okm = KDF(authSalt, authInput, "ELS2PSKA", 8 + S_KEY_LEN)
-  clientID_i = okm[0..8]
-  clientKey_i = okm[8..(8+S_KEY_LEN)]
+  okm = KDF(authSalt, authInput, "ELS2PSKA", S_KEY_LEN + S_IV_LEN + 8)
+  clientKey_i = okm[0..S_KEY_LEN]
+  clientIV_i = okm[S_KEY_LEN..(S_KEY_LEN+S_IV_LEN)]
+  clientID_i = okm[(S_KEY_LEN+S_IV_LEN)..(S_KEY_LEN+S_IV_LEN+8)]
 {% endhighlight %}
 
 Then the client searches the layer 1 authorization data for an entry that contains
