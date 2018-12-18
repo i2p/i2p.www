@@ -3,9 +3,9 @@ New netDB Entries
 =================
 .. meta::
     :author: zzz, str4d, orignal
-    :created: 2016-01-17
+    :created: 2016-01-16
     :thread: http://zzz.i2p/topics/2051
-    :lastupdated: 2018-12-14
+    :lastupdated: 2018-12-17
     :status: Open
     :supercedes: 110, 120, 121, 122
 
