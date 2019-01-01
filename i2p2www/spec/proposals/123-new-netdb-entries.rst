@@ -5,7 +5,7 @@ New netDB Entries
     :author: zzz, str4d, orignal
     :created: 2016-01-16
     :thread: http://zzz.i2p/topics/2051
-    :lastupdated: 2018-12-17
+    :lastupdated: 2019-01-01
     :status: Open
     :supercedes: 110, 120, 121, 122
 
@@ -299,9 +299,6 @@ Format
 ::
 
   Standard LS2 Header as specified above
-
-  Properties:
-  - A Mapping, for future use, no current plans.
 
   Standard LS2 Type-Specific Part
   - Properties (Mapping as specified in common structures spec, 2 zero bytes if none)
