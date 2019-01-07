@@ -5,7 +5,7 @@ New netDB Entries
     :author: zzz, str4d, orignal
     :created: 2016-01-16
     :thread: http://zzz.i2p/topics/2051
-    :lastupdated: 2019-01-01
+    :lastupdated: 2019-01-07
     :status: Open
     :supercedes: 110, 120, 121, 122
 
@@ -429,9 +429,9 @@ Lookup with:
 Store with:
     Encrypted LS2 type (5)
 Store at:
-    Hash of blinded sig type and public key, with daily rotation
+    Hash of blinded sig type and blinded public key, with daily rotation
 Typical expiration:
-    10 minutes, as in a regular LS.
+    10 minutes, as in a regular LS, or hours, as in a meta LS.
 Published by:
     Destination
 
@@ -558,11 +558,6 @@ Blinded Public Key Sig Type
 
 Blinded Public Key
     Length as implied by sig type
-
-Signature
-    Length as implied by signing key sig type
-
-    Of destination by blinded public key?
 
 Published timestamp
     4 bytes
@@ -1547,8 +1542,9 @@ Format
   Signing Private Key: type as inferred from the lease set signature
                        (by dest signing key or transient key)
                        Not present for Meta LS2
-  Encryption Private Key: type as inferred from the public key in the lease set
-                          Not present for Meta LS2
+  Encryption Private Keys: One for each public key in the lease set, in the same order
+                           Types as inferred from the public keys in the lease set
+                           Not present for Meta LS2
 
 
 Notes
