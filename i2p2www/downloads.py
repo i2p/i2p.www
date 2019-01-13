@@ -66,6 +66,10 @@ def downloads_list():
 def downloads_debian():
     return render_template('downloads/debian.html')
 
+# Firefox-specific page
+def downloads_firefox():
+    return render_template('downloads/firefox.html')
+
 # Specific file downloader
 def downloads_select(version, file):
     mirrors=read_mirrors()

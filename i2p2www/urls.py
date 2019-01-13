@@ -78,6 +78,7 @@ url('/<lang:lang>/feed/meetings/atom', 'meetings.views.meetings_atom')
 
 url('/<lang:lang>/download', 'downloads.downloads_list')
 url('/<lang:lang>/download/debian', 'downloads.downloads_debian')
+url('/<lang:lang>/download/firefox', 'downloads.downloads_firefox')
 url('/<lang:lang>/download/<string:version>/<path:file>/mirrors', 'downloads.downloads_select')
 url('/<lang:lang>/download/<string:version>/<string:net>/any/<path:file>/download', 'downloads.downloads_redirect', defaults={'protocol': None, 'domain': None})
 url('/<lang:lang>/download/<string:version>/<string:net>/<string:protocol>/any/<path:file>/download', 'downloads.downloads_redirect', defaults={'domain': None})
