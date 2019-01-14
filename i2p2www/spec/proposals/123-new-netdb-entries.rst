@@ -5,7 +5,7 @@ New netDB Entries
     :author: zzz, str4d, orignal
     :created: 2016-01-16
     :thread: http://zzz.i2p/topics/2051
-    :lastupdated: 2019-01-07
+    :lastupdated: 2019-01-14
     :status: Open
     :supercedes: 110, 120, 121, 122
 
@@ -445,18 +445,17 @@ CSRNG(n)
     n-byte output from a cryptographically-secure random number generator.
 
     In addition to the requirement of CSRNG being cryptographically-secure (and thus
-    suitable for generating key material), it MUST be instantiated such that it is safe
+    suitable for generating key material), it MUST be safe
     for some n-byte output to be used for key material when the byte sequences immediately
     preceding and following it are exposed on the network (such as in a salt, or encrypted
     padding). Implementations that rely on a potentially-untrustworthy source should hash
     any output that is to be exposed on the network [PRNG-REFS]_.
 
 H(p, d)
-    A cryptographic hash function that takes a personalisation string p and data d, and
-    produces an output of length HASH_LEN bytes. The hash function should be preimage- and
-    collision-resistant.
+    SHA-256 hash function that takes a personalization string p and data d, and
+    produces an output of length 32 bytes.
 
-    Instantiated with SHA-256 (implying HASH_LEN = 32) as follows::
+    Use SHA-256 as follows::
 
         H(p, d) := SHA-256(p || d)
 
@@ -506,7 +505,7 @@ SIG
 
 DH
     X25519 public key agreement system. Private keys of 32 bytes, public keys of 32
-    bytes, produces outputs of 32 bytes. DH_PUBKEY_LEN = 32. It has the following
+    bytes, produces outputs of 32 bytes. 32 = 32. It has the following
     functions:
 
     GENERATE_PRIVATE()
@@ -518,14 +517,14 @@ DH
     AGREE(privkey, pubkey)
         Generates a shared secret from the given private and public keys.
 
-KDF(salt, ikm, info, n)
+HKDF(salt, ikm, info, n)
     A cryptographic key derivation function which takes some input key material ikm (which
     should have good entropy but is not required to be a uniformly random string), a salt
-    of length SALT_LEN bytes, and a context-specific 'info' value, and produces an output
+    of length 32 bytes, and a context-specific 'info' value, and produces an output
     of n bytes suitable for use as key material.
 
-    Instantiated with HKDF as specified in [RFC-5869]_, using the hash function SHA-256.
-    This means that SALT_LEN can be at most 32.
+    Use HKDF as specified in [RFC-5869]_, using the hash function SHA-256.
+    This means that SALT_LEN is 32 bytes max.
 
 
 Format
@@ -625,7 +624,10 @@ Flags
 
     Bit 0: 0 for everybody, 1 for per-client, auth section to follow
 
-    Bits 3-1: Authentication scheme, 0 for the scheme specified below
+    Bits 3-1: Authentication scheme, only if bit 1 is set to 1 for per-client,
+              otherwise 0
+              0: DH client authentication (or no per-client authentication)
+              1: PSK client authentication
 
     Bits 7-4: Unused, set to 0 for future compatibility
 
@@ -633,15 +635,16 @@ DH client auth data
     Present if flag bit 0 is set to 1 and flag bits 3-1 are set to 0.
 
     ephemeralPublicKey
-        DH_PUBKEY_LEN bytes
+        32 bytes
 
-    lenAuthClient
+    clients
         2 bytes
 
-        Number of authClient entries to follow
+        Number of authClient entries to follow, 40 bytes each
 
     authClient
-        Authorization data for a single client
+        Authorization data for a single client.
+        See below for the per-client authorization algorithm.
 
         clientID_i
             8 bytes
@@ -649,7 +652,27 @@ DH client auth data
         clientCookie_i
             32 bytes
 
-        See below for per-client authorization algorithm.
+PSK client auth data
+    Present if flag bit 0 is set to 1 and flag bits 3-1 are set to 0.
+
+    authSalt
+        32 bytes
+
+    clients
+        2 bytes
+
+        Number of authClient entries to follow, 40 bytes each
+
+    authClient
+        Authorization data for a single client.
+        See below for the per-client authorization algorithm.
+
+        clientID_i
+            8 bytes
+
+        clientCookie_i
+            32 bytes
+
 
 innerCiphertext
     Length implied by lenOuterCiphertext (whatever data remains)
@@ -783,7 +806,7 @@ Next, a random salt is generated:
 .. raw:: html
 
   {% highlight lang='text' %}
-outerSalt = CSRNG(SALT_LEN)
+outerSalt = CSRNG(32)
 {% endhighlight %}
 
 Then the key used to encrypt layer 1 is derived:
@@ -791,9 +814,9 @@ Then the key used to encrypt layer 1 is derived:
 .. raw:: html
 
   {% highlight lang='text' %}
-keys = KDF(outerSalt, outerInput, "ELS2_L1K", S_KEY_LEN + S_IV_LEN)
-  outerKey = keys[0..S_KEY_LEN]
-  outerIV = keys[S_KEY_LEN..(S_KEY_LEN+S_IV_LEN)]
+keys = HKDF(outerSalt, outerInput, "ELS2_L1K", 44)
+  outerKey = keys[0:31]
+  outerIV = keys[32:43]
 {% endhighlight %}
 
 Finally, the layer 1 plaintext is encrypted and serialized:
@@ -811,7 +834,7 @@ The salt is parsed from the layer 1 ciphertext:
 .. raw:: html
 
   {% highlight lang='text' %}
-outerSalt = outerCiphertext[0..SALT_LEN]
+outerSalt = outerCiphertext[32:end]
 {% endhighlight %}
 
 Then the key used to encrypt layer 1 is derived:
@@ -820,9 +843,9 @@ Then the key used to encrypt layer 1 is derived:
 
   {% highlight lang='text' %}
 outerInput = subcredential || publishedTimestamp
-  keys = KDF(outerSalt, outerInput, "ELS2_L1K", S_KEY_LEN + S_IV_LEN)
-  outerKey = keys[0..S_KEY_LEN]
-  outerIV = keys[S_KEY_LEN..(S_KEY_LEN+S_IV_LEN)]
+  keys = HKDF(outerSalt, outerInput, "ELS2_L1K", 44)
+  outerKey = keys[0:31]
+  outerIV = keys[32:43]
 {% endhighlight %}
 
 Finally, the layer 1 ciphertext is decrypted:
@@ -830,7 +853,7 @@ Finally, the layer 1 ciphertext is decrypted:
 .. raw:: html
 
   {% highlight lang='text' %}
-outerPlaintext = DECRYPT(outerKey, outerIV, outerCiphertext[SALT_LEN..])
+outerPlaintext = DECRYPT(outerKey, outerIV, outerCiphertext[32:end])
 {% endhighlight %}
 
 Layer 2 encryption
@@ -844,10 +867,10 @@ Encryption proceeds in a similar fashion to layer 1:
 
   {% highlight lang='text' %}
 innerInput = authCookie || subcredential || publishedTimestamp
-  innerSalt = CSRNG(SALT_LEN)
-  keys = KDF(innerSalt, innerInput, "ELS2_L2K", S_KEY_LEN + S_IV_LEN)
-  innerKey = keys[0..S_KEY_LEN]
-  innerIV = keys[S_KEY_LEN..(S_KEY_LEN+S_IV_LEN)]
+  innerSalt = CSRNG(32)
+  keys = HKDF(innerSalt, innerInput, "ELS2_L2K", 44)
+  innerKey = keys[0:31]
+  innerIV = keys[32:43]
   innerCiphertext = innerSalt || ENCRYPT(innerKey, innerIV, innerPlaintext)
 {% endhighlight %}
 
@@ -862,11 +885,11 @@ Decryption proceeds in a similar fashion to layer 1:
 
   {% highlight lang='text' %}
 innerInput = authCookie || subcredential || publishedTimestamp
-  innerSalt = innerCiphertext[0..SALT_LEN]
-  keys = KDF(innerSalt, innerInput, "ELS2_L2K", S_KEY_LEN + S_IV_LEN)
-  innerKey = keys[0..S_KEY_LEN]
-  innerIV = keys[S_KEY_LEN..(S_KEY_LEN+S_IV_LEN)]
-  innerPlaintext = DECRYPT(innerKey, innerIV, innerCiphertext[SALT_LEN..])
+  innerSalt = innerCiphertext[0:31]
+  keys = HKDF(innerSalt, innerInput, "ELS2_L2K", 44)
+  innerKey = keys[0:31]
+  innerIV = keys[32:43]
+  innerPlaintext = DECRYPT(innerKey, innerIV, innerCiphertext[32:end])
 {% endhighlight %}
 
 
@@ -877,7 +900,7 @@ clients they are authorizing to decrypt the encrypted LS2 data. The data stored 
 depends on the authorization mechanism, and includes some form of key material that each
 client generates and sends to the server via a secure out-of-band mechanism.
 
-There are two current alternatives for implementing per-client authorization:
+There are two alternatives for implementing per-client authorization:
 
 DH client authorization
 ~~~~~~~~~~~~~~~~~~~~~~~
@@ -892,8 +915,8 @@ The server generates a new ``authCookie`` and an ephemeral DH keypair:
 
   {% highlight lang='text' %}
 authCookie = CSRNG(32)
-  esk = DH.GENERATE_PRIVATE()
-  epk = DH.DERIVE_PUBLIC(esk)
+  esk = GENERATE_PRIVATE()
+  epk = DERIVE_PUBLIC(esk)
 {% endhighlight %}
 
 Then for each authorized client, the server encrypts ``authCookie`` to its public key:
@@ -901,12 +924,12 @@ Then for each authorized client, the server encrypts ``authCookie`` to its publi
 .. raw:: html
 
   {% highlight lang='text' %}
-sharedSecret = DH.AGREE(esk, cpk_i)
+sharedSecret = AGREE(esk, cpk_i)
   authInput = sharedSecret || cpk_i || subcredential || publishedTimestamp
-  okm = KDF(epk, authInput, "ELS2_XCA", S_KEY_LEN + S_IV_LEN + 8)
-  clientKey_i = okm[0..S_KEY_LEN]
-  clientIV_i = okm[S_KEY_LEN..(S_KEY_LEN+S_IV_LEN)]
-  clientID_i = okm[(S_KEY_LEN+S_IV_LEN)..(S_KEY_LEN+S_IV_LEN+8)]
+  okm = HKDF(epk, authInput, "ELS2_XCA", 52)
+  clientKey_i = okm[0:31]
+  clientIV_i = okm[32:43]
+  clientID_i = okm[44:51]
   clientCookie_i = ENCRYPT(clientKey_i, clientIV_i, authCookie)
 {% endhighlight %}
 
@@ -921,12 +944,12 @@ encryption key ``clientKey_i``, and encryption IV ``clientIV_i``:
 .. raw:: html
 
   {% highlight lang='text' %}
-sharedSecret = DH.AGREE(csk_i, epk)
+sharedSecret = AGREE(csk_i, epk)
   authInput = sharedSecret || cpk_i || subcredential || publishedTimestamp
-  okm = KDF(epk, authInput, "ELS2_XCA", S_KEY_LEN + S_IV_LEN + 8)
-  clientKey_i = okm[0..S_KEY_LEN]
-  clientIV_i = okm[S_KEY_LEN..(S_KEY_LEN+S_IV_LEN)]
-  clientID_i = okm[(S_KEY_LEN+S_IV_LEN)..(S_KEY_LEN+S_IV_LEN+8)]
+  okm = HKDF(epk, authInput, "ELS2_XCA", 52)
+  clientKey_i = okm[0:31]
+  clientIV_i = okm[32:43]
+  clientID_i = okm[44:51]
 {% endhighlight %}
 
 Then the client searches the layer 1 authorization data for an entry that contains
@@ -951,7 +974,7 @@ The server generates a new ``authCookie`` and salt:
 
   {% highlight lang='text' %}
 authCookie = CSRNG(32)
-  authSalt = CSRNG(SALT_LEN)
+  authSalt = CSRNG(32)
 {% endhighlight %}
 
 Then for each authorized client, the server encrypts ``authCookie`` to its pre-shared key:
@@ -960,10 +983,10 @@ Then for each authorized client, the server encrypts ``authCookie`` to its pre-s
 
   {% highlight lang='text' %}
 authInput = psk_i || subcredential || publishedTimestamp
-  okm = KDF(authSalt, authInput, "ELS2PSKA", S_KEY_LEN + S_IV_LEN + 8)
-  clientKey_i = okm[0..S_KEY_LEN]
-  clientIV_i = okm[S_KEY_LEN..(S_KEY_LEN+S_IV_LEN)]
-  clientID_i = okm[(S_KEY_LEN+S_IV_LEN)..(S_KEY_LEN+S_IV_LEN+8)]
+  okm = HKDF(authSalt, authInput, "ELS2PSKA", 52)
+  clientKey_i = okm[0:31]
+  clientIV_i = okm[32:43]
+  clientID_i = okm[44:51]
   clientCookie_i = ENCRYPT(clientKey_i, clientIV_i, authCookie)
 {% endhighlight %}
 
@@ -979,10 +1002,10 @@ encryption key ``clientKey_i``, and encryption IV ``clientIV_i``:
 
   {% highlight lang='text' %}
 authInput = psk_i || subcredential || publishedTimestamp
-  okm = KDF(authSalt, authInput, "ELS2PSKA", S_KEY_LEN + S_IV_LEN + 8)
-  clientKey_i = okm[0..S_KEY_LEN]
-  clientIV_i = okm[S_KEY_LEN..(S_KEY_LEN+S_IV_LEN)]
-  clientID_i = okm[(S_KEY_LEN+S_IV_LEN)..(S_KEY_LEN+S_IV_LEN+8)]
+  okm = HKDF(authSalt, authInput, "ELS2PSKA", 52)
+  clientKey_i = okm[0:31]
+  clientIV_i = okm[32:43]
+  clientID_i = okm[44:51]
 {% endhighlight %}
 
 Then the client searches the layer 1 authorization data for an entry that contains
@@ -1049,19 +1072,6 @@ Issues
 
 Notes
 `````
-- For multiple clients, encrypted format is probably like GPG/OpenPGP does.
-  Asymmetrically encrypt a symmetric key for each recipient. Data is decrypted
-  with that asymmetric key. See e.g. [RFC-4880-S5.1]_ IF we can find an
-  algorithm that's small and fast.
-
-  - Can we use a shortened version of our current ElGamal, which is 222 bytes
-    in and 514 bytes out? That's a little long for each record.
-
-- For a single client, we could just ElG encrypt the whole leaseset, 514 bytes
-  isn't so bad.
-
-- If we want to specify the encryption format in the clear, we could have an
-  identifier just before the encrypted data, or in the flags.
 
 - A service using encrypted leasesets would publish the encrypted version to the
   floodfills. However, for efficiency, it would send unencrypted leasesets to
@@ -1700,23 +1710,23 @@ Changes
 
 ::
 
-  Change option:
-  Bit:          3
-  Flag:         SIGNATURE_INCLUDED
-  Option order: Change from 4 to 5
-
   Add new option:
   Bit:          11
   Flag:         OFFLINE_SIGNATURE
   Option order: 4
   Option data:  Variable bytes
-  Function:     Contains the offline signature block from LS2.
+  Function:     Contains the offline signature section from LS2.
                 SIGNATURE_INCLUDED must also be set.
                 Expires timestamp (4 bytes, seconds since epoch, rolls over in 2106)
                 Transient sig type (2 bytes)
                 Transient signing public key (length as implied by sig type)
                 Signature of expires timestamp, transient sig type, and public key, by the destination public key,
                 length as implied by destination public key sig type.
+
+  Change option:
+  Bit:          3
+  Flag:         SIGNATURE_INCLUDED
+  Option order: Change from 4 to 5
 
   Add information about transient keys to the Variable Length Signature Notes section:
   The offline signature option does not needed to be added for a CLOSE packet if
