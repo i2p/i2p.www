@@ -68,7 +68,12 @@ def downloads_debian():
 
 # Firefox-specific page
 def downloads_firefox():
-    return render_template('downloads/firefox.html')
+    # TODO: read mirror list or list of available files
+    if request.headers.get('X-I2P-Desthash') and not request.headers.get('X-Forwarded-Server'):
+        def_mirror = DEFAULT_I2P_MIRROR
+    else:
+        def_mirror = DEFAULT_MIRROR
+    return render_template('downloads/firefox.html', def_mirror=def_mirror)
 
 # Specific file downloader
 def downloads_select(version, file):

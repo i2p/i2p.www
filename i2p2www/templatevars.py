@@ -6,6 +6,7 @@ from urlparse import urlsplit, urlunsplit
 from i2p2www import (
     CANONICAL_DOMAIN,
     CURRENT_I2P_VERSION,
+    CURRENT_I2P_FIREFOX_PROFILE_VERSION,
     PROPOSAL_DIR,
     RTL_LANGS,
     SUPPORTED_LANGS,
@@ -195,6 +196,13 @@ def utility_processor():
             return string % CURRENT_I2P_VERSION
         return CURRENT_I2P_VERSION
 
+    def get_current_firefox_profile_version(string=None, ver=None):
+        if string:
+            if ver:
+                return string % ver
+            return string % CURRENT_I2P_FIREFOX_PROFILE_VERSION
+        return CURRENT_I2P_FIREFOX_PROFILE_VERSION
+
     return dict(i2pconv=convert_url_to_clearnet,
                 i2pclr=convert_url_to_clearnet_inc_https,
                 url_for_other_page=url_for_other_page,
@@ -208,6 +216,7 @@ def utility_processor():
                 is_rtl=is_rtl_lang,
                 get_flag=get_flag,
                 ver=get_current_version,
+                pver=get_current_firefox_profile_version,
                 canonical=get_canonical_link,
                 supported_langs=SUPPORTED_LANGS,
                 lang_names=SUPPORTED_LANG_NAMES)
