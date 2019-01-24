@@ -3,8 +3,8 @@ Common structures Specification
 ===============================
 .. meta::
     :category: Design
-    :lastupdated: October 2018
-    :accuratefor: 0.9.37
+    :lastupdated: January 2019
+    :accuratefor: 0.9.38
 
 .. contents::
 
@@ -72,7 +72,20 @@ specification [ELGAMAL]_.
 
 Contents
 ````````
-256 bytes
+Key type and length are inferred from context or are specified in the Key
+Certificate of a Destination or RouterInfo, or the key type field in a LeaseSet2_.
+The default type is ElGamal.  As of release
+0.9.38, other types may be supported, depending on context.
+
+==========  ==============  ======  =====
+  Type      Length (bytes)  Since   Usage
+==========  ==============  ======  =====
+ElGamal          256                All Router Identities and Destinations
+P256              64         TBD    Reserved, see proposal 145
+P384              96         TBD    Reserved, see proposal 145
+P521             132         TBD    Reserved, see proposal 145
+X25519            32         TBD    Reserved, see proposal 144
+===========  =============  ======  =====
 
 JavaDoc: http://{{ i2pconv('echelon.i2p/javadoc') }}/net/i2p/data/PublicKey.html
 
@@ -89,7 +102,20 @@ not the primes which are constant and defined in the cryptography specification
 
 Contents
 ````````
-256 bytes
+Key type and length are inferred from context or are specified in the Key
+Certificate of a Destination or RouterInfo, or the key type field in a LeaseSet2_.
+The default type is ElGamal.  As of release
+0.9.38, other types may be supported, depending on context.
+
+==========  ==============  ======  =====
+  Type      Length (bytes)  Since   Usage
+==========  ==============  ======  =====
+ElGamal          256                All Router Identities and Destinations
+P256              32         TBD    Reserved, see proposal 145
+P384              48         TBD    Reserved, see proposal 145
+P521              66         TBD    Reserved, see proposal 145
+X25519            32         TBD    Reserved, see proposal 144
+===========  =============  ======  =====
 
 JavaDoc: http://{{ i2pconv('echelon.i2p/javadoc') }}/net/i2p/data/PrivateKey.html
 
@@ -402,6 +428,10 @@ The defined Crypto Public Key types are:
   Type     Type Code   Total Public Key Length  Usage
 ========  ===========  =======================  =====
 ElGamal        0                 256            All Router Identities and Destinations
+P256           1                  64            Reserved, see proposal 145
+P384           2                  96            Reserved, see proposal 145
+P521           3                 132            Reserved, see proposal 145
+X25519         4                  32            Reserved, see proposal 144
 reserved  65280-65534                           Reserved for experimental use
 reserved     65535                              Reserved for future expansion
 ========  ===========  =======================  =====
@@ -795,7 +825,7 @@ by the Destination_'s SigningPrivateKey_.
   +----+----+----+----+----+----+----+----+
 
   destination :: `Destination`
-                 length -> >= 387 bytes
+                 length -> >= 387+ bytes
 
   encryption_key :: `PublicKey`
                     length -> 256 bytes
@@ -848,6 +878,618 @@ Notes
   implementation detail and not part of the structures specification.
 
 JavaDoc: http://{{ i2pconv('echelon.i2p/javadoc') }}/net/i2p/data/LeaseSet.html
+
+
+.. _struct-Lease2:
+
+Lease2
+------
+
+Description
+```````````
+Defines the authorization for a particular tunnel to receive messages targeting
+a Destination_.
+Same as Lease_ but with a 4-byte end_date.
+Used by LeaseSet2_.
+Supported as of 0.9.38; see proposal 123 for more information.
+
+Contents
+````````
+SHA256 Hash_ of the RouterIdentity_ of the gateway router, then the TunnelId_,
+and finally a 4 byte end date.
+
+.. raw:: html
+
+  {% highlight lang='dataspec' -%}
++----+----+----+----+----+----+----+----+
+  | tunnel_gw                             |
+  +                                       +
+  |                                       |
+  +                                       +
+  |                                       |
+  +                                       +
+  |                                       |
+  +----+----+----+----+----+----+----+----+
+  |     tunnel_id     |      end_date     |
+  +----+----+----+----+----+----+----+----+
+
+  tunnel_gw :: Hash of the `RouterIdentity` of the tunnel gateway
+               length -> 32 bytes
+
+  tunnel_id :: `TunnelId`
+               length -> 4 bytes
+
+  end_date :: 4 byte date
+              length -> 4 bytes
+              Seconds since the epoch, rolls over in 2106.
+
+{% endhighlight %}
+
+Notes
+`````
+* Total size: 40 bytes
+
+JavaDoc: http://{{ i2pconv('echelon.i2p/javadoc') }}/net/i2p/data/Lease2.html
+
+
+
+.. _struct-OfflineSignature:
+
+OfflineSignature
+----------------
+
+Description
+```````````
+This is an optional part of the LeaseSet2Header_.
+Also used in streaming and I2CP.
+Supported as of 0.9.38; see proposal 123 for more information.
+
+Contents
+````````
+
+Contains the Destination_, two timestamps, and an optional OfflineSignature_.
+
+.. raw:: html
+
+  {% highlight lang='dataspec' -%}
++----+----+----+----+----+----+----+----+
+  |     expires       | sigtype |         |
+  +----+----+----+----+----+----+         +
+  |       transient_public_key            |
+  ~                                       ~
+  ~                                       ~
+  |                                       |
+  +----+----+----+----+----+----+----+----+
+  |           signature                   |
+  ~                                       ~
+  ~                                       ~
+  |                                       |
+  +----+----+----+----+----+----+----+----+
+
+  expires :: 4 byte date
+             length -> 4 bytes
+             Seconds since the epoch, rolls over in 2106.
+
+  sigtype :: 2 byte type of the transient_public_key
+             length -> 2 bytes
+
+  transient_public_key :: `SigningPublicKey`
+                          length -> As inferred from the sigtype
+
+  signature :: `Signature`
+               length -> As inferred from the sigtype of the signing public key
+                         in the `Destination` that preceded this offline signature.
+               Signature of expires timestamp, transient sig type, and public key, by the destination public key,
+               This section can, and should, be generated offline.
+
+{% endhighlight %}
+
+Notes
+`````
+
+
+.. _struct-LeaseSet2Header:
+
+LeaseSet2Header
+---------------
+
+Description
+```````````
+This is the common part of the LeaseSet2_ and MetaLeaseSet_.
+Supported as of 0.9.38; see proposal 123 for more information.
+
+Contents
+````````
+
+Contains the Destination_, two timestamps, and an optional OfflineSignature_.
+
+.. raw:: html
+
+  {% highlight lang='dataspec' -%}
++----+----+----+----+----+----+----+----+
+  | destination                           |
+  +                                       +
+  |                                       |
+  ~                                       ~
+  ~                                       ~
+  |                                       |
+  +----+----+----+----+----+----+----+----+
+  |     published     | expires |  flags  |
+  +----+----+----+----+----+----+----+----+
+  | offline_signature (optional)          |
+  +                                       +
+  |                                       |
+  ~                                       ~
+  ~                                       ~
+  |                                       |
+  +----+----+----+----+----+----+----+----+
+
+  destination :: `Destination`
+                 length -> >= 387+ bytes
+
+  published :: 4 byte date
+               length -> 4 bytes
+               Seconds since the epoch, rolls over in 2106.
+
+  expires :: 2 byte date
+             length -> 2 bytes
+             Offset from published timestamp in seconds, 18.2 hours max
+
+  flags :: 2 bytes
+    Bit order: 15 14 ... 3 2 1 0
+    Bit 0: If 0, no offline keys; if 1, offline keys
+    Bit 1: If 0, a standard published leaseset.
+           If 1, an unpublished leaseset. Should not be flooded, published, or
+           sent in response to a query. If this leaseset expires, do not query the
+           netdb for a new one.
+    Bits 15-2: set to 0 for compatibility with future uses
+
+  offline_signature :: `OfflineSignature`
+                       length -> varies
+                       Optional, only present if bit 0 is set in the flags.
+
+{% endhighlight %}
+
+Notes
+`````
+* Total size: 395 bytes minimum
+
+
+.. _struct-LeaseSet2:
+
+LeaseSet2
+---------
+
+Description
+```````````
+Contained in a I2NP DatabaseStore message of type 3.
+Supported as of 0.9.38; see proposal 123 for more information.
+
+Contains all of the currently authorized Lease2_ for a particular Destination_,
+the PublicKey_ to which garlic messages can be encrypted, and then the
+SigningPublicKey_ that can be used to revoke this particular version of the
+structure. The LeaseSet is one of the two structures stored in the network
+database (the other being RouterInfo_), and is keyed under the SHA256 of the
+contained Destination_.
+
+
+Contents
+````````
+LeaseSet2Header_, followed by a options, then one or more PublicKey_ for encryption,
+Integer_ specifying how many Lease2_ structures are in the set, followed by the
+actual Lease2_ structures and finally a Signature_ of the previous bytes signed
+by the Destination_'s SigningPrivateKey_ or the transient key.
+
+.. raw:: html
+
+  {% highlight lang='dataspec' -%}
++----+----+----+----+----+----+----+----+
+  |         ls2_header                    |
+  ~                                       ~
+  ~                                       ~
+  |                                       |
+  +----+----+----+----+----+----+----+----+
+  |          options                      |
+  ~                                       ~
+  ~                                       ~
+  |                                       |
+  +----+----+----+----+----+----+----+----+
+  |numk| keytype0| keylen0 |              |
+  +----+----+----+----+----+              +
+  |          encryption_key_0             |
+  ~                                       ~
+  ~                                       ~
+  |                                       |
+  +----+----+----+----+----+----+----+----+
+  | keytypen| keylenn |                   |
+  +----+----+----+----+                   +
+  |          encryption_key_n             |
+  ~                                       ~
+  ~                                       ~
+  |                                       |
+  +----+----+----+----+----+----+----+----+
+  | num| Lease2 0                         |
+  +----+                                  +
+  |                                       |
+  ~                                       ~
+  ~                                       ~
+  |                                       |
+  +----+----+----+----+----+----+----+----+
+  | Lease2($num-1)                        |
+  +                                       +
+  |                                       |
+  ~                                       ~
+  ~                                       ~
+  |                                       |
+  +----+----+----+----+----+----+----+----+
+  | signature                             |
+  ~                                       ~
+  ~                                       ~
+  |                                       |
+  +----+----+----+----+----+----+----+----+
+
+  ls2header :: `LeaseSet2Header`
+               length -> varies
+
+  options :: `Mapping`
+             length -> varies, 2 bytes minimum
+
+  numk :: `Integer`
+          length -> 1 byte
+          Number of key types, key lengths, and `PublicKey`s to follow
+          value: 1 <= numk <= max TBD
+
+  keytype :: The encryption type of the `PublicKey` to follow.
+             length -> 2 bytes
+
+  keylen :: The length of the `PublicKey` to follow.
+            Must match the specified length of the encryption type.
+            length -> 2 bytes
+
+  encryption_key :: `PublicKey`
+                    length -> 256 bytes
+
+  num :: `Integer`
+         length -> 1 byte
+         Number of `Lease2`s to follow
+         value: 0 <= num <= 16
+
+  leases :: [`Lease2`]
+            length -> $num*40 bytes
+
+  signature :: `Signature`
+               length -> 40 bytes or as specified in destination's key
+                         certificate, or by the sigtype of the transient public key,
+                         if present in the header
+
+{% endhighlight %}
+
+Notes
+`````
+* The public key of the destination was used for the old I2CP-to-I2CP
+  encryption which was disabled in version 0.6, it is currently unused.
+
+* The encryption keys are used for end-to-end ElGamal/AES+SessionTag encryption
+  [ELGAMAL-AES]_ (type 0) or other end-to-end encryption schemes.
+  See proposals 123, 144, and 145.
+  They are currently generated anew at every router startup
+  they are not persistent.
+
+* The signature is over the data above, PREPENDED with the single byte
+  containing the DatabaseStore type (3).
+
+* The signature may be verified using the signing public key of the
+  destination, or the transient signing public key, if an offline signature
+  is included in the leaseset2 header.
+
+* The key length is provided for each key, so that floodfills and clients
+  may parse the structure even if not all encryption types are known or supported.
+
+
+JavaDoc: http://{{ i2pconv('echelon.i2p/javadoc') }}/net/i2p/data/LeaseSet.html
+
+
+.. _struct-MetaLease:
+
+MetaLease
+---------
+
+Description
+```````````
+Defines the authorization for a particular tunnel to receive messages targeting
+a Destination_.
+Same as Lease2_ but with flags and cost instead of a tunnel id.
+Used by MetaLeaseSet_.
+Contained in a I2NP DatabaseStore message of type 7.
+Supported as of 0.9.38; see proposal 123 for more information.
+
+Contents
+````````
+SHA256 Hash_ of the RouterIdentity_ of the gateway router, then flags and cost,
+and finally a 4 byte end date.
+
+.. raw:: html
+
+  {% highlight lang='dataspec' -%}
++----+----+----+----+----+----+----+----+
+  | tunnel_gw                             |
+  +                                       +
+  |                                       |
+  +                                       +
+  |                                       |
+  +                                       +
+  |                                       |
+  +----+----+----+----+----+----+----+----+
+  |    flags     |cost|      end_date     |
+  +----+----+----+----+----+----+----+----+
+
+  tunnel_gw :: Hash of the `RouterIdentity` of the tunnel gateway,
+               or the hash of another `MetaLeaseSet`.
+               length -> 32 bytes
+
+  flags :: 3 bytes of flags
+           Bit order: 23 22 ... 3 2 1 0
+           Bits 3-0: Type of the entry.
+           If 0, unknown.
+           If 1, a `LeaseSet`.
+           If 3, a `LeaseSet2`.
+           If 5, a `MetaLeaseSet`.
+           Bits 23-4: set to 0 for compatibility with future uses
+           length -> 3 bytes
+
+  cost :: 1 byte, 0-255. Lower value is higher priority.
+          length -> 1 byte
+
+  end_date :: 4 byte date
+              length -> 4 bytes
+              Seconds since the epoch, rolls over in 2106.
+
+{% endhighlight %}
+
+Notes
+`````
+* Total size: 40 bytes
+
+JavaDoc: http://{{ i2pconv('echelon.i2p/javadoc') }}/net/i2p/data/MetaLease.html
+
+
+
+.. _struct-MetaLeaseSet:
+
+MetaLeaseSet
+------------
+
+Description
+```````````
+Contained in a I2NP DatabaseStore message of type 7.
+Supported as of 0.9.38; see proposal 123 for more information.
+
+Contains all of the currently authorized MetaLease_ for a particular Destination_,
+the PublicKey_ to which garlic messages can be encrypted, and then the
+SigningPublicKey_ that can be used to revoke this particular version of the
+structure. The LeaseSet is one of the two structures stored in the network
+database (the other being RouterInfo_), and is keyed under the SHA256 of the
+contained Destination_.
+
+
+Contents
+````````
+LeaseSet2Header_, followed by a options,
+Integer_ specifying how many Lease2_ structures are in the set, followed by the
+actual Lease2_ structures and finally a Signature_ of the previous bytes signed
+by the Destination_'s SigningPrivateKey_ or the transient key.
+
+.. raw:: html
+
+  {% highlight lang='dataspec' -%}
++----+----+----+----+----+----+----+----+
+  |         ls2_header                    |
+  ~                                       ~
+  ~                                       ~
+  |                                       |
+  +----+----+----+----+----+----+----+----+
+  |          options                      |
+  ~                                       ~
+  ~                                       ~
+  |                                       |
+  +----+----+----+----+----+----+----+----+
+  | num| MetaLease 0                      |
+  +----+                                  +
+  |                                       |
+  ~                                       ~
+  ~                                       ~
+  |                                       |
+  +----+----+----+----+----+----+----+----+
+  | MetaLease($num-1)                     |
+  +                                       +
+  |                                       |
+  ~                                       ~
+  ~                                       ~
+  |                                       |
+  +----+----+----+----+----+----+----+----+
+  |numr|                                  |
+  +----+                                  +
+  |          revocation_0                 |
+  ~                                       ~
+  ~                                       ~
+  |                                       |
+  +----+----+----+----+----+----+----+----+
+  |          revocation_n                 |
+  ~                                       ~
+  ~                                       ~
+  |                                       |
+  +----+----+----+----+----+----+----+----+
+  | signature                             |
+  ~                                       ~
+  ~                                       ~
+  |                                       |
+  +----+----+----+----+----+----+----+----+
+
+  ls2header :: `LeaseSet2Header`
+               length -> varies
+
+  options :: `Mapping`
+             length -> varies, 2 bytes minimum
+
+  num :: `Integer`
+          length -> 1 byte
+          Number of `MetaLease`s to follow
+          value: 1 <= num <= max TBD
+
+  leases :: `MetaLease`s
+            length -> $numr*40 bytes
+
+  numr :: `Integer`
+          length -> 1 byte
+          Number of `Hash`es to follow
+          value: 0 <= numr <= max TBD
+
+  revocations :: [`Hash`]
+                 length -> $numr*32 bytes
+
+  signature :: `Signature`
+               length -> 40 bytes or as specified in destination's key
+                         certificate, or by the sigtype of the transient public key,
+                         if present in the header
+
+{% endhighlight %}
+
+Notes
+`````
+* The public key of the destination was used for the old I2CP-to-I2CP
+  encryption which was disabled in version 0.6, it is currently unused.
+
+* The signature is over the data above, PREPENDED with the single byte
+  containing the DatabaseStore type (7).
+
+* The signature may be verified using the signing public key of the
+  destination, or the transient signing public key, if an offline signature
+  is included in the leaseset2 header.
+
+
+JavaDoc: http://{{ i2pconv('echelon.i2p/javadoc') }}/net/i2p/data/MetaLeaseSet.html
+
+
+
+.. _struct-EncryptedLeaseSet:
+
+EncryptedLeaseSet
+-----------------
+
+Description
+```````````
+Contained in a I2NP DatabaseStore message of type 5.
+Supported as of 0.9.38; see proposal 123 for more information.
+
+Contains all of the currently authorized MetaLease_ for a particular Destination_,
+the PublicKey_ to which garlic messages can be encrypted, and then the
+SigningPublicKey_ that can be used to revoke this particular version of the
+structure. The LeaseSet is one of the two structures stored in the network
+database (the other being RouterInfo_), and is keyed under the SHA256 of the
+contained Destination_.
+
+
+Contents
+````````
+LeaseSet2Header_, followed by a options,
+Integer_ specifying how many Lease2_ structures are in the set, followed by the
+actual Lease2_ structures and finally a Signature_ of the previous bytes signed
+by the Destination_'s SigningPrivateKey_ or the transient key.
+
+.. raw:: html
+
+  {% highlight lang='dataspec' -%}
++----+----+----+----+----+----+----+----+
+  | sigtype |                             |
+  +----+----+                             +
+  |        blinded_public_key             |
+  ~                                       ~
+  ~                                       ~
+  |                                       |
+  +----+----+----+----+----+----+----+----+
+  |     published     | expires |  flags  |
+  +----+----+----+----+----+----+----+----+
+  | offline_signature (optional)          |
+  +                                       +
+  |                                       |
+  ~                                       ~
+  ~                                       ~
+  |                                       |
+  +----+----+----+----+----+----+----+----+
+  |  len    |                             |
+  +----+----+                             +
+  |         encrypted_data                |
+  ~                                       ~
+  ~                                       ~
+  |                                       |
+  +----+----+----+----+----+----+----+----+
+  | signature                             |
+  ~                                       ~
+  ~                                       ~
+  |                                       |
+  +----+----+----+----+----+----+----+----+
+
+  sigtype :: A two byte signature type of the public key to follow
+             length -> 2 bytes
+
+  blinded_public_key :: `SigningPublicKey`
+                        length -> As inferred from the sigtype
+
+  published :: 4 byte date
+               length -> 4 bytes
+               Seconds since the epoch, rolls over in 2106.
+
+  expires :: 2 byte date
+             length -> 2 bytes
+             Offset from published timestamp in seconds, 18.2 hours max
+
+  flags :: 2 bytes
+    Bit order: 15 14 ... 3 2 1 0
+    Bit 0: If 0, no offline keys; if 1, offline keys
+    Bit 1: If 0, a standard published leaseset.
+           If 1, an unpublished leaseset. Should not be flooded, published, or
+           sent in response to a query. If this leaseset expires, do not query the
+           netdb for a new one.
+    Bits 15-2: set to 0 for compatibility with future uses
+
+  offline_signature :: `OfflineSignature`
+                       length -> varies
+                       Optional, only present if bit 0 is set in the flags.
+
+  len :: `Integer`
+          length -> 2 bytes
+          length of encrypted_data to follow
+          value: 1 <= num <= max TBD
+
+  encrypted_data :: Data encrypted
+                    length -> len bytes
+
+  signature :: `Signature`
+               length -> 40 bytes or as specified in destination's key
+                         certificate, or by the sigtype of the transient public key,
+                         if present in the header
+
+{% endhighlight %}
+
+Notes
+`````
+* The public key of the destination was used for the old I2CP-to-I2CP
+  encryption which was disabled in version 0.6, it is currently unused.
+
+* The signature is over the data above, PREPENDED with the single byte
+  containing the DatabaseStore type (5).
+
+* The signature may be verified using the signing public key of the
+  destination, or the transient signing public key, if an offline signature
+  is included in the leaseset2 header.
+
+* Blinding and encryption schemes are TBD; see proposal 123.
+
+* This structure does not use the LeaseSet2Header_.
+
+JavaDoc: http://{{ i2pconv('echelon.i2p/javadoc') }}/net/i2p/data/EncryptedLeaseSet.html
+
+
 
 .. _struct-RouterAddress:
 
@@ -985,7 +1627,7 @@ RouterIdentity_ followed by the Date_, when the entry was published
   +----+----+----+----+----+----+----+----+
 
   router_ident :: `RouterIdentity`
-                  length -> >= 387 bytes
+                  length -> >= 387+ bytes
 
   published :: `Date`
                length -> 8 bytes
