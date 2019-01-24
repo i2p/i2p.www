@@ -81,11 +81,11 @@ The default type is ElGamal.  As of release
 =======  ==============  =====  =====
  Type    Length (bytes)  Since  Usage
 =======  ==============  =====  =====
-ElGamal       256                All Router Identities and Destinations
-P256           64         TBD    Reserved, see proposal 145
-P384           96         TBD    Reserved, see proposal 145
-P521          132         TBD    Reserved, see proposal 145
-X25519         32         TBD    Reserved, see proposal 144
+ElGamal       256               All Router Identities and Destinations
+P256           64         TBD   Reserved, see proposal 145
+P384           96         TBD   Reserved, see proposal 145
+P521          132         TBD   Reserved, see proposal 145
+X25519         32         TBD   Reserved, see proposal 144
 ========  =============  =====  =====
 
 JavaDoc: http://{{ i2pconv('echelon.i2p/javadoc') }}/net/i2p/data/PublicKey.html
@@ -112,11 +112,11 @@ The default type is ElGamal.  As of release
 =======  ==============  =====  =====
  Type    Length (bytes)  Since  Usage
 =======  ==============  =====  =====
-ElGamal       256                All Router Identities and Destinations
-P256           32         TBD    Reserved, see proposal 145
-P384           48         TBD    Reserved, see proposal 145
-P521           66         TBD    Reserved, see proposal 145
-X25519         32         TBD    Reserved, see proposal 144
+ElGamal       256               All Router Identities and Destinations
+P256           32         TBD   Reserved, see proposal 145
+P384           48         TBD   Reserved, see proposal 145
+P521           66         TBD   Reserved, see proposal 145
+X25519         32         TBD   Reserved, see proposal 144
 ========  =============  =====  =====
 
 JavaDoc: http://{{ i2pconv('echelon.i2p/javadoc') }}/net/i2p/data/PrivateKey.html

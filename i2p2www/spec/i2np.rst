@@ -3,8 +3,8 @@ I2NP Specification
 ==================
 .. meta::
     :category: Protocols
-    :lastupdated: June 2018
-    :accuratefor: 0.9.34
+    :lastupdated: January 2019
+    :accuratefor: 0.9.38
 
 .. contents::
 
@@ -42,6 +42,10 @@ below.
 ==============  ================================================================
    Version      Required I2NP Features
 ==============  ================================================================
+   0.9.38       DSM type bits 3-0 now contain the type;
+                LeaseSet2, MetaLeaseSet, and EncryptedLeaseSet may be sent
+                in a DSM
+
    0.9.28       RSA sig types disallowed
 
    0.9.18       DSM type bits 7-1 ignored
@@ -626,8 +630,17 @@ with reply token:
        type identifier
        bit 0:
                0    `RouterInfo`
-               1    `LeaseSet`
-       bits 7-1:
+               1    `LeaseSet` or variants listed below
+       bits 3-1:
+              Through release 0.9.17, must be 0
+              As of release 0.9.18, ignored, reserved for future options, set to 0 for compatibility
+              As of release 0.9.38, the remainder of the type identifier:
+              0: `RouterInfo` or `LeaseSet` (types 0 or 1)
+              1: `LeaseSet2` (type 3)
+              2: `EncryptedLeaseSet` (type 5)
+              3: `MetaLeaseSet` (type 7)
+              4-7: Unsupported, invalid
+       bits 7-4:
               Through release 0.9.17, must be 0
               As of release 0.9.18, ignored, reserved for future options, set to 0 for compatibility
 
@@ -656,6 +669,9 @@ with reply token:
        If type == 0, data is a 2-byte `Integer` specifying the number of bytes that follow,
                      followed by a gzip-compressed `RouterInfo`.
        If type == 1, data is an uncompressed `LeaseSet`.
+       If type == 3, data is an uncompressed `LeaseSet2`.
+       If type == 5, data is an uncompressed `EncryptedLeaseSet`.
+       If type == 7, data is an uncompressed `MetaLeaseSet`.
 {% endhighlight %}
 
 Notes
@@ -665,6 +681,10 @@ Notes
 
 * The key is the "real" hash of the RouterIdentity or Destination, NOT the
   routing key.
+
+* Types 3, 5, and 7 are as of release 0.9.38. See proposal 123 for more information.
+  These types should only be sent to routers with release 0.9.38 or higher.
+
 
 .. _msg-DatabaseLookup:
 
@@ -765,6 +785,8 @@ Contents
                       with version 0.9.16 or higher.
                01  => LS lookup, return `LeaseSet` or
                       `DatabaseSearchReplyMessage`
+                      As of release 0.9.38, may also return a
+                      `LeaseSet2`, `MetaLeaseSet`, or `EncryptedLeaseSet`.
                10  => RI lookup, return `RouterInfo` or
                       `DatabaseSearchReplyMessage`
                11  => exploration lookup, return `DatabaseSearchReplyMessage`
@@ -822,6 +844,9 @@ Notes
   lookup strategies (for example, recursive lookups) are implemented.
 
 * The lookup key and exclude keys are the "real" hashes, NOT routing keys.
+
+* Types 3, 5, and 7 may be returned as of release 0.9.38. See proposal 123 for more information.
+
 
 .. _msg-DatabaseSearchReply:
 
