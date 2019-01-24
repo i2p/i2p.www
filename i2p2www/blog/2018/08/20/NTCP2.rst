@@ -281,7 +281,7 @@ frame can transfer multiple I2NP blocks.
 {% trans -%}
 The other important data block type is a random data block. It is recommended to 
 add a random data block to every NTCP2 frame. Only one random data block can be 
-added ant it must be the last block.
+added and it must be the last block.
 {%- endtrans %}
 
 {% trans -%}
