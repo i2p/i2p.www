@@ -949,7 +949,7 @@ Supported as of 0.9.38; see proposal 123 for more information.
 Contents
 ````````
 
-Contains the Destination_, two timestamps, and an optional OfflineSignature_.
+Contains an expiration, a sigtype and transient SigningPublicKey_, and a Signature_.
 
 .. raw:: html
 
@@ -982,12 +982,12 @@ Contains the Destination_, two timestamps, and an optional OfflineSignature_.
                length -> As inferred from the sigtype of the signing public key
                          in the `Destination` that preceded this offline signature.
                Signature of expires timestamp, transient sig type, and public key, by the destination public key,
-               This section can, and should, be generated offline.
 
 {% endhighlight %}
 
 Notes
 `````
+* This section can, and should, be generated offline.
 
 
 .. _struct-LeaseSet2Header:
@@ -1033,7 +1033,7 @@ Contains the Destination_, two timestamps, and an optional OfflineSignature_.
                length -> 4 bytes
                Seconds since the epoch, rolls over in 2106.
 
-  expires :: 2 byte date
+  expires :: 2 byte time
              length -> 2 bytes
              Offset from published timestamp in seconds, 18.2 hours max
 
@@ -1055,6 +1055,10 @@ Contains the Destination_, two timestamps, and an optional OfflineSignature_.
 Notes
 `````
 * Total size: 395 bytes minimum
+
+* Maximum actual expires time is TBD, will be about 11 minutes for
+  LeaseSet2_ and the full 18.2 hours for MetaLeaseSet_.
+
 
 
 .. _struct-LeaseSet2:
@@ -1441,7 +1445,7 @@ by the Destination_'s SigningPrivateKey_ or the transient key.
                length -> 4 bytes
                Seconds since the epoch, rolls over in 2106.
 
-  expires :: 2 byte date
+  expires :: 2 byte time
              length -> 2 bytes
              Offset from published timestamp in seconds, 18.2 hours max
 
@@ -1488,6 +1492,9 @@ Notes
 * Blinding and encryption schemes are TBD; see proposal 123.
 
 * This structure does not use the LeaseSet2Header_.
+
+* Maximum actual expires time is TBD, may be about 11 minutes, unless
+  we will support encrypted MetaLeaseSet_.
 
 JavaDoc: http://{{ i2pconv('echelon.i2p/javadoc') }}/net/i2p/data/EncryptedLeaseSet.html
 
