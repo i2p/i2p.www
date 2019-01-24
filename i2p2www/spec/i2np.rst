@@ -711,7 +711,7 @@ Contents
   |                                       |
   +----+----+----+----+----+----+----+----+
   | SHA256 hash of the routerInfo         |
-  + who is asking, or the gateway to      +
+  + who is asking or the gateway to       +
   | send the reply to                     |
   +                                       +
   |                                       |
@@ -720,7 +720,7 @@ Contents
   +----+----+----+----+----+----+----+----+
   |flag| reply_tunnelId    | size    |    |
   +----+----+----+----+----+----+----+    +
-  | SHA256 of $key1 to exclude            |
+  | SHA256 of key1 to exclude             |
   +                                       +
   |                                       |
   +                                       +
@@ -728,7 +728,7 @@ Contents
   +                                  +----+
   |                                  |    |
   +----+----+----+----+----+----+----+    +
-  | SHA256 of $key2 to exclude            |
+  | SHA256 of key2 to exclude             |
   +                                       +
   ~                                       ~
   +                                  +----+
@@ -1182,16 +1182,18 @@ TunnelBuild
   {% highlight lang='dataspec' %}
 +----+----+----+----+----+----+----+----+
   | Record 0 ...                          |
-
+  ~                                       ~
+  ~                                       ~
   |                                       |
   +----+----+----+----+----+----+----+----+
   | Record 1 ...                          |
-
-  ~ .....                                 ~
+  ~                                       ~
+  ~                                       ~
   |                                       |
   +----+----+----+----+----+----+----+----+
   | Record 7 ...                          |
-
+  ~                                       ~
+  ~                                       ~
   |                                       |
   +----+----+----+----+----+----+----+----+
 
