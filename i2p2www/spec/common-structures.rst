@@ -69,6 +69,7 @@ Description
 This structure is used in ElGamal encryption, representing only the exponent,
 not the primes, which are constant and defined in the cryptography
 specification [ELGAMAL]_.
+Other encryption schemes are in the process of being defined, see the table below.
 
 Contents
 ````````
@@ -77,15 +78,15 @@ Certificate of a Destination or RouterInfo, or the key type field in a LeaseSet2
 The default type is ElGamal.  As of release
 0.9.38, other types may be supported, depending on context.
 
-==========  ==============  ======  =====
-  Type      Length (bytes)  Since   Usage
-==========  ==============  ======  =====
-ElGamal          256                All Router Identities and Destinations
-P256              64         TBD    Reserved, see proposal 145
-P384              96         TBD    Reserved, see proposal 145
-P521             132         TBD    Reserved, see proposal 145
-X25519            32         TBD    Reserved, see proposal 144
-===========  =============  ======  =====
+=======  ==============  =====  =====
+ Type    Length (bytes)  Since  Usage
+=======  ==============  =====  =====
+ElGamal       256                All Router Identities and Destinations
+P256           64         TBD    Reserved, see proposal 145
+P384           96         TBD    Reserved, see proposal 145
+P521          132         TBD    Reserved, see proposal 145
+X25519         32         TBD    Reserved, see proposal 144
+========  =============  =====  =====
 
 JavaDoc: http://{{ i2pconv('echelon.i2p/javadoc') }}/net/i2p/data/PublicKey.html
 
@@ -99,6 +100,7 @@ Description
 This structure is used in ElGamal decryption, representing only the exponent,
 not the primes which are constant and defined in the cryptography specification
 [ELGAMAL]_.
+Other encryption schemes are in the process of being defined, see the table below.
 
 Contents
 ````````
@@ -107,15 +109,15 @@ Certificate of a Destination or RouterInfo, or the key type field in a LeaseSet2
 The default type is ElGamal.  As of release
 0.9.38, other types may be supported, depending on context.
 
-==========  ==============  ======  =====
-  Type      Length (bytes)  Since   Usage
-==========  ==============  ======  =====
-ElGamal          256                All Router Identities and Destinations
-P256              32         TBD    Reserved, see proposal 145
-P384              48         TBD    Reserved, see proposal 145
-P521              66         TBD    Reserved, see proposal 145
-X25519            32         TBD    Reserved, see proposal 144
-===========  =============  ======  =====
+=======  ==============  =====  =====
+ Type    Length (bytes)  Since  Usage
+=======  ==============  =====  =====
+ElGamal       256                All Router Identities and Destinations
+P256           32         TBD    Reserved, see proposal 145
+P384           48         TBD    Reserved, see proposal 145
+P521           66         TBD    Reserved, see proposal 145
+X25519         32         TBD    Reserved, see proposal 144
+========  =============  =====  =====
 
 JavaDoc: http://{{ i2pconv('echelon.i2p/javadoc') }}/net/i2p/data/PrivateKey.html
 
