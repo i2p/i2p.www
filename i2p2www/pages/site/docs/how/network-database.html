@@ -211,6 +211,14 @@ Each of these leases specify the following information:
 <p>{% trans -%}
 The LeaseSet itself is stored in the netDb under
 the key derived from the SHA256 of the destination.
+{%- endtrans %}
+{% trans -%}
+One exception is for Encrypted LeaseSets (LS2), as of release 0.9.38.
+The SHA256 of the type byte (3) followed by the blinded public key is used for the DHT key,
+and then rotated as usual.
+{%- endtrans %}
+{% trans -%}
+See the Kademlia Closeness Metric section below.
 {%- endtrans %}</p>
 
 <p>{% trans -%}
@@ -285,7 +293,7 @@ See proposal 123 for details.
 
 
 
-<h3 id="encrypted">{% trans %}Encrypted LeaseSets{% endtrans %}</h3>
+<h3 id="encrypted">{% trans %}Encrypted LeaseSets{% endtrans %} (LS1)</h3>
 <p>{% trans -%}
 This section describes the old, insecure method of encrypting
 LeaseSets using a fixed symmetric key.
@@ -301,7 +309,7 @@ research whether the user interface and implementation of encrypted LeaseSets co
 {%- endtrans %}</p>
 
 
-<h3 id="encrypted">{% trans %}Encrypted LeaseSets{% endtrans %}(LS2)</h3>
+<h3 id="encrypted">{% trans %}Encrypted LeaseSets{% endtrans %} (LS2)</h3>
 <p>{% trans -%}
 As of release 0.9.38, floodfills support a new, EncryptedLeaseSet structure.
 The Destination is hidden, and only a blinded public key and an expiration
@@ -417,8 +425,14 @@ Since they are generally high-bandwidth, they are more likely to participate in 
 <h2 id="kad">{% trans %}Kademlia Closeness Metric{% endtrans %}</h2>
 <p>{% trans -%}
 The netDb uses a simple Kademlia-style XOR metric to determine closeness.
-The SHA256 hash of the key being looked up or stored is XOR-ed with
-the hash of the router in question to determine closeness.
+To create a Kademlia key, the SHA256 hash of the RouterIdentity or Destination is computed.
+{%- endtrans %}
+{% trans -%}
+One exception is for Encrypted LeaseSets (LS2), as of release 0.9.38.
+The SHA256 of the type byte (3) followed by the blinded public key is used for the DHT key,
+and then rotated as usual.
+{%- endtrans %}</p>
+<p>{% trans -%}
 A modification to this algorithm is done to increase the costs of <a href="#sybil-partial">Sybil attacks</a>.
 Instead of the SHA256 hash of the key being looked up of stored, the SHA256 hash is taken
 of the 32-byte binary search key appended with the UTC date represented as an 8-byte ASCII string yyyyMMdd, i.e. SHA256(key + yyyyMMdd).
@@ -570,9 +584,9 @@ Responses to RouterInfo lookups will be encrypted if we enable the lookup encryp
 {%- endtrans %}</p>
 
 <p>{% trans -%}
-Due to the relatively small size of the network and the flooding redundancy of 8x,
-lookups are usually O(1) rather than O(log n) --
-a router is highly likely to know a floodfill router close enough to the key to get the answer on the first try.
+Due to the relatively small size of the network and flooding redundancy,
+lookups are usually O(1) rather than O(log n).
+A router is highly likely to know a floodfill router close enough to the key to get the answer on the first try.
 In releases prior to 0.8.9, routers used a lookup redundancy of two
 (that is, two lookups were performed in parallel to different peers), and
 neither <i>recursive</i> nor <i>iterative</i> routing for lookups was implemented.
@@ -640,13 +654,13 @@ to hide the reply from the inbound gateway (IBGW) of the reply tunnel.
 <p>{% trans i2np=site_url('docs/protocol/i2np') -%}
 <i>Exploration</i> is a special form of netdb lookup, where a router attempts to learn about
 new routers.
-It does this by sending a floodfill router a <a href="{{ i2np }}">I2NP</a> DatabaseLookupMessage, looking for a random key.
+It does this by sending a floodfill router a <a href="{{ i2np }}">I2NP</a> DatabaseLookup Message, looking for a random key.
 As this lookup will fail, the floodfill would normally respond with a
 <a href="{{ i2np }}">I2NP</a> DatabaseSearchReplyMessage containing hashes of floodfill routers close to the key.
 This would not be helpful, as the requesting router probably already knows those floodfills,
-and it would be impractical to add ALL floodfill routers to the "don't include" field of the lookup.
-For an exploration query, the requesting router adds a router hash of all zeros to the
-"don't include" field of the DatabaseLookupMessage.
+and it would be impractical to add all floodfill routers to the "don't include" field of the DatabaseLookup Message.
+For an exploration query, the requesting router sets a special flag in
+the DatabaseLookup Message.
 The floodfill will then respond only with non-floodfill routers close to the requested key.
 {%- endtrans %}</p>
 
@@ -673,6 +687,18 @@ As LeaseSets have (at most) a 10 minute lifetime, should a particular instance g
 the outage will be 10 minutes at most, and generally much less than that.
 The multihoming function has been verified and is in use by several services on the network.
 {%- endtrans %}</p>
+
+<p>{% trans -%}
+As of release 0.9.38, floodfills support a new Meta LeaseSet structure.
+This structure provides a tree-like structure in the DHT, to refer to other LeaseSets.
+Using Meta LeaseSets, a site may implement large multihomed services, where several
+different Destinations are used to provide a common service.
+The entries in a Meta LeaseSet are Destinations or other Meta LeaseSets,
+and may have long expirations, up to 18.2 hours.
+Using this facility, it should be possible to run hundreds or thousands of Destinations hosting a common service.
+See proposal 123 for details.
+{%- endtrans %}</p>
+
 
 <h2 id="threat">{% trans %}Threat Analysis{% endtrans %}</h2>
 <p>{% trans threatmodel=site_url('docs/how/threat-model') -%}
