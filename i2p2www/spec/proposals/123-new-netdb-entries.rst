@@ -18,9 +18,13 @@ Status
 Portions of this proposal are complete, and implemented in 0.9.38.
 The Common Structures, I2CP, I2NP, and other specifications
 are now updated to reflect the changes that are supported now.
+
 The completed portions are still subject to minor revision.
 Other portions of this proposal are still in development
 and subject to substantial revision.
+
+Service Lookup (types 9 and 11) are low-priority and
+unscheduled, and may be split off to a separate proposal.
 
 
 Overview
@@ -1361,8 +1365,6 @@ Notes
 Common Structures Spec Changes Required
 =======================================
 
-TODO
-
 
 Key Certificates
 ----------------
@@ -1371,16 +1373,21 @@ Out of scope for this proposal.
 Add to ECIES proposal.
 
 
-Lease2
-------
+New Intermediate Structures
+---------------------------
 
-Add new structure with 4-byte expiration.
+Add new structures for Lease2, MetaLease, LeaseSet2Header, and OfflineSignature.
+Effective as of release 0.9.38.
 
 
 New NetDB Types
 ---------------
 
-Incorporate from above.
+Add structures for each new leaseset type, incorporated from above.
+For LeaseSet2, EncryptedLeaseSet, and MetaLeaseSet,
+effective as of release 0.9.38.
+For Service Record and Service List,
+preliminary and unscheduled.
 
 
 
@@ -1388,14 +1395,13 @@ Encryption Spec Changes Required
 ================================
 
 Out of scope for this proposal.
-Add to ECIES proposal.
+See proposals 144 and 145.
 
 
 
 I2NP Changes Required
 =====================
 
-TODO
 Add note: LS2 can only be published to floodfills with a minimum version.
 
 

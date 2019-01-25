@@ -526,18 +526,19 @@ Since release 0.9.38. See proposal 123 for more information.
 Contents
 ````````
 1. `Session ID`_
-2. Type: One byte type of lease set to follow
-         Type 1 is a [LeaseSet]_
-         Type 3 is a [LeaseSet2]_
-         Type 5 is a [EncryptedLeaseSet]_
-         Type 7 is a [MetaLeaseSet]_
+2. One byte type of lease set to follow.
+   Type 1 is a [LeaseSet]_
+   Type 3 is a [LeaseSet2]_
+   Type 5 is a [EncryptedLeaseSet]_
+   Type 7 is a [MetaLeaseSet]_
 3. [LeaseSet]_ or [LeaseSet2]_ or [EncryptedLeaseSet]_ or [MetaLeaseSet]_
-4. [SigningPrivateKey]_: type and length as inferred from the lease set signature
-                         (by dest signing key or transient key)
-                         Not present for MetaLeaseSet
-5. [PrivateKey]_ list: One for each public key in the lease set, in the same order
-                       Types and lengths as inferred from the public keys in the lease set
-                       Not present for MetaLeaseSet
+4. [SigningPrivateKey]_ type and length as inferred from the lease set signature
+   (by Destination or transient signing key).
+   Not present for MetaLeaseSet.
+5. [PrivateKey]_ list.
+   One for each public key in the lease set, in the same order.
+   Types and lengths as inferred from the public keys in the lease set.
+   Not present for MetaLeaseSet.
 
 Notes
 `````
