@@ -123,7 +123,7 @@ NetDB Data Types
 
 The type numbers are used in the I2NP Database Lookup/Store Messages.
 
-The end-to-end column means is it sent to a Destination in a Garlic Message.
+The end-to-end column refers to whether queries/responses are sent to a Destination in a Garlic Message.
 
 
 Existing types:
@@ -160,7 +160,7 @@ Notes
   type field are ignored by old routers.
   We would rather have the parse fail as an LS than as a compressed RI.
 
-- Should be type be explicit or implicit or neither in the data covered by the signature?
+- Should type be explicit or implicit or neither in the data covered by the signature?
 
 
 
