@@ -298,15 +298,15 @@ Changes from existing LeaseSet:
 - Add encryption type
 - Remove revocation key
 
-Lookup with:
+Lookup with
     Standard LS flag (1)
-Store with:
+Store with
     Standard LS2 type (3)
-Store at:
+Store at
     Hash of destination, with daily rotation, as for LS 1
-Typical expiration:
+Typical expiration
     10 minutes, as in a regular LS.
-Published by:
+Published by
     Destination
 
 Format
@@ -439,15 +439,15 @@ Changes from existing encrypted LeaseSet:
 - Securely encrypt, not with AES only.
 - Encrypt to each recipient
 
-Lookup with:
+Lookup with
     Standard LS flag (1)
-Store with:
+Store with
     Encrypted LS2 type (5)
-Store at:
+Store at
     Hash of blinded sig type and blinded public key, with daily rotation
-Typical expiration:
+Typical expiration
     10 minutes, as in a regular LS, or hours, as in a meta LS.
-Published by:
+Published by
     Destination
 
 
@@ -1152,15 +1152,15 @@ to use those leasesets, and when to keep traversing the tree.
 
 
 
-Lookup with:
+Lookup with
     Standard LS flag (1)
-Store with:
+Store with
     Meta LS2 type (7)
-Store at:
+Store at
     Hash of destination, with daily rotation, as for LS 1
-Typical expiration:
+Typical expiration
     Hours. Max 18.2 hours (65535 seconds)
-Published by:
+Published by
     "master" Destination or coordinator, or intermediate coordinators
 
 Format
@@ -1217,15 +1217,15 @@ expiration to zero.
 
 This is not a LS2 but it uses the standard LS2 header and signature format.
 
-Lookup with:
+Lookup with
     n/a, see Service List
-Store with:
+Store with
     Service Record type (9)
-Store at:
+Store at
     Hash of service name, with daily rotation
-Typical expiration:
+Typical expiration
     Hours. Max 18.2 hours (65535 seconds)
-Published by:
+Published by
     Destination
 
 Format
@@ -1281,15 +1281,15 @@ then floodfill operators may object; if only the hash is included,
 there's no verification, and a service record could "get in" ahead of
 any other netdb type and get stored in the floodfill.
 
-Lookup with:
+Lookup with
     Service List lookup type (11)
-Store with:
+Store with
     Service List type (11)
-Store at:
+Store at
     Hash of service name, with daily rotation
-Typical expiration:
+Typical expiration
     Hours, not specified in the list itself, up to local policy
-Published by:
+Published by
     Nobody, never sent to floodfill, never flooded.
 
 Format
