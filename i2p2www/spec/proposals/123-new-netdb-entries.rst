@@ -5,11 +5,22 @@ New netDB Entries
     :author: zzz, str4d, orignal
     :created: 2016-01-16
     :thread: http://zzz.i2p/topics/2051
-    :lastupdated: 2019-01-14
+    :lastupdated: 2019-01-25
     :status: Open
     :supercedes: 110, 120, 121, 122
 
 .. contents::
+
+
+Status
+======
+
+Portions of this proposal are complete, and implemented in 0.9.38.
+The Common Structures, I2CP, I2NP, and other specifications
+are now updated to reflect the changes that are supported now.
+The completed portions are still subject to minor revision.
+Other portions of this proposal are still in development
+and subject to substantial revision.
 
 
 Overview
@@ -1443,6 +1454,11 @@ New options interpreted router-side, sent in SessionConfig Mapping:
                                               Interpreted client-side, but also passed to the router in the
                                               SessionConfig, to declare intent and check support.
 
+  i2cp.leaseSetEncType=nnn[,nnn]  The encryption types to be used.
+                                  Interpreted client-side, but also passed to the router in the
+                                  SessionConfig, to declare intent and check support.
+                                  See proposals 144 and 145.
+
   i2cp.leaseSetOfflineExpiration=nnn          The expiration of the offline signature, 4 bytes,
                                               seconds since the epoch.
 
@@ -1455,6 +1471,7 @@ New options interpreted router-side, sent in SessionConfig Mapping:
                                               Length as inferred from the destination signing public key type
 
 
+
 New options interpreted client-side:
 
 ::
@@ -1464,9 +1481,10 @@ New options interpreted client-side:
                             Interpreted client-side, but also passed to the router in the
                             SessionConfig, to declare intent and check support.
 
-  i2cp.leaseSetEncType=nnn  The encryption type to be used.
-                            See proposal 144.
-
+  i2cp.leaseSetEncType=nnn[,nnn]  The encryption types to be used.
+                                  Interpreted client-side, but also passed to the router in the
+                                  SessionConfig, to declare intent and check support.
+                                  See proposals 144 and 145.
 
 
 Session Config
@@ -1593,6 +1611,11 @@ Changes
 
   Add request type 3: Host name lookup and request Lease Set lookup.
 
+Notes
+`````
+
+- Minimum router and client version is 0.9.39 for request type 3.
+
 
 
 Host Reply Message
@@ -1623,7 +1646,7 @@ Changes
 
 ::
 
-  If the client version is 0.9.38 or higher, and the result code is 0,
+  If the client version is 0.9.39 or higher, and the result code is 0,
   the following extended results are included after the Destination.
   These are included no matter what the request type.
 
@@ -1653,6 +1676,11 @@ Changes
         All zeros means don't know.
       - Cost (priority) (1 byte)
       - Expires (4 bytes) (4 bytes, seconds since epoch, rolls over in 2106)
+
+Notes
+`````
+
+- Minimum router and client version is 0.9.39 for the extended results.
 
 
 
@@ -1695,6 +1723,19 @@ Changes
   - Transient Signing Public key (length as specified by transient sig type)
   - Signature of above three fields by offline key (length as specified by destination sig type)
   - Transient Signing Private key (length as specified by transient sig type)
+
+
+Private Key File CLI Changes Required
+-------------------------------------
+
+Add support for the following options:
+
+::
+
+      -d days              (specify expiration in days of offline sig, default 365)
+      -o offlinedestfile   (generate the online key file using the offline key file specified)
+      -r sigtype           (specify sig type of transient key, default Ed25519)
+
 
 
 

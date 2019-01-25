@@ -3,8 +3,8 @@ I2CP Specification
 ==================
 .. meta::
     :category: Protocols
-    :lastupdated: June 2016
-    :accuratefor: 0.9.26
+    :lastupdated: January 2019
+    :accuratefor: 0.9.38
 
 .. contents::
 
@@ -235,6 +235,8 @@ below.
 ==============  ======================
    Version      Required I2CP Features
 ==============  ======================
+   0.9.38       CreateLeaseSet2 message supported
+
    0.9.21       Multiple sessions on a single I2CP connection supported
 
    0.9.20       Additional SetDate messages may be sent to the client at any
@@ -418,6 +420,7 @@ Message Types
 ===============================  =========  ====  =====
 BandwidthLimitsMessage_           R -> C     23   0.7.2
 CreateLeaseSetMessage_            C -> R      4
+CreateLeaseSet2Message_           C -> R     40   0.9.38
 CreateSessionMessage_             C -> R      1
 DestLookupMessage_                C -> R     34   0.7
 DestReplyMessage_                 R -> C     35   0.7
@@ -498,15 +501,63 @@ If the signing key type is not DSA, this field contains 20 bytes of random data.
 The length of this field is always 20 bytes,
 it does not ever equal the length of a non-DSA signing private key.
 
-The PrivateKey matches the [PublicKey]_ from the LeaseSet. The signing key is necessary to
-allow the router to revoke the LeaseSet if the client goes offline, and the
-encryption key is necessary for decrypting garlic routed messages. The LeaseSet
-granted may include Lease structures for tunnels pointing at another router if
-the client is actively connected to multiple routers with Leases granted to
-each.
+The PrivateKey matches the [PublicKey]_ from the LeaseSet.
+The PrivateKey is necessary for decrypting garlic routed messages.
 
 Revocation is unimplemented.
 Connection to multiple routers is unimplemented in any client library.
+
+
+
+.. _msg-CreateLeaseSet2:
+
+CreateLeaseSet2Message
+----------------------
+
+Description
+```````````
+This message is sent in response to a RequestLeaseSetMessage_ or
+RequestVariableLeaseSetMessage_ and contains all of the [Lease]_ structures that
+should be published to the I2NP Network Database.
+
+Sent from Client to Router.
+Since release 0.9.38. See proposal 123 for more information.
+
+Contents
+````````
+1. `Session ID`_
+2. Type: One byte type of lease set to follow
+         Type 1 is a [LeaseSet]_
+         Type 3 is a [LeaseSet2]_
+         Type 5 is a [EncryptedLeaseSet]_
+         Type 7 is a [MetaLeaseSet]_
+3. [LeaseSet]_ or [LeaseSet2]_ or [EncryptedLeaseSet]_ or [MetaLeaseSet]_
+4. [SigningPrivateKey]_: type and length as inferred from the lease set signature
+                         (by dest signing key or transient key)
+                         Not present for MetaLeaseSet
+5. [PrivateKey]_ list: One for each public key in the lease set, in the same order
+                       Types and lengths as inferred from the public keys in the lease set
+                       Not present for MetaLeaseSet
+
+Notes
+`````
+The SigningPrivateKey matches the [SigningPublicKey]_ from within the LeaseSet.
+This is for LeaseSet revocation,
+which is unimplemented and is unlikely to ever be implemented.
+It may be acceptable to put random data or zeros here, but the length must be correct.
+This field may be repurposed for EncryptedLeaseSet.
+
+The PrivateKeys match each of the [PublicKey]_ from the LeaseSet.
+The PrivateKeys are necessary for decrypting garlic routed messages.
+
+The contents and format for EncryptedLeaseSet are preliminary and subject to change.
+See proposal 123 for more information.
+
+The contents and format for MetaLeaseSet are preliminary and subject to change.
+There is no protocol specified for administration of multiple routers.
+See proposal 123 for more information.
+
+Revocation is unimplemented.
 
 
 .. _msg-CreateSession:
@@ -1339,6 +1390,9 @@ References
 .. [Destination]
     {{ ctags_url('Destination') }}
 
+.. [EncryptedLeaseSet]
+    {{ ctags_url('EncryptedLeaseSet') }}
+
 .. [Hash]
     {{ ctags_url('Hash') }}
 
@@ -1364,8 +1418,14 @@ References
 .. [LeaseSet]
     {{ ctags_url('LeaseSet') }}
 
+.. [LeaseSet2]
+    {{ ctags_url('LeaseSet2') }}
+
 .. [Mapping]
     {{ ctags_url('Mapping') }}
+
+.. [MetaLeaseSet]
+    {{ ctags_url('MetaLeaseSet') }}
 
 .. [MSM-JAVADOCS]
     http://{{ i2pconv('echelon.i2p/javadoc') }}/net/i2p/data/i2cp/MessageStatusMessage.html
