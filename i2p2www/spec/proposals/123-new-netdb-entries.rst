@@ -5,7 +5,7 @@ New netDB Entries
     :author: zzz, str4d, orignal
     :created: 2016-01-16
     :thread: http://zzz.i2p/topics/2051
-    :lastupdated: 2019-01-25
+    :lastupdated: 2019-01-27
     :status: Open
     :supercedes: 110, 120, 121, 122
 
@@ -412,6 +412,11 @@ Notes
 
 - If we ever implement revocation, we can do it with an expires field of zero,
   or zero leases, or both. No need for a separate revocation key.
+
+- Encryption keys are in order of server preference, most-preferred first.
+  Default client behavior is to select the first key with
+  a supported encryption type. Clients may use other selection algorithms
+  based on encryption support, relative performance, and other factors.
 
 
 Encrypted LS2
