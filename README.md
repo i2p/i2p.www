@@ -50,7 +50,7 @@ Configuration files for the various scripts are in `etc/`. Environment variables
 in `etc/translation.vars` can be overridden by creating the file
 `etc/translation.vars.custom` and re-defining the environment variables there.
 
-## Updating translations
+## Pulling updated translations from Transifex:
 
 1. Pull new and updated translations from Transifex:
 
@@ -59,6 +59,7 @@ in `etc/translation.vars` can be overridden by creating the file
     ```
 
 2. Correctly format the translations:
+   Do NOT forget this step!
 
     ```
     $ ./update-existing-po.sh
@@ -71,30 +72,37 @@ in `etc/translation.vars` can be overridden by creating the file
     ```
 
 4. Check in any new translations:
+   First, look to see which translations are supported in i2pwww/__init__.py.
+   For any new translations that are NOT in __init__.py,
+   either delete the po directory i2p2www/translations/xx (if it's not translated enough to add it to the website),
+   or add the language to the table in __init__.py (if it's translated enough to add it to the website).
 
     ```
     $ mtn add -R i2p2www/translations/ && mtn ci i2p2www/translations/ -m "New translations"
     ```
 
-5. Update the POT files with any changes to the website text:
+## Pushing updated translations to Transifex:
+
+1. Update the POT files with any changes to the website text:
 
     ```
     $ ./extract-messages.sh
     ```
 
-6. Update the translations with any changes to the website text:
+2. Update the translations with any changes to the website text:
+   Do NOT forget this step!
 
     ```
     $ ./update-existing-po.sh
     ```
 
-7. Check in any changes to the website text:
+3. Check in any changes to the website text:
 
     ```
     $ mtn ci pots/ i2p2www/translations/ -m "Updated translation strings"
     ```
 
-8. Push website text changes to Transifex:
+4. Push website text changes to Transifex:
 
     ```
     $ tx push -s
