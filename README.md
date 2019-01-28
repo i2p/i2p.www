@@ -89,20 +89,13 @@ in `etc/translation.vars` can be overridden by creating the file
     $ ./extract-messages.sh
     ```
 
-2. Update the translations with any changes to the website text:
-   Do NOT forget this step!
+2. Check in any changes to the pots files:
 
     ```
-    $ ./update-existing-po.sh
+    $ mtn ci pots/ -m "Updated translation strings"
     ```
 
-3. Check in any changes to the website text:
-
-    ```
-    $ mtn ci pots/ i2p2www/translations/ -m "Updated translation strings"
-    ```
-
-4. Push website text changes to Transifex:
+3. Push pots file changes to Transifex:
 
     ```
     $ tx push -s
