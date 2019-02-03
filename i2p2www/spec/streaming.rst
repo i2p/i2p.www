@@ -3,8 +3,8 @@ Streaming Library Specification
 ===============================
 .. meta::
     :category: Protocols
-    :lastupdated: June 2015
-    :accuratefor: 0.9.20
+    :lastupdated: February 2019
+    :accuratefor: 0.9.39
 
 .. contents::
 
@@ -13,6 +13,44 @@ Overview
 ========
 
 See [STREAMING]_ for an overview of the Streaming Library.
+
+
+.. _versions:
+
+Protocol Versions
+=================
+
+The streaming protocol does not include a version field.
+The versions listed below are for Java I2P.
+Implementations and actual crypto support may vary.
+There is no way to determine if the far-end supports any particular version or feature.
+The table below is for general guidance as to the release dates for various features.
+
+The features listed below are for the protocol itself.
+Various options for configuration are documented in [STREAMING]_ along with the
+Java I2P version in which they were implemented.
+
+
+==============  ================================================================
+Router Version  Streaming Features
+==============  ================================================================
+   0.9.39       OFFLINE_SIGNATURE option
+
+   0.9.36       I2CP protocol number enforced
+
+   0.9.20       FROM_INCLUDED no longer required in RESET
+
+   0.9.18       PINGs and PONGs may include a payload
+
+   0.9.15       EdDSA Ed25519 sig type
+
+   0.9.12       ECDSA P-256, P-384, and P-521 sig types
+
+   0.9.11       Variable-length signatures
+
+   0.7.1        Protocol numbers defined in I2CP
+
+==============  ================================================================
 
 
 Protocol Specification
@@ -93,6 +131,8 @@ The format of a single packet in the streaming protocol is:
   payload :: remaining packet size
 {% endhighlight %}
 
+
+
 Flags and Option Data Fields
 ----------------------------
 
@@ -116,7 +156,7 @@ Bit order: 15....0 (15 is MSB)
   2    RESET                          --             --         Abnormal close. SIGNATURE_INCLUDED must also be set. Prior to
                                                                 release 0.9.20, due to a bug, FROM_INCLUDED must also be set.
 
-  3    SIGNATURE_INCLUDED              4       variable length  Currently sent only with SYNCHRONIZE, CLOSE, and RESET, where
+  3    SIGNATURE_INCLUDED              5       variable length  Currently sent only with SYNCHRONIZE, CLOSE, and RESET, where
                                                [Signature]_     it is required, and with ECHO, where it is required for a
                                                                 ping. The signature uses the Destination's [SigningPrivateKey]_
                                                                 to sign the entire header and payload with the space in the
@@ -151,15 +191,35 @@ Bit order: 15....0 (15 is MSB)
                                                                 does not save any space, the ackThrough field is before the
                                                                 flags and is always present.
 
-11-15  unused                                                   Set to zero for compatibility with future uses.
+ 11    OFFLINE_SIGNATURE               4       variable length  Contains the offline signature section from LS2.
+                                               [OfflineSig]_    See proposal 123 and the common structures specification.
+                                                                FROM_INCLUDED must also be set.
+                                                                Contains an [OfflineSig]_:
+                                                                1) Expires timestamp (4 bytes, seconds since epoch, rolls over in 2106)
+                                                                2) Transient sig type (2 bytes)
+                                                                3) Transient [SigningPublicKey]_ (length as implied by sig type)
+                                                                4) [Signature]_ of expires timestamp, transient sig type, and public key,
+                                                                by the destination public key. Length of sig as implied by
+                                                                by the destination public key sig type.
+
+12-15  unused                                                   Set to zero for compatibility with future uses.
 =====  ========================  ============  ===============  ===============================================================
+
+
 
 Variable Length Signature Notes
 ```````````````````````````````
 Prior to release 0.9.11, the signature in the option field was always 40 bytes.
+
 As of release 0.9.11, the signature is variable length.  The Signature type and
 length are inferred from the type of key used in the FROM_INCLUDED option and
 the [Signature]_ documentation.
+
+As of release 0.9.39, the OFFLINE_SIGNATURE option is supported.
+If this option is present, the transient [SigningPublicKey]_
+is used to verify any signed packets, and the
+signature length and type are inferred from the transient [SigningPublicKey]_
+in the option.
 
 * When a packet contains both FROM_INCLUDED and SIGNATURE_INCLUDED (as in
   SYNCHRONIZE), the inference may be made directly.
@@ -184,11 +244,17 @@ References
 .. [Integer]
     {{ ctags_url('Integer') }}
 
+.. [OfflineSig]
+    {{ ctags_url('OfflineSignature') }}
+
 .. [Signature]
     {{ ctags_url('Signature') }}
 
 .. [SigningPrivateKey]
     {{ ctags_url('SigningPrivateKey') }}
+
+.. [SigningPublicKey]
+    {{ ctags_url('SigningPublicKey') }}
 
 .. [STREAMING]
     {{ site_url('docs/api/streaming', True) }}

@@ -5,7 +5,7 @@ New netDB Entries
     :author: zzz, str4d, orignal
     :created: 2016-01-16
     :thread: http://zzz.i2p/topics/2051
-    :lastupdated: 2019-01-27
+    :lastupdated: 2019-02-03
     :status: Open
     :supercedes: 110, 120, 121, 122
 
@@ -525,7 +525,7 @@ SIG
 
 DH
     X25519 public key agreement system. Private keys of 32 bytes, public keys of 32
-    bytes, produces outputs of 32 bytes. 32 = 32. It has the following
+    bytes, produces outputs of 32 bytes. It has the following
     functions:
 
     GENERATE_PRIVATE()
@@ -644,8 +644,7 @@ Flags
 
     Bit 0: 0 for everybody, 1 for per-client, auth section to follow
 
-    Bits 3-1: Authentication scheme, only if bit 1 is set to 1 for per-client,
-              otherwise 0
+    Bits 3-1: Authentication scheme, only if bit 1 is set to 1 for per-client, otherwise 0
               0: DH client authentication (or no per-client authentication)
               1: PSK client authentication
 
@@ -716,22 +715,19 @@ Data
 Blinding Key Derivation
 ```````````````````````
 
-We propose the following scheme for key blinding, based on Ed25519.
+We use the following scheme for key blinding, based on Ed25519
+and ZCash RedDSA [ZCASH]_.
 
-(This is an ECC group, so remember that scalar multiplication is the
-trapdoor function, and it's defined in terms of iterated point
-addition. See the Ed25519 paper [ED25519-REFS]_ for a fairly
-clear writeup.)
+We do not use Tor's rend-spec-v3.txt appendix A.2 [TOR-REND-SPEC-V3]_,
+which has similar design goals, because its blinded public keys
+may be off the prime-order subgroup, with unknown security implications.
 
-Copied from Tor rend-spec-v3.txt appendix A.2
-which has similar design goals [TOR-REND-SPEC-V3]_.
-
-Changes for I2P TODO
+The RedDSA signatures are over the Ed25519 curve, using SHA-512 for the hash.
 
 
 ::
 
-  Let B be the ed25519 basepoint as found in section 5 of [ED25519-B-REF]:
+  Let B be the ed25519 base point as in [ED25519-REFS]:
       B = (15112221349535400772501151409588531511454012693041857206046113283949847762202,
            46316835694926478169428394003475163141307993866256225615783033603165251855960)
 
@@ -1395,6 +1391,12 @@ For Service Record and Service List,
 preliminary and unscheduled.
 
 
+New Signature Type
+------------------
+
+Add RedDSA_SHA256_Ed25519 Type 11.
+
+
 
 Encryption Spec Changes Required
 ================================
@@ -1551,14 +1553,7 @@ Justification
   For for common parsing code, it's easier to know it from the message itself.
 
 - The signing private key, previously defined for revocation and unused,
-  was before the leaseset so the type and length was unknown.
-  Clients always set it to the DSA length.
-  For proposal 144, the key may be required, and must match the type
-  of the destination signing key (or transient signing key if offline sigs are used).
-  For the router to know the type and length of the private key,
-  it must be after the lease set, unless the parser knows the type before hand
-  in the session config.
-  For for common parsing code, it's easier to know it from the message itself.
+  is not present in LS2.
 
 Message Type
 ````````````
@@ -1578,9 +1573,6 @@ Format
              Type 5 is a encrypted LS2
              Type 7 is a meta LS2
   LeaseSet: type specified above
-  Signing Private Key: type as inferred from the lease set signature
-                       (by dest signing key or transient key)
-                       Not present for Meta LS2
   Encryption Private Keys: One for each public key in the lease set, in the same order
                            Types as inferred from the public keys in the lease set
                            Not present for Meta LS2
@@ -1589,8 +1581,8 @@ Format
 Notes
 `````
 
-- Minimum router version is 0.9.38.
-
+- Minimum router version is 0.9.39.
+  Preliminary implementation was in 0.9.38 but the definition above changed.
 
 
 Issues
@@ -1768,7 +1760,7 @@ Changes
   Option order: 4
   Option data:  Variable bytes
   Function:     Contains the offline signature section from LS2.
-                SIGNATURE_INCLUDED must also be set.
+                FROM_INCLUDED must also be set.
                 Expires timestamp (4 bytes, seconds since epoch, rolls over in 2106)
                 Transient sig type (2 bytes)
                 Transient signing public key (length as implied by sig type)
@@ -1908,3 +1900,6 @@ References
 
 .. [UNSCIENTIFIC-KDF-SPEEDS]
     https://www.lvh.io/posts/secure-key-derivation-performance.html
+
+.. [ZCASH]
+   https://github.com/zcash/zips/tree/master/protocol/protocol.pdf

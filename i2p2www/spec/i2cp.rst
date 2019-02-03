@@ -3,7 +3,7 @@ I2CP Specification
 ==================
 .. meta::
     :category: Protocols
-    :lastupdated: January 2019
+    :lastupdated: February 2019
     :accuratefor: 0.9.38
 
 .. contents::
@@ -420,7 +420,7 @@ Message Types
 ===============================  =========  ====  =====
 BandwidthLimitsMessage_           R -> C     23   0.7.2
 CreateLeaseSetMessage_            C -> R      4
-CreateLeaseSet2Message_           C -> R     40   0.9.38
+CreateLeaseSet2Message_           C -> R     40   0.9.39
 CreateSessionMessage_             C -> R      1
 DestLookupMessage_                C -> R     34   0.7
 DestReplyMessage_                 R -> C     35   0.7
@@ -532,22 +532,13 @@ Contents
    Type 5 is a [EncryptedLeaseSet]_
    Type 7 is a [MetaLeaseSet]_
 3. [LeaseSet]_ or [LeaseSet2]_ or [EncryptedLeaseSet]_ or [MetaLeaseSet]_
-4. [SigningPrivateKey]_ type and length as inferred from the lease set signature
-   (by Destination or transient signing key).
-   Not present for MetaLeaseSet.
-5. [PrivateKey]_ list.
+4. [PrivateKey]_ list.
    One for each public key in the lease set, in the same order.
    Types and lengths as inferred from the public keys in the lease set.
    Not present for MetaLeaseSet.
 
 Notes
 `````
-The SigningPrivateKey matches the [SigningPublicKey]_ from within the LeaseSet.
-This is for LeaseSet revocation,
-which is unimplemented and is unlikely to ever be implemented.
-It may be acceptable to put random data or zeros here, but the length must be correct.
-This field may be repurposed for EncryptedLeaseSet.
-
 The PrivateKeys match each of the [PublicKey]_ from the LeaseSet.
 The PrivateKeys are necessary for decrypting garlic routed messages.
 
@@ -558,7 +549,11 @@ The contents and format for MetaLeaseSet are preliminary and subject to change.
 There is no protocol specified for administration of multiple routers.
 See proposal 123 for more information.
 
-Revocation is unimplemented.
+The signing private key, previously defined for revocation and unused,
+is not present in LS2.
+
+Preliminary implementation was in 0.9.38 but the definition above changed.
+Not valid until 0.9.39.
 
 
 .. _msg-CreateSession:
