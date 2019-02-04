@@ -799,20 +799,19 @@ GENERATE_ALPHA(destination, date, secret), for all parties:
   datestring = 8 bytes ASCII YYYYMMDD from the current date UTC
   alpha = HKDF(SHA256(destination), datestring || secret, "i2pblinding1", 32)
   // Now make a valid little-endian Ed25519 private key, as usual,
-  // by "clamping" the hash:
+  // by "clamping" the HKDF result:
   alpha[0] &amp;= 248;
   alpha[31] &amp;= 63;
   alpha[31] |= 64;
-  alpha = h[0:31]
 
-  // BLIND_PRIVKEY(), for the owner of the leaseset:
+  // BLIND_PRIVKEY(), for the owner publishing the leaseset:
   alpha = GENERATE_ALPHA(destination, date, secret)
   //Take the destination's signing private key a
   // Addition using group elements
   blinded signing private key = a' = BLIND_PRIVKEY(a, alpha) = (a + alpha) mod B
   blinded signing public key = A' = DERIVE_PUBLIC(a')
 
-  // BLIND_PUBKEY(), for those retrieving the leaseset:
+  // BLIND_PUBKEY(), for the clients retrieving the leaseset:
   alpha = GENERATE_ALPHA(destination, date, secret)
   // Take the destination's signing public key A
   // Addition using scalar arithmentic
