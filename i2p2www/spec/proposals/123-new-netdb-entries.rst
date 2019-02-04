@@ -751,10 +751,7 @@ Definitions
 ~~~~~~~~~~~
 
 B
-    The Ed25519 base point as in [ED25519-REFS]_
-
-G
-    The Ed25519 generator as in [ED25519-REFS]_
+    The Ed25519 base point (generator) as in [ED25519-REFS]_
 
 DERIVE_PUBLIC(a)
     Convert a private key to public, as in Ed25519 (mulitply by G)
@@ -800,25 +797,25 @@ The secret alpha and the blinded keys are calculated as follows:
 GENERATE_ALPHA(destination, date, secret), for all parties:
   // secret is optional, else zero-length
   datestring = 8 bytes ASCII YYYYMMDD from the current date UTC
-  seed = HKDF(SHA256(destination), datestring || secret, "i2pblinding1", 32)
-  // Now make a Ed25519 private key, as usual.
-  // Hash the seed, then "clamp" the hash
-  // to make a valid Ed25519 little-endian private key:
-  h = SHA512(seed)
-  h[0] &= 248;
-  h[31] &= 63;
-  h[31] |= 64;
+  alpha = HKDF(SHA256(destination), datestring || secret, "i2pblinding1", 32)
+  // Now make a valid little-endian Ed25519 private key, as usual,
+  // by "clamping" the hash:
+  alpha[0] &amp;= 248;
+  alpha[31] &amp;= 63;
+  alpha[31] |= 64;
   alpha = h[0:31]
 
-  //BLIND_PRIVKEY(), for the owner of the leaseset:
+  // BLIND_PRIVKEY(), for the owner of the leaseset:
   alpha = GENERATE_ALPHA(destination, date, secret)
   //Take the destination's signing private key a
+  // Addition using group elements
   blinded signing private key = a' = BLIND_PRIVKEY(a, alpha) = (a + alpha) mod B
   blinded signing public key = A' = DERIVE_PUBLIC(a')
 
-  //BLIND_PUBKEY(), for those retrieving the leaseset:
+  // BLIND_PUBKEY(), for those retrieving the leaseset:
   alpha = GENERATE_ALPHA(destination, date, secret)
-  //Take the destination's signing public key A
+  // Take the destination's signing public key A
+  // Addition using scalar arithmentic
   blinded public key = A' = BLIND_PUBKEY(A, alpha) = A + DERIVE_PUBLIC(alpha)
 
   //Both methods of calculating A' yield the same result, as required.
@@ -1643,7 +1640,7 @@ Justification
 Message Type
 ````````````
 
-The message type for the Create Leaseset2 Message is 40.
+The message type for the Create Leaseset2 Message is 41.
 
 
 Format
@@ -1658,16 +1655,19 @@ Format
              Type 5 is a encrypted LS2
              Type 7 is a meta LS2
   LeaseSet: type specified above
-  Encryption Private Keys: One for each public key in the lease set, in the same order
-                           Types as inferred from the public keys in the lease set
-                           Not present for Meta LS2
+  Encryption Private Keys: For each public key in the lease set, in the same order
+                           (Not present for Meta LS2)
+                           - Encryption type (2 bytes)
+                           - Encryption key length (2 bytes)
+                           - Encryption key (number of bytes specified)
 
 
 Notes
 `````
 
 - Minimum router version is 0.9.39.
-  Preliminary implementation was in 0.9.38 but the definition above changed.
+- Preliminary version with message type 40 was in 0.9.38 but the format was changed.
+  Type 40 is abandoned and is unsupported.
 
 
 Issues

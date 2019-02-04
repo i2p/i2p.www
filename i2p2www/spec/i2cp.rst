@@ -235,7 +235,9 @@ below.
 ==============  ======================
    Version      Required I2CP Features
 ==============  ======================
-   0.9.38       CreateLeaseSet2 message supported
+   0.9.39       CreateLeaseSet2 message supported
+
+   0.9.38       Preliminary CreateLeaseSet2 message supported (abandoned)
 
    0.9.21       Multiple sessions on a single I2CP connection supported
 
@@ -420,7 +422,7 @@ Message Types
 ===============================  =========  ====  =====
 BandwidthLimitsMessage_           R -> C     23   0.7.2
 CreateLeaseSetMessage_            C -> R      4
-CreateLeaseSet2Message_           C -> R     40   0.9.39
+CreateLeaseSet2Message_           C -> R     41   0.9.39
 CreateSessionMessage_             C -> R      1
 DestLookupMessage_                C -> R     34   0.7
 DestReplyMessage_                 R -> C     35   0.7
@@ -534,8 +536,10 @@ Contents
 3. [LeaseSet]_ or [LeaseSet2]_ or [EncryptedLeaseSet]_ or [MetaLeaseSet]_
 4. [PrivateKey]_ list.
    One for each public key in the lease set, in the same order.
-   Types and lengths as inferred from the public keys in the lease set.
-   Not present for MetaLeaseSet.
+   (Not present for Meta LS2)
+   - Encryption type (2 bytes)
+   - Encryption key length (2 bytes)
+   - Encryption key (number of bytes specified)
 
 Notes
 `````
@@ -552,8 +556,9 @@ See proposal 123 for more information.
 The signing private key, previously defined for revocation and unused,
 is not present in LS2.
 
-Preliminary implementation was in 0.9.38 but the definition above changed.
-Not valid until 0.9.39.
+Preliminary version with message type 40 was in 0.9.38 but the format was changed.
+Type 40 is abandoned and is unsupported.
+Type 41 not valid until 0.9.39.
 
 
 .. _msg-CreateSession:
