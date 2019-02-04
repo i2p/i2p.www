@@ -5,7 +5,7 @@ New netDB Entries
     :author: zzz, str4d, orignal
     :created: 2016-01-16
     :thread: http://zzz.i2p/topics/2051
-    :lastupdated: 2019-02-03
+    :lastupdated: 2019-02-04
     :status: Open
     :supercedes: 110, 120, 121, 122
 
@@ -509,19 +509,18 @@ SIG
 
     It must also support the following key blinding operations:
 
-    BLIND_PRIVKEY(privkey, blind)
-        Blinds a private key.
-        Blinding is roughly as specified in Tor's rend-spec-v3 appendices A.1 and A.2.
-        TODO
+    GENERATE_ALPHA(data, secret)
+        Generate alpha for those who know the data and an optional secret.
+        The result must be identically distributed as the private keys.
 
-    BLIND_PUBKEY(pubkey, blind)
-        Blinds a public key, such that for a given keypair (privkey, pubkey) the
-        following relationship holds::
+    BLIND_PRIVKEY(privkey, alpha)
+        Blinds a private key, using a secret alpha.
 
-            BLIND_PUBKEY(pubkey, blind) == DERIVE_PUBLIC(BLIND_PRIVKEY(privkey, blind))
+    BLIND_PUBKEY(pubkey, alpha)
+        Blinds a public key, using a secret alpha.
+        For a given keypair (privkey, pubkey) the following relationship holds::
 
-        Blinding is roughly as specified in Tor's rend-spec-v3 appendices A.1 and A.2.
-        TODO
+            BLIND_PUBKEY(pubkey, alpha) == DERIVE_PUBLIC(BLIND_PRIVKEY(privkey, alpha))
 
 DH
     X25519 public key agreement system. Private keys of 32 bytes, public keys of 32
@@ -534,7 +533,7 @@ DH
     DERIVE_PUBLIC(privkey)
         Returns the public key corresponding to the given private key.
 
-    AGREE(privkey, pubkey)
+    DH(privkey, pubkey)
         Generates a shared secret from the given private and public keys.
 
 HKDF(salt, ikm, info, n)
@@ -717,65 +716,140 @@ Blinding Key Derivation
 
 We use the following scheme for key blinding, based on Ed25519
 and ZCash RedDSA [ZCASH]_.
+The RedDSA signatures are over the Ed25519 curve, using SHA-512 for the hash.
 
 We do not use Tor's rend-spec-v3.txt appendix A.2 [TOR-REND-SPEC-V3]_,
 which has similar design goals, because its blinded public keys
 may be off the prime-order subgroup, with unknown security implications.
 
-The RedDSA signatures are over the Ed25519 curve, using SHA-512 for the hash.
 
+Goals
+~~~~~
+
+- Signing public key in unblinded destination must be Ed25519 (sig type 7); no other sig types are supported
+- If the signing public key is offline, the transient signing public key must also be Ed25519
+- Blinding is computationally simple
+- Use existing cryptographic primitives
+- Blinded public keys cannot be unblinded
+- Blinded public keys must be on the Ed25519 curve and prime-order subgroup
+- Must know the full destination to derive the blinded public key
+- Optionally provide for an additional secret required to derive the blinded public key
+
+
+Issues
+``````
+
+- How to do this with offline/transient keys?
+  The blinded key would be generated from the transient key, but those fetching
+  the leaseset don't know the transient key, because it's in the leaseset.
+- Do we need to use sig type 11 for RedDSA, or use type 7 for it?
+- Is RedDSA really compatible with Ed25519? Is T the only change?
+- Should we call it Red25519?
+
+
+Definitions
+~~~~~~~~~~~
+
+B
+    The Ed25519 base point as in [ED25519-REFS]_
+
+G
+    The Ed25519 generator as in [ED25519-REFS]_
+
+DERIVE_PUBLIC(a)
+    Convert a private key to public, as in Ed25519 (mulitply by G)
+
+alpha
+    A 32-byte random number known to those who know the destination.
+
+GENERATE_ALPHA(destination, date, secret)
+    Generate alpha for the current date, for those who know the destination and the secret.
+    The result must be identically distributed as Ed25519 private keys.
+
+a
+    The unblinded 32-byte EdDSA signing private key used to sign the destination
+
+A
+    The unblinded 32-byte EdDSA signing public key in the destination,
+    = DERIVE_PUBLIC(a), as in Ed25519
+
+a'
+    The blinded 32-byte EdDSA signing private key used to sign the encrypted leaseset
+    This is a valid EdDSA private key.
+
+A'
+    The blinded 32-byte EdDSA signing public key in the Destination,
+    may be generated with DERIVE_PUBLIC(a'), or from A and alpha.
+    This is a valid EdDSA public key, on the curve and on the prime-order subgroup.
+
+LEOS2IP(x)
+    Flip the order of the input bytes to little-endian
+
+H*(x)
+    32 bytes = (LEOS2IP(SHA512(x))) mod B, same as in Ed25519 hash-and-reduce
+
+
+Blinding Calculations
+~~~~~~~~~~~~~~~~~~~~~
 
 ::
 
-  Let B be the ed25519 base point as in [ED25519-REFS]:
-      B = (15112221349535400772501151409588531511454012693041857206046113283949847762202,
-           46316835694926478169428394003475163141307993866256225615783033603165251855960)
+  GENERATE_ALPHA(destination, date, secret), for all parties:
+  secret is optional, else zero-length
+  personalization = 12 bytes "i2pblinding1"
+  datestring = YYYYMMDD from the current date UTC
+  alpha = SHA256(personalization || SHA256(destination) || datestring || secret)
+  "clamp" the hash to make a valid Ed25519 little-endian private key:
+  alpha[0] &= 248;
+  alpha[31] &= 63;
+  alpha[31] |= 64;
 
-  Assume B has prime order l, so lB=0. Let a master keypair be written as
-  (a,A), where a is the private key and A is the public key (A=aB).
+  BLIND_PRIVKEY(), for the owner of the leaseset:
+  alpha = GENERATE_ALPHA(destination, date, secret)
+  Take the destination's signing private key a
+  blinded signing private key = a' = BLIND_PRIVKEY(a, alpha) = (a + alpha) mod B
+  blinded signing public key = A' = DERIVE_PUBLIC(a')
 
-  To derive the key for a nonce N and an optional secret s, compute the
-  blinding factor like this:
+  BLIND_PUBKEY(), for those retrieving the leaseset:
+  alpha = GENERATE_ALPHA(destination, date, secret)
+  Take the destination's signing public key A
+  blinded public key = A' = BLIND_PUBKEY(A, alpha) = A + DERIVE_PUBLIC(alpha)
 
-           h = H(BLIND_STRING | A | s | B | N)
-           BLIND_STRING = "Derive temporary signing key" | INT_1(0)
-           N = "key-blind" | INT_8(period-number) | INT_8(period_length)
-           B = "(1511[...]2202, 4631[...]5960)"
+  Both methods of calculating A' yield the same result, as required.
 
-  then clamp the blinding factor 'h' according to the ed25519 spec:
 
-           h[0] &= 248;
-           h[31] &= 63;
-           h[31] |= 64;
 
-  and do the key derivation as follows:
+Signing
+~~~~~~~
 
-      private key for the period:
+The unblinded leaseset is signed by the unblinded Ed25519 signing private key
+and verified with the unblinded Ed25519 signing public key (sig type 7) as usual.
 
-           a' = h a mod l
-           RH' = SHA-512(RH_BLIND_STRING | RH)[:32]
-           RH_BLIND_STRING = "Derive temporary signing key hash input"
+If the signing public key is offline,
+the unblinded leaseset is signed by the unblinded transient Ed25519 signing private key
+and verified with the unblinded Ed25519 transient signing public key (sig type 7) as usual.
 
-      public key for the period:
+For signing of the encrypted leaseset, we use RedDSA [ZCASH]_
+to sign and verify with blinded keys.
+The RedDSA signatures are over the Ed25519 curve, using SHA-512 for the hash.
 
-           A' = h A = (ha)B
+RedDSA is the same as standard Ed25519 except for the addition of 
+an 80-byte random byte sequence T that is included in the signature calculation.
+This is compatible with standard Ed25519.
 
-  Generating a signature of M: given a deterministic random-looking r
-  (see EdDSA paper), take R=rB, S=r+hash(R,A',M)ah mod l. Send signature
-  (R,S) and public key A'.
 
-  Verifying the signature: Check whether SB = R+hash(R,A',M)A'.
+Sign/Verify Calculations
+~~~~~~~~~~~~~~~~~~~~~~~~
 
-  (If the signature is valid,
-       SB = (r + hash(R,A',M)ah)B
-          = rB + (hash(R,A',M)ah)B
-          = R + hash(R,A',M)A' )
+::
 
-  This boils down to regular Ed25519 with key pair (a', A').
+  Signing:
+  T = 80 random bytes
+  r = H*(T || a || message)
+  (rest is the same as in Ed25519)
 
-See [KEYBLIND-REFS]_ for an extensive discussion on this scheme and
-possible alternatives. Also, see [KEYBLIND-PROOF]_ for a security
-proof of this scheme.
+  Verification:
+  Same as for Ed25519
 
 
 
@@ -940,7 +1014,7 @@ Then for each authorized client, the server encrypts ``authCookie`` to its publi
 .. raw:: html
 
   {% highlight lang='text' %}
-sharedSecret = AGREE(esk, cpk_i)
+sharedSecret = DH(esk, cpk_i)
   authInput = sharedSecret || cpk_i || subcredential || publishedTimestamp
   okm = HKDF(epk, authInput, "ELS2_XCA", 52)
   clientKey_i = okm[0:31]
@@ -960,7 +1034,7 @@ encryption key ``clientKey_i``, and encryption IV ``clientIV_i``:
 .. raw:: html
 
   {% highlight lang='text' %}
-sharedSecret = AGREE(csk_i, epk)
+sharedSecret = DH(csk_i, epk)
   authInput = sharedSecret || cpk_i || subcredential || publishedTimestamp
   okm = HKDF(epk, authInput, "ELS2_XCA", 52)
   clientKey_i = okm[0:31]
@@ -1074,8 +1148,6 @@ Downsides of PSK client authorization
 
 Issues
 ``````
-
-- Blinding spec TODO
 
 - Use AES instead of ChaCha20?
 

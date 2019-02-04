@@ -3,7 +3,7 @@ Common structures Specification
 ===============================
 .. meta::
     :category: Design
-    :lastupdated: January 2019
+    :lastupdated: February 2019
     :accuratefor: 0.9.38
 
 .. contents::
@@ -410,16 +410,17 @@ The defined Signing Public Key types are:
         Type             Type Code   Total Public Key Length  Since   Usage
 ======================  ===========  =======================  ======  =====
 DSA_SHA1                     0                  128           0.9.12  Legacy Router Identities and Destinations, never explicitly set
-ECDSA_SHA256_P256            1                   64           0.9.12  Recent Destinations
-ECDSA_SHA384_P384            2                   96           0.9.12  Sometimes used for Destinations
-ECDSA_SHA512_P521            3                  132           0.9.12  Sometimes used for Destinations
+ECDSA_SHA256_P256            1                   64           0.9.12  Older Destinations
+ECDSA_SHA384_P384            2                   96           0.9.12  Rarely if ever used for Destinations
+ECDSA_SHA512_P521            3                  132           0.9.12  Rarely if ever used for Destinations
 RSA_SHA256_2048              4                  256           0.9.12  Offline only; never used in Key Certificates for Router Identities or Destinations
 RSA_SHA384_3072              5                  384           0.9.12  Offline only; never used in Key Certificates for Router Identities or Destinations
 RSA_SHA512_4096              6                  512           0.9.12  Offline only; never used in Key Certificates for Router Identities or Destinations
 EdDSA_SHA512_Ed25519         7                   32           0.9.15  Recent Router Identities and Destinations
 EdDSA_SHA512_Ed25519ph       8                   32           0.9.25  Offline only; never used in Key Certificates for Router Identities or Destinations
-reserved                     9                                        Reserved, see proposal 134
-reserved                    10                                        Reserved, see proposal 134
+reserved  (GOST)             9                   64                   Reserved, see proposal 134
+reserved  (GOST)            10                  128                   Reserved, see proposal 134
+reserved  (RedDSA)          11                   32                   Reserved, see proposal 123
 reserved                65280-65534                                   Reserved for experimental use
 reserved                   65535                                      Reserved for future expansion
 ======================  ===========  =======================  ======  =====
