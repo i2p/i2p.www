@@ -792,30 +792,39 @@ H*(x)
 Blinding Calculations
 ~~~~~~~~~~~~~~~~~~~~~
 
-::
+The secret alpha and the blinded keys are calculated as follows:
 
-  GENERATE_ALPHA(destination, date, secret), for all parties:
-  secret is optional, else zero-length
-  personalization = 12 bytes "i2pblinding1"
-  datestring = YYYYMMDD from the current date UTC
-  alpha = SHA256(personalization || SHA256(destination) || datestring || secret)
-  "clamp" the hash to make a valid Ed25519 little-endian private key:
-  alpha[0] &= 248;
-  alpha[31] &= 63;
-  alpha[31] |= 64;
+.. raw:: html
 
-  BLIND_PRIVKEY(), for the owner of the leaseset:
-  alpha = GENERATE_ALPHA(destination, date, secret)
-  Take the destination's signing private key a
-  blinded signing private key = a' = BLIND_PRIVKEY(a, alpha) = (a + alpha) mod B
-  blinded signing public key = A' = DERIVE_PUBLIC(a')
+  {% highlight lang='text' %}
+GENERATE_ALPHA(destination, date, secret), for all parties:
+secret is optional, else zero-length
+personalization = 12 bytes "i2pblinding1"
+datestring = YYYYMMDD from the current date UTC
+alpha = SHA256(personalization || SHA256(destination) || datestring || secret)
+"clamp" the hash to make a valid Ed25519 little-endian private key:
+alpha[0] &= 248;
+alpha[31] &= 63;
+alpha[31] |= 64;
 
-  BLIND_PUBKEY(), for those retrieving the leaseset:
-  alpha = GENERATE_ALPHA(destination, date, secret)
-  Take the destination's signing public key A
-  blinded public key = A' = BLIND_PUBKEY(A, alpha) = A + DERIVE_PUBLIC(alpha)
+BLIND_PRIVKEY(), for the owner of the leaseset:
+alpha = GENERATE_ALPHA(destination, date, secret)
+Take the destination's signing private key a
+blinded signing private key = a' = BLIND_PRIVKEY(a, alpha) = (a + alpha) mod B
+blinded signing public key = A' = DERIVE_PUBLIC(a')
 
-  Both methods of calculating A' yield the same result, as required.
+BLIND_PUBKEY(), for those retrieving the leaseset:
+alpha = GENERATE_ALPHA(destination, date, secret)
+Take the destination's signing public key A
+blinded public key = A' = BLIND_PUBKEY(A, alpha) = A + DERIVE_PUBLIC(alpha)
+
+Both methods of calculating A' yield the same result, as required.
+{% endhighlight %}
+
+Issues
+
+- Transient keys
+- Should we use HKDF for GENERATE_ALPHA?
 
 
 
@@ -841,15 +850,17 @@ This is compatible with standard Ed25519.
 Sign/Verify Calculations
 ~~~~~~~~~~~~~~~~~~~~~~~~
 
-::
+.. raw:: html
 
-  Signing:
-  T = 80 random bytes
-  r = H*(T || a || message)
-  (rest is the same as in Ed25519)
+  {% highlight lang='text' %}
+Signing:
+T = 80 random bytes
+r = H*(T || a || message)
+(rest is the same as in Ed25519)
 
-  Verification:
-  Same as for Ed25519
+Verification:
+Same as for Ed25519
+{% endhighlight %}
 
 
 
