@@ -4,7 +4,7 @@ I2CP Specification
 .. meta::
     :category: Protocols
     :lastupdated: February 2019
-    :accuratefor: 0.9.38
+    :accuratefor: 0.9.39
 
 .. contents::
 

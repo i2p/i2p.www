@@ -44,7 +44,8 @@ The following proposals are somewhat related:
 
 - 140 Invisible Multihoming (incompatible with this proposal)
 - 142 New Crypto Template (for new symmetric crypto)
-- ECIES http://zzz.i2p/topics/2418
+- 144 ECIES-X25519-AEAD-Ratchet
+- 145 ECIES-P256
 
 
 Proposal
@@ -387,7 +388,7 @@ New Encryption Issues
 Some of this is out-of-scope for this proposal,
 but putting notes here for now as we don't have
 a separate encryption proposal yet.
-See also the ECIES thread on zzz.i2p.
+See also the ECIES proposals 144 and 145.
 
 - The encryption type represents the combination
   of curve, key length, and end-to-end scheme,
@@ -401,7 +402,7 @@ See also the ECIES thread on zzz.i2p.
   (either a slightly modified version of ElGamal/AES+SessionTag
   or something completely new, e.g. ChaCha/Poly) will be specified
   in one or more separate proposals.
-  See also the ECIES thread on zzz.i2p.
+  See also the ECIES proposals 144 and 145.
 
 
 Notes
@@ -1452,7 +1453,7 @@ Key Certificates
 ----------------
 
 Out of scope for this proposal.
-Add to ECIES proposal.
+Add to the ECIES proposals 144 and 145.
 
 
 New Intermediate Structures
