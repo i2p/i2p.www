@@ -389,6 +389,15 @@ Notes
 * The creation date must be within +/- 30 seconds of the current time when
   processed by the router, or the config will be rejected.
 
+Offline Signatures
+``````````````````
+* If the [Destination]_ is offline signed, the [Mapping]_ must contain
+  the three options i2cp.leaseSetOfflineExpiration, i2cp.leaseSetTransientPublicKey,
+  and i2cp.leaseSetOfflineSignature.
+  The [Signature]_ is then by the transient [SigningPrivateKey]_ and is verified
+  with the [SigningPublicKey]_ specified in i2cp.leaseSetTransientPublicKey.
+  See [I2CP-OPTIONS]_ for details.
+
 .. _struct-SessionId:
 
 Session ID
@@ -537,9 +546,9 @@ Contents
 4. [PrivateKey]_ list.
    One for each public key in the lease set, in the same order.
    (Not present for Meta LS2)
-   - Encryption type (2 bytes)
-   - Encryption key length (2 bytes)
-   - Encryption key (number of bytes specified)
+   - Encryption type (2 byte [Integer]_)
+   - Encryption key length (2 byte [Integer]_)
+   - Encryption [PrivateKey]_ (number of bytes specified)
 
 Notes
 `````

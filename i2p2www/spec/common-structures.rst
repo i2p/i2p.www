@@ -27,7 +27,7 @@ Represents a non-negative integer.
 
 Contents
 ````````
-1 to 8 bytes in network byte order representing an unsigned integer
+1 to 8 bytes in network byte order (big endian) representing an unsigned integer.
 
 .. _type-Date:
 

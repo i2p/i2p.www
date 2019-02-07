@@ -5,7 +5,7 @@ New netDB Entries
     :author: zzz, str4d, orignal
     :created: 2016-01-16
     :thread: http://zzz.i2p/topics/2051
-    :lastupdated: 2019-02-04
+    :lastupdated: 2019-02-07
     :status: Open
     :supercedes: 110, 120, 121, 122
 
@@ -219,8 +219,8 @@ Format
     Not actually in header, but part of data covered by signature.
     Take from field in Database Store Message.
   - Destination (387+ bytes)
-  - Published timestamp (4 bytes, seconds since epoch, rolls over in 2106)
-  - Expires (2 bytes) (offset from published timestamp in seconds, 18.2 hours max)
+  - Published timestamp (4 bytes, big endian, seconds since epoch, rolls over in 2106)
+  - Expires (2 bytes, big endian) (offset from published timestamp in seconds, 18.2 hours max)
   - Flags (2 bytes)
     Bit order: 15 14 ... 3 2 1 0
     Bit 0: If 0, no offline keys; if 1, offline keys
@@ -230,8 +230,8 @@ Format
            netdb for a new one.
     Bits 2-15: set to 0 for compatibility with future uses
   - If flag indicates offline keys, the offline signature section:
-    Expires timestamp (4 bytes, seconds since epoch, rolls over in 2106)
-    Transient sig type (2 bytes)
+    Expires timestamp (4 bytes, big endian, seconds since epoch, rolls over in 2106)
+    Transient sig type (2 bytes, big endian)
     Transient signing public key (length as implied by sig type)
     Signature of expires timestamp, transient sig type, and public key, by the destination public key,
     length as implied by destination public key sig type.
@@ -320,8 +320,8 @@ Format
   - Properties (Mapping as specified in common structures spec, 2 zero bytes if none)
   - Number of key sections to follow (1 byte, max TBD)
   - Key sections:
-    - Encryption type (2 bytes)
-    - Encryption key length (2 bytes)
+    - Encryption type (2 bytes, big endian)
+    - Encryption key length (2 bytes, big endian)
       This is explicit, so floodfills can parse LS2 with unknown encryption types.
     - Encryption key (number of bytes specified)
   - Number of lease2s (1 byte)
@@ -408,8 +408,6 @@ See also the ECIES proposals 144 and 145.
 Notes
 `````
 - 8-byte expiration in leases changed to 4 bytes.
-  Alternatives: 2-byte offset from the
-  published timestamp in seconds? Or 4-byte offset in milliseconds?
 
 - If we ever implement revocation, we can do it with an expires field of zero,
   or zero leases, or both. No need for a separate revocation key.
@@ -573,18 +571,18 @@ Type
     Take from field in Database Store Message.
 
 Blinded Public Key Sig Type
-    2 bytes
+    2 bytes, big endian
 
 Blinded Public Key
     Length as implied by sig type
 
 Published timestamp
-    4 bytes
+    4 bytes, big endian
 
     Seconds since epoch, rolls over in 2106
 
 Expires
-    2 bytes
+    2 bytes, big endian
 
     Offset from published timestamp in seconds, 18.2 hours max
 
@@ -601,12 +599,12 @@ Transient key data
     Present if flag indicates offline keys
 
     Expires timestamp
-        4 bytes
+        4 bytes, big endian
 
         Seconds since epoch, rolls over in 2106
 
     Transient sig type
-        2 bytes
+        2 bytes, big endian
 
     Transient signing public key
         Length as implied by sig type
@@ -619,7 +617,7 @@ Transient key data
         Verified with the blinded public key.
 
 lenOuterCiphertext
-    2 bytes
+    2 bytes, big endian
 
 outerCiphertext
     lenOuterCiphertext bytes
@@ -657,7 +655,7 @@ DH client auth data
         32 bytes
 
     clients
-        2 bytes
+        2 bytes, big endian
 
         Number of authClient entries to follow, 40 bytes each
 
@@ -678,7 +676,7 @@ PSK client auth data
         32 bytes
 
     clients
-        2 bytes
+        2 bytes, big endian
 
         Number of authClient entries to follow, 40 bytes each
 
@@ -1262,7 +1260,7 @@ Format
       TODO: Use a few bits to (optionally) indicate the type of the LS it is referencing.
       All zeros means don't know.
     - Cost (priority) (1 byte)
-    - Expires (4 bytes) (4 bytes, seconds since epoch, rolls over in 2106)
+    - Expires (4 bytes) (4 bytes, big endian, seconds since epoch, rolls over in 2106)
   - Number of revocations (1 byte) Maximum TBD
   - Revocations: Each revocation contains: (32 bytes)
     - Hash (32 bytes)
@@ -1318,7 +1316,7 @@ Format
   Standard LS2 Header as specified above
 
   Service Record Type-Specific Part
-  - Port (2 bytes) (0 if unspecified)
+  - Port (2 bytes, big endian) (0 if unspecified)
   - Hash of service name (32 bytes)
 
   Standard LS2 Signature:
@@ -1386,27 +1384,27 @@ Does NOT use the standard LS2 header specified above.
     Take from field in Database Store Message.
   - Hash of the service name (implicit, in the Database Store message)
   - Hash of the Creator (floodfill) (32 bytes)
-  - Published timestamp (8 bytes)
+  - Published timestamp (8 bytes, big endian)
 
   - Number of Short Service Records (1 byte)
   - List of Short Service Records:
     Each Short Service Record contains (90+ bytes)
     - Dest hash (32 bytes)
-    - Published timestamp (8 bytes)
-    - Expires (4 bytes) (offset from published in ms)
+    - Published timestamp (8 bytes, big endian)
+    - Expires (4 bytes, big endian) (offset from published in ms)
     - Flags (2 bytes)
-    - Port (2 bytes)
-    - Sig length (2 bytes)
+    - Port (2 bytes, big endian)
+    - Sig length (2 bytes, big endian)
     - Signature of dest (40+ bytes)
 
   - Number of Revocation Records (1 byte)
   - List of Revocation Records:
     Each Revocation Record contains (86+ bytes)
     - Dest hash (32 bytes)
-    - Published timestamp (8 bytes)
+    - Published timestamp (8 bytes, big endian)
     - Flags (2 bytes)
-    - Port (2 bytes)
-    - Sig length (2 bytes)
+    - Port (2 bytes, big endian)
+    - Sig length (2 bytes, big endian)
     - Signature of dest (40+ bytes)
 
   - Signature of floodfill (40+ bytes)
@@ -1554,7 +1552,7 @@ New options interpreted router-side, sent in SessionConfig Mapping:
                                   SessionConfig, to declare intent and check support.
                                   See proposals 144 and 145.
 
-  i2cp.leaseSetOfflineExpiration=nnn          The expiration of the offline signature, 4 bytes,
+  i2cp.leaseSetOfflineExpiration=nnn          The expiration of the offline signature, ASCII,
                                               seconds since the epoch.
 
   i2cp.leaseSetTransientPublicKey=[type:]b64  The base 64 of the transient private key,
@@ -1657,8 +1655,8 @@ Format
   LeaseSet: type specified above
   Encryption Private Keys: For each public key in the lease set, in the same order
                            (Not present for Meta LS2)
-                           - Encryption type (2 bytes)
-                           - Encryption key length (2 bytes)
+                           - Encryption type (2 bytes, big endian)
+                           - Encryption key length (2 bytes, big endian)
                            - Encryption key (number of bytes specified)
 
 
@@ -1743,7 +1741,7 @@ Changes
       1: LS 1
       3: LS 2
       7: Meta LS
-  6.  LeaseSet expiration (4 bytes, seconds since the epoch)
+  6.  LeaseSet expiration (4 bytes, big endian, seconds since the epoch)
       0 if unknown
   7.  Number of encryption types supported (1 byte)
       0 if unknown
@@ -1753,7 +1751,7 @@ Changes
       Bit order: 15 14 13...3210
       Bit 0: 1 for offline keys, 0 if not
       Bits 15-1: Unused, set to 0 for compatibility with future uses
-  11. If offline keys, the transient key sig type (2 bytes)
+  11. If offline keys, the transient key sig type (2 bytes, big endian)
   12. If offline keys, the transient public key (length as implied by sig type)
   13. If LeaseSet type is Meta (7), the number of meta entries to follow (1 byte)
   14. If LeaseSet type is Meta (7), the Meta Entries. Each entry contains: (40 bytes)
@@ -1763,7 +1761,7 @@ Changes
         TODO: Use a few bits to (optionally) indicate the type of the LS it is referencing.
         All zeros means don't know.
       - Cost (priority) (1 byte)
-      - Expires (4 bytes) (4 bytes, seconds since epoch, rolls over in 2106)
+      - Expires (4 bytes, big endian, seconds since epoch, rolls over in 2106)
 
 Notes
 `````
@@ -1806,8 +1804,8 @@ Changes
 
   If the signing private key is all zeros, the offline information section follows:
 
-  - Expires timestamp (4 bytes, seconds since epoch, rolls over in 2106)
-  - Sig type of transient Signing Public Key (2 bytes)
+  - Expires timestamp (4 bytes, big endian, seconds since epoch, rolls over in 2106)
+  - Sig type of transient Signing Public Key (2 bytes, big endian)
   - Transient Signing Public key (length as specified by transient sig type)
   - Signature of above three fields by offline key (length as specified by destination sig type)
   - Transient Signing Private key (length as specified by transient sig type)
@@ -1846,8 +1844,8 @@ Changes
   Option data:  Variable bytes
   Function:     Contains the offline signature section from LS2.
                 FROM_INCLUDED must also be set.
-                Expires timestamp (4 bytes, seconds since epoch, rolls over in 2106)
-                Transient sig type (2 bytes)
+                Expires timestamp (4 bytes, big endian, seconds since epoch, rolls over in 2106)
+                Transient sig type (2 bytes, big endian)
                 Transient signing public key (length as implied by sig type)
                 Signature of expires timestamp, transient sig type, and public key, by the destination public key,
                 length as implied by destination public key sig type.
@@ -1891,8 +1889,8 @@ Changes
     Bit 0: If 0, no offline keys; if 1, offline keys
     Bits 1-15: set to 0 for compatibility with future uses
   - If flag indicates offline keys, the offline signature section:
-    Expires timestamp (4 bytes, seconds since epoch, rolls over in 2106)
-    Transient sig type (2 bytes)
+    Expires timestamp (4 bytes, big endian, seconds since epoch, rolls over in 2106)
+    Transient sig type (2 bytes, big endian)
     Transient signing public key (length as implied by sig type)
     Signature of expires timestamp, transient sig type, and public key, by the destination public key,
     length as implied by destination public key sig type.
@@ -1907,17 +1905,55 @@ Notes
 - Any other options we should add now that we have flag bytes?
 
 
-SAM Changes Required
-====================
+SAM V3 Changes Required
+=======================
 
-TBD. See I2CP Host Reply Message section above.
+SAM must be enhanced to support offline signatures in the DESTINATION base 64.
+
+
+Changes
+-------
+
+::
+
+  Note that in the SESSION CREATE DESTINATION=$privkey,
+  the $privkey raw data (before base64 conversion)
+  may be optionally followed by the Offline Signature as specified in the
+  Common Structures Specification.
+
+  If the signing private key is all zeros, the offline information section follows:
+
+  - Expires timestamp (4 bytes, big endian, seconds since epoch, rolls over in 2106)
+  - Sig type of transient Signing Public Key (2 bytes, big endian)
+  - Transient Signing Public key (length as specified by transient sig type)
+  - Signature of above three fields by offline key (length as specified by destination sig type)
+  - Transient Signing Private key (length as specified by transient sig type)
+
+  Note that offline signatures are only supported for STREAM and RAW, not for DATAGRAM.
+  (until we define a new DATAGRAM protocol)
+
+  Note that the SESSION STATUS will return a Signing Private Key of all zeros and
+  the Offline Signature data exactly as supplied in the SESSION CREATE.
+
+  Note that DEST GENERATE and SESSION CREATE DESTINATION=TRANSIENT
+  may not be used to create an offline signed destination.
+
+
+
+Issues
+------
+- Bump version to 3.4, or leave it at 3.1/3.2/3.3 so it can be added
+  without requiring all the 3.2/3.3 stuff?
+- Other changes TBD. See I2CP Host Reply Message section above.
 
 
 
 BOB Changes Required
 ====================
 
-TBD. See I2CP Host Reply Message section above.
+BOB would have to be enhanced to support offline signatures and/or Meta LS.
+This is low priority and probably won't ever be specified or implemented.
+SAM V3 is the preferred interface.
 
 
 

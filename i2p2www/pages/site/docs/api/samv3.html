@@ -1,7 +1,7 @@
 {% extends "global/layout.html" %}
 {% block title %}SAM V3{% endblock %}
-{% block lastupdated %}March 2018{% endblock %}
-{% block accuratefor %}0.9.34{% endblock %}
+{% block lastupdated %}February 2019{% endblock %}
+{% block accuratefor %}0.9.39{% endblock %}
 {% block content %}
 <p>Specified below is a simple client protocol for interacting with I2P.
 </p>
@@ -343,11 +343,32 @@ sending and receiving messages/streams.
 The $privkey is the base 64 of the concatenation of the <a href="{{ site_url('docs/spec/common-structures') }}#type_Destination">Destination</a>
 followed by the <a href="{{ site_url('docs/spec/common-structures') }}#type_PrivateKey">Private Key</a>
 followed by the <a href="{{ site_url('docs/spec/common-structures') }}#type_SigningPrivateKey">Signing Private Key</a>,
+optionally followed by the <a href="{{ site_url('docs/spec/common-structures') }}#struct_OfflineSignature">Offline Signature</a>,
 which is 663 or more bytes in binary and 884 or more bytes in base 64,
 depending on signature type.
 The binary format is specified in <a href="http://{{ i2pconv('echelon.i2p/javadoc') }}/net/i2p/data/PrivateKeyFile.html">Private Key File</a>.
 
 </p><p>
+If the signing private key is all zeros, the
+the <a href="{{ site_url('docs/spec/common-structures') }}#struct_OfflineSignature">Offline Signature</a> section follows.
+Offline signatures are only supported for STREAM and RAW sessions.
+Offline signatures may not be created with DESTINATION=TRANSIENT.
+The format of the offline signature section is:
+</p>
+
+<ol><li>
+  - Expires timestamp (4 bytes, big endian, seconds since epoch, rolls over in 2106)
+</li><li>
+  - Sig type of transient Signing Public Key (2 bytes, big endian)
+</li><li>
+  - Transient Signing Public key (length as specified by transient sig type)
+</li><li>
+  - Signature of above three fields by offline key (length as specified by destination sig type)
+</li><li>
+  - Transient Signing Private key (length as specified by transient sig type)
+</li></ol>
+
+<p>
 If the destination is specified as TRANSIENT, the SAM bridge creates a new destination.
 As of version 3.1 (I2P 0.9.14), if the destination is TRANSIENT, an optional parameter
 SIGNATURE_TYPE is supported. The SIGNATURE_TYPE value may be any name
@@ -385,9 +406,16 @@ If the creation was successful:
 The $privkey is the base 64 of the concatenation of the <a href="{{ site_url('docs/spec/common-structures') }}#type_Destination">Destination</a>
 followed by the <a href="{{ site_url('docs/spec/common-structures') }}#type_PrivateKey">Private Key</a>
 followed by the <a href="{{ site_url('docs/spec/common-structures') }}#type_SigningPrivateKey">Signing Private Key</a>,
+optionally followed by the <a href="{{ site_url('docs/spec/common-structures') }}#struct_OfflineSignature">Offline Signature</a>,
 which is 663 or more bytes in binary and 884 or more bytes in base 64,
 depending on signature type.
 The binary format is specified in <a href="http://{{ i2pconv('echelon.i2p/javadoc') }}/net/i2p/data/PrivateKeyFile.html">Private Key File</a>.
+
+</p><p>
+If the SESSION CREATE contained a signing private key of all zeros and
+a <a href="{{ site_url('docs/spec/common-structures') }}#struct_OfflineSignature">Offline Signature</a> section,
+the SESSION STATUS reply will include the same data in the same format.
+See the SESSION CREATE section above for details.
 
 </p><p>
 If the nickname is already associated with a session:
@@ -828,9 +856,14 @@ CREATE command with PORT and HOST options:
  The $privkey is the base 64 of the concatenation of the <a href="{{ site_url('docs/spec/common-structures') }}#type_Destination">Destination</a>
    followed by the <a href="{{ site_url('docs/spec/common-structures') }}#type_PrivateKey">Private Key</a>
    followed by the <a href="{{ site_url('docs/spec/common-structures') }}#type_SigningPrivateKey">Signing Private Key</a>,
+   optionally followed by the <a href="{{ site_url('docs/spec/common-structures') }}#struct_OfflineSignature">Offline Signature</a>,
    which is 884 or more base 64 characters (663 or more bytes in binary),
    depending on signature type.
    The binary format is specified in <a href="http://{{ i2pconv('echelon.i2p/javadoc') }}/net/i2p/data/PrivateKeyFile.html">Private Key File</a>.
+
+</p><p>
+Offline signatures are only supported for RAW datagrams.
+See the SESSION CREATE section above for details.
 
 </p><p>
  $host is the hostname or IP address of the datagram server to
@@ -1209,6 +1242,10 @@ The binary format is specified in <a href="http://{{ i2pconv('echelon.i2p/javado
 
 </p><p>
 DEST GENERATE does not require that a session has been created first.
+</p>
+
+</p><p>
+DEST GENERATE cannot be used to create a destination with offline signatures.
 </p>
 
 

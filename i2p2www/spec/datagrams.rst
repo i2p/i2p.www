@@ -3,8 +3,8 @@ Datagram Specification
 ======================
 .. meta::
     :category: Protocols
-    :lastupdated: July 2014
-    :accuratefor: 0.9.14
+    :lastupdated: February 2019
+    :accuratefor: 0.9.39
 
 .. contents::
 
@@ -24,6 +24,8 @@ Non-repliable datagrams have no 'from' address and are not authenticated.  They
 are also called "raw" datagrams.  Strictly speaking, they are not "datagrams"
 at all, they are just raw data.  They are not handled by the datagram API.
 However, SAM and the I2PTunnel classes support "raw datagrams".
+
+The standard I2CP protocol number for raw datagrams is PROTO_DATAGRAM_RAW (18).
 
 Format
 ------
@@ -54,6 +56,8 @@ Repliable Datagrams
 
 Repliable datagrams contain a 'from' address and a signature. These add at
 least 427 bytes of overhead.
+
+The standard I2CP protocol number for repliable datagrams is PROTO_DATAGRAM (17).
 
 Format
 ------
@@ -116,6 +120,9 @@ Notes
   best results, limit the payload to about 10 KB or less.
 
 * Signatures for types other than DSA_SHA1 were redefined in release 0.9.14.
+
+* The format does not support inclusion of an offline signature block
+  for LS2 (proposal 123). A new protocol with flags must be defined for that.
 
 
 References
