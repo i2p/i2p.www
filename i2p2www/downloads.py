@@ -75,6 +75,10 @@ def downloads_firefox():
         def_mirror = DEFAULT_MIRROR
     return render_template('downloads/firefox.html', def_mirror=def_mirror)
 
+# The Lab
+def downloads_lab():
+    return render_template('downloads/lab.html')
+
 # Specific file downloader
 def downloads_select(version, file):
     mirrors=read_mirrors()
