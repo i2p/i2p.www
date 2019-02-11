@@ -5,7 +5,7 @@ New netDB Entries
     :author: zzz, str4d, orignal
     :created: 2016-01-16
     :thread: http://zzz.i2p/topics/2051
-    :lastupdated: 2019-02-07
+    :lastupdated: 2019-02-11
     :status: Open
     :supercedes: 110, 120, 121, 122
 
@@ -519,7 +519,8 @@ SIG
         Blinds a public key, using a secret alpha.
         For a given keypair (privkey, pubkey) the following relationship holds::
 
-            BLIND_PUBKEY(pubkey, alpha) == DERIVE_PUBLIC(BLIND_PRIVKEY(privkey, alpha))
+            BLIND_PUBKEY(pubkey, alpha) ==
+            DERIVE_PUBLIC(BLIND_PRIVKEY(privkey, alpha))
 
 DH
     X25519 public key agreement system. Private keys of 32 bytes, public keys of 32
@@ -750,7 +751,11 @@ Definitions
 ~~~~~~~~~~~
 
 B
-    The Ed25519 base point (generator) as in [ED25519-REFS]_
+    The Ed25519 base point (generator) 2^255 - 19 as in [ED25519-REFS]_
+
+l
+    The Ed25519 order 2^252 + 27742317777372353535851937790883648493
+    as in [ED25519-REFS]_
 
 DERIVE_PUBLIC(a)
     Convert a private key to public, as in Ed25519 (mulitply by G)
@@ -797,17 +802,14 @@ GENERATE_ALPHA(destination, date, secret), for all parties:
   // secret is optional, else zero-length
   datestring = 8 bytes ASCII YYYYMMDD from the current date UTC
   alpha = HKDF(SHA256(destination), datestring || secret, "i2pblinding1", 32)
-  // Now make a valid little-endian Ed25519 private key, as usual,
-  // by "clamping" the HKDF result:
-  alpha[0] &amp;= 248;
-  alpha[31] &amp;= 63;
-  alpha[31] |= 64;
+  TODO: Clamp as in Ed25519? or mod l? Distribution of alpha not same as
+  private keys? Which keys - blinded or unblinded?
 
   // BLIND_PRIVKEY(), for the owner publishing the leaseset:
   alpha = GENERATE_ALPHA(destination, date, secret)
   //Take the destination's signing private key a
   // Addition using group elements
-  blinded signing private key = a' = BLIND_PRIVKEY(a, alpha) = (a + alpha) mod B
+  blinded signing private key = a' = BLIND_PRIVKEY(a, alpha) = (a + alpha) mod l
   blinded signing public key = A' = DERIVE_PUBLIC(a')
 
   // BLIND_PUBKEY(), for the clients retrieving the leaseset:
@@ -1542,26 +1544,27 @@ New options interpreted router-side, sent in SessionConfig Mapping:
 
 ::
 
-  i2cp.leaseSetType=nnn                       The type of leaseset to be sent in the Create Leaseset Message
-                                              Value is the same as the netdb store type in the table above.
-                                              Interpreted client-side, but also passed to the router in the
-                                              SessionConfig, to declare intent and check support.
+  i2cp.leaseSetType=nnn       The type of leaseset to be sent in the Create Leaseset Message
+                              Value is the same as the netdb store type in the table above.
+                              Interpreted client-side, but also passed to the router in the
+                              SessionConfig, to declare intent and check support.
 
   i2cp.leaseSetEncType=nnn[,nnn]  The encryption types to be used.
-                                  Interpreted client-side, but also passed to the router in the
-                                  SessionConfig, to declare intent and check support.
+                                  Interpreted client-side, but also passed to the router in
+                                  the SessionConfig, to declare intent and check support.
                                   See proposals 144 and 145.
 
-  i2cp.leaseSetOfflineExpiration=nnn          The expiration of the offline signature, ASCII,
-                                              seconds since the epoch.
+  i2cp.leaseSetOfflineExpiration=nnn  The expiration of the offline signature, ASCII,
+                                      seconds since the epoch.
 
   i2cp.leaseSetTransientPublicKey=[type:]b64  The base 64 of the transient private key,
-                                              prefixed by an optional sig type number or name,
-                                              default DSA_SHA1.
+                                              prefixed by an optional sig type number
+                                              or name, default DSA_SHA1.
                                               Length as inferred from the sig type
 
-  i2cp.leaseSetOfflineSignature=b64           The base 64 of the offline signature.
-                                              Length as inferred from the destination signing public key type
+  i2cp.leaseSetOfflineSignature=b64   The base 64 of the offline signature.
+                                      Length as inferred from the destination
+                                      signing public key type
 
 
 
@@ -1575,8 +1578,8 @@ New options interpreted client-side:
                             SessionConfig, to declare intent and check support.
 
   i2cp.leaseSetEncType=nnn[,nnn]  The encryption types to be used.
-                                  Interpreted client-side, but also passed to the router in the
-                                  SessionConfig, to declare intent and check support.
+                                  Interpreted client-side, but also passed to the router in
+                                  the SessionConfig, to declare intent and check support.
                                   See proposals 144 and 145.
 
 
@@ -1653,7 +1656,8 @@ Format
              Type 5 is a encrypted LS2
              Type 7 is a meta LS2
   LeaseSet: type specified above
-  Encryption Private Keys: For each public key in the lease set, in the same order
+  Encryption Private Keys: For each public key in the lease set,
+                           in the same order
                            (Not present for Meta LS2)
                            - Encryption type (2 bytes, big endian)
                            - Encryption key length (2 bytes, big endian)
@@ -1752,13 +1756,17 @@ Changes
       Bit 0: 1 for offline keys, 0 if not
       Bits 15-1: Unused, set to 0 for compatibility with future uses
   11. If offline keys, the transient key sig type (2 bytes, big endian)
-  12. If offline keys, the transient public key (length as implied by sig type)
-  13. If LeaseSet type is Meta (7), the number of meta entries to follow (1 byte)
-  14. If LeaseSet type is Meta (7), the Meta Entries. Each entry contains: (40 bytes)
+  12. If offline keys, the transient public key
+      (length as implied by sig type)
+  13. If LeaseSet type is Meta (7), the number of
+      meta entries to follow (1 byte)
+  14. If LeaseSet type is Meta (7), the Meta Entries.
+      Each entry contains: (40 bytes)
       - Hash (32 bytes)
       - Flags (3 bytes)
         TBD. Set all to zero for compatibility with future uses.
-        TODO: Use a few bits to (optionally) indicate the type of the LS it is referencing.
+        TODO: Use a few bits to (optionally) indicate
+        the type of the LS it is referencing.
         All zeros means don't know.
       - Cost (priority) (1 byte)
       - Expires (4 bytes, big endian, seconds since epoch, rolls over in 2106)
