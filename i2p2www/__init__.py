@@ -7,7 +7,7 @@ except ImportError:
 try:
     from flask.ext.cache import Cache
 except ImportError:
-    from flask_cache import Cache
+    from flask_caching import Cache
 from docutils.core import publish_parts
 import os.path
 import os
@@ -23,7 +23,7 @@ except ImportError:
 # Constants
 
 CURRENT_I2P_VERSION = '0.9.38'
-CURRENT_I2P_FIREFOX_PROFILE_VERSION = '0.02a'
+CURRENT_I2P_FIREFOX_PROFILE_VERSION = '0.01a'
 
 CANONICAL_DOMAIN = 'geti2p.net'
 
