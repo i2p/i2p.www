@@ -291,11 +291,8 @@ Those are other data blocks used in the current NTCP2 implementation:
 {%- endtrans %}
 
 {% trans -%}
-- RouterInfo  — usually contains Bob's RouterInfo after the connection has been 
-established, but it can also contain RouterInfo of a random node for the purpose 
-of speeding up floodfills (there is a flags field for that case). 
-- Termination  — is used when a host explicitly terminates a connection and 
-specifies a reason for that.
+- RouterInfo  — usually contains Bob's RouterInfo after the connection has been established, but it can also contain RouterInfo of a random node for the purpose of speeding up floodfills (there is a flags field for that case). 
+- Termination  — is used when a host explicitly terminates a connection and specifies a reason for that.
 - DateTime — a current time in seconds.
 
 {%- endtrans %}
