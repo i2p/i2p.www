@@ -26,8 +26,11 @@ New versions of I2P Android and Bote have been released! They can be downloaded
 from these URLs:
 {%- endtrans %}
 
-* `I2P Android 0.9.17`_
-* `Bote 0.3`_
+* `I2P Android 0.9.17`__
+* `Bote 0.3`__
+
+__ {{ get_url('downloads_list') }}#android
+__ https://download.i2p.io/android/bote/releases/0.3/Bote.apk
 
 {% trans -%}
 The main change in these releases is the transition to Android's new Material
@@ -39,7 +42,7 @@ improvements; for example, you can now add new email destinations via QR codes.
 {%- endtrans %}
 
 {% trans -%}
-As I mentioned in `my last update`_, the release key that signs the apps has
+As I mentioned in `my last update`__, the release key that signs the apps has
 changed. The reason for this was because we needed to change the package name
 of I2P Android. The old package name (``net.i2p.android.router``) had already
 been taken on Google Play (we still don't know who was using it), and we wanted
@@ -51,6 +54,8 @@ its package name changes, so we took the opportunity to increase the strength of
 the signing key.
 {%- endtrans %}
 
+__ {{ url_for('blog_post', slug='2014/08/23/Android-test-release-on-Google-Play-in-Norway') }}
+
 {% trans -%}
 The fingerprint (SHA-256) of the new signing key is:
 {%- endtrans %}
@@ -59,9 +64,6 @@ The fingerprint (SHA-256) of the new signing key is:
 
     AD 1E 11 C2 58 46 3E 68 15 A9 86 09 FF 24 A4 8B C0 25 86 C2 36 00 84 9C 16 66 53 97 2F 39 7A 90
 
-.. _`I2P Android 0.9.17`: {{ get_url('downloads_list') }}#android
-.. _`Bote 0.3`: https://download.i2p.io/android/bote/releases/0.3/Bote.apk
-.. _{% trans %}`my last update`{% endtrans %}: {{ url_for('blog_post', slug='2014/08/23/Android-test-release-on-Google-Play-in-Norway') }}
 
 {% trans -%}
 Google Play
@@ -69,14 +71,20 @@ Google Play
 {%- endtrans %}
 
 {% trans -%}
-A few months ago we `released`_ both I2P Android and Bote on Google Play in
+A few months ago we `released`__ both I2P Android and Bote on Google Play in
 Norway, to test the release process there. We are pleased to announce that both
-apps are now being released globally by `Privacy Solutions`_. The apps can be
+apps are now being released globally by `Privacy Solutions`__. The apps can be
 found at these URLs:
 {%- endtrans %}
 
-* `I2P on Google Play`_
-* `Bote on Google Play`_
+__ {{ url_for('blog_post', slug='2014/08/23/Android-test-release-on-Google-Play-in-Norway') }}
+__ https://privacysolutions.no/
+
+* `I2P on Google Play`__
+* `Bote on Google Play`__
+
+__ https://play.google.com/store/apps/details?id=net.i2p.android
+__ https://play.google.com/store/apps/details?id=i2p.bote.android
 
 {% trans -%}
 The global release is being done in several stages, starting with the countries
@@ -86,10 +94,6 @@ apps on Google Play France. This is the same issue that has affected other apps
 like TextSecure and Orbot.
 {%- endtrans %}
 
-.. _{% trans %}`released`{% endtrans %}: {{ url_for('blog_post', slug='2014/08/23/Android-test-release-on-Google-Play-in-Norway') }}
-.. _`Privacy Solutions`: https://privacysolutions.no/
-.. _{% trans %}`I2P on Google Play`{% endtrans %}: https://play.google.com/store/apps/details?id=net.i2p.android
-.. _{% trans %}`Bote on Google Play`{% endtrans %}: https://play.google.com/store/apps/details?id=i2p.bote.android
 
 {% trans -%}
 F-Droid
@@ -99,10 +103,12 @@ F-Droid
 {% trans -%}
 Don't think we have forgotten about you, F-Droid users! In addition to the two
 locations above, we have set up our own F-Droid repository. If you are reading
-this post on your phone, `click here`_ to add it to F-Droid (this only works in
+this post on your phone, `click here`__ to add it to F-Droid (this only works in
 some Android browsers). Or, you can manually add the URL below to your F-Droid
 repository list:
 {%- endtrans %}
+
+__ https://f-droid.i2p.io/repo?fingerprint=68E76561AAF3F53DD53BA7C03D795213D0CA1772C3FAC0159B50A5AA85C45DC6
 
 https://f-droid.i2p.io/repo
 
@@ -126,4 +132,3 @@ provided on our website and on Google Play, so in future you will be able to
 upgrade using any of these sources.
 {%- endtrans %}
 
-.. _{% trans %}`click here`{% endtrans %}: https://f-droid.i2p.io/repo?fingerprint=68E76561AAF3F53DD53BA7C03D795213D0CA1772C3FAC0159B50A5AA85C45DC6
