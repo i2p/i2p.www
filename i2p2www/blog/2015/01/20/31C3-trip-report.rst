@@ -3,6 +3,7 @@
 31C3 trip report
 ================
 {%- endtrans %}
+
 .. meta::
    :author: zzz
    :date: 2015-01-20
@@ -176,86 +177,86 @@ I2P project topics
 
 {% trans -%}
 * *Spending money:* We discussed several ways to effectively use our resources
-  in 2015, including more hardware for testing and development. Also, we plan to
-  increase reimbursement levels for conference attendees.
+in 2015, including more hardware for testing and development. Also, we plan to
+increase reimbursement levels for conference attendees.
 {%- endtrans %}
 
 {% trans -%}
 * *Toronto meetup:* CCC is such a productive time for us, and it seems that a
-  second meetup in the year would be quite helpful. We have proposed it for
-  August 2015 in Toronto, Canada, in conjunction with `Toronto Crypto`_. It
-  would include developer meetings together with presentations and tutorials,
-  all open to the public. We are attempting to gauge interest and research
-  possible venues. If you are considering attending, please let us know by
-  `tweeting @i2p`_ or posting `on the dev forum thread`_. 
+second meetup in the year would be quite helpful. We have proposed it for
+August 2015 in Toronto, Canada, in conjunction with `Toronto Crypto`_. It
+would include developer meetings together with presentations and tutorials,
+all open to the public. We are attempting to gauge interest and research
+possible venues. If you are considering attending, please let us know by
+`tweeting @i2p`_ or posting `on the dev forum thread`_. 
 {%- endtrans %}
 
 {% trans -%}
 * We discussed Meeh's workload and the state of the various services he is
-  running. We made some plans to reduce his load and have some other people help
-  out.
+running. We made some plans to reduce his load and have some other people help
+out.
 {%- endtrans %}
 
 {% trans -%}
 * We reviewed our critieria for placing links to `i2pd`_ on our download page.
-  We agreed that the only remaining item is to have a nice page on the
-  `Privacy Solutions web site`_ or elsewhere with binary packages for Windows,
-  Linux, and Mac, and source packages. It's not clear who is responsible for
-  building the packages and where the "official" version is. Once there's an
-  established process for building and signing packages and an official place to
-  put them, we're ready to link to it. If it is not feasible to host it on the
-  Privacy Solutions website, we will discuss alternatives with orignal,
-  including possible migration to our download servers.
+We agreed that the only remaining item is to have a nice page on the
+`Privacy Solutions web site`_ or elsewhere with binary packages for Windows,
+Linux, and Mac, and source packages. It's not clear who is responsible for
+building the packages and where the "official" version is. Once there's an
+established process for building and signing packages and an official place to
+put them, we're ready to link to it. If it is not feasible to host it on the
+Privacy Solutions website, we will discuss alternatives with orignal,
+including possible migration to our download servers.
 {%- endtrans %}
 
 {% trans -%}
 * Lots of people coming by the table asked if we had a non-Java version. It was
-  great to finally answer "yes" and we're eager to get the word out and get more
-  users, testers, and developers on it.
+great to finally answer "yes" and we're eager to get the word out and get more
+users, testers, and developers on it.
 {%- endtrans %}
 
 {% trans -%}
 * `Vuze`_ continues to make good progress on their I2P integration. We look
-  forward to working with them in the new year on a managed rollout to more
-  users.
+forward to working with them in the new year on a managed rollout to more
+users.
 {%- endtrans %}
 
 {% trans -%}
 * We discussed the state of Meeh's and Sindu's reseed servers. They made several
-  improvements while at the congress and are investigating migration to
-  `Matt Drollette's Go implementation`_. The security and reliability of our
-  reseed servers is vital to new users and network operation. `User 'backup'`_
-  is doing a great job monitoring and managing the pool of reseed servers.
+improvements while at the congress and are investigating migration to
+`Matt Drollette's Go implementation`_. The security and reliability of our
+reseed servers is vital to new users and network operation. `User 'backup'`_
+is doing a great job monitoring and managing the pool of reseed servers.
 {%- endtrans %}
 
 {% trans -%}
 * We agreed to purchase a second root server for development, testing, and
-  services. Echelon will be adminstering it. Contact him if you would like a VM.
+services. Echelon will be adminstering it. Contact him if you would like a VM.
 {%- endtrans %}
 
 {% trans -%}
 * We reiterated that we have funds available to purchase test hardware,
-  especially for Windows and Mac. Talk to echelon for details.
+especially for Windows and Mac. Talk to echelon for details.
 {%- endtrans %}
 
 {% trans -%}
 * We met with Welterde about the state of his services including his
-  `open tracker`_. These services are not being adequately maintained and will
-  soon become inaccessible due to crypto changes if they are not upgraded. He
-  committed to upgrading them soon.
+`open tracker`_. These services are not being adequately maintained and will
+soon become inaccessible due to crypto changes if they are not upgraded. He
+committed to upgrading them soon.
 {%- endtrans %}
 
 {% trans -%}
 * We met lots of people interested in our `Android app`_. We passed several
-  ideas and bug reports back to str4d. We plan to make a big push to give the
-  app some development love early in the year.
+ideas and bug reports back to str4d. We plan to make a big push to give the
+app some development love early in the year.
 {%- endtrans %}
 
 {% trans -%}
 * Regrettably, we didn't get to see too many talks at the Congress, as we were
-  so busy meeting with people. We plan to catch up and `watch them online`_. As
-  usual, Tor's "State of the Onion" talk was excellent, and Jacob's talk was
-  great. We hear that the cryptography talks were good as well.
+so busy meeting with people. We plan to catch up and `watch them online`_. As
+usual, Tor's "State of the Onion" talk was excellent, and Jacob's talk was
+great. We hear that the cryptography talks were good as well.
 {%- endtrans %}
 
 .. _{{ _('`Toronto Crypto`') }}: https://torontocrypto.org/

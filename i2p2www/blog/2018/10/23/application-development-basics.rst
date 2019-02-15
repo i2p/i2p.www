@@ -3,6 +3,7 @@
 Developing privacy-aware applications with Python and I2P
 =========================================================
 {%- endtrans %}
+
 .. meta::
     :author: villain
     :date: 2018-10-23

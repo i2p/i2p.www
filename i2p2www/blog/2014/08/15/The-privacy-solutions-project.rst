@@ -3,13 +3,12 @@
 The birth of Privacy Solutions
 ==============================
 {%- endtrans %}
+
 .. meta::
    :author: Meeh
    :date: 2014-08-15
    :category: news
    :excerpt: {% trans %}Organization launch{% endtrans %}
-
-
 
 {% trans -%}
 Hello all!

@@ -3,6 +3,7 @@
 Android test release on Google Play in Norway
 =============================================
 {%- endtrans %}
+
 .. meta::
    :author: str4d
    :date: 2014-08-23

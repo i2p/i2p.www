@@ -3,6 +3,7 @@
 Syndie 1.105b Release
 =====================
 {%- endtrans %}
+
 .. meta::
    :date: 2014-01-21
    :category: release

@@ -4,6 +4,7 @@ High-level Roadmap for 2018
 ===========================
 {%- endtrans %}
 .. meta::
+
     :author: str4d
     :date: 2018-02-11
     :category: roadmap
@@ -31,6 +32,7 @@ that this needs to be our top priority for 2018. The core components are:
 - New onion-encryption protocol for building and using tunnels.
 - New NetDB datatypes to enable enhanced Destinations. See Prop123_.
 - Upgraded end-to-end protocol (replacing ElGamal).
+
 {%- endtrans %}
 
 .. _Prop111: {{ proposal_url('111') }}
@@ -42,6 +44,7 @@ Work on this priority falls into several areas:
 - Writing proposals.
 - Writing working implementations of them that we can test.
 - Reviewing proposals.
+
 {%- endtrans %}
 
 {% trans -%}
@@ -67,6 +70,7 @@ get a "force multiplier" effect:
 
 - Work we do can be leveraged by other communities, increasing their interest in
   collaborating with us, and thinking about I2P as a whole.
+
 {%- endtrans %}
 
 {% trans -%}
@@ -101,6 +105,7 @@ The two priorities in this area are:
 
 - Set up mailing lists for review and discussion of proposals (possibly
   connected to the above forum).
+
 {%- endtrans %}
 
 {% trans -%}
@@ -112,6 +117,7 @@ Other goals which are classed as nice-to-have:
 
 - Write a "position paper" that accurately explains I2P to academic audiences,
   and puts it in context with existing literature.
+
 {%- endtrans %}
 
 {% trans -%}
@@ -155,6 +161,7 @@ Java router would be beneficial for several reasons:
 
 - It would enable third parties to create "I2P bundles" containing just the
   applications they want.
+
 {%- endtrans %}
 
 {% trans -%}
