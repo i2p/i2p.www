@@ -18,13 +18,13 @@ community members to pick a task and have fun with it!
 {%- endtrans %}
 
 {% trans -%}
-`Last year`_, we focused on helping users and developers leverage I2P, by
+`Last year`__, we focused on helping users and developers leverage I2P, by
 improving API tooling and giving some love to applications that run over I2P.
 This year, we want to improve the user experience by working on an aspect that
 affects everyone: performance.
 {%- endtrans %}
 
-.. _{{ _('`Last year`') }}: {{ get_url('blog_post', slug='2016/06/01/I2P-Summer-Dev') }}
+__ {{ get_url('blog_post', slug='2016/06/01/I2P-Summer-Dev') }}
 
 {% trans -%}
 Despite onion-routing networks often being called "low-latency" networks, there
