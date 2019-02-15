@@ -47,13 +47,13 @@ Cost
 {%- endtrans %}
 
 {% trans -%}
-I2PCon is entirely free to attend! We ask you to register `here`_, to give us
+I2PCon is entirely free to attend! We ask you to register `here`__, to give us
 an estimate of how many people will be attending. No identifying information has
 to be given in order to register, but if you have any concerns, please let us
 know.
 {%- endtrans %}
 
-.. _{{ _('`here`') }}: http://www.eventbrite.ca/e/i2p-meetup-tickets-17773984466
+__ http://www.eventbrite.ca/e/i2p-meetup-tickets-17773984466
 
 {% trans -%}
 Location
