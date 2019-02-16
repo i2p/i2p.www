@@ -1,14 +1,14 @@
+==============
 {% trans -%}
-==============
 Toronto Meetup
-==============
 {%- endtrans %}
+==============
 
 .. meta::
    :author: hottuna
    :date: 2015-06-02
    :category: meetup
-   :excerpt: {% trans %}I2P Meetup in Toronto on August 15-16.{% endtrans %}
+   :excerpt: {% trans %}I2P Meetup in Toronto on August 15-16{% endtrans %}
 
 {% trans -%}
 The I2P team is proud to announce that we are going to host a meetup in Toronto on August 15-16.
@@ -34,13 +34,14 @@ If you have any questions, feel free to contact us on `@geti2p`_.
 
 {% trans -%}
 Details
-=======
 {%- endtrans %}
+=======
+
 
 {% trans -%}
 Location
---------
 {%- endtrans %}
+--------
 
 {% trans -%}
 `Hacklab <https://hacklab.to/>`_ at 1266 Queen Street West, Toronto.
@@ -48,8 +49,8 @@ Location
 
 {% trans -%}
 Day 1, August 15 - 3PM
-----------------------
 {%- endtrans %}
+----------------------
 
 {% trans -%}
 The focus will be on an introduction to topics surrounding I2P, privacy and anonymity online. People of all backgrounds and knowledge levels are welcome to attend.
@@ -79,8 +80,8 @@ We're currently looking for help staffing the stations. If you want to help out,
 
 {% trans -%}
 Day 2, August 16 - 1PM
-----------------------
 {%- endtrans %}
+----------------------
 
 {% trans -%}
 The focus will be on in-depth topics surrounding I2P, the roadmap and development. Anyone is welcome to attend, but the content will be somewhat technical.
