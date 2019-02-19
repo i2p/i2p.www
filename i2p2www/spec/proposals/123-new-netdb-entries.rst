@@ -5,7 +5,7 @@ New netDB Entries
     :author: zzz, str4d, orignal
     :created: 2016-01-16
     :thread: http://zzz.i2p/topics/2051
-    :lastupdated: 2019-02-11
+    :lastupdated: 2019-02-19
     :status: Open
     :supercedes: 110, 120, 121, 122
 
@@ -801,9 +801,13 @@ The secret alpha and the blinded keys are calculated as follows:
 GENERATE_ALPHA(destination, date, secret), for all parties:
   // secret is optional, else zero-length
   datestring = 8 bytes ASCII YYYYMMDD from the current date UTC
-  alpha = HKDF(SHA256(destination), datestring || secret, "i2pblinding1", 32)
-  TODO: Clamp as in Ed25519? or mod l? Distribution of alpha not same as
-  private keys? Which keys - blinded or unblinded?
+  seed = HKDF(SHA256(destination), datestring || secret, "i2pblinding1", 64)
+  // treat seed as a 64 byte little-endian value
+  alpha = seed mod l
+
+  // TODO: Distribution of alpha is the same as the blinded private keys,
+  // but not the unblinded private keys.
+  // TODO: Do we want to use SHA256(sigtype||pubkey) instead?
 
   // BLIND_PRIVKEY(), for the owner publishing the leaseset:
   alpha = GENERATE_ALPHA(destination, date, secret)
