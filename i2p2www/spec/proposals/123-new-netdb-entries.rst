@@ -5,7 +5,7 @@ New netDB Entries
     :author: zzz, str4d, orignal
     :created: 2016-01-16
     :thread: http://zzz.i2p/topics/2051
-    :lastupdated: 2019-02-19
+    :lastupdated: 2019-02-20
     :status: Open
     :supercedes: 110, 120, 121, 122
 
@@ -573,6 +573,7 @@ Type
 
 Blinded Public Key Sig Type
     2 bytes, big endian
+    This will always be type 11, identifying a RedDSA blinded key.
 
 Blinded Public Key
     Length as implied by sig type
@@ -742,9 +743,6 @@ Issues
 - How to do this with offline/transient keys?
   The blinded key would be generated from the transient key, but those fetching
   the leaseset don't know the transient key, because it's in the leaseset.
-- Do we need to use sig type 11 for RedDSA, or use type 7 for it?
-- Is RedDSA really compatible with Ed25519? Is T the only change?
-- Should we call it Red25519?
 
 
 Definitions
@@ -840,25 +838,40 @@ and verified with the unblinded Ed25519 signing public key (sig type 7) as usual
 If the signing public key is offline,
 the unblinded leaseset is signed by the unblinded transient Ed25519 signing private key
 and verified with the unblinded Ed25519 transient signing public key (sig type 7) as usual.
+FIXME this won't work.
 
 For signing of the encrypted leaseset, we use RedDSA [ZCASH]_
 to sign and verify with blinded keys.
 The RedDSA signatures are over the Ed25519 curve, using SHA-512 for the hash.
 
-RedDSA is the same as standard Ed25519 except for the addition of 
-an 80-byte random byte sequence T that is included in the signature calculation.
-This is compatible with standard Ed25519.
+RedDSA is similar to standard Ed25519 except as specified below.
 
 
 Sign/Verify Calculations
 ~~~~~~~~~~~~~~~~~~~~~~~~
+
+The outer portion of the encrypted leaseset uses RedDSA keys and signatures.
+
+RedDSA is similar to Ed25519. There are two differences:
+
+RedDSA private keys are generated from random numbers and then must be reduced mod l, where l is defined above.
+Ed25519 private keys are generated from random numbers and then "clamped" using
+bitwise masking to bytes 0 and 31. This is not done for RedDSA.
+The functions GENERATE_ALPHA() and BLIND_PRIVKEY() defined above generate proper
+RedDSA private keys using mod l.
+
+In RedDSA, the calculation of r for signing uses additional random data,
+and uses the public key value rather than the hash of the private key.
+Because of the random data, every RedDSA signature is different, even
+when signing the same data with the same key.
+
 
 .. raw:: html
 
   {% highlight lang='text' %}
 Signing:
   T = 80 random bytes
-  r = H*(T || a || message)
+  r = H*(T || publickey || message)
   (rest is the same as in Ed25519)
 
   Verification:
@@ -1163,8 +1176,6 @@ Downsides of PSK client authorization
 Issues
 ``````
 
-- Use AES instead of ChaCha20?
-
 - If we care about speed, we could use keyed-BLAKE2b instead. It has an output
   size large enough to accommodate the largest n we require (or we can call it once per
   desired key with a counter argument). BLAKE2b is much faster than SHA-256, and
@@ -1185,7 +1196,9 @@ Notes
 - After decryption, several checks should be made, including that
   the inner timestamp and expiration match those at the top level.
 
-
+- ChaCha20 was selected over AES. While the speeds are similar if AES
+  hardware support is available, ChaCha20 is 2.5-3x faster when
+  AES hardware support is not available, such as on lower-end ARM devices.
 
 
 Meta LS2
