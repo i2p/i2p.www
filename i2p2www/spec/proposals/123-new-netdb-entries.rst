@@ -5,7 +5,7 @@ New netDB Entries
     :author: zzz, str4d, orignal
     :created: 2016-01-16
     :thread: http://zzz.i2p/topics/2051
-    :lastupdated: 2019-02-20
+    :lastupdated: 2019-02-21
     :status: Open
     :supercedes: 110, 120, 121, 122
 
@@ -493,7 +493,7 @@ STREAM
 
 
 SIG
-    The Ed25519 signature scheme (corresponding to SigType 7) with key-blinding.
+    The RedDSA signature scheme (corresponding to SigType 11) with key blinding.
     It has the following functions:
 
     DERIVE_PUBLIC(privkey)
@@ -727,7 +727,9 @@ may be off the prime-order subgroup, with unknown security implications.
 Goals
 ~~~~~
 
-- Signing public key in unblinded destination must be Ed25519 (sig type 7); no other sig types are supported
+- Signing public key in unblinded destination must be
+  Ed25519 (sig type 7) or RedDSA (sig type 11);
+  no other sig types are supported
 - If the signing public key is offline, the transient signing public key must also be Ed25519
 - Blinding is computationally simple
 - Use existing cryptographic primitives
@@ -743,6 +745,15 @@ Issues
 - How to do this with offline/transient keys?
   The blinded key would be generated from the transient key, but those fetching
   the leaseset don't know the transient key, because it's in the leaseset.
+- Distribution of alpha is the same as the blinded private keys,
+  but not the unblinded private keys for sig type 7.
+  To meet the requirements of zcash section 4.1.6.1,
+  sig type 11 should be used for the unblinded keys as well, so that
+  "the combination of a re-randomized public key and signature(s)
+  under that key do not reveal the key from which it was re-randomized."
+  We should allow type 7 for existing destinations, but recommend
+  type 11 for new destinations that will be encrypted.
+
 
 
 Definitions
@@ -766,10 +777,10 @@ GENERATE_ALPHA(destination, date, secret)
     The result must be identically distributed as Ed25519 private keys.
 
 a
-    The unblinded 32-byte EdDSA signing private key used to sign the destination
+    The unblinded 32-byte EdDSA or RedDSA signing private key used to sign the destination
 
 A
-    The unblinded 32-byte EdDSA signing public key in the destination,
+    The unblinded 32-byte EdDSA or RedDSA signing public key in the destination,
     = DERIVE_PUBLIC(a), as in Ed25519
 
 a'
@@ -803,8 +814,6 @@ GENERATE_ALPHA(destination, date, secret), for all parties:
   // treat seed as a 64 byte little-endian value
   alpha = seed mod l
 
-  // TODO: Distribution of alpha is the same as the blinded private keys,
-  // but not the unblinded private keys.
   // TODO: Do we want to use SHA256(sigtype||pubkey) instead?
 
   // BLIND_PRIVKEY(), for the owner publishing the leaseset:
@@ -832,12 +841,12 @@ Issues
 Signing
 ~~~~~~~
 
-The unblinded leaseset is signed by the unblinded Ed25519 signing private key
-and verified with the unblinded Ed25519 signing public key (sig type 7) as usual.
+The unblinded leaseset is signed by the unblinded Ed25519 or RedDSA signing private key
+and verified with the unblinded Ed25519 or RedDSA signing public key (sig types 7 or 11) as usual.
 
 If the signing public key is offline,
-the unblinded leaseset is signed by the unblinded transient Ed25519 signing private key
-and verified with the unblinded Ed25519 transient signing public key (sig type 7) as usual.
+the unblinded leaseset is signed by the unblinded transient Ed25519 or RedDSA signing private key
+and verified with the unblinded Ed25519 or RedDSA transient signing public key (sig types 7 or 11) as usual.
 FIXME this won't work.
 
 For signing of the encrypted leaseset, we use RedDSA [ZCASH]_
