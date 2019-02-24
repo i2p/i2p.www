@@ -1,0 +1,464 @@
+=========================
+Red25519 signature scheme
+=========================
+.. meta::
+    :author: str4d
+    :created: 2019-02-21
+    :thread: #ls2
+    :lastupdated: 2019-02-24
+    :status: Open
+
+.. contents::
+
+
+Overview
+========
+
+This proposal outlines a re-randomizable signature scheme suitable for creating
+Destinations that can be blinded. It additionally can be used to blind existing Ed25519
+Destinations, with a slight reduction in efficacy.
+
+
+Motivation
+==========
+
+[Prop123]_ defines an encrypted LeaseSet2 format that embodies the Principle of Least
+Authority: each network participant is given only the information necessary for their
+role. In particular, an encrypted LeaseSet2 published to a floodfill does not reveal the
+Destination it is for, and the Leases can only be viewed by someone with prior knowledge
+of the Destination. However, floodfills still need to be able to authenticate the
+encrypted LeaseSet2s when they are published, and clients need to additionally ensure
+that the authentication was enforced by the Destination itself.
+
+Prop123 achieves this by blinding the signing keys of Destinations. The blinded keys can
+be used to create signatures that are verifiable by floodfills, and clients can be
+certain that only the Destination could have created the signatures. It is therefore
+necessary to specify a signature scheme that can be used for blinding.
+
+
+Design
+======
+
+Core signature scheme
+---------------------
+
+The signature scheme described in this proposal, Red25519, is an instantiation of
+[RedDSA]_, a Schnorr-based signature scheme that supports key re-randomization. It has
+the following functions:
+
+GENERATE_PRIVATE()
+    Returns a uniformly-random private key.
+
+DERIVE_PUBLIC(sk)
+    Returns the public key corresponding to the given private key.
+
+GENERATE_RANDOM()
+    Returns a random scalar suitable for re-randomizing a keypair.
+
+RANDOMIZE_PRIVATE(sk, alpha)
+    Re-randomizes a private key, using a secret scalar alpha.
+
+RANDOMIZE_PUBLIC(vk, alpha)
+    Re-randomizes a public key, using a secret scalar alpha.
+
+SIGN(sk, m)
+    Returns a signature by the private key sk over the given message m.
+
+VERIFY(vk, m, sig)
+    Verifies the signature sig against the public key vk and message m. Returns true if
+    the signature is valid, false otherwise.
+
+For a given keypair (sk, vk) the following relationship holds:
+
+.. raw:: html
+
+  {% highlight lang='text' %}
+RANDOMIZE_PUBLIC(vk, alpha) == DERIVE_PUBLIC(RANDOMIZE_PRIVATE(sk, alpha))
+{% endhighlight %}
+
+
+Converting Ed25519 keys to Red25519
+-----------------------------------
+
+Ed25519 keys MAY be transiently one-way converted to Red25519 keys, in order to support
+re-randomization of existing Ed25519 Destinations. Other sigtypes are not compatible.
+
+We define the following conversion functions:
+
+CONVERT_ED25519_PRIVATE(privkey)
+    Returns the Red25519 private key corresponding to the given Ed25519 private key.
+
+CONVERT_ED25519_PUBLIC(pubkey)
+    Returns the Red25519 public key corresponding to the given Ed25519 public key.
+
+For a given Ed25519 keypair (privkey, pubkey) the following relationship holds:
+
+.. raw:: html
+
+  {% highlight lang='text' %}
+CONVERT_ED25519_PUBLIC(pubkey) == DERIVE_PUBLIC(CONVERT_ED25519_PRIVATE(privkey))
+{% endhighlight %}
+
+
+Specification
+=============
+
+Definitions
+-----------
+
+B
+    The Ed25519 basepoint as in [RFC-8032]_.
+
+L
+    The Ed25519 order 2^252 + 27742317777372353535851937790883648493 as in [RFC-8032]_.
+
+[s] B
+    Fixed-base scalar multiplication of the basepoint by s.
+
+[s] A
+    Variable-base scalar multiplication of A by s.
+
+x || y
+    Concatenate two byte arrays x and y.
+
+
+Red25519
+--------
+
+The scheme Red25519 specializes RedDSA with:
+
+- G := the group of points on the Edwards form of Curve25519. In particular, this means
+  that Red25519 uses the prime-order subgroup of order L, and the cofactor h_G is 8.
+- P_G := the Ed25519 basepoint B.
+- l_H := 512
+- H(x) := SHA-512("I2P_Red25519H(x)" || x)
+
+RedDSA assumes that H(x) is instantiated with a cryptographic hash function that is
+secure against length extension attacks. SHA-512 does not satisfy this on its own. To
+remedy this, we require that messages are prefixed with a prefix-free encoding of their
+length:
+
+.. raw:: html
+
+  {% highlight lang='text' %}
+len_u16(M) || M
+{% endhighlight %}
+
+where ``len_u16(M)`` is the 2-byte representation of the length of M, in little-endian
+(to be consistent with the little-endian encoding of scalars and points).
+
+Messages must be no longer than 65534 bytes. A length of 65535 is reserved for possible
+future extensions.
+
+
+Encoding and decoding
+---------------------
+
+Red25519 private keys are scalars mod L, encoded in little-endian representation. We
+define the functions ``DECODE_SCALAR`` and ``ENCODE_SCALAR`` for swapping between the
+byte array and integer forms of a scalar.
+
+Red25519 public keys are points on the Edwards form of Curve25519. They are encoded as
+the 255-bit little-endian representation of the y-coordinate, followed by a single bit
+indicating the sign of the x-coordinate. This is the same encoding as for Ed25519. We
+define the functions ``DECODE_POINT`` and ``ENCODE_POINT`` for swapping between the
+bye array and coordinate forms of a point.
+
+
+RedDSA functions
+----------------
+
+For ease of implementation, we explicitly write out below the RedDSA functions (as well
+as several helper functions) already specialized for Red25519. Implementors should refer
+to section 5.4.6 of [RedDSA]_ for the general specification of the RedDSA functions.
+
+.. raw:: html
+
+  {% highlight lang='text' %}
+HStar(prefix1, prefix2, m) :=
+      h = SHA-512()
+      h.input("I2P_Red25519H(x)")
+      h.input(prefix1)
+      h.input(prefix2)
+
+      h.input(len(m) & 0xff)
+      h.input((len(m) >> 8) & 0xff)
+      h.input(m)
+
+      s = h.digest()
+      return s mod L
+
+  GENERATE_PRIVATE :=
+      s = 64 random bytes
+      return s mod L
+
+  DERIVE_PUBLIC(sk) := [sk] B
+
+  GENERATE_RANDOM :=
+      s = 64 random bytes
+      return s mod L
+
+  RANDOMIZE_PRIVATE(sk, alpha) := (sk + alpha) mod L
+
+  RANDOMIZE_PUBLIC(vk, alpha) := vk + [alpha] B
+
+  SIGN(sk, m) :=
+      T = 80 random bytes
+      vkBytes = ENCODE_POINT(DERIVE_PUBLIC(sk))
+      r = HStar(T, vkBytes, m)
+
+      R = [r] B
+      Rbytes = ENCODE_POINT(R)
+
+      c = HStar(Rbytes, vkBytes, m)
+      S = (r + (c * sk)) mod L
+
+      return Rbytes || ENCODE_SCALAR(S)
+
+  VERIFY(vk, m, sig) :=
+      Rbytes = sig[0..32]
+      Sbytes = sig[32..64]
+
+      R = DECODE_POINT(Rbytes)
+      if R is invalid:
+          return false
+
+      S = DECODE_SCALAR(Sbytes)
+      if S >= L:
+          return false
+
+      vkBytes = ENCODE_POINT(vk)
+      c = HStar(Rbytes, vkBytes, m)
+      return ((-[S] B) + R + ([c] vk)).multiplyByCofactor().isIdentity()
+{% endhighlight %}
+
+
+Conversion functions
+--------------------
+
+.. raw:: html
+
+  {% highlight lang='text' %}
+CONVERT_ED25519_PRIVATE(privkey) :=
+      s = SHA-512(privkey)[0..32]
+      s[0] = s[0] & 248
+      s[31] = (s[31] & 63) | 64
+      return s
+
+  CONVERT_ED25519_PUBLIC(pubkey) := pubkey
+{% endhighlight %}
+
+Note that the implementation of ``CONVERT_ED25519_PRIVATE`` is equivalent to the
+computation of the secret scalar s when deriving an Ed25519 public key from an Ed25519
+private key, as specified in in steps 1-3 from section 5.1.5 of [RFC-8032]_.
+
+
+Security implications
+=====================
+
+Re-randomizing a Red25519 Destination and then creating signatures with it does not leak
+any information about the Destination, because the distribution of Red25519 private keys
+generated via ``RANDOMIZE_PRIVATE`` is identical to the distribution of private keys
+generated via ``GENERATE_PRIVATE``, and ``DERIVE_PUBLIC`` is deterministic.
+
+Converting Ed25519 private keys to Red25519 via ``CONVERT_ED25519_PRIVATE`` does not
+result in the same distribution. However, we consider the reduction in security
+acceptable for the following reasons:
+
+- The space of Ed25519 scalars is roughly half the size of the space of Red25519 scalars
+  (there are 2^251 possible Ed25519 scalars, and L ~= 2^252 possible Red25519 scalars).
+  Thus the security loss is at most a factor of roughly 2, or roughly 1 bit (because we
+  could have coincidentally chosen a Red25519 scalar that is also a valid Ed25519 scalar).
+
+- Existing Ed25519 Destinations have already been historically exposed on the network,
+  and it should be assumed that malicious floodfills have already enumerated them.
+
+Users who are concerned about this security reduction should use Red25519 as the sigtype
+for their Destinations instead of Ed25519.
+
+Note that the above argument does not apply to the re-randomization scalar alpha;
+information about the key is leaked each time a biased alpha is chosen, because additive
+re-randomization behaves like a one-time pad.
+
+
+Compatibility
+=============
+
+I2P versions that support Red25519 will be able to verify network datastructures that
+are signed with it. I2P versions that do not support Red25519 will treat it as an
+unknown signature, and MAY drop the datastructures. Users should expect the reliability
+of Red25519-signed datastructures to be poor until sufficient deployment of Red25519 has
+been reached.
+
+
+Test vectors
+============
+
+.. raw:: html
+
+  {% highlight lang='text' %}
+Legend:
+    edsk:  Ed25519 private key (random)
+    edpk:  Ed25519 public key corresponding to edsk
+    sk:    CONVERT_ED25519_PRIVATE(edsk)
+    vk:    CONVERT_ED25519_PUBLIC(edpk)
+    msg:
+    sig:   SIGN(sk, msg)
+    alpha: GENERATE_RANDOM()
+    rsk:   RANDOMIZE_PRIVATE(sk, alpha)
+    rvk:   RANDOMIZE_PUBLIC(vk, alpha)
+    rsig:  SIGN(rsk, msg)
+
+  Test vector 1
+    edsk:  0101010101010101010101010101010101010101010101010101010101010101
+    edpk:  8a88e3dd7409f195fd52db2d3cba5d72ca6709bf1d94121bf3748801b40f6f5c
+    sk:    58e86efb75fa4e2c410f46e16de9f6acae1a1703528651b69bc176c088bef36e
+    vk:    8a88e3dd7409f195fd52db2d3cba5d72ca6709bf1d94121bf3748801b40f6f5c
+    msg:   0202020202020202020202020202020202020202020202020202020202020202
+    sig:   61f5527f4d3b46de4b2c234390370bf715ae9098907a0d191ba1b44b23a8ac1a
+           6a40437a5294e9503faaf9bd2b7f2fe7ba44dec487b3185aba7ff7d7a17cd40f
+    alpha: ae9ba9cbbc047c442448fca7c9f4e288a202ed520bfad0c784b792b7773cee08
+    rsk:   8bb85f3c7a494a08890d7d142109c1a3501d04565d80227e2079097800fbe107
+    rvk:   6fe128737b8e76fa66698a748b0dc0a89168dd8a0601c2b1c0b26835d323e9b3
+    rsig:  533053074d3b44f08723aab988ede9880a001b7a684d4a98f2d1b88fabee07a5
+           b5c9430c69a690321e0cb8365d7aeb6688bcbad2c0780e0c69e8a1b4a45f3001
+
+  Test vector 2
+    edsk:  0202020202020202020202020202020202020202020202020202020202020202
+    edpk:  8139770ea87d175f56a35466c34c7ecccb8d8a91b4ee37a25df60f5b8fc9b394
+    sk:    a83c626bc9c38c8c201878ebb1d5b0b50ac40e8986c78793db1d4ef369fca14e
+    vk:    8139770ea87d175f56a35466c34c7ecccb8d8a91b4ee37a25df60f5b8fc9b394
+    msg:   0303030303030303030303030303030303030303030303030303030303030303
+    sig:   0829e58eb5399870f009bd1f0270264e556424bda7a93fbcec99f6d9d75db46d
+           5c3cb546d9947ca7c1200876c8775a90c357a2aef3d2f16388242ee1914b1a0a
+    alpha: 98b615d9027e996cc2796c019d9c8beb46aa7d2b6eea2e5d98eb29eb1584c203
+    rsk:   9fcfaa734852ca40b3810ebef590e138516e8cb4f4b1b6f0730978de7f806402
+    rvk:   527e121090158419609e4a0d8de6f7d3271b353a8cd0b8172fe41468ea1e9177
+    rsig:  9a6961f35ed264a946cd6214b2326a6e6caa426c2a61bc14367fd278e0b5fb51
+           3ac065a69210a457f17d12ba8a496cfd835002691affa8efcdecae48135c090f
+
+  Test vector 3
+    edsk:  0303030303030303030303030303030303030303030303030303030303030303
+    edpk:  ed4928c628d1c2c6eae90338905995612959273a5c63f93636c14614ac8737d1
+    sk:    98aebbb178a551876bfaf8e1e530dac6aaf6c2ea1c8f8406a3ab37dfb40fbc65
+    vk:    ed4928c628d1c2c6eae90338905995612959273a5c63f93636c14614ac8737d1
+    msg:   0404040404040404040404040404040404040404040404040404040404040404
+    sig:   ef5fd1488048fb0247e5883bd90f7b2ce1ffe9b143a5bf6156b76ac2c39d8fdb
+           d0730d7111d9cec69a808f3d18268a91f035b41b82c1fe06f394a615f93a8709
+    alpha: ba17f5110fcea8a12e0bd3677e4088b874332c4e3e6c9911d9ec3fe0233d3e0a
+    rsk:   c4ceed95e9208c189458fe772c9628021f2aef385bfb1d187c9877bfd84cfa0f
+    rvk:   6e2b9b129bbe00fa964c996d40307dd01aff120e94fd15f17119341ecda3d7a0
+    rsig:  900ecc6306f895a8ccde97d3624799fd939062a87b69e09351903ba83ceeab2b
+           ef6e3c15e5d8400ed9151f7dce14bf4cfc7ce3f4399e22455fc18a68ed931c03
+
+  Test vector 4
+    edsk:  0404040404040404040404040404040404040404040404040404040404040404
+    edpk:  ca93ac1705187071d67b83c7ff0efe8108e8ec4530575d7726879333dbdabe7c
+    sk:    483e3c145d7e680a16676925fc045183d2f510cb2f660a1fc517c73762185d43
+    vk:    ca93ac1705187071d67b83c7ff0efe8108e8ec4530575d7726879333dbdabe7c
+    msg:   0505050505050505050505050505050505050505050505050505050505050505
+    sig:   d76b8133e08e4ff58de6b7f2df95c84a8bb968addd1d1ff585d79a90f5cfe11f
+           9aa21d0277908aecae3853ee44493f95f2445df2da712f28eea435044e6fed03
+    alpha: 9a14f2755512a72a3a5a514379f3458c3f912fc5eba8711b0cf2bfda49c79104
+    rsk:   2e0357164904c6d4f64ddcdcfa101bbc118740901b0f7c3ad1098712acdfee07
+    rvk:   de0a291ee45634de9a051c9373b9378ffbe45a8532067a9a93a86b837c762908
+    rsig:  010dcc6a44e942a6f7d52704d957ad66a5c6452ad9b9442cc8ef724e41d6c3ce
+           a24eace9b22e0f9d2b9ade14c61bded33286e7e6340faaa0167a9f1f90001503
+
+  Test vector 5
+    edsk:  0505050505050505050505050505050505050505050505050505050505050505
+    edpk:  6e7a1cdd29b0b78fd13af4c5598feff4ef2a97166e3ca6f2e4fbfccd80505bf1
+    sk:    48370d6146de919cc1ce472897775d9a6c2834c509e08e14efcb2b52188f946e
+    vk:    6e7a1cdd29b0b78fd13af4c5598feff4ef2a97166e3ca6f2e4fbfccd80505bf1
+    msg:   0606060606060606060606060606060606060606060606060606060606060606
+    sig:   2c56c96801f99ae1f5e8d8edc87725e08aaf7fc77071f222f7c46084b41c5b41
+           de1ee3df97217865633f7cceb11cedc3a637ce047d2111cb6f372882e2d6b20b
+    alpha: 687944d00a53ca02a0787da2acb8f99994ea7453c8d140d93efbc2b70d852a07
+    rsk:   35e598a6987bdb3685fdff552d5b3ea20013a918d2b1cfed2dc7ee092614bf05
+    rvk:   9951414e4f29408031f212edc6c9cfe36550b4ce2aa968db49de6c93ca9d565b
+    rsig:  4b8f3e3baa8b4fdb99b0053036d569352e49c98c61800288f676aed77b9929b3
+           f3278565d824c5566666d2c9ff789207098d5f9d09dd89aa4945ca3866831e02
+
+  Test vector 6
+    edsk:  0606060606060606060606060606060606060606060606060606060606060606
+    edpk:  8a875fff1eb38451577acd5afee405456568dd7c89e090863a0557bc7af49f17
+    sk:    a83f248f80ff04de20a82fe12bd3551887168e372d239932ce812d0992d34078
+    vk:    8a875fff1eb38451577acd5afee405456568dd7c89e090863a0557bc7af49f17
+    msg:   0707070707070707070707070707070707070707070707070707070707070707
+    sig:   f4a00093daa26b48465e07ee5697ba44191fb5673b6ab71a31d2349a18aecbd6
+           c4801be60ebf18cd7ce8ec5fe0988fc4762908095063b55068ce4c7578c91504
+    alpha: 0158cda553d7e9769829a5d36d2b7ce05e9171d8d058a8630d31029001ffd409
+    rsk:   41f8424d01be5b9406eb179da42fda51e5a7ff0ffe7b4196dbb22f9993d21502
+    rvk:   cef5dc9b4a246025df56fb118e34c3f06d6213c4c6ab8a1d4297eb7845cb2824
+    rsig:  de23eec573f35ebf7ea9539b511ca5129213821525190fdf1c186c2788c1abb3
+           5bd40937defbc4112225d399a79a171cf02c3eebbd6340bbdca7383906af1902
+
+  Test vector 7
+    edsk:  0707070707070707070707070707070707070707070707070707070707070707
+    edpk:  ea4a6c63e29c520abef5507b132ec5f9954776aebebe7b92421eea691446d22c
+    sk:    28ad39fefd7fa3e200a9c626eef599e61a2d055c48a8288a4e7e4c4bca392878
+    vk:    ea4a6c63e29c520abef5507b132ec5f9954776aebebe7b92421eea691446d22c
+    msg:   0808080808080808080808080808080808080808080808080808080808080808
+    sig:   e78bf2d340d9ae0af5dd81e4d58801b3872189a71573a12be343ed39cebab56a
+           6bc1f01872bbb1d16b2be4a943a9ba90fb7a4c97c3e5f20416890ceedf6e7e0c
+    alpha: 8e16161802e3c87857ae725dfa28d6222b326907f652e6c89f806882c0fb1a00
+    rsk:   3bf8968b47adebf27b0d740fd2495777455f6e633efb0e53eefeb4cd8a354308
+    rvk:   755a8f05633c45d0fac471a386776f63a7d28bc8d80e326ddde5484b20565e89
+    rsig:  6efdca4ba705bc05d4564f0ca626646679ac1cb2c3093618e95238ebd1c7aa09
+           632ccefc324594447a01074bb473c3ce94ccaae86e18f8f43477326a12ae6207
+
+  Test vector 8
+    edsk:  0808080808080808080808080808080808080808080808080808080808080808
+    edpk:  1398f62c6d1a457c51ba6a4b5f3dbd2f69fca93216218dc8997e416bd17d93ca
+    sk:    3826c9c31226edde9501fd2589203cb3e6fe737876a845512b53ada2fa2ace74
+    vk:    1398f62c6d1a457c51ba6a4b5f3dbd2f69fca93216218dc8997e416bd17d93ca
+    msg:   0909090909090909090909090909090909090909090909090909090909090909
+    sig:   1ed88a926dd80999d3a40efd3b74fa731729e28bb84e0430663822a69f9f4bcc
+           fd2bd0aa7325d9887eac76ddf08da65c42eedaaec244c3241307570910778f05
+    alpha: c4cc56d9c3e787ca60a54dfca65b4556f2dccabcac97e7a975e4efa1acb8920e
+    rsk:   945371b503f5e1e843c08d0a3bad8962d8db3e3523402dfba0379d44a7e36003
+    rvk:   db1730a0730ca0746a73f1880660ea5ea42f9d931760f3cdedc9cbe1c1d1b8d9
+    rsig:  db60c64b61e888696ca0a7ef7adb92b784e0e6070d0435818e99788022db8e83
+           81ddcc1e27f044b8c3c75044e715d870f3273a7f9cf85f1a59f4a7c95fded408
+
+  Test vector 9
+    edsk:  0909090909090909090909090909090909090909090909090909090909090909
+    edpk:  fd1724385aa0c75b64fb78cd602fa1d991fdebf76b13c58ed702eac835e9f618
+    sk:    388fe3ab30c0aabf54acd276f3d8bbbc2b7ca4a9495d204f255bacf578c74c46
+    vk:    fd1724385aa0c75b64fb78cd602fa1d991fdebf76b13c58ed702eac835e9f618
+    msg:   0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a
+    sig:   dd5a8c6ed9331c074ea11f65b9290900931bdf01a47f01adc75583d2a3dcfc10
+           b65c77a3e992678865e7dc713295749b4dddd33fa167b96c6d6904818e4d6806
+    alpha: b851f206eba78325ed5231cad059e8bd8a1e3d7f1e391058b3d9ab08d096cb03
+    rsk:   3c91fe3eb2dbe484e88b25b5494b2827b69ae128689630a7d83458fe485e180a
+    rvk:   601ab762eea5cd89ff34e0f661d1ca3932ba166ca67154b2e62afb85282dda81
+    rsig:  5a453378fdbb22b8f037ad61d144ce006201fea0c2c1472d463617c432786dfc
+           47430d27649817a7fc26296c94bf922f3863867c648ddd6709710bfa199aee02
+
+  Test vector 10
+    edsk:  0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a
+    edpk:  43a72e714401762df66b68c26dfbdf2682aaec9f2474eca4613e424a0fbafd3c
+    sk:    0099bf92c41b5d3d309c3b074756e9707e40a9bcea229857f7cf551e8bb0fd45
+    vk:    43a72e714401762df66b68c26dfbdf2682aaec9f2474eca4613e424a0fbafd3c
+    msg:   0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b
+    sig:   c54d64d550f7690ffdd108efc49f1c25a54282825e10328630710924b354cb4c
+           138a523b1ada66a8fdc8b7efcae939fd54b05552c30ca280d23199c391c5b707
+    alpha: 5eebb60818299d581fa68f5fcae4c2bb398a7e10876e27994d93d555075e7d05
+    rsk:   aa349f2773b8b035f6ceecda965330d9b7ca27cd7191bff044632b74920e7b0b
+    rvk:   d0c5fe8f83fd42202265efff804a1527c0eb0e1cce9781cf14571cd506eeed36
+    rsig:  28e96b6d4251b356e635e382ed89a37e7650d3035f98909e09a6cbe82c13e418
+           fddb2106b7b527e198039da7221dae1a0227f0a4ab88f06567e8fd9238acc106
+{% endhighlight %}
+
+
+References
+==========
+
+.. [Prop123]
+   {{ proposal_url('123') }}
+
+.. [RedDSA]
+   https://github.com/zcash/zips/tree/master/protocol/protocol.pdf
+
+.. [RFC-8032]
+   https://tools.ietf.org/html/rfc8032
