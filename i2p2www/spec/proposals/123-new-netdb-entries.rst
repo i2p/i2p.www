@@ -5,7 +5,7 @@ New netDB Entries
     :author: zzz, str4d, orignal
     :created: 2016-01-16
     :thread: http://zzz.i2p/topics/2051
-    :lastupdated: 2019-02-21
+    :lastupdated: 2019-02-27
     :status: Open
     :supercedes: 110, 120, 121, 122
 
@@ -542,8 +542,8 @@ HKDF(salt, ikm, info, n)
     of length 32 bytes, and a context-specific 'info' value, and produces an output
     of n bytes suitable for use as key material.
 
-    Use HKDF as specified in [RFC-5869]_, using the hash function SHA-256.
-    This means that SALT_LEN is 32 bytes max.
+    Use HKDF as specified in [RFC-5869]_, using the HMAC hash function SHA-256
+    as specified in [RFC-2104]_. This means that SALT_LEN is 32 bytes max.
 
 
 Format
@@ -960,7 +960,7 @@ The salt is parsed from the layer 1 ciphertext:
 .. raw:: html
 
   {% highlight lang='text' %}
-outerSalt = outerCiphertext[32:end]
+outerSalt = outerCiphertext[0:31]
 {% endhighlight %}
 
 Then the key used to encrypt layer 1 is derived:
@@ -2040,6 +2040,9 @@ References
 .. [PRNG-REFS]
     http://projectbullrun.org/dual-ec/ext-rand.html
     https://lists.torproject.org/pipermail/tor-dev/2015-November/009954.html
+
+.. [RFC-2104]
+    https://tools.ietf.org/html/rfc2104
 
 .. [RFC-4880-S5.1]
     https://tools.ietf.org/html/rfc4880#section-5.1
