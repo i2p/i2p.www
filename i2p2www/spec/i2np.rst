@@ -3,8 +3,8 @@ I2NP Specification
 ==================
 .. meta::
     :category: Protocols
-    :lastupdated: January 2019
-    :accuratefor: 0.9.38
+    :lastupdated: February 2019
+    :accuratefor: 0.9.39
 
 .. contents::
 
@@ -580,7 +580,7 @@ An unsolicited database store, or the response to a successful DatabaseLookup_ M
 
 Contents
 ````````
-An uncompressed LeaseSet or a compressed RouterInfo
+An uncompressed LeaseSet, LeaseSet2, MetaLeaseSet, or EncryptedLeaseset, or a compressed RouterInfo
 
 .. raw:: html
 

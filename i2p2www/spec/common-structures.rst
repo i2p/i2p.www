@@ -1391,20 +1391,16 @@ Description
 Contained in a I2NP DatabaseStore message of type 5.
 Supported as of 0.9.38; see proposal 123 for more information.
 
-Contains all of the currently authorized MetaLease_ for a particular Destination_,
-the PublicKey_ to which garlic messages can be encrypted, and then the
-SigningPublicKey_ that can be used to revoke this particular version of the
-structure. The LeaseSet is one of the two structures stored in the network
-database (the other being RouterInfo_), and is keyed under the SHA256 of the
-contained Destination_.
-
+Only the blinded key and expiration are visible in cleartext.
+The actual lease set is encrypted.
 
 Contents
 ````````
-LeaseSet2Header_, followed by a options,
-Integer_ specifying how many Lease2_ structures are in the set, followed by the
-actual Lease2_ structures and finally a Signature_ of the previous bytes signed
-by the Destination_'s SigningPrivateKey_ or the transient key.
+A two byte signature type, the blinded SigningPrivateKey_,
+published time, expiration, and flags.
+Then, a two byte length followed by encrypted data.
+Finally, a Signature_ of the previous bytes signed
+by the blinded SigningPrivateKey_ or the transient key.
 
 .. raw:: html
 
@@ -1475,8 +1471,8 @@ by the Destination_'s SigningPrivateKey_ or the transient key.
                     length -> len bytes
 
   signature :: `Signature`
-               length -> 40 bytes or as specified in destination's key
-                         certificate, or by the sigtype of the transient public key,
+               length -> As specified by the sigtype of the blinded pubic key,
+                         or by the sigtype of the transient public key,
                          if present in the header
 
 {% endhighlight %}
@@ -1497,8 +1493,11 @@ Notes
 
 * This structure does not use the LeaseSet2Header_.
 
-* Maximum actual expires time is TBD, may be about 11 minutes, unless
-  we will support encrypted MetaLeaseSet_.
+* Maximum actual expires time is about 11 minutes, unless
+  it is an encrypted MetaLeaseSet_.
+
+* TODO probably don't want the offline block in cleartext;
+  may not be able to make offline signatures work with encrypted leasesets at all.
 
 JavaDoc: http://{{ i2pconv('echelon.i2p/javadoc') }}/net/i2p/data/EncryptedLeaseSet.html
 
