@@ -17,13 +17,13 @@ to speed on the progress we are making!
 {%- endtrans %}
 
 {% trans %}
-But first, a big thank you to `Elio Qoshi`_ and `ura`_ for designing us the
+But first, a big thank you to `Elio Qoshi`__ and `ura`__ for designing us the
 fantastic logo you see above. It adds a cheerful personality to our development
 program (and is going to look great on t-shirts).
 {%- endtrans %}
 
-.. _`Elio Qoshi`: http://elioqoshi.me
-.. _`ura`: http://ura.al
+__ http://elioqoshi.me
+__ http://ura.al
 
 {% trans -%}
 APIs month
@@ -41,9 +41,12 @@ Java / Android
 --------------
 
 {% trans -%}
-The I2P client libraries are now available on `Maven Central`_! See our
-`previous blog post`_ for full details.
+The I2P client libraries are now available on `Maven Central`__ ! See our
+`previous blog post`__ for full details.
 {% endtrans %}
+
+__ http://search.maven.org/#search%7Cga%7C1%7Cg%3A"net.i2p"%20OR%20g%3A"net.i2p.client"
+__ {{ url_for('blog_post', slug='2016/06/13/I2P-on-Maven-Central') }}
 
 {% trans -%}
 This should make it much simpler for Java developers to use I2P in their
@@ -53,14 +56,12 @@ similarly be much easier.
 {%- endtrans %}
 
 {% trans -%}
-The `I2P Android client library`_ has also been updated to use the new I2P
+The `I2P Android client library`__ has also been updated to use the new I2P
 libraries. This means that cross-platform applications can work natively with
 either I2P Android or desktop I2P.
 {%- endtrans %}
 
-.. _`Maven Central`: http://search.maven.org/#search%7Cga%7C1%7Cg%3A"net.i2p"%20OR%20g%3A"net.i2p.client"
-.. _{% trans %}`previous blog post`{% endtrans %}: {{ url_for('blog_post', slug='2016/06/13/I2P-on-Maven-Central') }}
-.. _{% trans %}`I2P Android client library`{% endtrans %}: http://search.maven.org/#artifactdetails%7Cnet.i2p.android%7Cclient%7C0.8%7Caar
+__ http://search.maven.org/#artifactdetails%7Cnet.i2p.android%7Cclient%7C0.8%7Caar
 
 Python
 ------
@@ -68,37 +69,37 @@ Python
 txi2p
 `````
 {% trans -%}
-The `Twisted`_ plugin ``txi2p`` now supports in-I2P ports, and will work
-seamlessly over local, remote, and port-forwarded `SAM APIs`_. See its
-`documentation`_ for usage instructions, and report any issues on `GitHub`_.
+The `Twisted`__ plugin ``txi2p`` now supports in-I2P ports, and will work
+seamlessly over local, remote, and port-forwarded `SAM APIs`__. See its
+`documentation`__ for usage instructions, and report any issues on `GitHub`__.
 {%- endtrans %}
+
+__ https://twistedmatrix.com
+__ {{ site_url('docs/api/samv3') }}
+__ https://github.com/str4d/txi2p
+__ https://txi2p.readthedocs.io
 
 i2psocket
 `````````
 {% trans -%}
 The first (beta) version of ``i2psocket`` has been released! This is a direct
 replacement for the standard Python ``socket`` library that extends it with I2P
-support over the `SAM API`_. See its `GitHub page`_ for usage instructions, and
+support over the SAM API. See its `GitHub page`__ for usage instructions, and
 to report any issues.
 {%- endtrans %}
 
-.. _`Twisted`: https://twistedmatrix.com
-.. _`SAM APIs`:
-.. _`SAM API`: {{ site_url('docs/api/samv3') }}
-.. _{% trans %}`documentation`{% endtrans %}: https://txi2p.readthedocs.io
-.. _`GitHub`: https://github.com/str4d/txi2p
-.. _{% trans %}`GitHub page`{% endtrans %}: https://github.com/majestrate/i2p.socket
+__ https://github.com/majestrate/i2p.socket
 
 {% trans -%}
 Other progress
 --------------
 {%- endtrans %}
 
-- {% trans %}zzz has been hard at work on Syndie, getting a headstart on Plugins month. You can follow his progress on `the development forum thread`_.{% endtrans %}
+- {% trans %}zzz has been hard at work on Syndie, getting a headstart on Plugins month. You can follow his progress on `the development forum thread`__.{% endtrans %}
 
 - {% trans %}psi has been creating an I2P test network using i2pd, and in the process has found and fixed several i2pd bugs that will improve its compatibility with Java I2P.{% endtrans %}
 
-.. _{% trans %}`the development forum thread`{% endtrans %}: http://zzz.i2p/topics/2064-syndie-release-july-2016
+__ http://zzz.i2p/topics/2064-syndie-release-july-2016
 
 {% trans -%}
 Coming up: Apps month!
@@ -106,8 +107,8 @@ Coming up: Apps month!
 {%- endtrans %}
 
 {% trans -%}
-We are excited to be working with `Tahoe-LAFS`_ in July! I2P has for a long time
-been home to one of the `largest public grids`_, using a patched version of
+We are excited to be working with `Tahoe-LAFS`__ in July! I2P has for a long time
+been home to one of the `largest public grids`__, using a patched version of
 Tahoe-LAFS. During Apps month we will be helping them with their ongoing work to
 add native support for I2P and Tor, so that I2P users can benefit from all of
 the improvements upstream.
@@ -118,8 +119,8 @@ There are several other projects that we will be talking with about their plans
 for I2P integration, and helping with design. Stay tuned!
 {%- endtrans %}
 
-.. _`Tahoe-LAFS`: https://tahoe-lafs.org
-.. _{% trans %}`largest public grids`{% endtrans %}: https://tahoe-lafs.org/pipermail/tahoe-lafs-weekly-news/2015-December/000056.html
+__ https://tahoe-lafs.org
+__ https://tahoe-lafs.org/pipermail/tahoe-lafs-weekly-news/2015-December/000056.html
 
 
 {% trans -%}

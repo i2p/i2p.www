@@ -38,27 +38,27 @@ thank you both.
 
 {% trans -%}
 Details
-=======
 {%- endtrans %}
+=======
 
 {% trans -%}
 Cost
-----
 {%- endtrans %}
+----
 
 {% trans -%}
-I2PCon is entirely free to attend! We ask you to register `here`_, to give us
+I2PCon is entirely free to attend! We ask you to register `here`__, to give us
 an estimate of how many people will be attending. No identifying information has
 to be given in order to register, but if you have any concerns, please let us
 know.
 {%- endtrans %}
 
-.. _{{ _('`here`') }}: http://www.eventbrite.ca/e/i2p-meetup-tickets-17773984466
+__ http://www.eventbrite.ca/e/i2p-meetup-tickets-17773984466
 
 {% trans -%}
 Location
---------
 {%- endtrans %}
+--------
 
 {% trans -%}
 `Hacklab`_ at 1266 Queen Street West, Unit #6, Toronto.
@@ -66,8 +66,8 @@ Location
 
 {% trans -%}
 Venue
------
 {%- endtrans %}
+-----
 
 {% trans -%}
 Power and WiFi access will be provided by `Hacklab`_.
@@ -76,13 +76,13 @@ Power and WiFi access will be provided by `Hacklab`_.
 
 {% trans -%}
 Schedule
-========
 {%- endtrans %}
+========
 
 {% trans -%}
 Day 1, August 15
-----------------
 {%- endtrans %}
+----------------
 
 ======  =============  =======
  Time      Speaker      Title
@@ -98,8 +98,8 @@ Day 1, August 15
 
 {% trans -%}
 Day 2, August 16
-----------------
 {%- endtrans %}
+----------------
 
 =======  ===========  =================================================
  Time      Speaker                          Title
@@ -121,8 +121,8 @@ Day 2, August 16
 
 {% trans -%}
 I'm confused and would like some answers
-========================================
 {%- endtrans %}
+========================================
 
 {% trans -%}
 If you have any questions, feel free to contact us on `@geti2p`_.

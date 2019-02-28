@@ -30,17 +30,22 @@ more feedback than we have ever had).
 
 {% trans -%}
 Simultaneously we are making the first public release of Bote, an Android port
-of `I2P-Bote`_. Bote is private, distributed, secure email, made easy. It runs
+of `I2P-Bote`__. Bote is private, distributed, secure email, made easy. It runs
 on top of the I2P network, and while it works as a standalone app, it will use
 the I2P Android app by default if installed. As with I2P Android, we are
 initially only releasing Bote to Android users in Norway.
 {%- endtrans %}
 
+__ http://{{ i2pconv('i2pbote.i2p') }}/
+
 {% trans -%}
-The apps are being released on Google Play by `The Privacy Solutions Project`_.
-See their `blog post`_ for further information, and links to the Google Play
+The apps are being released on Google Play by `The Privacy Solutions Project`__.
+See their `blog post`__ for further information, and links to the Google Play
 page for Norway users.
 {%- endtrans %}
+
+__ https://privacysolutions.no/
+__ https://blog.privacysolutions.no/2014/08/23/i2p-on-google-play-in-norway/
 
 {% trans -%}
 As lead developer for I2P Android and Bote, I look forward to your comments. You
@@ -48,9 +53,6 @@ are the people who will be using them, and your perspectives will help me craft
 simple, intuitive apps that make privacy accessible to everyone.
 {%- endtrans %}
 
-.. _`I2P-Bote`: http://{{ i2pconv('i2pbote.i2p') }}/
-.. _{% trans %}`The Privacy Solutions Project`{% endtrans %}: https://privacysolutions.no/
-.. _{% trans %}`blog post`{% endtrans %}: https://blog.privacysolutions.no/2014/08/23/i2p-on-google-play-in-norway/
 
 **{% trans %}Website release details{% endtrans %}**
 

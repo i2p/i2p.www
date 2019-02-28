@@ -65,20 +65,20 @@ Maven
     </dependency>
 
 {% trans -%}
-For other build systems, see the Maven Central pages for the `core`_ and
-`streaming`_ libraries.
+For other build systems, see the Maven Central pages for the `core`__ and
+`streaming`__ libraries.
 {%- endtrans %}
 
 {% trans -%}
-Android developers should use the `I2P Android client library`_, which contains
+Android developers should use the `I2P Android client library`__, which contains
 the same libraries along with Android-specific helpers. I'll be updating it soon
 to depend on the new I2P libraries, so that cross-platform applications can work
 natively with either I2P Android or desktop I2P.
 {%- endtrans %}
 
-.. _`core`: http://search.maven.org/#artifactdetails%7Cnet.i2p%7Ci2p%7C0.9.26%7Cjar
-.. _`streaming`: http://search.maven.org/#artifactdetails%7Cnet.i2p.client%7Cstreaming%7C0.9.26%7Cjar
-.. _{% trans %}`I2P Android client library`{% endtrans %}: http://search.maven.org/#artifactdetails%7Cnet.i2p.android%7Cclient%7C0.8%7Caar
+__ http://search.maven.org/#artifactdetails%7Cnet.i2p%7Ci2p%7C0.9.26%7Cjar
+__ http://search.maven.org/#artifactdetails%7Cnet.i2p.client%7Cstreaming%7C0.9.26%7Cjar
+__ http://search.maven.org/#artifactdetails%7Cnet.i2p.android%7Cclient%7C0.8%7Caar
 
 
 {% trans -%}
@@ -87,11 +87,11 @@ Get hacking!
 {%- endtrans %}
 
 {% trans -%}
-See our `application development`_ guide for help getting started with these
+See our `application development`__ guide for help getting started with these
 libraries. You can also chat with us about them in #i2p-dev on IRC. And if you
 do start using them, let us know what you're working on with the hashtag
-`#I2PSummer`_ on Twitter!
+`#I2PSummer`__ on Twitter!
 {%- endtrans %}
 
-.. _{% trans %}application development{% endtrans %}: {{ site_url('get-involved/develop/applications') }}#start
-.. _`#I2PSummer`: https://twitter.com/hashtag/I2PSummer
+__ {{ site_url('get-involved/develop/applications') }}#start
+__ https://twitter.com/hashtag/I2PSummer

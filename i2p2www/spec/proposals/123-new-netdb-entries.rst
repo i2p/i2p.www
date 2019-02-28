@@ -5,7 +5,7 @@ New netDB Entries
     :author: zzz, str4d, orignal
     :created: 2016-01-16
     :thread: http://zzz.i2p/topics/2051
-    :lastupdated: 2019-02-11
+    :lastupdated: 2019-02-27
     :status: Open
     :supercedes: 110, 120, 121, 122
 
@@ -493,7 +493,7 @@ STREAM
 
 
 SIG
-    The Ed25519 signature scheme (corresponding to SigType 7) with key-blinding.
+    The RedDSA signature scheme (corresponding to SigType 11) with key blinding.
     It has the following functions:
 
     DERIVE_PUBLIC(privkey)
@@ -542,8 +542,8 @@ HKDF(salt, ikm, info, n)
     of length 32 bytes, and a context-specific 'info' value, and produces an output
     of n bytes suitable for use as key material.
 
-    Use HKDF as specified in [RFC-5869]_, using the hash function SHA-256.
-    This means that SALT_LEN is 32 bytes max.
+    Use HKDF as specified in [RFC-5869]_, using the HMAC hash function SHA-256
+    as specified in [RFC-2104]_. This means that SALT_LEN is 32 bytes max.
 
 
 Format
@@ -573,6 +573,7 @@ Type
 
 Blinded Public Key Sig Type
     2 bytes, big endian
+    This will always be type 11, identifying a RedDSA blinded key.
 
 Blinded Public Key
     Length as implied by sig type
@@ -726,7 +727,9 @@ may be off the prime-order subgroup, with unknown security implications.
 Goals
 ~~~~~
 
-- Signing public key in unblinded destination must be Ed25519 (sig type 7); no other sig types are supported
+- Signing public key in unblinded destination must be
+  Ed25519 (sig type 7) or RedDSA (sig type 11);
+  no other sig types are supported
 - If the signing public key is offline, the transient signing public key must also be Ed25519
 - Blinding is computationally simple
 - Use existing cryptographic primitives
@@ -742,9 +745,15 @@ Issues
 - How to do this with offline/transient keys?
   The blinded key would be generated from the transient key, but those fetching
   the leaseset don't know the transient key, because it's in the leaseset.
-- Do we need to use sig type 11 for RedDSA, or use type 7 for it?
-- Is RedDSA really compatible with Ed25519? Is T the only change?
-- Should we call it Red25519?
+- Distribution of alpha is the same as the blinded private keys,
+  but not the unblinded private keys for sig type 7.
+  To meet the requirements of zcash section 4.1.6.1,
+  sig type 11 should be used for the unblinded keys as well, so that
+  "the combination of a re-randomized public key and signature(s)
+  under that key do not reveal the key from which it was re-randomized."
+  We should allow type 7 for existing destinations, but recommend
+  type 11 for new destinations that will be encrypted.
+
 
 
 Definitions
@@ -768,10 +777,10 @@ GENERATE_ALPHA(destination, date, secret)
     The result must be identically distributed as Ed25519 private keys.
 
 a
-    The unblinded 32-byte EdDSA signing private key used to sign the destination
+    The unblinded 32-byte EdDSA or RedDSA signing private key used to sign the destination
 
 A
-    The unblinded 32-byte EdDSA signing public key in the destination,
+    The unblinded 32-byte EdDSA or RedDSA signing public key in the destination,
     = DERIVE_PUBLIC(a), as in Ed25519
 
 a'
@@ -801,9 +810,11 @@ The secret alpha and the blinded keys are calculated as follows:
 GENERATE_ALPHA(destination, date, secret), for all parties:
   // secret is optional, else zero-length
   datestring = 8 bytes ASCII YYYYMMDD from the current date UTC
-  alpha = HKDF(SHA256(destination), datestring || secret, "i2pblinding1", 32)
-  TODO: Clamp as in Ed25519? or mod l? Distribution of alpha not same as
-  private keys? Which keys - blinded or unblinded?
+  seed = HKDF(SHA256(destination), datestring || secret, "i2pblinding1", 64)
+  // treat seed as a 64 byte little-endian value
+  alpha = seed mod l
+
+  // TODO: Do we want to use SHA256(sigtype||pubkey) instead?
 
   // BLIND_PRIVKEY(), for the owner publishing the leaseset:
   alpha = GENERATE_ALPHA(destination, date, secret)
@@ -830,31 +841,46 @@ Issues
 Signing
 ~~~~~~~
 
-The unblinded leaseset is signed by the unblinded Ed25519 signing private key
-and verified with the unblinded Ed25519 signing public key (sig type 7) as usual.
+The unblinded leaseset is signed by the unblinded Ed25519 or RedDSA signing private key
+and verified with the unblinded Ed25519 or RedDSA signing public key (sig types 7 or 11) as usual.
 
 If the signing public key is offline,
-the unblinded leaseset is signed by the unblinded transient Ed25519 signing private key
-and verified with the unblinded Ed25519 transient signing public key (sig type 7) as usual.
+the unblinded leaseset is signed by the unblinded transient Ed25519 or RedDSA signing private key
+and verified with the unblinded Ed25519 or RedDSA transient signing public key (sig types 7 or 11) as usual.
+FIXME this won't work.
 
 For signing of the encrypted leaseset, we use RedDSA [ZCASH]_
 to sign and verify with blinded keys.
 The RedDSA signatures are over the Ed25519 curve, using SHA-512 for the hash.
 
-RedDSA is the same as standard Ed25519 except for the addition of 
-an 80-byte random byte sequence T that is included in the signature calculation.
-This is compatible with standard Ed25519.
+RedDSA is similar to standard Ed25519 except as specified below.
 
 
 Sign/Verify Calculations
 ~~~~~~~~~~~~~~~~~~~~~~~~
+
+The outer portion of the encrypted leaseset uses RedDSA keys and signatures.
+
+RedDSA is similar to Ed25519. There are two differences:
+
+RedDSA private keys are generated from random numbers and then must be reduced mod l, where l is defined above.
+Ed25519 private keys are generated from random numbers and then "clamped" using
+bitwise masking to bytes 0 and 31. This is not done for RedDSA.
+The functions GENERATE_ALPHA() and BLIND_PRIVKEY() defined above generate proper
+RedDSA private keys using mod l.
+
+In RedDSA, the calculation of r for signing uses additional random data,
+and uses the public key value rather than the hash of the private key.
+Because of the random data, every RedDSA signature is different, even
+when signing the same data with the same key.
+
 
 .. raw:: html
 
   {% highlight lang='text' %}
 Signing:
   T = 80 random bytes
-  r = H*(T || a || message)
+  r = H*(T || publickey || message)
   (rest is the same as in Ed25519)
 
   Verification:
@@ -934,7 +960,7 @@ The salt is parsed from the layer 1 ciphertext:
 .. raw:: html
 
   {% highlight lang='text' %}
-outerSalt = outerCiphertext[32:end]
+outerSalt = outerCiphertext[0:31]
 {% endhighlight %}
 
 Then the key used to encrypt layer 1 is derived:
@@ -1159,8 +1185,6 @@ Downsides of PSK client authorization
 Issues
 ``````
 
-- Use AES instead of ChaCha20?
-
 - If we care about speed, we could use keyed-BLAKE2b instead. It has an output
   size large enough to accommodate the largest n we require (or we can call it once per
   desired key with a counter argument). BLAKE2b is much faster than SHA-256, and
@@ -1181,7 +1205,9 @@ Notes
 - After decryption, several checks should be made, including that
   the inner timestamp and expiration match those at the top level.
 
-
+- ChaCha20 was selected over AES. While the speeds are similar if AES
+  hardware support is available, ChaCha20 is 2.5-3x faster when
+  AES hardware support is not available, such as on lower-end ARM devices.
 
 
 Meta LS2
@@ -2014,6 +2040,9 @@ References
 .. [PRNG-REFS]
     http://projectbullrun.org/dual-ec/ext-rand.html
     https://lists.torproject.org/pipermail/tor-dev/2015-November/009954.html
+
+.. [RFC-2104]
+    https://tools.ietf.org/html/rfc2104
 
 .. [RFC-4880-S5.1]
     https://tools.ietf.org/html/rfc4880#section-5.1
