@@ -5,7 +5,7 @@ New netDB Entries
     :author: zzz, str4d, orignal
     :created: 2016-01-16
     :thread: http://zzz.i2p/topics/2051
-    :lastupdated: 2019-02-27
+    :lastupdated: 2019-03-02
     :status: Open
     :supercedes: 110, 120, 121, 122
 
@@ -1682,6 +1682,7 @@ Format
              Type 5 is a encrypted LS2
              Type 7 is a meta LS2
   LeaseSet: type specified above
+  Number of private keys to follow (1 byte)
   Encryption Private Keys: For each public key in the lease set,
                            in the same order
                            (Not present for Meta LS2)
