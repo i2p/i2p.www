@@ -81,15 +81,15 @@ in `etc/translation.vars` can be overridden by creating the file
     $ mtn add -R i2p2www/translations/ && mtn ci i2p2www/translations/ -m "New translations"
     ```
 
-## Pushing updated translations to Transifex:
+## Pushing updated translation source (.pot) files to Transifex:
 
-1. Update the POT files with any changes to the website text:
+1. Update the .pot files with any changes to the website text:
 
     ```
     $ ./extract-messages.sh
     ```
 
-2. Check in any changes to the pots files:
+2. Check in any changes to the .pot files (optional):
 
     ```
     $ mtn ci pots/ -m "Updated translation strings"
