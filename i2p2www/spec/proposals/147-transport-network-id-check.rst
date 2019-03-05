@@ -1,11 +1,11 @@
-=========================
-Tranport Network ID Check
-=========================
+==========================
+Transport Network ID Check
+==========================
 .. meta::
     :author: zzz
     :created: 2019-02-28
-    :thread: http://zzz.i2p/topics/1577
-    :lastupdated: 2019-02-28
+    :thread: http://zzz.i2p/topics/2687
+    :lastupdated: 2019-03-05
     :status: Open
 
 .. contents::
