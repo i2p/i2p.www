@@ -809,7 +809,7 @@ GENERATE_ALPHA(destination, date, secret), for all parties:
   // secret is optional, else zero-length
   A = destination's signing public key
   stA = signature type of A, 2 bytes big endian (0x0007 or 0x000b)
-  stA' = signature type of A', 2 bytes big endian (0x000b)
+  stA' = signature type of blinded public key A', 2 bytes big endian (0x000b)
   keydata = A || stA || stA'
   datestring = 8 bytes ASCII YYYYMMDD from the current date UTC
   seed = HKDF(H("I2PGenerateAlpha", keydata), datestring || secret, "i2pblinding1", 64)
