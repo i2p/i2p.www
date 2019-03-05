@@ -304,7 +304,8 @@ Lookup with
 Store with
     Standard LS2 type (3)
 Store at
-    Hash of destination, with daily rotation, as for LS 1
+    Hash of destination
+    This hash is then used to generate the daily "routing key", as in LS1
 Typical expiration
     10 minutes, as in a regular LS.
 Published by
@@ -444,7 +445,9 @@ Lookup with
 Store with
     Encrypted LS2 type (5)
 Store at
-    Hash of blinded sig type and blinded public key, with daily rotation
+    Hash of blinded sig type and blinded public key
+    Two byte sig type (big endian, e.g. 0x000b) || blinded public key
+    This hash is then used to generate the daily "routing key", as in LS1
 Typical expiration
     10 minutes, as in a regular LS, or hours, as in a meta LS.
 Published by
@@ -819,14 +822,14 @@ GENERATE_ALPHA(destination, date, secret), for all parties:
   // BLIND_PRIVKEY(), for the owner publishing the leaseset:
   alpha = GENERATE_ALPHA(destination, date, secret)
   a = destination's signing private key
-  // Addition using group elements
+  // Addition using scalar arithmentic
   blinded signing private key = a' = BLIND_PRIVKEY(a, alpha) = (a + alpha) mod l
   blinded signing public key = A' = DERIVE_PUBLIC(a')
 
   // BLIND_PUBKEY(), for the clients retrieving the leaseset:
   alpha = GENERATE_ALPHA(destination, date, secret)
   A = destination's signing public key
-  // Addition using scalar arithmentic
+  // Addition using group elements (points on the curve)
   blinded public key = A' = BLIND_PUBKEY(A, alpha) = A + DERIVE_PUBLIC(alpha)
 
   //Both methods of calculating A' yield the same result, as required.
@@ -1318,7 +1321,8 @@ Lookup with
 Store with
     Meta LS2 type (7)
 Store at
-    Hash of destination, with daily rotation, as for LS 1
+    Hash of destination
+    This hash is then used to generate the daily "routing key", as in LS1
 Typical expiration
     Hours. Max 18.2 hours (65535 seconds)
 Published by
@@ -1383,7 +1387,8 @@ Lookup with
 Store with
     Service Record type (9)
 Store at
-    Hash of service name, with daily rotation
+    Hash of service name
+    This hash is then used to generate the daily "routing key", as in LS1
 Typical expiration
     Hours. Max 18.2 hours (65535 seconds)
 Published by
@@ -1447,7 +1452,8 @@ Lookup with
 Store with
     Service List type (11)
 Store at
-    Hash of service name, with daily rotation
+    Hash of service name
+    This hash is then used to generate the daily "routing key", as in LS1
 Typical expiration
     Hours, not specified in the list itself, up to local policy
 Published by
@@ -2051,8 +2057,8 @@ Publishing, Migration, Compatibility
 LS2 (other than encrypted LS2) is published at the same DHT location as LS1.
 There is no way to publish both a LS1 and LS2, unless LS2 were at a different location.
 
-Encrypted LS2 is published at the hash of the blinded key type and key data,
-with daily rotation as usual.
+Encrypted LS2 is published at the hash of the blinded key type and key data.
+This hash is then used to generate the daily "routing key", as in LS1.
 
 LS2 would only be used when new features are required
 (new crypto, encrypted LS, meta, etc.).
