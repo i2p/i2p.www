@@ -3,7 +3,7 @@ Common structures Specification
 ===============================
 .. meta::
     :category: Design
-    :lastupdated: February 2019
+    :lastupdated: March 2019
     :accuratefor: 0.9.39
 
 .. contents::
@@ -1272,7 +1272,8 @@ MetaLeaseSet
 Description
 ```````````
 Contained in a I2NP DatabaseStore message of type 7.
-Supported as of 0.9.38; see proposal 123 for more information.
+Defined as of 0.9.38; scheduled to be working as of 0.9.40;
+see proposal 123 for more information.
 
 Contains all of the currently authorized MetaLease_ for a particular Destination_,
 the PublicKey_ to which garlic messages can be encrypted, and then the
@@ -1389,7 +1390,8 @@ EncryptedLeaseSet
 Description
 ```````````
 Contained in a I2NP DatabaseStore message of type 5.
-Supported as of 0.9.38; see proposal 123 for more information.
+Defined as of 0.9.38; working as of 0.9.39;
+see proposal 123 for more information.
 
 Only the blinded key and expiration are visible in cleartext.
 The actual lease set is encrypted.
@@ -1489,15 +1491,17 @@ Notes
   destination, or the transient signing public key, if an offline signature
   is included in the leaseset2 header.
 
-* Blinding and encryption schemes are TBD; see proposal 123.
+* Blinding and encryption are specified in `EncryptedLeaseSet`_
 
 * This structure does not use the LeaseSet2Header_.
 
 * Maximum actual expires time is about 11 minutes, unless
   it is an encrypted MetaLeaseSet_.
 
-* TODO probably don't want the offline block in cleartext;
-  may not be able to make offline signatures work with encrypted leasesets at all.
+* See proposal 123 for notes on using offline signatures
+  with encrypted leasesets.
+
+.. _EncryptedLeaseSet: {{ site_url('docs/spec/encryptedleaseset') }}
 
 JavaDoc: http://{{ i2pconv('echelon.i2p/javadoc') }}/net/i2p/data/EncryptedLeaseSet.html
 
