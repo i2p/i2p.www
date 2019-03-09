@@ -5,7 +5,7 @@ New netDB Entries
     :author: zzz, str4d, orignal
     :created: 2016-01-16
     :thread: http://zzz.i2p/topics/2051
-    :lastupdated: 2019-02-27
+    :lastupdated: 2019-03-05
     :status: Open
     :supercedes: 110, 120, 121, 122
 
@@ -304,7 +304,8 @@ Lookup with
 Store with
     Standard LS2 type (3)
 Store at
-    Hash of destination, with daily rotation, as for LS 1
+    Hash of destination
+    This hash is then used to generate the daily "routing key", as in LS1
 Typical expiration
     10 minutes, as in a regular LS.
 Published by
@@ -432,10 +433,6 @@ Goals:
 Encrypted LS2 is never sent in an end-to-end garlic message.
 Use the standard LS2 as above.
 
-You can't use a b32 for an encrypted LS2, as you don't have the non-blinded public key.
-We need a new "b33" format, or use one of the four unused bits at the end of b32 to indicate it's blinded.
-You can't use an encrypted LS2 for bittorrent, because of compact announce replies.
-
 
 Changes from existing encrypted LeaseSet:
 
@@ -448,7 +445,9 @@ Lookup with
 Store with
     Encrypted LS2 type (5)
 Store at
-    Hash of blinded sig type and blinded public key, with daily rotation
+    Hash of blinded sig type and blinded public key
+    Two byte sig type (big endian, e.g. 0x000b) || blinded public key
+    This hash is then used to generate the daily "routing key", as in LS1
 Typical expiration
     10 minutes, as in a regular LS, or hours, as in a meta LS.
 Published by
@@ -735,24 +734,24 @@ Goals
 - Use existing cryptographic primitives
 - Blinded public keys cannot be unblinded
 - Blinded public keys must be on the Ed25519 curve and prime-order subgroup
-- Must know the full destination to derive the blinded public key
+- Must know the destination's signing public key
+  (full destination not required) to derive the blinded public key
 - Optionally provide for an additional secret required to derive the blinded public key
 
 
-Issues
-``````
+Security
+~~~~~~~~
 
-- How to do this with offline/transient keys?
-  The blinded key would be generated from the transient key, but those fetching
-  the leaseset don't know the transient key, because it's in the leaseset.
-- Distribution of alpha is the same as the blinded private keys,
-  but not the unblinded private keys for sig type 7.
-  To meet the requirements of zcash section 4.1.6.1,
-  sig type 11 should be used for the unblinded keys as well, so that
-  "the combination of a re-randomized public key and signature(s)
-  under that key do not reveal the key from which it was re-randomized."
-  We should allow type 7 for existing destinations, but recommend
-  type 11 for new destinations that will be encrypted.
+The security of a blinding scheme requires that the
+distribution of alpha is the same as the unblinded private keys.
+However, when we blind an Ed25519 private key (sig type 7)
+to a RedDSA private key (sig type 11), the distribution is different.
+To meet the requirements of zcash section 4.1.6.1 [ZCASH]_,
+RedDSA (sig type 11) should be used for the unblinded keys as well, so that
+"the combination of a re-randomized public key and signature(s)
+under that key do not reveal the key from which it was re-randomized."
+We allow type 7 for existing destinations, but recommend
+type 11 for new destinations that will be encrypted.
 
 
 
@@ -802,6 +801,8 @@ H*(x)
 Blinding Calculations
 ~~~~~~~~~~~~~~~~~~~~~
 
+A new secret alpha and blinded keys must be generated each day (UTC).
+
 The secret alpha and the blinded keys are calculated as follows:
 
 .. raw:: html
@@ -809,32 +810,30 @@ The secret alpha and the blinded keys are calculated as follows:
   {% highlight lang='text' %}
 GENERATE_ALPHA(destination, date, secret), for all parties:
   // secret is optional, else zero-length
+  A = destination's signing public key
+  stA = signature type of A, 2 bytes big endian (0x0007 or 0x000b)
+  stA' = signature type of blinded public key A', 2 bytes big endian (0x000b)
+  keydata = A || stA || stA'
   datestring = 8 bytes ASCII YYYYMMDD from the current date UTC
-  seed = HKDF(SHA256(destination), datestring || secret, "i2pblinding1", 64)
+  seed = HKDF(H("I2PGenerateAlpha", keydata), datestring || secret, "i2pblinding1", 64)
   // treat seed as a 64 byte little-endian value
   alpha = seed mod l
 
-  // TODO: Do we want to use SHA256(sigtype||pubkey) instead?
-
   // BLIND_PRIVKEY(), for the owner publishing the leaseset:
   alpha = GENERATE_ALPHA(destination, date, secret)
-  //Take the destination's signing private key a
-  // Addition using group elements
+  a = destination's signing private key
+  // Addition using scalar arithmentic
   blinded signing private key = a' = BLIND_PRIVKEY(a, alpha) = (a + alpha) mod l
   blinded signing public key = A' = DERIVE_PUBLIC(a')
 
   // BLIND_PUBKEY(), for the clients retrieving the leaseset:
   alpha = GENERATE_ALPHA(destination, date, secret)
-  // Take the destination's signing public key A
-  // Addition using scalar arithmentic
+  A = destination's signing public key
+  // Addition using group elements (points on the curve)
   blinded public key = A' = BLIND_PUBKEY(A, alpha) = A + DERIVE_PUBLIC(alpha)
 
   //Both methods of calculating A' yield the same result, as required.
 {% endhighlight %}
-
-Issues
-
-- Transient keys
 
 
 
@@ -847,7 +846,7 @@ and verified with the unblinded Ed25519 or RedDSA signing public key (sig types 
 If the signing public key is offline,
 the unblinded leaseset is signed by the unblinded transient Ed25519 or RedDSA signing private key
 and verified with the unblinded Ed25519 or RedDSA transient signing public key (sig types 7 or 11) as usual.
-FIXME this won't work.
+See below for additional notes on offline keys for encrytped leasesets.
 
 For signing of the encrypted leaseset, we use RedDSA [ZCASH]_
 to sign and verify with blinded keys.
@@ -894,13 +893,18 @@ Encryption and processing
 Derivation of subcredentials
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 As part of the blinding process, we need to ensure that an encrypted LS2 can only be
-decrypted by someone who knows the corresponding Destination. To achieve this, we derive
-a credential from the Destination:
+decrypted by someone who knows the corresponding Destination's signing public key.
+The full Destination is not required.
+To achieve this, we derive a credential from the signing public key:
 
 .. raw:: html
 
   {% highlight lang='text' %}
-credential = H("credential", Destination)
+A = destination's signing public key
+  stA = signature type of A, 2 bytes big endian (0x0007 or 0x000b)
+  stA' = signature type of A', 2 bytes big endian (0x000b)
+  keydata = A || stA || stA'
+  credential = H("credential", keydata)
 {% endhighlight %}
 
 The personalization string ensures that the credential does not collide with any hash used
@@ -915,7 +919,7 @@ subcredential = H("subcredential", credential || blindedPublicKey)
 {% endhighlight %}
 
 The subcredential is included in the key derivation processes below, which binds those
-keys to knowledge of the Destination.
+keys to knowledge of the Destination's signing public key.
 
 Layer 1 encryption
 ~~~~~~~~~~~~~~~~~~
@@ -1182,6 +1186,57 @@ Downsides of PSK client authorization
   when the client's access is revoked.
 
 
+Encrypted LS with Base 32 Addresses
+```````````````````````````````````
+
+You can't use a traditional base 32 address for an encrypted LS2,
+as it contains only the hash of the destination. It does not provide the non-blinded public key.
+Therefore, a base 32 address alone is insufficient.
+The client needs either the full destination (which contains the public key),
+or the public key by itself.
+If the client has the full destination in an address book, and the address book
+supports reverse lookup by hash, then the public key may be retrieved.
+
+So we need a new format that puts the public key instead of the hash into
+a base32 address. This format must also contain the signature type of the
+public key, and the signature type of the blinding scheme.
+The total requirements are 32 + 2 + 2 = 36 bytes, requiring 58 characters in base 32.
+
+  {% highlight lang='text' %}
+data = 32 byte pubkey || 2 byte unblinded sigtype || 2 byte blinded sigtype
+  address = Base32Encode(data) || ".b32.i2p"
+{% endhighlight %}
+
+We use the same ".b32.i2p" suffix as for traditional base 32 addresses.
+Addresses for encrypted leasesets are identified by the 58 encoded characters
+(36 decoded bytes), compared to 52 characters (32 bytes) for traditional base 32 addresses.
+The five unused bits at the end of b32 must be 0.
+
+You can't use an encrypted LS2 for bittorrent, because of compact announce replies which are 32 bytes.
+The 32 bytes contain only the hash. There is no room for an indication that the
+leaseset is encrypted, or the signature types.
+
+
+
+Encrypted LS with Offline Keys
+``````````````````````````````
+For encrypted leasesets with offline keys, the blinded private keys must also be generated offline,
+one for each day.
+
+As the optional offline signature block is in the cleartext part of the encryted leaseset,
+anybody scraping the floodfills could use this to track the leaseset (but not decrypt it)
+over several days.
+To prevent this, the owner of the keys should generate new transient keys
+for each day as well.
+Both the transient and blinded keys can be generated in advance, and delivered to the router
+in a batch.
+
+There is no file format defined in this proposal for packaging multiple transient and
+blinded keys and providing them to the client or router.
+There is no I2CP protocol enhancement defined in this proposal to support
+encrypted leasesets with offline keys.
+
+
 Issues
 ``````
 
@@ -1266,7 +1321,8 @@ Lookup with
 Store with
     Meta LS2 type (7)
 Store at
-    Hash of destination, with daily rotation, as for LS 1
+    Hash of destination
+    This hash is then used to generate the daily "routing key", as in LS1
 Typical expiration
     Hours. Max 18.2 hours (65535 seconds)
 Published by
@@ -1331,7 +1387,8 @@ Lookup with
 Store with
     Service Record type (9)
 Store at
-    Hash of service name, with daily rotation
+    Hash of service name
+    This hash is then used to generate the daily "routing key", as in LS1
 Typical expiration
     Hours. Max 18.2 hours (65535 seconds)
 Published by
@@ -1395,7 +1452,8 @@ Lookup with
 Store with
     Service List type (11)
 Store at
-    Hash of service name, with daily rotation
+    Hash of service name
+    This hash is then used to generate the daily "routing key", as in LS1
 Typical expiration
     Hours, not specified in the list itself, up to local policy
 Published by
@@ -1682,6 +1740,7 @@ Format
              Type 5 is a encrypted LS2
              Type 7 is a meta LS2
   LeaseSet: type specified above
+  Number of private keys to follow (1 byte)
   Encryption Private Keys: For each public key in the lease set,
                            in the same order
                            (Not present for Meta LS2)
@@ -1998,8 +2057,8 @@ Publishing, Migration, Compatibility
 LS2 (other than encrypted LS2) is published at the same DHT location as LS1.
 There is no way to publish both a LS1 and LS2, unless LS2 were at a different location.
 
-Encrypted LS2 is published at the hash of the blinded key type and key data,
-with daily rotation as usual.
+Encrypted LS2 is published at the hash of the blinded key type and key data.
+This hash is then used to generate the daily "routing key", as in LS1.
 
 LS2 would only be used when new features are required
 (new crypto, encrypted LS, meta, etc.).
@@ -2012,6 +2071,22 @@ Clients would send LS2 in garlics only if using new crypto.
 Shared clients would use LS1 indefinitely?
 TODO: How to have a shared clients that supports both old and new crypto?
 
+
+Rollout
+=======
+
+0.9.38 contains floodfill support for standard LS2, including offline keys.
+
+0.9.39 contains I2CP support for LS2 and Encrypted LS2,
+sig type 11 signing/verification,
+floodfill support for Encrypted LS2 (sig types 7 and 11, without offline keys),
+and encrypting/decrypting LS2 (without per-client authorization).
+
+0.9.40 is scheduled to contain support for
+encrypting/decrypting LS2 with per-client authorization,
+floodfill and I2CP support for Meta LS2,
+support for encrypted LS2 with offline keys,
+and b32 support for encrypted LS2.
 
 
 Acknowledgements

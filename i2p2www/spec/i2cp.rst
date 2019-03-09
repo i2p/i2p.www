@@ -3,7 +3,7 @@ I2CP Specification
 ==================
 .. meta::
     :category: Protocols
-    :lastupdated: February 2019
+    :lastupdated: March 2019
     :accuratefor: 0.9.39
 
 .. contents::
@@ -543,7 +543,8 @@ Contents
    Type 5 is a [EncryptedLeaseSet]_
    Type 7 is a [MetaLeaseSet]_
 3. [LeaseSet]_ or [LeaseSet2]_ or [EncryptedLeaseSet]_ or [MetaLeaseSet]_
-4. [PrivateKey]_ list.
+4. One byte number of private keys to follow.
+5. [PrivateKey]_ list.
    One for each public key in the lease set, in the same order.
    (Not present for Meta LS2)
    - Encryption type (2 byte [Integer]_)

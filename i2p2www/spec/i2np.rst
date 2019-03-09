@@ -3,7 +3,7 @@ I2NP Specification
 ==================
 .. meta::
     :category: Protocols
-    :lastupdated: February 2019
+    :lastupdated: March 2019
     :accuratefor: 0.9.39
 
 .. contents::
@@ -42,9 +42,14 @@ below.
 ==============  ================================================================
    Version      Required I2NP Features
 ==============  ================================================================
+   0.9.40       MetaLeaseSet may be sent in a DSM
+
+   0.9.39       EncryptedLeaseSet may be sent in a DSM
+                RedDSA_SHA512_Ed25519 signature type supported for
+                destinations and leasesets
+
    0.9.38       DSM type bits 3-0 now contain the type;
-                LeaseSet2, MetaLeaseSet, and EncryptedLeaseSet may be sent
-                in a DSM
+                LeaseSet2 may be sent in a DSM
 
    0.9.28       RSA sig types disallowed
 
