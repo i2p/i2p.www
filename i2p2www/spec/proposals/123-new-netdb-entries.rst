@@ -5,7 +5,7 @@ New netDB Entries
     :author: zzz, str4d, orignal
     :created: 2016-01-16
     :thread: http://zzz.i2p/topics/2051
-    :lastupdated: 2019-03-05
+    :lastupdated: 2019-03-09
     :status: Open
     :supercedes: 110, 120, 121, 122
 
@@ -15,7 +15,7 @@ New netDB Entries
 Status
 ======
 
-Portions of this proposal are complete, and implemented in 0.9.38.
+Portions of this proposal are complete, and implemented in 0.9.38 and 0.9.39.
 The Common Structures, I2CP, I2NP, and other specifications
 are now updated to reflect the changes that are supported now.
 
@@ -805,10 +805,12 @@ A new secret alpha and blinded keys must be generated each day (UTC).
 
 The secret alpha and the blinded keys are calculated as follows:
 
+GENERATE_ALPHA(destination, date, secret), for all parties:
+
 .. raw:: html
 
   {% highlight lang='text' %}
-GENERATE_ALPHA(destination, date, secret), for all parties:
+// GENERATE_ALPHA(destination, date, secret):
   // secret is optional, else zero-length
   A = destination's signing public key
   stA = signature type of A, 2 bytes big endian (0x0007 or 0x000b)
@@ -819,21 +821,32 @@ GENERATE_ALPHA(destination, date, secret), for all parties:
   // treat seed as a 64 byte little-endian value
   alpha = seed mod l
 
-  // BLIND_PRIVKEY(), for the owner publishing the leaseset:
+BLIND_PRIVKEY(), for the owner publishing the leaseset:
+
+.. raw:: html
+
+  {% highlight lang='text' %}
+// BLIND_PRIVKEY():
   alpha = GENERATE_ALPHA(destination, date, secret)
   a = destination's signing private key
   // Addition using scalar arithmentic
   blinded signing private key = a' = BLIND_PRIVKEY(a, alpha) = (a + alpha) mod l
   blinded signing public key = A' = DERIVE_PUBLIC(a')
+{% endhighlight %}
 
-  // BLIND_PUBKEY(), for the clients retrieving the leaseset:
+BLIND_PUBKEY(), for the clients retrieving the leaseset:
+
+.. raw:: html
+
+  {% highlight lang='text' %}
+// BLIND_PUBKEY():
   alpha = GENERATE_ALPHA(destination, date, secret)
   A = destination's signing public key
   // Addition using group elements (points on the curve)
   blinded public key = A' = BLIND_PUBKEY(A, alpha) = A + DERIVE_PUBLIC(alpha)
-
-  //Both methods of calculating A' yield the same result, as required.
 {% endhighlight %}
+
+Both methods of calculating A' yield the same result, as required.
 
 
 
@@ -1201,6 +1214,8 @@ So we need a new format that puts the public key instead of the hash into
 a base32 address. This format must also contain the signature type of the
 public key, and the signature type of the blinding scheme.
 The total requirements are 32 + 2 + 2 = 36 bytes, requiring 58 characters in base 32.
+
+.. raw:: html
 
   {% highlight lang='text' %}
 data = 32 byte pubkey || 2 byte unblinded sigtype || 2 byte blinded sigtype
@@ -1650,6 +1665,16 @@ New options interpreted router-side, sent in SessionConfig Mapping:
                                       Length as inferred from the destination
                                       signing public key type
 
+  i2cp.leaseSetSecret=xxxx    A secret used to encrypt/decrypt the leaseset, default ""
+
+  i2cp.leaseSetAuthType=nnn   The type of authentication for encrypted LS2.
+                              0 for no per-client authentication (the default)
+                              1 for DH per-client authentication
+                              2 for PSK per-client authentication
+
+  i2cp.leaseSetPrivKey=b64    A base 64 private key for the router to use to
+                              decrypt the encrypted LS2,
+                              only if per-client authentication is enabled
 
 
 New options interpreted client-side:
@@ -1665,6 +1690,17 @@ New options interpreted client-side:
                                   Interpreted client-side, but also passed to the router in
                                   the SessionConfig, to declare intent and check support.
                                   See proposals 144 and 145.
+
+  i2cp.leaseSetSecret=xxxx        A secret used to encrypt/decrypt the leaseset, default ""
+
+  i2cp.leaseSetAuthType=nnn       The type of authentication for encrypted LS2.
+                                  0 for no per-client authentication (the default)
+                                  1 for DH per-client authentication
+                                  2 for PSK per-client authentication
+
+  i2cp.leaseSetBlindedType=nnn   The sig type of the blinded key for encrypted LS2.
+                                 Default depends on the destination sig type.
+                                 See proposal 123.
 
 
 Session Config
@@ -1785,11 +1821,13 @@ Changes
 ::
 
   Add request type 3: Host name lookup and request Lease Set lookup.
+  Same contents as type 1, what follows is a host name string.
+
 
 Notes
 `````
 
-- Minimum router and client version is 0.9.39 for request type 3.
+- Minimum router and client version is 0.9.40 for request type 3.
 
 
 
@@ -1821,7 +1859,7 @@ Changes
 
 ::
 
-  If the client version is 0.9.39 or higher, and the result code is 0,
+  If the client version is 0.9.40 or higher, and the result code is 0,
   the following extended results are included after the Destination.
   These are included no matter what the request type.
 
@@ -1859,7 +1897,7 @@ Changes
 Notes
 `````
 
-- Minimum router and client version is 0.9.39 for the extended results.
+- Minimum router and client version is 0.9.40 for the extended results.
 
 
 
