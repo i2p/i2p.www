@@ -802,15 +802,14 @@ Blinding Calculations
 ~~~~~~~~~~~~~~~~~~~~~
 
 A new secret alpha and blinded keys must be generated each day (UTC).
-
-The secret alpha and the blinded keys are calculated as follows:
+The secret alpha and the blinded keys are calculated as follows.
 
 GENERATE_ALPHA(destination, date, secret), for all parties:
 
 .. raw:: html
 
   {% highlight lang='text' %}
-// GENERATE_ALPHA(destination, date, secret):
+// GENERATE_ALPHA(destination, date, secret)
   // secret is optional, else zero-length
   A = destination's signing public key
   stA = signature type of A, 2 bytes big endian (0x0007 or 0x000b)
@@ -826,7 +825,7 @@ BLIND_PRIVKEY(), for the owner publishing the leaseset:
 .. raw:: html
 
   {% highlight lang='text' %}
-// BLIND_PRIVKEY():
+// BLIND_PRIVKEY()
   alpha = GENERATE_ALPHA(destination, date, secret)
   a = destination's signing private key
   // Addition using scalar arithmentic
@@ -839,7 +838,7 @@ BLIND_PUBKEY(), for the clients retrieving the leaseset:
 .. raw:: html
 
   {% highlight lang='text' %}
-// BLIND_PUBKEY():
+// BLIND_PUBKEY()
   alpha = GENERATE_ALPHA(destination, date, secret)
   A = destination's signing public key
   // Addition using group elements (points on the curve)

@@ -370,9 +370,9 @@ A new secret alpha and blinded keys must be generated each day (UTC).
 
 The secret alpha and the blinded keys are calculated as follows:
 
-.. raw:: html
-
 GENERATE_ALPHA(destination, date, secret), for all parties:
+
+.. raw:: html
 
   {% highlight lang='text' %}
 // secret is optional, else zero-length
@@ -386,9 +386,9 @@ GENERATE_ALPHA(destination, date, secret), for all parties:
   alpha = seed mod l
 {% endhighlight %}
 
-.. raw:: html
-
 BLIND_PRIVKEY(), for the owner publishing the leaseset:
+
+.. raw:: html
 
   {% highlight lang='text' %}
 alpha = GENERATE_ALPHA(destination, date, secret)
@@ -398,9 +398,9 @@ alpha = GENERATE_ALPHA(destination, date, secret)
   blinded signing public key = A' = DERIVE_PUBLIC(a')
 {% endhighlight %}
 
-.. raw:: html
-
 BLIND_PUBKEY(), for the clients retrieving the leaseset:
+
+.. raw:: html
 
   {% highlight lang='text' %}
 alpha = GENERATE_ALPHA(destination, date, secret)
