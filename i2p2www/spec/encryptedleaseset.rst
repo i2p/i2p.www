@@ -372,9 +372,10 @@ The secret alpha and the blinded keys are calculated as follows:
 
 .. raw:: html
 
-  {% highlight lang='text' %}
 GENERATE_ALPHA(destination, date, secret), for all parties:
-  // secret is optional, else zero-length
+
+  {% highlight lang='text' %}
+// secret is optional, else zero-length
   A = destination's signing public key
   stA = signature type of A, 2 bytes big endian (0x0007 or 0x000b)
   stA' = signature type of blinded public key A', 2 bytes big endian (0x000b)
@@ -383,23 +384,32 @@ GENERATE_ALPHA(destination, date, secret), for all parties:
   seed = HKDF(H("I2PGenerateAlpha", keydata), datestring || secret, "i2pblinding1", 64)
   // treat seed as a 64 byte little-endian value
   alpha = seed mod l
+{% endhighlight %}
 
-  // BLIND_PRIVKEY(), for the owner publishing the leaseset:
-  alpha = GENERATE_ALPHA(destination, date, secret)
+.. raw:: html
+
+BLIND_PRIVKEY(), for the owner publishing the leaseset:
+
+  {% highlight lang='text' %}
+alpha = GENERATE_ALPHA(destination, date, secret)
   a = destination's signing private key
   // Addition using scalar arithmentic
   blinded signing private key = a' = BLIND_PRIVKEY(a, alpha) = (a + alpha) mod l
   blinded signing public key = A' = DERIVE_PUBLIC(a')
+{% endhighlight %}
 
-  // BLIND_PUBKEY(), for the clients retrieving the leaseset:
-  alpha = GENERATE_ALPHA(destination, date, secret)
+.. raw:: html
+
+BLIND_PUBKEY(), for the clients retrieving the leaseset:
+
+  {% highlight lang='text' %}
+alpha = GENERATE_ALPHA(destination, date, secret)
   A = destination's signing public key
   // Addition using group elements (points on the curve)
   blinded public key = A' = BLIND_PUBKEY(A, alpha) = A + DERIVE_PUBLIC(alpha)
-
-  //Both methods of calculating A' yield the same result, as required.
 {% endhighlight %}
 
+Both methods of calculating A' yield the same result, as required.
 
 
 Signing

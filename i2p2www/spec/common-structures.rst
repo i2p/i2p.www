@@ -163,7 +163,7 @@ RSA_SHA384_3072              384        0.9.12  Offline signing, never used for 
 RSA_SHA512_4096              512        0.9.12  Offline signing, never used for Router Identities or Destinations
 EdDSA_SHA512_Ed25519          32        0.9.15  Recent Router Identities and Destinations
 EdDSA_SHA512_Ed25519ph        32        0.9.25  Offline signing, never used for Router Identities or Destinations
-RedDSA_SHA512_Ed25519         32        0.9.39  For encrypted leasesets only, never used for Router Identities or Destinations
+RedDSA_SHA512_Ed25519         32        0.9.39  For Destinations and encrypted leasesets only, never used for Router Identities
 ======================  ==============  ======  =====
 
 Notes
@@ -203,7 +203,7 @@ RSA_SHA384_3072              768        0.9.12  Offline signing, never used for 
 RSA_SHA512_4096             1024        0.9.12  Offline signing, never used for Router Identities or Destinations
 EdDSA_SHA512_Ed25519          32        0.9.15  Recent Router Identities and Destinations
 EdDSA_SHA512_Ed25519ph        32        0.9.25  Offline signing, never used for Router Identities or Destinations
-RedDSA_SHA512_Ed25519         32        0.9.39  For encrypted leasesets only, never used for Router Identities or Destinations
+RedDSA_SHA512_Ed25519         32        0.9.39  For Destinations and encrypted leasesets only, never used for Router Identities
 ======================  ==============  ======  =====
 
 Notes
@@ -244,7 +244,7 @@ RSA_SHA384_3072              384        0.9.12  Offline signing, never used for 
 RSA_SHA512_4096              512        0.9.12  Offline signing, never used for Router Identities or Destinations
 EdDSA_SHA512_Ed25519          64        0.9.15  Recent Router Identities and Destinations
 EdDSA_SHA512_Ed25519ph        64        0.9.25  Offline signing, never used for Router Identities or Destinations
-RedDSA_SHA512_Ed25519         32        0.9.39  For encrypted leasesets only, never used for Router Identities or Destinations
+RedDSA_SHA512_Ed25519         64        0.9.39  For Destinations and encrypted leasesets only, never used for Router Identities
 ======================  ==============  ======  =====
 
 Notes
@@ -423,7 +423,7 @@ EdDSA_SHA512_Ed25519         7                   32           0.9.15  Recent Rou
 EdDSA_SHA512_Ed25519ph       8                   32           0.9.25  Offline only; never used in Key Certificates for Router Identities or Destinations
 reserved  (GOST)             9                   64                   Reserved, see proposal 134
 reserved  (GOST)            10                  128                   Reserved, see proposal 134
-RedDSA_SHA512_Ed25519       11                   32                   For encrypted leasesets only; never used in Key Certificates for Router Identities or Destinations
+RedDSA_SHA512_Ed25519       11                   32           0.9.39  For Destinations and encrypted leasesets only; never used for Router Identities
 reserved                65280-65534                                   Reserved for experimental use
 reserved                   65535                                      Reserved for future expansion
 ======================  ===========  =======================  ======  =====
