@@ -5,7 +5,7 @@ New netDB Entries
     :author: zzz, str4d, orignal
     :created: 2016-01-16
     :thread: http://zzz.i2p/topics/2051
-    :lastupdated: 2019-03-09
+    :lastupdated: 2019-03-10
     :status: Open
     :supercedes: 110, 120, 121, 122
 
@@ -817,6 +817,7 @@ GENERATE_ALPHA(destination, date, secret), for all parties:
   stA' = signature type of blinded public key A', 2 bytes big endian (0x000b)
   keydata = A || stA || stA'
   datestring = 8 bytes ASCII YYYYMMDD from the current date UTC
+  secret = UTF-8 encoded string
   seed = HKDF(H("I2PGenerateAlpha", keydata), datestring || secret, "i2pblinding1", 64)
   // treat seed as a 64 byte little-endian value
   alpha = seed mod l
