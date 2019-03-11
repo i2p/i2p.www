@@ -123,12 +123,15 @@ uninstallargs, and classpath lines, for plugins only:
 All properties except "main" are optional.  Lines starting with "#" are
 comments.
 
-If the delay is less than zero, the client is run immediately, in the same
+If the delay is less than zero, the client will wait until the router 
+reaches RUNNING state and then start immediately in a new thread.
+
+If the delay is equal to zero, the client is run immediately, in the same
 thread, so that exceptions may be propagated to the console.  In this case, the
 client should either throw an exception, return quickly, or spawn its own
 thread.
 
-If the delay is greater than or equal to zero, it will be run in a new thread,
+If the delay is greater than zero, it will be run in a new thread,
 and exceptions will be logged but not propagated to the console.
 
 Clients may be "managed" or "unmanaged".
