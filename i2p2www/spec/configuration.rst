@@ -2,8 +2,8 @@
 Configuration File Specification
 ================================
 .. meta::
-    :lastupdated: January 2018
-    :accuratefor: 0.9.33
+    :lastupdated: March 2019
+    :accuratefor: 0.9.39
 
 .. contents::
 

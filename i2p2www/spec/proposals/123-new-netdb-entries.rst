@@ -5,7 +5,7 @@ New netDB Entries
     :author: zzz, str4d, orignal
     :created: 2016-01-16
     :thread: http://zzz.i2p/topics/2051
-    :lastupdated: 2019-03-10
+    :lastupdated: 2019-03-12
     :status: Open
     :supercedes: 110, 120, 121, 122
 
@@ -572,7 +572,7 @@ Type
 
 Blinded Public Key Sig Type
     2 bytes, big endian
-    This will always be type 11, identifying a RedDSA blinded key.
+    This will always be type 11, identifying a Red25519 blinded key.
 
 Blinded Public Key
     Length as implied by sig type
@@ -714,9 +714,9 @@ Data
 Blinding Key Derivation
 ```````````````````````
 
-We use the following scheme for key blinding, based on Ed25519
-and ZCash RedDSA [ZCASH]_.
-The RedDSA signatures are over the Ed25519 curve, using SHA-512 for the hash.
+We use the following scheme for key blinding,
+based on Ed25519 and ZCash RedDSA [ZCASH]_.
+The Re25519 signatures are over the Ed25519 curve, using SHA-512 for the hash.
 
 We do not use Tor's rend-spec-v3.txt appendix A.2 [TOR-REND-SPEC-V3]_,
 which has similar design goals, because its blinded public keys
@@ -727,7 +727,7 @@ Goals
 ~~~~~
 
 - Signing public key in unblinded destination must be
-  Ed25519 (sig type 7) or RedDSA (sig type 11);
+  Ed25519 (sig type 7) or Red25519 (sig type 11);
   no other sig types are supported
 - If the signing public key is offline, the transient signing public key must also be Ed25519
 - Blinding is computationally simple
@@ -745,9 +745,9 @@ Security
 The security of a blinding scheme requires that the
 distribution of alpha is the same as the unblinded private keys.
 However, when we blind an Ed25519 private key (sig type 7)
-to a RedDSA private key (sig type 11), the distribution is different.
+to a Red25519 private key (sig type 11), the distribution is different.
 To meet the requirements of zcash section 4.1.6.1 [ZCASH]_,
-RedDSA (sig type 11) should be used for the unblinded keys as well, so that
+Red25519 (sig type 11) should be used for the unblinded keys as well, so that
 "the combination of a re-randomized public key and signature(s)
 under that key do not reveal the key from which it was re-randomized."
 We allow type 7 for existing destinations, but recommend
@@ -857,50 +857,55 @@ Both methods of calculating A' yield the same result, as required.
 Signing
 ~~~~~~~
 
-The unblinded leaseset is signed by the unblinded Ed25519 or RedDSA signing private key
-and verified with the unblinded Ed25519 or RedDSA signing public key (sig types 7 or 11) as usual.
+The unblinded leaseset is signed by the unblinded Ed25519 or Red25519 signing private key
+and verified with the unblinded Ed25519 or Red25519 signing public key (sig types 7 or 11) as usual.
 
 If the signing public key is offline,
-the unblinded leaseset is signed by the unblinded transient Ed25519 or RedDSA signing private key
-and verified with the unblinded Ed25519 or RedDSA transient signing public key (sig types 7 or 11) as usual.
+the unblinded leaseset is signed by the unblinded transient Ed25519 or Red25519 signing private key
+and verified with the unblinded Ed25519 or Red25519 transient signing public key (sig types 7 or 11) as usual.
 See below for additional notes on offline keys for encrytped leasesets.
 
-For signing of the encrypted leaseset, we use RedDSA [ZCASH]_
+For signing of the encrypted leaseset, we use Red25519, based on RedDSA [ZCASH]_
 to sign and verify with blinded keys.
-The RedDSA signatures are over the Ed25519 curve, using SHA-512 for the hash.
+The Red25519 signatures are over the Ed25519 curve, using SHA-512 for the hash.
 
-RedDSA is similar to standard Ed25519 except as specified below.
+Red25519 is identical to standard Ed25519 except as specified below.
 
 
 Sign/Verify Calculations
 ~~~~~~~~~~~~~~~~~~~~~~~~
 
-The outer portion of the encrypted leaseset uses RedDSA keys and signatures.
+The outer portion of the encrypted leaseset uses Red25519 keys and signatures.
 
-RedDSA is similar to Ed25519. There are two differences:
+Red25519 is almost identical to Ed25519. There are two differences:
 
-RedDSA private keys are generated from random numbers and then must be reduced mod l, where l is defined above.
+Red25519 private keys are generated from random numbers and then must be reduced mod l, where l is defined above.
 Ed25519 private keys are generated from random numbers and then "clamped" using
-bitwise masking to bytes 0 and 31. This is not done for RedDSA.
+bitwise masking to bytes 0 and 31. This is not done for Red25519.
 The functions GENERATE_ALPHA() and BLIND_PRIVKEY() defined above generate proper
-RedDSA private keys using mod l.
+Red25519 private keys using mod l.
 
-In RedDSA, the calculation of r for signing uses additional random data,
+In Red25519, the calculation of r for signing uses additional random data,
 and uses the public key value rather than the hash of the private key.
-Because of the random data, every RedDSA signature is different, even
+Because of the random data, every Red25519 signature is different, even
 when signing the same data with the same key.
 
+Signing:
 
 .. raw:: html
 
   {% highlight lang='text' %}
-Signing:
-  T = 80 random bytes
+T = 80 random bytes
   r = H*(T || publickey || message)
-  (rest is the same as in Ed25519)
+  // rest is the same as in Ed25519
+{% endhighlight %}
 
-  Verification:
-  Same as for Ed25519
+Verification:
+
+.. raw:: html
+
+  {% highlight lang='text' %}
+// same as in Ed25519
 {% endhighlight %}
 
 
@@ -1579,7 +1584,8 @@ preliminary and unscheduled.
 New Signature Type
 ------------------
 
-Add RedDSA_SHA256_Ed25519 Type 11.
+Add RedDSA_SHA512_Ed25519 Type 11.
+Public key is 32 bytes; private key is 32 bytes; hash is 64 bytes; signature is 64 bytes.
 
 
 

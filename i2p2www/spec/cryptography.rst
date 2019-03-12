@@ -3,8 +3,8 @@ Low-level Cryptography Specification
 ====================================
 .. meta::
     :category: Design
-    :lastupdated: June 2018
-    :accuratefor: 0.9.36
+    :lastupdated: March 2019
+    :accuratefor: 0.9.39
 
 .. contents::
 
@@ -320,16 +320,26 @@ support for Router Identities was added in release 0.9.16.  Support for
 migrating existing Destinations from old to new signatures will be added in a
 future release.  Signature type is encoded in the Destination and Router
 Identity, so that new signature algorithms or curves may be added at any time.
+
 The current supported signature types are as follows:
 
 * DSA-SHA1
 * ECDSA-SHA256-P256
 * ECDSA-SHA384-P384
 * ECDSA-SHA512-P521
+* EdDSA-SHA512-Ed25519 (as of release 0.9.15)
+* RedDSA-SHA512-Ed25519 (as of release 0.9.39)
+
+
+Additional signature types are used at the application layer only,
+primarily for signing and verifying su3 files.
+These signature types are as follows:
+
 * RSA-SHA256-2048
 * RSA-SHA384-3072
 * RSA-SHA512-4096
-* EdDSA-SHA512-Ed25519 (as of release 0.9.15)
+* EdDSA-SHA512-Ed25519ph (as of release 0.9.25)
+
 
 ECDSA
 -----
@@ -338,7 +348,7 @@ ECDSA uses the standard NIST curves and standard SHA-2 hashes.
 
 We will migrate new destinations to ECDSA-SHA256-P256 in the 0.9.16 - 0.9.19
 release time frame.  Usage for Router Identities is supported as of release
-0.9.16 and migration may occur in early 2015.
+0.9.16 and migration of existing routers happened in 2015.
 
 RSA
 ---
@@ -358,7 +368,18 @@ Standard EdDSA using curve 25519 and standard 512-bit SHA-2 hashes.
 
 Supported as of release 0.9.15.
 
-Migration for Destinations and Router Identities is scheduled for mid-2015.
+Destinations and Router Identities were migrated in late 2015.
+
+
+RedDSA 25519
+--=---------
+
+Standard EdDSA using curve 25519 and standard 512-bit SHA-2 hashes,
+but with different private keys, and minor modifications to signing.
+For encrypted leasesets.
+See [EncryptedLeaseSet]__ for details.
+
+Supported as of release 0.9.39.
 
 
 Hashes
@@ -471,6 +492,9 @@ References
     http://www.springerlink.com/content/2jry7cftp5bpdghm/
 
     Full text: http://books.google.com/books?id=cXyiNZ2_Pa0C&amp;lpg=PA173&amp;ots=PNIz3dWe4g&amp;pg=PA173#v=onepage&amp;q&amp;f=false
+
+.. [EncryptedLeaseSet]
+    {{ spec_url('encryptedleaseset') }}
 
 .. [LeaseSet]
     {{ ctags_url('LeaseSet') }}
