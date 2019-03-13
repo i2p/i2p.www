@@ -1213,30 +1213,7 @@ Downsides of PSK client authorization
 Encrypted LS with Base 32 Addresses
 ```````````````````````````````````
 
-You can't use a traditional base 32 address for an encrypted LS2,
-as it contains only the hash of the destination. It does not provide the non-blinded public key.
-Therefore, a base 32 address alone is insufficient.
-The client needs either the full destination (which contains the public key),
-or the public key by itself.
-If the client has the full destination in an address book, and the address book
-supports reverse lookup by hash, then the public key may be retrieved.
-
-So we need a new format that puts the public key instead of the hash into
-a base32 address. This format must also contain the signature type of the
-public key, and the signature type of the blinding scheme.
-The total requirements are 32 + 2 + 2 = 36 bytes, requiring 58 characters in base 32.
-
-.. raw:: html
-
-  {% highlight lang='text' %}
-data = 32 byte pubkey || 2 byte unblinded sigtype || 2 byte blinded sigtype
-  address = Base32Encode(data) || ".b32.i2p"
-{% endhighlight %}
-
-We use the same ".b32.i2p" suffix as for traditional base 32 addresses.
-Addresses for encrypted leasesets are identified by the 58 encoded characters
-(36 decoded bytes), compared to 52 characters (32 bytes) for traditional base 32 addresses.
-The five unused bits at the end of b32 must be 0.
+See proposal 149.
 
 You can't use an encrypted LS2 for bittorrent, because of compact announce replies which are 32 bytes.
 The 32 bytes contain only the hash. There is no room for an indication that the
