@@ -5,7 +5,7 @@ EdDSA-BLAKE2b-Ed25519
     :author: zzz
     :created: 2019-03-12
     :thread: http://zzz.i2p/topics/2689
-    :lastupdated: 2019-03-12
+    :lastupdated: 2019-03-13
     :status: Open
 
 .. contents::
@@ -26,7 +26,7 @@ Motivation
 During discussions and design of NTCP2 (proposal 111) and LS2 (proposal 123),
 we briefly considered various attacks that were possible, and how to
 prevent them. Three of these attacks are Length Extension Attacks,
-Reuse of Signed Data, and Dupicate Message Identification.
+Reuse of Signed Data, and Duplicate Message Identification.
 
 For both NTCP2 and LS2, we decided that
 these attacks were not directly relevant to the proposals at hand,

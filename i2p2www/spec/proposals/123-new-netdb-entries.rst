@@ -5,7 +5,7 @@ New netDB Entries
     :author: zzz, str4d, orignal
     :created: 2016-01-16
     :thread: http://zzz.i2p/topics/2051
-    :lastupdated: 2019-03-12
+    :lastupdated: 2019-03-13
     :status: Open
     :supercedes: 110, 120, 121, 122
 
@@ -46,6 +46,8 @@ The following proposals are somewhat related:
 - 142 New Crypto Template (for new symmetric crypto)
 - 144 ECIES-X25519-AEAD-Ratchet
 - 145 ECIES-P256
+- 146 Red25519
+- 148 EdDSA-BLAKE2b-Ed25519
 
 
 Proposal
@@ -761,7 +763,7 @@ Definitions
 B
     The Ed25519 base point (generator) 2^255 - 19 as in [ED25519-REFS]_
 
-l
+L
     The Ed25519 order 2^252 + 27742317777372353535851937790883648493
     as in [ED25519-REFS]_
 
@@ -820,7 +822,7 @@ GENERATE_ALPHA(destination, date, secret), for all parties:
   secret = UTF-8 encoded string
   seed = HKDF(H("I2PGenerateAlpha", keydata), datestring || secret, "i2pblinding1", 64)
   // treat seed as a 64 byte little-endian value
-  alpha = seed mod l
+  alpha = seed mod L
 {% endhighlight %}
 
 BLIND_PRIVKEY(), for the owner publishing the leaseset:
@@ -833,7 +835,7 @@ BLIND_PRIVKEY(), for the owner publishing the leaseset:
   alpha = GENERATE_ALPHA(destination, date, secret)
   a = destination's signing private key
   // Addition using scalar arithmentic
-  blinded signing private key = a' = BLIND_PRIVKEY(a, alpha) = (a + alpha) mod l
+  blinded signing private key = a' = BLIND_PRIVKEY(a, alpha) = (a + alpha) mod L
   blinded signing public key = A' = DERIVE_PUBLIC(a')
 {% endhighlight %}
 
@@ -879,11 +881,11 @@ The outer portion of the encrypted leaseset uses Red25519 keys and signatures.
 
 Red25519 is almost identical to Ed25519. There are two differences:
 
-Red25519 private keys are generated from random numbers and then must be reduced mod l, where l is defined above.
+Red25519 private keys are generated from random numbers and then must be reduced mod L, where L is defined above.
 Ed25519 private keys are generated from random numbers and then "clamped" using
 bitwise masking to bytes 0 and 31. This is not done for Red25519.
 The functions GENERATE_ALPHA() and BLIND_PRIVKEY() defined above generate proper
-Red25519 private keys using mod l.
+Red25519 private keys using mod L.
 
 In Red25519, the calculation of r for signing uses additional random data,
 and uses the public key value rather than the hash of the private key.
