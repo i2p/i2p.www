@@ -5,7 +5,7 @@ B32 for Encrypted LS2
     :author: zzz
     :created: 2019-03-13
     :thread: http://zzz.i2p/topics/2682
-    :lastupdated: 2019-03-13
+    :lastupdated: 2019-03-15
     :status: Open
 
 .. contents::
@@ -105,10 +105,11 @@ Post-processing and checksum:
 
   {% highlight lang='text' %}
 Construct the binary data as above.
-  Calculate checksum = Adler32(data[3:end])
-  data[0] ^= checksum[0]
-  data[1] ^= checksum[1]
-  data[2] ^= checksum[2]
+  Treat checksum as little-endian.
+  Calculate checksum = CRC-32(data[3:end])
+  data[0] ^= (byte) checksum
+  data[1] ^= (byte) (checksum >> 8)
+  data[2] ^= (byte) (checksum >> 16)
 
   hostname = Base32.encode(data) || ".b32.i2p"
 {% endhighlight %}
@@ -125,13 +126,14 @@ Decoding and Verification
   {% highlight lang='text' %}
 strip the ".b32.i2p" from the hostname
   data = Base32.decode(hostname)
-  Calculate checksum = Adler32(data[3:end])
-  flags = data[0] ^ checksum[0]
+  Calculate checksum = CRC-32(data[3:end])
+  Treat checksum as little-endian.
+  flags = data[0] ^ (byte) checksum
   if 1 byte sigtypes:
-    pubkey sigtype = data[1] ^ checksum[1]
-    blinded sigtype = data[2] ^ checksum[2]
+    pubkey sigtype = data[1] ^ (byte) (checksum >> 8)
+    blinded sigtype = data[2] ^ (byte) (checksum >> 16)
   else (2 byte sigtypes) :
-    pubkey sigtype = data[1] ^ checksum[1] || data[2] ^ checksum[2]
+    pubkey sigtype = data[1] ^ ((byte) (checksum >> 8)) || data[2] ^ ((byte) (checksum >> 16))
     blinded sigtype = data[3] || data[4]
   parse the remainder based on the flags to get the public key,
   optional secret, and optional auth privkey
@@ -148,7 +150,8 @@ Justification
   the hostname will be {56 chars}.b32.i2p, decoding to 35 bytes, same as Tor.
 - Tor 2-byte checksum has a 1/64K false negative rate. With 3 bytes, minus a few ignored bytes,
   ours is approaching 1 in a million, since most flag/sigtype combinations are invalid.
-
+- Adler-32 is a poor choice for small inputs, and for detecting small changes [ADLER32]_.
+  Use CRC-32 instead. CRC-32 is fast and is widely available.
 
 Caching
 =======
@@ -182,3 +185,12 @@ Migration
 No backward compatibility issues. Longer b32 addresses will fail to be converted
 to 32-byte hashes in old software.
 
+
+
+
+References
+==========
+
+.. [ADLER32]
+    https://en.wikipedia.org/wiki/CRc-32
+    https://tools.ietf.org/html/rfc3309
