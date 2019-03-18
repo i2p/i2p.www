@@ -5,7 +5,7 @@ New netDB Entries
     :author: zzz, str4d, orignal
     :created: 2016-01-16
     :thread: http://zzz.i2p/topics/2051
-    :lastupdated: 2019-03-13
+    :lastupdated: 2019-03-18
     :status: Open
     :supercedes: 110, 120, 121, 122
 
@@ -1924,11 +1924,15 @@ Changes
 
   If the signing private key is all zeros, the offline information section follows:
 
-  - Expires timestamp (4 bytes, big endian, seconds since epoch, rolls over in 2106)
+  - Expires timestamp
+    (4 bytes, big endian, seconds since epoch, rolls over in 2106)
   - Sig type of transient Signing Public Key (2 bytes, big endian)
-  - Transient Signing Public key (length as specified by transient sig type)
-  - Signature of above three fields by offline key (length as specified by destination sig type)
-  - Transient Signing Private key (length as specified by transient sig type)
+  - Transient Signing Public key
+    (length as specified by transient sig type)
+  - Signature of above three fields by offline key
+    (length as specified by destination sig type)
+  - Transient Signing Private key
+    (length as specified by transient sig type)
 
 
 Private Key File CLI Changes Required
@@ -1939,7 +1943,8 @@ Add support for the following options:
 ::
 
       -d days              (specify expiration in days of offline sig, default 365)
-      -o offlinedestfile   (generate the online key file using the offline key file specified)
+      -o offlinedestfile   (generate the online key file,
+                            using the offline key file specified)
       -r sigtype           (specify sig type of transient key, default Ed25519)
 
 
@@ -1964,10 +1969,12 @@ Changes
   Option data:  Variable bytes
   Function:     Contains the offline signature section from LS2.
                 FROM_INCLUDED must also be set.
-                Expires timestamp (4 bytes, big endian, seconds since epoch, rolls over in 2106)
+                Expires timestamp
+                (4 bytes, big endian, seconds since epoch, rolls over in 2106)
                 Transient sig type (2 bytes, big endian)
                 Transient signing public key (length as implied by sig type)
-                Signature of expires timestamp, transient sig type, and public key, by the destination public key,
+                Signature of expires timestamp, transient sig type,
+                and public key, by the destination public key,
                 length as implied by destination public key sig type.
 
   Change option:
@@ -1975,7 +1982,8 @@ Changes
   Flag:         SIGNATURE_INCLUDED
   Option order: Change from 4 to 5
 
-  Add information about transient keys to the Variable Length Signature Notes section:
+  Add information about transient keys to the
+  Variable Length Signature Notes section:
   The offline signature option does not needed to be added for a CLOSE packet if
   a SYN packet containing the option was previously acked.
   More info TODO
@@ -2009,10 +2017,12 @@ Changes
     Bit 0: If 0, no offline keys; if 1, offline keys
     Bits 1-15: set to 0 for compatibility with future uses
   - If flag indicates offline keys, the offline signature section:
-    Expires timestamp (4 bytes, big endian, seconds since epoch, rolls over in 2106)
+    Expires timestamp
+    (4 bytes, big endian, seconds since epoch, rolls over in 2106)
     Transient sig type (2 bytes, big endian)
     Transient signing public key (length as implied by sig type)
-    Signature of expires timestamp, transient sig type, and public key, by the destination public key,
+    Signature of expires timestamp, transient sig type,
+    and public key, by the destination public key,
     length as implied by destination public key sig type.
     This section can, and should, be generated offline.
   - Data
@@ -2043,14 +2053,17 @@ Changes
 
   If the signing private key is all zeros, the offline information section follows:
 
-  - Expires timestamp (4 bytes, big endian, seconds since epoch, rolls over in 2106)
+  - Expires timestamp
+    (4 bytes, big endian, seconds since epoch, rolls over in 2106)
   - Sig type of transient Signing Public Key (2 bytes, big endian)
-  - Transient Signing Public key (length as specified by transient sig type)
-  - Signature of above three fields by offline key (length as specified by destination sig type)
+  - Transient Signing Public key
+    (length as specified by transient sig type)
+  - Signature of above three fields by offline key
+    (length as specified by destination sig type)
   - Transient Signing Private key (length as specified by transient sig type)
 
-  Note that offline signatures are only supported for STREAM and RAW, not for DATAGRAM.
-  (until we define a new DATAGRAM protocol)
+  Note that offline signatures are only supported for STREAM and RAW,
+  not for DATAGRAM (until we define a new DATAGRAM protocol).
 
   Note that the SESSION STATUS will return a Signing Private Key of all zeros and
   the Offline Signature data exactly as supplied in the SESSION CREATE.

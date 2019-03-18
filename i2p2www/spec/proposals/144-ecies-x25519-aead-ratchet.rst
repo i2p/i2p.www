@@ -5,7 +5,7 @@ ECIES-X25519-AEAD-Ratchet
     :author: zzz
     :created: 2018-11-22
     :thread: http://zzz.i2p/topics/2639
-    :lastupdated: 2018-12-06
+    :lastupdated: 2019-03-18
     :status: Open
 
 .. contents::
@@ -31,7 +31,7 @@ It relies on previous work as follows:
 - Signal double ratchet algorithm https://signal.org/docs/specifications/doubleratchet/
 
 The goal is to support new encryption for end-to-end,
-destination-to-destination commication.
+destination-to-destination communication.
 
 
 ElGamal Key Locations
@@ -115,15 +115,17 @@ Goals
 - Minimize DH operations
 - Much more bandwidth-efficient than ElGamal (514 byte ElGamal block)
 - Eliminate several problems with session tags, including:
-  - Inability to use AES until the first reply
-  - Unreliability and stalls if tag delivery assumed
-  - Bandwidth inefficient, especially on first delivery
-  - Huge space inefficiency to store tags
-  - Huge bandwidth overhead to deliver tags
-  - Highly complex, difficult to implement
-  - Difficult to tune for various use cases
-  (streaming vs. datagrams, server vs. client, high vs. low bandwidth)
-  - Memory exhaustion vulnerabilities due to tag delivery
+
+   * Inability to use AES until the first reply
+   * Unreliability and stalls if tag delivery assumed
+   * Bandwidth inefficient, especially on first delivery
+   * Huge space inefficiency to store tags
+   * Huge bandwidth overhead to deliver tags
+   * Highly complex, difficult to implement
+   * Difficult to tune for various use cases
+     (streaming vs. datagrams, server vs. client, high vs. low bandwidth)
+   * Memory exhaustion vulnerabilities due to tag delivery
+
 - Support new and old crypto on same tunnel if desired
 - Recipient is able to efficiently distinguish new from old crypto coming down
   same tunnel
@@ -204,8 +206,8 @@ This proposal defines a new end-to-end protocol to replace ElGamal/AES+SessionTa
 There are five portions of the protocol to be redesigned:
 
 
-- The new and existing session container format
-  is replaced with a new format.
+- The new and existing session container formats
+  are replaced with new formats.
 - ElGamal (256 byte public keys, 128 byte private keys) is be replaced
   with ECIES-X25519 (32 byte public and private keys)
 - AES is be replaced with
@@ -224,7 +226,7 @@ This indicates a 32-byte X25519 public key,
 and the end-to-end protocol specified here.
 
 Crypto type 0 is ElGamal.
-Crypto types 1-3 are reserved for an upcoming ECIES-ECDH-AES-SessionTag proposal.
+Crypto types 1-3 are reserved for ECIES-ECDH-AES-SessionTag, see proposal 145.
 
 
 
@@ -380,42 +382,51 @@ or that any additional messages are sent speculatively as existing session messa
 If there is no speculative acks of delivered session tags, the
 overhead or the old protocol is much higher.
 
-No padding assumed for the new protocol.
+No padding is assumed for the new protocol.
 
 
 For ElGamal/AES+SessionTags
 ```````````````````````````
 
-New session message, Same each direction.
+New session message, same each direction:
 
+
+.. raw:: html
+
+  {% highlight lang='text' %}
 ElGamal block:
-514 bytes
+  514 bytes
 
+  AES block:
+  - 2 byte tag count
+  - 1024 bytes of tags (32 typical)
+  - 4 byte payload size
+  - 32 byte hash of payload
+  - 1 byte flags
+  - 8 byte (average) padding to 16 bytes
+  1071 total
+
+  Total:
+  1585 bytes
+{% endhighlight %}
+
+Existing session messages, same each direction:
+
+.. raw:: html
+
+  {% highlight lang='text' %}
 AES block:
-- 2 byte tag count
-- 1024 bytes of tags (32 typical)
-- 4 byte payload size
-- 32 byte hash of payload
-- 1 byte flags
-- 8 byte (average) padding to 16 bytes
-1071 total
+  - 32 byte session tag
+  - 2 byte tag count
+  - 4 byte payload size
+  - 32 byte hash of payload
+  - 1 byte flags
+  - 8 byte (average) padding to 16 bytes
+  79 total
 
-Total:
-1585 bytes
-
-Existing session messages, same each direction
-
-AES block:
-- 32 byte session tag
-- 2 byte tag count
-- 4 byte payload size
-- 32 byte hash of payload
-- 1 byte flags
-- 8 byte (average) padding to 16 bytes
-79 total
-
-Four message total (two each direction)
-3328 bytes
+  Four message total (two each direction)
+  3328 bytes
+{% endhighlight %}
 
 
 For ECIES-X25519-AEAD-Ratchet
@@ -423,44 +434,63 @@ For ECIES-X25519-AEAD-Ratchet
 
 TODO update this section after proposal is stable.
 
-
 Alice-Bob new session message:
+
+.. raw:: html
+
+  {% highlight lang='text' %}
 - 32 byte public key
-- 8 byte nonce
-- 6 byte message ID block
-- 7 byte options block
-- 37 byte next key ratchet block
-- 103 byte ack request block
-- 3 byte I2NP block overhead ?
-- 16 byte Poly1305 tag
+  - 8 byte nonce
+  - 6 byte message ID block
+  - 7 byte options block
+  - 37 byte next key ratchet block
+  - 103 byte ack request block
+  - 3 byte I2NP block overhead ?
+  - 16 byte Poly1305 tag
 
 Total:
 212 bytes
+{% endhighlight %}
 
 Bob-Alice existing session message:
+
+.. raw:: html
+
+  {% highlight lang='text' %}
 - 8 byte session tag
-- 6 byte message ID block
-- 7 byte options block
-- 37 byte next key ratchet block
-- 4 byte ack request block
-- 3 byte I2NP block overhead ?
-- 16 byte Poly1305 tag
+  - 6 byte message ID block
+  - 7 byte options block
+  - 37 byte next key ratchet block
+  - 4 byte ack request block
+  - 3 byte I2NP block overhead ?
+  - 16 byte Poly1305 tag
 
-Total:
-81 bytes
+  Total:
+  81 bytes
+{% endhighlight %}
 
-Existing session messages, same each direction
+Existing session messages, same each direction:
+
+.. raw:: html
+
+  {% highlight lang='text' %}
 - 8 byte session tag
-- 6 byte message ID block
-- 3 byte I2NP block overhead ?
-- 16 byte Poly1305 tag
+  - 6 byte message ID block
+  - 3 byte I2NP block overhead ?
+  - 16 byte Poly1305 tag
 
-Total:
-33 bytes
+  Total:
+  33 bytes
+{% endhighlight %}
 
-Four message total (two each direction)
+Four message total (two each direction):
+
+.. raw:: html
+
+  {% highlight lang='text' %}
 359 bytes
-89% (approx. 10x) reduction compared to ElGamal/AEs+SessionTags
+  89% (approx. 10x) reduction compared to ElGamal/AEs+SessionTags
+{% endhighlight %}
 
 
 Processing overhead estimate
@@ -787,7 +817,7 @@ Decrypted data 1:
   +                                       +
   |                                       |
   +----+----+----+----+----+----+----+----+
-  |   Flags, IV, sequence number, TODO    |
+  |   Flags / IV / sequence number TODO   |
   +----+----+----+----+----+----+----+----+
 
   Public Key :: 32 bytes, little endian
@@ -814,13 +844,11 @@ KDF
 .. raw:: html
 
   {% highlight lang='text' %}
-
 See message key ratchet below.
 
-Key: KDF TBD
-IV: As published in a LS2 property?
-Nonce: From header
-
+  Key: KDF TBD
+  IV: As published in a LS2 property?
+  Nonce: From header
 {% endhighlight %}
 
 
@@ -911,13 +939,11 @@ KDF
 .. raw:: html
 
   {% highlight lang='text' %}
-
 See message key ratchet below.
 
-Key: KDF TBD
-IV: KDF TBD
-Nonce: The message number N in the current chain, as retrieved from the associated Session Tag.
-
+  Key: KDF TBD
+  IV: KDF TBD
+  Nonce: The message number N in the current chain, as retrieved from the associated Session Tag.
 {% endhighlight %}
 
 
@@ -1884,6 +1910,7 @@ New options in SessionConfig Mapping:
 
   i2cp.leaseSetEncType=nnn  The encryption type to be used.
                             0: ElGamal
+                            1-3: See proposal 145
                             4: This proposal.
                             Other values to be defined in future proposals.
 
