@@ -47,6 +47,7 @@ Goals
 - Support "private" links that include blinding secret and/or per-client key
 - Add checksum to detect typos
 - Minimize length, maintain DNS label length less than 63 chars for normal usage
+- Continue to use base 32 for case-insensitivity
 - Retain the usual ".b32.i2p" suffix.
 
 
@@ -192,5 +193,5 @@ References
 ==========
 
 .. [ADLER32]
-    https://en.wikipedia.org/wiki/CRc-32
+    https://en.wikipedia.org/wiki/CRC-32
     https://tools.ietf.org/html/rfc3309
