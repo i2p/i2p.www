@@ -5,7 +5,7 @@ EdDSA-BLAKE2b-Ed25519
     :author: zzz
     :created: 2019-03-12
     :thread: http://zzz.i2p/topics/2689
-    :lastupdated: 2019-03-13
+    :lastupdated: 2019-03-20
     :status: Open
 
 .. contents::
@@ -215,6 +215,7 @@ Signed Datagrams                    "sign_datagramI2P"
 Streaming                           "streaming_i2psig"
 SSU handshake                       "SSUHandshakeSign"
 SU3 Files                           n/a, not supported
+Unit tests                          "test1234test5678"
 ==================================  ==========================
 
 
@@ -227,6 +228,14 @@ Notes
 Issues
 ======
 
+- Alternative 1: Proposal 146;
+  Provides LEA resistance
+- Alternative 2: Ed25519ctx in RFC 8032;
+  Provides LEA resistance and personalization.
+  Standardized, but does anybody use it?
+  See [RFC-8032]_ and [ED25519CTX]_.
+- Do we need 12 at all, or is 13 sufficient for both unblinded and blinded?
+- Is "keyed" hashing useful to us?
 
 
 
@@ -265,6 +274,9 @@ References
 .. [BLAKE2]
    https://blake2.net/blake2.pdf
 
+.. [ED25519CTX]
+   https://moderncrypto.org/mail-archive/curves/2017/000925.html
+
 .. [ED25519-REFS]
     "High-speed high-security signatures" by Daniel
     J. Bernstein, Niels Duif, Tanja Lange, Peter Schwabe, and
@@ -278,6 +290,9 @@ References
 
 .. [RFC-7693]
    https://tools.ietf.org/html/rfc7693
+
+.. [RFC-8032]
+   https://tools.ietf.org/html/rfc8032
 
 .. [ZCASH]
    https://github.com/zcash/zips/tree/master/protocol/protocol.pdf

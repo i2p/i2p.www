@@ -5,7 +5,7 @@ B32 for Encrypted LS2
     :author: zzz
     :created: 2019-03-13
     :thread: http://zzz.i2p/topics/2682
-    :lastupdated: 2019-03-15
+    :lastupdated: 2019-03-20
     :status: Open
 
 .. contents::
@@ -178,6 +178,10 @@ Issues
 - Is a checksum required? If we don't have a checksum, we still must xor the leading bytes with something to randomize the b32 chars.
 - Any secret, private key, or public key longer than 32 bytes would
   exceed the DNS max label length of 63 chars. Browsers probably do not care?
+- Encoding the secret may be bad for security, and the b33 will change if the secret does.
+  The URL may leak in headers and cause issues.
+- Encoding the private key is very bad for security, and the b33 will change if the key does.
+  The URL may leak in headers and cause issues.
 
 
 Migration

@@ -5,7 +5,7 @@ New netDB Entries
     :author: zzz, str4d, orignal
     :created: 2016-01-16
     :thread: http://zzz.i2p/topics/2051
-    :lastupdated: 2019-03-18
+    :lastupdated: 2019-03-20
     :status: Open
     :supercedes: 110, 120, 121, 122
 
@@ -1240,15 +1240,6 @@ There is no I2CP protocol enhancement defined in this proposal to support
 encrypted leasesets with offline keys.
 
 
-Issues
-``````
-
-- If we care about speed, we could use keyed-BLAKE2b instead. It has an output
-  size large enough to accommodate the largest n we require (or we can call it once per
-  desired key with a counter argument). BLAKE2b is much faster than SHA-256, and
-  keyed-BLAKE2b would reduce the total number of hash function calls.
-  [UNSCIENTIFIC-KDF-SPEEDS]_
-
 
 Notes
 `````
@@ -1266,6 +1257,13 @@ Notes
 - ChaCha20 was selected over AES. While the speeds are similar if AES
   hardware support is available, ChaCha20 is 2.5-3x faster when
   AES hardware support is not available, such as on lower-end ARM devices.
+
+- We do not care enough about speed to use keyed BLAKE2b. It has an output
+  size large enough to accommodate the largest n we require (or we can call it once per
+  desired key with a counter argument). BLAKE2b is much faster than SHA-256, and
+  keyed-BLAKE2b would reduce the total number of hash function calls.
+  However, see proposal 148, where it is proposed that we switch to BLAKE2b for other reasons.
+  [UNSCIENTIFIC-KDF-SPEEDS]_
 
 
 Meta LS2

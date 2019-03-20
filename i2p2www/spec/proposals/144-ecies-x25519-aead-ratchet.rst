@@ -5,7 +5,7 @@ ECIES-X25519-AEAD-Ratchet
     :author: zzz
     :created: 2018-11-22
     :thread: http://zzz.i2p/topics/2639
-    :lastupdated: 2019-03-18
+    :lastupdated: 2019-03-20
     :status: Open
 
 .. contents::
@@ -817,7 +817,7 @@ Decrypted data 1:
   +                                       +
   |                                       |
   +----+----+----+----+----+----+----+----+
-  |   Flags / IV / sequence number TODO   |
+  |   Flags   IV   sequence number TODO   |
   +----+----+----+----+----+----+----+----+
 
   Public Key :: 32 bytes, little endian
