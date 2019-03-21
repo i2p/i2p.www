@@ -5,7 +5,7 @@ EdDSA-BLAKE2b-Ed25519
     :author: zzz
     :created: 2019-03-12
     :thread: http://zzz.i2p/topics/2689
-    :lastupdated: 2019-03-20
+    :lastupdated: 2019-03-21
     :status: Open
 
 .. contents::
@@ -26,7 +26,7 @@ Motivation
 During discussions and design of NTCP2 (proposal 111) and LS2 (proposal 123),
 we briefly considered various attacks that were possible, and how to
 prevent them. Three of these attacks are Length Extension Attacks,
-Reuse of Signed Data, and Duplicate Message Identification.
+Cross-Protocol Attacks, and Duplicate Message Identification.
 
 For both NTCP2 and LS2, we decided that
 these attacks were not directly relevant to the proposals at hand,
@@ -54,11 +54,11 @@ where the hash is signed.
 For other signed datagram sig types, the data is signed.
 
 
-Reuse of Signed Data
---------------------
+Cross-Protocol Attacks
+----------------------
 
 Signed data in I2P protocols may be vulnerable to
-a Reuse of Signed Data (RSD) due to lack Of domain separation.
+Cross-Protocol Attacks (CPA) due to lack of domain separation.
 This allows an attacker to use data received in one context
 (such as a signed datagram) and present it as valid, signed data
 in another context (such as streaming or network database).
