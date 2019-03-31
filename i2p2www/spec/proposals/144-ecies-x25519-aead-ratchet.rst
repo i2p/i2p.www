@@ -5,7 +5,7 @@ ECIES-X25519-AEAD-Ratchet
     :author: zzz
     :created: 2018-11-22
     :thread: http://zzz.i2p/topics/2639
-    :lastupdated: 2019-03-20
+    :lastupdated: 2019-03-31
     :status: Open
 
 .. contents::
@@ -763,6 +763,8 @@ Encrypted:
   +                                       +
   |                                       |
   +----+----+----+----+----+----+----+----+
+  |          Nonce   8 bytes              |
+  +----+----+----+----+----+----+----+----+
   |                                       |
   +                                       +
   |       ChaCha20 encrypted data         |
@@ -791,6 +793,8 @@ Encrypted:
   +----+----+----+----+----+----+----+----+
 
   Public Key :: 32 bytes, little endian, cleartext
+
+  Nonce :: 8 bytes, little endian? cleartext
 
   encrypted data 1 :: 40 bytes
 
@@ -1803,13 +1807,10 @@ Issues
 
 Padding
 ```````
-This is for padding inside AEAD frames.
-Padding for messages 1 and 2 are outside AEAD frames.
-All padding for message 3 and the data phase are inside AEAD frames.
-
-Padding inside AEAD should roughly adhere to the negotiated parameters.
-Bob sent his requested tx/rx min/max parameters in message 2.
-Alice sent her requested tx/rx min/max parameters in message 3.
+All padding is inside AEAD frames.
+TODO Padding inside AEAD should roughly adhere to the negotiated parameters.
+TODO Bob sent his requested tx/rx min/max parameters in message 2.
+TODO Alice sent her requested tx/rx min/max parameters in message 3.
 Updated options may be sent during the data phase.
 See options block information above.
 
