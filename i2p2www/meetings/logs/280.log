@@ -1,0 +1,100 @@
+20:00:00 <zzz> 0) Hi
+20:00:00 <zzz> 1) 0.9.39 release status (zzz)
+20:00:00 <zzz> 2) 0.9.40 dev status (zzz)
+20:00:00 <zzz> 3) LS2 status (zzz)
+20:00:00 <zzz> 4) Status scrum (zlatinb)
+20:00:03 <zzz> 0) Hi
+20:00:05 <zzz> hi
+20:00:14 <zzz> 1) 0.9.39 release status (zzz)
+20:00:33 <zzz> 39 was released 11 days ago, approaching half of the net has updated
+20:01:10 <zzz> still awaiting mavencentral (str4d), our f-droid (meeh), official f-droid (nextloop) and debian (mhatta)
+20:01:12 <meeh> hi
+20:01:26 <zzz> any of you have ETA on when those items will be completed?
+20:02:58 <meeh> if it's as easy as https://f-droid.org/en/docs/Setup_an_F-Droid_App_Repo/ seem to be,later today.
+20:03:31 <zzz> you've already set it up, we've had it for years. It's just a question of putting the new apk in there, which you've done several times before
+20:04:08 <zzz> please harass str4d for maven central, and figure out how to get him out of the process ASAP. It's been a year we've been fighting to get control of this
+20:04:08 <meeh> no, I've hosted it, never uploaded
+20:04:47 <zzz> if you say so, but I remember you copying the apk over there before
+20:05:04 <meeh> I've written to him at twitter now for maven
+20:05:36 <zzz> lets try to get all this done within a week of release from now on. It's a bad look for us to take several weeks
+20:05:47 <zzz> I don't know what's going on with mhatta
+20:06:09 <zzz> we need to get better at this
+20:06:44 <zzz> the good news is, no real complaints about 39, other than it didn't fix 3rd party android apps... but they didn't work before either
+20:07:01 <zzz> meeh, what's your ETA for releasing a new android bote that works?
+20:07:29 <meeh> if you didn't see - it was discovered that it was just a reinstall which where the issue with shared uid
+20:07:53 <meeh> so, didn't fix => probably fixed
+20:08:03 <zzz> I thought that was only for a dev environment?
+20:08:33 <meeh> no clue as I'm not really familiar with either bote or android - monkey hitting the keyboard hoping for useful results
+20:08:47 <zzz> did you read the link he gave us?
+20:09:02 <zzz> <cisiey> zzz, https://developer.android.com/guide/topics/manifest/manifest-element#uid
+20:09:02 <zzz> <cisiey> >if this attribute is set to the same value for two or more apps, they will all share the same ID — provided that their certificate sets are identical
+20:09:25 <zzz> anyway, too much detail for the meeting, but we still have some research to do
+20:09:55 <zzz> ok, no ETA for bote. Maybe mhatta can help
+20:10:06 <zzz> or somebody
+20:10:10 <zzz> anything else on 1) ?
+20:11:19 <zzz> 2) 0.9.40 dev status (zzz)
+20:11:29 <zzz> we're two weeks into a short 7 week cycle
+20:11:51 <zzz> zlatinb propped over a new, sophisticated streaming blocker/throttler today
+20:12:00 <zzz> I've checked in a new susidns import feature
+20:12:22 <zzz> and working hard on support for the new "b33" format that makes testing encrypted ls2 possible
+20:12:37 <zzz> we are using the .39 floodfills to test encrypted ls2 and it's working very well so far
+20:13:18 <zzz> there's a very very long list on the .40 roadmap, it's probably way too ambitious, but hopefully we;ll get to half of it
+20:13:37 <zzz> anybody else want to report on things they're doing for .40?
+20:14:00 <zlatinb> meta-LS backend, hopefully
+20:14:13 <zlatinb> but that’s not really tied to a router release so w/e
+20:14:26 <eyedeekay> I have mostly got a working i2ptunnels.config.d folder
+20:14:58 <zzz> oh yeah, we need to talk about that at some point eyedeekay to see how it fits in with my half-done work from a year ago
+20:15:12 <zzz> will catch up with you on it at some point
+20:15:25 <meeh> on schedule with osx stuff, will have native shortcut for sharing file/directory with snark, auto-updater, new swift version, general code cleanup
+20:15:35 <zzz> meeh, eyedeekay, any status on the libsam stuff?
+20:16:26 <meeh> not more than that I need to catch up on the example, haven't had time to work with it lately
+20:17:01 <zzz> ok, anything else on 2) ?
+20:17:41 <eyedeekay> I did put together a swig binding for the C++ library but I've only just learned swig, I'm not even sure it works yet.
+20:18:28 <zzz> 3) ls2 status
+20:18:37 <zzz> we've had 34 meetings and still going strong
+20:18:46 <zzz> encrypted ls2 is working well
+20:19:00 <zzz> meta ls we're just starting to talk seriously about the backend
+20:19:14 <zzz> b33 is progressing
+20:19:36 <zzz> I've started working on the ratchet proposal again, starting some coding, but it's going to be a while
+20:19:49 <zzz> the blake proposal is stalled, lower priority for now
+20:20:32 <zzz> hopefully a lot of the pieces are in place and we can start using them for real, or by default
+20:20:49 <zzz> any questions on ls2, or anything else for 3) ?
+20:21:29 <chisana> does encrypted ls2 work with ed25519 -> ed25519 (regardless of hash used)?
+20:21:53 <chisana> or is red25519 required?
+20:22:09 <zzz> red is required
+20:22:36 <chisana> ok, thanks
+20:22:47 <zzz> because you need a defined way to blind
+20:23:10 <chisana> you can blind with ed25519
+20:23:14 <zzz> in theory you could encrypt from/to anything but it wouldn't necessarily be secure, or defined
+20:23:20 <chisana> libsodium has it as an example in their docs
+20:23:34 <zzz> we support ed->red and red->red, thats it
+20:23:58 <zzz> we can discuss more over in #ls2 if you like after the meeting
+20:24:08 <zzz> anything else on 3) ?
+20:24:12 <chisana> right, didn't mean to distract
+20:24:49 <zzz> no problem, I asked for questions!
+20:24:54 <zzz> ok lets move on
+20:25:00 <zzz> 4) status scrum (zlatinb)
+20:25:03 <zzz> go zlatinb
+20:25:09 <zlatinb> Hi.  Quick parallel scrum: 1) what you’ve been doing since the last scrum 2) what do you plan on doing next month 3) any blockers or help needed
+20:26:10 <zlatinb> me: 1) lots of work with arctic on making the client side work well with his outproxies.  New access filter (also requested by arctic) 2) meta-LS backend hopefully 3) no real blockers
+20:27:16 <zzz> me: 1) 39 release, ls2 including proposals 123, 144, 146, 148, 149; lots of bug fixes; susidns import; b33; reviewing other's code; support
+20:28:14 <zzz> 2) prep for 40 release; lots of bug fixes; more ls2 work; keep trying to get signed windows installer to work; coding on ratchet proposal 144 and updating the docs
+20:28:29 <meeh> 1) the osx launcher updates, started catching up on the #ls2 meetings & the libsam example, 2) android bote, osx launcher, new browser build, catching up on the #ls2 meetings 3) if anyone wants, I'll always welcome android help since I don't know the platform, but no spesific issues right now.
+20:28:55 <zzz> 3) blockers: mhatta for various debian/tails things
+20:28:56 <zzz> EOT
+20:31:29 <zzz> anybody else for 4) ?
+20:33:29 <zlatinb> oh, sorry, EOT :)
+20:33:31 <meeh> EOT
+20:33:31 <zlatinb> eyedeekay, eche|on ?
+20:33:31 <eyedeekay> sorry, just a second
+20:33:31 <eche|on> yes?
+20:33:31 <meeh> it's scrum
+20:33:31 <eche|on> nothing special so far
+20:33:31 <eyedeekay> 1) Since Sunday I've been working on splitting i2ptunnel configuration across multiple directories. 2) Application stuff including self-installing nginx, sshd/ssh, Webextensions/XUL extensions for Browser 3) The first is required to do the second
+20:33:31 <eche|on> done services, no blockers, go on
+20:33:31 <eyedeekay> EOT
+20:33:31 <zlatinb> ok, that’s everyone I think </scrum>
+20:33:52 <zzz> ok, anything else for the meeting?
+20:34:47 <zzz> didn't think it was much of a turnout until eche|on and eyedeekay spoke up at the end!
+20:35:00 <zzz> last call before the baffer comes out
+20:36:21 * zzz *bafs* the meeting closed
