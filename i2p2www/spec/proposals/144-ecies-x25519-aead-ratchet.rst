@@ -5,7 +5,7 @@ ECIES-X25519-AEAD-Ratchet
     :author: zzz
     :created: 2018-11-22
     :thread: http://zzz.i2p/topics/2639
-    :lastupdated: 2019-03-31
+    :lastupdated: 2019-04-03
     :status: Open
 
 .. contents::
@@ -796,7 +796,7 @@ Encrypted:
 
   Nonce :: 8 bytes, little endian? cleartext
 
-  encrypted data 1 :: 40 bytes
+  encrypted data 1 :: 55 bytes
 
   MAC 1 :: Poly1305 message authentication code, 16 bytes
 
@@ -809,34 +809,33 @@ Encrypted:
 
 Decrypted data 1:
 
-.. raw:: html
+See AEAD section below.
+Encrypted length is 71 bytes.
+Decrypted length is 55 bytes.
+Contents must be the following blocks in the following order:
 
-  {% highlight lang='dataspec' %}
-+----+----+----+----+----+----+----+----+
-  |                                       |
-  +                                       +
-  |       DH Ratchet Public Key           |
-  +                                       +
-  |                                       |
-  +                                       +
-  |                                       |
-  +----+----+----+----+----+----+----+----+
-  |   Flags   IV   sequence number TODO   |
-  +----+----+----+----+----+----+----+----+
+==================================  ============= ============
+       Payload Block Type            Type Number  Block Length
+==================================  ============= ============
+Options                                   5            9      
+Message Number                            6            9      
+Next Key                                  7           37      
+==================================  ============= ============
+Block Total                                           55   
+HMAC                                                  16
+Total                                                 71   
+==================================  ============= ============
 
-  Public Key :: 32 bytes, little endian
-
-  TODO :: 8 bytes
-
-{% endhighlight %}
 
 
 
 
 Decrypted data 2:
 
-  See AEAD section below.
-
+See AEAD section below.
+Encrypted length is the remainder of the data.
+Decrypted length is 16 less than the encrypted length.
+All types are supported.
 
 
 
@@ -1363,11 +1362,9 @@ KDF:
 This replaces the AES section format defined in the ElGamal/AES+SessionTags specification.
 
 This uses the same block format as defined in the NTCP2 specification.
-Where appropriate, the same block numbers are used.
-We do not reuse NTCP2 block numbers for different uses, so
-that implementations may share code with NTCP2.
+Individual block types are defined differently.
 
-TODO there are concerns that encouraging implementers to share code
+There are concerns that encouraging implementers to share code
 may lead to parsing issues. Implementers should carefully consider
 the benefits and risks of sharing code, and ensure that the
 ordering and valid block rules are different for the two contexts.
@@ -1434,9 +1431,23 @@ so the max unencrypted data is 65519 bytes.
 
 Block Ordering Rules
 ````````````````````
-In the new session message, order must be:
-TBD
-xx, followed by Options if present, followed by Padding if present.
+In first decrypted part of the new session message,
+the following three blocks are required, in the following order:
+
+- Options (type 5) (must be total length = 9)
+- Message Number (type 6)
+- New Key (type 7)
+
+No other blocks are allowed.
+
+In second decrypted part of the new session message,
+three blocks are required, and padding is optional, in the following order:
+
+- Message Number (type 6)
+- New Key (type 7)
+- I2NP message (type 3) (one or more)
+- Padding (type 254)
+
 No other blocks are allowed.
 
 In the existing session message, order is unspecified, except for the
