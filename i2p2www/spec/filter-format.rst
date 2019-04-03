@@ -10,7 +10,7 @@ Access Filter Format Specification
 Overview
 ========
 
-The definition of a filter is a list of Strings.  Blank lines and lines beginning with # are ignored.  
+The definition of a filter is a list of Strings.  Blank lines and lines beginning with # are ignored.  Changes in the filter definition take effect on restart of the tunnel. 
 
 Each line can represent one of these items:
 
@@ -55,6 +55,8 @@ threshold use the keyword "default".  The following are examples of default thre
   15/5 default
   allow default
   deny default
+
+There can be Only one definition of a default threshold per filter.  If it's ommitted, the filter will allow unknown connections by default.
   
 
 Explicit Thresholds
@@ -80,6 +82,8 @@ a threshold for all of them in bulk.  Examples::
  deny file /path/forbidden_destinations.txt
  allow file /path/unlimited_destinations.txt
 
+These files can be edited by hand while the tunnel is running.  Changes to these files 
+may take up to 10 seconds to take effect.
 
 Recorders
 =========
