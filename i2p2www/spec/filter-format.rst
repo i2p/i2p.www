@@ -92,8 +92,8 @@ Recorders keep track of connection attempts made by a remote destination, and if
 breaches a certain threshold, that destination gets recorded in a given file.  Examples::
 
 
- 30/5 recorder /path/aggressive.txt
- 60/5 recorder /path/very_aggressive.txt
+ 30/5 record /path/aggressive.txt
+ 60/5 record /path/very_aggressive.txt
 
 
 It is possible to use a recorder to record aggressive destinations to a given file,
@@ -106,7 +106,7 @@ destination exceeds 30 attempts per 5 seconds it gets throttled down to 15 attem
  # by default there are no limits
  allow default
  # but record overly aggressive destinations
- 30/5 recorder /path/throttled.txt
+ 30/5 record /path/throttled.txt
  # and any that end up in that file will get throttled in the future
  15/5 file /path/throttled.txt
 
@@ -124,7 +124,7 @@ in the file "enemies.txt" and records any aggressive behavior in a file called
  15/5 default
  allow file /path/friends.txt
  deny file /path/enemies.txt
- 60/5 recorder /path/suspicious.txt
+ 60/5 record /path/suspicious.txt
 
 
 
