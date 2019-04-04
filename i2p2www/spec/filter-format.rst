@@ -30,16 +30,16 @@ Thresholds
 
 
 A threshold is defined by the number of connection attempts a remote destination is
-permitted to perform over a specified number of minutes before a "breach" occurs.
+permitted to perform over a specified number of seconds before a "breach" occurs.
 For example the following threshold definition "15/5" means that the same remote
-destination is allowed to make 14 connection attempts over a 5 minute period,  If
+destination is allowed to make 14 connection attempts over a 5 second period,  If
 it makes one more attempt within the same period, the threshold will be breached.
 
 
 The threshold format can be one of the following:
 
 
-* Numeric definition of number of connections over number minutes - "15/5", "30/60", and so on.  Note that if the number of connections is 1 (as for example in "1/1") the first connection attempt will result in a breach.
+* Numeric definition of number of connections over number seconds - "15/5", "30/60", and so on.  Note that if the number of connections is 1 (as for example in "1/1") the first connection attempt will result in a breach.
 * The word "allow".  This threshold is never breached, i.e. infinite number of connection attempts is permitted.
 * The word "deny".  This threshold is always breached, i.e. no connection attempts will be allowed.
 
@@ -99,8 +99,8 @@ breaches a certain threshold, that destination gets recorded in a given file.  E
 It is possible to use a recorder to record aggressive destinations to a given file,
 and then use that same file to throttle them.  For example, the following snippet will
 define a filter that initially allows all connection attempts, but if any single
-destination exceeds 30 attempts per 5 minutes it gets throttled down to 15 attempts per 
-5 minutes::
+destination exceeds 30 attempts per 5 seconds it gets throttled down to 15 attempts per 
+5 seconds::
 
 
  # by default there are no limits
