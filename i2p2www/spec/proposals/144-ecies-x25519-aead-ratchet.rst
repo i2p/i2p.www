@@ -5,7 +5,7 @@ ECIES-X25519-AEAD-Ratchet
     :author: zzz
     :created: 2018-11-22
     :thread: http://zzz.i2p/topics/2639
-    :lastupdated: 2019-04-03
+    :lastupdated: 2019-04-06
     :status: Open
 
 .. contents::
@@ -186,16 +186,15 @@ Existing I2P router implementations will require implementations for
 the following standard cryptographic primitives,
 which are not required for current I2P protocols:
 
-1) ECIES (but this is essentially X25519)
+- ECIES (but this is essentially X25519)
+- Elligator2
 
 Existing I2P router implementations that have not yet implemented NTCP2 (Proposal 111)
 will also require implementations for:
 
-1) X25519 key generation and DH
-
-2) AEAD_ChaCha20_Poly1305 (abbreviated as ChaChaPoly below)
-
-3) HKDF
+- X25519 key generation and DH
+- AEAD_ChaCha20_Poly1305 (abbreviated as ChaChaPoly below)
+- HKDF
 
 
 Detailed Proposal
@@ -448,8 +447,8 @@ Alice-Bob new session message:
   - 3 byte I2NP block overhead ?
   - 16 byte Poly1305 tag
 
-Total:
-212 bytes
+  Total:
+  212 bytes
 {% endhighlight %}
 
 Bob-Alice existing session message:
@@ -588,6 +587,74 @@ Multicast
 ---------
 
 TBD
+
+
+Definitions
+-----------
+We define the following functions corresponding to the cryptographic building blocks used.
+
+ZEROLEN
+    zero-length byte array
+
+CSRNG(n)
+    n-byte output from a cryptographically-secure random number generator.
+
+H(p, d)
+    SHA-256 hash function that takes a personalization string p and data d, and
+    produces an output of length 32 bytes.
+
+    Use SHA-256 as follows::
+
+        H(p, d) := SHA-256(p || d)
+
+STREAM
+    The ChaCha20/Poly1305 AEAD as specified in [RFC-7539]_.
+    S_KEY_LEN = 32 and S_IV_LEN = 12.
+
+    ENCRYPT(k, n, plaintext, ad)
+        Encrypts plaintext using the cipher key k, and nonce n which MUST be unique for
+        the key k.
+        Associated data ad is optional.
+        Returns a ciphertext that is the size of the plaintext + 16 bytes for the HMAC.
+
+        The entire ciphertext must be indistinguishable from random if the key is secret.
+
+    DECRYPT(k, n, ciphertext, ad)
+        Decrypts ciphertext using the cipher key k, and nonce n.
+        Associated data ad is optional.
+        Returns the plaintext.
+
+DH
+    X25519 public key agreement system. Private keys of 32 bytes, public keys of 32
+    bytes, produces outputs of 32 bytes. It has the following
+    functions:
+
+    GENERATE_PRIVATE()
+        Generates a new private key.
+
+    DERIVE_PUBLIC(privkey)
+        Returns the public key corresponding to the given private key.
+
+    GENERATE_PRIVATE_ELG2()
+        Generates a new private key suitable for Elligator2.
+
+    DERIVE_PUBLIC_ELG2(privkey)
+        Returns the Elligator2 public key corresponding to the given private key (inverse mapping).
+
+    MAP_PUBLIC_ELG2(pubkey)
+        Returns the public key corresponding to the given Elligator2 public key.
+
+    DH(privkey, pubkey)
+        Generates a shared secret from the given private and public keys.
+
+HKDF(salt, ikm, info, n)
+    A cryptographic key derivation function which takes some input key material ikm (which
+    should have good entropy but is not required to be a uniformly random string), a salt
+    of length 32 bytes, and a context-specific 'info' value, and produces an output
+    of n bytes suitable for use as key material.
+
+    Use HKDF as specified in [RFC-5869]_, using the HMAC hash function SHA-256
+    as specified in [RFC-2104]_. This means that SALT_LEN is 32 bytes max.
 
 
 
@@ -742,9 +809,8 @@ Some recommended strategies include:
 1a) New session format
 ----------------------
 
-Public key (32 bytes)
-Nonce (8 bytes)
-Encrypted data and MAC (see section 3 below)
+New Session One Time Public key (32 bytes)
+Encrypted data and MAC (remaining bytes)
 
 
 Format
@@ -757,27 +823,11 @@ Encrypted:
 +----+----+----+----+----+----+----+----+
   |                                       |
   +                                       +
-  |       New Session Public Key          |
+  |   New Session One Time Public Key     |
   +                                       +
   |                                       |
   +                                       +
   |                                       |
-  +----+----+----+----+----+----+----+----+
-  |          Nonce   8 bytes              |
-  +----+----+----+----+----+----+----+----+
-  |                                       |
-  +                                       +
-  |       ChaCha20 encrypted data         |
-  +                                       +
-  |                                       |
-  +                                       +
-  |                                       |
-  +                                       +
-  |                                       |
-  +----+----+----+----+----+----+----+----+
-  |  Poly1305 Message Authentication Code |
-  +              (MAC)                    +
-  |             16 bytes                  |
   +----+----+----+----+----+----+----+----+
   |                                       |
   +                                       +
@@ -794,64 +844,156 @@ Encrypted:
 
   Public Key :: 32 bytes, little endian, cleartext
 
-  Nonce :: 8 bytes, little endian? cleartext
+  encrypted data :: remaining data minus 16 bytes
 
-  encrypted data 1 :: 55 bytes
-
-  MAC 1 :: Poly1305 message authentication code, 16 bytes
-
-  encrypted data 2 :: Same size as plaintext data, Size varies
-
-  MAC 2 :: Poly1305 message authentication code, 16 bytes
+  MAC :: Poly1305 message authentication code, 16 bytes
 
 {% endhighlight %}
 
 
-Decrypted data 1:
-
-See AEAD section below.
-Encrypted length is 71 bytes.
-Decrypted length is 55 bytes.
-Contents must be the following blocks in the following order:
-
-==================================  ============= ============
-       Payload Block Type            Type Number  Block Length
-==================================  ============= ============
-Options                                   5            9      
-Message Number                            6            9      
-Next Key                                  7           37      
-==================================  ============= ============
-Block Total                                           55   
-HMAC                                                  16
-Total                                                 71   
-==================================  ============= ============
-
-
-
-
-
-Decrypted data 2:
+Decrypted data
+``````````````
 
 See AEAD section below.
 Encrypted length is the remainder of the data.
 Decrypted length is 16 less than the encrypted length.
-All types are supported.
+All block types are supported.
+Typical contents include the following blocks:
+
+==================================  ============= ============
+       Payload Block Type            Type Number  Block Length
+==================================  ============= ============
+DateTime                                  0            7      
+I2NP Message                              3         varies    
+Options                                   5            9      
+Message Number                            6            9      
+Next Key                                  7           37      
+ACK Request                               9         varies    
+Padding                                 254         varies    
+==================================  ============= ============
+
+
+DateTime Message Contents
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The current time.
+
+
+I2NP Message Contents
+~~~~~~~~~~~~~~~~~~~~~
+
+The I2NP message sent.
+
+
+Options Contents
+~~~~~~~~~~~~~~~~
+
+- STL = 8
+
+
+Message Number Contents
+~~~~~~~~~~~~~~~~~~~~~~~
+
+- Key ID = 0
+- PN = 0
+- N starts with 0, incremented with every new session message sent with this key
+
+
+Next Key Contents
+~~~~~~~~~~~~~~~~~
+
+- Key ID = 0
+- Key = Alice's first ratchet public key rapk (See KDF for part 2 below),
+  remains constant for every new session message for this session
+
+
+ACK Request Contents
+~~~~~~~~~~~~~~~~~~~~
+
+Delivery instructions for the ack.
+
+
+Padding Contents
+~~~~~~~~~~~~~~~~
+
+As desired.
 
 
 
-
-KDF
-```
-
+KDF for Encrypted Contents
+``````````````````````````
 
 .. raw:: html
 
   {% highlight lang='text' %}
-See message key ratchet below.
+// Bob's X25519 static keys
+  // bpk is published in leaseset
+  bsk = GENERATE_PRIVATE()
+  bpk = DERIVE_PUBLIC(bsk)
 
-  Key: KDF TBD
-  IV: As published in a LS2 property?
-  Nonce: From header
+  // Alice's X25519 one-time-use ephemeral keys
+  ask = GENERATE_PRIVATE_ELG2()
+  // eapk is sent in cleartext in the
+  // beginning of the new session message
+  eapk = DERIVE_PUBLIC_ELG2(ask)
+  apk = MAP_PUBLIC_ELG2(eapk)
+
+  INITIAL_ROOT_KEY = SHA256("144-ECIES-X25519-AEAD-Ratchet")
+
+  sharedSecret = DH(ask, bpk) = DH(bsk, apk)
+
+  // ChaChaPoly parameters to encrypt/decrypt part 1
+  k = HKDF(INITIAL_ROOT_KEY, sharedSecret, "NewSessionTmpKey", 32)
+  n = 0
+  ad = SHA-256(eapk)
+
+{% endhighlight %}
+
+
+
+KDF for Ratchets
+````````````````
+
+.. raw:: html
+
+  {% highlight lang='text' %}
+// Bob's X25519 static keys
+  // bpk is published in leaseset
+  bsk = GENERATE_PRIVATE()
+  bpk = DERIVE_PUBLIC(bsk)
+
+  // Alice's first ratchet X25519 ephemeral keys
+  rask = GENERATE_PRIVATE()
+  // rapk is sent encrypted in part 1
+  // of the new session message
+  rapk = DERIVE_PUBLIC(rask)
+
+  INITIAL_ROOT_KEY = SHA256("144-ECIES-X25519-AEAD-Ratchet")
+
+  sharedSecret = DH(rask, bpk) = DH(bsk, rapk)
+
+  // KDF_RK(rk, dh_out)
+  keydata = HKDF(INITIAL_ROOT_KEY, sharedSecret, "FirstRatchetStep", 64)
+  nextRootKey = keydata[0:31]
+  ck = keydata[32:63]
+
+  // KDF_CK(ck, constant)
+  CONSTANT = SHA256("KDF_CK_constant")
+  keydata[0] = HKDF(ck, CONSTANT, "DeriveFirstChain", 64)
+  chainKey[0] = keydata[0:31]
+  k[0] = keydata[32:63]
+
+  // repeat as necessary to get to k[n]
+  keydata[n] = HKDF(chainKey[n-1], CONSTANT, "DeriveFirstChain", 64)
+  chainKey[n] = keydata[0:31]
+  k[n] = keydata[32:63]
+
+  // ChaChaPoly parameters to encrypt/decrypt part 2
+  n = N from message number block (type 6) in part 1
+  k = k[n]
+
+  ad = ZEROLEN
+
 {% endhighlight %}
 
 
@@ -885,11 +1027,6 @@ Issues
 ``````
 
 - Obfuscation of cleartext key? We could do Elligator 2 but that's expensive.
-
-- Do we need a nonce? Does it need to be 8 bytes? 4?
-
-- IV is in the LS2 property? Alternative: Send a 16 byte IV instead of 8 byte nonce,
-  and use a nonce of 0.
 
 
 
@@ -1067,16 +1204,16 @@ Inputs to the encryption/decryption functions:
   {% highlight lang='dataspec' %}
 k :: 32 byte cipher key, as generated from KDF
 
-  nonce :: Counter-based nonce, 12 bytes.
-           Starts at 0 and incremented for each message.
-           First four bytes are always zero.
-           In new session message:
-           Last eight bytes are the nonce from the message header.
-           In existing session message:
-           Last eight bytes are the message number (N), little-endian encoded.
-           Maximum value is 2**64 - 2.
-           Session must be ratcheted before N reaches that value.
-           The value 2**64 - 1 must never be used.
+  n :: Counter-based nonce, 12 bytes.
+       Starts at 0 and incremented for each message.
+       First four bytes are always zero.
+       In new session message:
+       Last eight bytes are the nonce from the message header.
+       In existing session message:
+       Last eight bytes are the message number (N), little-endian encoded.
+       Maximum value is 2**64 - 2.
+       Session must be ratcheted before N reaches that value.
+       The value 2**64 - 1 must never be used.
 
   ad :: In new session message:
         Associated data, 32 bytes.
@@ -1138,7 +1275,8 @@ Notes
 AEAD Error Handling
 ```````````````````
 
-TBD
+All received data that fails the AEAD verification must be discarded.
+No response is returned.
 
 
 Justification
@@ -1154,7 +1292,8 @@ Notes
 Issues
 ``````
 
-We may need a different AEAD with a larger nonce that's resistant to nonce reuse,
+Avoid using random nonces. If we do need random nonces,
+we may need a different AEAD with a larger nonce that's resistant to nonce reuse,
 so we can use random nonces. (SIV?)
 
 
@@ -1404,8 +1543,9 @@ so the max unencrypted data is 65519 bytes.
   ~               .   .   .               ~
 
   blk :: 1 byte
-         0-2 reserved (used in NTCP2)
-         3 for I2NP message (Garlic Message only)
+         0 datetime
+         1-2 reserved
+         3 I2NP message (Garlic Message only)
          4 termination
          5 options
          6 message number and previous message number (ratchet)
@@ -1431,21 +1571,16 @@ so the max unencrypted data is 65519 bytes.
 
 Block Ordering Rules
 ````````````````````
-In first decrypted part of the new session message,
-the following three blocks are required, in the following order:
+In the new session message,
+the following blocks are required, in the following order:
 
 - Options (type 5) (must be total length = 9)
 - Message Number (type 6)
 - New Key (type 7)
 
-No other blocks are allowed.
+Other allowed blocks:
 
-In second decrypted part of the new session message,
-three blocks are required, and padding is optional, in the following order:
-
-- Message Number (type 6)
-- New Key (type 7)
-- I2NP message (type 3) (one or more)
+- I2NP message (type 3)
 - Padding (type 254)
 
 No other blocks are allowed.
@@ -1460,6 +1595,26 @@ There may be multiple I2NP blocks in a single frame.
 Multiple Padding blocks are not allowed in a single frame.
 Other block types probably won't have multiple blocks in
 a single frame, but it is not prohibited.
+
+
+
+DateTime
+````````
+Timestamp for replay prevention:
+
+.. raw:: html
+
+  {% highlight lang='dataspec' %}
++----+----+----+----+----+----+----+
+  | 0  |    4    |     timestamp     |
+  +----+----+----+----+----+----+----+
+
+  blk :: 0
+  size :: 2 bytes, big endian, value = 4
+  timestamp :: Unix timestamp, unsigned seconds.
+               Wraps around in 2106
+
+{% endhighlight %}
 
 
 
@@ -1553,9 +1708,13 @@ Additional reasons listed are for consistency, logging, debugging, or if policy 
 Options
 ```````
 Pass updated options.
-Options include: TBD.
+Options include various parameters for the session.
 
-Options block will be variable length.
+In a new session message, the options block is fixed length,
+nine bytes, as more_options is not present.
+
+In an existing session message, the options block may be variable length,
+nine or more bytes, as more_options may be present.
 
 
 .. raw:: html
@@ -1572,11 +1731,11 @@ Options block will be variable length.
   +----+----+----+----+----+----+----+----+
 
   blk :: 5
-  size :: 2 bytes, big endian, size of options to follow, TBD bytes minimum
+  size :: 2 bytes, big endian, size of options to follow, 6 bytes minimum
   STL :: Session tag length (default 8), min and max TBD
   OTW :: Outbound Session tag window (max lookahead)
   STimeout :: Session idle timeout
-  MITW :: Max Inbound Session tag window (max lookahead)
+  MITW :: Max Inbound Session Tag window (max lookahead)
   flg :: 1 byte flags
          bit order: 76543210
          bit 0: 1 to request a ratchet (new key), 0 if not
@@ -1598,9 +1757,10 @@ Options Notes
 
 Options Issues
 ``````````````
-- Options format is TBD.
+- more_options format is TBD.
 - Options negotiation is TBD.
 - Padding parameters also?
+- Is 255 big enough for max MITW?
 
 
 Message Numbers
@@ -1638,7 +1798,8 @@ Notes
 
 - N is not strictly needed in an existing session message, as it's associated with the Session Tag
 
-- This is similar to what Signal does, but in Signal, PN and N are in the header.
+- PN and N are as defined in Signal.
+  This is similar to what Signal does, but in Signal, PN and N are in the header.
   Here, they're in the encrypted message body.
 
 - Key ID can be just an incrementing counter.
@@ -1677,7 +1838,6 @@ at the beginning.
   key ID :: 2 bytes, big endian, used for ack
   Public Key :: The next public key, 32 bytes, little endian
 
-  TBD :: Format TBD
 
 {% endhighlight %}
 
@@ -1813,6 +1973,8 @@ Issues
 - For easier processing, LS clove should precede Garlic clove in the message.
 
 - Is the next public key the right thing to sign?
+
+- Use alice's static pubkey instead?
 
 
 
@@ -1957,6 +2119,11 @@ TODO
 
 References
 ==========
+
+.. [Elligator2]
+    https://elligator.cr.yp.to/elligator-20130828.pdf
+    https://www.imperialviolet.org/2013/12/25/elligator.html
+    See also OBFS4 code
 
 .. [Prop111]
     {{ proposal_url('111') }}
