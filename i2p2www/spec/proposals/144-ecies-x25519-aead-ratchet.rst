@@ -894,9 +894,9 @@ Options Contents
 Message Number Contents
 ~~~~~~~~~~~~~~~~~~~~~~~
 
-- Key ID = 0
+- Key ID = 65535 (0xffff)
 - PN = 0
-- N starts with 0, incremented with every new session message sent with this key
+- N starts with 0, incremented with every new session message sent with the same "next key"
 
 
 Next Key Contents
@@ -942,59 +942,13 @@ KDF for Encrypted Contents
 
   sharedSecret = DH(ask, bpk) = DH(bsk, apk)
 
-  // ChaChaPoly parameters to encrypt/decrypt part 1
+  // ChaChaPoly parameters to encrypt/decrypt
   k = HKDF(INITIAL_ROOT_KEY, sharedSecret, "NewSessionTmpKey", 32)
   n = 0
   ad = SHA-256(eapk)
 
 {% endhighlight %}
 
-
-
-KDF for Ratchets
-````````````````
-
-.. raw:: html
-
-  {% highlight lang='text' %}
-// Bob's X25519 static keys
-  // bpk is published in leaseset
-  bsk = GENERATE_PRIVATE()
-  bpk = DERIVE_PUBLIC(bsk)
-
-  // Alice's first ratchet X25519 ephemeral keys
-  rask = GENERATE_PRIVATE()
-  // rapk is sent encrypted in part 1
-  // of the new session message
-  rapk = DERIVE_PUBLIC(rask)
-
-  INITIAL_ROOT_KEY = SHA256("144-ECIES-X25519-AEAD-Ratchet")
-
-  sharedSecret = DH(rask, bpk) = DH(bsk, rapk)
-
-  // KDF_RK(rk, dh_out)
-  keydata = HKDF(INITIAL_ROOT_KEY, sharedSecret, "FirstRatchetStep", 64)
-  nextRootKey = keydata[0:31]
-  ck = keydata[32:63]
-
-  // KDF_CK(ck, constant)
-  CONSTANT = SHA256("KDF_CK_constant")
-  keydata[0] = HKDF(ck, CONSTANT, "DeriveFirstChain", 64)
-  chainKey[0] = keydata[0:31]
-  k[0] = keydata[32:63]
-
-  // repeat as necessary to get to k[n]
-  keydata[n] = HKDF(chainKey[n-1], CONSTANT, "DeriveFirstChain", 64)
-  chainKey[n] = keydata[0:31]
-  k[n] = keydata[32:63]
-
-  // ChaChaPoly parameters to encrypt/decrypt part 2
-  n = N from message number block (type 6) in part 1
-  k = k[n]
-
-  ad = ZEROLEN
-
-{% endhighlight %}
 
 
 Justification
@@ -1202,24 +1156,29 @@ Inputs to the encryption/decryption functions:
 .. raw:: html
 
   {% highlight lang='dataspec' %}
-k :: 32 byte cipher key, as generated from KDF
+k :: 32 byte cipher key
+       In new session message:
+       See new session message KDF above.
+       In existing session message:
+       As looked up from the accompanying session tag.
 
   n :: Counter-based nonce, 12 bytes.
        Starts at 0 and incremented for each message.
        First four bytes are always zero.
        In new session message:
-       Last eight bytes are the nonce from the message header.
+       n = 0
        In existing session message:
-       Last eight bytes are the message number (N), little-endian encoded.
+       As looked up from the accompanying session tag.
+       Last eight bytes are the message number (n), little-endian encoded.
        Maximum value is 2**64 - 2.
        Session must be ratcheted before N reaches that value.
        The value 2**64 - 1 must never be used.
 
   ad :: In new session message:
         Associated data, 32 bytes.
-        The SHA256 hash of the preceding data (public key and nonce)
+        The SHA256 hash of the preceding data (public key)
         In existing session message:
-        Zero bytes
+        ZEROLEN
 
   data :: Plaintext data, 0 or more bytes
 
@@ -1316,13 +1275,13 @@ We also eliminate the bandwidth consumption of sending tag sets.
 Receiver side usage is still significant, but we can reduce it further
 as we will shrink the session tag from 32 bytes to 8 bytes.
 
-We do not use header encryption as is specified (and optional) in Signal,
+We do not use header encryption as specified (and optional) in Signal,
 we use session tags instead.
 
 By using a DH ratchet, we acheive forward secrecy, which was never implemented
 in ElGamal/AES+SessionTags.
 
-Note: The new session public key is not part of the ratchet, its sole function
+Note: The new session one-time public key is not part of the ratchet, its sole function
 is to encrypt Alice's initial DH ratchet key.
 
 
@@ -1371,23 +1330,41 @@ KDF:
 .. raw:: html
 
   {% highlight lang='text' %}
-
-  Inputs:
-  1) Chain key
+Inputs:
+  1) Session Tag Chain key sessTag_ck
      First time: output from DH ratchet
      Subsequent times: output from previous session tag ratchet
-  2) input_key_material = constant (from where? SHA-256(some constant)?)
+
+  2) input_key_material = SESSTAG_CONSTANT
      Must be unique for this chain (generated from chain key),
-     so that the sequence isn't predictable
-
-  TBD
-
+     so that the sequence isn't predictable, since session tags
+     go out on the wire in plaintext.
 
   Outputs:
   1) N (the current session tag number)
   2) the session tag (and symmetric key, probably)
-  3) the next Chain Key (KDF input for the next session tag ratchet)
+  3) the next Session Tag Chain Key (KDF input for the next session tag ratchet)
 
+  Initialization:
+  keydata = HKDF(sessTag_ck, ZEROLEN, "STInitialization", 64)
+  // Output 1: Next chain key
+  sessTag_ck = keydata_0[0:31]
+  // Output 2: The constant
+  SESSTAG_CONSTANT = keydata_0[32:63]
+
+  // KDF_ST(ck, constant)
+  keydata_0 = HKDF(sessTag_ck, SESSTAG_CONSTANT, "SessionTagKeyGen", 64)
+  // Output 1: Next chain key
+  sessTag_chainKey_0 = keydata_0[0:31]
+  // Output 2: The session tag
+  tag_0 = keydata_0[32:63]
+
+  // repeat as necessary to get to tag_n
+  keydata_n = HKDF(chainKey_(n-1), SESSTAG_CONSTANT, "SessionTagKeyGen", 64)
+  // Output 1: Next chain key
+  sessTag_chainKey_n = keydata_n[0:31]
+  // Output 2: The session tag
+  tag_n = keydata_n[32:63]
 
 {% endhighlight %}
 
@@ -1410,7 +1387,7 @@ that have not yet been received.
 Once received, the stored key may be discarded, and if there are no previous
 unreceived tags, the window may be advanced.
 
-For efficiency, the session tag and symmetric key ratchets should be separate so
+For efficiency, the session tag and symmetric key ratchets are separate so
 the session tag ratchet can run ahead of the symmetric key ratchet.
 This also provides some additional security, since the session tags go out on the wire.
 
@@ -1420,8 +1397,32 @@ KDF:
 .. raw:: html
 
   {% highlight lang='text' %}
+Inputs:
+  1) Symmetric Key Chain key symmKey_ck
+     First time: output from DH ratchet
+     Subsequent times: output from previous symmetric key ratchet
+  2) input_key_material = SYMMKEY_CONSTANT = ZEROLEN
+     No need for uniqueness. Symmetric keys never go out on the wire.
 
-  Probably output from the session tag ratchet, not run separately?
+  Outputs:
+  1) N (the current session key number)
+  2) the session key
+  3) the next Symmetric Key Chain Key (KDF input for the next symmetric key ratchet)
+
+  // KDF_CK(ck, constant)
+  SYMMKEY_CONSTANT = ZEROLEN
+  // Output 1: Next chain key
+  keydata_0 = HKDF(symmKey_ck, SYMMKEY_CONSTANT, "SymmetricRatchet", 64)
+  symmKey_chainKey_0 = keydata_0[0:31]
+  // Output 2: The symmetric key
+  k_0 = keydata_0[32:63]
+
+  // repeat as necessary to get to k[n]
+  keydata_n = HKDF(chainKey_(n-1), SYMMKEY_CONSTANT, "SymmetricRatchet", 64)
+  // Output 1: Next chain key
+  symmKey_chainKey_n = keydata_n[0:31]
+  // Output 2: The symmetric key
+  k_n = keydata_n[32:63]
 
 
 {% endhighlight %}
@@ -1458,36 +1459,66 @@ KDF:
 .. raw:: html
 
   {% highlight lang='text' %}
-
-  TODO there's two AEAD blocks in the new session message, explain KDF for both
-
-  Inputs:
-  1) Root key (first time from where? see Signal section 3.3)
-  2) input_key_material
+Inputs:
+  1) Root key
+  2) sharedSecret (the DH result from the new session message)
 
   First time:
-  Alice generates her ephemeral DH key pair e.
+  // Alice generates her first ephemeral DH key pair
+  // Alice's first ratchet X25519 ephemeral keys
+  rask = GENERATE_PRIVATE()
+  // rapk is sent encrypted in the new session message
+  rapk = DERIVE_PUBLIC(rask)
 
-  // DH(e, rs) == DH(s, re)
-  Define input_key_material = 32 byte DH result of Alice's ephemeral key and Bob's static key
-  Set input_key_material = X25519 DH result
+  // Bob's X25519 static keys
+  // bpk is published in Bob's leaseset
+  bsk = GENERATE_PRIVATE()
+  bpk = DERIVE_PUBLIC(bsk)
 
-  After that:
-  Alice or Bob generates her or his ephemeral DH key pair e.
+  INITIAL_ROOT_KEY = SHA256("144-ECIES-X25519-AEAD-Ratchet")
 
-  // DH(e, re) == DH(e, re)
-  Define input_key_material = 32 byte DH result of Alice's ephemeral key and Bob's ephemeral key
-  Set input_key_material = X25519 DH result
+  sharedSecret = DH(rask, bpk) = DH(bsk, rapk)
+
+  // KDF_RK(rk, dh_out)
+  keydata = HKDF(INITIAL_ROOT_KEY, sharedSecret, "KDFDHRatchetStep", 64)
+  // Output 1: The next Root Key (KDF input for the next ratchet)
+  nextRootKey = keydata[0:31]
+  // Output 2: The chain key to initialize the new
+  // session tag and symmetric key ratchets
+  // for Bob to Alice transmissions
+  ck = keydata[32:63]
+  keydata = HKDF(ck, ZEROLEN, "TagAndKeyGenKeys", 64)
+  sessTag_ck = keydata[0:31]
+  symmKey_ck = keydata[32:63]
 
 
-  // MixKey(DH())
+  Second time:
+  // Bob generates his first ephemeral DH key pair
+  // Alice's first ratchet X25519 ephemeral keys
+  rbsk = GENERATE_PRIVATE()
+  // rbpk is sent encrypted in the reply
+  rbpk = DERIVE_PUBLIC(rbsk)
 
-  TBD
+  // Alice's first ratchet X25519 ephemeral keys
+  // from new session message
+  rask = As generated for new session message
+  rapk = from new session message
 
+  sharedSecret = DH(rask, rbpk) = DH(rbsk, rapk)
 
-  Outputs:
-  1) the chain key to initialize the session tag and symmetric key ratchets
-  2) the next Root Key (KDF input for the next ratchet)
+  // KDF_RK(rk, dh_out)
+  rootKey = nextRootKey
+  keydata = HKDF(rootKey, sharedSecret, "KDFDHRatchetStep", 64)
+  // Output 1: The next Root Key (KDF input for the next ratchet)
+  nextRootKey = keydata[0:31]
+  // Output 2: The chain key to initialize the new
+  // session tag and symmetric key ratchets
+  // for Alice to Bob transmissions
+  ck = keydata[32:63]
+  keydata = HKDF(ck, ZEROLEN, "TagAndKeyGenKeys", 64)
+  sessTag_ck = keydata[0:31]
+  symmKey_ck = keydata[32:63]
+
 
 
 {% endhighlight %}
@@ -1574,7 +1605,8 @@ Block Ordering Rules
 In the new session message,
 the following blocks are required, in the following order:
 
-- Options (type 5) (must be total length = 9)
+- DateTime (type 0)
+- Options (type 5)
 - Message Number (type 6)
 - New Key (type 7)
 
@@ -1710,10 +1742,7 @@ Options
 Pass updated options.
 Options include various parameters for the session.
 
-In a new session message, the options block is fixed length,
-nine bytes, as more_options is not present.
-
-In an existing session message, the options block may be variable length,
+The options block may be variable length,
 nine or more bytes, as more_options may be present.
 
 
@@ -1782,7 +1811,8 @@ Also contains the public key id, used for acks.
 
   blk :: 6
   size :: 6
-  Key ID :: 2 bytes big endian
+  Key ID :: The ID of the current key being used, 2 bytes big endian.
+            65535 (0xffff) when in a new session message.
   PN :: 2 bytes big endian. The number of keys in the previous sending chain.
         i.e. one more than the last 'N' sent in the previous chain.
         Use 0 if there was no previous sending chain.
@@ -1835,7 +1865,7 @@ at the beginning.
 
   blk :: 7
   size :: 34
-  key ID :: 2 bytes, big endian, used for ack
+  key ID :: The key ID of this key. 2 bytes, big endian, used for ack
   Public Key :: The next public key, 32 bytes, little endian
 
 
