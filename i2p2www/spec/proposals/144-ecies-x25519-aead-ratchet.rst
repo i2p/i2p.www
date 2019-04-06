@@ -2167,6 +2167,9 @@ References
 .. [RFC-2104]
     https://tools.ietf.org/html/rfc2104
 
+.. [RFC-5869]
+    https://tools.ietf.org/html/rfc5869
+
 .. [RFC-7539]
     https://tools.ietf.org/html/rfc7539
 
