@@ -3,7 +3,7 @@ NTCP 2
 ======
 .. meta::
     :category: Transports
-    :lastupdated: 2018-07-17
+    :lastupdated: 2019-04-08
     :accuratefor: 0.9.36
 
 .. contents::
@@ -689,7 +689,7 @@ Key Derivation Function (KDF) (for handshake message 2 and message 3 part 1)
 
   // retain the chaining key ck for message 3 KDF
 
-  End of "es" message pattern.
+  End of "ee" message pattern.
 
 {% endhighlight %}
 
