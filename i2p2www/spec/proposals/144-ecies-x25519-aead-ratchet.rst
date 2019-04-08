@@ -812,6 +812,17 @@ Some recommended strategies include:
 New Session One Time Public key (32 bytes)
 Encrypted data and MAC (remaining bytes)
 
+The new session message may or may not contain the sender's static public key.
+If it is included, the reverse session is bound to that key.
+The static key should be included if replies are expected,
+i.e. for streaming and repliable datagrams.
+It should not be included for raw datagrams.
+
+The new session message is similar to the first message in Noise [NOISE]_
+handshake for XK (if the static key is not sent)
+or IK (if the static key is sent).
+
+
 
 Format
 ``````
@@ -830,7 +841,33 @@ Encrypted:
   |                                       |
   +----+----+----+----+----+----+----+----+
   |                                       |
+  +            Part 1                     +
+  |       ChaCha20 encrypted data         |
+  +            40 bytes                   +
+  |                                       |
   +                                       +
+  |                                       |
+  +                                       +
+  |                                       |
+  +----+----+----+----+----+----+----+----+
+  |  Poly1305 Message Authentication Code |
+  +         (MAC) for Part 1              +
+  |             16 bytes                  |
+  +----+----+----+----+----+----+----+----+
+  |                                       |
+  +          Optional Part 2              +
+  |       ChaCha20 encrypted data         |
+  +            32 bytes                   +
+  |                                       |
+  +                                       +
+  |                                       |
+  +----+----+----+----+----+----+----+----+
+  |  Poly1305 Message Authentication Code |
+  +      (MAC) for Optional Part 2        +
+  |             16 bytes                  |
+  +----+----+----+----+----+----+----+----+
+  |                                       |
+  +            Part 3                     +
   |       ChaCha20 encrypted data         |
   ~                                       ~
   |                                       |
@@ -838,21 +875,42 @@ Encrypted:
   |                                       |
   +----+----+----+----+----+----+----+----+
   |  Poly1305 Message Authentication Code |
-  +              (MAC)                    +
+  +         (MAC) for Part 3              +
   |             16 bytes                  |
   +----+----+----+----+----+----+----+----+
 
   Public Key :: 32 bytes, little endian, cleartext
 
-  encrypted data :: remaining data minus 16 bytes
+  Part 1 encrypted data :: 32 bytes
+
+  Optional Part 2 encrypted data :: 40 bytes
+
+  Part 3 encrypted data :: remaining data minus 16 bytes
 
   MAC :: Poly1305 message authentication code, 16 bytes
 
 {% endhighlight %}
 
 
-Decrypted data
-``````````````
+Part 1 Decrypted data
+`````````````````````
+
+Part 1 contains:
+
+- the originator's ephemeral key, 32 bytes.
+- Message number, 2 bytes
+- Flags, 2 bytes
+- Unused, 4 bytes
+
+Part 2 Decrypted data
+`````````````````````
+
+Part 2 contains the originator's static key, 32 bytes.
+
+
+
+Part 3 Decrypted data
+`````````````````````
 
 See AEAD section below.
 Encrypted length is the remainder of the data.
@@ -920,8 +978,8 @@ As desired.
 
 
 
-KDF for Encrypted Contents
-``````````````````````````
+KDF for Part 1 Encrypted Contents
+`````````````````````````````````
 
 .. raw:: html
 
@@ -943,9 +1001,75 @@ KDF for Encrypted Contents
   sharedSecret = DH(ask, bpk) = DH(bsk, apk)
 
   // ChaChaPoly parameters to encrypt/decrypt
-  k = HKDF(INITIAL_ROOT_KEY, sharedSecret, "NewSessionTmpKey", 32)
+  keydata = HKDF(INITIAL_ROOT_KEY, sharedSecret, "NewSessionTmpKey", 64)
+  chainKey = keydata[0:31]
+  k = keydata[32:64]
   n = 0
   ad = SHA-256(eapk)
+
+{% endhighlight %}
+
+
+
+KDF for Part 2 Encrypted Contents
+`````````````````````````````````
+
+Only present if indicated in part 1 flags
+
+
+.. raw:: html
+
+  {% highlight lang='text' %}
+// Bob's X25519 static keys
+  // bpk is published in leaseset
+  bsk = GENERATE_PRIVATE()
+  bpk = DERIVE_PUBLIC(bsk)
+
+  // Alice's X25519 reusable ephemeral keys
+  ask = GENERATE_PRIVATE()
+  // apk was decrypted in part 1
+  apk = DERIVE_PUBLIC(ask)
+
+  sharedSecret = DH(ask, bpk) = DH(bsk, apk)
+
+  // ChaChaPoly parameters to encrypt/decrypt
+  // chainKey from part 1
+  keydata = HKDF(chainKey, sharedSecret, "EphemperalPart2x", 64)
+  chainKey = keydata[0:31]
+  k = keydata[32:64]
+  n = 0
+  ad = TBD
+
+{% endhighlight %}
+
+
+
+KDF for Part 3 Encrypted Contents
+`````````````````````````````````
+
+.. raw:: html
+
+  {% highlight lang='text' %}
+// Bob's X25519 static keys
+  // bpk is published in leaseset
+  bsk = GENERATE_PRIVATE()
+  bpk = DERIVE_PUBLIC(bsk)
+
+  // Alice's X25519 static keys (if part 2 present)
+  // or X25519 ephemeral keys (if part 2 not present)
+  ask = GENERATE_PRIVATE()
+  // apk was decrypted in part 2 (if present) or part 1
+  apk = DERIVE_PUBLIC(ask)
+
+  sharedSecret = DH(ask, bpk) = DH(bsk, apk)
+
+  // ChaChaPoly parameters to encrypt/decrypt
+  // chainKey from part 2 (if present) or part 1
+  k = HKDF(chainKey, sharedSecret, "Part3StaticKeyHK", 32)
+  chainKey = keydata[0:31]
+  k = keydata[32:64]
+  n = message number from part 1
+  ad = TBD
 
 {% endhighlight %}
 
@@ -1325,7 +1449,8 @@ and check that the number in the sent message matches this value.
 See the Message Number block definition.
 
 
-KDF:
+KDF
+~~~
 
 .. raw:: html
 
@@ -1348,9 +1473,9 @@ Inputs:
   Initialization:
   keydata = HKDF(sessTag_ck, ZEROLEN, "STInitialization", 64)
   // Output 1: Next chain key
-  sessTag_ck = keydata_0[0:31]
+  sessTag_ck = keydata[0:31]
   // Output 2: The constant
-  SESSTAG_CONSTANT = keydata_0[32:63]
+  SESSTAG_CONSTANT = keydata[32:63]
 
   // KDF_ST(ck, constant)
   keydata_0 = HKDF(sessTag_ck, SESSTAG_CONSTANT, "SessionTagKeyGen", 64)
@@ -1392,7 +1517,8 @@ the session tag ratchet can run ahead of the symmetric key ratchet.
 This also provides some additional security, since the session tags go out on the wire.
 
 
-KDF:
+KDF
+~~~
 
 .. raw:: html
 
@@ -1454,7 +1580,8 @@ more frequent ratcheting (based on message count, elapsed time, or both)
 may provide additional security.
 
 
-KDF:
+KDF
+~~~
 
 .. raw:: html
 
@@ -1917,7 +2044,6 @@ Multiple acks may be present to ack multiple messages.
 
 Notes
 ``````
-See ACK section above for more information.
 
 
 Issues
@@ -1946,33 +2072,14 @@ any message sent to that key constitutes an ack, no explicit ack is required.
   ~               .   .   .               ~
   |                                       |
   +----+----+----+----+----+----+----+----+
-  | SigType |                             |
-  +----+----+                             +
-  |  (opt) Signature of next Public Key   |
-  ~               .   .   .               ~
-  |                                       |
-  +----+----+----+----+----+----+----+----+
 
   blk :: 9
   size :: varies, typically 100
   session ID :: reverse session ID, length TBD
   flg :: 1 byte flags
          bit order: 76543210
-         bit 0: 1 if explicit ack is requested, 0 if not
-         bit 1: 1 if delivery instructions included, 0 if not
-         bit 2: 1 if signature is present, 0 if not
-         bits 7-3: Unused, set to 0 for future compatibility
-  flag :: 1 byte
+         bits 7-0: Unused, set to 0 for future compatibility
   Delivery Instructions :: as defined in I2NP spec, 33 bytes for DESTINATION type
-  Sig Type :: Type of signature to follow
-              Only present if flag is set and delivery instruction type is DESTINATION or ROUTER
-              Typically 7 (Ed25519)
-  Signature :: Signature of the the next DH ratchet public key,
-               by the Destination or RouterIdentity's signing private key
-               (online or offline)
-               Can only be verified if receiver has the RI or LS.
-               Only present if flag is set and delivery instruction type is DESTINATION or ROUTER
-               Typically 64 bytes (Ed25519)
 
 
 {% endhighlight %}
@@ -1986,10 +2093,6 @@ Notes
 
 - After a session is bound, any subsequent destination delivery instructions must contain
   the same hash as previously, or this is an error.
-
-- If the receiving router does not have a current lease set,
-  verification of the signature must be deferred until after processing the
-  I2NP block, which will hopefully contain a clove with the lease set.
 
 - See ACK section above for more information.
 
@@ -2046,7 +2149,7 @@ Notes
 - Padding defaults TBD.
 - See options block for padding parameter negotiation
 - See options block for min/max padding parameters
-- Noise limits messages to 64KB. If more padding is necessary, send multiple frames.
+- Message size limit is 64KB. If more padding is necessary, send multiple frames.
 - Router response on violation of negotiated padding is implementation-dependent.
 
 
@@ -2154,6 +2257,9 @@ References
     https://elligator.cr.yp.to/elligator-20130828.pdf
     https://www.imperialviolet.org/2013/12/25/elligator.html
     See also OBFS4 code
+
+.. [NOISE]
+    http://noiseprotocol.org/noise.html
 
 .. [Prop111]
     {{ proposal_url('111') }}
