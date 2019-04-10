@@ -5,7 +5,7 @@ New netDB Entries
     :author: zzz, str4d, orignal
     :created: 2016-01-16
     :thread: http://zzz.i2p/topics/2051
-    :lastupdated: 2019-03-20
+    :lastupdated: 2019-04-10
     :status: Open
     :supercedes: 110, 120, 121, 122
 
@@ -833,6 +833,10 @@ BLIND_PRIVKEY(), for the owner publishing the leaseset:
 // BLIND_PRIVKEY()
 
   alpha = GENERATE_ALPHA(destination, date, secret)
+  // If for a Ed25519 private key (type 7)
+  seed = destination's signing private key
+  a = left half of SHA512(seed) and clamped as usual for Ed25519
+  // else, for a Red25519 private key (type 11)
   a = destination's signing private key
   // Addition using scalar arithmentic
   blinded signing private key = a' = BLIND_PRIVKEY(a, alpha) = (a + alpha) mod L

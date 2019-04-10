@@ -3,7 +3,7 @@ Encrypted LeaseSet Specification
 ================================
 .. meta::
     :category: Protocols
-    :lastupdated: March 2019
+    :lastupdated: April 2019
     :accuratefor: 0.9.39
 
 .. contents::
@@ -393,6 +393,10 @@ BLIND_PRIVKEY(), for the owner publishing the leaseset:
 
   {% highlight lang='text' %}
 alpha = GENERATE_ALPHA(destination, date, secret)
+  // If for a Ed25519 private key (type 7)
+  seed = destination's signing private key
+  a = left half of SHA512(seed) and clamped as usual for Ed25519
+  // else for a Red25519 private key (type 11)
   a = destination's signing private key
   // Addition using scalar arithmentic
   blinded signing private key = a' = BLIND_PRIVKEY(a, alpha) = (a + alpha) mod L

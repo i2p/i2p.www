@@ -5,7 +5,7 @@ ECIES-X25519-AEAD-Ratchet
     :author: zzz
     :created: 2018-11-22
     :thread: http://zzz.i2p/topics/2639
-    :lastupdated: 2019-04-06
+    :lastupdated: 2019-04-10
     :status: Open
 
 .. contents::
@@ -636,13 +636,14 @@ DH
         Returns the public key corresponding to the given private key.
 
     GENERATE_PRIVATE_ELG2()
-        Generates a new private key suitable for Elligator2.
+        Generates a new private key that maps to a public key suitable for Elligator2 encoding.
+        Note that half of the randomly-generated private keys will not be suitable and must be discarded.
 
-    DERIVE_PUBLIC_ELG2(privkey)
-        Returns the Elligator2 public key corresponding to the given private key (inverse mapping).
+    ENCODE_ELG2(pubkey)
+        Returns the Elligator2-encoded public key corresponding to the given public key (inverse mapping).
 
-    MAP_PUBLIC_ELG2(pubkey)
-        Returns the public key corresponding to the given Elligator2 public key.
+    DECODE_ELG2(pubkey)
+        Returns the public key corresponding to the given Elligator2-encoded public key.
 
     DH(privkey, pubkey)
         Generates a shared secret from the given private and public keys.
@@ -991,10 +992,12 @@ KDF for Part 1 Encrypted Contents
 
   // Alice's X25519 one-time-use ephemeral keys
   ask = GENERATE_PRIVATE_ELG2()
+  apk = DERIVE_PUBLIC(eapk)
   // eapk is sent in cleartext in the
   // beginning of the new session message
-  eapk = DERIVE_PUBLIC_ELG2(ask)
-  apk = MAP_PUBLIC_ELG2(eapk)
+  eapk = ENCODE_ELG2(apk)
+  // As decoded by Bob
+  apk = DECODE_ELG2(eapk)
 
   INITIAL_ROOT_KEY = SHA256("144-ECIES-X25519-AEAD-Ratchet")
 
@@ -1065,7 +1068,7 @@ KDF for Part 3 Encrypted Contents
 
   // ChaChaPoly parameters to encrypt/decrypt
   // chainKey from part 2 (if present) or part 1
-  k = HKDF(chainKey, sharedSecret, "Part3StaticKeyHK", 32)
+  k = HKDF(chainKey, sharedSecret, "Part3StaticKeyHK", 64)
   chainKey = keydata[0:31]
   k = keydata[32:64]
   n = message number from part 1
