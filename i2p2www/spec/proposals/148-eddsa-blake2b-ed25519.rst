@@ -1,11 +1,11 @@
-=====================
-EdDSA-BLAKE2b-Ed25519
-=====================
+======================
+RedDSA-BLAKE2b-Ed25519
+======================
 .. meta::
     :author: zzz
     :created: 2019-03-12
     :thread: http://zzz.i2p/topics/2689
-    :lastupdated: 2019-03-21
+    :lastupdated: 2019-04-11
     :status: Open
 
 .. contents::
@@ -15,7 +15,7 @@ Overview
 ========
 
 
-This proposal adds two new signature types using BLAKE2b-512 with
+This proposal adds a new signature type using BLAKE2b-512 with
 personalization strings and salts, to replace SHA-512.
 This will eliminate three classes of possible attacks.
 
@@ -105,9 +105,9 @@ Goals
 Design
 ======
 
-Modify the existing Ed25519 and Red25519 signature types to use BLAKE2b-512
+Modify the existing RedDSA_SHA512_Ed25519 signature type to use BLAKE2b-512
 instead of SHA-512. Add unique personalization strings for each use case.
-Use the BLAKE2b salt feature for Ed25519.
+The new signature type may be used for both unblinded and blinded leasesets.
 
 
 Justification
@@ -130,28 +130,23 @@ Specification
 Use unkeyed BLAKE2b-512 as in [BLAKE2]_ with salt and personalization.
 All uses of BLAKE2b signatures will use a 16-character personalization string.
 
-When used in EdDSA_BLAKE2b_Ed25519 signing,
-when hashing the data to calculate r,
-set a new BLAKE2b 16-byte random salt for each signature.
-When calculating S, reset the salt to the default of all-zeros.
 
 When used in RedDSA_BLAKE2b_Ed25519 signing,
 A random salt is allowed, however it is not necessary, as the signature algorithm
 adds 80 bytes of random data (see proposal 123).
+If desired, when hashing the data to calculate r,
+set a new BLAKE2b 16-byte random salt for each signature.
+When calculating S, reset the salt to the default of all-zeros.
 
-When used in EdDSA_BLAKE2b_Ed25519 and RedDSA_BLAKE2b_Ed25519 verification,
+When used in RedDSA_BLAKE2b_Ed25519 verification,
 do not use a random salt, use the default of all-zeros.
 
 The salt and personalization features are not specified in [RFC-7693]_;
 use those features as specified in [BLAKE2]_.
 
 
-Signature Types
----------------
-
-For EdDSA_BLAKE2b_Ed25519, replace the SHA-512 hash function
-in EdDSA_SHA512_Ed25519 (signature type 7)
-with BLAKE2b-512. No other changes.
+Signature Type
+--------------
 
 For RedDSA_BLAKE2b_Ed25519, replace the SHA-512 hash function
 in RedDSA_SHA512_Ed25519 (signature type 11, as defined in proposal 123)
@@ -166,8 +161,7 @@ EdDSA_SHA512_Ed25519 (signature type 7) is not supported for su3 files.
 =======================  ===========  ======  =====
         Type             Type Code    Since   Usage
 =======================  ===========  ======  =====
-EdDSA_BLAKE2b_Ed25519        12        TBD    Router Identities and Destinations
-RedDSA_BLAKE2b_Ed25519       13        TBD    For Destinations and encrypted leasesets only; never used for Router Identities
+RedDSA_BLAKE2b_Ed25519       12        TBD    For Router Identities, Destinations and encrypted leasesets only; never used for Router Identities
 =======================  ===========  ======  =====
 
 
@@ -175,7 +169,7 @@ RedDSA_BLAKE2b_Ed25519       13        TBD    For Destinations and encrypted lea
 Common Structure Data Lengths
 -----------------------------
 
-The following applies to both new signature types.
+The following applies to the new signature type.
 
 
 ==================================  =============
@@ -194,7 +188,6 @@ Personalizations
 
 To provide domain separation for the various uses of signatures,
 we will use the BLAKE2b personalization feature.
-The following applies to both new signature types.
 
 All uses of BLAKE2b signatures will use a 16-character personalization string.
 Any new uses must be added to the table here, with a unique personalization.
@@ -234,7 +227,6 @@ Issues
   Provides LEA resistance and personalization.
   Standardized, but does anybody use it?
   See [RFC-8032]_ and [ED25519CTX]_.
-- Do we need 12 at all, or is 13 sufficient for both unblinded and blinded?
 - Is "keyed" hashing useful to us?
 
 
@@ -250,20 +242,20 @@ using the "rekeying" process used after type 7 was introduced.
 We plan to change new destinations from type 7 to type 12 as the default.
 We plan to change new encrypted destinations from type 11 to type 13 as the default.
 
-We will support blinding from types 7, 11, 12, and 13 to type 13.
-We will not support blinding 12 or 13 to type 11.
+We will support blinding from types 7, 11, and 12 to type 12.
+We will not support blinding type 12 to type 11.
 
 New routers could start using the new sig type by default after a few months.
 New destinations could start using the new sig type by default after perhaps a year.
 
 For the minimum router version 0.9.TBD, routers must ensure:
 
-- Do not store (or flood) a RI or LS with the new sig types to routers less than version 0.9.TBD.
-- When verifying a netdb store, do not fetch a RI or LS with the new sig types from routers less than version 0.9.TBD.
+- Do not store (or flood) a RI or LS with the new sig type to routers less than version 0.9.TBD.
+- When verifying a netdb store, do not fetch a RI or LS with the new sig type from routers less than version 0.9.TBD.
 - Routers with a new sig type in their RI may not connect to routers less than version 0.9.TBD,
   either with NTCP, NTCP2, or SSU.
 - Streaming connections and signed datagrams won't work to routers less than version 0.9.TBD,
-  but there's no way to know that, so these sig types should not be used by default for some period
+  but there's no way to know that, so the new sig type should not be used by default for some period
   of months or years after 0.9.TBD is released.
 
 
