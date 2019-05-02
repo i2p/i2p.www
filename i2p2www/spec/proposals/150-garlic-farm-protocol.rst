@@ -74,10 +74,8 @@ Definitions
 
 - Source: Identifies the originator of the message
 - Destination: Identifies the recipient of the message
-- Term: See Raft 
-- Last Log Term: See Raft 
-- Last Log Index: See Raft 
-- Commit Index: See Raft 
+- Terms: See Raft. Initialized to 0, increases monotonically
+- Indexes: See Raft. Initialized to 0, increases monotonically
 
 
 
@@ -104,7 +102,7 @@ Message type:   1 byte
   Last Log Term:  8 byte integer
   Last Log Index: 8 byte integer
   Commit Index:   8 byte integer
-  Log size:       4 byte integer
+  Log size:       In bytes, 4 byte integer
 
 {% endhighlight %}
 
@@ -126,11 +124,40 @@ Term:           8 byte integer
 
 {% endhighlight %}
 
+========================  ======
+Log Value Type            Number
+========================  ======
+Application                  1
+Configuration                2
+ClusterServer                3
+LogPack                      4
+SnapshotSyncRequest          5
+========================  ======
 
 Log Contents
 ````````````
 
+Application
+~~~~~~~~~~~
+
 TBD, probably JSON.
+
+
+Configuration
+~~~~~~~~~~~~~
+
+
+ClusterServer
+~~~~~~~~~~~~~
+
+
+LogPack
+~~~~~~~
+
+
+SnapshotSyncRequest
+~~~~~~~~~~~
+
 
 
 
@@ -139,7 +166,7 @@ Responses
 ---------
 
 The response is 26 bytes, as follows.
-All values are big-endian.
+All values are unsigned big-endian.
 
 .. raw:: html
 
@@ -149,8 +176,8 @@ Message type:   1 byte
   Source:         4 byte integer
   Destination:    4 byte integer
   Term:           8 byte integer
-  Next Index:     8 byte integer
-  Is Accepted:    1 byte
+  Next Index:     Initialized to leader last log index + 1, 8 byte integer
+  Is Accepted:    1 if accepted, 0 if not accepted (1 byte)
 
 {% endhighlight %}
 
