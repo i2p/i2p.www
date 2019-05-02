@@ -181,9 +181,24 @@ ID:                4 byte integer
 LogPack
 ~~~~~~~
 
+The following is gzipped before transmission:
+
+
+.. raw:: html
+
+  {% highlight lang='dataspec' %}
+
+Index data len: In bytes, 4 byte integer
+  Log data len:   In bytes, 4 byte integer
+  Index data:      8 bytes for each index, length as specified
+  Log data:        length as specified
+
+{% endhighlight %}
+
+
 
 SnapshotSyncRequest
-~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~
 
 
 .. raw:: html
