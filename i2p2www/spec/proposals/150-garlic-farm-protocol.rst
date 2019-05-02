@@ -15,7 +15,8 @@ Overview
 ========
 
 This is the spec for the Garlic Farm wire protocol,
-based on the jraft "dmprinter" demo app [JRAFT]_.
+based on JRaft, its "exts" code for implementation over TCP,
+and its "dmprinter" sample application [JRAFT]_.
 
 This will be the backend for coordination of routers publishing
 entries in a Meta LeaseSet. See proposal 123.
@@ -55,17 +56,17 @@ RequestVoteResponse          2    Follower     Candidate    Standard Raft RPC
 AppendEntriesRequest         3    Leader       Follower     Standard Raft RPC
 AppendEntriesResponse        4    Follower     Leader       Standard Raft RPC
 ClientRequest                5    Follower     Leader       Response is AppendEntriesResponse
-AddServerRequest             6    new server   Leader
-AddServerResponse            7    Leader       new server
-RemoveServerRequest          8    Follower     Leader
+AddServerRequest             6    new server   Leader       Must contain only a single ClusterServer log entry
+AddServerResponse            7    Leader       new server   
+RemoveServerRequest          8    Follower     Leader       Must contain only a single ClusterServer log entry
 RemoveServerResponse         9    Leader       Follower
 SyncLogRequest              10    Leader       Follower
 SyncLogResponse             11    Follower     Leader
 JoinClusterRequest          12    Leader       new server   Invitation to join
 JoinClusterResponse         13    new server   Leader
-LeaveClusterRequest         14    Leader       Follower     Request to leave
+LeaveClusterRequest         14    Leader       Follower     Command to leave
 LeaveClusterResponse        15    Follower     Leader
-InstallSnapshotRequest      16    Leader       Follower     Raft Section 7
+InstallSnapshotRequest      16    Leader       Follower     Must contain only a single SnapshotSyncRequest log entry
 InstallSnapshotResponse     17    Follower     Leader       Raft Section 7
 ========================  ======  ===========  ===========  =====================================
 
@@ -104,6 +105,7 @@ Message type:   1 byte
   Last Log Index: 8 byte integer
   Commit Index:   8 byte integer
   Log size:       In bytes, 4 byte integer
+  Log entries:    see below
 
 {% endhighlight %}
 
@@ -153,6 +155,7 @@ Configuration
 ~~~~~~~~~~~~~
 
 This is used for the leader to serialize a new cluster configuration and replicate to peers.
+It contains zero or more ClusterServer configurations.
 
 
 .. raw:: html
@@ -161,10 +164,10 @@ This is used for the leader to serialize a new cluster configuration and replica
 
 Log Index:  8 byte integer
   Last Log Index:  8 byte integer
-  Server Data for each server:
+  ClusterServer Data for each server:
     ID:                4 byte integer
     Endpoint data len: In bytes, 4 byte integer
-    Endpoint data:     length as specified
+    Endpoint data:     ASCII string of the form "tcp://localhost:9001", length as specified
 
 {% endhighlight %}
 
@@ -174,13 +177,26 @@ ClusterServer
 
 The configuration information for a server in a cluster.
 
+When used in a AddServerRequest Message:
+
 .. raw:: html
 
   {% highlight lang='dataspec' %}
 
 ID:                4 byte integer
   Endpoint data len: In bytes, 4 byte integer
-  Endpoint data:     length as specified
+  Endpoint data:     ASCII string of the form "tcp://localhost:9001", length as specified
+
+{% endhighlight %}
+
+
+When used in a RemoveServerRequest Message:
+
+.. raw:: html
+
+  {% highlight lang='dataspec' %}
+
+ID:                4 byte integer
 
 {% endhighlight %}
 
@@ -197,8 +213,8 @@ The following is gzipped before transmission:
 
 Index data len: In bytes, 4 byte integer
   Log data len:   In bytes, 4 byte integer
-  Index data:      8 bytes for each index, length as specified
-  Log data:        length as specified
+  Index data:     8 bytes for each index, length as specified
+  Log data:       length as specified
 
 {% endhighlight %}
 
@@ -217,7 +233,7 @@ Message type:    1 byte
   Last Log Term:   8 byte integer
   Config data len: In bytes, 4 byte integer
   Config data:     length as specified
-  Offset:          8 byte integer
+  Offset:          The offset of the data in the database, in bytes, 8 byte integer
   Data len:        In bytes, 4 byte integer
   Data:            length as specified
   Is Done:         1 if done, 0 if not done (1 byte)
