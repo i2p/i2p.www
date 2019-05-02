@@ -47,27 +47,28 @@ There are two types of messages, requests and responses.
 Message Types
 -------------
 
-========================  ======
-Message                   Number
-========================  ======
-RequestVoteRequest           1
-RequestVoteResponse          2
-AppendEntriesRequest         3
-AppendEntriesResponse        4
-ClientRequest                5
-AddServerRequest             6
-AddServerResponse            7
-RemoveServerRequest          8
-RemoveServerResponse         9
-SyncLogRequest              10
-SyncLogResponse             11
-JoinClusterRequest          12
-JoinClusterResponse         13
-LeaveClusterRequest         14
-LeaveClusterResponse        15
-InstallSnapshotRequest      16
-InstallSnapshotResponse     17
-========================  ======
+========================  ======  ===========  ===========  =====================================
+Message                   Number  Sent By      Sent To      Notes
+========================  ======  ===========  ===========  =====================================
+RequestVoteRequest           1    Candidate    Follower     Standard Raft RPC
+RequestVoteResponse          2    Follower     Candidate    Standard Raft RPC
+AppendEntriesRequest         3    Leader       Follower     Standard Raft RPC
+AppendEntriesResponse        4    Follower     Leader       Standard Raft RPC
+ClientRequest                5    Follower     Leader       Response is AppendEntriesResponse
+AddServerRequest             6    new server   Leader
+AddServerResponse            7    Leader       new server
+RemoveServerRequest          8    Follower     Leader
+RemoveServerResponse         9    Leader       Follower
+SyncLogRequest              10    Leader       Follower
+SyncLogResponse             11    Follower     Leader
+JoinClusterRequest          12    Leader       new server   Invitation to join
+JoinClusterResponse         13    new server   Leader
+LeaveClusterRequest         14    Leader       Follower     Request to leave
+LeaveClusterResponse        15    Follower     Leader
+InstallSnapshotRequest      16    Leader       Follower     Raft Section 7
+InstallSnapshotResponse     17    Follower     Leader       Raft Section 7
+========================  ======  ===========  ===========  =====================================
+
 
 Definitions
 -----------
@@ -89,7 +90,7 @@ Request Header
 ``````````````
 
 The request header is 45 bytes, as follows.
-All values are big-endian.
+All values are unsigned big-endian.
 
 .. raw:: html
 
@@ -112,6 +113,7 @@ Log Entries
 
 The log contains zero or more log entries.
 Each log entry is as follows.
+All values are unsigned big-endian.
 
 .. raw:: html
 
@@ -119,10 +121,16 @@ Each log entry is as follows.
 
 Term:           8 byte integer
   Value type:     1 byte
-  Entry size:     4 byte integer
+  Entry size:     In bytes, 4 byte integer
   Entry:          length as specified
 
 {% endhighlight %}
+
+
+Log Contents
+````````````
+
+All values are unsigned big-endian.
 
 ========================  ======
 Log Value Type            Number
@@ -134,8 +142,6 @@ LogPack                      4
 SnapshotSyncRequest          5
 ========================  ======
 
-Log Contents
-````````````
 
 Application
 ~~~~~~~~~~~
@@ -161,6 +167,7 @@ Log Index:  8 byte integer
     Endpoint data:     length as specified
 
 {% endhighlight %}
+
 
 ClusterServer
 ~~~~~~~~~~~~~
