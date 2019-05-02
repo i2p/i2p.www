@@ -146,9 +146,36 @@ TBD, probably JSON.
 Configuration
 ~~~~~~~~~~~~~
 
+This is used for the leader to serialize a new cluster configuration and replicate to peers.
+
+
+.. raw:: html
+
+  {% highlight lang='dataspec' %}
+
+Log Index:  8 byte integer
+  Last Log Index:  8 byte integer
+  Server Data for each server:
+    ID:                4 byte integer
+    Endpoint data len: In bytes, 4 byte integer
+    Endpoint data:     length as specified
+
+{% endhighlight %}
 
 ClusterServer
 ~~~~~~~~~~~~~
+
+The configuration information for a server in a cluster.
+
+.. raw:: html
+
+  {% highlight lang='dataspec' %}
+
+ID:                4 byte integer
+  Endpoint data len: In bytes, 4 byte integer
+  Endpoint data:     length as specified
+
+{% endhighlight %}
 
 
 LogPack
@@ -158,6 +185,22 @@ LogPack
 SnapshotSyncRequest
 ~~~~~~~~~~~
 
+
+.. raw:: html
+
+  {% highlight lang='dataspec' %}
+
+Message type:    1 byte
+  Last Log Index:  8 byte integer
+  Last Log Term:   8 byte integer
+  Config data len: In bytes, 4 byte integer
+  Config data:     length as specified
+  Offset:          8 byte integer
+  Data len:        In bytes, 4 byte integer
+  Data:            length as specified
+  Is Done:         1 if done, 0 if not done (1 byte)
+
+{% endhighlight %}
 
 
 
