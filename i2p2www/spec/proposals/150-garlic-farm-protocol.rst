@@ -17,6 +17,12 @@ Overview
 This is the spec for the Garlic Farm wire protocol,
 based on JRaft, its "exts" code for implementation over TCP,
 and its "dmprinter" sample application [JRAFT]_.
+JRaft is an implementation of the Raft protocol [RAFT]_.
+
+We were unable to find any implementation with a documented wire protocol.
+However, the JRaft implementation is simple enough that we could
+inspect the code and then document its protocol.
+This proposal is the result of that effort.
 
 This will be the backend for coordination of routers publishing
 entries in a Meta LeaseSet. See proposal 123.
@@ -25,12 +31,19 @@ entries in a Meta LeaseSet. See proposal 123.
 Goals
 =====
 
+- Small code size
+- Based on existing implementation
+- No serialized Java objects or any Java-specific features or encoding
 
 
 
 Design
 ======
 
+The Raft protocol is not a concrete protocol; it defines only a state machine.
+Therefore we document the concrete protocol of JRaft and base our protocol on it.
+There are no changes to the JRaft protocol other than the addition of
+an authentication handshake.
 
 
 Specification
@@ -39,14 +52,28 @@ Specification
 The wire protocol is over SSL sockets or non-SSL I2P sockets.
 There is no support for clearnet non-SSL sockets.
 
+
+Handshake and authentication
+----------------------------
+
+Not defined by JRaft.
+
 TODO authentication. Perhaps new messages, or perhaps something before
 the request/response phase happens.
 
-There are two types of messages, requests and responses.
+Requirements:
+
+- user/password
+- version
+- cluster identifier
+- extensible
 
 
 Message Types
 -------------
+
+There are two types of messages, requests and responses.
+
 
 ========================  ======  ===========  ===========  =====================================
 Message                   Number  Sent By      Sent To      Notes
@@ -98,9 +125,9 @@ All values are unsigned big-endian.
   {% highlight lang='dataspec' %}
 
 Message type:   1 byte
-  Source:         4 byte integer
-  Destination:    4 byte integer
-  Term:           8 byte integer
+  Source:         ID, 4 byte integer
+  Destination:    ID, 4 byte integer
+  Term:           Current term (or candidate term for RequestVoteRequest), 8 byte integer
   Last Log Term:  8 byte integer
   Last Log Index: 8 byte integer
   Commit Index:   8 byte integer
@@ -176,6 +203,7 @@ ClusterServer
 ~~~~~~~~~~~~~
 
 The configuration information for a server in a cluster.
+This is included only in a AddServerRequest or RemoveServerRequest message.
 
 When used in a AddServerRequest Message:
 
@@ -223,6 +251,7 @@ Index data len: In bytes, 4 byte integer
 SnapshotSyncRequest
 ~~~~~~~~~~~~~~~~~~~
 
+This is included only in a InstallSnapshotRequest message.
 
 .. raw:: html
 
@@ -254,9 +283,9 @@ All values are unsigned big-endian.
   {% highlight lang='dataspec' %}
 
 Message type:   1 byte
-  Source:         4 byte integer
-  Destination:    4 byte integer
-  Term:           8 byte integer
+  Source:         ID, 4 byte integer
+  Destination:    ID, 4 byte integer
+  Term:           Current term, 8 byte integer
   Next Index:     Initialized to leader last log index + 1, 8 byte integer
   Is Accepted:    1 if accepted, 0 if not accepted (1 byte)
 
@@ -294,3 +323,6 @@ References
 
 .. [JRAFT]
     https://github.com/datatechnology/jraft
+
+.. [RAFT]
+    https://ramcloud.stanford.edu/wiki/download/attachments/11370504/raft.pdf
