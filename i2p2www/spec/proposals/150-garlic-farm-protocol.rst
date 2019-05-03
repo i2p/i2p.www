@@ -133,7 +133,6 @@ All values are unsigned big-endian.
 Message type:      1 byte
   Source:            ID, 4 byte integer
   Destination:       ID, 4 byte integer
-  Destination:       Usually the actual destination ID (see notes), 4 byte integer
   Term:              Current term (or candidate term for RequestVoteRequest), 8 byte integer
   Last Log Term:     8 byte integer
   Last Log Index:    8 byte integer
@@ -266,8 +265,7 @@ This is included only in a InstallSnapshotRequest message.
 
   {% highlight lang='dataspec' %}
 
-Message type:    1 byte
-  Last Log Index:  8 byte integer
+Last Log Index:  8 byte integer
   Last Log Term:   8 byte integer
   Config data len: In bytes, 4 byte integer
   Config data:     length as specified
@@ -324,6 +322,9 @@ Notes
 
 Issues
 ======
+
+- There's no way for a client to find out about and connect to an unknown leader.
+  It would be a minor change for a Follower to send the Configuration as a Log Entry in the AppendEntriesResponse.
 
 
 
