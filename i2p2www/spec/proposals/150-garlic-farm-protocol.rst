@@ -3,7 +3,7 @@ Garlic Farm Protocol
 ====================
 .. meta::
     :author: zzz
-    :created: 2019-05-03
+    :created: 2019-05-02
     :thread: http://zzz.i2p/topics/2234
     :lastupdated: 2019-05-03
     :status: Open
@@ -80,27 +80,27 @@ responses do not contain Log Entries, and are fixed-size.
 
 
 
-========================  ======  ===========  ===========  =====================================
-Message                   Number  Sent By      Sent To      Notes
-========================  ======  ===========  ===========  =====================================
-RequestVoteRequest           1    Candidate    Follower     Standard Raft RPC
-RequestVoteResponse          2    Follower     Candidate    Standard Raft RPC
-AppendEntriesRequest         3    Leader       Follower     Standard Raft RPC
-AppendEntriesResponse        4    Follower     Leader       Standard Raft RPC
-ClientRequest                5    Follower     Leader       Response is AppendEntriesResponse
-AddServerRequest             6    new server   Leader       Must contain a single ClusterServer log entry only
-AddServerResponse            7    Leader       new server   
-RemoveServerRequest          8    Follower     Leader       Must contain a single ClusterServer log entry only
+========================  ======  ===========  =================   =====================================
+Message                   Number  Sent By      Sent To             Notes
+========================  ======  ===========  =================   =====================================
+RequestVoteRequest           1    Candidate    Follower            Standard Raft RPC; must not contain log entries
+RequestVoteResponse          2    Follower     Candidate           Standard Raft RPC
+AppendEntriesRequest         3    Leader       Follower            Standard Raft RPC
+AppendEntriesResponse        4    Follower     Leader / Client     Standard Raft RPC
+ClientRequest                5    Client       Leader / Follower   Response is AppendEntriesResponse; must contain Application log entries only
+AddServerRequest             6    Client       Leader              Must contain a single ClusterServer log entry only
+AddServerResponse            7    Leader       Client              Leader will also send a JoinClusterRequest
+RemoveServerRequest          8    Follower     Leader              Must contain a single ClusterServer log entry only
 RemoveServerResponse         9    Leader       Follower
-SyncLogRequest              10    Leader       Follower     Must contain a single LogPack log entry only
+SyncLogRequest              10    Leader       Follower            Must contain a single LogPack log entry only
 SyncLogResponse             11    Follower     Leader
-JoinClusterRequest          12    Leader       new server   Invitation to join
-JoinClusterResponse         13    new server   Leader
-LeaveClusterRequest         14    Leader       Follower     Command to leave
+JoinClusterRequest          12    Leader       New Server          Invitation to join; must contain a single Configuration log entry only
+JoinClusterResponse         13    New Server   Leader
+LeaveClusterRequest         14    Leader       Follower            Command to leave
 LeaveClusterResponse        15    Follower     Leader
-InstallSnapshotRequest      16    Leader       Follower     Must contain a single SnapshotSyncRequest log entry only
-InstallSnapshotResponse     17    Follower     Leader       Raft Section 7
-========================  ======  ===========  ===========  =====================================
+InstallSnapshotRequest      16    Leader       Follower            Must contain a single SnapshotSyncRequest log entry only
+InstallSnapshotResponse     17    Follower     Leader              Raft Section 7
+========================  ======  ===========  =================   =====================================
 
 
 Definitions
@@ -133,6 +133,7 @@ All values are unsigned big-endian.
 Message type:      1 byte
   Source:            ID, 4 byte integer
   Destination:       ID, 4 byte integer
+  Destination:       Usually the actual destination ID (see notes), 4 byte integer
   Term:              Current term (or candidate term for RequestVoteRequest), 8 byte integer
   Last Log Term:     8 byte integer
   Last Log Index:    8 byte integer
@@ -292,12 +293,20 @@ All values are unsigned big-endian.
 
 Message type:   1 byte
   Source:         ID, 4 byte integer
-  Destination:    ID, 4 byte integer
+  Destination:    Usually the actual destination ID (see notes), 4 byte integer
   Term:           Current term, 8 byte integer
   Next Index:     Initialized to leader last log index + 1, 8 byte integer
   Is Accepted:    1 if accepted, 0 if not accepted (1 byte)
 
 {% endhighlight %}
+
+
+Notes
+`````
+
+The Destination ID is usually the actual destination for this message.
+However, for AppendEntriesResponse, AddServerResponse, and RemoveServerResponse,
+it is the ID of the current leader.
 
 
 Justification
