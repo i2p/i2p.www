@@ -34,7 +34,8 @@ Goals
 - Small code size
 - Based on existing implementation
 - No serialized Java objects or any Java-specific features or encoding
-
+- Any bootstrapping is out-of-scope. At least one other server is assumed
+  to be hardcoded, or configured out-of-band of this protocol.
 
 
 Design
@@ -73,6 +74,10 @@ Message Types
 -------------
 
 There are two types of messages, requests and responses.
+Requests may contain Log Entries, and are variable-sized;
+responses do not contain Log Entries, and are fixed-size.
+
+
 
 
 ========================  ======  ===========  ===========  =====================================
@@ -83,17 +88,17 @@ RequestVoteResponse          2    Follower     Candidate    Standard Raft RPC
 AppendEntriesRequest         3    Leader       Follower     Standard Raft RPC
 AppendEntriesResponse        4    Follower     Leader       Standard Raft RPC
 ClientRequest                5    Follower     Leader       Response is AppendEntriesResponse
-AddServerRequest             6    new server   Leader       Must contain only a single ClusterServer log entry
+AddServerRequest             6    new server   Leader       Must contain a single ClusterServer log entry only
 AddServerResponse            7    Leader       new server   
-RemoveServerRequest          8    Follower     Leader       Must contain only a single ClusterServer log entry
+RemoveServerRequest          8    Follower     Leader       Must contain a single ClusterServer log entry only
 RemoveServerResponse         9    Leader       Follower
-SyncLogRequest              10    Leader       Follower
+SyncLogRequest              10    Leader       Follower     Must contain a single LogPack log entry only
 SyncLogResponse             11    Follower     Leader
 JoinClusterRequest          12    Leader       new server   Invitation to join
 JoinClusterResponse         13    new server   Leader
 LeaveClusterRequest         14    Leader       Follower     Command to leave
 LeaveClusterResponse        15    Follower     Leader
-InstallSnapshotRequest      16    Leader       Follower     Must contain only a single SnapshotSyncRequest log entry
+InstallSnapshotRequest      16    Leader       Follower     Must contain a single SnapshotSyncRequest log entry only
 InstallSnapshotResponse     17    Follower     Leader       Raft Section 7
 ========================  ======  ===========  ===========  =====================================
 
@@ -112,6 +117,7 @@ Requests
 --------
 
 Requests contain a header and zero or more log entries.
+Requests contain a fixed-size header and optional Log Entries of variable size.
 
 
 Request Header
@@ -124,15 +130,15 @@ All values are unsigned big-endian.
 
   {% highlight lang='dataspec' %}
 
-Message type:   1 byte
-  Source:         ID, 4 byte integer
-  Destination:    ID, 4 byte integer
-  Term:           Current term (or candidate term for RequestVoteRequest), 8 byte integer
-  Last Log Term:  8 byte integer
-  Last Log Index: 8 byte integer
-  Commit Index:   8 byte integer
-  Log size:       In bytes, 4 byte integer
-  Log entries:    see below
+Message type:      1 byte
+  Source:            ID, 4 byte integer
+  Destination:       ID, 4 byte integer
+  Term:              Current term (or candidate term for RequestVoteRequest), 8 byte integer
+  Last Log Term:     8 byte integer
+  Last Log Index:    8 byte integer
+  Commit Index:      8 byte integer
+  Log entries size:  Total size in bytes, 4 byte integer
+  Log entries:       see below, total length as specified
 
 {% endhighlight %}
 
@@ -232,6 +238,8 @@ ID:                4 byte integer
 LogPack
 ~~~~~~~
 
+This is included only in a SyncLogRequest message.
+
 The following is gzipped before transmission:
 
 
@@ -275,7 +283,7 @@ Message type:    1 byte
 Responses
 ---------
 
-The response is 26 bytes, as follows.
+All responses are 26 bytes, as follows.
 All values are unsigned big-endian.
 
 .. raw:: html
