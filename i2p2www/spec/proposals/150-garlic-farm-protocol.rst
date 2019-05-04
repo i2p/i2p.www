@@ -144,10 +144,33 @@ Disconnect Sequence:
 
   {% highlight %}
 
-RemoveServerRequest   ------->
+Follower Alice              Leader Charlie
+
+  RemoveServerRequest   ------->
           <---------   RemoveServerResponse
           <---------   LeaveClusterRequest
   LeaveClusterResponse  ------->
+
+{% endhighlight %}
+
+Election Sequence:
+
+.. raw:: html
+
+  {% highlight %}
+
+Candidate Alice             Candidate/Follower Bob
+
+  RequestVoteRequest   ------->
+          <---------   RequestVoteResponse
+
+  if Alice wins election:
+
+  Leader Alice                Follower Bob
+
+  AppendEntriesRequest   ------->
+  (heartbeat)
+          <---------   AppendEntriesResponse
 
 {% endhighlight %}
 
