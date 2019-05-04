@@ -5,7 +5,7 @@ Garlic Farm Protocol
     :author: zzz
     :created: 2019-05-02
     :thread: http://zzz.i2p/topics/2234
-    :lastupdated: 2019-05-03
+    :lastupdated: 2019-05-04
     :status: Open
 
 .. contents::
@@ -64,10 +64,13 @@ the request/response phase happens.
 
 Requirements:
 
-- user/password
+- user/password or other authentication method
 - version
 - cluster identifier
 - extensible
+
+One possibility: HTTP-like headers for version and other info;
+use HTTP digest authentication (RFC 2617).
 
 
 Message Types
@@ -98,9 +101,55 @@ JoinClusterRequest          12    Leader       New Server          Invitation to
 JoinClusterResponse         13    New Server   Leader
 LeaveClusterRequest         14    Leader       Follower            Command to leave
 LeaveClusterResponse        15    Follower     Leader
-InstallSnapshotRequest      16    Leader       Follower            Must contain a single SnapshotSyncRequest log entry only
+InstallSnapshotRequest      16    Leader       Follower            Raft Section 7; Must contain a single SnapshotSyncRequest log entry only
 InstallSnapshotResponse     17    Follower     Leader              Raft Section 7
 ========================  ======  ===========  =================   =====================================
+
+
+Establishment
+-------------
+
+The establishment sequence is as follows:
+
+.. raw:: html
+
+  {% highlight %}
+New Server Alice              Random Follower Bob
+
+  ClientRequest   ------->
+          <---------   AppendEntriesResponse
+
+  If Bob says he is the leader, continue as below.
+  Else, Alice must disconnect from Bob and connect to the leader.
+
+
+  New Server Alice              Leader Charlie
+
+  ClientRequest   ------->
+          <---------   AppendEntriesResponse
+  AddServerRequest   ------->
+          <---------   AddServerResponse
+          <---------   JoinClusterRequest
+  JoinClusterResponse  ------->
+          <---------   SyncLogRequest
+                       OR InstallSnapshotRequest
+  SyncLogResponse  ------->
+  OR InstallSnapshotResponse
+
+{% endhighlight %}
+
+Disconnect Sequence:
+
+.. raw:: html
+
+  {% highlight %}
+
+RemoveServerRequest   ------->
+          <---------   RemoveServerResponse
+          <---------   LeaveClusterRequest
+  LeaveClusterResponse  ------->
+
+{% endhighlight %}
 
 
 Definitions
@@ -133,7 +182,7 @@ All values are unsigned big-endian.
 Message type:      1 byte
   Source:            ID, 4 byte integer
   Destination:       ID, 4 byte integer
-  Term:              Current term (or candidate term for RequestVoteRequest), 8 byte integer
+  Term:              Current term (see notes), 8 byte integer
   Last Log Term:     8 byte integer
   Last Log Index:    8 byte integer
   Commit Index:      8 byte integer
@@ -141,6 +190,17 @@ Message type:      1 byte
   Log entries:       see below, total length as specified
 
 {% endhighlight %}
+
+
+Notes
+~~~~~
+
+In the RequestVoteRequest, Term is the candidate's term.
+Otherwise, it is the leader's current term.
+
+In the AppendEntriesRequest, when the log entries size is zero,
+this message is a heartbeat (keepalive) message.
+
 
 
 Log Entries
@@ -294,7 +354,7 @@ Message type:   1 byte
   Destination:    Usually the actual destination ID (see notes), 4 byte integer
   Term:           Current term, 8 byte integer
   Next Index:     Initialized to leader last log index + 1, 8 byte integer
-  Is Accepted:    1 if accepted, 0 if not accepted (1 byte)
+  Is Accepted:    1 if accepted, 0 if not accepted (see notes), 1 byte
 
 {% endhighlight %}
 
@@ -305,6 +365,10 @@ Notes
 The Destination ID is usually the actual destination for this message.
 However, for AppendEntriesResponse, AddServerResponse, and RemoveServerResponse,
 it is the ID of the current leader.
+
+In the RequestVoteResponse, Is Accepted is 1 for a vote for the candidate (requestor),
+and 0 for no vote.
+
 
 
 Justification
