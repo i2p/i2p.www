@@ -394,6 +394,38 @@ and 0 for no vote.
 
 
 
+Administration Interface
+========================
+
+TBD, possibly a separate proposal.
+
+Requirements of an admin interface:
+(not all necessarily for 1.0)
+
+- Support for multiple master destinations, i.e. multiple virtual clusters (farms)
+- Provide comprehensive view of shared cluster state - all stats published by members, who is the current leader, etc.
+- Ability to anoint a leader
+- Ability to force publish metaLS (if current node is leader)
+- Ability to exclude hashes from metaLS (if current node is leader)
+- Configuration import/export functionality for bulk deployments
+
+
+Router Interface
+================
+
+TBD, possibly a separate proposal.
+
+Requirements for Garlic Farm to router API (in-JVM java or i2pcontrol)
+
+- getLocalRouterStatus()
+- getLocalLeafHash(Hash masterHash)
+- getLocalLeafStatus(Hash leaf)
+- getRemoteMeasuredStatus(Hash masterOrLeaf) // probably not in MVP
+- publishMetaLS(Hash masterHash, List<MetaLease> contents) // or signed MetaLeaseSet? Who signs?
+- stopPublishingMetaLS(Hash masterHash)
+- authentication TBD?
+
+
 Justification
 =============
 
