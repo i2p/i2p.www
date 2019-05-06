@@ -5,7 +5,7 @@ Garlic Farm Protocol
     :author: zzz
     :created: 2019-05-02
     :thread: http://zzz.i2p/topics/2234
-    :lastupdated: 2019-05-04
+    :lastupdated: 2019-05-06
     :status: Open
 
 .. contents::
@@ -36,6 +36,7 @@ Goals
 - No serialized Java objects or any Java-specific features or encoding
 - Any bootstrapping is out-of-scope. At least one other server is assumed
   to be hardcoded, or configured out-of-band of this protocol.
+- Support both out-of-band and in-I2P use cases.
 
 
 Design
@@ -80,6 +81,10 @@ Requirements:
 
 One possibility: HTTP-like headers for version and other info;
 use HTTP digest authentication (RFC 2617).
+An HTTP-line handshake (or actual HTTP websockets) may be desirable
+as it would make implementation of an external application that
+communicates over I2P much easier.
+
 
 
 Message Types
@@ -89,7 +94,15 @@ There are two types of messages, requests and responses.
 Requests may contain Log Entries, and are variable-sized;
 responses do not contain Log Entries, and are fixed-size.
 
+Message types 1-4 are the standard RPC messages defined by Raft.
+This is the core Raft protocol.
 
+Message types 5-15 are the extended RPC messages defined by
+JRaft, to support clients, dynamic server changes, and
+efficient log synchronization.
+
+Message types 16-17 are the Log Compaction RPC messages defined
+in Raft section 7.
 
 
 ========================  ======  ===========  =================   =====================================
@@ -423,10 +436,22 @@ The goal is to provide enough data to write an algorithm to determine the "best"
 router to publish the Meta LS2, and for the publisher to have sufficient information
 to weight the Destinations in the Meta LS2.
 The data will contain both router and Destination statistics.
+
 The data may optionally contain remote sensing data on the health of the
 other servers, and the ability to fetch the Meta LS.
+These data would not be supported in the first release.
+
+The data may optionally contain configuration information posted
+by an administrator client.
+These data would not be supported in the first release.
 
 
+Config data:
+
+- Raft ID
+- Cluster name
+- Publisher status off/on
+- Publisher request never/yes/force-on
 
 Router data:
 
@@ -473,27 +498,36 @@ Meta LS sensing data:
 - Closest floodfills profile data
   for time periods yesterday, today, and tomorrow
 
+Admin data:
+
+- Raft ID
+- Cluster name
+- Raft parameters?
+- TBD
+
 
 Administration Interface
 ========================
 
 TBD, possibly a separate proposal.
+Not required for the first release.
 
 Requirements of an admin interface:
-(not all necessarily for 1.0)
 
 - Support for multiple master destinations, i.e. multiple virtual clusters (farms)
 - Provide comprehensive view of shared cluster state - all stats published by members, who is the current leader, etc.
-- Ability to anoint a leader
-- Ability to force publish metaLS (if current node is leader)
-- Ability to exclude hashes from metaLS (if current node is leader)
+- Ability to force removal of a participant or leader from the cluster
+- Ability to force publish metaLS (if current node is publisher)
+- Ability to exclude hashes from metaLS (if current node is publisher)
 - Configuration import/export functionality for bulk deployments
+
 
 
 Router Interface
 ================
 
 TBD, possibly a separate proposal.
+i2pcontrol is not required for the first release and detailed changes will be included in a separate proposal.
 
 Requirements for Garlic Farm to router API (in-JVM java or i2pcontrol)
 
