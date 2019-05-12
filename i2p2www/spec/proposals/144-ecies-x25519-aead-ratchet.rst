@@ -5,7 +5,7 @@ ECIES-X25519-AEAD-Ratchet
     :author: zzz
     :created: 2018-11-22
     :thread: http://zzz.i2p/topics/2639
-    :lastupdated: 2019-04-10
+    :lastupdated: 2019-05-12
     :status: Open
 
 .. contents::
@@ -33,9 +33,13 @@ It relies on previous work as follows:
 The goal is to support new encryption for end-to-end,
 destination-to-destination communication.
 
+All references to Signal and Noise in this proposal are for background information only.
+Knowledge of Signal and Noise protocols is not required to either understand
+or implement this proposal.
 
-ElGamal Key Locations
----------------------
+
+Current ElGamal Uses
+--------------------
 
 As a review,
 ElGamal 256-byte public keys may be found in the following data structures.
@@ -137,6 +141,10 @@ Goals
 - Support binding of transmit and receive sessions so that
   acknowledgements may happen within the protocol, rather than solely out-of-band.
   This will also allow replies to have forward secrecy immediately.
+- Enable end-to-end encryption of certain messages (RouterInfo stores)
+  that we currently don't due to CPU overhead.
+- Do not change the I2NP Garlic Message, Garlic Message Clove,
+  or Garlic Message Delivery Instructions format.
 
 
 Non-Goals / Out-of-scope
@@ -178,9 +186,46 @@ A synchronized PRNG can also be termed a "ratchet".
 This proposal (finally) specifies that ratchet mechanism, and eliminates tag delivery.
 
 
+Threat Model
+------------
+
+The threat model is somewhat different than for NTCP2 (proposal 111).
+The MitM nodes are the OBEP and IBGW and are assumed to have full view of
+the current or historical global NetDB, by colluding with floodfills.
+
+The goal is to prevent these MitMs from classifying traffic as
+new and existing session messages, or as new crypto vs. old crypto.
+
+
+
+Detailed Proposal
+=================
+
+This proposal defines a new end-to-end protocol to replace ElGamal/AES+SessionTags.
+
+
+Summary of Cryptographic Design
+-------------------------------
+
+There are five portions of the protocol to be redesigned:
+
+
+- 1) The new and existing session container formats
+  are replaced with new formats.
+- 2) ElGamal (256 byte public keys, 128 byte private keys) is be replaced
+  with ECIES-X25519 (32 byte public and private keys)
+- 3) AES is be replaced with
+  AEAD_ChaCha20_Poly1305 (abbreviated as ChaChaPoly below)
+- 4) SessionTags will be replaced with ratchets,
+  which is essentially a cryptographic, synchronized PRNG.
+- 5) The AES payload, as defined in the ElGamal/AES+SessionTags specification,
+  is replaced with a block format similar to that in NTCP2.
+
+Each of the five changes has its own section below.
+
 
 New Cryptographic Primitives for I2P
-====================================
+------------------------------------
 
 Existing I2P router implementations will require implementations for
 the following standard cryptographic primitives,
@@ -195,26 +240,6 @@ will also require implementations for:
 - X25519 key generation and DH
 - AEAD_ChaCha20_Poly1305 (abbreviated as ChaChaPoly below)
 - HKDF
-
-
-Detailed Proposal
-=================
-
-This proposal defines a new end-to-end protocol to replace ElGamal/AES+SessionTags.
-
-There are five portions of the protocol to be redesigned:
-
-
-- The new and existing session container formats
-  are replaced with new formats.
-- ElGamal (256 byte public keys, 128 byte private keys) is be replaced
-  with ECIES-X25519 (32 byte public and private keys)
-- AES is be replaced with
-  AEAD_ChaCha20_Poly1305 (abbreviated as ChaChaPoly below)
-- SessionTags will be replaced with ratchets,
-  which is essentially a cryptographic, synchronized PRNG.
-- The AES payload, as defined in the ElGamal/AES+SessionTags specification,
-  is replaced with a block format similar to that in NTCP2.
 
 
 Crypto Type
@@ -372,217 +397,6 @@ session will be created as well. If there was an old inbound session,
 it will be allowed to expire.
 
 
-Bandwidth overhead estimate
-----------------------------
-
-Message overhead for the first two messages in each direction are as follows.
-This assumes only one message in each direction before the ACK,
-or that any additional messages are sent speculatively as existing session messages.
-If there is no speculative acks of delivered session tags, the
-overhead or the old protocol is much higher.
-
-No padding is assumed for the new protocol.
-
-
-For ElGamal/AES+SessionTags
-```````````````````````````
-
-New session message, same each direction:
-
-
-.. raw:: html
-
-  {% highlight lang='text' %}
-ElGamal block:
-  514 bytes
-
-  AES block:
-  - 2 byte tag count
-  - 1024 bytes of tags (32 typical)
-  - 4 byte payload size
-  - 32 byte hash of payload
-  - 1 byte flags
-  - 8 byte (average) padding to 16 bytes
-  1071 total
-
-  Total:
-  1585 bytes
-{% endhighlight %}
-
-Existing session messages, same each direction:
-
-.. raw:: html
-
-  {% highlight lang='text' %}
-AES block:
-  - 32 byte session tag
-  - 2 byte tag count
-  - 4 byte payload size
-  - 32 byte hash of payload
-  - 1 byte flags
-  - 8 byte (average) padding to 16 bytes
-  79 total
-
-  Four message total (two each direction)
-  3328 bytes
-{% endhighlight %}
-
-
-For ECIES-X25519-AEAD-Ratchet
-`````````````````````````````
-
-TODO update this section after proposal is stable.
-
-Alice-Bob new session message:
-
-.. raw:: html
-
-  {% highlight lang='text' %}
-- 32 byte public key
-  - 8 byte nonce
-  - 6 byte message ID block
-  - 7 byte options block
-  - 37 byte next key ratchet block
-  - 103 byte ack request block
-  - 3 byte I2NP block overhead ?
-  - 16 byte Poly1305 tag
-
-  Total:
-  212 bytes
-{% endhighlight %}
-
-Bob-Alice existing session message:
-
-.. raw:: html
-
-  {% highlight lang='text' %}
-- 8 byte session tag
-  - 6 byte message ID block
-  - 7 byte options block
-  - 37 byte next key ratchet block
-  - 4 byte ack request block
-  - 3 byte I2NP block overhead ?
-  - 16 byte Poly1305 tag
-
-  Total:
-  81 bytes
-{% endhighlight %}
-
-Existing session messages, same each direction:
-
-.. raw:: html
-
-  {% highlight lang='text' %}
-- 8 byte session tag
-  - 6 byte message ID block
-  - 3 byte I2NP block overhead ?
-  - 16 byte Poly1305 tag
-
-  Total:
-  33 bytes
-{% endhighlight %}
-
-Four message total (two each direction):
-
-.. raw:: html
-
-  {% highlight lang='text' %}
-359 bytes
-  89% (approx. 10x) reduction compared to ElGamal/AEs+SessionTags
-{% endhighlight %}
-
-
-Processing overhead estimate
-----------------------------
-
-TODO update this section after proposal is stable.
-
-The following cryptographic operations are required by each party to initiate
-a new session and do the first ratchet:
-
-- HMAC-SHA256: 3 per HKDF, total TBD
-- ChaChaPoly: 2 each
-- X25519 key generation: 2 Alice, 1 Bob
-- X25519 DH: 3 each
-- Signature verification: 1 (Bob)
-
-
-The following cryptographic operations are required by each party for each data phase message:
-
-- ChaChaPoly: 1
-
-
-
-Session Tag Length Analysis
----------------------------
-
-Current session tag length is 32 bytes.
-We have not yet found any justification for that length, but we are continuing to research the archives.
-
-The session tag ratchet is assumed to generate random, uniformly distributed tags.
-There is no cryptographic reason for a particular session tag length.
-The session tag ratchet is synchronized to, but generates an independent output from,
-the symmetric key ratchet. The outputs of the two ratchets may be different lengths.
-
-Therefore, the only concern is session tag collision.
-It is assumed that implementations will not attempt to handle collisions
-by trying to decrypt with both sessions;
-implementations will simply associate the tag with either the previous or new
-session, and any message received with that tag on the other session
-will be dropped after the decryption fails.
-
-The goal is to select a session tag length that is large enough
-to minimize the risk of collisions, while small enough
-to minimize memory usage.
-
-This assumes that implementations limit session tag storage to
-prevent memory exhaustion attacks. This also will greatly reduce the chances that an attacker
-can create collisions. See the Implementation Considerations section below.
-
-For a worst case, assume a busy server with 64 new inbound sessions per second.
-Assume 15 minute inbound session tag lifetime (same as now, probably should be reduced).
-Assume inbound session tag window of 32.
-64 * 15 * 60 * 32 =  1,843,200 tags
-Current Java I2P max inbound tags is 750,000 and has never been hit as far as we know.
-
-A target of 1 in a million (1e-6) session tag collisions is probably sufficient.
-The probability of dropping a message along the way due to congestion is far higher than that.
-
-Ref: https://en.wikipedia.org/wiki/Birthday_paradox
-Probability table section.
-
-With 32 byte session tags (256 bits) the session tag space is 1.2e77.
-The probability of a collision with probability 1e-18 requires 4.8e29 entries.
-The probability of a collision with probability 1e-6 requires 4.8e35 entries.
-1.8 million tags of 32 bytes each is about 59 MB total.
-
-With 16 byte session tags (128 bits) the session tag space is 3.4e38.
-The probability of a collision with probability 1e-18 requires 2.6e10 entries.
-The probability of a collision with probability 1e-6 requires 2.6e16 entries.
-1.8 million tags of 16 bytes each is about 30 MB total.
-
-With 8 byte session tags (64 bits) the session tag space is 1.8e19.
-The probability of a collision with probability 1e-18 requires 6.1 entries.
-The probability of a collision with probability 1e-6 requires 6.1e6 (6,100,000) entries.
-1.8 million tags of 8 bytes each is about 15 MB total.
-
-6.1 million active tags is over 3x more than our worst-case estimate of 1.8 million tags.
-So the probability of collision would be less than one in a million.
-We therefore conclude that 8 byte session tags are sufficient.
-This results in a 4x reduction of storage space,
-in addition to the 2x reduction because transmit tags are not stored.
-So we will have a 8x reduction in session tag memory usage compared to ElGamal/AES+SessionTags.
-
-To maintain flexibility should these assumptions be wrong,
-we will include a session tag length field in the options,
-so that the default length may be overridden on a per-session basis.
-
-Implementations should, at a minimum, recognize session tag collisions,
-handle them gracefully, and log or count the number of collisions.
-While still extremely unlikely, they will be much more likely than
-they were for ElGamal/AES+SessionTags, and could actually happen.
-
-
 Multicast
 ---------
 
@@ -658,6 +472,11 @@ HKDF(salt, ikm, info, n)
     as specified in [RFC-2104]_. This means that SALT_LEN is 32 bytes max.
 
 
+Issues
+------
+
+- Use Blake2b instead of SHA256?
+
 
 1) Message format
 -----------------
@@ -691,7 +510,7 @@ If not found, and the data is at least (514+16) long, he attempts to decrypt the
 and if successful, decrypts the AES block.
 
 
-New Session Tags and comparison to Signal
+New Session Tags and Comparison to Signal
 `````````````````````````````````````````
 
 In Signal Double Ratchet, the header contains:
@@ -729,83 +548,6 @@ Only generate at most N tags past the last good tag received.
 N might be at most 128, but 32 or even less may be a better choice.
 
 
-Typical Usage Patterns
-----------------------
-
-
-HTTP GET
-````````
-
-Alice sends a small request with a single new Session message, bundling a reply leaseset.
-Alice includes immediate ratchet to new key.
-Includes sig to bind to destination. No ack requested.
-
-Bob ratchets immediately.
-
-Alice ratchets immediately.
-
-Continues on with those sessions.
-
-
-HTTP POST
-`````````
-
-Alice has three options:
-
-1) Send the first message only (window size = 1), as in HTTP GET.
-
-2) Send up to streaming window, but using same cleartext public key.
-   All messages contain same next public key (ratchet).
-   This will be visible to OBGW/IBEP because they all start with the same cleartext.
-   Things proceed as in 1).
-
-3) Send up to streaming window, but using a different cleartext public key (session) for each.
-   All messages contain same next public key (ratchet).
-   This will not be visible to OBGW/IBEP because they all start with different cleartext.
-   Bob must recognize that they all contain the same next public key,
-   and respond to all with the same ratchet.
-   Alice uses that next public key and continues.
-
-
-Repliable Datagram
-``````````````````
-As in HTTP GET, but with smaller options for session tag window size and lifetime.
-Contains signature to bind the session to the destination.
-Maybe don't request a ratchet.
-
-
-Raw Datagram
-````````````
-New session message is sent.
-No reply LS is bundled. No signature included. No reply or ratchet is requested.
-No ratchet is sent.
-Options set session tags window to zero.
-
-
-Long-Lived Sessions
-```````````````````
-Long-lived sessions may ratchet, or request a ratchet, at any time,
-to maintain forward secrecy from that point in time.
-Sessions must ratchet as they approach the limit of sent messages per-session (65535).
-
-Implementation Considerations
-`````````````````````````````
-
-As with the existing ElGamal/AES+SessionTag protocol, implementations must
-limit session tag storage and protect against memory exhaustion attacks.
-
-Some recommended strategies include:
-
-- Hard limit on number of session tags stored
-- Aggressive expiration of idle inbound sessions when under memory pressure
-- Limit on number of inbound sessions bound to a single far-end destination
-- Adaptive reduction of session tag window and deletion of old unused tags
-  when under memory pressure
-- Refusal to ratchet when requested, if under memory pressure
-
-
-
-
 
 1a) New session format
 ----------------------
@@ -825,8 +567,9 @@ or IK (if the static key is sent).
 
 
 
-Format
-``````
+1b) New session format (with binding)
+-------------------------------------
+
 Encrypted:
 
 .. raw:: html
@@ -842,7 +585,7 @@ Encrypted:
   |                                       |
   +----+----+----+----+----+----+----+----+
   |                                       |
-  +            Part 1                     +
+  +        Ephemeral Key Section          +
   |       ChaCha20 encrypted data         |
   +            40 bytes                   +
   |                                       |
@@ -852,11 +595,11 @@ Encrypted:
   |                                       |
   +----+----+----+----+----+----+----+----+
   |  Poly1305 Message Authentication Code |
-  +         (MAC) for Part 1              +
+  +         (MAC) for above section       +
   |             16 bytes                  |
   +----+----+----+----+----+----+----+----+
   |                                       |
-  +          Optional Part 2              +
+  +         Static Key Section            +
   |       ChaCha20 encrypted data         |
   +            32 bytes                   +
   |                                       |
@@ -864,11 +607,11 @@ Encrypted:
   |                                       |
   +----+----+----+----+----+----+----+----+
   |  Poly1305 Message Authentication Code |
-  +      (MAC) for Optional Part 2        +
+  +    (MAC) for Static Key Section       +
   |             16 bytes                  |
   +----+----+----+----+----+----+----+----+
   |                                       |
-  +            Part 3                     +
+  +            Payload Section            +
   |       ChaCha20 encrypted data         |
   ~                                       ~
   |                                       |
@@ -876,42 +619,122 @@ Encrypted:
   |                                       |
   +----+----+----+----+----+----+----+----+
   |  Poly1305 Message Authentication Code |
-  +         (MAC) for Part 3              +
+  +         (MAC) for Payload Section     +
   |             16 bytes                  |
   +----+----+----+----+----+----+----+----+
 
-  Public Key :: 32 bytes, little endian, cleartext
+  Public Key :: 32 bytes, little endian, Elligator2, cleartext
 
-  Part 1 encrypted data :: 32 bytes
+  Ephemeral Key Section encrypted data :: 40 bytes
 
-  Optional Part 2 encrypted data :: 40 bytes
+  Static Key Section encrypted data :: 32 bytes
 
-  Part 3 encrypted data :: remaining data minus 16 bytes
+  Payload Section encrypted data :: remaining data minus 16 bytes
 
   MAC :: Poly1305 message authentication code, 16 bytes
 
 {% endhighlight %}
 
 
-Part 1 Decrypted data
-`````````````````````
 
-Part 1 contains:
+1c) New session format (without binding)
+----------------------------------------
 
-- the originator's ephemeral key, 32 bytes.
-- Message number, 2 bytes
-- Flags, 2 bytes
-- Unused, 4 bytes
+Encrypted:
 
-Part 2 Decrypted data
-`````````````````````
+.. raw:: html
 
-Part 2 contains the originator's static key, 32 bytes.
+  {% highlight lang='dataspec' %}
++----+----+----+----+----+----+----+----+
+  |                                       |
+  +                                       +
+  |   New Session One Time Public Key     |
+  +                                       +
+  |                                       |
+  +                                       +
+  |                                       |
+  +----+----+----+----+----+----+----+----+
+  |                                       |
+  +        Ephemeral Key Section          +
+  |       ChaCha20 encrypted data         |
+  +            40 bytes                   +
+  |                                       |
+  +                                       +
+  |                                       |
+  +                                       +
+  |                                       |
+  +----+----+----+----+----+----+----+----+
+  |  Poly1305 Message Authentication Code |
+  +         (MAC) for above section       +
+  |             16 bytes                  |
+  +----+----+----+----+----+----+----+----+
+  |                                       |
+  +            Payload Section            +
+  |       ChaCha20 encrypted data         |
+  ~                                       ~
+  |                                       |
+  +                                       +
+  |                                       |
+  +----+----+----+----+----+----+----+----+
+  |  Poly1305 Message Authentication Code |
+  +         (MAC) for Payload Section     +
+  |             16 bytes                  |
+  +----+----+----+----+----+----+----+----+
+
+  Public Key :: 32 bytes, little endian, Elligator2, cleartext
+
+  Ephemeral Key Section encrypted data :: 40 bytes
+
+  Payload Section encrypted data :: remaining data minus 16 bytes
+
+  MAC :: Poly1305 message authentication code, 16 bytes
+
+{% endhighlight %}
 
 
 
-Part 3 Decrypted data
-`````````````````````
+1d) New session contents
+------------------------
+
+
+New Session One Time Key
+````````````````````````
+
+The one time key is 32 bytes, encoded with Elligator2.
+This key is never reused; a new key is generated with
+each message, including retransmissions.
+
+
+Ephemeral Key Section Decrypted data
+````````````````````````````````````
+
+Ephemeral Key Section contains:
+
+.. raw:: html
+
+  {% highlight lang='dataspec' %}
+
+key :: the originator's ephemeral key, 32 bytes.
+  num :: Message number, 2 bytes
+  flags :: 2 bytes
+         bit order: 15 14 .. 3210
+         bit 0: 1 if Static Key Section follows, 0 if not
+         bits 15-1: Unused, set to 0 for future compatibility
+  unused :: 4 bytes
+         Set to 0 for future compatibility
+
+{% endhighlight %}
+
+
+Static Key Section Decrypted data
+`````````````````````````````````
+
+The Static Key Section contains the originator's static key, 32 bytes.
+
+
+
+Payload Section Decrypted data
+``````````````````````````````
 
 See AEAD section below.
 Encrypted length is the remainder of the data.
@@ -947,6 +770,8 @@ The I2NP message sent.
 Options Contents
 ~~~~~~~~~~~~~~~~
 
+See the Session Tag Length Analysis section below for more information.
+
 - STL = 8
 
 
@@ -979,8 +804,12 @@ As desired.
 
 
 
-KDF for Part 1 Encrypted Contents
-`````````````````````````````````
+1e) KDFs for New Session Message
+--------------------------------
+
+
+KDF for Ephemeral Key Section Encrypted Contents
+````````````````````````````````````````````````
 
 .. raw:: html
 
@@ -1014,10 +843,10 @@ KDF for Part 1 Encrypted Contents
 
 
 
-KDF for Part 2 Encrypted Contents
-`````````````````````````````````
+KDF for Static Key Section Encrypted Contents
+`````````````````````````````````````````````
 
-Only present if indicated in part 1 flags
+Only present if indicated in Ephemeral Key Section flags.
 
 
 .. raw:: html
@@ -1030,13 +859,13 @@ Only present if indicated in part 1 flags
 
   // Alice's X25519 reusable ephemeral keys
   ask = GENERATE_PRIVATE()
-  // apk was decrypted in part 1
+  // apk was decrypted in Ephemeral Key Section
   apk = DERIVE_PUBLIC(ask)
 
   sharedSecret = DH(ask, bpk) = DH(bsk, apk)
 
   // ChaChaPoly parameters to encrypt/decrypt
-  // chainKey from part 1
+  // chainKey from Ephemeral Key Section
   keydata = HKDF(chainKey, sharedSecret, "EphemperalPart2x", 64)
   chainKey = keydata[0:31]
   k = keydata[32:64]
@@ -1047,8 +876,8 @@ Only present if indicated in part 1 flags
 
 
 
-KDF for Part 3 Encrypted Contents
-`````````````````````````````````
+KDF for Payload Section Encrypted Contents
+``````````````````````````````````````````
 
 .. raw:: html
 
@@ -1058,20 +887,22 @@ KDF for Part 3 Encrypted Contents
   bsk = GENERATE_PRIVATE()
   bpk = DERIVE_PUBLIC(bsk)
 
-  // Alice's X25519 static keys (if part 2 present)
-  // or X25519 ephemeral keys (if part 2 not present)
+  // Alice's X25519 static keys (if Static Key Section present)
+  // or X25519 ephemeral keys (if Static Key Section not present)
   ask = GENERATE_PRIVATE()
-  // apk was decrypted in part 2 (if present) or part 1
+  // apk was decrypted in Static Key Section (if present)
+  // or Ephemeral Key Section (if Static Key Section not present)
   apk = DERIVE_PUBLIC(ask)
 
   sharedSecret = DH(ask, bpk) = DH(bsk, apk)
 
   // ChaChaPoly parameters to encrypt/decrypt
-  // chainKey from part 2 (if present) or part 1
+  // chainKey from Static Key Section (if present)
+  // or Ephemeral Key Section (if Static Key Section not present)
   k = HKDF(chainKey, sharedSecret, "Part3StaticKeyHK", 64)
   chainKey = keydata[0:31]
   k = keydata[32:64]
-  n = message number from part 1
+  n = message number from Ephemeral Key Section
   ad = TBD
 
 {% endhighlight %}
@@ -1099,19 +930,14 @@ the same ratchet key inside the first AEAD block.
 New session keys are never reused.
 This prevents external observers from identifying a POST sequence through
 seeing duplicate cleartext keys. However, these messages may still be
-identified as containing keys, unless we use Elligator2.
+identified as containing keys, so we must use Elligator2.
 The first AEAD block will contain a sequence number and/or IV so the second block may
 be decrypted correctly.
 
 
-Issues
-``````
-
-- Obfuscation of cleartext key? We could do Elligator 2 but that's expensive.
 
 
-
-1b) Existing session format
+1f) Existing session format
 ---------------------------
 
 Session tag (8 bytes)
@@ -1180,61 +1006,6 @@ Issues
 
 
 
-1c) Identification at Receiver
-------------------------------
-
-Following are recommendations for classifying incoming messages.
-
-
-X25519 Only
-```````````
-
-On a tunnel that is solely used with this protocol, do identification
-as is done currently with ElGamal/AES+SessionTags:
-
-First, treat the initial data as a session tag, and look up the session tag.
-If found, decrypt using the stored data associated with that session tag.
-
-If not found, treat the initial data as a DH public key and nonce.
-Perform a DH operation and the specified KDF, and attempt to decrypt the remaining data.
-
-
-X25519 Shared with ElGamal/AES+SessionTags
-``````````````````````````````````````````
-
-On a tunnel that supports both this protocol and
-ElGamal/AES+SessionTags, classify incoming messages as follows:
-
-Due to a flaw in the ElGamal/AES+SessionTags specification,
-the AES block is not padded to a random non-mod-16 length.
-Therefore, the length of existing session messages mod 16 is always 0,
-and the length of new session messages mod 16 is always 2 (since the
-ElGamal block is 514 bytes long).
-
-If the length mod 16 is not 0 or 2,
-treat the initial data as a session tag, and look up the session tag.
-If found, decrypt using the stored data associated with that session tag.
-
-If not found, and the length mod 16 is not 0 or 2,
-treat the initial data as a DH public key and nonce.
-Perform a DH operation and the specified KDF, and attempt to decrypt the remaining data.
-(based on the relative traffic mix, and the relative costs of X25519 and ElGamal DH operations,
-ths step may be done last instead)
-
-Otherwise, if the length mod 16 is 0,
-treat the initial data as a ElGamal/AES session tag, and look up the session tag.
-If found, decrypt using the stored data associated with that session tag.
-
-If not found, and the data is at least 642 (514 + 128) bytes long,
-and the length mod 16 is 2,
-treat the initial data as a ElGamal block.
-Attempt to decrypt the remaining data.
-
-Note that if the ElGamal/AES+SessionTag spec is updated to allow
-non-mod-16 padding, things will need to be done differently.
-
-
-
 2) ECIES-X25519
 ---------------
 
@@ -1261,10 +1032,36 @@ Issues
 
 
 
+2a) Elligator2
+--------------
 
 
+Format
+``````
+
+32-byte public and private keys.
 
 
+Justification
+`````````````
+
+Required to prevent the OBEP and IBGW from classifying traffic.
+
+
+Notes
+`````
+
+Elligator2 doubles average the key generation time, as half the private keys
+result in public keys that are unsuitable for encoding with Elligator2.
+Also, the key generation time is unbounded with an exponential distribution,
+as the generator must keep retrying utnil a suitable key pair is found.
+
+This overhead may be managed by doing key generation in advance,
+in a separate thread, to keep a pool of suitable keys.
+
+Additionally, the unsuitable keys may be added to the pool of keys
+used for NTCP2, where Elligator2 is not used.
+The security issues of doing so is TBD.
 
 
 
@@ -1393,7 +1190,7 @@ We still use session tags, as before, but we use ratchets to generate them.
 Session tags also had a rekey option that we never implemented.
 So it's like a double ratchet but we never did the second one.
 
-Here we define something like Signal Double Ratchet.
+Here we define something similar to Signal's Double Ratchet.
 The session tags are generated deterministically and identically on
 the receiver and sender sides.
 
@@ -1925,7 +1722,7 @@ Options Issues
 Message Numbers
 ```````````````
 
-The message's number in the sending chain (N=0,1,2,...)
+The message's number (N) in the current sending chain (N=0,1,2,...)
 and the length (number of message keys) in the previous sending chain (PN).
 Also contains the public key id, used for acks.
 
@@ -1946,7 +1743,8 @@ Also contains the public key id, used for acks.
   PN :: 2 bytes big endian. The number of keys in the previous sending chain.
         i.e. one more than the last 'N' sent in the previous chain.
         Use 0 if there was no previous sending chain.
-  N :: 2 bytes big endian. Starts with 0.
+  N :: 2 bytes big endian. The message number in the current sending chain.
+       Starts with 0.
 
 {% endhighlight %}
 
@@ -1958,7 +1756,7 @@ Notes
 
 - N is not strictly needed in an existing session message, as it's associated with the Session Tag
 
-- PN and N are as defined in Signal.
+- The definitions of PN and N are identical to that in Signal.
   This is similar to what Signal does, but in Signal, PN and N are in the header.
   Here, they're in the encrypted message body.
 
@@ -1972,8 +1770,9 @@ Notes
 
 Next DH Ratchet Public Key
 ``````````````````````````
-This is in the header in Signal, we put it in the payload,
+The next DH ratchet key is in the payload,
 and it is optional. We don't ratchet every time.
+(This is different than in signal, where it is in the header, and sent every time)
 For typical usage patterns, Alice and Bob each ratchet a single time
 at the beginning.
 
@@ -2174,8 +1973,361 @@ Future work
 
 
 
+Typical Usage Patterns
+======================
 
 
+HTTP GET
+--------
+
+Alice sends a small request with a single new Session message, bundling a reply leaseset.
+Alice includes immediate ratchet to new key.
+Includes sig to bind to destination. No ack requested.
+
+Bob ratchets immediately.
+
+Alice ratchets immediately.
+
+Continues on with those sessions.
+
+
+HTTP POST
+---------
+
+Alice has three options:
+
+1) Send the first message only (window size = 1), as in HTTP GET.
+
+2) Send up to streaming window, but using same cleartext public key.
+   All messages contain same next public key (ratchet).
+   This will be visible to OBGW/IBEP because they all start with the same cleartext.
+   Things proceed as in 1).
+
+3) Send up to streaming window, but using a different cleartext public key (session) for each.
+   All messages contain same next public key (ratchet).
+   This will not be visible to OBGW/IBEP because they all start with different cleartext.
+   Bob must recognize that they all contain the same next public key,
+   and respond to all with the same ratchet.
+   Alice uses that next public key and continues.
+
+
+Repliable Datagram
+------------------
+
+As in HTTP GET, but with smaller options for session tag window size and lifetime.
+Contains signature to bind the session to the destination.
+Maybe don't request a ratchet.
+
+
+Raw Datagram
+------------
+
+New session message is sent.
+No reply LS is bundled. No signature included. No reply or ratchet is requested.
+No ratchet is sent.
+Options set session tags window to zero.
+
+
+Long-Lived Sessions
+-------------------
+
+Long-lived sessions may ratchet, or request a ratchet, at any time,
+to maintain forward secrecy from that point in time.
+Sessions must ratchet as they approach the limit of sent messages per-session (65535).
+
+
+
+Implementation Considerations
+=============================
+
+As with the existing ElGamal/AES+SessionTag protocol, implementations must
+limit session tag storage and protect against memory exhaustion attacks.
+
+Some recommended strategies include:
+
+- Hard limit on number of session tags stored
+- Aggressive expiration of idle inbound sessions when under memory pressure
+- Limit on number of inbound sessions bound to a single far-end destination
+- Adaptive reduction of session tag window and deletion of old unused tags
+  when under memory pressure
+- Refusal to ratchet when requested, if under memory pressure
+
+
+
+Identification at Receiver
+==========================
+
+Following are recommendations for classifying incoming messages.
+
+
+X25519 Only
+-----------
+
+On a tunnel that is solely used with this protocol, do identification
+as is done currently with ElGamal/AES+SessionTags:
+
+First, treat the initial data as a session tag, and look up the session tag.
+If found, decrypt using the stored data associated with that session tag.
+
+If not found, treat the initial data as a DH public key and nonce.
+Perform a DH operation and the specified KDF, and attempt to decrypt the remaining data.
+
+
+X25519 Shared with ElGamal/AES+SessionTags
+------------------------------------------
+
+On a tunnel that supports both this protocol and
+ElGamal/AES+SessionTags, classify incoming messages as follows:
+
+Due to a flaw in the ElGamal/AES+SessionTags specification,
+the AES block is not padded to a random non-mod-16 length.
+Therefore, the length of existing session messages mod 16 is always 0,
+and the length of new session messages mod 16 is always 2 (since the
+ElGamal block is 514 bytes long).
+
+If the length mod 16 is not 0 or 2,
+treat the initial data as a session tag, and look up the session tag.
+If found, decrypt using the stored data associated with that session tag.
+
+If not found, and the length mod 16 is not 0 or 2,
+treat the initial data as a DH public key and nonce.
+Perform a DH operation and the specified KDF, and attempt to decrypt the remaining data.
+(based on the relative traffic mix, and the relative costs of X25519 and ElGamal DH operations,
+ths step may be done last instead)
+
+Otherwise, if the length mod 16 is 0,
+treat the initial data as a ElGamal/AES session tag, and look up the session tag.
+If found, decrypt using the stored data associated with that session tag.
+
+If not found, and the data is at least 642 (514 + 128) bytes long,
+and the length mod 16 is 2,
+treat the initial data as a ElGamal block.
+Attempt to decrypt the remaining data.
+
+Note that if the ElGamal/AES+SessionTag spec is updated to allow
+non-mod-16 padding, things will need to be done differently.
+
+
+
+
+Analysis
+========
+
+
+Bandwidth overhead estimate
+----------------------------
+
+Message overhead for the first two messages in each direction are as follows.
+This assumes only one message in each direction before the ACK,
+or that any additional messages are sent speculatively as existing session messages.
+If there is no speculative acks of delivered session tags, the
+overhead or the old protocol is much higher.
+
+No padding is assumed for the new protocol.
+
+
+For ElGamal/AES+SessionTags
+```````````````````````````
+
+New session message, same each direction:
+
+
+.. raw:: html
+
+  {% highlight lang='text' %}
+ElGamal block:
+  514 bytes
+
+  AES block:
+  - 2 byte tag count
+  - 1024 bytes of tags (32 typical)
+  - 4 byte payload size
+  - 32 byte hash of payload
+  - 1 byte flags
+  - 8 byte (average) padding to 16 bytes
+  1071 total
+
+  Total:
+  1585 bytes
+{% endhighlight %}
+
+Existing session messages, same each direction:
+
+.. raw:: html
+
+  {% highlight lang='text' %}
+AES block:
+  - 32 byte session tag
+  - 2 byte tag count
+  - 4 byte payload size
+  - 32 byte hash of payload
+  - 1 byte flags
+  - 8 byte (average) padding to 16 bytes
+  79 total
+
+  Four message total (two each direction)
+  3328 bytes
+{% endhighlight %}
+
+
+For ECIES-X25519-AEAD-Ratchet
+`````````````````````````````
+
+TODO update this section after proposal is stable.
+
+Alice-Bob new session message:
+
+.. raw:: html
+
+  {% highlight lang='text' %}
+- 32 byte public key
+  - 8 byte nonce
+  - 6 byte message ID block
+  - 7 byte options block
+  - 37 byte next key ratchet block
+  - 103 byte ack request block
+  - 3 byte I2NP block overhead ?
+  - 16 byte Poly1305 tag
+
+  Total:
+  212 bytes
+{% endhighlight %}
+
+Bob-Alice existing session message:
+
+.. raw:: html
+
+  {% highlight lang='text' %}
+- 8 byte session tag
+  - 6 byte message ID block
+  - 7 byte options block
+  - 37 byte next key ratchet block
+  - 4 byte ack request block
+  - 3 byte I2NP block overhead ?
+  - 16 byte Poly1305 tag
+
+  Total:
+  81 bytes
+{% endhighlight %}
+
+Existing session messages, same each direction:
+
+.. raw:: html
+
+  {% highlight lang='text' %}
+- 8 byte session tag
+  - 6 byte message ID block
+  - 3 byte I2NP block overhead ?
+  - 16 byte Poly1305 tag
+
+  Total:
+  33 bytes
+{% endhighlight %}
+
+Four message total (two each direction):
+
+.. raw:: html
+
+  {% highlight lang='text' %}
+359 bytes
+  89% (approx. 10x) reduction compared to ElGamal/AEs+SessionTags
+{% endhighlight %}
+
+
+Processing overhead estimate
+----------------------------
+
+TODO update this section after proposal is stable.
+
+The following cryptographic operations are required by each party to initiate
+a new session and do the first ratchet:
+
+- HMAC-SHA256: 3 per HKDF, total TBD
+- ChaChaPoly: 2 each
+- X25519 key generation: 2 Alice, 1 Bob
+- X25519 DH: 3 each
+- Signature verification: 1 (Bob)
+
+
+The following cryptographic operations are required by each party for each data phase message:
+
+- ChaChaPoly: 1
+
+
+
+Session Tag Length Analysis
+---------------------------
+
+Current session tag length is 32 bytes.
+We have not yet found any justification for that length, but we are continuing to research the archives.
+The proposal above defines the new tag length as 8 bytes.
+This decision is preliminary.
+The analysis justifying an 8 byte tag is as follows:
+
+The session tag ratchet is assumed to generate random, uniformly distributed tags.
+There is no cryptographic reason for a particular session tag length.
+The session tag ratchet is synchronized to, but generates an independent output from,
+the symmetric key ratchet. The outputs of the two ratchets may be different lengths.
+
+Therefore, the only concern is session tag collision.
+It is assumed that implementations will not attempt to handle collisions
+by trying to decrypt with both sessions;
+implementations will simply associate the tag with either the previous or new
+session, and any message received with that tag on the other session
+will be dropped after the decryption fails.
+
+The goal is to select a session tag length that is large enough
+to minimize the risk of collisions, while small enough
+to minimize memory usage.
+
+This assumes that implementations limit session tag storage to
+prevent memory exhaustion attacks. This also will greatly reduce the chances that an attacker
+can create collisions. See the Implementation Considerations section below.
+
+For a worst case, assume a busy server with 64 new inbound sessions per second.
+Assume 15 minute inbound session tag lifetime (same as now, probably should be reduced).
+Assume inbound session tag window of 32.
+64 * 15 * 60 * 32 =  1,843,200 tags
+Current Java I2P max inbound tags is 750,000 and has never been hit as far as we know.
+
+A target of 1 in a million (1e-6) session tag collisions is probably sufficient.
+The probability of dropping a message along the way due to congestion is far higher than that.
+
+Ref: https://en.wikipedia.org/wiki/Birthday_paradox
+Probability table section.
+
+With 32 byte session tags (256 bits) the session tag space is 1.2e77.
+The probability of a collision with probability 1e-18 requires 4.8e29 entries.
+The probability of a collision with probability 1e-6 requires 4.8e35 entries.
+1.8 million tags of 32 bytes each is about 59 MB total.
+
+With 16 byte session tags (128 bits) the session tag space is 3.4e38.
+The probability of a collision with probability 1e-18 requires 2.6e10 entries.
+The probability of a collision with probability 1e-6 requires 2.6e16 entries.
+1.8 million tags of 16 bytes each is about 30 MB total.
+
+With 8 byte session tags (64 bits) the session tag space is 1.8e19.
+The probability of a collision with probability 1e-18 requires 6.1 entries.
+The probability of a collision with probability 1e-6 requires 6.1e6 (6,100,000) entries.
+1.8 million tags of 8 bytes each is about 15 MB total.
+
+6.1 million active tags is over 3x more than our worst-case estimate of 1.8 million tags.
+So the probability of collision would be less than one in a million.
+We therefore conclude that 8 byte session tags are sufficient.
+This results in a 4x reduction of storage space,
+in addition to the 2x reduction because transmit tags are not stored.
+So we will have a 8x reduction in session tag memory usage compared to ElGamal/AES+SessionTags.
+
+To maintain flexibility should these assumptions be wrong,
+we will include a session tag length field in the options,
+so that the default length may be overridden on a per-session basis.
+We do not expect to implement dynamic tag length negotiation
+unless absolutely necessary.
+
+Implementations should, at a minimum, recognize session tag collisions,
+handle them gracefully, and log or count the number of collisions.
+While still extremely unlikely, they will be much more likely than
+they were for ElGamal/AES+SessionTags, and could actually happen.
 
 
 
