@@ -337,7 +337,7 @@ As the sessions ratchet, they continue to be bound to the far-end Destination.
 
 When an inbound session is created at the receiver (Bob),
 it may be bound to the far-end Destination (Alice), at Alice's option.
-If Alice includes binding information (her Destination hash and signature) in the new session message,
+If Alice includes binding information (her static key) in the new session message,
 the session will be bound to that destination,
 and a outbound session will be created and bound to same Destination.
 As the sessions ratchet, they continue to be bound to the far-end Destination.
@@ -385,7 +385,7 @@ Implementations will also need to defer any ACK sending until after the
 I2NP block is processed, as the Garlic Message may contain a Database Store Message
 with a lease set. A recent lease set will be necessary to route the ACK,
 and the far-end destination (contained in the lease set) will be necessary to
-verify the binding signature.
+verify the binding static key.
 
 
 Session Timeouts
@@ -821,7 +821,7 @@ KDF for Ephemeral Key Section Encrypted Contents
 
   // Alice's X25519 one-time-use ephemeral keys
   ask = GENERATE_PRIVATE_ELG2()
-  apk = DERIVE_PUBLIC(eapk)
+  apk = DERIVE_PUBLIC(ask)
   // eapk is sent in cleartext in the
   // beginning of the new session message
   eapk = ENCODE_ELG2(apk)
@@ -1329,6 +1329,7 @@ Inputs:
      Subsequent times: output from previous symmetric key ratchet
   2) input_key_material = SYMMKEY_CONSTANT = ZEROLEN
      No need for uniqueness. Symmetric keys never go out on the wire.
+     TODO: Set a constant anyway?
 
   Outputs:
   1) N (the current session key number)
