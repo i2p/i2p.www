@@ -86,14 +86,14 @@ When proxying through the HTTP proxy, communicate with
 the proxy as specified in [RFC-2616]_.
 
 Credentials
-~~~~~~~~~~~
+```````````
 
 Whether usernames and passwords are per-cluster, or
 per-server, is implementation-dependent.
 
 
 HTTP Request 1
-~~~~~~~~~~~~~~
+``````````````
 
 The originator will send the following.
 All lines are teriminated with CRLF as required by HTTP.
@@ -116,7 +116,7 @@ GET /GarlicFarm/CLUSTER/VERSION/websocket HTTP/1.1
 
 
 HTTP Response 1
-~~~~~~~~~~~~~~~
+```````````````
 
 If the path is not correct, the recipient will send a standard "HTTP/1.1 404 Not Found" response,
 as in [RFC-2616]_.
@@ -127,7 +127,7 @@ Both parties will then close the socket.
 
 
 HTTP Request 2
-~~~~~~~~~~~~~~
+``````````````
 
 The originator will send the following,
 as in [RFC-2617]_ and [WEBSOCKET]_.
@@ -154,7 +154,7 @@ GET /GarlicFarm/CLUSTER/VERSION/websocket HTTP/1.1
 
 
 HTTP Response 2
-~~~~~~~~~~~~~~~
+```````````````
 
 If the authentication is not correct, the recipient will send another standard "HTTP/1.1 401 Unauthorized" response,
 as in [RFC-2617]_.
@@ -180,7 +180,7 @@ The Raft protocol as defined below commences, on the same socket.
 
 
 Caching
-~~~~~~~
+```````
 
 Credentials shall be cached for at least one hour, so that
 subsequent connections may jump directly to
