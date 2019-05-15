@@ -101,6 +101,7 @@ All lines are teriminated with \r\n as required by HTTP.
 .. raw:: html
 
   {% highlight %}
+
 GET /GarlicFarm/CLUSTER/VERSION/websocket HTTP/1.1
    Host: (ip):(port)
    Cache-Control: no-cache
@@ -135,6 +136,7 @@ All lines are teriminated with \r\n as required by HTTP.
 .. raw:: html
 
   {% highlight %}
+
 GET /GarlicFarm/CLUSTER/VERSION/websocket HTTP/1.1
    Host: (ip):(port)
    Cache-Control: no-cache
@@ -163,6 +165,7 @@ All lines are teriminated with \r\n as required by HTTP.
 .. raw:: html
 
   {% highlight %}
+
 HTTP/1.1 101 Switching Protocols
    Connection: Upgrade
    Upgrade: websocket
@@ -234,6 +237,7 @@ After the HTTP handshake, the establishment sequence is as follows:
 .. raw:: html
 
   {% highlight %}
+
 New Server Alice              Random Follower Bob
 
   ClientRequest   ------->
