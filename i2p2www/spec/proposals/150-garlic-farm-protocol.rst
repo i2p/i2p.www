@@ -5,7 +5,7 @@ Garlic Farm Protocol
     :author: zzz
     :created: 2019-05-02
     :thread: http://zzz.i2p/topics/2234
-    :lastupdated: 2019-05-06
+    :lastupdated: 2019-05-15
     :status: Open
 
 .. contents::
@@ -61,29 +61,127 @@ Specification
 =============
 
 The wire protocol is over SSL sockets or non-SSL I2P sockets.
+I2P sockets are proxied through the HTTP Proxy.
 There is no support for clearnet non-SSL sockets.
-
 
 Handshake and authentication
 ----------------------------
 
 Not defined by JRaft.
 
-TODO authentication. Perhaps new messages, or perhaps something before
-the request/response phase happens.
+Goals:
 
-Requirements:
+- User/password authentication method
+- Version identifier
+- Cluster identifier
+- Extensible
+- Ease of proxying when used for I2P sockets
+- Do not unnecessarily expose server as a Garlic Farm server
+- Simple protocol so a full web server implementation is not required
 
-- user/password or other authentication method
-- version
-- cluster identifier
-- extensible
+We will use an websocket-like handshake [WEBSOCKET]_ and
+HTTP Digest authentication [RFC-2617]_.
+RFC 2617 Basic authentication is NOT supported.
+When proxying through the HTTP proxy, communicate with
+the proxy as specified in [RFC-2616]_.
 
-One possibility: HTTP-like headers for version and other info;
-use HTTP digest authentication (RFC 2617).
-An HTTP-line handshake (or actual HTTP websockets) may be desirable
-as it would make implementation of an external application that
-communicates over I2P much easier.
+Credentials
+~~~~~~~~~~~
+
+Whether usernames and passwords are per-cluster, or
+per-server, is implementation-dependent.
+
+
+HTTP Request 1
+~~~~~~~~~~~~~~
+
+The originator will send the following.
+All lines are teriminated with \r\n as required by HTTP.
+
+.. raw:: html
+
+  {% highlight %}
+GET /GarlicFarm/CLUSTER/VERSION/websocket HTTP/1.1
+   Host: (ip):(port)
+   Cache-Control: no-cache
+   Connection: close
+   (any other headers ignored)
+   (blank line)
+
+   CLUSTER is the name of the cluster (default "farm")
+   VERSION is the Garlic Farm version (currently "1")
+
+{% endhighlight %}
+
+
+HTTP Response 1
+~~~~~~~~~~~~~~~
+
+If the path is not correct, the recipient will send a standard "HTTP/1.1 404 Not Found" response,
+as in [RFC-2616]_.
+If the path is correct, the recipient will send a standard "HTTP/1.1 401 Unauthorized" response,
+including the WWW-Authenticate HTTP digest authentication header,
+as in [RFC-2617]_.
+Both parties will then close the socket.
+
+
+HTTP Request 2
+~~~~~~~~~~~~~~
+
+The originator will send the following,
+as in [RFC-2617]_ and [WEBSOCKET]_.
+All lines are teriminated with \r\n as required by HTTP.
+
+.. raw:: html
+
+  {% highlight %}
+GET /GarlicFarm/CLUSTER/VERSION/websocket HTTP/1.1
+   Host: (ip):(port)
+   Cache-Control: no-cache
+   Connection: keep-alive, Upgrade
+   Upgrade: websocket
+   (Sec-Websocket-* headers if proxied)
+   Authorization: (HTTP digest authorization header as in RFC 2617)
+   (any other headers ignored)
+   (blank line)
+
+   CLUSTER is the name of the cluster (default "farm")
+   VERSION is the Garlic Farm version (currently "1")
+
+{% endhighlight %}
+
+
+HTTP Response 2
+~~~~~~~~~~~~~~~
+
+If the authentication is not correct, the recipient will send another standard "HTTP/1.1 401 Unauthorized" response,
+as in [RFC-2617]_.
+If the authentication is correct, the recipient will send the following response,
+as in [WEBSOCKET]_.
+All lines are teriminated with \r\n as required by HTTP.
+
+.. raw:: html
+
+  {% highlight %}
+HTTP/1.1 101 Switching Protocols
+   Connection: Upgrade
+   Upgrade: websocket
+   (Sec-Websocket-* headers)
+   (any other headers ignored)
+   (blank line)
+
+{% endhighlight %}
+
+After this is received, the socket remains open.
+The Raft protocol as defined below commences, on the same socket.
+
+
+Caching
+~~~~~~~
+
+Credentials shall be cached for at least one hour, so that
+subsequent connections may jump directly to
+"HTTP Request 2" above.
 
 
 
@@ -131,7 +229,7 @@ InstallSnapshotResponse     17    Follower     Leader              Raft Section 
 Establishment
 -------------
 
-The establishment sequence is as follows:
+After the HTTP handshake, the establishment sequence is as follows:
 
 .. raw:: html
 
@@ -577,3 +675,12 @@ References
 
 .. [RAFT]
     https://ramcloud.stanford.edu/wiki/download/attachments/11370504/raft.pdf
+
+.. [RFC-2616]
+    https://tools.ietf.org/html/rfc2616
+
+.. [RFC-2617]
+    https://tools.ietf.org/html/rfc2617
+
+.. [WEBSOCKET]
+    https://en.wikipedia.org/wiki/WebSocket
