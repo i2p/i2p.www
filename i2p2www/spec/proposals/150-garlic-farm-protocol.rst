@@ -103,14 +103,14 @@ All lines are teriminated with \r\n as required by HTTP.
   {% highlight %}
 
 GET /GarlicFarm/CLUSTER/VERSION/websocket HTTP/1.1
-   Host: (ip):(port)
-   Cache-Control: no-cache
-   Connection: close
-   (any other headers ignored)
-   (blank line)
+  Host: (ip):(port)
+  Cache-Control: no-cache
+  Connection: close
+  (any other headers ignored)
+  (blank line)
 
-   CLUSTER is the name of the cluster (default "farm")
-   VERSION is the Garlic Farm version (currently "1")
+  CLUSTER is the name of the cluster (default "farm")
+  VERSION is the Garlic Farm version (currently "1")
 
 {% endhighlight %}
 
@@ -138,17 +138,17 @@ All lines are teriminated with \r\n as required by HTTP.
   {% highlight %}
 
 GET /GarlicFarm/CLUSTER/VERSION/websocket HTTP/1.1
-   Host: (ip):(port)
-   Cache-Control: no-cache
-   Connection: keep-alive, Upgrade
-   Upgrade: websocket
-   (Sec-Websocket-* headers if proxied)
-   Authorization: (HTTP digest authorization header as in RFC 2617)
-   (any other headers ignored)
-   (blank line)
+  Host: (ip):(port)
+  Cache-Control: no-cache
+  Connection: keep-alive, Upgrade
+  Upgrade: websocket
+  (Sec-Websocket-* headers if proxied)
+  Authorization: (HTTP digest authorization header as in RFC 2617)
+  (any other headers ignored)
+  (blank line)
 
-   CLUSTER is the name of the cluster (default "farm")
-   VERSION is the Garlic Farm version (currently "1")
+  CLUSTER is the name of the cluster (default "farm")
+  VERSION is the Garlic Farm version (currently "1")
 
 {% endhighlight %}
 
@@ -167,11 +167,11 @@ All lines are teriminated with \r\n as required by HTTP.
   {% highlight %}
 
 HTTP/1.1 101 Switching Protocols
-   Connection: Upgrade
-   Upgrade: websocket
-   (Sec-Websocket-* headers)
-   (any other headers ignored)
-   (blank line)
+  Connection: Upgrade
+  Upgrade: websocket
+  (Sec-Websocket-* headers)
+  (any other headers ignored)
+  (blank line)
 
 {% endhighlight %}
 
