@@ -5,7 +5,7 @@ Garlic Farm Protocol
     :author: zzz
     :created: 2019-05-02
     :thread: http://zzz.i2p/topics/2234
-    :lastupdated: 2019-05-15
+    :lastupdated: 2019-05-17
     :status: Open
 
 .. contents::
@@ -78,6 +78,8 @@ Goals:
 - Ease of proxying when used for I2P sockets
 - Do not unnecessarily expose server as a Garlic Farm server
 - Simple protocol so a full web server implementation is not required
+- Compatible with common standards, so implementations may use
+  standard libraries if desired
 
 We will use an websocket-like handshake [WEBSOCKET]_ and
 HTTP Digest authentication [RFC-2617]_.
@@ -289,7 +291,7 @@ Election Sequence:
 
   {% highlight %}
 
-Candidate Alice             Candidate/Follower Bob
+Candidate Alice               Follower Bob
 
   RequestVoteRequest   ------->
           <---------   RequestVoteResponse
@@ -394,7 +396,8 @@ SnapshotSyncRequest          5
 Application
 ~~~~~~~~~~~
 
-TBD, probably JSON.
+Application contents are UTF-8 encoded JSON.
+See the Application Layer section below.
 
 
 Configuration
@@ -538,7 +541,8 @@ The publisher of the Meta LS2 is NOT necessarily the Raft Leader.
 Application Data Contents
 -------------------------
 
-The Application data will be in a JSON format for simplicity and extensibility.
+Application contents are UTF-8 encoded JSON,
+for simplicity and extensibility.
 The full specification is TBD.
 The goal is to provide enough data to write an algorithm to determine the "best"
 router to publish the Meta LS2, and for the publisher to have sufficient information
@@ -554,14 +558,18 @@ by an administrator client.
 These data would not be supported in the first release.
 
 
-Config data:
+Config data (top level):
 
-- Raft ID
-- Cluster name
+- cluster: Cluster name
+- date: Date of this data (long, ms since the epoch)
+- id: Raft ID (integer)
+
+MetaInfo publishing status (meta):
+
 - Publisher status off/on
 - Publisher request never/yes/force-on
 
-Router data:
+Router data (router):
 
 - Current router info
 - Uptime
@@ -570,6 +578,9 @@ Router data:
 - Participating tunnels
 - Configured bandwidth
 - Current bandwidth
+
+Destinations (destinations):
+List
 
 Destination data:
 
@@ -608,8 +619,6 @@ Meta LS sensing data:
 
 Admin data:
 
-- Raft ID
-- Cluster name
 - Raft parameters?
 - TBD
 
