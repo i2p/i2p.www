@@ -5,7 +5,7 @@ New netDB Entries
     :author: zzz, str4d, orignal
     :created: 2016-01-16
     :thread: http://zzz.i2p/topics/2051
-    :lastupdated: 2019-04-10
+    :lastupdated: 2019-05-19
     :status: Open
     :supercedes: 110, 120, 121, 122
 
@@ -1344,10 +1344,10 @@ Format
   - Number of entries (1 byte) Maximum TBD
   - Entries. Each entry contains: (40 bytes)
     - Hash (32 bytes)
-    - Flags (3 bytes)
+    - Flags (2 bytes)
       TBD. Set all to zero for compatibility with future uses.
-      TODO: Use a few bits to (optionally) indicate the type of the LS it is referencing.
-      All zeros means don't know.
+    - Type (1 byte) The type of LS it is referencing;
+      1 for LS, 3 for LS2, 5 for encrypted, 7 for meta, 0 for unknown.
     - Cost (priority) (1 byte)
     - Expires (4 bytes) (4 bytes, big endian, seconds since epoch, rolls over in 2106)
   - Number of revocations (1 byte) Maximum TBD
@@ -1818,7 +1818,7 @@ Changes
 Notes
 `````
 
-- Minimum router and client version is 0.9.40 for request type 3.
+- Minimum router and client version is 0.9.41 for request type 3.
 
 
 
@@ -1832,7 +1832,7 @@ to a Meta LS.
 
 If a Host Lookup Message for a Hash yields a Meta LS,
 the router needs to return one or more Destinations and expirations to the client.
-Either the client must to the recursive resolution, or the router can do it.
+Either the client must do the recursive resolution, or the router can do it.
 Not clear how it should work.
 For either method, we either need a new flavor of the Host Reply Message,
 or define a new result code that means what follows is a list of Destinations
@@ -1850,14 +1850,18 @@ Changes
 
 ::
 
-  If the client version is 0.9.40 or higher, and the result code is 0,
-  the following extended results are included after the Destination.
-  These are included no matter what the request type.
+  If the client version is 0.9.41 or higher, and the result code is 0,
+  the following extended results are included after the Destination,
+  no matter what the request type, but only if the LeaseSet type is 7
+  (Meta LS). Use cases for returning the extended information in
+  other cases is for further study.
+
 
   5.  LeaseSet type (1 byte)
-      0: Unknown
+      0: Unknown or not found
       1: LS 1
       3: LS 2
+      5: Encrypted LS 2 (if unable to decrypt)
       7: Meta LS
   6.  LeaseSet expiration (4 bytes, big endian, seconds since the epoch)
       0 if unknown
@@ -1877,18 +1881,17 @@ Changes
   14. If LeaseSet type is Meta (7), the Meta Entries.
       Each entry contains: (40 bytes)
       - Hash (32 bytes)
-      - Flags (3 bytes)
+      - Flags (2 bytes)
         TBD. Set all to zero for compatibility with future uses.
-        TODO: Use a few bits to (optionally) indicate
-        the type of the LS it is referencing.
-        All zeros means don't know.
+      - Type (1 byte) The type of LS it is referencing;
+        1 for LS, 3 for LS2, 5 for encrypted, 7 for meta, 0 for unknown.
       - Cost (priority) (1 byte)
       - Expires (4 bytes, big endian, seconds since epoch, rolls over in 2106)
 
 Notes
 `````
 
-- Minimum router and client version is 0.9.40 for the extended results.
+- Minimum router and client version is 0.9.41 for the extended results.
 
 
 
@@ -1897,7 +1900,7 @@ Changes to support Meta
 
 How to generate and support Meta, including inter-router communication and coordination,
 is out of scope for this proposal.
-Support may be added to I2CP, or i2pcontrol, or a new protocol.
+See related proposal 150.
 
 
 Changes to support Offline Keys
