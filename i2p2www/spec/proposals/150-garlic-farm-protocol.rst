@@ -5,7 +5,7 @@ Garlic Farm Protocol
     :author: zzz
     :created: 2019-05-02
     :thread: http://zzz.i2p/topics/2234
-    :lastupdated: 2019-05-17
+    :lastupdated: 2019-05-20
     :status: Open
 
 .. contents::
@@ -396,7 +396,7 @@ SnapshotSyncRequest          5
 Application
 ~~~~~~~~~~~
 
-Application contents are UTF-8 encoded JSON.
+Application contents are UTF-8 encoded [JSON]_.
 See the Application Layer section below.
 
 
@@ -541,7 +541,7 @@ The publisher of the Meta LS2 is NOT necessarily the Raft Leader.
 Application Data Contents
 -------------------------
 
-Application contents are UTF-8 encoded JSON,
+Application contents are UTF-8 encoded [JSON]_,
 for simplicity and extensibility.
 The full specification is TBD.
 The goal is to provide enough data to write an algorithm to determine the "best"
@@ -557,22 +557,32 @@ The data may optionally contain configuration information posted
 by an administrator client.
 These data would not be supported in the first release.
 
+If "name: value" is listed, that specifies the JSON map key and value.
+Otherwise, specification is TBD.
 
-Config data (top level):
+
+Cluster data (top level):
 
 - cluster: Cluster name
 - date: Date of this data (long, ms since the epoch)
 - id: Raft ID (integer)
 
-MetaInfo publishing status (meta):
+Configuration data (config):
 
-- Publisher status off/on
-- Publisher request never/yes/force-on
+- Any configuration parameters
+
+MetaLS publishing status (meta):
+
+- destination: the metals destination, base64
+- lastPublishedLS: if present, base64 encoding of the last published metals
+- lastPublishedTime: in ms, or 0 if never
+- publishConfig: Publisher config status off/on/auto
+- publishing: metals publisher status boolean true/false
 
 Router data (router):
 
-- Current router info
-- Uptime
+- lastPublishedRI: if present, base64 encoding of the last published router info
+- uptime: Uptime in ms
 - Job lag
 - Exploratory tunnels
 - Participating tunnels
@@ -584,8 +594,8 @@ List
 
 Destination data:
 
-- Full destination
-- Uptime
+- destination: the destination, base64
+- uptime: Uptime in ms
 - Configured tunnels
 - Current tunnels
 - Configured bandwidth
@@ -616,11 +626,6 @@ Meta LS sensing data:
 - Fetch time
 - Closest floodfills profile data
   for time periods yesterday, today, and tomorrow
-
-Admin data:
-
-- Raft parameters?
-- TBD
 
 
 Administration Interface
@@ -691,6 +696,9 @@ References
 
 .. [JRAFT]
     https://github.com/datatechnology/jraft
+
+.. [JSON]
+    https://json.org/
 
 .. [RAFT]
     https://ramcloud.stanford.edu/wiki/download/attachments/11370504/raft.pdf
