@@ -3,8 +3,8 @@ Encrypted LeaseSet Specification
 ================================
 .. meta::
     :category: Protocols
-    :lastupdated: April 2019
-    :accuratefor: 0.9.39
+    :lastupdated: May 2019
+    :accuratefor: 0.9.40
 
 .. contents::
 
@@ -208,7 +208,7 @@ Flags
 
     Bit 0: 0 for everybody, 1 for per-client, auth section to follow
 
-    Bits 3-1: Authentication scheme, only if bit 1 is set to 1 for per-client, otherwise 0
+    Bits 3-1: Authentication scheme, only if bit 0 is set to 1 for per-client, otherwise 0
               0: DH client authentication (or no per-client authentication)
               1: PSK client authentication
 

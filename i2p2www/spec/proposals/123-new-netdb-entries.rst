@@ -5,7 +5,7 @@ New netDB Entries
     :author: zzz, str4d, orignal
     :created: 2016-01-16
     :thread: http://zzz.i2p/topics/2051
-    :lastupdated: 2019-05-19
+    :lastupdated: 2019-05-21
     :status: Open
     :supercedes: 110, 120, 121, 122
 
@@ -645,7 +645,7 @@ Flags
 
     Bit 0: 0 for everybody, 1 for per-client, auth section to follow
 
-    Bits 3-1: Authentication scheme, only if bit 1 is set to 1 for per-client, otherwise 0
+    Bits 3-1: Authentication scheme, only if bit 0 is set to 1 for per-client, otherwise 0
               0: DH client authentication (or no per-client authentication)
               1: PSK client authentication
 
