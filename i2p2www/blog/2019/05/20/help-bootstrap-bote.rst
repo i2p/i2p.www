@@ -96,8 +96,10 @@ order to do this properly, one must take the following steps:
    character set into binary.
 2. Second, take bytes 386 and 387 and convert them to a single
    Big-Endian integer.
-3. Add the number you computed from the two bytes in step two to 387.
-4. Take that nummber of bytes from the front of the full destination.
+3. Add the number you computed from the two bytes in step two to 387. This is
+   the length of the base64 destination.
+4. Take that nummber of bytes from the front of the full destination to get
+   the destination as a range of bytes.
 5. Convert back to a base64 representation using i2p's base64 character
    set.
 
@@ -138,7 +140,6 @@ I2P on Debian:
 {%- endtrans %}
 
 {%- trans %}
-
 ::
 
        sudo -u i2psvc head -c 516 /var/lib/i2p/i2p-config/i2pbote/local_dest.key
@@ -146,11 +147,12 @@ I2P on Debian:
 {%- endtrans %}
 
 {%- trans %}
+
 Or, if I2P is installed as your user:
+
 {%- endtrans %}
 
 {%- trans %}
-
 ::
 
        head -c 516 ~/.i2p/i2pbote/local_dest.key
