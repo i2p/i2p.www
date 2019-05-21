@@ -72,8 +72,8 @@ HKDF(salt, ikm, info, n)
     of length 32 bytes, and a context-specific 'info' value, and produces an output
     of n bytes suitable for use as key material.
 
-    Use HKDF as specified in [RFC-5869], using the HMAC hash function SHA-256
-    as specified in [RFC-2104]. This means that SALT_LEN is 32 bytes max.
+    Use HKDF as specified in [RFC-5869]_, using the HMAC hash function SHA-256
+    as specified in [RFC-2104]_. This means that SALT_LEN is 32 bytes max.
 
 
 Blinding Calculations
@@ -140,3 +140,11 @@ ECDSA's public key is (X,Y) pair, so for P256, for example, it's 64 bytes, rathe
 Either b33 address will be longer, or public key can be stored in compressed format like in bitcoin wallets.
 
 
+References
+==========
+
+.. [RFC-2104]
+    https://tools.ietf.org/html/rfc2104
+
+.. [RFC-5869]
+    https://tools.ietf.org/html/rfc5869
