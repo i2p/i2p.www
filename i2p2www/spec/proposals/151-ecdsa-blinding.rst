@@ -4,6 +4,7 @@ ECDSA key blinding
 .. meta::
     :author: orignal
     :created: 2019-05-21
+    :thread: http://zzz.i2p/topics/2717
     :lastupdated: 2019-05-21
     :status: Open
 
@@ -36,7 +37,7 @@ L
    Elliptic curve's group order. Property of curve.
 
 DERIVE_PUBLIC(a)
-    Convert a private key to public, by muplitpling B over an elliptic curve alpha
+    Convert a private key to public, by multiplying B over an elliptic curve alpha
     A 32-byte random number known to those who know the destination.
 
 GENERATE_ALPHA(destination, date, secret)
