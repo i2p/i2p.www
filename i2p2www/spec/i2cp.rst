@@ -3,8 +3,8 @@ I2CP Specification
 ==================
 .. meta::
     :category: Protocols
-    :lastupdated: March 2019
-    :accuratefor: 0.9.39
+    :lastupdated: May 2019
+    :accuratefor: 0.9.41
 
 .. contents::
 
@@ -532,7 +532,10 @@ RequestVariableLeaseSetMessage_ and contains all of the [Lease]_ structures that
 should be published to the I2NP Network Database.
 
 Sent from Client to Router.
-Since release 0.9.38. See proposal 123 for more information.
+Since release 0.9.39.
+Per-client authentication for EncryptedLeaseSet supported as of 0.9.41.
+MetaLeaseSet is not yet supported via I2CP.
+See proposal 123 for more information.
 
 Contents
 ````````
