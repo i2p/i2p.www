@@ -5,7 +5,7 @@ New netDB Entries
     :author: zzz, str4d, orignal
     :created: 2016-01-16
     :thread: http://zzz.i2p/topics/2051
-    :lastupdated: 2019-05-21
+    :lastupdated: 2019-05-22
     :status: Open
     :supercedes: 110, 120, 121, 122
 
@@ -1123,6 +1123,8 @@ authCookie = DECRYPT(clientKey_i, clientIV_i, clientCookie_i)
 Pre-shared key client authorization
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 Each client generates a secret 32-byte key ``psk_i``, and sends it to the server.
+Alternatively, the server can generate the secret key, and send it to one or more clients.
+
 
 Server processing
 ^^^^^^^^^^^^^^^^^
@@ -1201,10 +1203,13 @@ Downsides of DH client authorization
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 - Requires N + 1 DH operations on the server side for N clients.
 - Requires one DH operation on the client side.
+- Requires the client to generate the secret key.
 
 Advantages of PSK client authorization
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 - Requires no DH operations.
+- Allows the server to generate the secret key.
+- Allows the server to share the same key with multiple clients, if desired.
 
 Downsides of PSK client authorization
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
