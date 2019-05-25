@@ -37,7 +37,9 @@ L
    Elliptic curve's group order. Property of curve.
 
 DERIVE_PUBLIC(a)
-    Convert a private key to public, by multiplying B over an elliptic curve alpha
+    Convert a private key to public, by multiplying B over an elliptic curve
+
+alpha
     A 32-byte random number known to those who know the destination.
 
 GENERATE_ALPHA(destination, date, secret)
