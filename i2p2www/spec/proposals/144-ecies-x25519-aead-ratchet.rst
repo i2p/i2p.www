@@ -1089,8 +1089,7 @@ k :: 32 byte cipher key
   n :: Counter-based nonce, 12 bytes.
        n = 0
 
-  ad :: In new session message:
-        Associated data, 32 bytes.
+  ad :: Associated data, 32 bytes.
         The SHA256 hash of the preceding data (public key)
 
   data :: Plaintext data, 0 or more bytes
@@ -1119,7 +1118,8 @@ k :: 32 byte cipher key
        Session must be ratcheted before N reaches that value.
        The value 2**64 - 1 must never be used.
 
-  ad :: The session tag
+  ad :: Associated data
+        The session tag
 
   data :: Plaintext data, 0 or more bytes
 
