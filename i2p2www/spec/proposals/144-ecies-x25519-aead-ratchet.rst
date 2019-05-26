@@ -5,7 +5,7 @@ ECIES-X25519-AEAD-Ratchet
     :author: zzz
     :created: 2018-11-22
     :thread: http://zzz.i2p/topics/2639
-    :lastupdated: 2019-05-12
+    :lastupdated: 2019-05-26
     :status: Open
 
 .. contents::
@@ -481,9 +481,11 @@ Issues
 1) Message format
 -----------------
 
-Review of ElGamal/AES+SessionTags Message Format
-````````````````````````````````````````````````
+Review of Current Message Format
+````````````````````````````````
 
+The current message format, used for over 15 years,
+is ElGamal/AES+SessionTags.
 In ElGamal/AES+SessionTags, there are two message formats:
 
 1) New session:
@@ -714,12 +716,12 @@ Ephemeral Key Section contains:
 
   {% highlight lang='dataspec' %}
 
-key :: the originator's ephemeral key, 32 bytes.
-  num :: Message number, 2 bytes
-  flags :: 2 bytes
+flags :: 2 bytes
          bit order: 15 14 .. 3210
          bit 0: 1 if Static Key Section follows, 0 if not
          bits 15-1: Unused, set to 0 for future compatibility
+  num :: Message number, 2 bytes
+  key :: the originator's ephemeral key, 32 bytes.
   unused :: 4 bytes
          Set to 0 for future compatibility
 
@@ -1072,42 +1074,60 @@ The security issues of doing so is TBD.
 AEAD using ChaCha20 and Poly1305, same as in NTCP2.
 
 
-Format
-``````
+New Session Inputs
+``````````````````
 
-Inputs to the encryption/decryption functions:
+Inputs to the encryption/decryption functions
+for an AEAD block in a new session message:
 
 .. raw:: html
 
   {% highlight lang='dataspec' %}
 k :: 32 byte cipher key
-       In new session message:
        See new session message KDF above.
-       In existing session message:
+
+  n :: Counter-based nonce, 12 bytes.
+       n = 0
+
+  ad :: In new session message:
+        Associated data, 32 bytes.
+        The SHA256 hash of the preceding data (public key)
+
+  data :: Plaintext data, 0 or more bytes
+
+{% endhighlight %}
+
+
+Existing Session Inputs
+```````````````````````
+
+Inputs to the encryption/decryption functions
+for an AEAD block in an existing session message:
+
+.. raw:: html
+
+  {% highlight lang='dataspec' %}
+k :: 32 byte cipher key
        As looked up from the accompanying session tag.
 
   n :: Counter-based nonce, 12 bytes.
        Starts at 0 and incremented for each message.
        First four bytes are always zero.
-       In new session message:
-       n = 0
-       In existing session message:
        As looked up from the accompanying session tag.
        Last eight bytes are the message number (n), little-endian encoded.
        Maximum value is 2**64 - 2.
        Session must be ratcheted before N reaches that value.
        The value 2**64 - 1 must never be used.
 
-  ad :: In new session message:
-        Associated data, 32 bytes.
-        The SHA256 hash of the preceding data (public key)
-        In existing session message:
-        ZEROLEN
+  ad :: The session tag
 
   data :: Plaintext data, 0 or more bytes
 
 {% endhighlight %}
 
+
+Encrypted Format
+````````````````
 
 Output of the encryption function, input to the decryption function:
 
