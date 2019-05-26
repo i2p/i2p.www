@@ -695,7 +695,67 @@ Encrypted:
 
 
 
-1d) New session contents
+1d) One-time format (no binding or session)
+-------------------------------------------
+
+If only a single message is expected to be sent,
+no session setup or ephemeral key is required.
+
+
+Encrypted:
+
+.. raw:: html
+
+  {% highlight lang='dataspec' %}
++----+----+----+----+----+----+----+----+
+  |                                       |
+  +                                       +
+  |   New Session One Time Public Key     |
+  +                                       +
+  |                                       |
+  +                                       +
+  |                                       |
+  +----+----+----+----+----+----+----+----+
+  |                                       |
+  +           Flags Section               +
+  |       ChaCha20 encrypted data         |
+  +            40 bytes                   +
+  |                                       |
+  +                                       +
+  |                                       |
+  +                                       +
+  |                                       |
+  +----+----+----+----+----+----+----+----+
+  |  Poly1305 Message Authentication Code |
+  +         (MAC) for above section       +
+  |             16 bytes                  |
+  +----+----+----+----+----+----+----+----+
+  |                                       |
+  +            Payload Section            +
+  |       ChaCha20 encrypted data         |
+  ~                                       ~
+  |                                       |
+  +                                       +
+  |                                       |
+  +----+----+----+----+----+----+----+----+
+  |  Poly1305 Message Authentication Code |
+  +         (MAC) for Payload Section     +
+  |             16 bytes                  |
+  +----+----+----+----+----+----+----+----+
+
+  Public Key :: 32 bytes, little endian, Elligator2, cleartext
+
+  Ephemeral Key Section encrypted data :: 40 bytes
+
+  Payload Section encrypted data :: remaining data minus 16 bytes
+
+  MAC :: Poly1305 message authentication code, 16 bytes
+
+{% endhighlight %}
+
+
+
+1e) New session contents
 ------------------------
 
 
@@ -718,11 +778,13 @@ Ephemeral Key Section contains:
 
 flags :: 2 bytes
          bit order: 15 14 .. 3210
-         bit 0: 1 if Static Key Section follows, 0 if not
+         bit 0: 1 if ephemeral key is to be used, 0 if not
+         bit 1: 1 if Static Key Section follows, 0 if not
          bits 15-1: Unused, set to 0 for future compatibility
   num :: Message number, 2 bytes
-  key :: the originator's ephemeral key, 32 bytes.
   unused :: 4 bytes
+  key :: the originator's ephemeral key, 32 bytes.
+         All zeros if flags bit 0 is not set
          Set to 0 for future compatibility
 
 {% endhighlight %}
@@ -806,7 +868,7 @@ As desired.
 
 
 
-1e) KDFs for New Session Message
+1f) KDFs for New Session Message
 --------------------------------
 
 
@@ -891,9 +953,11 @@ KDF for Payload Section Encrypted Contents
 
   // Alice's X25519 static keys (if Static Key Section present)
   // or X25519 ephemeral keys (if Static Key Section not present)
+  // TBD for one-time format in 1d)
   ask = GENERATE_PRIVATE()
   // apk was decrypted in Static Key Section (if present)
   // or Ephemeral Key Section (if Static Key Section not present)
+  // TBD for one-time format in 1d)
   apk = DERIVE_PUBLIC(ask)
 
   sharedSecret = DH(ask, bpk) = DH(bsk, apk)
@@ -939,7 +1003,7 @@ be decrypted correctly.
 
 
 
-1f) Existing session format
+1g) Existing session format
 ---------------------------
 
 Session tag (8 bytes)
