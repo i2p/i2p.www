@@ -96,14 +96,6 @@ flag (1 byte)
   public key
     Number of bytes as implied by sigtype
 
-  optional secret (only if secret flag is set)
-    length of secret (1 byte)
-    secret (UTF-8 encoded)
-
-  optional auth private key (only if auth flag is set)
-    auth type (1 byte)
-    length of private key (1 byte)
-    private key
 {% endhighlight %}
 
 Post-processing and checksum:
