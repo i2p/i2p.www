@@ -5,7 +5,7 @@ ECIES-X25519-AEAD-Ratchet
     :author: zzz
     :created: 2018-11-22
     :thread: http://zzz.i2p/topics/2639
-    :lastupdated: 2019-05-26
+    :lastupdated: 2019-05-27
     :status: Open
 
 .. contents::
@@ -1210,11 +1210,6 @@ Output of the encryption function, input to the decryption function:
   |             16 bytes                  |
   +----+----+----+----+----+----+----+----+
 
-  Obfs Len :: Length of (encrypted data + MAC) to follow, 16 - 65535
-              Obfuscation using SipHash (see below)
-              Not used in message 1 or 2, or message 3 part 1, where the length is fixed
-              Not used in message 3 part 1, as the length is specified in message 1
-
   encrypted data :: Same size as plaintext data, 0 - 65519 bytes
 
   MAC :: Poly1305 message authentication code, 16 bytes
@@ -1366,14 +1361,16 @@ Inputs:
   // Output 1: Next chain key
   sessTag_chainKey_0 = keydata_0[0:31]
   // Output 2: The session tag
-  tag_0 = keydata_0[32:63]
+  // or more if tag is longer than 8 bytes
+  tag_0 = keydata_0[32:39]
 
   // repeat as necessary to get to tag_n
   keydata_n = HKDF(chainKey_(n-1), SESSTAG_CONSTANT, "SessionTagKeyGen", 64)
   // Output 1: Next chain key
   sessTag_chainKey_n = keydata_n[0:31]
   // Output 2: The session tag
-  tag_n = keydata_n[32:63]
+  // or more if tag is longer than 8 bytes
+  tag_n = keydata_n[32:39]
 
 {% endhighlight %}
 
@@ -2083,12 +2080,12 @@ Alice has three options:
 
 1) Send the first message only (window size = 1), as in HTTP GET.
 
-2) Send up to streaming window, but using same cleartext public key.
+2) Send up to streaming window, but using same Elligator2-encoded cleartext public key.
    All messages contain same next public key (ratchet).
    This will be visible to OBGW/IBEP because they all start with the same cleartext.
    Things proceed as in 1).
 
-3) Send up to streaming window, but using a different cleartext public key (session) for each.
+3) Send up to streaming window, but using a different Elligator2-encoded cleartext public key (session) for each.
    All messages contain same next public key (ratchet).
    This will not be visible to OBGW/IBEP because they all start with different cleartext.
    Bob must recognize that they all contain the same next public key,
@@ -2414,6 +2411,21 @@ handle them gracefully, and log or count the number of collisions.
 While still extremely unlikely, they will be much more likely than
 they were for ElGamal/AES+SessionTags, and could actually happen.
 
+
+Alternate analysis
+``````````````````
+
+Using twice the sessions per second (128) and twice the tag window (64),
+we have 4 times the tags (7.4 million). Max for one in a million
+chance of collision is 6.1 million tags.
+12 byte (or even 10 byte) tags would add a huge margin.
+
+However, is the one in a million chance of collision a good target?
+Much larger than the chance of being dropped along the way is not much use.
+The false-positive target for Java's DecayingBloomFilter is roughly
+1 in 10,000, but even 1 in 1000 isn't of grave concern.
+By reducing the target to 1 in 10,000, there's plenty of margin
+with 8 byte tags.
 
 
 
