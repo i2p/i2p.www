@@ -5,7 +5,7 @@ B32 for Encrypted LS2
     :author: zzz
     :created: 2019-03-13
     :thread: http://zzz.i2p/topics/2682
-    :lastupdated: 2019-03-20
+    :lastupdated: 2019-05-27
     :status: Open
 
 .. contents::
@@ -44,12 +44,17 @@ Goals
 - Ensure b32 chars are all or mostly random, especially at the beginning
   (don't want all addresses to start with the same chars)
 - Parseable
-- Support "private" links that include blinding secret and/or per-client key
+- Indicate that a blinding secret and/or per-client key is required
 - Add checksum to detect typos
 - Minimize length, maintain DNS label length less than 63 chars for normal usage
 - Continue to use base 32 for case-insensitivity
 - Retain the usual ".b32.i2p" suffix.
 
+Non-Goals
+=========
+
+- Do not support "private" links that include blinding secret and/or per-client key;
+  this would be insecure.
 
 
 Design
@@ -77,8 +82,9 @@ Construct a hostname of {56+ chars}.b32.i2p (35+ chars in binary) as follows:
   {% highlight lang='text' %}
 flag (1 byte)
     bit 0: 0 for one-byte sigtypes, 1 for two-byte sigtypes
-    bit 1: 0 for no secret, 1 for appended secret
-    bit 2: 0 for no per-client auth, 1 for appended per-client privkey
+    bit 1: 0 for no secret, 1 if secret is required
+    bit 2: 0 for no per-client auth,
+           1 if client private key is required
     bits 7-3: Unused, set to 0
 
   public key sigtype (1 or 2 bytes as indicated in flags)
@@ -136,9 +142,17 @@ strip the ".b32.i2p" from the hostname
   else (2 byte sigtypes) :
     pubkey sigtype = data[1] ^ ((byte) (checksum >> 8)) || data[2] ^ ((byte) (checksum >> 16))
     blinded sigtype = data[3] || data[4]
-  parse the remainder based on the flags to get the public key,
-  optional secret, and optional auth privkey
+  parse the remainder based on the flags to get the public key
 {% endhighlight %}
+
+
+Secret and Private Key Bits
+---------------------------
+
+The secret and private key bits are used to indicate to clients, proxies, or other
+client-side code that the secret and/or private key will be required to decrypt the
+leaseset. Particular implementations may prompt the user to supply the
+required data, or reject connection attempts if the required data is missing.
 
 
 Justification
@@ -175,13 +189,8 @@ Notes
 Issues
 ======
 
-- Is a checksum required? If we don't have a checksum, we still must xor the leading bytes with something to randomize the b32 chars.
 - Any secret, private key, or public key longer than 32 bytes would
-  exceed the DNS max label length of 63 chars. Browsers probably do not care?
-- Encoding the secret may be bad for security, and the b33 will change if the secret does.
-  The URL may leak in headers and cause issues.
-- Encoding the private key is very bad for security, and the b33 will change if the key does.
-  The URL may leak in headers and cause issues.
+  exceed the DNS max label length of 63 chars. Browsers probably do not care.
 
 
 Migration
