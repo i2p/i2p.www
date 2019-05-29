@@ -5,7 +5,7 @@ ECDSA key blinding
     :author: orignal
     :created: 2019-05-21
     :thread: http://zzz.i2p/topics/2717
-    :lastupdated: 2019-05-21
+    :lastupdated: 2019-05-29
     :status: Open
 
 .. contents::
@@ -19,7 +19,7 @@ Some people don't like EdDSA or RedDSA. We should offer some alternatives and le
 Overview
 ========
 
-This proposal descibes key bliding for ECDSA signature types 1, 2, 3.
+This proposal descibes key blinding for ECDSA signature types 1, 2, 3.
 
 Proposal
 ========
