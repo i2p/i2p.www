@@ -5,7 +5,7 @@ New netDB Entries
     :author: zzz, str4d, orignal
     :created: 2016-01-16
     :thread: http://zzz.i2p/topics/2051
-    :lastupdated: 2019-05-22
+    :lastupdated: 2019-05-29
     :status: Open
     :supercedes: 110, 120, 121, 122
 
@@ -1661,7 +1661,8 @@ New options interpreted router-side, sent in SessionConfig Mapping:
                                       Length as inferred from the destination
                                       signing public key type
 
-  i2cp.leaseSetSecret=xxxx    A secret used to encrypt/decrypt the leaseset, default ""
+  i2cp.leaseSetSecret=b64     The base 64 of a secret used to encrypt/decrypt
+                              the leaseset, default ""
 
   i2cp.leaseSetAuthType=nnn   The type of authentication for encrypted LS2.
                               0 for no per-client authentication (the default)
@@ -1696,8 +1697,14 @@ New options interpreted client-side:
 
   i2cp.leaseSetBlindedType=nnn   The sig type of the blinded key for encrypted LS2.
                                  Default depends on the destination sig type.
-                                 See proposal 123.
 
+  i2cp.leaseSetClient.dh.nnn=b64name:b64pubkey   The base 64 of the client name (ignored, UI use only),
+                                                 followed by a ':', followed by the base 64 of the public
+                                                 key to use for DH per-client auth. nnn starts with 0
+
+  i2cp.leaseSetClient.psk.nnn=b64name:b64privkey   The base 64 of the client name (ignored, UI use only),
+                                                   followed by a ':', followed by the base 64 of the private
+                                                   key to use for PSK per-client auth. nnn starts with 0
 
 Session Config
 --------------
