@@ -5,7 +5,7 @@ ECIES-X25519-AEAD-Ratchet
     :author: zzz
     :created: 2018-11-22
     :thread: http://zzz.i2p/topics/2639
-    :lastupdated: 2019-05-27
+    :lastupdated: 2019-05-29
     :status: Open
 
 .. contents::
@@ -1426,7 +1426,7 @@ Inputs:
   k_0 = keydata_0[32:63]
 
   // repeat as necessary to get to k[n]
-  keydata_n = HKDF(chainKey_(n-1), SYMMKEY_CONSTANT, "SymmetricRatchet", 64)
+  keydata_n = HKDF(symmKey_chainKey_(n-1), SYMMKEY_CONSTANT, "SymmetricRatchet", 64)
   // Output 1: Next chain key
   symmKey_chainKey_n = keydata_n[0:31]
   // Output 2: The symmetric key
