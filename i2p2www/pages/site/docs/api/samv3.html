@@ -1,6 +1,6 @@
 {% extends "global/layout.html" %}
 {% block title %}SAM V3{% endblock %}
-{% block lastupdated %}February 2019{% endblock %}
+{% block lastupdated %}June 2019{% endblock %}
 {% block accuratefor %}0.9.39{% endblock %}
 {% block content %}
 <p>Specified below is a simple client protocol for interacting with I2P.
@@ -8,9 +8,10 @@
 <p>SAM version 3
 was introduced in I2P release 0.7.3.
 Alternatives:
+<a href="{{ site_url('docs/api/bob') }}">BOB(unsupported)</a>.
+Older versions:
 <a href="{{ site_url('docs/api/sam') }}">SAM V1</a>,
 <a href="{{ site_url('docs/api/samv2') }}">SAM V2</a>,
-<a href="{{ site_url('docs/api/bob') }}">BOB</a>.
 </p>
 
 <h2>Version 3 Language Libraries</h2>
@@ -19,10 +20,15 @@ Alternatives:
 <li>C++ - <a href="https://github.com/i2p/i2psam">i2psam</a></li>
 <li>Go - <a href="https://bitbucket.org/kallevedin/sam3">sam3</a>,
          <a href="https://github.com/cryptix/goSam">goSam</a> (<a href="http://git.repo.i2p/w/goSam.git">in I2P</a>)</li>
+<li>Haskell - <a href="https://github.com/solatis/haskell-network-anonymous-i2p">haskell-network-anonymous-i2p</a></li>
+<li>.NET - <a href="https://github.com/SamuelFisher/i2pdotnet">i2pdotnet</a></li>
 <li>Nodejs - <a href="https://github.com/redhog/node-i2p">node-i2p</a></li>
+<li>Java - <a href="https://github.com/eyedeekay/Jsam">Jsam</a></li>
 <li>Python - <a href="https://github.com/l-n-s/i2plib">i2plib</a>,
     <a href="https://github.com/majestrate/i2p.socket">i2p.socket</a>,
     <a href="https://github.com/str4d/txi2p">txi2p</a></li>
+<li>Ruby - <a href="https://github.com/dryruby/i2p.rb">and i2p.rb for ruby</a></li>
+<li>Rust - <a href="https://github.com/stallmanifold/rust-i2p">rust-i2p</a></li>
 </ul>
 
 <h2>Version 3 Changes</h2>
@@ -120,7 +126,7 @@ Version 3.3 was introduced in I2P release 0.9.25.
 <h3>Simple Anonymous Messaging (SAM) Version 3.3 Specification Overview</h3>
 <p>
 The client application talks to the SAM bridge, which deals with
-all of the I2P functionality (using the streaming 
+all of the I2P functionality (using the streaming
 library for virtual streams, or I2CP directly for datagrams).
 
 </p><p>
@@ -160,7 +166,7 @@ Any UTF8-encoded keys or values should work.
 The formatting shown in this specification
 below is merely for readability, and while the first two words in
 each message must stay in their specific order, the ordering of
-the key=value pairs can change (e.g. "ONE TWO A=B C=D" or 
+the key=value pairs can change (e.g. "ONE TWO A=B C=D" or
 "ONE TWO C=D A=B" are both perfectly valid constructions).
 In addition, the protocol is case-sensitive.
 In the following, message examples are preceded by "-&gt; " for
@@ -208,12 +214,12 @@ Do not map keys or values to upper case, as this would corrupt I2CP options.
 </p>
 
 
-  
+
 <h3>SAM Connection Handshake</h3>
 <p>
 No SAM communication can occur until after the client and bridge have
 agreed on a protocol version, which is done by the client sending
-a HELLO and the bridge sending a HELLO REPLY: 
+a HELLO and the bridge sending a HELLO REPLY:
 <pre>
 -&gt;  HELLO VERSION
           [MIN=$min]            # Optional as of SAM 3.1, required for 3.0 and earlier
@@ -300,8 +306,8 @@ See the I2CP specification for more information.
 
 <h3>SAM Sessions</h3>
 <p>
-A SAM session is created by a client opening a socket to the SAM 
-bridge, operating a handshake, and sending a SESSION CREATE message, 
+A SAM session is created by a client opening a socket to the SAM
+bridge, operating a handshake, and sending a SESSION CREATE message,
 and the session terminates when the socket is disconnected.
 
 </p><p>
@@ -319,11 +325,11 @@ its ID (or nickname)
 
 <h4>Session Creation Request</h4>
 <p>
-The session creation message can only use one of these forms (messages 
+The session creation message can only use one of these forms (messages
 received through other forms are answered with an error message) :
 
 <pre>
--&gt;  SESSION CREATE 
+-&gt;  SESSION CREATE
           STYLE={STREAM,DATAGRAM,RAW}
           ID=$nickname
           DESTINATION={$privkey,TRANSIENT}
@@ -338,7 +344,7 @@ received through other forms are answered with an error message) :
 </pre>
 
 </p><p>
-DESTINATION specifies what destination should be used for 
+DESTINATION specifies what destination should be used for
 sending and receiving messages/streams.
 The $privkey is the base 64 of the concatenation of the <a href="{{ site_url('docs/spec/common-structures') }}#type_Destination">Destination</a>
 followed by the <a href="{{ site_url('docs/spec/common-structures') }}#type_PrivateKey">Private Key</a>
@@ -380,14 +386,14 @@ The default is DSA_SHA1.
 $nickname is the choice of the client. No whitespace is allowed.
 
 </p><p>
-Additional options given are passed to the I2P session 
-configuration if not interpreted by the SAM bridge (e.g. 
+Additional options given are passed to the I2P session
+configuration if not interpreted by the SAM bridge (e.g.
 outbound.length=0). These options <a href="#options">are documented below</a>.
 
 </p><p>
-The SAM bridge itself should already be configured with what router 
+The SAM bridge itself should already be configured with what router
 it should communicate over I2P through (though if need be there may
-be a way to provide an override, e.g. i2cp.tcp.host=localhost and 
+be a way to provide an override, e.g. i2cp.tcp.host=localhost and
 i2cp.tcp.port=7654).
 </p>
 
@@ -461,7 +467,7 @@ failure and success notification as soon as it is available.
 
 </p><p>
 Streams are bidirectional communication sockets between two I2P
-destinations, but their opening has to be requested by one of them. 
+destinations, but their opening has to be requested by one of them.
 Hereafter, CONNECT commands are used by the SAM client for such a
 request. FORWARD / ACCEPT commands are used by the SAM client when
 he wants to listen to requests coming from other I2P destinations.
@@ -477,7 +483,7 @@ opening a new socket with the SAM bridge
 </li><li>
 passing the same HELLO handshake as above
 </li><li>
-sending the STREAM CONNECT command  
+sending the STREAM CONNECT command
 </li></ul>
 
 <h4>Connect Request</h4>
@@ -515,7 +521,7 @@ last message to its client before forwarding or shutting down the
 socket:
 
 <pre>
-&lt;-  STREAM STATUS 
+&lt;-  STREAM STATUS
          RESULT=$result
          [MESSAGE=...]
 </pre>
@@ -550,7 +556,7 @@ opening a new socket with the SAM bridge
 </li><li>
 passing the same HELLO handshake as above
 </li><li>
-sending the STREAM ACCEPT command  
+sending the STREAM ACCEPT command
 </li></ul>
 
 <h4>Accept Request</h4>
@@ -577,7 +583,7 @@ If SILENT=true is passed, the SAM bridge won't issue any other message
 on the socket. If the accept fails, the socket will be closed.
 If the accept succeeds, all remaining data passing through the
 current socket is forwarded from and to the connected I2P destination
-peer. 
+peer.
 For reliability, and to receive the destination for incoming connections,
 SILENT=false is recommended.
 
@@ -587,7 +593,7 @@ If SILENT=false, which is the default value,
 the SAM bridge answers with:
 
 <pre>
-&lt;-  STREAM STATUS 
+&lt;-  STREAM STATUS
          RESULT=$result
          [MESSAGE=...]
 </pre>
@@ -625,7 +631,7 @@ of the requesting peer, and additional information for SAM 3.2 only:
     \n
 </pre>
 
-After this '\n' terminated line, all remaining data 
+After this '\n' terminated line, all remaining data
 passing through the current socket is forwarded from and to the connected
 I2P destination peer, until one of the peer closes the socket.
 </p>
@@ -670,7 +676,7 @@ when SILENT=true.
 The STREAM STATUS message is:
 
 <pre>
-&lt;-  STREAM STATUS 
+&lt;-  STREAM STATUS
          RESULT=$result
          [MESSAGE=...]
 </pre>
@@ -716,7 +722,7 @@ destination key of the requesting peer, and additional information for SAM 3.2 o
 </pre>
 
 After this '\n' terminated line,
-all remaining data passing through the socket is forwarded from and to 
+all remaining data passing through the socket is forwarded from and to
 the connected I2P destination peer, until one of the sides closes the
 socket.
 
@@ -735,9 +741,9 @@ soon as the "forwarding" socket is closed.
 <p>
 While I2P doesn't inherently contain a FROM address, for ease of use
 an additional layer is provided as repliable datagrams - unordered
-and unreliable messages of up to 31744 bytes that include a FROM 
-address (leaving up to 1KB for header material).  This FROM address 
-is authenticated internally by SAM (making use of the destination's 
+and unreliable messages of up to 31744 bytes that include a FROM
+address (leaving up to 1KB for header material).  This FROM address
+is authenticated internally by SAM (making use of the destination's
 signing key to verify the source) and includes replay prevention.
 
 </p><p>
@@ -829,7 +835,7 @@ depending on signature type.
 
 </p><p>
 The SAM bridge never exposes to the client the authentication headers
-or other fields, merely the data that the sender provided.  This 
+or other fields, merely the data that the sender provided.  This
 continues until the session is closed (by the client dropping the
 connection).
 
@@ -840,7 +846,7 @@ incoming messages to a specified ip:port. It does so by issuing the
 CREATE command with PORT and HOST options:
 
 <pre>
--&gt; SESSION CREATE 
+-&gt; SESSION CREATE
           STYLE={DATAGRAM,RAW}
           ID=$nickname
           DESTINATION={$privkey,TRANSIENT}
@@ -877,8 +883,8 @@ See the SESSION CREATE section above for details.
  in the v1/v2-compatible way.
 
 </p><p>
-Additional options given are passed to the I2P session 
-configuration if not interpreted by the SAM bridge (e.g. 
+Additional options given are passed to the I2P session
+configuration if not interpreted by the SAM bridge (e.g.
 outbound.length=0). These options <a href="#options">are documented below</a>.
 
 </p><p>
@@ -926,8 +932,8 @@ depending on signature type.
 <h3>SAM Anonymous (Raw) Datagrams</h3>
 <p>
 Squeezing the most out of I2P's bandwidth, SAM allows clients to send
-and receive anonymous datagrams, leaving authentication and reply 
-information up to the client themselves.  These datagrams are 
+and receive anonymous datagrams, leaving authentication and reply
+information up to the client themselves.  These datagrams are
 unreliable and unordered, and may be up to 32768 bytes.
 
 </p><p>
@@ -960,7 +966,7 @@ command. This is the v1/v2-compatible way of receiving datagrams.
 
 </p><p>
 When anonymous datagrams are to be forwarded to some host:port,
-the bridge sends to the specified host:port a message containing 
+the bridge sends to the specified host:port a message containing
 the following data:
 
 <pre>
@@ -1038,7 +1044,7 @@ for DHT communication.
 <h4>Creating a MASTER Session</h4>
 
 <pre>
--&gt;  SESSION CREATE 
+-&gt;  SESSION CREATE
           STYLE=MASTER
           ID=$nickname
           DESTINATION={$privkey,TRANSIENT}
@@ -1157,7 +1163,7 @@ The following message can be used by the client to query the SAM
 bridge for name resolution:
 
 <pre>
- NAMING LOOKUP 
+ NAMING LOOKUP
         NAME=$name
 </pre>
 
@@ -1165,9 +1171,9 @@ bridge for name resolution:
 which is answered by
 
 <pre>
- NAMING REPLY 
+ NAMING REPLY
         RESULT=$result
-        NAME=$name 
+        NAME=$name
         [VALUE=$destination]
         [MESSAGE=$message]
 </pre>

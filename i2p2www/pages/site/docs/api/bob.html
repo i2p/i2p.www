@@ -1,43 +1,31 @@
 {% extends "global/layout.html" %}
 {% block title %}{{ _('BOB - Basic Open Bridge') }}{% endblock %}
-{% block lastupdated %}{% trans %}August 2016{% endtrans %}{% endblock %}
+{% block lastupdated %}{% trans %}June 2019{% endtrans %}{% endblock %}
 {% block content %}
 <h2>Language libraries for the BOB API</h2>
 <ul>
 <li>Go - <a href="https://bitbucket.org/kallevedin/ccondom">ccondom</a></li>
 <li>Python - <a href="http://{{ i2pconv('git.repo.i2p') }}/w/i2py-bob.git">i2py-bob</a></li>
 <li>Twisted - <a href="https://pypi.python.org/pypi/txi2p">txi2p</a></li>
+<li>C++ - <a href="https://gitlab.com/rszibele/bobcpp">bobcpp</a></n></li>
 </ul>
 
-<h2>{% trans %}Technical differences from SAM (for the better?){% endtrans %}</h2>
+<h2>{% trans %}Technical differences from SAMv3{% endtrans %}</h2>
 
 <p>{% trans -%}
-BOB has separate command and data channels. 
-One, an application command channel socket to router to configure.
-Two, the application data sockets to/from router that carry only data.
-The command channel is only needed for making or setting the initial
-destination key, and to set the destination key to port bindings. 
-All connections run in parallel.
+At this point, most of the good ideas from BOB have been incorporated into
+SAMv3, which has more features and more real-world use. BOB still works, but it
+is not gaining the advanced features available to SAMv3 and is essentially
+unsupported at this time.
 {%- endtrans %}</p>
 
-<p>{% trans -%}
-SAM has one connection that does everything, and you need to parse every packet.
-{%- endtrans %}</p>
-
-<p>{% trans -%}
-BOB does not hold keypair values, nor does the router.
-Your application holds the keypair values. 
-This is to reduce any extra complexity in the router code, it also adds to
-your privacy.
-{%- endtrans %}</p>
-
-<p>{% trans -%}
-SAM router stores every keypair you ever make.
-{%- endtrans %}</p>
-
-<p>{% trans -%}
-Those are the important differences.
-{%- endtrans %}</p>
+<p>
+Alternatives:
+<a href="{{ site_url('docs/api/samv3') }}">SAM V3</a>.
+Older versions:
+<a href="{{ site_url('docs/api/sam') }}">SAM V1</a>,
+<a href="{{ site_url('docs/api/samv2') }}">SAM V2</a>,
+</p>
 
 <h2>{% trans %}Overview{% endtrans %}</h2>
 
@@ -105,8 +93,8 @@ Version history
 
 <p>{% trans -%}
 <b>PLEASE NOTE:</b>
-For CURRENT details on the commands PLEASE use the built-in help command. 
-Just telnet to localhost 2827 and type help and you can get full documentation on each command. 
+For CURRENT details on the commands PLEASE use the built-in help command.
+Just telnet to localhost 2827 and type help and you can get full documentation on each command.
 {%- endtrans %}</p>
 
 <p>{% trans -%}
@@ -143,20 +131,20 @@ zap                                             nothing, quits BOB
 {% endhighlight %}
 
 <p>{% trans -%}
-Once set up, all TCP sockets can and will block as needed, and there is no need for any 
+Once set up, all TCP sockets can and will block as needed, and there is no need for any
 additional messages to/from the command channel. This allows the router to pace the
-stream without exploding with OOM like SAM does as it chokes on attempting to shove 
+stream without exploding with OOM like SAM does as it chokes on attempting to shove
 many streams in or out one socket -- that can't scale when you have alot of connections!
 {%- endtrans %}</p>
 
 <p>{% trans -%}
-What is also nice about this particular interface is that writing anything to interface 
+What is also nice about this particular interface is that writing anything to interface
 to it, is much much easier than SAM. There is no other processing to do after the set up.
-It's configuration is so simple, that very simple tools, such as nc (netcat) can be used 
-to point to some application. The value there is that one could schedule up and down times 
-for an application, and not have to change the application to do that, or to even have 
-to stop that application. Instead, you can literally "unplug" the destination, and 
-"plug it in" again. As long as the same IP/port addresses and destination keys are used 
+It's configuration is so simple, that very simple tools, such as nc (netcat) can be used
+to point to some application. The value there is that one could schedule up and down times
+for an application, and not have to change the application to do that, or to even have
+to stop that application. Instead, you can literally "unplug" the destination, and
+"plug it in" again. As long as the same IP/port addresses and destination keys are used
 when bringing the bridge up, the normal TCP application won't care, and won't notice.
 It will simply be fooled -- the destinations are not reachable, and that nothing is coming in.
 {%- endtrans %}</p>
@@ -164,8 +152,8 @@ It will simply be fooled -- the destinations are not reachable, and that nothing
 <h2>{% trans %}Examples{% endtrans %}</h2>
 
 <p>{% trans -%}
-For the following example, we'll setup a very simple local loopback connection, 
-with two destinations. Destination "mouth" will be the CHARGEN service from 
+For the following example, we'll setup a very simple local loopback connection,
+with two destinations. Destination "mouth" will be the CHARGEN service from
 the INET superserver daemon. Destination "ear" will be a local port that you
 can telnet into, and watch the pretty ASCII test puke forth.
 {%- endtrans %}</p>
@@ -199,8 +187,8 @@ C       A     OK tunnel starting
 {% endhighlight %}
 
 <p>{% trans -%}
-At this point, there was no error, a destination with a nickname of "mouth" 
-is set up. When you contact the destination provided, you actually connect 
+At this point, there was no error, a destination with a nickname of "mouth"
+is set up. When you contact the destination provided, you actually connect
 to the <code>CHARGEN</code> service on <code>19/TCP</code>.
 {%- endtrans %}</p>
 
@@ -304,9 +292,9 @@ $
 {% endhighlight %}
 
 <p>{% trans -%}
-Pretty cool isn't it? Try some other well known EEPSITES if you like, nonexistent ones, 
-etc, to get a feel for what kind of output to expect in different situations. 
-For the most part, it is suggested that you ignore any of the error messages. 
+Pretty cool isn't it? Try some other well known EEPSITES if you like, nonexistent ones,
+etc, to get a feel for what kind of output to expect in different situations.
+For the most part, it is suggested that you ignore any of the error messages.
 They would be meaningless to the application, and are only presented for human debugging.
 {%- endtrans %}</p>
 
