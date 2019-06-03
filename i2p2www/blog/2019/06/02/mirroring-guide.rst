@@ -1,6 +1,6 @@
 .. meta::
     :author: idk
-    :date: 2019-06-01
+    :date: 2019-06-02
     :excerpt: {% trans %}Offering an I2P Mirror{% endtrans %}
 
 ================================================================================
@@ -9,7 +9,8 @@
 
 {% trans -%}
 This blog post is intended as a general guide to running a mirror of a clear-net
-service as an eepSite.
+service as an eepSite. It elaborates on the previous blog post about basic
+I2PTunnel tunnels.
 {%- endtrans %}
 
 {% trans -%}
