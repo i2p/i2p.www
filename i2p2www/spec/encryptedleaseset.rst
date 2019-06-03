@@ -3,7 +3,7 @@ Encrypted LeaseSet Specification
 ================================
 .. meta::
     :category: Protocols
-    :lastupdated: May 2019
+    :lastupdated: June 2019
     :accuratefor: 0.9.41
 
 .. contents::
@@ -784,23 +784,26 @@ supports reverse lookup by hash, then the public key may be retrieved.
 So we need a new format that puts the public key instead of the hash into
 a base32 address. This format must also contain the signature type of the
 public key, and the signature type of the blinding scheme.
-The total requirements are 32 + 2 + 2 = 36 bytes, requiring 58 characters in base 32.
+The total requirements are 32 + 3 = 35 bytes, requiring 56 characters in base 32,
+or more for longer public key types.
 
 .. raw:: html
 
   {% highlight lang='text' %}
-data = 32 byte pubkey || 2 byte unblinded sigtype || 2 byte blinded sigtype
+data = ((1 byte flags || 1 byte unblinded sigtype || 1 byte blinded sigtype) XOR checksum) || 32 byte pubkey
   address = Base32Encode(data) || ".b32.i2p"
 {% endhighlight %}
 
 We use the same ".b32.i2p" suffix as for traditional base 32 addresses.
-Addresses for encrypted leasesets are identified by the 58 encoded characters
-(36 decoded bytes), compared to 52 characters (32 bytes) for traditional base 32 addresses.
+Addresses for encrypted leasesets are identified by the 56 encoded characters
+(35 decoded bytes), compared to 52 characters (32 bytes) for traditional base 32 addresses.
 The five unused bits at the end of b32 must be 0.
 
 You can't use an encrypted LS2 for bittorrent, because of compact announce replies which are 32 bytes.
 The 32 bytes contain only the hash. There is no room for an indication that the
 leaseset is encrypted, or the signature types.
+
+See the naming specification or proposal 149 for more information on the new format.
 
 
 

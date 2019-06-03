@@ -5,7 +5,7 @@ New netDB Entries
     :author: zzz, str4d, orignal
     :created: 2016-01-16
     :thread: http://zzz.i2p/topics/2051
-    :lastupdated: 2019-05-29
+    :lastupdated: 2019-06-03
     :status: Open
     :supercedes: 110, 120, 121, 122
 
@@ -48,6 +48,9 @@ The following proposals are somewhat related:
 - 145 ECIES-P256
 - 146 Red25519
 - 148 EdDSA-BLAKE2b-Ed25519
+- 149 B32 for Encrypted LS2
+- 150 Garlic Farm Protocol
+- 151 ECDSA Blinding
 
 
 Proposal

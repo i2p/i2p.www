@@ -5,7 +5,7 @@ B32 for Encrypted LS2
     :author: zzz
     :created: 2019-03-13
     :thread: http://zzz.i2p/topics/2682
-    :lastupdated: 2019-05-27
+    :lastupdated: 2019-06-03
     :status: Open
 
 .. contents::
@@ -174,7 +174,6 @@ Notes
 - Distinguish old from new flavors by length. Old b32 addresses are always {52 chars}.b32.i2p. New ones are {56+ chars}.b32.i2p
 - Tor discussion thread: https://lists.torproject.org/pipermail/tor-dev/2017-January/011816.html
 - Don't expect 2-byte sigtypes to ever happen, we're only up to 13. No need to implement now.
-- Hostnames with secret and/or privkeys are for private sharing only and are low-security.
 - New format can be used in jump links (and served by jump servers) if desired, just like b32.
 
 
