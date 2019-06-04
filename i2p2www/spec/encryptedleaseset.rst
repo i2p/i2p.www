@@ -236,7 +236,7 @@ DH client auth data
             32 bytes
 
 PSK client auth data
-    Present if flag bit 0 is set to 1 and flag bits 3-1 are set to 0.
+    Present if flag bit 0 is set to 1 and flag bits 3-1 are set to 1.
 
     authSalt
         32 bytes

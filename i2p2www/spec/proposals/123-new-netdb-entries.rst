@@ -5,7 +5,7 @@ New netDB Entries
     :author: zzz, str4d, orignal
     :created: 2016-01-16
     :thread: http://zzz.i2p/topics/2051
-    :lastupdated: 2019-06-03
+    :lastupdated: 2019-06-04
     :status: Open
     :supercedes: 110, 120, 121, 122
 
@@ -676,7 +676,7 @@ DH client auth data
             32 bytes
 
 PSK client auth data
-    Present if flag bit 0 is set to 1 and flag bits 3-1 are set to 0.
+    Present if flag bit 0 is set to 1 and flag bits 3-1 are set to 1.
 
     authSalt
         32 bytes
