@@ -118,9 +118,6 @@ ways. I'll finish this tutorial by walking through all of them. Eventually.
 {%- endtrans %}
 
 |Options page 1|
-|Options page 2|
-|Options page 3|
-|Options page 4|
 
 .. |Step One: Open the Tunnel Wizard| image:: /_static/images/00-wizard.png
 .. |Step Two: Select a Server Tunnel| image:: /_static/images/01-select.png
@@ -130,7 +127,5 @@ ways. I'll finish this tutorial by walking through all of them. Eventually.
 .. |Step Six: Decide whether to start it automatically| image:: /_static/images/05-auto.png
 .. |Step Six: Review your settings| image:: /_static/images/06-finish.png
 .. |Options page 1| image:: /_static/images/07-finished.png
-.. |Options page 2| image:: /_static/images/08-finished.png
-.. |Options page 3| image:: /_static/images/09-finished.png
-.. |Options page 4| image:: /_static/images/10-finished.png
+
 
