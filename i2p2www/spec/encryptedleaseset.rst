@@ -208,14 +208,14 @@ Flags
 
     Bit 0: 0 for everybody, 1 for per-client, auth section to follow
 
-    Bits 3-1: Authentication scheme, only if bit 0 is set to 1 for per-client, otherwise 0
-              0: DH client authentication (or no per-client authentication)
-              1: PSK client authentication
+    Bits 3-1: Authentication scheme, only if bit 0 is set to 1 for per-client, otherwise 000
+              000: DH client authentication (or no per-client authentication)
+              001: PSK client authentication
 
     Bits 7-4: Unused, set to 0 for future compatibility
 
 DH client auth data
-    Present if flag bit 0 is set to 1 and flag bits 3-1 are set to 0.
+    Present if flag bit 0 is set to 1 and flag bits 3-1 are set to 000.
 
     ephemeralPublicKey
         32 bytes
@@ -236,7 +236,7 @@ DH client auth data
             32 bytes
 
 PSK client auth data
-    Present if flag bit 0 is set to 1 and flag bits 3-1 are set to 1.
+    Present if flag bit 0 is set to 1 and flag bits 3-1 are set to 001.
 
     authSalt
         32 bytes
