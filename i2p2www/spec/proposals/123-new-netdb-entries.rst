@@ -1806,6 +1806,93 @@ Issues
 
 
 
+
+
+Blinding Info Message
+---------------------
+
+Client to router.
+New message.
+
+
+Justification
+`````````````
+
+- The router needs to know if a destination is blinded.
+  If it is blinded and uses a secret or per-client authentication,
+  it needs to have that information as well.
+
+- A Host Lookup of a new-format b32 address ("b33")
+  tells the router that the address is blinded, but there's no mechanism to
+  pass the secret or private key to the router in the Host Lookup message.
+  While we could extend the Host Lookup message to add that information,
+  it's cleaner to define a new message.
+
+- We need a programmatic way for the client to tell the router.
+  Otherwise, the user would have to manually configure each destination.
+
+
+Usage
+`````
+
+Before a client sends a message to a blinded destination, it must either
+lookup the "b33" in a Host Lookup message, or send a Blinding Info message.
+If the blinded destination requires a secret or per-client authentication,
+the client must send a Blinding Info message.
+
+The router does not send a reply to this message.
+
+
+Message Type
+````````````
+
+The message type for the Blinding Info Message is 42.
+
+
+Format
+``````
+
+::
+
+  Session ID
+  Flags:       1 byte
+               Bit order: 76543210
+               Bit 0: 0 for everybody, 1 for per-client
+               Bits 3-1: Authentication scheme, if bit 0 is set to 1 for per-client, otherwise 000
+                         000: DH client authentication (or no per-client authentication)
+                         001: PSK client authentication
+               Bit 4: 1 if secret required, 0 if no secret required
+               Bits 7-5: Unused, set to 0 for future compatibility
+  Type byte:   Endpoint type to follow
+               Type 0 is a Hash
+               Type 1 is a host name String
+               Type 2 is a Destination
+               Type 3 is a Sig Type and Signing Public Key
+  Endpoint:    Data as specified above
+               For type 0: 32 byte binary hash
+               For type 1: host name String
+               For type 2: binary Destination
+               For type 3: 2 byte sig type (big endian)
+                           Signing Public Key (length as implied by sig type)
+  Blind Type:  2 byte blinded sig type (big endian)
+  Private Key: Only if flag bit 0 is set to 1
+               A 32-byte ECIES_X25519 private key
+  Secret:      Only if flag bit 4 is set to 1
+               A secret String
+
+
+
+Notes
+`````
+
+- Minimum router version is 0.9.41
+
+
+Issues
+``````
+
+
+
 Host Lookup Message
 -------------------
 
