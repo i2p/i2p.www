@@ -3,7 +3,7 @@ I2CP Specification
 ==================
 .. meta::
     :category: Protocols
-    :lastupdated: May 2019
+    :lastupdated: June 2019
     :accuratefor: 0.9.41
 
 .. contents::
@@ -235,6 +235,8 @@ below.
 ==============  ======================
    Version      Required I2CP Features
 ==============  ======================
+   0.9.41       EncryptedLeaseSet options
+
    0.9.39       CreateLeaseSet2 message supported
 
    0.9.38       Preliminary CreateLeaseSet2 message supported (abandoned)
