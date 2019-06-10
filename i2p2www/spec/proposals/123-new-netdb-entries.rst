@@ -5,7 +5,7 @@ New netDB Entries
     :author: zzz, str4d, orignal
     :created: 2016-01-16
     :thread: http://zzz.i2p/topics/2051
-    :lastupdated: 2019-06-07
+    :lastupdated: 2019-06-10
     :status: Open
     :supercedes: 110, 120, 121, 122
 
@@ -1868,13 +1868,14 @@ Format
                Type 1 is a host name String
                Type 2 is a Destination
                Type 3 is a Sig Type and Signing Public Key
+  Blind Type:  2 byte blinded sig type (big endian)
+  Expiration:  4 bytes, big endian, seconds since epoch
   Endpoint:    Data as specified above
                For type 0: 32 byte binary hash
                For type 1: host name String
                For type 2: binary Destination
                For type 3: 2 byte sig type (big endian)
                            Signing Public Key (length as implied by sig type)
-  Blind Type:  2 byte blinded sig type (big endian)
   Private Key: Only if flag bit 0 is set to 1
                A 32-byte ECIES_X25519 private key
   Secret:      Only if flag bit 4 is set to 1
