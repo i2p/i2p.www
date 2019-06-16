@@ -2,10 +2,10 @@
 ECIES-X25519-AEAD-Ratchet
 =========================
 .. meta::
-    :author: zzz
+    :author: zzz, chisana
     :created: 2018-11-22
     :thread: http://zzz.i2p/topics/2639
-    :lastupdated: 2019-05-29
+    :lastupdated: 2019-06-16
     :status: Open
 
 .. contents::
@@ -780,7 +780,7 @@ flags :: 2 bytes
          bit order: 15 14 .. 3210
          bit 0: 1 if ephemeral key is to be used, 0 if not
          bit 1: 1 if Static Key Section follows, 0 if not
-         bits 15-1: Unused, set to 0 for future compatibility
+         bits 15-2: Unused, set to 0 for future compatibility
   num :: Message number, 2 bytes
   unused :: 4 bytes
   key :: the originator's ephemeral key, 32 bytes.
@@ -1352,12 +1352,12 @@ Inputs:
   Initialization:
   keydata = HKDF(sessTag_ck, ZEROLEN, "STInitialization", 64)
   // Output 1: Next chain key
-  sessTag_ck = keydata[0:31]
+  sessTag_chainKey = keydata[0:31]
   // Output 2: The constant
   SESSTAG_CONSTANT = keydata[32:63]
 
   // KDF_ST(ck, constant)
-  keydata_0 = HKDF(sessTag_ck, SESSTAG_CONSTANT, "SessionTagKeyGen", 64)
+  keydata_0 = HKDF(sessTag_chainkey, SESSTAG_CONSTANT, "SessionTagKeyGen", 64)
   // Output 1: Next chain key
   sessTag_chainKey_0 = keydata_0[0:31]
   // Output 2: The session tag
@@ -1365,7 +1365,7 @@ Inputs:
   tag_0 = keydata_0[32:39]
 
   // repeat as necessary to get to tag_n
-  keydata_n = HKDF(chainKey_(n-1), SESSTAG_CONSTANT, "SessionTagKeyGen", 64)
+  keydata_n = HKDF(sessTag_chainKey_(n-1), SESSTAG_CONSTANT, "SessionTagKeyGen", 64)
   // Output 1: Next chain key
   sessTag_chainKey_n = keydata_n[0:31]
   // Output 2: The session tag
@@ -1950,16 +1950,16 @@ any message sent to that key constitutes an ack, no explicit ack is required.
 
   {% highlight lang='dataspec' %}
 +----+----+----+----+----+----+----+----+
-  |  9 |  size   |flg |                   |
-  +----+----+----+----+                   +
-  |    Garlic Clove Delivery Instructions |
+  |  9 |  size   | sessionID         |flg |
+  +----+----+----+----+----+----+----+----+
+  |  Garlic Clove Delivery Instructions   |
   ~               .   .   .               ~
   |                                       |
   +----+----+----+----+----+----+----+----+
 
   blk :: 9
   size :: varies, typically 100
-  session ID :: reverse session ID, length TBD
+  session ID :: reverse session ID, length 4 bytes big endian
   flg :: 1 byte flags
          bit order: 76543210
          bits 7-0: Unused, set to 0 for future compatibility
