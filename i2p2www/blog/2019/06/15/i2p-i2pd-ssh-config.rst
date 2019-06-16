@@ -1,7 +1,7 @@
 .. meta::
     :author: idk
-    :date: 2019-06-14
-    :excerpt: Offering an I2P Mirror
+    :date: 2019-06-15
+    :excerpt: SSH over I2P
 
 =====================================================================================
 {% trans -%}How to set up an ssh server behind i2p for personal access{%- endtrans %}
