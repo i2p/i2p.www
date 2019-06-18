@@ -5,7 +5,7 @@ ECIES-X25519-AEAD-Ratchet
     :author: zzz, chisana
     :created: 2018-11-22
     :thread: http://zzz.i2p/topics/2639
-    :lastupdated: 2019-06-16
+    :lastupdated: 2019-06-18
     :status: Open
 
 .. contents::
@@ -934,7 +934,7 @@ Only present if indicated in Ephemeral Key Section flags.
   chainKey = keydata[0:31]
   k = keydata[32:64]
   n = 0
-  ad = TBD
+  ad = SHA-256(apk)
 
 {% endhighlight %}
 
@@ -953,11 +953,11 @@ KDF for Payload Section Encrypted Contents
 
   // Alice's X25519 static keys (if Static Key Section present)
   // or X25519 ephemeral keys (if Static Key Section not present)
-  // TBD for one-time format in 1d)
+  // or decoded one-time keys (if no Static Key Section, and ephemeral key unset in Ephemeral Key Section)
   ask = GENERATE_PRIVATE()
   // apk was decrypted in Static Key Section (if present)
   // or Ephemeral Key Section (if Static Key Section not present)
-  // TBD for one-time format in 1d)
+  // or decoded one-time public key (if no Static Key Section, and ephemeral key unset in Ephemeral Key Section)
   apk = DERIVE_PUBLIC(ask)
 
   sharedSecret = DH(ask, bpk) = DH(bsk, apk)
@@ -969,7 +969,7 @@ KDF for Payload Section Encrypted Contents
   chainKey = keydata[0:31]
   k = keydata[32:64]
   n = message number from Ephemeral Key Section
-  ad = TBD
+  ad = SHA-256(apk)  // see above for which public key is used
 
 {% endhighlight %}
 
