@@ -371,7 +371,7 @@ i2p or visiting your clearnet service.
 .. |granular blocking stuff| image:: /_static/images/http-9.png
 .. |multihoming key stuff| image:: /_static/images/http-3-b.png
 .. |base32 stuff| image:: /_static/images/http-1-b.png
-.. |local destination stuff| image:: _static/images/http-3.png
+.. |local destination stuff| image:: /_static/images/http-3.png
 
 
 
