@@ -5,7 +5,7 @@ ECIES-X25519-AEAD-Ratchet
     :author: zzz, chisana
     :created: 2018-11-22
     :thread: http://zzz.i2p/topics/2639
-    :lastupdated: 2019-06-18
+    :lastupdated: 2019-06-24
     :status: Open
 
 .. contents::
@@ -1305,139 +1305,9 @@ If a DH ratchet step isn't triggered, then the received N minus the length of th
 is the number of skipped messages in that chain.
 
 
-Session Tag Ratchet
-```````````````````
 
-Ratchets for every message, as in Signal.
-The session tag ratchet is synchronized with the symmetric key ratchet,
-but the receiver key ratchet may "lag behind" to save memory.
-
-Transmitter ratchets once for each message transmitted.
-No additional tags must be stored.
-The transmitter must also keep a counter for 'N', the message number
-of the message in the current chain. The 'N' value is included
-in the sent message.
-See the Message Number block definition.
-
-Receiver must ratchet ahead by the max window size and store the tags in a "tag set",
-which is associated with the session.
-Once received, the stored tag may be discarded, and if there are no previous
-unreceived tags, the window may be advanced.
-The receiver should keep the 'N' value associated with each session tag,
-and check that the number in the sent message matches this value.
-See the Message Number block definition.
-
-
-KDF
-~~~
-
-.. raw:: html
-
-  {% highlight lang='text' %}
-Inputs:
-  1) Session Tag Chain key sessTag_ck
-     First time: output from DH ratchet
-     Subsequent times: output from previous session tag ratchet
-
-  2) input_key_material = SESSTAG_CONSTANT
-     Must be unique for this chain (generated from chain key),
-     so that the sequence isn't predictable, since session tags
-     go out on the wire in plaintext.
-
-  Outputs:
-  1) N (the current session tag number)
-  2) the session tag (and symmetric key, probably)
-  3) the next Session Tag Chain Key (KDF input for the next session tag ratchet)
-
-  Initialization:
-  keydata = HKDF(sessTag_ck, ZEROLEN, "STInitialization", 64)
-  // Output 1: Next chain key
-  sessTag_chainKey = keydata[0:31]
-  // Output 2: The constant
-  SESSTAG_CONSTANT = keydata[32:63]
-
-  // KDF_ST(ck, constant)
-  keydata_0 = HKDF(sessTag_chainkey, SESSTAG_CONSTANT, "SessionTagKeyGen", 64)
-  // Output 1: Next chain key
-  sessTag_chainKey_0 = keydata_0[0:31]
-  // Output 2: The session tag
-  // or more if tag is longer than 8 bytes
-  tag_0 = keydata_0[32:39]
-
-  // repeat as necessary to get to tag_n
-  keydata_n = HKDF(sessTag_chainKey_(n-1), SESSTAG_CONSTANT, "SessionTagKeyGen", 64)
-  // Output 1: Next chain key
-  sessTag_chainKey_n = keydata_n[0:31]
-  // Output 2: The session tag
-  // or more if tag is longer than 8 bytes
-  tag_n = keydata_n[32:39]
-
-{% endhighlight %}
-
-
-Symmetric Key Ratchet
-`````````````````````
-
-Ratchets for every message, as in Signal.
-Each symmetric key has an associated message number and session tag.
-The session key ratchet is synchronized with the symmetric tag ratchet,
-but the receiver key ratchet may "lag behind" to save memory.
-
-Transmitter ratchets once for each message transmitted.
-No additional keys must be stored.
-
-When receiver gets a session tag, if it has not already ratcheted the
-symmetric key ratchet ahead to the associated key, it must "catch up" to the associated key.
-The receiver will probably cache the keys for any previous tags
-that have not yet been received.
-Once received, the stored key may be discarded, and if there are no previous
-unreceived tags, the window may be advanced.
-
-For efficiency, the session tag and symmetric key ratchets are separate so
-the session tag ratchet can run ahead of the symmetric key ratchet.
-This also provides some additional security, since the session tags go out on the wire.
-
-
-KDF
-~~~
-
-.. raw:: html
-
-  {% highlight lang='text' %}
-Inputs:
-  1) Symmetric Key Chain key symmKey_ck
-     First time: output from DH ratchet
-     Subsequent times: output from previous symmetric key ratchet
-  2) input_key_material = SYMMKEY_CONSTANT = ZEROLEN
-     No need for uniqueness. Symmetric keys never go out on the wire.
-     TODO: Set a constant anyway?
-
-  Outputs:
-  1) N (the current session key number)
-  2) the session key
-  3) the next Symmetric Key Chain Key (KDF input for the next symmetric key ratchet)
-
-  // KDF_CK(ck, constant)
-  SYMMKEY_CONSTANT = ZEROLEN
-  // Output 1: Next chain key
-  keydata_0 = HKDF(symmKey_ck, SYMMKEY_CONSTANT, "SymmetricRatchet", 64)
-  symmKey_chainKey_0 = keydata_0[0:31]
-  // Output 2: The symmetric key
-  k_0 = keydata_0[32:63]
-
-  // repeat as necessary to get to k[n]
-  keydata_n = HKDF(symmKey_chainKey_(n-1), SYMMKEY_CONSTANT, "SymmetricRatchet", 64)
-  // Output 1: Next chain key
-  symmKey_chainKey_n = keydata_n[0:31]
-  // Output 2: The symmetric key
-  k_n = keydata_n[32:63]
-
-
-{% endhighlight %}
-
-
-DH Ratchet
-``````````
+4a) DH Ratchet
+``````````````
 
 Ratchets but not nearly as fast as Signal does.
 We separate the ack of the received key from generating the new key.
@@ -1532,6 +1402,138 @@ Inputs:
 
 {% endhighlight %}
 
+
+
+
+4b) Session Tag Ratchet
+```````````````````````
+
+Ratchets for every message, as in Signal.
+The session tag ratchet is synchronized with the symmetric key ratchet,
+but the receiver key ratchet may "lag behind" to save memory.
+
+Transmitter ratchets once for each message transmitted.
+No additional tags must be stored.
+The transmitter must also keep a counter for 'N', the message number
+of the message in the current chain. The 'N' value is included
+in the sent message.
+See the Message Number block definition.
+
+Receiver must ratchet ahead by the max window size and store the tags in a "tag set",
+which is associated with the session.
+Once received, the stored tag may be discarded, and if there are no previous
+unreceived tags, the window may be advanced.
+The receiver should keep the 'N' value associated with each session tag,
+and check that the number in the sent message matches this value.
+See the Message Number block definition.
+
+
+KDF
+~~~
+
+.. raw:: html
+
+  {% highlight lang='text' %}
+Inputs:
+  1) Session Tag Chain key sessTag_ck
+     First time: output from DH ratchet
+     Subsequent times: output from previous session tag ratchet
+
+  2) input_key_material = SESSTAG_CONSTANT
+     Must be unique for this chain (generated from chain key),
+     so that the sequence isn't predictable, since session tags
+     go out on the wire in plaintext.
+
+  Outputs:
+  1) N (the current session tag number)
+  2) the session tag (and symmetric key, probably)
+  3) the next Session Tag Chain Key (KDF input for the next session tag ratchet)
+
+  Initialization:
+  keydata = HKDF(sessTag_ck, ZEROLEN, "STInitialization", 64)
+  // Output 1: Next chain key
+  sessTag_chainKey = keydata[0:31]
+  // Output 2: The constant
+  SESSTAG_CONSTANT = keydata[32:63]
+
+  // KDF_ST(ck, constant)
+  keydata_0 = HKDF(sessTag_chainkey, SESSTAG_CONSTANT, "SessionTagKeyGen", 64)
+  // Output 1: Next chain key
+  sessTag_chainKey_0 = keydata_0[0:31]
+  // Output 2: The session tag
+  // or more if tag is longer than 8 bytes
+  tag_0 = keydata_0[32:39]
+
+  // repeat as necessary to get to tag_n
+  keydata_n = HKDF(sessTag_chainKey_(n-1), SESSTAG_CONSTANT, "SessionTagKeyGen", 64)
+  // Output 1: Next chain key
+  sessTag_chainKey_n = keydata_n[0:31]
+  // Output 2: The session tag
+  // or more if tag is longer than 8 bytes
+  tag_n = keydata_n[32:39]
+
+{% endhighlight %}
+
+
+4c) Symmetric Key Ratchet
+`````````````````````````
+
+Ratchets for every message, as in Signal.
+Each symmetric key has an associated message number and session tag.
+The session key ratchet is synchronized with the symmetric tag ratchet,
+but the receiver key ratchet may "lag behind" to save memory.
+
+Transmitter ratchets once for each message transmitted.
+No additional keys must be stored.
+
+When receiver gets a session tag, if it has not already ratcheted the
+symmetric key ratchet ahead to the associated key, it must "catch up" to the associated key.
+The receiver will probably cache the keys for any previous tags
+that have not yet been received.
+Once received, the stored key may be discarded, and if there are no previous
+unreceived tags, the window may be advanced.
+
+For efficiency, the session tag and symmetric key ratchets are separate so
+the session tag ratchet can run ahead of the symmetric key ratchet.
+This also provides some additional security, since the session tags go out on the wire.
+
+
+KDF
+~~~
+
+.. raw:: html
+
+  {% highlight lang='text' %}
+Inputs:
+  1) Symmetric Key Chain key symmKey_ck
+     First time: output from DH ratchet
+     Subsequent times: output from previous symmetric key ratchet
+  2) input_key_material = SYMMKEY_CONSTANT = ZEROLEN
+     No need for uniqueness. Symmetric keys never go out on the wire.
+     TODO: Set a constant anyway?
+
+  Outputs:
+  1) N (the current session key number)
+  2) the session key
+  3) the next Symmetric Key Chain Key (KDF input for the next symmetric key ratchet)
+
+  // KDF_CK(ck, constant)
+  SYMMKEY_CONSTANT = ZEROLEN
+  // Output 1: Next chain key
+  keydata_0 = HKDF(symmKey_ck, SYMMKEY_CONSTANT, "SymmetricRatchet", 64)
+  symmKey_chainKey_0 = keydata_0[0:31]
+  // Output 2: The symmetric key
+  k_0 = keydata_0[32:63]
+
+  // repeat as necessary to get to k[n]
+  keydata_n = HKDF(symmKey_chainKey_(n-1), SYMMKEY_CONSTANT, "SymmetricRatchet", 64)
+  // Output 1: Next chain key
+  symmKey_chainKey_n = keydata_n[0:31]
+  // Output 2: The symmetric key
+  k_n = keydata_n[32:63]
+
+
+{% endhighlight %}
 
 
 
