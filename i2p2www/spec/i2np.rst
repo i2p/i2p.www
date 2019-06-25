@@ -3,8 +3,8 @@ I2NP Specification
 ==================
 .. meta::
     :category: Protocols
-    :lastupdated: March 2019
-    :accuratefor: 0.9.39
+    :lastupdated: June 2019
+    :accuratefor: 0.9.41
 
 .. contents::
 
@@ -689,6 +689,11 @@ Notes
 
 * Types 3, 5, and 7 are as of release 0.9.38. See proposal 123 for more information.
   These types should only be sent to routers with release 0.9.38 or higher.
+
+* As an optimization to reduce connections, if the type is a LeaseSet, the
+  reply token is included, the reply tunnel ID is nonzero, and the
+  reply gateway/tunnelID pair is found in the LeaseSet as a lease,
+  the recipient may reroute the reply to any other lease in the LeaseSet.
 
 
 .. _msg-DatabaseLookup:
