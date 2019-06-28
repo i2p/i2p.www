@@ -4,12 +4,12 @@
     :excerpt: SSH over I2P
 
 =====================================================================================
-{% trans -%}How to set up an ssh server behind i2p for personal access{%- endtrans %}
+{% trans -%}How to set up an ssh server behind I2P for personal access{%- endtrans %}
 =====================================================================================
 
 {% trans -%}
-This is a tutorial on how to set up and tweak an i2p tunnel in order to use it
-to access an SSH server remotely, using either i2p or i2pd. For now, it assumes
+This is a tutorial on how to set up and tweak an I2P tunnel in order to use it
+to access an SSH server remotely, using either I2P or i2pd. For now, it assumes
 you will install your SSH server from a package manager and that it's running
 as a service.
 {%- endtrans %}
@@ -18,7 +18,7 @@ as a service.
 Considerations: In this guide, I'm assuming a few things. They will need to be
 adjusted depending on the complications that arise in your particular setup,
 especially if you use VM's or containers for isolation. This assumes that the
-i2p router and the ssh server are running on the same localhost. You should be
+I2P router and the ssh server are running on the same localhost. You should be
 using newly-generated SSH host keys, either by using a freshly installed sshd,
 or by deleting old keys and forcing their re-generation. For example:
 {%- endtrans %}
@@ -32,14 +32,14 @@ or by deleting old keys and forcing their re-generation. For example:
        sudo ssh-keygen -N "" -t ecdsa -f /etc/ssh/ssh_host_ecdsa_key
        sudo ssh-keygen -N "" -t ed25519 -f /etc/ssh/ssh_host_ed25519_key
 
-{% trans -%}Step One: Set up i2p tunnel for SSH Server{%- endtrans %}
+{% trans -%}Step One: Set up I2P tunnel for SSH Server{%- endtrans %}
 ---------------------------------------------------------------------
 
-{% trans -%}Using Java i2p{%- endtrans %}
+{% trans -%}Using Java I2P{%- endtrans %}
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 {% trans -%}
-Using java i2p's web interface, navigate to the (Links to your Router Console)\ `Hidden Services Manager <http://127.0.0.1:7657/i2ptunnelmgr>`__
+Using java I2P's web interface, navigate to the (Links to your Router Console)\ `Hidden Services Manager <http://127.0.0.1:7657/i2ptunnelmgr>`__
 and start the tunnel wizard.
 {%- endtrans %}
 
@@ -135,7 +135,7 @@ tunnels.conf
        i2cp.reduceOnIdle = true
        keys = ssh-in.dat
 
-{% trans -%}Restart your i2p router{%- endtrans %}
+{% trans -%}Restart your I2P router{%- endtrans %}
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 {% trans -%}Step Two: Set up SSH server{%- endtrans %}
@@ -156,23 +156,23 @@ you should change AddressFamily to inet and ListenAddress to 127.0.0.1.
 
 {% trans -%}
 If you choose to use a port other than 22 for your SSH server, you will need to
-change the port in your i2p tunnel configuration.
+change the port in your I2P tunnel configuration.
 {%- endtrans %}
 
-{% trans -%}Step Three: Set up i2p tunnel for SSH Client{%- endtrans %}
+{% trans -%}Step Three: Set up I2P tunnel for SSH Client{%- endtrans %}
 -----------------------------------------------------------------------
 
 {% trans -%}
-You will need to be able to see the i2p router console of the SSH server in
+You will need to be able to see the I2P router console of the SSH server in
 order to configure your client connection. One neat thing about this setup is
-that the initial connection to the i2p tunnel is authenticated, somewhat
+that the initial connection to the I2P tunnel is authenticated, somewhat
 reducing the risk of your initial connection to the SSH server being MITM'ed,
 as is a risk in Trust-On-First-Use scenarios.
 {%- endtrans %}
 
-.. _using-java-i2p-1:
+.. _using-java-I2P-1:
 
-{% trans -%}Using Java i2p{%- endtrans %}
+{% trans -%}Using Java I2P{%- endtrans %}
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. _tunnel-wizard-1:
@@ -202,7 +202,7 @@ Give it a good description.
 
 {% trans -%}
 This is the only slightly tricky part. Go to the hidden services manager of the
-i2p router console and find the base64 "local destination" of the SSH server
+I2P router console and find the base64 "local destination" of the SSH server
 tunnel. You'll need to find a way to copy this information into the next step.
 I generally `Tox <https://tox.chat>`__ it to myself, any off-the-record
 should be sufficient for most people.
@@ -267,17 +267,17 @@ adjust it for your performance/anonymity needs.
        inbound.backupQuantity = 2
        outbound.backupQuantity = 2
        i2cp.dontPublishLeaseSet = true
-       destination = bubfjkl2l46pevgnh7yicm2e7rkld4jrgpmruw2ueqn5fa4ag6eq.b32.i2p
+       destination = bubfjkl2l46pevgnh7yicm2e7rkld4jrgpmruw2ueqn5fa4ag6eq.b32.I2P
        keys = ssh-in.dat
 
-{% trans -%}Restart the i2p router on the client{%- endtrans %}
+{% trans -%}Restart the I2P router on the client{%- endtrans %}
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 {% trans -%}Step Four: Set up SSH client{%- endtrans %}
 -------------------------------------------------------
 
 {% trans -%}
-There are lots of ways to set up an SSH client to connect to your server on i2p,
+There are lots of ways to set up an SSH client to connect to your server on I2P,
 but there are a few things you should do to secure your SSH client for anonymous
 use. First, you should configure it to only identify itself to SSH server with
 a single, specific key so that you don't risk contaminating your anonymous and
@@ -297,7 +297,7 @@ Make sure your $HOME/.ssh/config contains the following lines:
 
 {% trans -%}
 Alternatively, you could make a .bash_alias entry to enforce your options and
-automatically connect to i2p. You get the idea, you need to enforce
+automatically connect to I2P. You get the idea, you need to enforce
 IdentitiesOnly and provide an identity file.
 {%- endtrans %}
 

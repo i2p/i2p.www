@@ -354,7 +354,7 @@ special services for discovering new human-readable addresses, such as no.i2p,
 inr.i2p, and stats.i2p. These are sometimes known as Address helpers or Jump
 Services, and can also be subscribed to automatically. This may be espescially
 helpful to users of your service who wish to acquire the address without leaving
-i2p or visiting your clearnet service.
+I2P or visiting your clearnet service.
 {%- endtrans %}
 
 -  `{% trans -%}Register a name with stats.i2p{%- endtrans %} <http://stats.i2p/i2p/addkey.html>`__

@@ -4,11 +4,11 @@
     :excerpt: {% trans %}Basic i2ptunnel Setup{% endtrans %}
 
 ===================================================================
-{% trans -%}Basic i2p Tunnels Tutorial with Pictures{%- endtrans %}
+{% trans -%}Basic I2P Tunnels Tutorial with Pictures{%- endtrans %}
 ===================================================================
 
 {% trans -%}
-Although the Java i2p router comes pre-configured with a static web server,
+Although the Java I2P router comes pre-configured with a static web server,
 jetty, to provide the user's first eepSite, many require more sophisticated
 functionality from their web server and would rather create an eepSite with a
 different server. This is of course possible, and actually is really easy once
@@ -24,16 +24,16 @@ posed by improperly configured applications see:
 `Riseup here: <https://riseup.net/en/security/network-security/tor/onionservices-best-practices>`__,
 `Whonix Here: <https://www.whonix.org/wiki/Onion_Services>`__,
 `This blog article for some opsec fails: <https://blog.0day.rocks/securing-a-web-hidden-service-89d935ba1c1d>`__,
-`and the i2p applications page here <https://geti2p.net/en/docs/applications/supported>`__.
+`and the I2P applications page here <https://geti2p.net/en/docs/applications/supported>`__.
 Although much of this information is expressed for Tor Onion Services, the same
-procedures and principles apply to hosting applications over i2p.
+procedures and principles apply to hosting applications over I2P.
 {%- endtrans %}
 
 {% trans -%}Step One: Open the Tunnel Wizard{%- endtrans %}
 -----------------------------------------------------------
 
 {% trans -%}
-Go to the i2p web interface at 127.0.0.1:7657 and open the
+Go to the I2P web interface at 127.0.0.1:7657 and open the
 `Hidden Services Manager <http://127.0.0.1:7657/i2ptunnelmgr>`__\ (links to
 localhost). Click the button that says "Tunnel Wizard" to begin.
 {%- endtrans %}
@@ -113,7 +113,7 @@ available.
 ----------------------------------------------------------------------
 
 {% trans -%}
-i2p provides a detailed panel for configuring the http server tunnel in custom
+I2P provides a detailed panel for configuring the http server tunnel in custom
 ways. I'll finish this tutorial by walking through all of them. Eventually.
 {%- endtrans %}
 
