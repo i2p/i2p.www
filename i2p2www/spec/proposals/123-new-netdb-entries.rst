@@ -5,7 +5,7 @@ New netDB Entries
     :author: zzz, str4d, orignal
     :created: 2016-01-16
     :thread: http://zzz.i2p/topics/2051
-    :lastupdated: 2019-06-10
+    :lastupdated: 2019-06-28
     :status: Open
     :supercedes: 110, 120, 121, 122
 
@@ -1886,7 +1886,7 @@ Format
 Notes
 `````
 
-- Minimum router version is 0.9.41
+- Minimum router version is 0.9.42
 
 
 Issues
@@ -1921,7 +1921,7 @@ Changes
 Notes
 `````
 
-- Minimum router and client version is 0.9.41 for request type 3.
+- Minimum router and client version is 0.9.42 for request type 3.
 
 
 
@@ -1953,7 +1953,7 @@ Changes
 
 ::
 
-  If the client version is 0.9.41 or higher, and the result code is 0,
+  If the client version is 0.9.42 or higher, and the result code is 0,
   the following extended results are included after the Destination,
   no matter what the request type, but only if the LeaseSet type is 7
   (Meta LS). Use cases for returning the extended information in
@@ -1994,7 +1994,7 @@ Changes
 Notes
 `````
 
-- Minimum router and client version is 0.9.41 for the extended results.
+- Minimum router and client version is 0.9.42 for the extended results.
 
 
 
