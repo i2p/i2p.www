@@ -3,8 +3,8 @@ Tunnel Creation Specification
 =============================
 .. meta::
     :category: Design
-    :lastupdated: March 2018
-    :accuratefor: 0.9.34
+    :lastupdated: July 2019
+    :accuratefor: 0.9.41
 
 .. contents::
 
@@ -348,10 +348,10 @@ References
     {{ ctags_url('TunnelBuildReply') }}
 
 .. [TUNBUILD-REASONING]
-    http://osdir.com/ml/network.i2p/2005-10/msg00129.html
+    http://zzz.i2p/archive/2005-10/msg00129.html
 
 .. [TUNBUILD-SUMMARY]
-    http://osdir.com/ml/network.i2p/2005-10/msg00138.html
+    http://zzz.i2p/archive/2005-10/msg00138.html
 
 .. [TUNNEL-IMPL]
     {{ site_url('docs/tunnels/implementation', True) }}
