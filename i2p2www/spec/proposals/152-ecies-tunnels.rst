@@ -34,20 +34,19 @@ Request Record Spec Unencrypted (ElGamal)
 .. raw:: html
 
   {% highlight lang='dataspec' %}
-
 bytes     0-3: tunnel ID to receive messages as, nonzero
-bytes    4-35: local router identity hash
-bytes   36-39: next tunnel ID, nonzero
-bytes   40-71: next router identity hash
-bytes  72-103: AES-256 tunnel layer key
-bytes 104-135: AES-256 tunnel IV key
-bytes 136-167: AES-256 reply key
-bytes 168-183: AES-256 reply IV
-byte      184: flags
-bytes 185-188: request time (in hours since the epoch, rounded down)
-bytes 189-192: next message ID
-bytes 193-221: uninterpreted / random padding
-bytes 222-253: Sha256 of the preceding data
+  bytes    4-35: local router identity hash
+  bytes   36-39: next tunnel ID, nonzero
+  bytes   40-71: next router identity hash
+  bytes  72-103: AES-256 tunnel layer key
+  bytes 104-135: AES-256 tunnel IV key
+  bytes 136-167: AES-256 reply key
+  bytes 168-183: AES-256 reply IV
+  byte      184: flags
+  bytes 185-188: request time (in hours since the epoch, rounded down)
+  bytes 189-192: next message ID
+  bytes 193-221: uninterpreted / random padding
+  bytes 222-253: Sha256 of the preceding data
 
 {% endhighlight %}
 
@@ -57,14 +56,13 @@ Request Record Spec Unencrypted (ECIES)
 .. raw:: html
 
   {% highlight lang='dataspec' %}
-
 bytes     0-3: tunnel ID to receive messages as, nonzero
-bytes    4-35: local router identity hash
-bytes   36-39: next tunnel ID, nonzero
-bytes   40-71: next router identity hash
-byte       72: flags
-bytes   73-76: request time (in hours since the epoch, rounded down)
-bytes   77-80: next message ID
+  bytes    4-35: local router identity hash
+  bytes   36-39: next tunnel ID, nonzero
+  bytes   40-71: next router identity hash
+  byte       72: flags
+  bytes   73-76: request time (in hours since the epoch, rounded down)
+  bytes   77-80: next message ID
 
 {% endhighlight %}
 
@@ -74,12 +72,11 @@ Request Record Spec Encrypted (ECIES)
 .. raw:: html
 
   {% highlight lang='dataspec' %}
-
 bytes    0-15: hop's truncated identity hash
-bytes   16-31: sender's ephemeral public key
-bytes  32-112: ChaChaPoly AEAD encrypted build request record
-bytes 113-128: Poly1305 MAC
-bytes 129-527: Random padding
+  bytes   16-31: sender's ephemeral public key
+  bytes  32-112: ChaChaPoly AEAD encrypted build request record
+  bytes 113-128: Poly1305 MAC
+  bytes 129-527: Random padding
 
 {% endhighlight %}
 
@@ -98,15 +95,14 @@ Flag Changes for Mixed Tunnels
 .. raw:: html
 
   {% highlight lang='dataspec' %}
-
 Bit order: 76543210 (bit 7 is MSB)
-bit 7: if set, allow messages from anyone
-bit 6: if set, allow messages to anyone, and send the reply to the
-       specified next hop in a Tunnel Build Reply Message
-bit 5: if set, ChaCha20 reply encryption selected (ECIES build record),
-       also indicates next hop is ECIES
-       AES256/CBC (ElGamal) otherwise
-bits 4-0: Undefined, must set to 0 for compatibility with future options
+  bit 7: if set, allow messages from anyone
+  bit 6: if set, allow messages to anyone, and send the reply to the
+         specified next hop in a Tunnel Build Reply Message
+  bit 5: if set, ChaCha20 reply encryption selected (ECIES build record),
+         also indicates next hop is ECIES
+         AES256/CBC (ElGamal) otherwise
+  bits 4-0: Undefined, must set to 0 for compatibility with future options
 
 {% endhighlight %}
 
@@ -119,7 +115,6 @@ Reply Record Spec Unencrypted (ECIES)
 .. raw:: html
 
   {% highlight lang='dataspec' %}
-
 bytes      0: reply byte
 
 {% endhighlight %}
@@ -135,10 +130,9 @@ Reply Record Spec Encrypted (ECIES)
 .. raw:: html
 
   {% highlight lang='dataspec' %}
-
 bytes       0: ChaChaPoly AEAD encrypted build reply record
-bytes    1-16: Poly1305 MAC
-bytes  49-527: Random padding
+  bytes    1-16: Poly1305 MAC
+  bytes  49-527: Random padding
 
 {% endhighlight %}
 
@@ -283,31 +277,30 @@ Below is a description of how to derive the keys previously transmitted in reque
 .. raw:: html
 
   {% highlight lang='dataspec' %}
-
 // Sender generates an X25519 ephemeral keypair per VTBM (sesk, sepk)
-sesk = GENERATE_PRIVATE()
-sepk = DERIVE_PUBLIC(sesk)
+  sesk = GENERATE_PRIVATE()
+  sepk = DERIVE_PUBLIC(sesk)
 
-// Each hop's X25519 static keypair (hesk, hepk), generated for NTCP2 RouterInfos and LeaseSet2s
-hesk = GENERATE_PRIVATE()
-hepk = DERIVE_PUBLIC(hesk)
+  // Each hop's X25519 static keypair (hesk, hepk), generated for NTCP2 RouterInfos and LeaseSet2s
+  hesk = GENERATE_PRIVATE()
+  hepk = DERIVE_PUBLIC(hesk)
 
-// Sender performs an X25519 DH with Hop's static public key.
-// Each Hop, finds the record w/ their truncated identity hash,
-// and extracts the Sender's ephemeral key preceding the encrypted record.
-sharedSecret = DH(sesk, hepk) = DH(hesk, sepk)
+  // Sender performs an X25519 DH with Hop's static public key.
+  // Each Hop, finds the record w/ their truncated identity hash,
+  // and extracts the Sender's ephemeral key preceding the encrypted record.
+  sharedSecret = DH(sesk, hepk) = DH(hesk, sepk)
 
-// Derive a root key from the Sha256 of Sender's ephemeral key and Hop's full identity hash
-root_key = Sha256(sepk || hop_ident_hash)
+  // Derive a root key from the Sha256 of Sender's ephemeral key and Hop's full identity hash
+  root_key = Sha256(sepk || hop_ident_hash)
 
-keydata = HKDF(root_key, sharedSecret, "ECIESRequestRcrd", 96)
-root_key = keydata[0:31]  // update the root key
-recordKey = keydata[32:63]  // AEAD key for Request Record encryption
-replyKey = keydata[64:95]  // Hop reply key
+  keydata = HKDF(root_key, sharedSecret, "ECIESRequestRcrd", 96)
+  root_key = keydata[0:31]  // update the root key
+  recordKey = keydata[32:63]  // AEAD key for Request Record encryption
+  replyKey = keydata[64:95]  // Hop reply key
 
-keydata = HKDF(root_key, sharedSecret, "TunnelLayerIVKey", 64)
-layerKey = keydata[0:31]  // Tunnel layer key
-IVKey = keydata[32:63]  // Tunnel IV key
+  keydata = HKDF(root_key, sharedSecret, "TunnelLayerIVKey", 64)
+  layerKey = keydata[0:31]  // Tunnel layer key
+  IVKey = keydata[32:63]  // Tunnel IV key
 
 {% endhighlight %}
 
@@ -322,13 +315,12 @@ Request Record Preprocessing for ECIES Hops
 .. raw:: html
 
   {% highlight lang='dataspec' %}
-
 // See record key KDF for key generation
-(ciphertext, mac) = ChaCha20-Poly1305(msg = unencrypted record, nonce = 0, AD = Sha256(recordKey), key = recordKey)
+  (ciphertext, mac) = ChaCha20-Poly1305(msg = unencrypted record, nonce = 0, AD = Sha256(recordKey), key = recordKey)
 
-// For subsequent records past the initial hop
-// nonce = one + zero-indexed order of record in the TunnelBuildMessage
-symCiphertext = ChaCha20(msg = ciphertext || MAC || random padding, nonce, key = replyKey of preceding hop)
+  // For subsequent records past the initial hop
+  // nonce = one + zero-indexed order of record in the TunnelBuildMessage
+  symCiphertext = ChaCha20(msg = ciphertext || MAC || random padding, nonce, key = replyKey of preceding hop)
 
 {% endhighlight %}
 
@@ -355,28 +347,27 @@ Reply Record Encryption for ECIES Hops
 .. raw:: html
 
   {% highlight lang='dataspec' %}
-
 // See reply key KDF for key generation
-(ciphertext, MAC) = ChaCha20-Poly1305(msg = reply byte, nonce = 0, AD = Sha256(replyKey), key = replyKey)
+  (ciphertext, MAC) = ChaCha20-Poly1305(msg = reply byte, nonce = 0, AD = Sha256(replyKey), key = replyKey)
 
-If ChaCha20 reply encryption is set in the request record (flags bit 5 set):
+  If ChaCha20 reply encryption is set in the request record (flags bit 5 set):
 
-// Advance the nonce to avoid security issues, see [RFC-7539-S4]_ Security Considerations.
-// nonce = one + zero-indexed order of record in the TunnelBuildMessage
-symCiphertext = ChaCha20(msg = ciphertext || MAC || random padding, nonce, key = replyKey) 
+  // Advance the nonce to avoid security issues, see [RFC-7539-S4]_ Security Considerations.
+  // nonce = one + zero-indexed order of record in the TunnelBuildMessage
+  symCiphertext = ChaCha20(msg = ciphertext || MAC || random padding, nonce, key = replyKey) 
 
-// Other request/reply record encryption
-// Advance the nonce to avoid security issues, see [RFC-7539-S4]_ Security Considerations.
-// nonce = one + number of records + zero-indexed order of record in the TunnelBuildMessage
-symCiphertext = ChaCha20(msg = multiple encrypted record, nonce, key = replyKey)
+  // Other request/reply record encryption
+  // Advance the nonce to avoid security issues, see [RFC-7539-S4]_ Security Considerations.
+  // nonce = one + number of records + zero-indexed order of record in the TunnelBuildMessage
+  symCiphertext = ChaCha20(msg = multiple encrypted record, nonce, key = replyKey)
 
-If AES256/CBC reply encryption is set in the request record (flag bit 5 unset):
+  If AES256/CBC reply encryption is set in the request record (flag bit 5 unset):
 
-// Other request/reply record encryption
-msg = multiple encrypted record
-key = replyKey
-IV = Sha256(replyKey || hop static public key)
-symCiphertext = AES256-CBC-Encrypt(msg, key, IV)
+  // Other request/reply record encryption
+  msg = multiple encrypted record
+  key = replyKey
+  IV = Sha256(replyKey || hop static public key)
+  symCiphertext = AES256-CBC-Encrypt(msg, key, IV)
 
 {% endhighlight %}
 
@@ -442,12 +433,11 @@ Inbound tunnels:
 .. raw:: html
 
   {% highlight lang='dataspec' %}
-
 // Gateway generates a random IV
-// Gateway encrypts concatenated IV + preprocessed tunnel messages
-// Increment the nonce for each set of tunnel messages received
-encIV = ChaCha20(msg = IV, nonce = tunnelNonce, key = IVKey)
-encMsg = ChaCha20(msg = tunnel msg(s), nonce = tunnelNonce, key = layerKey)
+  // Gateway encrypts concatenated IV + preprocessed tunnel messages
+  // Increment the nonce for each set of tunnel messages received
+  encIV = ChaCha20(msg = IV, nonce = tunnelNonce, key = IVKey)
+  encMsg = ChaCha20(msg = tunnel msg(s), nonce = tunnelNonce, key = layerKey)
 
 {% endhighlight %}
 
@@ -461,20 +451,19 @@ Outbound tunnels:
 .. raw:: html
 
   {% highlight lang='dataspec' %}
-
 // Gateway generates a random IV
-// For each hop, decrypt the IV and tunnel message(s) based on hop type
-// Increment the nonce for each set of tunnel message(s) sent
-// For the first hop, the previous decrypted IV will be the randomly generated IV
+  // For each hop, decrypt the IV and tunnel message(s) based on hop type
+  // Increment the nonce for each set of tunnel message(s) sent
+  // For the first hop, the previous decrypted IV will be the randomly generated IV
 
-// For ECIES hops
-decIV = ChaCha20(msg = prev. decIV, nonce = tunnelNonce, key = hop's IVKey)
-decMsg = ChaCha20(msg = tunnel msg(s), nonce = tunnelNonce, key = hop's layerKey)
+  // For ECIES hops
+  decIV = ChaCha20(msg = prev. decIV, nonce = tunnelNonce, key = hop's IVKey)
+  decMsg = ChaCha20(msg = tunnel msg(s), nonce = tunnelNonce, key = hop's layerKey)
 
-// For ElGamal hops (unchanged)
-decIV = AES256/ECB-Decrypt(msg = prev. decIV, IV = prev. decIV, key = hop's IVKey)
-decMsg = AES256/ECB-Decrypt(msg = tunnel msg(s), IV = decIV, key = hop's layerKey)
-decIV2 = AES256/ECB-Decrypt(msg = decIV, IV = decIV, key = hop's IVKey)
+  // For ElGamal hops (unchanged)
+  decIV = AES256/ECB-Decrypt(msg = prev. decIV, IV = prev. decIV, key = hop's IVKey)
+  decMsg = AES256/ECB-Decrypt(msg = tunnel msg(s), IV = decIV, key = hop's layerKey)
+  decIV2 = AES256/ECB-Decrypt(msg = decIV, IV = decIV, key = hop's IVKey)
 
 {% endhighlight %}
 
@@ -494,15 +483,14 @@ IV double-encryption will still be used for ElGamal hops, since they are conside
 .. raw:: html
 
   {% highlight lang='dataspec' %}
-
 // For ECIES hops
-encIV = ChaCha20(msg = received IV, nonce = tunnelNonce, key = IVKey)
-encMsg = ChaCha20(msg = received Msg, nonce = tunnelNonce, key = layerKey)
+  encIV = ChaCha20(msg = received IV, nonce = tunnelNonce, key = IVKey)
+  encMsg = ChaCha20(msg = received Msg, nonce = tunnelNonce, key = layerKey)
 
-// For ElGamal hops (unchanged)
-currentIV = AES256/ECB-Encrypt(msg = received IV, IV = received IV, key = hop's IVKey)
-encMsg = AES256/ECB-Encrypt(msg = tunnel msg(s), IV = currentIV, key = hop's layerKey)
-nextIV = AES256/ECB-Encrypt(msg = currentIV, IV = currentIV, key = hop's IVKey)
+  // For ElGamal hops (unchanged)
+  currentIV = AES256/ECB-Encrypt(msg = received IV, IV = received IV, key = hop's IVKey)
+  encMsg = AES256/ECB-Encrypt(msg = tunnel msg(s), IV = currentIV, key = hop's layerKey)
+  nextIV = AES256/ECB-Encrypt(msg = currentIV, IV = currentIV, key = hop's IVKey)
 
 {% endhighlight %}
 
