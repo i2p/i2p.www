@@ -5,7 +5,7 @@ ECIES-X25519-AEAD-Ratchet
     :author: zzz, chisana
     :created: 2018-11-22
     :thread: http://zzz.i2p/topics/2639
-    :lastupdated: 2019-06-24
+    :lastupdated: 2019-07-08
     :status: Open
 
 .. contents::
@@ -745,7 +745,7 @@ Encrypted:
 
   Public Key :: 32 bytes, little endian, Elligator2, cleartext
 
-  Ephemeral Key Section encrypted data :: 40 bytes
+  Flags Section encrypted data :: 40 bytes
 
   Payload Section encrypted data :: remaining data minus 16 bytes
 
@@ -770,7 +770,7 @@ each message, including retransmissions.
 Ephemeral Key Section Decrypted data
 ````````````````````````````````````
 
-Ephemeral Key Section contains:
+Ephemeral Key Section contains flags and a key:
 
 .. raw:: html
 
@@ -896,6 +896,7 @@ KDF for Ephemeral Key Section Encrypted Contents
 
   sharedSecret = DH(ask, bpk) = DH(bsk, apk)
 
+  // MixKey(DH())
   // ChaChaPoly parameters to encrypt/decrypt
   keydata = HKDF(INITIAL_ROOT_KEY, sharedSecret, "NewSessionTmpKey", 64)
   chainKey = keydata[0:31]
@@ -911,6 +912,10 @@ KDF for Static Key Section Encrypted Contents
 `````````````````````````````````````````````
 
 Only present if indicated in Ephemeral Key Section flags.
+
+TODO we can't really use the chainKey from above, or
+else we won't end up with the same key from multiple
+new session messages.
 
 
 .. raw:: html
@@ -928,6 +933,7 @@ Only present if indicated in Ephemeral Key Section flags.
 
   sharedSecret = DH(ask, bpk) = DH(bsk, apk)
 
+  // MixKey(DH())
   // ChaChaPoly parameters to encrypt/decrypt
   // chainKey from Ephemeral Key Section
   keydata = HKDF(chainKey, sharedSecret, "EphemperalPart2x", 64)
@@ -962,6 +968,7 @@ KDF for Payload Section Encrypted Contents
 
   sharedSecret = DH(ask, bpk) = DH(bsk, apk)
 
+  // MixKey(DH())
   // ChaChaPoly parameters to encrypt/decrypt
   // chainKey from Static Key Section (if present)
   // or Ephemeral Key Section (if Static Key Section not present)
@@ -1619,7 +1626,6 @@ the following blocks are required, in the following order:
 - DateTime (type 0)
 - Options (type 5)
 - Message Number (type 6)
-- New Key (type 7)
 
 Other allowed blocks:
 
