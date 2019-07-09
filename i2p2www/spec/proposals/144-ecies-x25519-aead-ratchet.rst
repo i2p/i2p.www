@@ -5,7 +5,7 @@ ECIES-X25519-AEAD-Ratchet
     :author: zzz, chisana
     :created: 2018-11-22
     :thread: http://zzz.i2p/topics/2639
-    :lastupdated: 2019-07-08
+    :lastupdated: 2019-07-09
     :status: Open
 
 .. contents::
@@ -563,9 +563,9 @@ The static key should be included if replies are expected,
 i.e. for streaming and repliable datagrams.
 It should not be included for raw datagrams.
 
-The new session message is similar to the first message in Noise [NOISE]_
-handshake for XK (if the static key is not sent)
-or IK (if the static key is sent).
+The new session message is similar to the one-way Noise [NOISE]_ patterns
+"N" (if the static key is not sent)
+or "X" (if the static key is sent).
 
 
 
