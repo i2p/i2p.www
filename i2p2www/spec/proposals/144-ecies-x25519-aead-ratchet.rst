@@ -5,7 +5,7 @@ ECIES-X25519-AEAD-Ratchet
     :author: zzz, chisana
     :created: 2018-11-22
     :thread: http://zzz.i2p/topics/2639
-    :lastupdated: 2019-07-09
+    :lastupdated: 2019-07-10
     :status: Open
 
 .. contents::
@@ -2080,6 +2080,64 @@ Alice ratchets immediately.
 
 Continues on with those sessions.
 
+.. raw:: html
+
+  {% highlight %}
+Alice                           Bob
+
+  New Session (1b)     ------------------->
+  with static key for binding
+  with next key
+  with bundled HTTP GET
+  with bundled LS
+  with bundled Delivery Status Message
+
+  any retransmissions, same as above
+
+
+  following two messages can come in either order:
+
+  <--------------     Delivery Status Message
+
+  <--------------     Existing Session
+                      with next key
+                      with bundled HTTP reply part 1
+
+  After reception of any of these messages,
+  Alice switches to use existing session messages.
+  After reception of the next key, Alice ratchets.
+
+
+  <--------------     Existing Session
+                      with next key
+                      with bundled HTTP reply part 2
+
+  <--------------     Existing Session
+                      with next key
+                      with bundled HTTP reply part 3
+
+  Existing Session     ------------------->
+  with next key
+  with bundled streaming ack
+
+  after reception of this message, Bob ratchets
+
+
+  Existing Session     ------------------->
+  with bundled streaming ack
+
+  <--------------     Existing Session
+                      with bundled HTTP reply part 4
+
+
+  Existing Session     ------------------->
+  with bundled streaming ack
+
+  <--------------     Existing Session
+                      with bundled HTTP reply part 5
+
+{% endhighlight %}
+
 
 HTTP POST
 ---------
@@ -2087,35 +2145,150 @@ HTTP POST
 Alice has three options:
 
 1) Send the first message only (window size = 1), as in HTTP GET.
+   Not recommended.
 
 2) Send up to streaming window, but using same Elligator2-encoded cleartext public key.
    All messages contain same next public key (ratchet).
    This will be visible to OBGW/IBEP because they all start with the same cleartext.
    Things proceed as in 1).
+   Not recommended.
 
-3) Send up to streaming window, but using a different Elligator2-encoded cleartext public key (session) for each.
+3) Recommended implementation.
+   Send up to streaming window, but using a different Elligator2-encoded cleartext public key (session) for each.
    All messages contain same next public key (ratchet).
    This will not be visible to OBGW/IBEP because they all start with different cleartext.
    Bob must recognize that they all contain the same next public key,
    and respond to all with the same ratchet.
    Alice uses that next public key and continues.
 
+.. raw:: html
+
+  {% highlight %}
+Alice                           Bob
+
+  New Session (1b)     ------------------->
+  with static key for binding
+  with next key
+  with bundled HTTP POST part 1
+  with bundled LS
+  with bundled Delivery Status Message
+
+
+  New Session (1b)     ------------------->
+  with static key for binding
+  with next key
+  with bundled HTTP POST part 2
+  with bundled LS
+  with bundled Delivery Status Message
+
+
+  New Session (1b)     ------------------->
+  with static key for binding
+  with next key
+  with bundled HTTP POST part 3
+  with bundled LS
+  with bundled Delivery Status Message
+
+
+
+  following messages can come in any order:
+
+  <--------------     Delivery Status Message 1
+
+  <--------------     Delivery Status Message 2
+
+  <--------------     Delivery Status Message 3
+
+  <--------------     Existing Session
+                      with next key
+                      with bundled streaming ack
+
+  After reception of any of these messages,
+  Alice switches to use existing session messages.
+  After reception of the next key, Alice ratchets.
+
+
+  Existing Session     ------------------->
+  with next key
+  with bundled HTTP POST part 4
+
+  after reception of this message, Bob ratchets
+
+  Existing Session     ------------------->
+  with next key
+  with bundled HTTP POST part 5
+
+
+  <--------------     Existing Session
+                      with bundled streaming ack
+
+{% endhighlight %}
 
 Repliable Datagram
 ------------------
 
 As in HTTP GET, but with smaller options for session tag window size and lifetime.
-Contains signature to bind the session to the destination.
 Maybe don't request a ratchet.
 
+.. raw:: html
+
+  {% highlight %}
+Alice                           Bob
+
+  New Session (1b)     ------------------->
+  with static key for binding
+  with next key
+  with bundled repliable datagram
+  with bundled LS
+  with bundled Delivery Status Message
+
+
+  following two messages can come in either order:
+
+  <--------------     Delivery Status Message
+
+  <--------------     Existing Session
+                      with next key
+                      with bundled reply
+
+  After reception of any of these messages,
+  Alice switches to use existing session messages.
+  After reception of the next key, Alice ratchets.
+
+  if there are any other messages:
+
+  Existing Session     ------------------->
+  with next key
+  with bundled message
+
+  after reception of this message, Bob ratchets
+
+
+  Existing Session     ------------------->
+  with bundled streaming ack
+
+  <--------------     Existing Session
+                      with bundled message
+
+{% endhighlight %}
 
 Raw Datagram
 ------------
 
 New session message is sent.
-No reply LS is bundled. No signature included. No reply or ratchet is requested.
+No reply LS or DSM are bundled. No next key is included. No reply or ratchet is requested.
 No ratchet is sent.
 Options set session tags window to zero.
+
+.. raw:: html
+
+  {% highlight %}
+Alice                           Bob
+
+  New Session (1d)     ------------------->
+  with bundled message
+
+{% endhighlight %}
 
 
 Long-Lived Sessions
