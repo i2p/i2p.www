@@ -3,8 +3,8 @@ SSU Protocol Specification
 ==========================
 .. meta::
     :category: Transports
-    :lastupdated: July 2016
-    :accuratefor: 0.9.27
+    :lastupdated: July 2019
+    :accuratefor: 0.9.41
 
 .. contents::
 
@@ -322,7 +322,7 @@ Typical size including header, in current implementation: 304 (IPv4) or 320
 
 Extended options
 ````````````````
-*Note: Implemented in 0.9.24.
+Note: Implemented in 0.9.24.
 
 * Minimum length: 3 (option length byte + 2 bytes)
 
@@ -332,7 +332,7 @@ Extended options
 
 .. raw:: html
 
-  {% highlight %}
+  {% highlight lang='dataspec'%}
   Bit order: 15...76543210 (bit 15 is MSB)
 
         bit 0: 1 for Alice to request a relay tag from Bob in the
