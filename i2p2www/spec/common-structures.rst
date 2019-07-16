@@ -3,8 +3,8 @@ Common structures Specification
 ===============================
 .. meta::
     :category: Design
-    :lastupdated: March 2019
-    :accuratefor: 0.9.39
+    :lastupdated: July 2019
+    :accuratefor: 0.9.41
 
 .. contents::
 
@@ -985,7 +985,8 @@ Contains an expiration, a sigtype and transient SigningPublicKey_, and a Signatu
   signature :: `Signature`
                length -> As inferred from the sigtype of the signing public key
                          in the `Destination` that preceded this offline signature.
-               Signature of expires timestamp, transient sig type, and public key, by the destination public key,
+               Signature of expires timestamp, transient sig type, and public key,
+               by the destination public key.
 
 {% endhighlight %}
 

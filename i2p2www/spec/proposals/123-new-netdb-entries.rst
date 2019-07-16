@@ -243,7 +243,8 @@ Format
     Expires timestamp (4 bytes, big endian, seconds since epoch, rolls over in 2106)
     Transient sig type (2 bytes, big endian)
     Transient signing public key (length as implied by sig type)
-    Signature of expires timestamp, transient sig type, and public key, by the destination public key,
+    Signature of expires timestamp, transient sig type, and public key,
+    by the destination public key,
     length as implied by destination public key sig type.
     This section can, and should, be generated offline.
 
@@ -342,7 +343,8 @@ Format
 
   Standard LS2 Signature:
   - Signature
-    If flag indicates offline keys, this is signed by the transient pubkey, otherwise, by the destination pubkey
+    If flag indicates offline keys, this is signed by the transient pubkey,
+    otherwise, by the destination pubkey
     Length as implied by sig type of signing key
     The signature is of everything above.
 
