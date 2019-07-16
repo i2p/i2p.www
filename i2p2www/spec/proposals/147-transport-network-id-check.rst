@@ -123,9 +123,9 @@ Existing:
   {% highlight lang='dataspec' %}
 HMAC-MD5(encryptedPayload + IV + (payloadLength ^ protocolVersion), macKey)
 
-'+' means append and '^' means exclusive-or.
-payloadLength is a 2 byte unsigned integer
-protocolVersion is two bytes 0x0000
+  '+' means append and '^' means exclusive-or.
+  payloadLength is a 2 byte unsigned integer
+  protocolVersion is two bytes 0x0000
 
 {% endhighlight %}
 
@@ -136,10 +136,10 @@ New:
   {% highlight lang='dataspec' %}
 HMAC-MD5(encryptedPayload + IV + (payloadLength ^ protocolVersion ^ ((netid - 2) << 1)), macKey)
 
-'+' means append, '^' means exclusive-or, '<<' means left shift.
-payloadLength is a 2 byte unsigned integer
-protocolVersion is two bytes 0x0000
-netid is a 1 byte unsigned integer
+  '+' means append, '^' means exclusive-or, '<<' means left shift.
+  payloadLength is a 2 byte unsigned integer
+  protocolVersion is two bytes 0x0000
+  netid is a 1 byte unsigned integer
 
 
 {% endhighlight %}
