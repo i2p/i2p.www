@@ -5,7 +5,7 @@ Transport Network ID Check
     :author: zzz
     :created: 2019-02-28
     :thread: http://zzz.i2p/topics/2687
-    :lastupdated: 2019-03-05
+    :lastupdated: 2019-07-16
     :status: Open
 
 .. contents::
@@ -35,32 +35,138 @@ Connections from the wrong network should be rejected, and the
 peer should be blacklisted, as soon as possible.
 
 
+Goals
+=====
+
+- Prevent cross-contamination of testnets and forked networks
+
+- Add network ID to NTCP2 and SSU handshake
+
+- For NTCP2,
+  the receiver (incoming connection) should be able to identify that the network ID is different,
+  so it can blacklist the peer's IP.
+
+- For SSU,
+  the receiver (incoming connection) cannot blacklist at the session request phase, because
+  the incoming IP could be spoofed. It is sufficient to change the cryptography of the handshake.
+
+- Prevent reseeding from the wrong network
+
+- Must be backward-compatible
+
+
+Non-Goals
+=========
+
+- NTCP 1 is no longer in use, so it will not be changed.
+
+
 Design
 ======
 
-Ideally we would XOR in the network ID somewhere in the Session Request.
+For NTCP2,
+XORing in a value would just cause the encryption to fail, and the
+receiver would not have enough information to blacklist the originator,
+so that approach is not preferred.
+
+For SSU,
+we will XOR in the network ID somewhere in the Session Request.
 Since this must be backwards-compatible, we will XOR in (id - 2)
 so it will be a no-op for the current network ID value of 2.
+
 
 
 Specification
 =============
 
-For NTCP2, XOR (id - 2) into the obfuscated X value in Session Request.
+Documentation
+-------------
 
-For SSU, replace the XOR of the protocol version (currently 0) with
-an XOR of (id - 2) in the HMAC-MD5 calculation.
+Add the following specification for valid network id values:
+
+
+==================================  ==============
+       Payload Block Type            NetID Number
+==================================  ==============
+Reserved                                   0
+Reserved                                   1
+Current Network (default)                  2
+Reserved Future Networks               3 - 15
+Forks and Test Networks               16 - 254
+Reserved                                 255
+==================================  ==============
+
+
+The Java I2P configuration to change the default is "router.networkID=nnn".
+Document this better and encourage forks and test networks to add this setting to their configuration.
+Encourage other implementations to implement and document this option.
+
+
+NTCP2
+-----
+
+Use the first reserved byte of the options (byte 0) in the Session Request message to contain the network ID, currently 2.
+It contains the network ID.
+If nonzero, the receiver shall check it against the least significatnt byte of her network ID.
+If they do not match, receiver shall immediately disconnect and blacklist the originator's IP.
+
+
+SSU
+---
+
+For SSU, add an XOR of ((netid - 2) << 1) in the HMAC-MD5 calculation.
+
+Existing:
+
+.. raw:: html
+
+  {% highlight lang='dataspec' %}
+HMAC-MD5(encryptedPayload + IV + (payloadLength ^ protocolVersion), macKey)
+
+'+' means append and '^' means exclusive-or.
+payloadLength is a 2 byte unsigned integer
+protocolVersion is two bytes 0x0000
+
+{% endhighlight %}
+
+New:
+
+.. raw:: html
+
+  {% highlight lang='dataspec' %}
+HMAC-MD5(encryptedPayload + IV + (payloadLength ^ protocolVersion ^ ((netid - 2) << 1)), macKey)
+
+'+' means append, '^' means exclusive-or, '<<' means left shift.
+payloadLength is a 2 byte unsigned integer
+protocolVersion is two bytes 0x0000
+netid is a 1 byte unsigned integer
+
+
+{% endhighlight %}
+
+
+Reseeding
+---------
+
+Add a parameter ?netid=nnn to the fetch of the reseed su3 file.
+Update reseed software to check for the netid. If it is present and not equal to "2",
+the fetch should be rejected with an error code, perhaps 403.
+Add configuration option to reseed software so that an alternate netid may be configured
+for test or forked networks.
 
 
 Notes
 =====
 
+We cannot force test networks and forks to change the network ID.
+The best we can do is documentation and communication.
+If we do discover cross-contamination with other networks, we should attempt to
+contact the developers or operators to explain the importance of changing the network ID.
+
 
 Issues
 ======
 
-- Should we make a similar change to NTCP 1 as well?
-- Should we make changes to reseeds to prevent reseeding for the wrong network?
 
 
 Migration
