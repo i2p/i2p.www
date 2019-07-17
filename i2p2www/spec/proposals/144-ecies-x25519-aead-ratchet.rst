@@ -5,7 +5,7 @@ ECIES-X25519-AEAD-Ratchet
     :author: zzz, chisana
     :created: 2018-11-22
     :thread: http://zzz.i2p/topics/2639
-    :lastupdated: 2019-07-10
+    :lastupdated: 2019-07-17
     :status: Open
 
 .. contents::
@@ -377,9 +377,9 @@ In the new protocol, since the inbound and outbound sessions are paired,
 we can have ACKs in-band. No separate clove is required.
 
 An explicit ACK is simply an existing session message with no I2NP block.
-However, in most cases, an explict ACK can be avoided, as there is reverse
-traffic. Implementations should set a short timer (a few hundred ms)
-before sending an explicit ACK.
+However, in most cases, an explict ACK can be avoided, as there is reverse traffic.
+It may be desirable for implementations to wait a short time (perhaps a hundred ms)
+before sending an explicit ACK, to give the streaming or application layer time to respond.
 
 Implementations will also need to defer any ACK sending until after the
 I2NP block is processed, as the Garlic Message may contain a Database Store Message
@@ -770,7 +770,10 @@ each message, including retransmissions.
 Ephemeral Key Section Decrypted data
 ````````````````````````````````````
 
-Ephemeral Key Section contains flags and a key:
+The Ephemeral Key section contains flags and a key.
+It is always 40 bytes.
+When used in the one-time message, the key is all zeroes.
+
 
 .. raw:: html
 
@@ -2070,6 +2073,12 @@ Typical Usage Patterns
 HTTP GET
 --------
 
+This is the most typical use case, and most non-HTTP streaming use cases
+will be identical to this use case as well.
+A small initial message is sent, a reply follows,
+and additional messages are sent in both directions.
+
+An HTTP GET generally fits in a single I2NP message.
 Alice sends a small request with a single new Session message, bundling a reply leaseset.
 Alice includes immediate ratchet to new key.
 Includes sig to bind to destination. No ack requested.
@@ -2090,23 +2099,16 @@ Alice                           Bob
   with next key
   with bundled HTTP GET
   with bundled LS
-  with bundled Delivery Status Message
+  without bundled Delivery Status Message
 
   any retransmissions, same as above
 
 
-  following two messages can come in either order:
-
-  <--------------     Delivery Status Message
+  following messages may arrive in any order:
 
   <--------------     Existing Session
                       with next key
                       with bundled HTTP reply part 1
-
-  After reception of any of these messages,
-  Alice switches to use existing session messages.
-  After reception of the next key, Alice ratchets.
-
 
   <--------------     Existing Session
                       with next key
@@ -2115,6 +2117,11 @@ Alice                           Bob
   <--------------     Existing Session
                       with next key
                       with bundled HTTP reply part 3
+
+  After reception of any of these messages,
+  Alice switches to use existing session messages,
+  and ratchets.
+
 
   Existing Session     ------------------->
   with next key
@@ -2139,6 +2146,7 @@ Alice                           Bob
 {% endhighlight %}
 
 
+
 HTTP POST
 ---------
 
@@ -2161,6 +2169,8 @@ Alice has three options:
    and respond to all with the same ratchet.
    Alice uses that next public key and continues.
 
+Option 3 message flow:
+
 .. raw:: html
 
   {% highlight %}
@@ -2171,7 +2181,7 @@ Alice                           Bob
   with next key
   with bundled HTTP POST part 1
   with bundled LS
-  with bundled Delivery Status Message
+  without bundled Delivery Status Message
 
 
   New Session (1b)     ------------------->
@@ -2179,7 +2189,7 @@ Alice                           Bob
   with next key
   with bundled HTTP POST part 2
   with bundled LS
-  with bundled Delivery Status Message
+  without bundled Delivery Status Message
 
 
   New Session (1b)     ------------------->
@@ -2187,25 +2197,17 @@ Alice                           Bob
   with next key
   with bundled HTTP POST part 3
   with bundled LS
-  with bundled Delivery Status Message
+  without bundled Delivery Status Message
 
 
-
-  following messages can come in any order:
-
-  <--------------     Delivery Status Message 1
-
-  <--------------     Delivery Status Message 2
-
-  <--------------     Delivery Status Message 3
 
   <--------------     Existing Session
                       with next key
                       with bundled streaming ack
 
-  After reception of any of these messages,
-  Alice switches to use existing session messages.
-  After reception of the next key, Alice ratchets.
+  After reception of any of this message,
+  Alice switches to use existing session messages,
+  and Alice ratchets.
 
 
   Existing Session     ------------------->
@@ -2224,10 +2226,15 @@ Alice                           Bob
 
 {% endhighlight %}
 
+
+
 Repliable Datagram
 ------------------
 
-As in HTTP GET, but with smaller options for session tag window size and lifetime.
+A single message, with a single reply expected.
+Additional messages or replies may be sent.
+
+Similar to HTTP GET, but with smaller options for session tag window size and lifetime.
 Maybe don't request a ratchet.
 
 .. raw:: html
@@ -2240,20 +2247,16 @@ Alice                           Bob
   with next key
   with bundled repliable datagram
   with bundled LS
-  with bundled Delivery Status Message
+  without bundled Delivery Status Message
 
-
-  following two messages can come in either order:
-
-  <--------------     Delivery Status Message
 
   <--------------     Existing Session
                       with next key
                       with bundled reply
 
-  After reception of any of these messages,
-  Alice switches to use existing session messages.
-  After reception of the next key, Alice ratchets.
+  After reception of this message,
+  Alice switches to use existing session messages,
+  and ratchets.
 
   if there are any other messages:
 
@@ -2272,10 +2275,68 @@ Alice                           Bob
 
 {% endhighlight %}
 
-Raw Datagram
-------------
 
+
+Multiple Raw Datagrams
+----------------------
+
+Multiple anonymous messages, with no replies expected.
+
+In this scenario, Alice requests a session, but without binding.
 New session message is sent.
+No reply LS is bundled.
+A reply DSM is bundled (this is the only use case that requires bundled DSMs).
+No next key is included. No reply or ratchet is requested.
+No ratchet is sent.
+Options set session tags window to zero.
+
+.. raw:: html
+
+  {% highlight %}
+Alice                           Bob
+
+  New Session (1c)     ------------------->
+  with bundled message
+  without bundled LS
+  with bundled Delivery Status Message 1
+
+  New Session (1c)     ------------------->
+  with bundled message
+  without bundled LS
+  with bundled Delivery Status Message 2
+
+  New Session (1c)     ------------------->
+  with bundled message
+  without bundled LS
+  with bundled Delivery Status Message 3
+ 
+  following messages can come in any order:
+
+  <--------------     Delivery Status Message 1
+
+  <--------------     Delivery Status Message 2
+
+  <--------------     Delivery Status Message 3
+
+  After reception of any of these messages,
+  Alice switches to use existing session messages.
+
+  Existing Session     ------------------->
+
+  Existing Session     ------------------->
+
+  Existing Session     ------------------->
+
+{% endhighlight %}
+
+
+
+Single Raw Datagram
+-------------------
+
+A single anonymous messages, with no reply expected.
+
+One-time message is sent.
 No reply LS or DSM are bundled. No next key is included. No reply or ratchet is requested.
 No ratchet is sent.
 Options set session tags window to zero.
@@ -2285,10 +2346,13 @@ Options set session tags window to zero.
   {% highlight %}
 Alice                           Bob
 
-  New Session (1d)     ------------------->
+  One-Time Message (1d)   ------------------->
   with bundled message
+  without bundled LS
+  without bundled Delivery Status Message
 
 {% endhighlight %}
+
 
 
 Long-Lived Sessions
