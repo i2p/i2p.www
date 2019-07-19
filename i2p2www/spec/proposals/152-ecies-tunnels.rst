@@ -6,7 +6,7 @@ ECIES Tunnels
     :author: chisana
     :created: 2019-07-04
     :thread: http://zzz.i2p/topics/2737
-    :lastupdated: 2019-07-18
+    :lastupdated: 2019-07-19
     :status: Open
 
 .. contents::
@@ -24,7 +24,8 @@ Specifications for how to handle mixed tunnel hops are provided.
 
 No changes will be made to the format, processing, or encryption of ElGamal hops.
 
-All ElGamal routers are treated as though running without changes from this document.
+ElGamal tunnel creators will need to create ephemeral X25519 keypairs per-hop, and
+follow this spec for creating tunnels containing ECIES hops.
 
 The proposal is split into two sections:
 
@@ -90,8 +91,11 @@ bytes     0-3: tunnel ID to receive messages as, nonzero
   byte       72: flags
   bytes   73-76: request time (in hours since the epoch, rounded down)
   bytes   77-80: next message ID
+  bytes  81-464: tunnel build options / random padding
 
 {% endhighlight %}
+
+The tunnel build options block will be defined by [Tunnel-Build-Options]_.
 
 Request Record Spec Encrypted (ECIES)
 `````````````````````````````````````
@@ -102,8 +106,7 @@ Request Record Spec Encrypted (ECIES)
 
 bytes    0-15: hop's truncated identity hash
   bytes   16-47: sender's ephemeral public key
-  bytes  48-128: ChaChaPoly AEAD encrypted build request record
-  bytes 129-511: Random padding
+  bytes  48-511: ChaChaPoly AEAD encrypted BuildRequestRecord
   bytes 512-527: Poly1305 MAC
 
 {% endhighlight %}
@@ -123,11 +126,8 @@ Bit order: 76543210 (bit 7 is MSB)
   bit 7: if set, allow messages from anyone
   bit 6: if set, allow messages to anyone, and send the reply to the
          specified next hop in a Tunnel Build Reply Message
-  bit 5: if set, ChaCha20 reply encryption selected (ECIES build record),
-         also indicates next hop is ECIES
-         AES256/CBC (ElGamal) otherwise
-  bit 4: if set, only ECIES hops in the tunnel, use Blowfish+ChaCha20 layer encryption
-  bits 3-0: Undefined, must set to 0 for compatibility with future options
+  bit 5: if set, only ECIES hops in the tunnel, use Blowfish+ChaCha20 layer encryption
+  bits 4-0: Undefined, must set to 0 for compatibility with future options
 
 {% endhighlight %}
 
@@ -142,9 +142,11 @@ Reply Record Spec Unencrypted (ECIES)
   {% highlight lang='dataspec' %}
 
 bytes      0: Reply byte
-  bytes  1-511: Random padding
+  bytes  1-511: Tunnel Build Options / Random padding
 
 {% endhighlight %}
+
+For options formatting refer to the [Tunnel-Build-Options]_ spec.
 
 Reply flags for ECIES reply records should use the following values to avoid fingerprinting:
 
@@ -189,17 +191,11 @@ Symmetric cryptography preprocessing will run in the same way:
   - once by the hop
   - once on final reply processing
 
-When mixed routers are hops in the same tunnel, and the current hop is ECIES,
-it will check if reply encryption flag is set (indicating ChaCha20).
+When mixed tunnels are used, tunnel creators will need to base the symmetric encryption
+of BuildRequestRecord on the current and previous hop's encryption type.
 
-If the current hop is an ECIES hop, and ChaCha20 reply encryption is selected,
-the reply key is used to ChaCha20 "decrypt" its reply and other records.
-
-If the current hop is an ElGamal hop, the reply encryption bit is ignored,
-and the reply key is used to AES256/CBC "decrypt" its reply and other records.
-
-This means later hops in the tunnel are preprocessed using a mix of ChaCha20
-and AES256/CBC, using the reply key of preceding hops.
+Each hop will use it's own encryption type for encrypting BuildReplyRecords, and the other
+records in the VariableTunnelBuildMessage (VTBM).
 
 On the reply path, the endpoint (sender) will need to undo the [Multiple-Encryption]_, using each hop's reply key.
 
@@ -207,15 +203,17 @@ As a clarifying example, let's look at an outbound tunnel w/ ECIES surrounded by
 
 - Sender (OBGW) -> ElGamal (H1) -> ECIES (H2) -> ElGamal (H3)
 
-All records are in their encrypted state (using ElGamal or ECIES).
+All BuildRequestRecords are in their encrypted state (using ElGamal or ECIES).
 
 AES256/CBC cipher, when used, is still used for each record, without chaining across multiple records.
+
+Likewise, ChaCha20 will be used to encrypt each record, not streaming across the entire VTBM.
 
 The request records are preprocessed by the Sender (OBGW):
 
 - H3's record is "encrypted" using:
 
-  - H2's reply key (AES256/CBC)
+  - H2's reply key (ChaCha20)
   - H1's reply key (AES256/CBC)
 
 - H2's record is "encrypted" using:
@@ -226,8 +224,6 @@ The request records are preprocessed by the Sender (OBGW):
 
 Only H2 checks the reply encryption flag, and sees its followed by AES256/CBC.
 
-H3 checks the flags, sees it is an OBEP (bit 6 set), and ignores the reply encryption bit.
-
 After being processed by each hop, the records are in a "decrypted" state:
 
 - H3's record is "decrypted" using:
@@ -237,15 +233,15 @@ After being processed by each hop, the records are in a "decrypted" state:
 - H2's record is "decrypted" using:
 
   - H3's reply key (AES256/CBC)
-  - H2's reply key (AES256/CBC)
+  - H2's reply key (ChaCha20-Poly1305)
 
 - H1's record is "decrypted" using:
 
   - H3's reply key (AES256/CBC)
-  - H2's reply key (AES256/CBC)
+  - H2's reply key (ChaCha20)
   - H1's reply key (AES256/CBC)
 
-When there are no inbound tunnels at startup, the Sender (IBEP) postprocesses the reply:
+The tunnel creator, a.k.a. Inbound Endpoint (IBEP), postprocesses the reply:
 
 - H3's record is "encrypted" using:
 
@@ -254,76 +250,19 @@ When there are no inbound tunnels at startup, the Sender (IBEP) postprocesses th
 - H2's record is "encrypted" using:
 
   - H3's reply key (AES256/CBC)
-  - H2's reply key (AES256/CBC)
+  - H2's reply key (ChaCha20-Poly1305)
 
 - H1's record is "encrypted" using:
 
   - H3's reply key (AES256/CBC)
-  - H2's reply key (AES256/CBC)
-  - H1's reply key (AES256/CBC)
-
-If H3 (OBEP) is an ECIES hop, it checks the reply encryption flag for
-ChaCha20 (bit 5 set) or AES256/CBC (bit 5 unset).
-
-H2 would also see that the reply encryption flag is set, and "decrypt" its reply
-and other records using ChaCha20.
-
-So our example changes to the following hops:
-
-- Sender (OBGW) -> ElGamal (H1) -> ECIES (H2) -> ECIES (H3)
-
-The request records are preprocessed by the Sender (OBGW):
-
-- H3's record is "encrypted" using:
-
-  - H2's reply key (ChaCha20)
-  - H1's reply key (AES256/CBC)
-
-- H2's record is "encrypted" using:
-
-  - H1's reply key (AES256/CBC)
-
-- H1's record goes out without symmetric encryption
-
-After being processed by each hop, the records are in a "decrypted" state:
-
-- H3's record is "decrypted" using:
-
-  - H3's reply key (ChaCha20)
-
-- H2's record is "decrypted" using:
-
-  - H3's reply key (ChaCha20)
-  - H2's reply key (ChaCha20)
-
-- H1's record is "decrypted" using:
-
-  - H3's reply key (ChaCha20)
-  - H2's reply key (ChaCha20)
-  - H1's reply key (AES256/CBC)
-
-When there are no inbound tunnels at startup, the Sender (IBEP) postprocesses the reply:
-
-- H3's record is "encrypted" using:
-
-  - H3's reply key (ChaCha20)
-
-- H2's record is "encrypted" using:
-
-  - H3's reply key (ChaCha20)
-  - H2's reply key (ChaCha20)
-
-- H1's record is "encrypted" using:
-
-  - H3's reply key (ChaCha20)
   - H2's reply key (ChaCha20)
   - H1's reply key (AES256/CBC)
 
 Request Record Key, Reply Key, Tunnel Layer Key, and IV Key KDF (ECIES)
----------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 
 The ``recordKey`` takes the place of the product of the ElGamal exchange. It is used
-to AEAD encrypt request and reply records for ECIES hops.
+to AEAD encrypt request records for ECIES hops.
 
 Below is a description of how to derive the keys previously transmitted in request records.
 
@@ -331,7 +270,7 @@ Below is a description of how to derive the keys previously transmitted in reque
 
   {% highlight lang='dataspec' %}
 
-// Sender generates an X25519 ephemeral keypair per VTBM (sesk, sepk)
+// Sender generates an X25519 ephemeral keypair per ECIES hop in the VTBM (sesk, sepk)
   sesk = GENERATE_PRIVATE()
   sepk = DERIVE_PUBLIC(sesk)
 
@@ -360,42 +299,58 @@ Below is a description of how to derive the keys previously transmitted in reque
 {% endhighlight %}
 
 ``replyKey``, ``layerKey`` and ``IVKey`` must still be included inside ElGamal records,
-and can be generated randomly. For ElGamal, the ``recordKey`` is just the result of ElGamal multiplication.
+and can be generated randomly. For ElGamal, the ``recordKey`` is not needed, since the
+tunnel creator can directly encrypt to an ElGamal hop's public key.
 
 Keys are omitted from ECIES records (since they can be derived at the hop).
 
-Request Record Preprocessing for ECIES Hops
--------------------------------------------
+BuildRequestRecord Encryption for ECIES Hops
+--------------------------------------------
 
 .. raw:: html
 
   {% highlight lang='dataspec' %}
 
 // See record key KDF for key generation
-  (ciphertext, mac) = ChaCha20-Poly1305(msg = unencrypted record, nonce = 0, AD = Sha256(recordKey), key = recordKey)
+  // Repeat for each ECIES hop record in the VTBM
+  (ciphertext, mac) = ChaCha20-Poly1305(msg = unencrypted record, nonce = 0, AD = Sha256(hop's recordKey), key = hop's recordKey)
+  encryptedRecord = ciphertext \|\| MAC
 
-  // For subsequent records past the initial hop
-  // nonce = one \+ zero-indexed order of record in the TunnelBuildMessage
-  symCiphertext = ChaCha20(msg = ciphertext \|\| MAC, nonce, key = replyKey of preceding hop)
+  For subsequent records past the initial hop, pre-emptively decrypt for each preceding hop in the tunnel
+
+  // If the preceding hop is ECIES:
+  nonce = one \+ zero-indexed order of record in the VariableTunnelBuildMessage
+  key = replyKey of preceding hop
+  symCiphertext = ChaCha20(msg = encryptedRecord, nonce, key)
+
+  // If the preceding hop is ElGamal:
+  IV = reply IV of preceding hop
+  key = reply key of preceding hop
+  symCiphertext = AES256/CBC-Decrypt(msg = encryptedRecord, IV, key) 
 
 {% endhighlight %}
 
-Request Record Encryption from ElGamal Tunnel Creators
-------------------------------------------------------
+Request Record Encryption from ElGamal + ECIES Tunnel Creators
+--------------------------------------------------------------
 
-No changes are made for how ElGamal routers preprocess and encrypt request records.
+ElGamal tunnel creators will need to generate an ephemeral X25519 keypair for each
+ECIES hop in the tunnel, and use scheme above for encrypting their BuildRequestRecord.
+ElGamal tunnel creators will use the scheme prior to this spec for encrypting to ElGamal hops.
 
-This means ECIES hops will behave like ElGamal hops in ElGamal created tunnels.
+ECIES tunnel creators will need to encrypt to the ElGamal hop's public key using the
+scheme prior to this spec. ECIES tunnel creators will use the above scheme for encrypting
+to ECIES hops.
 
-For ECIES hops to detect ElGamal tunnel creators, trial-decryption is needed.
+This means that tunnel hops will only see encrypted records from their same encryption type.
 
-It will be necessary to first try decrypting the request record as though it came from an ECIES router.
+For ElGamal and ECIES tunnel creators, they will generate unique ephemeral X25519 keypairs
+per-hop for encrypting to ECIES hops.
 
-If trial-decryption fails, attempt decryption as though from an ElGamal router.
+**WARNING**: if the same ephemeral keypair is used for more than one hop, it can only be
+used for at most **two** hops, and the hops must be **consecutive**.
 
-If the record includes expected fields (keys + IV, flags, etc, and valid Sha256 of preceding data), ElGamal decryption was succesful.
-
-If ElGamal decryption fails, drop the message without reply, or forwarding to next hop.
+**WARNING**: Using the same ephemeral keys for non-consecutive hops, or more than two hops,
+allows colluding hops to know they're in the same tunnel, **VERY BAD**!!!
 
 Reply Record Encryption for ECIES Hops
 --------------------------------------
@@ -409,26 +364,13 @@ See [RFC-7539-S4]_ Security Considerations for more information.
   {% highlight lang='dataspec' %}
 
 // See reply key KDF for key generation
-  (ciphertext, MAC) = ChaCha20-Poly1305(msg = reply byte, nonce = 0, AD = Sha256(replyKey), key = replyKey)
-
-  If ChaCha20 reply encryption is set in the request record (flags bit 5 set):
-
-  // Use a unique nonce per-record
-  nonce = one \+ zero-indexed order of record in the VariableTunnelBuildMessage
-  symCiphertext = ChaCha20(msg = ciphertext \|\| MAC \|\| random padding, nonce, key = replyKey)
+  msg = reply byte \|\| build options \|\| random padding
+  (ciphertext, MAC) = ChaCha20-Poly1305(msg, nonce = 0, AD = Sha256(replyKey), key = replyKey)
 
   // Other request/reply record encryption
   // Use a unique nonce per-record
   nonce = one \+ number of records \+ zero-indexed order of record in the VariableTunnelBuildMessage
   symCiphertext = ChaCha20(msg = multiple encrypted record, nonce, key = replyKey)
-
-  If AES256/CBC reply encryption is set in the request record (flag bit 5 unset):
-
-  // Other request/reply record encryption
-  msg = multiple encrypted record
-  key = replyKey
-  IV = Sha256(replyKey \|\| hop static public key)
-  symCiphertext = AES256-CBC-Encrypt(msg, key, IV)
 
 {% endhighlight %}
 
@@ -439,7 +381,9 @@ After full transition to ECIES, random padding can be a range of included paddin
 When ranged padding is used, random padding will be formatted using the Padding block structure from [ECIES-X25519]_ and [NTCP2]_.
 
 For symmetric encryption by other hops, it's necessary to know full record length (w/ padding) without asymmetric decryption.
+
 When/if records become variable-length, it may become necessary to include an unencrypted Data block header before each record, TBD.
+
 BuildReplyRecord may or may not need to match BuildRequestRecord length if both are preceded by Data block header, TBD.
 
 Reply Record Encryption for ElGamal Hops
@@ -516,7 +460,7 @@ Inbound tunnels:
 - Use 8-byte ``tunnelNonce`` given the lifetime of tunnels
 - Destroy tunnel before 2^(64/2 - 1) messages: 2^31 = 2,147,483,648
 
-  - Nonce limit in place to avoid Sweet32 attack on Blowfish
+  - Nonce limit in place to avoid [Sweet32]_ attack on [Blowfish]_
   - Nonce limit unlikely to ever be reached, given this would be ~3,579,139 msgs/second for 10 minute tunnels
   - Nonce cannot be truncated. For shorter nonce, a different method must be used with smaller state space.
 
@@ -602,7 +546,7 @@ To validate received ``tunnelNonce``, the participant checks against its Bloom f
 
 After validation, the participant:
 
-- Blowfish encrypts the ``tunnelNonce`` with its ``IVKey``
+- [Blowfish]_ encrypts the ``tunnelNonce`` with its ``IVKey``
 - Uses the encrypted ``tunnelNonce`` & its ``layerKey`` to ChaCha20 encrypt the tunnel message(s)
 - Sends the tuple {``tunnelId``, encrypted ``tunnelNonce``, ciphertext} to the next hop.
 
@@ -634,7 +578,7 @@ For ECIES-only tunnels, the following scheme will be used:
 
 - Validate the received ``tunnelNonce`` against the Bloom filter
 - ChaCha20 decrypt the encrypted data using the received ``tunnelNonce`` & the hop's ``layerKey``
-- Blowfish decrypt the ``tunnelNonce`` using the hop's ``IVKey`` to get the preceding ``tunnelNonce``
+- [Blowfish]_ decrypt the ``tunnelNonce`` using the hop's ``IVKey`` to get the preceding ``tunnelNonce``
 - ChaCha20 decrypt the encrypted data using the decrypted ``tunnelNonce`` & the preceding hop's ``layerKey``
 - Repeat for each hop in the tunnel, back to the IBGW
 
@@ -663,25 +607,25 @@ Security Analysis for Blowfish+ChaCha20 Tunnel Layer Encryption
 Switching from AES256/ECB to ChaCha20 has a number of advantages, and new security considerations.
 
 The biggest security considerations to account for, are that ChaCha20 nonces must be unique per-message,
-for the life of the key being used, and Blowfish is susceptible to Sweet32 birthday attacks.
+for the life of the key being used, and [Blowfish]_ is susceptible to [Sweet32]_ birthday attacks.
 
 Failing to use unique nonces with the same key on different messages breaks ChaCha20.
 
-Nonce uniqueness is main reason for using an Blowfish, see [RFC-7539-S4]_.
+Nonce uniqueness is main reason for using an [Blowfish]_, see [RFC-7539-S4]_.
 
 Simple counters cannot be used, since they require syncing for proper decryption.
 Syncing the counter can't be guaranteed at the IBEP, without further changes to tunnel protocols.
 
-Blowfish is only used for nonce encryption to guarantee unique nonces, and prevent non-consecutive
+[Blowfish]_ is only used for nonce encryption to guarantee unique nonces, and prevent non-consecutive
 hops in the same tunnel from colluding to know they are in the same tunnel.
 
-The tunnel lifetime of ten minutes and nonce limit of 2^31 messages guarantees that Sweet32 attacks
+The tunnel lifetime of ten minutes and nonce limit of 2^31 messages guarantees that [Sweet32]_ attacks
 are ineffective against Blowfish. Exceeding the limit would require over ~3,579,139 messages/second in each tunnel.
 
 Even if 2^31 messages proves to not be a strict enough limit, we can safely reduce the limit by another power of two,
 without ever realistically reaching the limit.
 
-Even if a Sweet32 attack were successful, an attacker would only gain access to the ``tunnelNonce``
+Even if a [Sweet32]_ attack were successful, an attacker would only gain access to the ``tunnelNonce``
 for the colliding message, which doesn't break the ChaCha20 encryption. Non-consecutive hops
 would only be able to confirm they are participants in the same tunnel.
 
@@ -697,6 +641,34 @@ double-encryption.
 
 The chosen-plaintext producing a recovered IV cannot be used to perform
 a padding-oracle attack against AES256/CBC layer encryption, since duplicate IVs are rejected.
+
+Justification for Blowfish
+--------------------------
+
+[Blowfish]_ is needed to symmetrically encrypt ChaCha20 nonces used in tunnel layer encryption. It was chosen for
+its 64-bit block size, and ability to symmetrically encrypt without using a nonce.
+
+A 64-bit block size is needed to generate unique nonces for ChaCha20. ChaCha20 has a maximum nonce size of 96-bits,
+using the IETF variant. Nonces of smaller sizes can be used, and are padded with zeroes. However, larger nonces, like
+the 128-bit AES256/CBC IV cannot safely be truncated, as 96-bit segments may be identical for two otherwise
+unique IVs.
+
+HKDF and other hashing functions cannot be used to safely truncate the received IV, since it must be possible
+for Inbound Endpoints to recover the IV of preceding hops in the tunnel.
+
+Of the 64-bit ciphers, [Blowfish]_ is the most secure, with the widest support in well-audited cryptography libraries.
+
+Other alternatives like DES and 3DES, are more cumbersome, and weaker in comparison. Despite its comparative strength,
+[Blowfish]_ is still vulnerable to [Sweet32]_ attacks. This means that in ~2^32 blocks, there will be a block collision,
+allowing for recovery of the nonce from that block. Given the lifetime of tunnels, the restriction on unique received
+nonces, and the limit of 2^31 messages, [Blowfish]_ would not vulnerable to [Sweet32]_ in the I2P ECIES Tunnels context.
+
+Realistically, much fewer than 2^29 nonces will ever be seen by any tunnel, since this would be over 894,784 msgs/sec.
+
+For comparison, Google receives ~76,000 searches per second. Even assuming 10 messages per search, a tunnel would have
+to be over 100,000 msgs/sec busier than Google. Vanishingly unlikely.
+
+Statistics from: https://www.internetlivestats.com/one-second/
 
 Tunnel Message Overhead for ECIES
 =================================
@@ -760,6 +732,9 @@ References
 .. [ECIES-X25519]
    {{ proposal_url('144') }}
 
+.. [Tunnel-Build-Options]
+   {{ proposal_url('143') }}
+
 .. [NTCP2]
    https://geti2p.net/spec/ntcp2
 
@@ -775,5 +750,8 @@ References
 .. [RFC-7539-S4]
    https://tools.ietf.org/html/rfc7539#section-4
 
-.. [SplitMix64]
-   http://xoshiro.di.unimi.it/splitmix64.c
+.. [Blowfish]
+   https://www.schneier.com/academic/blowfish/
+
+.. [Sweet32]
+   https://sweet32.info/
