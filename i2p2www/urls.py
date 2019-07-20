@@ -76,6 +76,11 @@ url('/<lang:lang>/meetings/<int:id>.log', 'meetings.views.meetings_show_log')
 url('/<lang:lang>/meetings/<int:id>.rst', 'meetings.views.meetings_show_rst')
 url('/<lang:lang>/feed/meetings/atom', 'meetings.views.meetings_atom')
 
+url('/<lang:lang>/browser', 'browser.browser_frontpage')
+url('/<lang:lang>/browser/intro', 'browser.browser_intro')
+url('/<lang:lang>/browser/faq', 'browser.browser_faq')
+url('/<lang:lang>/browser/download', 'browser.browser_download')
+
 url('/<lang:lang>/download', 'downloads.downloads_list')
 url('/<lang:lang>/download/debian', 'downloads.downloads_debian')
 url('/<lang:lang>/download/firefox', 'downloads.downloads_firefox')
