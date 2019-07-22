@@ -4,7 +4,7 @@ Common structures Specification
 .. meta::
     :category: Design
     :lastupdated: July 2019
-    :accuratefor: 0.9.41
+    :accuratefor: 0.9.42
 
 .. contents::
 
@@ -1048,8 +1048,13 @@ Contains the Destination_, two timestamps, and an optional OfflineSignature_.
     Bit 1: If 0, a standard published leaseset.
            If 1, an unpublished leaseset. Should not be flooded, published, or
            sent in response to a query. If this leaseset expires, do not query the
-           netdb for a new one.
-    Bits 15-2: set to 0 for compatibility with future uses
+           netdb for a new one, unless bit 2 is set.
+    Bit 2: If 0, a standard published leaseset.
+           If 1, this unencrypted leaseset will be blinded and encrypted when published.
+           If this leaseset expires, query the blinded location in the netdb for a new one.
+           If this bit is set to 1, set bit 1 to 1 also.
+           As of release 0.9.42.
+    Bits 15-3: set to 0 for compatibility with future uses
 
   offline_signature :: `OfflineSignature`
                        length -> varies

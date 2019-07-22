@@ -5,7 +5,7 @@ New netDB Entries
     :author: zzz, str4d, orignal
     :created: 2016-01-16
     :thread: http://zzz.i2p/topics/2051
-    :lastupdated: 2019-07-17
+    :lastupdated: 2019-07-22
     :status: Open
     :supercedes: 110, 120, 121, 122
 
@@ -236,6 +236,7 @@ Format
     Bit 2: If 0, a standard published leaseset.
            If 1, this unencrypted leaseset will be blinded and encrypted when published.
            If this leaseset expires, query the blinded location in the netdb for a new one.
+           If this bit is set to 1, set bit 1 to 1 also.
            As of release 0.9.42.
     Bits 3-15: set to 0 for compatibility with future uses
   - If flag indicates offline keys, the offline signature section:
