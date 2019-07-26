@@ -6,7 +6,7 @@ ECIES Tunnels
     :author: chisana
     :created: 2019-07-04
     :thread: http://zzz.i2p/topics/2737
-    :lastupdated: 2019-07-19
+    :lastupdated: 2019-07-26
     :status: Open
 
 .. contents::
@@ -41,7 +41,6 @@ Cryptographic Primitives
 - ChaCha20Poly1305(msg, nonce, AD, key) - as in [NTCP2]_ and [ECIES-X25519]_
 - X25519(privateKey, publicKey) - as in [NTCP2]_ and [ECIES-X25519]_
 - HKDF(rootKey, sharedSecret, CONTEXT, keylen) - as in [NTCP2]_ and [ECIES-X25519]_
-- Blowfish(msg, key) - used only for ECIES-only tunnel nonce encryption, sixteen rounds cipher mode
 
 ECIES for Tunnel Building
 =========================
@@ -89,13 +88,15 @@ bytes     0-3: tunnel ID to receive messages as, nonzero
   bytes   36-39: next tunnel ID, nonzero
   bytes   40-71: next router identity hash
   byte       72: flags
-  bytes   73-76: request time (in hours since the epoch, rounded down)
-  bytes   77-80: next message ID
-  bytes  81-464: tunnel build options / random padding
+  bytes   73-76: request time (in minutes since the epoch, rounded down)
+  bytes   77-80: request expiration (in minutes since creation, rounded down)
+  bytes   81-84: next message ID
+  bytes  85-463: tunnel build options / random padding
 
 {% endhighlight %}
 
-The tunnel build options block will be defined by [Tunnel-Build-Options]_.
+The tunnel build options block will be defined by [Tunnel-Build-Options]_, but may be
+defined within this spec, TBD.
 
 Request Record Spec Encrypted (ECIES)
 `````````````````````````````````````
@@ -104,16 +105,17 @@ Request Record Spec Encrypted (ECIES)
 
   {% highlight lang='dataspec' %}
 
-bytes    0-15: hop's truncated identity hash
-  bytes   16-47: sender's ephemeral public key
+bytes    0-15: Hop's truncated identity hash
+  bytes   16-47: Sender's ephemeral public key
   bytes  48-511: ChaChaPoly AEAD encrypted BuildRequestRecord
   bytes 512-527: Poly1305 MAC
 
 {% endhighlight %}
 
-After full transition to ECIES records, bytes 129-527 can be a range of included padding.
+After full transition to ECIES records, random padding can be a range if variable sized records
+are supported, TBD.
 
-Random padding will be formatted using the Padding block structure from [ECIES-X25519]_ and [NTCP2]_.
+Ranged random padding will be formatted using the Padding block structure from [ECIES-X25519]_ and [NTCP2]_.
 
 Flag Changes for Mixed Tunnels
 ``````````````````````````````
@@ -126,10 +128,12 @@ Bit order: 76543210 (bit 7 is MSB)
   bit 7: if set, allow messages from anyone
   bit 6: if set, allow messages to anyone, and send the reply to the
          specified next hop in a Tunnel Build Reply Message
-  bit 5: if set, only ECIES hops in the tunnel, use Blowfish+ChaCha20 layer encryption
+  bit 5: if set, use new (ChaCha20) layer encryption
   bits 4-0: Undefined, must set to 0 for compatibility with future options
 
 {% endhighlight %}
+
+New layer encryption flag may be moved into Tunnel Build Options, TBD.
 
 Tunnel Reply Records for ECIES
 ------------------------------
@@ -291,10 +295,9 @@ Below is a description of how to derive the keys previously transmitted in reque
   recordKey = keydata[32:63]  // AEAD key for Request Record encryption
   replyKey = keydata[64:95]  // Hop reply key
 
-  keydata = HKDF(rootKey, sharedSecret, "TunnelLayerIVKey", 96)
-  rootKey = keydata[0:31]  // update the root key
-  layerKey = keydata[32:63]  // Tunnel layer key
-  IVKey = keydata[64:96]  // Tunnel IV/nonce key
+  keydata = HKDF(rootKey, sharedSecret, "TunnelLayerIVKey", 64)
+  layerKey = keydata[0:31]  // Tunnel layer key
+  IVKey = keydata[32:63]  // Tunnel IV/nonce key
 
 {% endhighlight %}
 
@@ -351,6 +354,20 @@ used for at most **two** hops, and the hops must be **consecutive**.
 
 **WARNING**: Using the same ephemeral keys for non-consecutive hops, or more than two hops,
 allows colluding hops to know they're in the same tunnel, **VERY BAD**!!!
+
+.. raw:: html
+
+  {% highlight lang='dataspec' %}
+
+// See reply key KDF for key generation
+  // Encrypting an ECIES hop request record
+  AD = Sha256(hop static key \|\| hop Identity hash)
+  (ciphertext, MAC) = ChaCha20-Poly1305(msg = BuildRequestRecord, nonce = 0, AD, key = hop's recordKey)
+
+  // Encrypting an ElGamal hop request record
+  ciphertext = ElGamal-Encrypt(msg = BuildRequestRecord, key = hop's ElGamal public key)
+
+{% endhighlight %}
 
 Reply Record Encryption for ECIES Hops
 --------------------------------------
@@ -458,11 +475,11 @@ Inbound tunnels:
 
 - Encrypt the IV and tunnel message(s) using ChaCha20
 - Use 8-byte ``tunnelNonce`` given the lifetime of tunnels
-- Destroy tunnel before 2^(64/2 - 1) messages: 2^31 = 2,147,483,648
+- Use 8-byte monotonically increasing counter for ``tunnelNonce`` encryption
+- Destroy tunnel before 2^(64 - 1) messages: 2^64 - 1 = 18,446,744,073,709,551,615
 
-  - Nonce limit in place to avoid [Sweet32]_ attack on [Blowfish]_
-  - Nonce limit unlikely to ever be reached, given this would be ~3,579,139 msgs/second for 10 minute tunnels
-  - Nonce cannot be truncated. For shorter nonce, a different method must be used with smaller state space.
+  - Nonce limit in place to avoid rollover of the 64-bit counter
+  - Nonce limit exceedingly unlikely to ever be reached, given this would be over ~3,074,457,345,618,258 msgs/second for 10 minute tunnels
 
 The tunnel's Inbound Gateway (IBGW), processes messages received from another tunnel's Outbound Endpoint (OBEP).
 
@@ -479,6 +496,7 @@ The IBGW preprocesses the messages into the appropriately formatted tunnel messa
 // For ECIES-only tunnels
   // IBGW generates a random nonce, ensuring no collision in its Bloom filter
   tunnelNonce = Random(len = 64-bits)
+  counter = counter + 1
   // IBGW ChaCha20 "encrypts" the preprocessed tunnel messages with its tunnelNonce and layerKey
   encMsg = ChaCha20(msg = tunnel msg(s), nonce = tunnelNonce, key = layerKey)
 
@@ -490,6 +508,8 @@ The IBGW preprocesses the messages into the appropriately formatted tunnel messa
 {% endhighlight %}
 
 Tunnel message format will slightly change, using an 8-byte nonce instead of a 16-byte IV.
+The counter used for encrypting the nonce is appended to the 8-byte ``tunnelNonce``.
+The counter is not advanced by tunnel participants.
 The rest of the format is unchanged.
 
 Outbound tunnels:
@@ -503,10 +523,11 @@ Replies are directed to a zero-hop or existing inbound tunnel's IBGW.
 
 - Iteratively decrypt tunnel messages
 
-  - ECIES-only tunnel hops will encrypt using Blowfish+ChaCha20
+  - ECIES-only tunnel hops will encrypt using ChaCha20
   - mixed-tunnel hops will encrypt using AES256/ECB+CBC
 
 - Use the same rules for IV and layer nonces as Inbound tunnels
+- For ECIES-only tunnels, advance the nonce once per set of tunnel messages sent
 
 .. raw:: html
 
@@ -514,8 +535,11 @@ Replies are directed to a zero-hop or existing inbound tunnel's IBGW.
 
 
 // For ECIES-only tunnel hops
-  // For each hop, Blowfish-Decrypt the previous tunnelNonce with the current hop's Blowfish keys
-  tunnelNonce = Blowfish-Decrypt(msg = prev. tunnelNonce, key = IVKey)
+  // For each set of messages, increase the counter
+  counter = counter + 1
+  // For each hop, ChaCha20 the previous tunnelNonce with the current hop's IV key
+  // The counter is advanced for each set of tunnel messages
+  tunnelNonce = ChaCha20(msg = prev. tunnelNonce, nonce = counter, key = IVKey)
   // For each hop, ChaCha20 "decrypt" the tunnel message with the current hop's tunnelNonce and layerKey
   decMsg = ChaCha20(msg = tunnel msg(s), nonce = tunnelNonce, key = hop's layerKey)
 
@@ -544,9 +568,15 @@ IV double-encryption will still be used for mixed-tunnel hops, since they are co
 
 To validate received ``tunnelNonce``, the participant checks against its Bloom filter for duplicates.
 
+To validate the received counter, the participant checks against it counter Bloom filter for duplicates.
+
+The two Bloom filters must be independent from one another.
+
+Participants do not advance the counter.
+
 After validation, the participant:
 
-- [Blowfish]_ encrypts the ``tunnelNonce`` with its ``IVKey``
+- ChaCha20 encrypts the ``tunnelNonce`` with its ``IVKey`` and received counter
 - Uses the encrypted ``tunnelNonce`` & its ``layerKey`` to ChaCha20 encrypt the tunnel message(s)
 - Sends the tuple {``tunnelId``, encrypted ``tunnelNonce``, ciphertext} to the next hop.
 
@@ -556,8 +586,9 @@ After validation, the participant:
 
 // For ECIES-only tunnel hops
   // For verification, tunnel participant should check Bloom filter for received nonce uniqueness
-  // After verification, Blowfish encrypt the tunnelNonce with the hop's IVKey
-  tunnelNonce = Blowfish-Encrypt(msg = received tunnelNonce, key = IVKey)
+  // The counter must also be checked for uniqueness against its own independent Bloom filter
+  // After verification, ChaCha20 encrypt the tunnelNonce with the hop's IVKey
+  tunnelNonce = ChaCha20(msg = received tunnelNonce, nonce = received counter, key = IVKey)
   encMsg = ChaCha20(msg = received message, nonce = tunnelNonce, key = layerKey)
 
   // For ElGamal hops (unchanged)
@@ -576,9 +607,9 @@ Mixed tunnels are considered unchanged for tunnel layer encryption.
 
 For ECIES-only tunnels, the following scheme will be used:
 
-- Validate the received ``tunnelNonce`` against the Bloom filter
+- Validate the received ``tunnelNonce`` and counter against the respective Bloom filters
 - ChaCha20 decrypt the encrypted data using the received ``tunnelNonce`` & the hop's ``layerKey``
-- [Blowfish]_ decrypt the ``tunnelNonce`` using the hop's ``IVKey`` to get the preceding ``tunnelNonce``
+- ChaCha20 decrypt the ``tunnelNonce`` using the hop's ``IVKey`` and received counter to get the preceding ``tunnelNonce``
 - ChaCha20 decrypt the encrypted data using the decrypted ``tunnelNonce`` & the preceding hop's ``layerKey``
 - Repeat for each hop in the tunnel, back to the IBGW
 
@@ -589,7 +620,7 @@ For ECIES-only tunnels, the following scheme will be used:
 // For ECIES-only tunnel hops
   // Repeat for each hop in the tunnel back to the IBGW
   // Replace the received tunnelNonce w/ the prior round hop's decrypted tunnelNonce for subsequent hops
-  tunnelNonce = Blowfish-Decrypt(msg = received tunnelNonce, key = IVKey)
+  tunnelNonce = ChaCha20(msg = received tunnelNonce, nonce = received counter, key = IVKey)
   decMsg(s) = ChaCha20(msg = encrypted layer message(s), nonce = tunnelNonce, key = layerKey)
 
   // For mixed tunnel hops (unchanged)
@@ -601,33 +632,26 @@ For ECIES-only tunnels, the following scheme will be used:
 
 {% endhighlight %}
 
-Security Analysis for Blowfish+ChaCha20 Tunnel Layer Encryption
+Security Analysis for ChaCha20 Tunnel Layer Encryption
 ---------------------------------------------------------------
 
 Switching from AES256/ECB to ChaCha20 has a number of advantages, and new security considerations.
 
 The biggest security considerations to account for, are that ChaCha20 nonces must be unique per-message,
-for the life of the key being used, and [Blowfish]_ is susceptible to [Sweet32]_ birthday attacks.
+for the life of the key being used.
 
 Failing to use unique nonces with the same key on different messages breaks ChaCha20.
 
-Nonce uniqueness is main reason for using an [Blowfish]_, see [RFC-7539-S4]_.
+Simple counters will be used alongside the ``tunnelNonce`` for encrypting the nonce,
+since they are required for proper decryption by the IBEP.
 
-Simple counters cannot be used, since they require syncing for proper decryption.
-Syncing the counter can't be guaranteed at the IBEP, without further changes to tunnel protocols.
+Using an appended counter allows the IBEP to decrypt the ``tunnelNonce`` for each hop's layer encryption,
+recovering the previous nonce.
 
-[Blowfish]_ is only used for nonce encryption to guarantee unique nonces, and prevent non-consecutive
-hops in the same tunnel from colluding to know they are in the same tunnel.
-
-The tunnel lifetime of ten minutes and nonce limit of 2^31 messages guarantees that [Sweet32]_ attacks
-are ineffective against Blowfish. Exceeding the limit would require over ~3,579,139 messages/second in each tunnel.
-
-Even if 2^31 messages proves to not be a strict enough limit, we can safely reduce the limit by another power of two,
-without ever realistically reaching the limit.
-
-Even if a [Sweet32]_ attack were successful, an attacker would only gain access to the ``tunnelNonce``
-for the colliding message, which doesn't break the ChaCha20 encryption. Non-consecutive hops
-would only be able to confirm they are participants in the same tunnel.
+The 64-bit counter alongside the ``tunnelNonce`` doesn't reveal any new information to tunnel hops,
+and cannot be used for correlation attacks. The counter also doesn't need to be private, as it only
+needs to be unique per-message in a given tunnel. Uniqueness can be ensured by a second Bloom filter,
+tracking which counter values have been used.
 
 The biggest security advantage is that there are no confirmation or oracle attacks against ChaCha20.
 
@@ -641,34 +665,6 @@ double-encryption.
 
 The chosen-plaintext producing a recovered IV cannot be used to perform
 a padding-oracle attack against AES256/CBC layer encryption, since duplicate IVs are rejected.
-
-Justification for Blowfish
---------------------------
-
-[Blowfish]_ is needed to symmetrically encrypt ChaCha20 nonces used in tunnel layer encryption. It was chosen for
-its 64-bit block size, and ability to symmetrically encrypt without using a nonce.
-
-A 64-bit block size is needed to generate unique nonces for ChaCha20. ChaCha20 has a maximum nonce size of 96-bits,
-using the IETF variant. Nonces of smaller sizes can be used, and are padded with zeroes. However, larger nonces, like
-the 128-bit AES256/CBC IV cannot safely be truncated, as 96-bit segments may be identical for two otherwise
-unique IVs.
-
-HKDF and other hashing functions cannot be used to safely truncate the received IV, since it must be possible
-for Inbound Endpoints to recover the IV of preceding hops in the tunnel.
-
-Of the 64-bit ciphers, [Blowfish]_ is the most secure, with the widest support in well-audited cryptography libraries.
-
-Other alternatives like DES and 3DES, are more cumbersome, and weaker in comparison. Despite its comparative strength,
-[Blowfish]_ is still vulnerable to [Sweet32]_ attacks. This means that in ~2^32 blocks, there will be a block collision,
-allowing for recovery of the nonce from that block. Given the lifetime of tunnels, the restriction on unique received
-nonces, and the limit of 2^31 messages, [Blowfish]_ would not vulnerable to [Sweet32]_ in the I2P ECIES Tunnels context.
-
-Realistically, much fewer than 2^29 nonces will ever be seen by any tunnel, since this would be over 894,784 msgs/sec.
-
-For comparison, Google receives ~76,000 searches per second. Even assuming 10 messages per search, a tunnel would have
-to be over 100,000 msgs/sec busier than Google. Vanishingly unlikely.
-
-Statistics from: https://www.internetlivestats.com/one-second/
 
 Tunnel Message Overhead for ECIES
 =================================
@@ -749,9 +745,3 @@ References
 
 .. [RFC-7539-S4]
    https://tools.ietf.org/html/rfc7539#section-4
-
-.. [Blowfish]
-   https://www.schneier.com/academic/blowfish/
-
-.. [Sweet32]
-   https://sweet32.info/
