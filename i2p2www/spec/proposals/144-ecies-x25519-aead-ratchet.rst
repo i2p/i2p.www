@@ -5,7 +5,7 @@ ECIES-X25519-AEAD-Ratchet
     :author: zzz, chisana
     :created: 2018-11-22
     :thread: http://zzz.i2p/topics/2639
-    :lastupdated: 2019-07-17
+    :lastupdated: 2019-07-26
     :status: Open
 
 .. contents::
@@ -949,8 +949,8 @@ new session messages.
 
 
 
-KDF for Payload Section Encrypted Contents
-``````````````````````````````````````````
+KDF for Payload Section (with Alice static key)
+```````````````````````````````````````````````
 
 .. raw:: html
 
@@ -960,28 +960,84 @@ KDF for Payload Section Encrypted Contents
   bsk = GENERATE_PRIVATE()
   bpk = DERIVE_PUBLIC(bsk)
 
-  // Alice's X25519 static keys (if Static Key Section present)
-  // or X25519 ephemeral keys (if Static Key Section not present)
-  // or decoded one-time keys (if no Static Key Section, and ephemeral key unset in Ephemeral Key Section)
+  // Alice's X25519 static keys
   ask = GENERATE_PRIVATE()
-  // apk was decrypted in Static Key Section (if present)
-  // or Ephemeral Key Section (if Static Key Section not present)
-  // or decoded one-time public key (if no Static Key Section, and ephemeral key unset in Ephemeral Key Section)
+  // apk was decrypted in Static Key Section
   apk = DERIVE_PUBLIC(ask)
 
   sharedSecret = DH(ask, bpk) = DH(bsk, apk)
 
   // MixKey(DH())
   // ChaChaPoly parameters to encrypt/decrypt
-  // chainKey from Static Key Section (if present)
-  // or Ephemeral Key Section (if Static Key Section not present)
+  // chainKey from Static Key Section
   k = HKDF(chainKey, sharedSecret, "Part3StaticKeyHK", 64)
   chainKey = keydata[0:31]
   k = keydata[32:64]
   n = message number from Ephemeral Key Section
-  ad = SHA-256(apk)  // see above for which public key is used
+  ad = SHA-256(apk)
 
 {% endhighlight %}
+
+
+KDF for Payload Section (without Alice static key)
+``````````````````````````````````````````````````
+
+.. raw:: html
+
+  {% highlight lang='text' %}
+// Bob's X25519 static keys
+  // bpk is published in leaseset
+  bsk = GENERATE_PRIVATE()
+  bpk = DERIVE_PUBLIC(bsk)
+
+  // Alice's X25519 ephemeral keys
+  ask = GENERATE_PRIVATE()
+  // apk was decrypted in Ephemeral Key Section
+  apk = DERIVE_PUBLIC(ask)
+
+  sharedSecret = DH(ask, bpk) = DH(bsk, apk)
+
+  // MixKey(DH())
+  // ChaChaPoly parameters to encrypt/decrypt
+  // chainKey from Ephemeral Key Section
+  k = HKDF(chainKey, sharedSecret, "Part3EphemeralHK", 64)
+  chainKey = keydata[0:31]
+  k = keydata[32:64]
+  n = message number from Ephemeral Key Section
+  ad = SHA-256(apk)
+
+{% endhighlight %}
+
+
+KDF for Payload Section (one-time format)
+`````````````````````````````````````````
+
+.. raw:: html
+
+  {% highlight lang='text' %}
+// Bob's X25519 static keys
+  // bpk is published in leaseset
+  bsk = GENERATE_PRIVATE()
+  bpk = DERIVE_PUBLIC(bsk)
+
+  // Alice's X25519 ephemeral keys
+  // Alice's decoded one-time keys
+  ask = GENERATE_PRIVATE()
+  // Alice's decoded one-time public key
+  apk = DERIVE_PUBLIC(ask)
+
+  sharedSecret = DH(ask, bpk) = DH(bsk, apk)
+
+  // MixKey(DH())
+  // ChaChaPoly parameters to encrypt/decrypt
+  k = HKDF(INITIAL_ROOT_KEY, sharedSecret, "Part3OneTimeKeys", 64)
+  chainKey = keydata[0:31]
+  k = keydata[32:64]
+  n = 0
+  ad = SHA-256(apk)
+
+{% endhighlight %}
+
 
 
 
