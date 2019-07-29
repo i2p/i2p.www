@@ -38,6 +38,8 @@ Go to the I2P web interface at 127.0.0.1:7657 and open the
 localhost). Click the button that says "Tunnel Wizard" to begin.
 {%- endtrans %}
 
+.. class:: screenshot
+
 |Step One: Open the Tunnel Wizard|
 
 {% trans -%}Step Two: Select a Server Tunnel{%- endtrans %}
@@ -47,6 +49,8 @@ localhost). Click the button that says "Tunnel Wizard" to begin.
 The tunnel wizard is very simple. Since we're setting up an http *server*, all
 we need to do is select a *server* tunnel.
 {%- endtrans %}
+
+.. class:: screenshot
 
 |Step Two: Select a Server Tunnel|
 
@@ -62,6 +66,8 @@ yourself. A more in-depth dive into the HTTP Tunnel configuration is available
 in the next tutorial.
 {%- endtrans %}
 
+.. class:: screenshot
+
 |Step Three: Select an HTTP Tunnel|
 
 {% trans -%}Step Four: Give it a name and a description{%- endtrans %}
@@ -73,6 +79,8 @@ using the tunnel for, give it a good nickname and description. If you need to
 come back and do more management later, then this is how you will identify the
 tunnel in the hidden services manager.
 {%- endtrans %}
+
+.. class:: screenshot
 
 |Step Four: Give it a name and a description|
 
@@ -86,6 +94,8 @@ shows that. If you use alternate ports or virtual machines or containers to
 isolate your web services, you may need to adjust the host, port, or both.
 {%- endtrans %}
 
+.. class:: screenshot
+
 |Step Five: Configure the Host and Port|
 
 {% trans -%}Step Six: Decide whether to start it automatically{%- endtrans %}
@@ -94,6 +104,8 @@ isolate your web services, you may need to adjust the host, port, or both.
 {% trans -%}
 I cannot think of a way to elaborate on this step.
 {%- endtrans %}
+
+.. class:: screenshot
 
 |Step Six: Decide whether to start it automatically|
 
@@ -107,6 +119,8 @@ services manager and start it manually when you wish to make your service
 available.
 {%- endtrans %}
 
+.. class:: screenshot
+
 |Step Six: Review your settings|
 
 {% trans -%}Appendix: HTTP Server Customization Options{%- endtrans %}
@@ -116,6 +130,8 @@ available.
 I2P provides a detailed panel for configuring the http server tunnel in custom
 ways. I'll finish this tutorial by walking through all of them. Eventually.
 {%- endtrans %}
+
+.. class:: screenshot
 
 |Options page 1|
 

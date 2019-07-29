@@ -182,6 +182,8 @@ At the bottom of the "I2P Hidden Services" section of the page, select an HTTP
 Service from the drop-down and click "Create."
 {%- endtrans %}
 
+.. class:: screenshot
+
 |config stuff|
 
 {% trans -%}
@@ -192,6 +194,8 @@ are the tunnel name and the target host:port. **The target host:port is**
 **I2P**. Once you've configured that, your web site will become available over
 i2p. However, there are probably a few things that we can improve.
 {%- endtrans %}
+
+.. class:: screenshot
 
 |host stuff|
 
@@ -204,6 +208,8 @@ to the bottom, save the tunnel configuration, and return to the tunnel
 configuration.
 {%- endtrans %}
 
+.. class:: screenshot
+
 |key stuff|
 
 {% trans -%}
@@ -212,6 +218,8 @@ Since you've got a site which is not intended to be anonymous, but rather to
 provide anonymous access to others by an alternate gateway, it may be good to
 reduce the number of hops the tunnel takes on the I2P network.
 {%- endtrans %}
+
+.. class:: screenshot
 
 |tunnel stuff|
 
@@ -222,6 +230,8 @@ blinding or encrypted leasesets. If you were to choose encrypted leasesets, you
 would not be accessible to anyone unless you shared a key with them in advance.
 {%- endtrans %}
 
+.. class:: screenshot
+
 |leaseset stuff|
 
 {% trans -%}
@@ -229,6 +239,8 @@ The next few parts may be especially useful to you if you run a high-traffic
 site or find yourself subject to DDOS attacks. Here you can configure various
 kinds of connection limits.
 {%- endtrans %}
+
+.. class:: screenshot
 
 |rate limiting stuff|
 
@@ -244,11 +256,15 @@ local IP address instead of them all appearing to the server to be from
 127.0.0.1.
 {%- endtrans %}
 
+.. class:: screenshot
+
 |coarse blocking stuff|
 
 {% trans -%}
 You can probably leave these next few options to the defaults.
 {%- endtrans %}
+
+.. class:: screenshot
 
 |Reduced tunnel stuff|
 
@@ -257,6 +273,8 @@ Lastly, you can set up an advanced filter definition. Writing filters is beyond
 what I'm prepared to do in this document, for more information see the format
 specification for now.
 {%- endtrans %}
+
+.. class:: screenshot
 
 |granular blocking stuff|
 
@@ -269,6 +287,8 @@ at the same time transparently, which is referred to as "Multihoming." In order
 to multihome your application, you will need to return to the tunnel menu and
 change the location of your private key file to it's own, non-shared location.
 {%- endtrans %}
+
+.. class:: screenshot
 
 |multihoming key stuff|
 
@@ -307,6 +327,8 @@ Your base32 address is visible on the main i2ptunnel configuration page and it
 looks like this:
 {%- endtrans %}
 
+.. class:: screenshot
+
 |base32 stuff|
 
 {% trans -%}
@@ -326,6 +348,8 @@ containing the domain name that you want to suggest, followed by a slash,
 followed by ?i2paddresshelper=, followed by the Local Destination of the tunnel
 you just created, which you can see here:
 {%- endtrans %}
+
+.. class:: screenshot
 
 |local destination stuff|
 

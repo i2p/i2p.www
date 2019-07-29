@@ -20,6 +20,8 @@ adds overhead to the familiar experience of using the internet so that you can
 have privacy, but this means that for many or most I2P services, your data will
 need to go through 12 hops by default.{% endtrans %}
 
+.. class:: screenshot
+
 |Diagram of I2P Connection|
 `Analysis of tools for online anonymity <https://www.researchgate.net/publication/289531182_An_analysis_of_tools_for_online_anonymity>`__
 
@@ -46,6 +48,8 @@ Configuration” (“Configure Bandwidth” button in the “Applications and
 Configuration” section of I2P Router Console, or
 http://localhost:7657/config).{% endtrans %}
 
+.. class:: screenshot
+
 |I2P Bandwidth Configuration|
 
 {% trans %}If you see a shared bandwidth limit of 48 KBps, which is very low, then you
@@ -65,12 +69,16 @@ service provider or bcause you installed I2P before version 0.9.38, you can
 re-launch it from the 'Setup' link on the 'Help & FAQ' page, or simply access
 the wizard directly at http://localhost:7657/welcome{% endtrans %}
 
+.. class:: screenshot
+
 |Can you find “Setup”?|
 
 {% trans %}Using the Wizard is straightforward, simply keep clicking “Next”. Sometimes
 M-Lab’s chosen measurement servers are down and the test fails. In such case,
 click “Previous” (do not use your web browser’s “back” button), then
 try it again.{% endtrans %}
+
+.. class:: screenshot
 
 |Bandwidth Test Results|
 

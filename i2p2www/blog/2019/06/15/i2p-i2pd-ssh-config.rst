@@ -51,6 +51,8 @@ Since you are setting up this tunnel for the SSH server, you need to select the
 "Server" tunnel type.
 {%- endtrans %}
 
+.. class:: screenshot
+
 |Use the wizard to create a "Server" tunnel|
 
 {% trans -%}
@@ -58,11 +60,15 @@ You should fine-tune it later, but the Standard tunnel type is easiest to start
 with.
 {%- endtrans %}
 
+.. class:: screenshot
+
 |Of the "Standard" variety|
 
 {% trans -%}
 Give it a good description:
 {%- endtrans %}
+
+.. class:: screenshot
 
 |Describe what it is for|
 
@@ -76,6 +82,8 @@ And tell it where the SSH server will be available.
 Look over the results, and save your settings.
 {%- endtrans %}
 
+.. class:: screenshot
+
 |Save the settings.|
 
 {% trans -%}Advanced Settings{%- endtrans %}
@@ -87,6 +95,8 @@ advanced settings. One thing you'll definitely want to change is to set it up
 for interactive connections intstead of bulk connections.
 {%- endtrans %}
 
+.. class:: screenshot
+
 |Configure your tunnel for interactive connectionss|
 
 {% trans -%}
@@ -96,6 +106,8 @@ the number of hops you take. If you have trouble with speed, a higher tunnel
 count might help. A few backup tunnels are probably a good idea. You might have
 to dial-it-in a bit.
 {%- endtrans %}
+
+.. class:: screenshot
 
 |If you're not concerned about anonymity, then reduce tunnel length.|
 
@@ -108,6 +120,8 @@ Another interesting setting, especially if you choose to run a high number of
 tunnels is "Reduce on Idle" which will reduce the number of tunnels that run
 when the serve has experienced extended inactivity.
 {%- endtrans %}
+
+.. class:: screenshot
 
 |Reduce on idle, if you chose a high number of tunnels|
 
@@ -185,6 +199,8 @@ First, start the tunnel configuration wizard from the hidden services manager
 and select a client tunnel.
 {%- endtrans %}
 
+.. class:: screenshot
+
 |Use the wizard to create a client tunnel|
 
 {% trans -%}
@@ -192,11 +208,15 @@ Next, select the standard tunnel type. You will fine-tune this configuration
 later.
 {%- endtrans %}
 
+.. class:: screenshot
+
 |Of the Standard variety|
 
 {% trans -%}
 Give it a good description.
 {%- endtrans %}
+
+.. class:: screenshot
 
 |Give it a good description|
 
@@ -208,12 +228,16 @@ I generally `Tox <https://tox.chat>`__ it to myself, any off-the-record
 should be sufficient for most people.
 {%- endtrans %}
 
+.. class:: screenshot
+
 |Find the destination you want to connect to|
 
 {% trans -%}
 Once you've found the base64 destination you want to connect to transmitted to
 your client device, then paste it into the client destination field.
 {%- endtrans %}
+
+.. class:: screenshot
 
 |Affix the destination|
 
@@ -222,11 +246,15 @@ Lastly, set a local port to connect your ssh client to. This will local port
 will be connected to the base64 destination and thus the SSH server.
 {%- endtrans %}
 
+.. class:: screenshot
+
 |Choose a local port|
 
 {% trans -%}
 Decide whether you want it to start automatically.
 {%- endtrans %}
+
+.. class:: screenshot
 
 |Decide if you want it to autostart|
 
@@ -241,6 +269,8 @@ connections. Additionally, if you want to set up client whiteliting on the
 server, you should check the "Generate key to enable persistent client tunnel
 identity" radial button.
 {%- endtrans %}
+
+.. class:: screenshot
 
 |Configure it to be interactive|
 
@@ -321,6 +351,8 @@ First, retrieve the persistent client tunnel destination and transmit it to the
 server.
 {%- endtrans %}
 
+.. class:: screenshot
+
 |Get the client destination|
 
 {% trans -%}
@@ -328,6 +360,8 @@ Add the client's base64 destination to the server's destination whitelist. Now
 you'll only be able to connect to the server tunnel from that specific client
 tunnel and no one else will be able to connect to that destination.
 {%- endtrans %}
+
+.. class:: screenshot
 
 |And paste it onto the server whitelist|
 
