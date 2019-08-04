@@ -6,7 +6,7 @@ ECIES Tunnels
     :author: chisana
     :created: 2019-07-04
     :thread: http://zzz.i2p/topics/2737
-    :lastupdated: 2019-07-26
+    :lastupdated: 2019-08-04
     :status: Open
 
 .. contents::
@@ -27,12 +27,7 @@ No changes will be made to the format, processing, or encryption of ElGamal hops
 ElGamal tunnel creators will need to create ephemeral X25519 keypairs per-hop, and
 follow this spec for creating tunnels containing ECIES hops.
 
-The proposal is split into two sections:
-
-- ECIES for Tunnel Building
-- ECIES for Tunnel Layer Encryption
-
-If necessary, the proposal can be split into independent proposals for separate analysis and adoption.
+This proposal specifies changes needed for ECIES-X25519 Tunnel Building.
 
 Cryptographic Primitives
 ------------------------
@@ -116,24 +111,6 @@ After full transition to ECIES records, random padding can be a range if variabl
 are supported, TBD.
 
 Ranged random padding will be formatted using the Padding block structure from [ECIES-X25519]_ and [NTCP2]_.
-
-Flag Changes for Mixed Tunnels
-``````````````````````````````
-
-.. raw:: html
-
-  {% highlight lang='dataspec' %}
-
-Bit order: 76543210 (bit 7 is MSB)
-  bit 7: if set, allow messages from anyone
-  bit 6: if set, allow messages to anyone, and send the reply to the
-         specified next hop in a Tunnel Build Reply Message
-  bit 5: if set, use new (ChaCha20) layer encryption
-  bits 4-0: Undefined, must set to 0 for compatibility with future options
-
-{% endhighlight %}
-
-New layer encryption flag may be moved into Tunnel Build Options, TBD.
 
 Tunnel Reply Records for ECIES
 ------------------------------
@@ -349,11 +326,9 @@ This means that tunnel hops will only see encrypted records from their same encr
 For ElGamal and ECIES tunnel creators, they will generate unique ephemeral X25519 keypairs
 per-hop for encrypting to ECIES hops.
 
-**WARNING**: if the same ephemeral keypair is used for more than one hop, it can only be
-used for at most **two** hops, and the hops must be **consecutive**.
+Ephemeral keys must be unique per ECIES hop, and per build record.
 
-**WARNING**: Using the same ephemeral keys for non-consecutive hops, or more than two hops,
-allows colluding hops to know they're in the same tunnel, **VERY BAD**!!!
+**IMPORTANT**: Failing to use unique keys opens an attack vector for colluding hops to confirm they are in the same tunnel.
 
 .. raw:: html
 
@@ -372,7 +347,7 @@ allows colluding hops to know they're in the same tunnel, **VERY BAD**!!!
 Reply Record Encryption for ECIES Hops
 --------------------------------------
 
-The nonce must be unique per ChaCha20/ChaCha20-Poly1305 invocation using the same key.
+The nonces must be unique per ChaCha20/ChaCha20-Poly1305 invocation using the same key.
 
 See [RFC-7539-S4]_ Security Considerations for more information.
 
@@ -426,246 +401,6 @@ ECIES, used with new ephemeral keys per-BuildRequestRecord or VariableTunnelBuil
 
 ChaCha20Poly1305 provides AEAD encryption, allowing the recipient to verify message integrity before attempting decryption.
 
-ECIES Tunnel Layer Encryption
-=============================
-
-Goals
------
-
-The goal of this section is to replace AES256/ECB+CBC with Blowfish+ChaCha20 for established tunnel IV and layer encryption.
-
-Established Tunnel Message Processing
--------------------------------------
-
-This section describes changes to:
-
-- Outbound and Inbound Gateway preprocessing + encryption
-- Participant encryption + postprocessing
-- Outbound and Inbound Endpoint encryption + postprocessing
-
-Changes are for mixed tunnels, and ElGamal hops are considered unchanged.
-
-For an overview of current tunnel message processing, see the [Tunnel-Implementation]_ spec.
-
-Only changes for ECIES gateways + hops are discussed.
-
-No changes are considered for mixed tunnel with ElGamal routers, until a safe protocol can be devised
-for converting a 128-bit AES IV to a 64-bit ChaCha20 nonce. Bloom filters guarantee uniqueness
-for the full IV, but the first half of unique IVs could be identical.
-
-This means ECIES routers will use current AES tunnel layer encryption whenever ElGamal hops
-are present in the tunnel.
-
-See section on build request records for ECIES hop detection of ElGamal tunnel creators.
-
-Gateway and Tunnel Creator Message Processing
----------------------------------------------
-
-Gateways will fragment and bundle messages in the same way.
-
-AEAD frames (including the MAC) can be split across fragments, but any dropped
-fragments will result in failed AEAD decryption (failed MAC verification).
-
-Gateway Preprocessing & Encryption
-----------------------------------
-
-When tunnels are ECIES-only, gateways will generate 64-bit nonces for use by ECIES hops.
-
-Inbound tunnels:
-
-- Encrypt the IV and tunnel message(s) using ChaCha20
-- Use 8-byte ``tunnelNonce`` given the lifetime of tunnels
-- Use 8-byte monotonically increasing counter for ``tunnelNonce`` encryption
-- Destroy tunnel before 2^(64 - 1) messages: 2^64 - 1 = 18,446,744,073,709,551,615
-
-  - Nonce limit in place to avoid rollover of the 64-bit counter
-  - Nonce limit exceedingly unlikely to ever be reached, given this would be over ~3,074,457,345,618,258 msgs/second for 10 minute tunnels
-
-The tunnel's Inbound Gateway (IBGW), processes messages received from another tunnel's Outbound Endpoint (OBEP).
-
-At this point, the outermost message layer is encrypted using point-to-point transport encryption.
-The I2NP message headers are visible, at the tunnel layer, to the OBEP and IBGW.
-The inner I2NP messsages are wrapped in Garlic cloves, encrypted using end-to-end session encryption.
-
-The IBGW preprocesses the messages into the appropriately formatted tunnel messages, and encrypts as following:
-
-.. raw:: html
-
-  {% highlight lang='dataspec' %}
-
-// For ECIES-only tunnels
-  // IBGW generates a random nonce, ensuring no collision in its Bloom filter
-  tunnelNonce = Random(len = 64-bits)
-  counter = counter + 1
-  // IBGW ChaCha20 "encrypts" the preprocessed tunnel messages with its tunnelNonce and layerKey
-  encMsg = ChaCha20(msg = tunnel msg(s), nonce = tunnelNonce, key = layerKey)
-
-  // For mixed tunnels w/ ElGamal hops (unchanged)
-  encIV = AES256/ECB-Encrypt(msg = prev. encIV, key = hop's IVKey)
-  encMsg = AES256/CBC-Encrypt(msg = tunnel msg(s), IV = encIV, key = hop's layerKey)
-  encIV2 = AES256/ECB-Encrypt(msg = encIV, key = hop's IVKey)
-
-{% endhighlight %}
-
-Tunnel message format will slightly change, using an 8-byte nonce instead of a 16-byte IV.
-The counter used for encrypting the nonce is appended to the 8-byte ``tunnelNonce``.
-The counter is not advanced by tunnel participants.
-The rest of the format is unchanged.
-
-Outbound tunnels:
-
-For outbound tunnels, the tunnel creator is the Outbound Gateway (OBGW).
-
-On outbound tunnel creation, Variable Tunnel Build Messages are created,
-preprocessed (iteratively decrypted), and sent out to the first potential hop in the tunnel.
-
-Replies are directed to a zero-hop or existing inbound tunnel's IBGW.
-
-- Iteratively decrypt tunnel messages
-
-  - ECIES-only tunnel hops will encrypt using ChaCha20
-  - mixed-tunnel hops will encrypt using AES256/ECB+CBC
-
-- Use the same rules for IV and layer nonces as Inbound tunnels
-- For ECIES-only tunnels, advance the nonce once per set of tunnel messages sent
-
-.. raw:: html
-
-  {% highlight lang='dataspec' %}
-
-
-// For ECIES-only tunnel hops
-  // For each set of messages, increase the counter
-  counter = counter + 1
-  // For each hop, ChaCha20 the previous tunnelNonce with the current hop's IV key
-  // The counter is advanced for each set of tunnel messages
-  tunnelNonce = ChaCha20(msg = prev. tunnelNonce, nonce = counter, key = IVKey)
-  // For each hop, ChaCha20 "decrypt" the tunnel message with the current hop's tunnelNonce and layerKey
-  decMsg = ChaCha20(msg = tunnel msg(s), nonce = tunnelNonce, key = hop's layerKey)
-
-  // For ElGamal hops (unchanged)
-  // Tunnel creator generates a random IV
-  // For each hop, decrypt the IV and tunnel message(s)
-  // For the first hop, the previous decrypted IV will be the randomly generated IV
-  decIV = AES256/ECB-Decrypt(msg = prev. decIV, key = hop's IVKey)
-  decMsg = AES256/CBC-Decrypt(msg = tunnel msg(s), IV = decIV, key = hop's layerKey)
-  decIV2 = AES256/ECB-Decrypt(msg = decIV, key = hop's IVKey)
-
-{% endhighlight %}
-
-Participant Processing
-----------------------
-
-Participants will track seen messages in the same way, using decaying Bloom filters.
-
-IV double-encryption is no longer necessary for ECIES hops,
-since there are no padding-oracle attacks against ChaCha20.
-
-ChaCha20 hops will encrypt the received nonce to prevent confirmation attacks between prior and later hops,
-i.e. colluding, non-consecutive hops being able to tell they belong to the same tunnel.
-
-IV double-encryption will still be used for mixed-tunnel hops, since they are considered unchanged.
-
-To validate received ``tunnelNonce``, the participant checks against its Bloom filter for duplicates.
-
-To validate the received counter, the participant checks against it counter Bloom filter for duplicates.
-
-The two Bloom filters must be independent from one another.
-
-Participants do not advance the counter.
-
-After validation, the participant:
-
-- ChaCha20 encrypts the ``tunnelNonce`` with its ``IVKey`` and received counter
-- Uses the encrypted ``tunnelNonce`` & its ``layerKey`` to ChaCha20 encrypt the tunnel message(s)
-- Sends the tuple {``tunnelId``, encrypted ``tunnelNonce``, ciphertext} to the next hop.
-
-.. raw:: html
-
-  {% highlight lang='dataspec' %}
-
-// For ECIES-only tunnel hops
-  // For verification, tunnel participant should check Bloom filter for received nonce uniqueness
-  // The counter must also be checked for uniqueness against its own independent Bloom filter
-  // After verification, ChaCha20 encrypt the tunnelNonce with the hop's IVKey
-  tunnelNonce = ChaCha20(msg = received tunnelNonce, nonce = received counter, key = IVKey)
-  encMsg = ChaCha20(msg = received message, nonce = tunnelNonce, key = layerKey)
-
-  // For ElGamal hops (unchanged)
-  currentIV = AES256/ECB-Encrypt(msg = received IV, key = hop's IVKey)
-  encMsg = AES256/CBC-Encrypt(msg = tunnel msg(s), IV = currentIV, key = hop's layerKey)
-  nextIV = AES256/ECB-Encrypt(msg = currentIV, key = hop's IVKey)
-
-{% endhighlight %}
-
-Inbound Endpoint Processing
----------------------------
-
-Inbound Endpoints will check the composition of their tunnel hops (ECIES or ElGamal).
-
-Mixed tunnels are considered unchanged for tunnel layer encryption.
-
-For ECIES-only tunnels, the following scheme will be used:
-
-- Validate the received ``tunnelNonce`` and counter against the respective Bloom filters
-- ChaCha20 decrypt the encrypted data using the received ``tunnelNonce`` & the hop's ``layerKey``
-- ChaCha20 decrypt the ``tunnelNonce`` using the hop's ``IVKey`` and received counter to get the preceding ``tunnelNonce``
-- ChaCha20 decrypt the encrypted data using the decrypted ``tunnelNonce`` & the preceding hop's ``layerKey``
-- Repeat for each hop in the tunnel, back to the IBGW
-
-.. raw:: html
-
-  {% highlight lang='dataspec' %}
-
-// For ECIES-only tunnel hops
-  // Repeat for each hop in the tunnel back to the IBGW
-  // Replace the received tunnelNonce w/ the prior round hop's decrypted tunnelNonce for subsequent hops
-  tunnelNonce = ChaCha20(msg = received tunnelNonce, nonce = received counter, key = IVKey)
-  decMsg(s) = ChaCha20(msg = encrypted layer message(s), nonce = tunnelNonce, key = layerKey)
-
-  // For mixed tunnel hops (unchanged)
-  // Repeat for each hop in the tunnel back to the IBGW
-  // Replace the received IV w/ the prior round hop's double-decrypted IV for subsequent hops
-  decIV = AES256/ECB(msg = received IV, key = IVKey)
-  decMsg = AES256/CBC(msg = tunnel msg(s), IV = decIV, key = layerKey)
-  decIV2 = AES256/ECB(msg = decIV, key = IVKey)
-
-{% endhighlight %}
-
-Security Analysis for ChaCha20 Tunnel Layer Encryption
----------------------------------------------------------------
-
-Switching from AES256/ECB to ChaCha20 has a number of advantages, and new security considerations.
-
-The biggest security considerations to account for, are that ChaCha20 nonces must be unique per-message,
-for the life of the key being used.
-
-Failing to use unique nonces with the same key on different messages breaks ChaCha20.
-
-Simple counters will be used alongside the ``tunnelNonce`` for encrypting the nonce,
-since they are required for proper decryption by the IBEP.
-
-Using an appended counter allows the IBEP to decrypt the ``tunnelNonce`` for each hop's layer encryption,
-recovering the previous nonce.
-
-The 64-bit counter alongside the ``tunnelNonce`` doesn't reveal any new information to tunnel hops,
-and cannot be used for correlation attacks. The counter also doesn't need to be private, as it only
-needs to be unique per-message in a given tunnel. Uniqueness can be ensured by a second Bloom filter,
-tracking which counter values have been used.
-
-The biggest security advantage is that there are no confirmation or oracle attacks against ChaCha20.
-
-There are chosen/known-plaintext attacks against AES256/ECB, when the key is reused (as in tunnel layer encryption).
-
-It is unlikely the chosen-plaintext attack can be used to recover double-encrypted IVs, since it requires at least two blocks
-to be encrypted, and a single pass of the cipher.
-
-An attack confirming a chosen plaintext IV is much more likely, but still unclear if it would be successful given
-double-encryption.
-
-The chosen-plaintext producing a recovered IV cannot be used to perform
-a padding-oracle attack against AES256/CBC layer encryption, since duplicate IVs are rejected.
-
 Tunnel Message Overhead for ECIES
 =================================
 
@@ -713,8 +448,8 @@ Wrapped I2NP message overhead:
 
 Tunnel message overhead:
 
-Tunnel layer keys, IV keys, and reply keys no longer need to be transmitted in ECIES BuildRequest Records.
-Unused space claimed by random padding and the trailing 16 byte Poly1305 MAC.
+Tunnel layer keys, IV/nonce keys, and reply keys no longer need to be transmitted in ECIES BuildRequest Records.
+Unused space claimed by build options, random padding, and the trailing 16 byte Poly1305 MAC.
 
 ECIES session messages will be wrapped in I2NP Data messages, surrounded by a Garlic Clove,
 and fragmented in Tunnel Data messages like any other message.

@@ -5,7 +5,7 @@ ECIES-X25519-AEAD-Ratchet
     :author: zzz, chisana
     :created: 2018-11-22
     :thread: http://zzz.i2p/topics/2639
-    :lastupdated: 2019-07-26
+    :lastupdated: 2019-08-04
     :status: Open
 
 .. contents::
@@ -109,6 +109,8 @@ Goals
   be a separate proposal
 - Don't break anything that relies on 32-byte binary destination hashes, e.g. bittorrent
 - Maintain 0-RTT message delivery using ephemeral-static DH
+- Do not require buffering / queueing of messages at this protocol layer;
+  continue to support unlimited message delivery in both directions without waiting for a response
 - Upgrade to ephemeral-ephemeral DH after 1 RTT
 - Maintain handling of out-of-order messages
 - Maintain 256-bit security
@@ -153,7 +155,9 @@ Non-Goals / Out-of-scope
 - LS2 format (see proposal 123)
 - New DHT rotation algorithm or shared random generation
 - New encryption for tunnel building.
-  That would be in a separate proposal.
+  See proposal 152.
+- New encryption for tunnel layer encryption.
+  See proposal 153.
 - Methods of encryption, transmission, and reception of I2NP DLM / DSM / DSRM messages.
   Not changing.
 - No LS1-to-LS2 or ElGamal/AES-to-this-proposal communication is supported.
@@ -168,7 +172,7 @@ Non-Goals / Out-of-scope
 Justification
 -------------
 
-ElGamal/AES+SessionTag has been our sole end-to-end protocol for around for about 15 years,
+ElGamal/AES+SessionTag has been our sole end-to-end protocol for about 15 years,
 essentially without modifications to the protocol.
 There are now cryptographic primitives that are faster.
 We need to enhance the security of the protocol.

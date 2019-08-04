@@ -5,7 +5,7 @@ Transport Network ID Check
     :author: zzz
     :created: 2019-02-28
     :thread: http://zzz.i2p/topics/2687
-    :lastupdated: 2019-07-16
+    :lastupdated: 2019-08-04
     :status: Open
 
 .. contents::
@@ -125,7 +125,7 @@ HMAC-MD5(encryptedPayload + IV + (payloadLength ^ protocolVersion), macKey)
 
   '+' means append and '^' means exclusive-or.
   payloadLength is a 2 byte unsigned integer
-  protocolVersion is two bytes 0x0000
+  protocolVersion is one byte 0x00
 
 {% endhighlight %}
 
@@ -134,11 +134,11 @@ New:
 .. raw:: html
 
   {% highlight lang='dataspec' %}
-HMAC-MD5(encryptedPayload + IV + (payloadLength ^ protocolVersion ^ ((netid - 2) << 1)), macKey)
+HMAC-MD5(encryptedPayload + IV + (payloadLength ^ protocolVersion ^ ((netid - 2) << 8)), macKey)
 
   '+' means append, '^' means exclusive-or, '<<' means left shift.
   payloadLength is a 2 byte unsigned integer
-  protocolVersion is two bytes 0x0000
+  protocolVersion is one byte 0x00
   netid is a 1 byte unsigned integer
 
 
