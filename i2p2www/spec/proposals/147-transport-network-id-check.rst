@@ -5,7 +5,7 @@ Transport Network ID Check
     :author: zzz
     :created: 2019-02-28
     :thread: http://zzz.i2p/topics/2687
-    :lastupdated: 2019-08-04
+    :lastupdated: 2019-08-05
     :status: Open
 
 .. contents::
@@ -107,14 +107,14 @@ NTCP2
 
 Use the first reserved byte of the options (byte 0) in the Session Request message to contain the network ID, currently 2.
 It contains the network ID.
-If nonzero, the receiver shall check it against the least significatnt byte of her network ID.
+If nonzero, the receiver shall check it against the least significant byte of the local network ID.
 If they do not match, receiver shall immediately disconnect and blacklist the originator's IP.
 
 
 SSU
 ---
 
-For SSU, add an XOR of ((netid - 2) << 1) in the HMAC-MD5 calculation.
+For SSU, add an XOR of ((netid - 2) << 8) in the HMAC-MD5 calculation.
 
 Existing:
 
