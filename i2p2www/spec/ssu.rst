@@ -3,8 +3,8 @@ SSU Protocol Specification
 ==========================
 .. meta::
     :category: Transports
-    :lastupdated: July 2019
-    :accuratefor: 0.9.41
+    :lastupdated: August 2019
+    :accuratefor: 0.9.42
 
 .. contents::
 
@@ -36,7 +36,7 @@ encrypted with the appropriate key.  The MAC used is HMAC-MD5, truncated to 16
 bytes, while the key is a full 32 byte AES256 key.  The specific construct of
 the MAC is the first 16 bytes from::
 
-  HMAC-MD5(encryptedPayload + IV + (payloadLength ^ protocolVersion), macKey)
+  HMAC-MD5(encryptedPayload + IV + (payloadLength ^ protocolVersion ^ ((netid - 2) << 8)), macKey)
 
 where '+' means append and '^' means exclusive-or.
 
@@ -57,6 +57,14 @@ addressed within its body, explained below.
 The protocolVersion is a 2 byte unsigned integer and is currently set to 0.
 Peers using a different protocol version will not be able to communicate with
 this peer, though earlier versions not using this flag are.
+
+The exclusive OR of ((netid - 2) << 8) is used to quickly identify cross-network connections.
+As of 0.9.42. See proposal 147 for more information.
+As the current network ID is 2, this is a no-op for the current network and is backward compatible.
+Any connections from test networks should have a different ID and will fail the HMAC.
+
+
+
 
 HMAC Specification
 ------------------

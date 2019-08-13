@@ -5,8 +5,10 @@ Transport Network ID Check
     :author: zzz
     :created: 2019-02-28
     :thread: http://zzz.i2p/topics/2687
-    :lastupdated: 2019-08-05
-    :status: Open
+    :lastupdated: 2019-08-13
+    :status: Closed
+    :target: 0.9.42
+    :implementedin: 0.9.42
 
 .. contents::
 
