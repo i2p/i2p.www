@@ -3,8 +3,8 @@ SSU Protocol Specification
 ==========================
 .. meta::
     :category: Transports
-    :lastupdated: July 2019
-    :accuratefor: 0.9.41
+    :lastupdated: August 2019
+    :accuratefor: 0.9.42
 
 .. contents::
 
@@ -36,14 +36,14 @@ encrypted with the appropriate key.  The MAC used is HMAC-MD5, truncated to 16
 bytes, while the key is a full 32 byte AES256 key.  The specific construct of
 the MAC is the first 16 bytes from::
 
-  HMAC-MD5(encryptedPayload + IV + (payloadLength ^ protocolVersion), macKey)
+  HMAC-MD5(encryptedPayload + IV + (payloadLength ^ protocolVersion ^ ((netid - 2) << 8)), macKey)
 
 where '+' means append and '^' means exclusive-or.
 
 The IV is generated randomly for each packet.  The encryptedPayload is the
 encrypted version of the message starting with the flag byte
 (encrypt-then-MAC).  The payloadLength used in the MAC is a 2 byte unsigned
-integer.  Note that protocolVersion is 0, so the exclusive-or is a no-op.  The
+integer, big endian.  Note that protocolVersion is 0, so the exclusive-or is a no-op.  The
 macKey is either the introduction key or is constructed from the exchanged DH
 key (see details below), as specified for each message below.
 
@@ -54,9 +54,18 @@ The payload itself (that is, the message starting with the flag byte) is
 AES256/CBC encrypted with the IV and the sessionKey, with replay prevention
 addressed within its body, explained below.
 
-The protocolVersion is a 2 byte unsigned integer and is currently set to 0.
+The protocolVersion is a 2 byte unsigned integer, big endian, and is currently set to 0.
 Peers using a different protocol version will not be able to communicate with
 this peer, though earlier versions not using this flag are.
+
+The exclusive OR of ((netid - 2) << 8) is used to quickly identify cross-network connections.
+The netid is a 2 byte unsigned integer, big endian, and is currently set to 2.
+As of 0.9.42. See proposal 147 for more information.
+As the current network ID is 2, this is a no-op for the current network and is backward compatible.
+Any connections from test networks should have a different ID and will fail the HMAC.
+
+
+
 
 HMAC Specification
 ------------------

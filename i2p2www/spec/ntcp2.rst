@@ -3,8 +3,8 @@ NTCP 2
 ======
 .. meta::
     :category: Transports
-    :lastupdated: 2019-04-08
-    :accuratefor: 0.9.36
+    :lastupdated: August 2019
+    :accuratefor: 0.9.42
 
 .. contents::
 
@@ -511,12 +511,13 @@ Note: All fields are big-endian.
 
   {% highlight lang='dataspec' %}
 +----+----+----+----+----+----+----+----+
-  |Rsvd| ver|  padLen | m3p2len | Rsvd(0) |
+  | id | ver|  padLen | m3p2len | Rsvd(0) |
   +----+----+----+----+----+----+----+----+
   |        tsA        |   Reserved (0)    |
   +----+----+----+----+----+----+----+----+
 
-  Reserved :: 7 bytes total, set to 0 for compatibility with future options
+  id :: 1 byte, the network ID (currently 2, except for test networks)
+        As of 0.9.42. See proposal 147.
 
   ver :: 1 byte, protocol version (currently 2)
 
@@ -526,6 +527,8 @@ Note: All fields are big-endian.
 
   m3p2Len :: 2 bytes, length of the the second AEAD frame in SessionConfirmed
              (message 3 part 2) See notes below
+
+  Rsvd :: 2 bytes, set to 0 for compatibility with future options
 
   tsA :: 4 bytes, Unix timestamp, unsigned seconds.
          Wraps around in 2106
@@ -616,9 +619,12 @@ Notes
   message 1 and reading in the padding. There should be no extra data from Alice,
   as Bob has not responded with message 2 yet.
 
-Issues
-``````
-- Is the fixed-size option block big enough?
+- The network ID field is used to quickly identify cross-network connections.
+  If this field is nonzero, and does not match Bob's network ID,
+  Bob should disconnect and block future connections.
+  Any connections from test networks should have a different ID and will fail the test.
+  As of 0.9.42. See proposal 147 for more information.
+
 
 
 

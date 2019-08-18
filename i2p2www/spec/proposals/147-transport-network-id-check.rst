@@ -5,8 +5,10 @@ Transport Network ID Check
     :author: zzz
     :created: 2019-02-28
     :thread: http://zzz.i2p/topics/2687
-    :lastupdated: 2019-08-05
-    :status: Open
+    :lastupdated: 2019-08-13
+    :status: Closed
+    :target: 0.9.42
+    :implementedin: 0.9.42
 
 .. contents::
 
@@ -86,7 +88,7 @@ Add the following specification for valid network id values:
 
 
 ==================================  ==============
-       Payload Block Type            NetID Number
+       Usage                         NetID Number
 ==================================  ==============
 Reserved                                   0
 Reserved                                   1
@@ -137,9 +139,9 @@ New:
 HMAC-MD5(encryptedPayload + IV + (payloadLength ^ protocolVersion ^ ((netid - 2) << 8)), macKey)
 
   '+' means append, '^' means exclusive-or, '<<' means left shift.
-  payloadLength is a 2 byte unsigned integer
-  protocolVersion is one byte 0x00
-  netid is a 1 byte unsigned integer
+  payloadLength is a two byte unsigned integer, big endian
+  protocolVersion is two bytes 0x0000, big endian
+  netid is a two byte unsigned integer, big endian, legal values are 2-254
 
 
 {% endhighlight %}

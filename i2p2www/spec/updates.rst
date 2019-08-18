@@ -2,8 +2,8 @@
 Software Update Specification
 =============================
 .. meta::
-    :lastupdated: March 2017
-    :accuratefor: 0.9.29
+    :lastupdated: August 2019
+    :accuratefor: 0.9.42
 
 .. contents::
 
@@ -338,6 +338,10 @@ Goals
 Specification
 `````````````
 1. The file must be named "i2pseeds.su3".
+   As of 0.9.42, the requestor should append a query string "?netid=2" to the request URL,
+   assuming the current network ID of 2.
+   This may be used to prevent cross-network connections. Test networks should set
+   a different network ID. See proposal 147 for details.
 
 2. The file must be in the same directory as the router infos on the web server.
 
