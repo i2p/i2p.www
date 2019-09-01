@@ -2369,15 +2369,15 @@ Alice                           Bob
   following messages may arrive in any order:
 
   <--------------     New Session Reply (1g)
-                      with Bob's ephemeral key 1
+                      with Bob ephemeral key 1
                       with bundled HTTP reply part 1
 
   <--------------     New Session Reply (1g)
-                      with Bob's ephemeral key 2
+                      with Bob ephemeral key 2
                       with bundled HTTP reply part 2
 
   <--------------     New Session Reply (1g)
-                      with Bob's ephemeral key 3
+                      with Bob ephemeral key 3
                       with bundled HTTP reply part 3
 
   After reception of any of these messages,
@@ -2468,11 +2468,11 @@ Alice                           Bob
   following messages can arrive in any order:
 
   <--------------     New Session Reply (1g)
-                      with Bob's ephemeral key 1
+                      with Bob ephemeral key 1
                       with bundled streaming ack
 
   <--------------     New Session Reply (1g)
-                      with Bob's ephemeral key 2
+                      with Bob ephemeral key 2
                       with bundled streaming ack
 
   After reception of any of these messages,
@@ -2544,13 +2544,11 @@ Alice                           Bob
 
 
   <--------------     New Session Reply (1g)
-                      with Bob's ephemeral and static key
-                      with Bob's Destination hash
+                      with Bob ephemeral key
                       with bundled reply part 1
 
   <--------------     New Session Reply (1g)
-                      with Bob's ephemeral and static key
-                      with Bob's Destination hash
+                      with Bob ephemeral key
                       with bundled reply part 2
 
   After reception of either message,
@@ -2568,8 +2566,8 @@ Alice                           Bob
   the new outbound session.
 
   Alice keeps the expiring inbound session
-  around for a while to process Bob's Existing Session
-  message sent to Alice's original inbound session.
+  around for a while to process the Existing Session
+  message sent to Alice.
   If all expected original Existing Session message replies
   have been processed, Alice can expire the original
   inbound session immediately.
