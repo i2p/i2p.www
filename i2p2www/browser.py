@@ -21,14 +21,21 @@ def browser_download():
 def browser_releasenotes():
   return render_template('site/browser/releasenotes.html')
 
-def browser_known_issues():
-  return render_template('site/browser/known_issues.html')
+#def browser_known_issues():
+#  return render_template('site/browser/known_issues.html')
 
-def browser_troubleshooting():
-  return render_template('site/browser/troubleshooting.html')
+#def browser_troubleshooting():
+#  return render_template('site/browser/troubleshooting.html')
 
-def browser_updating():
-  return render_template('site/browser/updating.html')
+#def browser_updating():
+#  return render_template('site/browser/updating.html')
+
+def browser_develop():
+  return render_template('site/browser/develop.html')
+
+def browser_donate():
+  return render_template('site/browser/donate.html')
+
 
 def browser_faq():
   if request.headers.get('X-I2P-Desthash') and not request.headers.get('X-Forwarded-Server'):

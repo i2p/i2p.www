@@ -84,6 +84,8 @@ url('/<lang:lang>/browser/troubleshooting', 'browser.browser_troubleshooting')
 url('/<lang:lang>/browser/releasenotes', 'browser.browser_releasenotes')
 url('/<lang:lang>/browser/updating', 'browser.browser_updating')
 url('/<lang:lang>/browser/download', 'browser.browser_download')
+url('/<lang:lang>/browser/donate', 'browser.browser_donate')
+url('/<lang:lang>/browser/develop', 'browser.browser_develop')
 
 url('/<lang:lang>/download', 'downloads.downloads_list')
 url('/<lang:lang>/download/debian', 'downloads.downloads_debian')
