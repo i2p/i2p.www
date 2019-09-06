@@ -5,7 +5,7 @@ New netDB Entries
     :author: zzz, str4d, orignal
     :created: 2016-01-16
     :thread: http://zzz.i2p/topics/2051
-    :lastupdated: 2019-07-22
+    :lastupdated: 2019-09-06
     :status: Open
     :supercedes: 110, 120, 121, 122
 
@@ -1671,8 +1671,8 @@ New options interpreted router-side, sent in SessionConfig Mapping:
                                       Length as inferred from the destination
                                       signing public key type
 
-  i2cp.leaseSetSecret=b64     The base 64 of a secret used to encrypt/decrypt
-                              the leaseset, default ""
+  i2cp.leaseSetSecret=b64     The base 64 of a secret used to blind the
+                              address of the leaseset, default ""
 
   i2cp.leaseSetAuthType=nnn   The type of authentication for encrypted LS2.
                               0 for no per-client authentication (the default)
@@ -1698,7 +1698,8 @@ New options interpreted client-side:
                                   the SessionConfig, to declare intent and check support.
                                   See proposals 144 and 145.
 
-  i2cp.leaseSetSecret=xxxx        A secret used to encrypt/decrypt the leaseset, default ""
+  i2cp.leaseSetSecret=b64     The base 64 of a secret used to blind the
+                              address of the leaseset, default ""
 
   i2cp.leaseSetAuthType=nnn       The type of authentication for encrypted LS2.
                                   0 for no per-client authentication (the default)
