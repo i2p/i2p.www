@@ -6,7 +6,7 @@ ECIES Tunnels
     :author: chisana
     :created: 2019-07-04
     :thread: http://zzz.i2p/topics/2737
-    :lastupdated: 2019-08-04
+    :lastupdated: 2019-09-11
     :status: Open
 
 .. contents::
@@ -122,8 +122,8 @@ Reply Record Spec Unencrypted (ECIES)
 
   {% highlight lang='dataspec' %}
 
-bytes      0: Reply byte
-  bytes  1-511: Tunnel Build Options / Random padding
+bytes  0-510: Tunnel Build Options / Random padding
+  bytes    511: Reply byte
 
 {% endhighlight %}
 
@@ -265,20 +265,27 @@ Below is a description of how to derive the keys previously transmitted in reque
   sharedSecret = DH(sesk, hepk) = DH(hesk, sepk)
 
   // Derive a root key from the Sha256 of Sender's ephemeral key and Hop's full identity hash
-  rootKey = Sha256(sepk \|\| hop_ident_hash)
+  rootKey = Sha256(sepk || hop_ident_hash)
 
-  keydata = HKDF(rootKey, sharedSecret, "ECIESRequestRcrd", 96)
+  keydata = HKDF(rootKey, sharedSecret, "RequestReplyGener", 96)
   rootKey = keydata[0:31]  // update the root key
   recordKey = keydata[32:63]  // AEAD key for Request Record encryption
   replyKey = keydata[64:95]  // Hop reply key
 
-  keydata = HKDF(rootKey, sharedSecret, "TunnelLayerIVKey", 64)
+  // If AES layer encryption is used
+  keydata = HKDF(rootKey, sharedSecret, "TunnelLayerRando", 80)
   layerKey = keydata[0:31]  // Tunnel layer key
-  IVKey = keydata[32:63]  // Tunnel IV/nonce key
+  randKey = keydata[32:63]  // Tunnel randomization key
+  replyIV = keydata[64:79]  // Reply record IV
 
+  // If ChaCha layer encryption is used
+  keydata = HKDF(rootKey, sharedSecret, "TunnelLayerRando", 96)
+  layerKey = keydata[0:31]  // Tunnel layer key
+  randKey = keydata[32:63]  // Tunnel randomization key
+  sendKey = keydata[64:95]  // AEAD send key
 {% endhighlight %}
 
-``replyKey``, ``layerKey`` and ``IVKey`` must still be included inside ElGamal records,
+``replyKey``, ``layerKey`` and ``randKey`` must still be included inside ElGamal records,
 and can be generated randomly. For ElGamal, the ``recordKey`` is not needed, since the
 tunnel creator can directly encrypt to an ElGamal hop's public key.
 
@@ -294,12 +301,12 @@ BuildRequestRecord Encryption for ECIES Hops
 // See record key KDF for key generation
   // Repeat for each ECIES hop record in the VTBM
   (ciphertext, mac) = ChaCha20-Poly1305(msg = unencrypted record, nonce = 0, AD = Sha256(hop's recordKey), key = hop's recordKey)
-  encryptedRecord = ciphertext \|\| MAC
+  encryptedRecord = ciphertext || MAC
 
   For subsequent records past the initial hop, pre-emptively decrypt for each preceding hop in the tunnel
 
   // If the preceding hop is ECIES:
-  nonce = one \+ zero-indexed order of record in the VariableTunnelBuildMessage
+  nonce = one + number of records + zero-indexed order of record in the VariableTunnelBuildMessage
   key = replyKey of preceding hop
   symCiphertext = ChaCha20(msg = encryptedRecord, nonce, key)
 
@@ -336,7 +343,7 @@ Ephemeral keys must be unique per ECIES hop, and per build record.
 
 // See reply key KDF for key generation
   // Encrypting an ECIES hop request record
-  AD = Sha256(hop static key \|\| hop Identity hash)
+  AD = Sha256(hop static key || hop Identity hash)
   (ciphertext, MAC) = ChaCha20-Poly1305(msg = BuildRequestRecord, nonce = 0, AD, key = hop's recordKey)
 
   // Encrypting an ElGamal hop request record
@@ -356,12 +363,12 @@ See [RFC-7539-S4]_ Security Considerations for more information.
   {% highlight lang='dataspec' %}
 
 // See reply key KDF for key generation
-  msg = reply byte \|\| build options \|\| random padding
+  msg = reply byte || build options || random padding
   (ciphertext, MAC) = ChaCha20-Poly1305(msg, nonce = 0, AD = Sha256(replyKey), key = replyKey)
 
   // Other request/reply record encryption
   // Use a unique nonce per-record
-  nonce = one \+ number of records \+ zero-indexed order of record in the VariableTunnelBuildMessage
+  nonce = one + number of records + zero-indexed order of record in the VariableTunnelBuildMessage
   symCiphertext = ChaCha20(msg = multiple encrypted record, nonce, key = replyKey)
 
 {% endhighlight %}
