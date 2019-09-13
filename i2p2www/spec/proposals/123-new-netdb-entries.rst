@@ -5,7 +5,7 @@ New netDB Entries
     :author: zzz, str4d, orignal
     :created: 2016-01-16
     :thread: http://zzz.i2p/topics/2051
-    :lastupdated: 2019-09-06
+    :lastupdated: 2019-09-13
     :status: Open
     :supercedes: 110, 120, 121, 122
 
@@ -1894,11 +1894,29 @@ Format
 Notes
 `````
 
-- Minimum router version is 0.9.42
+- Minimum router version is 0.9.43
 
 
 Issues
 ``````
+
+Host Reply Message (enc)
+------------------------
+
+To support lookups of "b33" hostnames and return an indication
+if the router does not have the required information, we define
+additional result codes for the Host Reply Message, as follows:
+
+::
+
+   2: Lookup password required
+   3: Private key required
+   4: Lookup password and private key required
+   5: Leaseset decryption failure
+
+Values 1-255 are already defined as errors, so there is no
+backwards-compatibility issue.
+
 
 
 
@@ -1929,12 +1947,12 @@ Changes
 Notes
 `````
 
-- Minimum router and client version is 0.9.42 for request type 3.
+- Minimum router and client version is TBD for request type 3.
 
 
 
-Host Reply Message
-------------------
+Host Reply Message (meta)
+-------------------------
 
 Router to client.
 
@@ -2002,7 +2020,7 @@ Changes
 Notes
 `````
 
-- Minimum router and client version is 0.9.42 for the extended results.
+- Minimum router and client version is TBD for the extended results.
 
 
 

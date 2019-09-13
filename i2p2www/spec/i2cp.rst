@@ -3,8 +3,8 @@ I2CP Specification
 ==================
 .. meta::
     :category: Protocols
-    :lastupdated: June 2019
-    :accuratefor: 0.9.41
+    :lastupdated: September 2019
+    :accuratefor: 0.9.43
 
 .. contents::
 
@@ -235,6 +235,9 @@ below.
 ==============  ======================
    Version      Required I2CP Features
 ==============  ======================
+   0.9.43       BlindingInfo message supported
+                Additional HostReply message failure codes
+
    0.9.41       EncryptedLeaseSet options
 
    0.9.39       CreateLeaseSet2 message supported
@@ -432,6 +435,7 @@ Message Types
             Message              Direction  Type  Since
 ===============================  =========  ====  =====
 BandwidthLimitsMessage_           R -> C     23   0.7.2
+BlindingInfoMessage_              C -> R     42   0.9.43
 CreateLeaseSetMessage_            C -> R      4
 CreateLeaseSet2Message_           C -> R     41   0.9.39
 CreateSessionMessage_             C -> R      1
@@ -484,6 +488,88 @@ Notes
 Currently, the client limits are the only values set, and are actually the
 router limits. All the values labeled as router limits are always 0.  As of
 release 0.7.2.
+
+
+.. _msg-BlindingInfo:
+
+BlindingInfoMessage
+----------------------
+
+Description
+```````````
+Advise the router that a Destination is blinded, with optional
+lookup password and optional private key for decryption.
+See proposals 123 and 149 for details.
+
+The router needs to know if a destination is blinded.
+If it is blinded and uses a secret or per-client authentication,
+it needs to have that information as well.
+
+A Host Lookup of a new-format b32 address ("b33")
+tells the router that the address is blinded, but there's no mechanism to
+pass the secret or private key to the router in the Host Lookup message.
+While we could extend the Host Lookup message to add that information,
+it's cleaner to define a new message.
+
+This message provides a programmatic way for the client to tell the router.
+Otherwise, the user would have to manually configure each destination.
+
+
+Usage
+`````
+
+Before a client sends a message to a blinded destination, it must either
+lookup the "b33" in a Host Lookup message, or send a Blinding Info message.
+If the blinded destination requires a secret or per-client authentication,
+the client must send a Blinding Info message.
+
+The router does not send a reply to this message.
+Sent from Client to Router.
+
+
+Contents
+````````
+1. `Session ID`_
+2. 1 byte [Integer]_ Flags
+   Bit order: 76543210
+   Bit 0: 0 for everybody, 1 for per-client
+   Bits 3-1: Authentication scheme, if bit 0 is set to 1 for per-client, otherwise 000
+             000: DH client authentication (or no per-client authentication)
+             001: PSK client authentication
+   Bit 4: 1 if secret required, 0 if no secret required
+   Bits 7-5: Unused, set to 0 for future compatibility
+3. 1 byte [Integer]_ Endpoint type
+   Type 0 is a [Hash]_
+   Type 1 is a hostname [String]_
+   Type 2 is a [Destination]_
+   Type 3 is a Sig Type and [SigningPublicKey]_
+4. 2 byte [Integer]_ Blinded Signature Type
+5. 4 byte [Integer]_ Expiration
+   Seconds since epoch
+6. Endpoint: Data as specified, one of
+   Type 0: 32 byte [Hash]_
+   Type 1: host name [String]_
+   Type 2: binary [Destination]_
+   Type 3: 2 byte [Integer]_ signature type
+           [SigningPublicKey]_ (length as implied by sig type)
+7. [PrivateKey]_ Decryption key
+   Only present if flag bit 0 is set to 1
+   A 32-byte ECIES_X25519 private key
+8. [String]_ Lookup Password
+   Only present if flag bit 4 is set to 1
+
+
+Notes
+`````
+* As of release 0.9.43.
+
+* The Hash endpoint type is probably not useful unless the router can do a reverse lookup in
+  the address book to get the Destination.
+
+* The hostname endpoint type is probably not useful unless the router can do a lookup in
+  the address book to get the Destination.
+
+
 
 .. _msg-CreateLeaseSet:
 
@@ -802,6 +888,12 @@ Contents
 1. `Session ID`_
 2. 4 byte [Integer]_ request ID
 3. 1 byte [Integer]_ result code
+   0: Success
+   1: Failure
+   2: Lookup password required (as of 0.9.43)
+   3: Private key required (as of 0.9.43)
+   4: Lookup password and private key required (as of 0.9.43)
+   5: Leaseset decryption failure (as of 0.9.43)
 4. [Destination]_, only present if result code is zero.
 
 Notes
@@ -810,8 +902,11 @@ Notes
 
 * The session ID and request ID are those from the HostLookupMessage_.
 
-* The result code is 0 for success, 1-255 for failure. Only 1 is used for
-  failure now, more specific failure codes may be defined in the future.
+* The result code is 0 for success, 1-255 for failure.
+  1 indicates a generic failure.
+  As of 0.9.43, the additional failure codes 2-5 were defined
+  to support extended errors for "b33" lookups.
+  See proposals 123 and 149 for additional information.
 
 .. _msg-MessagePayload:
 
