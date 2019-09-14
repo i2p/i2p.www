@@ -5,7 +5,7 @@ ECIES-X25519-AEAD-Ratchet
     :author: zzz, chisana
     :created: 2018-11-22
     :thread: http://zzz.i2p/topics/2639
-    :lastupdated: 2019-09-01
+    :lastupdated: 2019-09-14
     :status: Open
 
 .. contents::
@@ -300,6 +300,7 @@ Bound sessions
 ``````````````
 
 Similar to the Noise IK pattern, with an additional ephemeral key in the reply.
+TODO replace i with a tag?
 
 .. raw:: html
 
@@ -474,10 +475,21 @@ CSRNG(n)
 H(p, d)
     SHA-256 hash function that takes a personalization string p and data d, and
     produces an output of length 32 bytes.
+    As defined in [NOISE]_.
+    || below means append.
 
     Use SHA-256 as follows::
 
         H(p, d) := SHA-256(p || d)
+
+MixHash(d)
+    SHA-256 hash function that takes a previous hash h and new data d,
+    and produces an output of length 32 bytes.
+    || below means append.
+
+    Use SHA-256 as follows::
+
+        MixHash(d) := h = SHA-256(h || d)
 
 STREAM
     The ChaCha20/Poly1305 AEAD as specified in [RFC-7539]_.
@@ -528,6 +540,17 @@ HKDF(salt, ikm, info, n)
 
     Use HKDF as specified in [RFC-5869]_, using the HMAC hash function SHA-256
     as specified in [RFC-2104]_. This means that SALT_LEN is 32 bytes max.
+
+MixKey(d)
+    Use HKDF() with a previous chainKey and new data d, and
+    sets the new chainKey and k
+    As defined in [NOISE]_.
+
+    Use HKDF as follows::
+
+        MixKey(d) := output = HKDF(chainKey, d, "", 64)
+                     chainKey = output[0:31]
+                     k = output[32:63]
 
 
 Issues
@@ -621,9 +644,9 @@ The static key should be included if replies are expected,
 i.e. for streaming and repliable datagrams.
 It should not be included for raw datagrams.
 
-The new session message is similar to the one-way Noise [NOISE]_ patterns
-"N" (if the static key is not sent)
-or "X" (if the static key is sent).
+The new session message is similar to the one-way Noise [NOISE]_ pattern
+"N" (if the static key is not sent),
+or the two-way pattern "IK" (if the static key is sent).
 
 
 
@@ -827,6 +850,7 @@ contains the originator's 32-byte static key.
 It is always 48 bytes.
 When used without static key binding, the key is all zeroes.
 
+TODO don't need session ID?
 
 .. raw:: html
 
@@ -849,7 +873,7 @@ When used without static key binding, the key is all zeroes.
          bit order: 15 14 .. 3210
          bit 0: 1 if static key is to be used, 0 if not
          bit 1: 1 if session ID is to be used, 0 if not
-         bit 2: 0 for New Session message
+         bit 2: 0 for New Session message (1 for New Session Reply)
          bits 15-3: Unused, set to 0 for future compatibility
   unused :: 2 bytes, set to 0 for future compatibility
   tsA :: 4 bytes, seconds since epoch, big endian, rolls over in 2106
@@ -913,10 +937,6 @@ ACK Request Contents
 
 Delivery instructions for the ack.
 
-New Session ACK Contents
-~~~~~~~~~~~~~~~~~~~~~~~~
-
-- Bob's Destination hash. Alice uses to associate inbound session w/ existing outbound session
 
 
 Padding Contents
@@ -929,6 +949,38 @@ As desired.
 1f) KDFs for New Session Message
 --------------------------------
 
+KDF for Initial ChainKey
+````````````````````````
+
+This is standard [NOISE]_ for IK with a modified protocol name.
+Note that we use the same initializer for both the IK pattern (bound sessions)
+and for N pattern (unbound sessions).
+
+
+.. raw:: html
+
+  {% highlight lang='text' %}
+This is the "e" message pattern:
+
+  // Define protocol_name.
+  Set protocol_name = "Noise_IKelg2_25519_ChaChaPoly_SHA256"
+   (36 bytes, US-ASCII encoded, no NULL termination).
+
+  // Define Hash h = 32 bytes
+  h = SHA256(protocol_name);
+
+  Define ck = 32 byte chaining key. Copy the h data to ck.
+  Set chainKey = h
+
+  Define rs = Bob's 32-byte static key as published in the RouterInfo
+
+  // MixHash(null prologue)
+  h = SHA256(h);
+
+  // up until here, can all be precalculated by Alice for all outgoing connections
+
+{% endhighlight %}
+
 
 KDF for Flags/Static Key Section Encrypted Contents
 ```````````````````````````````````````````````````
@@ -936,32 +988,62 @@ KDF for Flags/Static Key Section Encrypted Contents
 .. raw:: html
 
   {% highlight lang='text' %}
-// Bob's X25519 static keys
+This is the "e" message pattern:
+
+  // Bob's X25519 static keys
   // bpk is published in leaseset
   bsk = GENERATE_PRIVATE()
   bpk = DERIVE_PUBLIC(bsk)
 
+  // Bob static public key
+  // MixHash(bpk)
+  // || below means append
+  h = SHA256(h || bpk);
+
+  // up until here, can all be precalculated by Bob for all incoming connections
+
   // Alice's X25519 ephemeral keys
-  ask = GENERATE_PRIVATE_ELG2()
-  apk = DERIVE_PUBLIC(ask)
+  aesk = GENERATE_PRIVATE_ELG2()
+  aepk = DERIVE_PUBLIC(aesk)
+
+  // Alice ephemeral public key
+  // MixHash(aepk)
+  // || below means append
+  h = SHA256(h || aepk);
+
+  // h is used as the associated data for the AEAD in the New Session Message
+  // Retain the Hash h for the New Session Reply KDF
   // eapk is sent in cleartext in the
   // beginning of the new session message
-  eapk = ENCODE_ELG2(apk)
+  elg2_aepk = ENCODE_ELG2(aepk)
   // As decoded by Bob
-  apk = DECODE_ELG2(eapk)
+  aepk = DECODE_ELG2(elg2_aepk)
 
-  INITIAL_ROOT_KEY = SHA256("144-ECIES-X25519-AEAD-Ratchet")
+  End of "e" message pattern.
+
+  This is the "es" message pattern:
 
   // Noise es
-  sharedSecret = DH(ask, bpk) = DH(bsk, apk)
+  sharedSecret = DH(aesk, bpk) = DH(bsk, aepk)
 
   // MixKey(DH())
+  //[chainKey, k] = MixKey(sharedSecret)
+  chainKey = HMAC-SHA256(sharedSecret, byte(0x01)).
+  k = HMAC-SHA256(temp_key, chainKey || byte(0x02)).
   // ChaChaPoly parameters to encrypt/decrypt
-  keydata = HKDF(INITIAL_ROOT_KEY, sharedSecret, "NewSessionTmpKey", 64)
+  keydata = HKDF(chainKey, sharedSecret, "", 64)
   chainKey = keydata[0:31]
+
+  // AEAD parameters
   k = keydata[32:64]
   n = 0
-  ad = SHA-256(eapk)
+  ad = h
+
+  // MixHash(ciphertext)
+  // Save for Payload section KDF
+  h = SHA256(h || 64 byte encrypted flags/static key section)
+
+  End of "es" message pattern.
 
 {% endhighlight %}
 
@@ -973,27 +1055,29 @@ KDF for Payload Section (with Alice static key)
 .. raw:: html
 
   {% highlight lang='text' %}
-// Bob's X25519 static keys
-  // bpk is published in leaseset
-  bsk = GENERATE_PRIVATE()
-  bpk = DERIVE_PUBLIC(bsk)
-
-  // Alice's X25519 static keys
-  ask = GENERATE_PRIVATE()
-  // apk was decrypted in Static Key Section
-  apk = DERIVE_PUBLIC(ask)
+This is the "ss" message pattern:
 
   // Noise ss
   sharedSecret = DH(ask, bpk) = DH(bsk, apk)
 
   // MixKey(DH())
+  //[chainKey, k] = MixKey(sharedSecret)
   // ChaChaPoly parameters to encrypt/decrypt
   // chainKey from Static Key Section
-  keydata = HKDF(chainKey, sharedSecret, "EphemeralPart2xx", 64)
+  Set sharedSecret = X25519 DH result
+  keydata = HKDF(chainKey, sharedSecret, "", 64)
   chainKey = keydata[0:31]
+
+  // AEAD parameters
   k = keydata[32:64]
   n = 0
-  ad = SHA-256(apk)
+  ad = h
+
+  // MixHash(ciphertext)
+  // Save for New Session Reply KDF
+  h = SHA256(h || encrypted payload section)
+
+  End of "ss" message pattern.
 
 {% endhighlight %}
 
@@ -1004,10 +1088,10 @@ KDF for Payload Section (without Alice static key)
 .. raw:: html
 
   {% highlight lang='text' %}
-chainKey = TODO
+chainKey = from Flags/Static key section
   k = from Flags/Static key section
   n = 1
-  ad = 64 bytes payload and MAC Flags/Static key section
+  ad = h from Flags/Static key section
 
 {% endhighlight %}
 
@@ -1015,6 +1099,8 @@ chainKey = TODO
 
 1g) New Session Reply format
 ----------------------------
+
+TODO replace i with a tag?
 
 Encrypted:
 
@@ -1075,6 +1161,7 @@ Ephemeral Key Section Decrypted data
 The Ephemeral Key section contains flags and a key.
 It is always 48 bytes.
 
+TODO don't need session ID?
 
 .. raw:: html
 
@@ -1097,7 +1184,7 @@ It is always 48 bytes.
          bit order: 15 14 .. 3210
          bit 0: 1 for ephemeral key is to be used
          bit 1: 1 for the session ID to be used
-         bit 2: 1 for New Session Reply
+         bit 2: 1 for New Session Reply (0 for New Session)
          bits 15-3: Unused, set to 0 for future compatibility
   unused :: 2 bytes, set to 0 for future compatibility
   tsB :: 4 bytes, seconds since epoch, big endian, rolls over in 2106
@@ -1167,6 +1254,10 @@ until the Ephemeral Key Section is decrypted.
   n = 0
   ad = SHA-256(ebpk)
 
+  // MixHash(ibpk)
+  h = SHA256(h || encrypted payload section)
+
+
 {% endhighlight %}
 
 
@@ -1187,12 +1278,12 @@ KDF for Payload Section Encrypted Contents
   // rapk was decrypted in original New Session Ephemeral Key Section
   rapk = DERIVE_PUBLIC(rask)
 
-  // MixKey(DH())
+  // Noise ee
+  // MixKey(sharedSecret)
   // ChaChaPoly parameters to encrypt/decrypt
   // chainKey from original New Session Payload Section
-  // Noise ee
   sharedSecret = DH(rask, rbpk) = DH(rbsk, rapk)
-  keydata = HKDF(chainKey, sharedSecret, "EphemeralBinding", 32)
+  keydata = HKDF(chainKey, sharedSecret, "", 32)
   chainKey = keydata[0:31]
 
   // Alice's X25519 static keys from original New Session Message
@@ -1201,12 +1292,16 @@ KDF for Payload Section Encrypted Contents
   apk = DERIVE_PUBLIC(ask)
 
   // Noise se
+  // MixKey(sharedSecret)
   sharedSecret = DH(ask, rbpk) = DH(rbsk, apk)
-  keydata = HKDF(chainKey, sharedSecret, "Part3OneTimeKeys", 64)
+  keydata = HKDF(chainKey, sharedSecret, "", 64)
   chainKey = keydata[0:31]
   k = keydata[32:64]
   n = 0
   ad = SHA-256(rbpk)
+
+  // MixHash()
+  h = SHA256(h || encrypted payload section)
 
 {% endhighlight %}
 
@@ -1906,10 +2001,9 @@ Other allowed blocks:
 - Padding (type 254)
 
 In the new session reply message,
-the following blocks are required, in the following order:
+the following blocks are required:
 
 - Options (type 5)
-- New Session Ack (type 10)
 
 Other allowed blocks:
 
