@@ -2,8 +2,8 @@
 Configuration File Specification
 ================================
 .. meta::
-    :lastupdated: March 2019
-    :accuratefor: 0.9.39
+    :lastupdated: September 2019
+    :accuratefor: 0.9.43
 
 .. contents::
 
@@ -63,6 +63,10 @@ Clients (clients.config)
 ------------------------
 
 Configured via /configclients in the router console.
+As of release 0.9.42, the default clients.config file is split into
+individual configuration files for each client in the clients.config.d directory.
+After being split, the properties in the individual files are prefixed
+with "clientApp.0.".
 
 The format is as follows:
 
@@ -172,10 +176,11 @@ Properties are as follows::
     logger.minimumOnScreenLevel=CRIT|ERROR|WARN|INFO|DEBUG
     logger.record.{class}=CRIT|ERROR|WARN|INFO|DEBUG
 
-Individual Plugin (xxx/plugin.config)
--------------------------------------
+Individual Plugin (plugins/*/plugin.config)
+-------------------------------------------
 
 See the plugin specification [PLUGIN]_.
+Note that plugins may also contain clients.config, i2ptunnel.config, and webapps.config files.
 
 Plugins (plugins.config)
 ------------------------
@@ -210,15 +215,27 @@ Addressbook (addressbook/config.txt)
 
 See documentation in SusiDNS.
 
-I2PSnark (i2psnark.config)
---------------------------
+I2PSnark (i2psnark.config.d/i2psnark.config)
+--------------------------------------------
 
 Configured via the application gui.
+
+
+Individual i2psnark (i2psnark.config.d/*/*.config)
+--------------------------------------------------
+
+The configuration for an individual torrent.
+Configured via the application gui.
+
 
 I2PTunnel (i2ptunnel.config)
 ----------------------------
 
 Configured via the /i2ptunnel application in the router console.
+As of release 0.9.42, the default i2ptunnel.config file is split into
+individual configuration files for each tunnel in the i2ptunnel.config.d directory.
+After being split, the properties in the individual files are NOT prefixed
+with "tunnel.N.".
 
 Properties are as follows::
 
