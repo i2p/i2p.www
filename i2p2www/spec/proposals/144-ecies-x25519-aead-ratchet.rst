@@ -5,7 +5,7 @@ ECIES-X25519-AEAD-Ratchet
     :author: zzz, chisana
     :created: 2018-11-22
     :thread: http://zzz.i2p/topics/2639
-    :lastupdated: 2019-09-14
+    :lastupdated: 2019-09-18
     :status: Open
 
 .. contents::
@@ -269,23 +269,68 @@ Crypto type 0 is ElGamal.
 Crypto types 1-3 are reserved for ECIES-ECDH-AES-SessionTag, see proposal 145.
 
 
+Noise Protocol Framework
+------------------------
+
+This proposal provides the requirements based on the Noise Protocol Framework
+[NOISE]_ (Revision 34, 2018-07-11).
+Noise has similar properties to the Station-To-Station protocol
+[STS]_, which is the basis for the [SSU]_ protocol.  In Noise parlance, Alice
+is the initiator, and Bob is the responder.
+
+This proposal is based on the Noise protocol Noise_IK_25519_ChaChaPoly_SHA256.
+(The actual identifier for the initial key derivation function
+is "Noise_IKelg2_25519_ChaChaPoly_SHA256"
+to indicate I2P extensions - see KDF 1 section below)
+This Noise protocol uses the following primitives:
+
+- Interactive Handshake Pattern: IK
+  Alice immediately transmits her static key to Bob (I)
+  Alice knows Bob's static key already (K)
+
+- One-Way Handshake Pattern: N
+  Alice does not transmit her static key to Bob (N)
+
+- DH Function: X25519
+  X25519 DH with a key length of 32 bytes as specified in [RFC-7748]_.
+
+- Cipher Function: ChaChaPoly
+  AEAD_CHACHA20_POLY1305 as specified in [RFC-7539]_ section 2.8.
+  12 byte nonce, with the first 4 bytes set to zero.
+  Identical to that in [NTCP2]_.
+
+- Hash Function: SHA256
+  Standard 32-byte hash, already used extensively in I2P.
+
+
+Additions to the Framework
+``````````````````````````
+
+This proposal defines the following enhancements to
+Noise_XK_25519_ChaChaPoly_SHA256.  These generally follow the guidelines in
+[NOISE]_ section 13.
+
+1) Cleartext ephemeral keys are encoded with [Elligator2]_.ion using a known
+
+2) The reply is prefixed with a cleartext tag.
+
+3) The payload format is defined for messages 1, 2, and the data phase.
+   Of course, this is not defined in Noise.
+
+
 
 Handshake Patterns
 ------------------
 
-Handshakes similar to Noise handshake patterns: https://noiseprotocol.org/noise.html#handshake-patterns
+Handshakes are to [Noise]_ handshake patterns.
 
 The following letter mapping is used:
 
-- i = one-time ephemeral key
 - e = one-time ephemeral key
 - s = static key
 - p = message payload
 
-One-time and Unbound sessions
-`````````````````````````````
-
-Similar to the Noise N pattern.
+One-time and Unbound sessions are similar to the Noise N pattern.
 
 .. raw:: html
 
@@ -296,19 +341,15 @@ Similar to the Noise N pattern.
 
 {% endhighlight %}
 
-Bound sessions
-``````````````
-
-Similar to the Noise IK pattern, with an additional ephemeral key in the reply.
-TODO replace i with a tag?
+Bound sessions are similar to the Noise IK pattern.
 
 .. raw:: html
 
   {% highlight lang='dataspec' %}
 <- s
   ...
-  e es s ss p ->
-  <- i si e ee se p
+  e es p s ss p ->
+  <- tag e ee se p
 
 {% endhighlight %}
 
@@ -663,7 +704,7 @@ Encrypted:
   +                                       +
   |   New Session Ephemeral Public Key    |
   +             32 bytes                  +
-  |                                       |
+  |     Encoded with Elligator2           |
   +                                       +
   |                                       |
   +----+----+----+----+----+----+----+----+
@@ -707,6 +748,9 @@ Encrypted:
 1c) New session format (without binding)
 ----------------------------------------
 
+If no reply is required, no static key is sent.
+
+
 Encrypted:
 
 .. raw:: html
@@ -716,8 +760,8 @@ Encrypted:
   |                                       |
   +                                       +
   |   New Session Ephemeral Public Key    |
-  +                                       +
-  |                                       |
+  +             32 bytes                  +
+  |     Encoded with Elligator2           |
   +                                       +
   |                                       |
   +----+----+----+----+----+----+----+----+
@@ -770,7 +814,7 @@ The payload section must contain an ACK Request block.
 -------------------------------------------
 
 If only a single message is expected to be sent,
-no session setup or ephemeral key is required.
+no session setup or static key is required.
 
 
 Encrypted:
@@ -782,8 +826,8 @@ Encrypted:
   |                                       |
   +                                       +
   |       Ephemeral Public Key            |
-  +                                       +
-  |                                       |
+  +             32 bytes                  +
+  |     Encoded with Elligator2           |
   +                                       +
   |                                       |
   +----+----+----+----+----+----+----+----+
@@ -902,7 +946,7 @@ Typical contents include the following blocks:
 ==================================  ============= ============
        Payload Block Type            Type Number  Block Length
 ==================================  ============= ============
-I2NP Message                              3         varies    
+Garlic Message                            3         varies    
 Options                                   5            9      
 Next Key                                  7           37      
 ACK Request                               9         varies    
@@ -910,10 +954,10 @@ Padding                                 254         varies
 ==================================  ============= ============
 
 
-I2NP Message Contents
+Garlic Message Contents
 ~~~~~~~~~~~~~~~~~~~~~
 
-The I2NP message sent.
+The decrypted Garlic Message as specified in [I2NP]_.
 
 
 Options Contents
@@ -971,8 +1015,6 @@ This is the "e" message pattern:
 
   Define ck = 32 byte chaining key. Copy the h data to ck.
   Set chainKey = h
-
-  Define rs = Bob's 32-byte static key as published in the RouterInfo
 
   // MixHash(null prologue)
   h = SHA256(h);
@@ -1039,11 +1081,20 @@ This is the "e" message pattern:
   n = 0
   ad = h
 
+  End of "es" message pattern.
+
+  This is the "s" message pattern:
+
   // MixHash(ciphertext)
   // Save for Payload section KDF
   h = SHA256(h || 64 byte encrypted flags/static key section)
 
-  End of "es" message pattern.
+  // Alice's X25519 static keys
+  ask = GENERATE_PRIVATE()
+  apk = DERIVE_PUBLIC(ask)
+
+  End of "s" message pattern.
+
 
 {% endhighlight %}
 
@@ -1073,17 +1124,23 @@ This is the "ss" message pattern:
   n = 0
   ad = h
 
+  End of "ss" message pattern.
+
   // MixHash(ciphertext)
   // Save for New Session Reply KDF
   h = SHA256(h || encrypted payload section)
 
-  End of "ss" message pattern.
+  TODO tag = HKDF(...)
 
 {% endhighlight %}
 
 
 KDF for Payload Section (without Alice static key)
 ``````````````````````````````````````````````````
+
+Note that this is a Noise "N" pattern, but we use the same "IK" initializer
+as for bound sessions.
+
 
 .. raw:: html
 
@@ -1100,35 +1157,21 @@ chainKey = from Flags/Static key section
 1g) New Session Reply format
 ----------------------------
 
-TODO replace i with a tag?
-
 Encrypted:
 
 .. raw:: html
 
   {% highlight lang='dataspec' %}
 +----+----+----+----+----+----+----+----+
-  |                                       |
-  +                                       +
-  |   New Session Ephemeral Public Key    |
-  +                                       +
-  |                                       |
-  +                                       +
-  |                                       |
+  |       Session Tag   8 bytes           |
   +----+----+----+----+----+----+----+----+
   |                                       |
-  +        Ephemeral Key Section          +
-  |       ChaCha20 encrypted data         |
-  +            48 bytes                   +
+  +        Ephemeral Public Key           +
   |                                       |
+  +            32 bytes                   +
+  |     Encoded with Elligator2           |
   +                                       +
   |                                       |
-  +                                       +
-  |                                       |
-  +----+----+----+----+----+----+----+----+
-  |  Poly1305 Message Authentication Code |
-  +         (MAC) for above section       +
-  |             16 bytes                  |
   +----+----+----+----+----+----+----+----+
   |                                       |
   +            Payload Section            +
@@ -1143,9 +1186,11 @@ Encrypted:
   |             16 bytes                  |
   +----+----+----+----+----+----+----+----+
 
+  Tag :: 8 bytes, cleartext
+
   Public Key :: 32 bytes, little endian, Elligator2, cleartext
 
-  Ephemeral Key Section encrypted data :: 48 bytes
+  Ephemeral Key Section encrypted data :: 32 bytes
 
   Payload Section encrypted data :: remaining data minus 16 bytes
 
@@ -1153,50 +1198,10 @@ Encrypted:
 
 {% endhighlight %}
 
-Decrypted:
-
-Ephemeral Key Section Decrypted data
-````````````````````````````````````
-
-The Ephemeral Key section contains flags and a key.
-It is always 48 bytes.
-
-TODO don't need session ID?
-
-.. raw:: html
-
-  {% highlight lang='dataspec' %}
-+----+----+----+----+----+----+----+----+
-  |  flags  | unused  |       tsB         |
-  +----+----+----+----+----+----+----+----+
-  |             Session ID                |
-  +----+----+----+----+----+----+----+----+
-  |                                       |
-  +           Ephemeral Key               +
-  |              32 bytes                 |
-  +                                       +
-  |                                       |
-  +                                       +
-  |                                       |
-  +----+----+----+----+----+----+----+----+
-
-  flags :: 2 bytes
-         bit order: 15 14 .. 3210
-         bit 0: 1 for ephemeral key is to be used
-         bit 1: 1 for the session ID to be used
-         bit 2: 1 for New Session Reply (0 for New Session)
-         bits 15-3: Unused, set to 0 for future compatibility
-  unused :: 2 bytes, set to 0 for future compatibility
-  tsB :: 4 bytes, seconds since epoch, big endian, rolls over in 2106
-  sessionID :: session ID, 8 bytes.
-         Uniquely identifies the session request this is a reply for.
-  key :: the originator's ephemeral key, 32 bytes.
-
-{% endhighlight %}
-
-Alice must implement a Bloom filter or other mechanism to prevent replay attacks,
-using the date in the ephemeral key section. Specification TBD.
-
+Notes
+`````
+The tag is generated in the New Session payload KDF.
+This correlates the reply to the session.
 
 
 Payload
@@ -1215,83 +1220,52 @@ Optional blocks can have multiple I2NP blocks, but only a single padding block.
 If present, the padding block must be the final block.
 
 
-KDF for Ephemeral Key Section Encrypted Contents
+KDF for Payload Section Encrypted Contents
 ````````````````````````````````````````````````
 
-Same as Static Key Section in the New Session Message.
-Needs to be the same, because Alice will not know this is a reply
-until the Ephemeral Key Section is decrypted.
-
 .. raw:: html
 
   {% highlight lang='text' %}
-// Alice's X25519 static keys
-  // apk is sent in original New Session message
-  ask = GENERATE_PRIVATE()
-  apk = DERIVE_PUBLIC(ask)
+// Keys from the New Session message
+  // Alice's X25519 keys
+  // apk and aepk are sent in original New Session message
+  // ask = Alice private static key
+  // apk = Alice public static key
+  // aesk = Alice ephemeral private key
+  // aepk = Alice ephemeral public key
+  // Bob's X25519 static keys
+  // bsk = Bob private static key
+  // bpk = Bob public static key
 
-  // Bob's X25519 one-time-use ephemeral keys
-  ibsk = GENERATE_PRIVATE_ELG2()
-  ibpk = DERIVE_PUBLIC(ibsk)
-  // ebpk is sent in cleartext in the
+  // MixHash(tag)
+  h = SHA256(h || tag)
+
+  This is the "e" message pattern:
+
+  // Bob's X25519 ephemeral keys
+  besk = GENERATE_PRIVATE_ELG2()
+  bepk = DERIVE_PUBLIC(besk)
+  // elg2_bepk is sent in cleartext in the
   // beginning of the new session message
-  ebpk = ENCODE_ELG2(ibpk)
+  elg2_bepk = ENCODE_ELG2(bepk)
   // As decoded by Bob
-  ibpk = DECODE_ELG2(ebpk)
+  ibpk = DECODE_ELG2(elg2_bepk)
 
-  // Must be the same as the original New Session message
-  // Alice doesn't know it's a reply yet
-  INITIAL_ROOT_KEY = SHA256("144-ECIES-X25519-AEAD-Ratchet")
+  End of "e" message pattern.
 
-  // Noise-like si
-  sharedSecret = DH(ask, ibpk) = DH(ibsk, apk)
+  This is the "ee" message pattern:
 
-  // MixKey(DH())
-  // ChaChaPoly parameters to encrypt/decrypt
-  keydata = HKDF(INITIAL_ROOT_KEY, sharedSecret, "NewSessionTmpKey", 64)
-  chainKey = keydata[0:31]
-  k = keydata[32:64]
-  n = 0
-  ad = SHA-256(ebpk)
-
-  // MixHash(ibpk)
-  h = SHA256(h || encrypted payload section)
-
-
-{% endhighlight %}
-
-
-
-KDF for Payload Section Encrypted Contents
-``````````````````````````````````````````
-
-.. raw:: html
-
-  {% highlight lang='text' %}
-// Bob's X25519 ephemeral keys generated for the Ephemeral Key Section
-  rbsk = GENERATE_PRIVATE()
-  // rbpk decrypted by Alice in Ephemeral Key Section
-  rbpk = DERIVE_PUBLIC(rbsk)
-
-  // Alice's X25519 ephemeral keys from original New Session Message
-  rask = GENERATE_PRIVATE()
-  // rapk was decrypted in original New Session Ephemeral Key Section
-  rapk = DERIVE_PUBLIC(rask)
-
-  // Noise ee
   // MixKey(sharedSecret)
   // ChaChaPoly parameters to encrypt/decrypt
   // chainKey from original New Session Payload Section
-  sharedSecret = DH(rask, rbpk) = DH(rbsk, rapk)
+  sharedSecret = DH(aesk, bepk) = DH(besk, bepk)
   keydata = HKDF(chainKey, sharedSecret, "", 32)
   chainKey = keydata[0:31]
 
-  // Alice's X25519 static keys from original New Session Message
-  ask = GENERATE_PRIVATE()
-  // apk was decrypted in original New Session Static Key Section
-  apk = DERIVE_PUBLIC(ask)
+  End of "ee" message pattern.
 
-  // Noise se
+  This is the "se" message pattern:
+
   // MixKey(sharedSecret)
   sharedSecret = DH(ask, rbpk) = DH(rbsk, apk)
   keydata = HKDF(chainKey, sharedSecret, "", 64)
@@ -1300,8 +1274,12 @@ KDF for Payload Section Encrypted Contents
   n = 0
   ad = SHA-256(rbpk)
 
+  End of "se" message pattern.
+
   // MixHash()
   h = SHA256(h || encrypted payload section)
+
+  chainKey is used in the ratchet below.
 
 {% endhighlight %}
 
@@ -1964,7 +1942,7 @@ so the max unencrypted data is 65519 bytes.
 
   blk :: 1 byte
          0-2 reserved
-         3 I2NP message (Garlic Message only)
+         3 Garlic Message
          4 termination
          5 options
          6 message number and previous message number (ratchet)
@@ -1997,7 +1975,7 @@ the following blocks are required, in the following order:
 
 Other allowed blocks:
 
-- I2NP message (type 3)
+- Garlic message (type 3)
 - Padding (type 254)
 
 In the new session reply message,
@@ -2007,7 +1985,7 @@ the following blocks are required:
 
 Other allowed blocks:
 
-- I2NP message (type 3)
+- Garlic message (type 3)
 - Padding (type 254)
 
 No other blocks are allowed.
@@ -2026,11 +2004,11 @@ a single frame, but it is not prohibited.
 
 
 
-I2NP Message
+Garlic Message
 ````````````
 
-An single I2NP message with a modified header.
-I2NP messages may not be fragmented across blocks or
+A single decrypted Garlic Message as specified in [I2NP]_.
+Garlic messages may not be fragmented across blocks or
 across ChaChaPoly frames.
 
 This uses the first 9 bytes from the standard NTCP I2NP header,
@@ -2056,11 +2034,11 @@ and remove the one-byte SHA256 checksum.
   blk :: 3
   size :: 2 bytes, big endian, size of type + msg id + exp + message to follow
           I2NP message body size is (size - 9).
-  type :: 1 byte, I2NP msg type, see I2NP spec
+  type :: 1 byte, I2NP msg type (11 for Garlic Message)
   msg id :: 4 bytes, big endian, I2NP message ID
   short exp :: 4 bytes, big endian, I2NP message expiration, Unix timestamp, unsigned seconds.
                Wraps around in 2106
-  message :: I2NP message body
+  message :: Decrypted Garlic Message body
 
 {% endhighlight %}
 
@@ -3162,6 +3140,12 @@ References
     https://elligator.cr.yp.to/elligator-20130828.pdf
     https://www.imperialviolet.org/2013/12/25/elligator.html
     See also OBFS4 code
+
+.. [I2NP]
+    {{ spec_url('i2np') }}
+
+.. [NTCP2]
+    {{ spec_url('ntcp2') }}
 
 .. [NOISE]
     http://noiseprotocol.org/noise.html
