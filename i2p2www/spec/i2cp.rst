@@ -531,27 +531,33 @@ Contents
 ````````
 1. `Session ID`_
 2. 1 byte [Integer]_ Flags
-   Bit order: 76543210
-   Bit 0: 0 for everybody, 1 for per-client
-   Bits 3-1: Authentication scheme, if bit 0 is set to 1 for per-client, otherwise 000
-             000: DH client authentication (or no per-client authentication)
-             001: PSK client authentication
-   Bit 4: 1 if secret required, 0 if no secret required
-   Bits 7-5: Unused, set to 0 for future compatibility
+
+  - Bit order: 76543210
+  - Bit 0: 0 for everybody, 1 for per-client
+  - Bits 3-1: Authentication scheme, if bit 0 is set to 1 for per-client, otherwise 000
+              000: DH client authentication (or no per-client authentication)
+              001: PSK client authentication
+  - Bit 4: 1 if secret required, 0 if no secret required
+  - Bits 7-5: Unused, set to 0 for future compatibility
+
 3. 1 byte [Integer]_ Endpoint type
-   Type 0 is a [Hash]_
-   Type 1 is a hostname [String]_
-   Type 2 is a [Destination]_
-   Type 3 is a Sig Type and [SigningPublicKey]_
+
+  - Type 0 is a [Hash]_
+  - Type 1 is a hostname [String]_
+  - Type 2 is a [Destination]_
+  - Type 3 is a Sig Type and [SigningPublicKey]_
+
 4. 2 byte [Integer]_ Blinded Signature Type
 5. 4 byte [Integer]_ Expiration
    Seconds since epoch
 6. Endpoint: Data as specified, one of
-   Type 0: 32 byte [Hash]_
-   Type 1: host name [String]_
-   Type 2: binary [Destination]_
-   Type 3: 2 byte [Integer]_ signature type
-           [SigningPublicKey]_ (length as implied by sig type)
+
+  - Type 0: 32 byte [Hash]_
+  - Type 1: host name [String]_
+  - Type 2: binary [Destination]_
+  - Type 3: 2 byte [Integer]_ signature type, followed by
+            [SigningPublicKey]_ (length as implied by sig type)
+
 7. [PrivateKey]_ Decryption key
    Only present if flag bit 0 is set to 1
    A 32-byte ECIES_X25519 private key
@@ -629,18 +635,21 @@ Contents
 ````````
 1. `Session ID`_
 2. One byte type of lease set to follow.
-   Type 1 is a [LeaseSet]_
-   Type 3 is a [LeaseSet2]_
-   Type 5 is a [EncryptedLeaseSet]_
-   Type 7 is a [MetaLeaseSet]_
+
+  - Type 1 is a [LeaseSet]_
+  - Type 3 is a [LeaseSet2]_
+  - Type 5 is a [EncryptedLeaseSet]_
+  - Type 7 is a [MetaLeaseSet]_
+
 3. [LeaseSet]_ or [LeaseSet2]_ or [EncryptedLeaseSet]_ or [MetaLeaseSet]_
 4. One byte number of private keys to follow.
 5. [PrivateKey]_ list.
    One for each public key in the lease set, in the same order.
    (Not present for Meta LS2)
-   - Encryption type (2 byte [Integer]_)
-   - Encryption key length (2 byte [Integer]_)
-   - Encryption [PrivateKey]_ (number of bytes specified)
+
+  - Encryption type (2 byte [Integer]_)
+  - Encryption key length (2 byte [Integer]_)
+  - Encryption [PrivateKey]_ (number of bytes specified)
 
 Notes
 `````
@@ -888,12 +897,14 @@ Contents
 1. `Session ID`_
 2. 4 byte [Integer]_ request ID
 3. 1 byte [Integer]_ result code
-   0: Success
-   1: Failure
-   2: Lookup password required (as of 0.9.43)
-   3: Private key required (as of 0.9.43)
-   4: Lookup password and private key required (as of 0.9.43)
-   5: Leaseset decryption failure (as of 0.9.43)
+
+  - 0: Success
+  - 1: Failure
+  - 2: Lookup password required (as of 0.9.43)
+  - 3: Private key required (as of 0.9.43)
+  - 4: Lookup password and private key required (as of 0.9.43)
+  - 5: Leaseset decryption failure (as of 0.9.43)
+
 4. [Destination]_, only present if result code is zero.
 
 Notes
