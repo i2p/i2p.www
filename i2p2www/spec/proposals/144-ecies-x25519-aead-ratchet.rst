@@ -5,7 +5,7 @@ ECIES-X25519-AEAD-Ratchet
     :author: zzz, chisana
     :created: 2018-11-22
     :thread: http://zzz.i2p/topics/2639
-    :lastupdated: 2019-09-18
+    :lastupdated: 2019-09-19
     :status: Open
 
 .. contents::
@@ -25,10 +25,10 @@ It relies on previous work as follows:
 - http://zzz.i2p/topics/1768 new asymmetric crypto overview
 - Low-level crypto overview https://geti2p.net/spec/cryptography
 - ECIES http://zzz.i2p/topics/2418
-- 111 NTCP2
+- [NTCP2]_ [Prop111]_
 - 123 New netDB Entries
 - 142 New Crypto Template
-- Signal double ratchet algorithm https://signal.org/docs/specifications/doubleratchet/
+- [Signal]_ double ratchet algorithm
 
 The goal is to support new encryption for end-to-end,
 destination-to-destination communication.
@@ -81,7 +81,7 @@ As a review, we use ElGamal for:
 
 1) Tunnel Build messages (key is in RouterIdentity)
    Replacement is not covered in this proposal.
-   No proposal yet.
+   See proposal 152.
 
 2) Router-to-router encryption of netdb and other I2NP msgs (Key is in RouterIdentity)
    Depends on this proposal.
@@ -250,7 +250,7 @@ which are not required for current I2P protocols:
 - ECIES (but this is essentially X25519)
 - Elligator2
 
-Existing I2P router implementations that have not yet implemented NTCP2 (Proposal 111)
+Existing I2P router implementations that have not yet implemented [NTCP2]_ ([Prop111]_)
 will also require implementations for:
 
 - X25519 key generation and DH
@@ -584,7 +584,7 @@ HKDF(salt, ikm, info, n)
 
 MixKey(d)
     Use HKDF() with a previous chainKey and new data d, and
-    sets the new chainKey and k
+    sets the new chainKey and k.
     As defined in [NOISE]_.
 
     Use HKDF as follows::
@@ -709,9 +709,9 @@ Encrypted:
   |                                       |
   +----+----+----+----+----+----+----+----+
   |                                       |
-  +         Static Key Section            +
+  +         Static Key                    +
   |       ChaCha20 encrypted data         |
-  +            48 bytes                   +
+  +            32 bytes                   +
   |                                       |
   +                                       +
   |                                       |
@@ -735,7 +735,7 @@ Encrypted:
 
   Public Key :: 32 bytes, little endian, Elligator2, cleartext
 
-  Static Key Section encrypted data :: 48 bytes
+  Static Key encrypted data :: 32 bytes
 
   Payload Section encrypted data :: remaining data minus 16 bytes
 
@@ -768,9 +768,7 @@ Encrypted:
   |                                       |
   +           Flags Section               +
   |       ChaCha20 encrypted data         |
-  +            48 bytes                   +
-  |                                       |
-  +                                       +
+  +            32 bytes                   +
   |                                       |
   +                                       +
   |                                       |
@@ -794,7 +792,7 @@ Encrypted:
 
   Public Key :: 32 bytes, little endian, Elligator2, cleartext
 
-  Flags Section encrypted data :: 48 bytes
+  Flags Section encrypted data :: 32 bytes
 
   Payload Section encrypted data :: remaining data minus 16 bytes
 
@@ -834,9 +832,7 @@ Encrypted:
   |                                       |
   +           Flags Section               +
   |       ChaCha20 encrypted data         |
-  +            48 bytes                   +
-  |                                       |
-  +                                       +
+  +            32 bytes                   +
   |                                       |
   +                                       +
   |                                       |
@@ -860,7 +856,7 @@ Encrypted:
 
   Public Key :: 32 bytes, little endian, Elligator2, cleartext
 
-  Flags Section encrypted data :: 48 bytes
+  Flags Section encrypted data :: 32 bytes
 
   Payload Section encrypted data :: remaining data minus 16 bytes
 
@@ -886,13 +882,15 @@ This key is never reused; a new key is generated with
 each message, including retransmissions.
 
 
-Flags/Static Key Section Decrypted data
-```````````````````````````````````````
+Flags Key Section Decrypted data
+````````````````````````````````
 
-The Ephemeral Key section contains flags and optionally
-contains the originator's 32-byte static key.
-It is always 48 bytes.
-When used without static key binding, the key is all zeroes.
+The Flags section contains a session ID.
+It is always 32 bytes, because it must be the same length
+as the static key for new session messages with binding.
+Bob determines whether it's a static key or a flags section
+by testing if the last 24 bytes are all zeros.
+
 
 TODO don't need session ID?
 
@@ -900,37 +898,20 @@ TODO don't need session ID?
 
   {% highlight lang='dataspec' %}
 +----+----+----+----+----+----+----+----+
-  |  flags  | unused  |       tsA         |
-  +----+----+----+----+----+----+----+----+
   |             Session ID                |
   +----+----+----+----+----+----+----+----+
   |                                       |
-  +             Static Key                +
-  |              32 bytes                 |
-  +                                       +
-  |                                       |
+  +             All zeros                 +
+  |              24 bytes                 |
   +                                       +
   |                                       |
   +----+----+----+----+----+----+----+----+
 
-  flags :: 2 bytes
-         bit order: 15 14 .. 3210
-         bit 0: 1 if static key is to be used, 0 if not
-         bit 1: 1 if session ID is to be used, 0 if not
-         bit 2: 0 for New Session message (1 for New Session Reply)
-         bits 15-3: Unused, set to 0 for future compatibility
-  unused :: 2 bytes, set to 0 for future compatibility
-  tsA :: 4 bytes, seconds since epoch, big endian, rolls over in 2106
   sessionID :: session/ephemeral key ID, 8 bytes.
-         Uniquely identifies the ephemeral key being used,
-         to process New Session Reply messages.
-  key :: the originator's static key, 32 bytes.
-         All zeros if flags bit 0 is not set
+         Uniquely identifies the session.
+  zeros:: All zeros, 24 bytes.
 
 {% endhighlight %}
-
-Bob must implement a Bloom filter or other mechanism to prevent replay attacks,
-using the date in the ephemeral key section. Specification TBD.
 
 
 
@@ -946,6 +927,7 @@ Typical contents include the following blocks:
 ==================================  ============= ============
        Payload Block Type            Type Number  Block Length
 ==================================  ============= ============
+DateTime                                  0            7      
 Garlic Message                            3         varies    
 Options                                   5            9      
 Next Key                                  7           37      
@@ -954,8 +936,19 @@ Padding                                 254         varies
 ==================================  ============= ============
 
 
+DateTime Message Contents
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The current time.
+Bob must validate that the message is recent, using this timestamp.
+Bob must implement a Bloom filter or other mechanism to prevent replay attacks,
+if the time is valid.
+Specification TBD.
+
+
+
 Garlic Message Contents
-~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~
 
 The decrypted Garlic Message as specified in [I2NP]_.
 
@@ -1173,6 +1166,10 @@ Encrypted:
   +                                       +
   |                                       |
   +----+----+----+----+----+----+----+----+
+  |  Poly1305 Message Authentication Code |
+  +         (MAC) for Key Section         +
+  |             16 bytes                  |
+  +----+----+----+----+----+----+----+----+
   |                                       |
   +            Payload Section            +
   |       ChaCha20 encrypted data         |
@@ -1190,7 +1187,7 @@ Encrypted:
 
   Public Key :: 32 bytes, little endian, Elligator2, cleartext
 
-  Ephemeral Key Section encrypted data :: 32 bytes
+  MAC :: Poly1305 message authentication code, 16 bytes
 
   Payload Section encrypted data :: remaining data minus 16 bytes
 
@@ -1221,6 +1218,7 @@ If present, the padding block must be the final block.
 
 
 KDF for Payload Section Encrypted Contents
+KDF for Ephemeral Key Section Encrypted Contents
 ````````````````````````````````````````````````
 
 .. raw:: html
@@ -1387,7 +1385,7 @@ Format
 Justification
 `````````````
 
-Used in NTCP2.
+Used in [NTCP2]_.
 
 
 
@@ -1407,7 +1405,7 @@ In standard Noise handshakes, the initial handshake messages in each direction s
 ephemeral keys that are transmitted in cleartext.
 As valid X25519 keys are distinguishable from random, a man-in-the-middle may distinguish
 these messages from Existing Session messages that start with random session tags.
-In NTCP2 [Prop111]_, we used a low-overhead XOR function using the out-of-band static key to obfuscate
+In [NTCP2]_ ([Prop111]_), we used a low-overhead XOR function using the out-of-band static key to obfuscate
 the key. However, the threat model here is different; we do not want to allow any MitM to
 use any means to confirm the destination of the traffic, or to distinguish
 the initial handshake messages from Existing Session messages.
@@ -1441,7 +1439,7 @@ This overhead may be managed by doing key generation in advance,
 in a separate thread, to keep a pool of suitable keys.
 
 Additionally, the unsuitable keys may be added to the pool of keys
-used for NTCP2, where Elligator2 is not used.
+used for [NTCP2]_, where Elligator2 is not used.
 The security issues of doing so is TBD.
 
 
@@ -1450,7 +1448,7 @@ The security issues of doing so is TBD.
 3) AEAD (ChaChaPoly)
 --------------------
 
-AEAD using ChaCha20 and Poly1305, same as in NTCP2.
+AEAD using ChaCha20 and Poly1305, same as in [NTCP2]_.
 
 
 New Session Inputs
@@ -1559,7 +1557,7 @@ No response is returned.
 Justification
 `````````````
 
-Used in NTCP2.
+Used in [NTCP2]_.
 
 
 Notes
@@ -1677,7 +1675,7 @@ resulting CipherState to create independent symmetric and tag chain keys for inb
 
 
 Issues
-``````
+~~~~~~
 
 
 KDF
@@ -1750,7 +1748,7 @@ Inputs:
 
 
 Notes
-`````
+~~~~~
 
 Bob may choose to rekey his ephemeral keys on receiving a Next DH Key block from Alice,
 but care must be taken to not cause an infinite rekeying loop. Should a flag be included
@@ -1898,7 +1896,7 @@ Inputs:
 
 This replaces the AES section format defined in the ElGamal/AES+SessionTags specification.
 
-This uses the same block format as defined in the NTCP2 specification.
+This uses the same block format as defined in the [NTCP2]_ specification.
 Individual block types are defined differently.
 
 There are concerns that encouraging implementers to share code
@@ -1941,7 +1939,8 @@ so the max unencrypted data is 65519 bytes.
   ~               .   .   .               ~
 
   blk :: 1 byte
-         0-2 reserved
+         0 datetime
+         1-2 reserved
          3 Garlic Message
          4 termination
          5 options
@@ -1971,6 +1970,7 @@ Block Ordering Rules
 In the new session message,
 the following blocks are required, in the following order:
 
+- DateTime (type 0)
 - Options (type 5)
 
 Other allowed blocks:
