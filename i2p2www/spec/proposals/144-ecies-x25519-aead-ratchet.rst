@@ -1217,7 +1217,6 @@ Optional blocks can have multiple I2NP blocks, but only a single padding block.
 If present, the padding block must be the final block.
 
 
-KDF for Payload Section Encrypted Contents
 KDF for Ephemeral Key Section Encrypted Contents
 ````````````````````````````````````````````````
 
@@ -1281,11 +1280,22 @@ KDF for Ephemeral Key Section Encrypted Contents
 
 {% endhighlight %}
 
+
+KDF for Payload Section Encrypted Contents
+``````````````````````````````````````````
+
+TODO basically like the first Existing Session message,
+post-split.
+
+.. raw:: html
+
+  {% highlight lang='text' %}
+TODO
+
+{% endhighlight %}
+
 Notes
 -----
-
-Bob must include the matching session ID in the reply Ephemeral Key Section for Alice to
-properly decrypt and bind the reply inbound session with the original outbound session.
 
 Multiple NSR messages may be sent in reply, each with unique ephemeral keys, depending on the size of the response.
 
