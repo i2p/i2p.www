@@ -5,7 +5,7 @@ ECIES-X25519-AEAD-Ratchet
     :author: zzz, chisana
     :created: 2018-11-22
     :thread: http://zzz.i2p/topics/2639
-    :lastupdated: 2019-09-19
+    :lastupdated: 2019-09-20
     :status: Open
 
 .. contents::
@@ -348,7 +348,7 @@ Bound sessions are similar to the Noise IK pattern.
   {% highlight lang='dataspec' %}
 <- s
   ...
-  e es p s ss p ->
+  e es s ss p ->
   <- tag e ee se p
 
 {% endhighlight %}
@@ -882,34 +882,32 @@ This key is never reused; a new key is generated with
 each message, including retransmissions.
 
 
-Flags Key Section Decrypted data
+Flags Section Decrypted data
 ````````````````````````````````
 
-The Flags section contains a session ID.
+The Flags section contains nothing.
 It is always 32 bytes, because it must be the same length
 as the static key for new session messages with binding.
 Bob determines whether it's a static key or a flags section
-by testing if the last 24 bytes are all zeros.
+by testing if the 32 bytes are all zeros.
 
 
-TODO don't need session ID?
+TODO any flags needed here?
 
 .. raw:: html
 
   {% highlight lang='dataspec' %}
 +----+----+----+----+----+----+----+----+
-  |             Session ID                |
-  +----+----+----+----+----+----+----+----+
+  |                                       |
+  +                                       +
   |                                       |
   +             All zeros                 +
-  |              24 bytes                 |
+  |              32 bytes                 |
   +                                       +
   |                                       |
   +----+----+----+----+----+----+----+----+
 
-  sessionID :: session/ephemeral key ID, 8 bytes.
-         Uniquely identifies the session.
-  zeros:: All zeros, 24 bytes.
+  zeros:: All zeros, 32 bytes.
 
 {% endhighlight %}
 
@@ -928,6 +926,7 @@ Typical contents include the following blocks:
        Payload Block Type            Type Number  Block Length
 ==================================  ============= ============
 DateTime                                  0            7      
+Session ID (debug)                        1            7      
 Garlic Message                            3         varies    
 Options                                   5            9      
 Next Key                                  7           37      
@@ -1063,8 +1062,6 @@ This is the "e" message pattern:
 
   // MixKey(DH())
   //[chainKey, k] = MixKey(sharedSecret)
-  chainKey = HMAC-SHA256(sharedSecret, byte(0x01)).
-  k = HMAC-SHA256(temp_key, chainKey || byte(0x02)).
   // ChaChaPoly parameters to encrypt/decrypt
   keydata = HKDF(chainKey, sharedSecret, "", 64)
   chainKey = keydata[0:31]
@@ -1073,6 +1070,7 @@ This is the "e" message pattern:
   k = keydata[32:64]
   n = 0
   ad = h
+  ciphertext = ENCRYPT(k, n, flags/static key section, ad)
 
   End of "es" message pattern.
 
@@ -1080,7 +1078,7 @@ This is the "e" message pattern:
 
   // MixHash(ciphertext)
   // Save for Payload section KDF
-  h = SHA256(h || 64 byte encrypted flags/static key section)
+  h = SHA256(h || ciphertext)
 
   // Alice's X25519 static keys
   ask = GENERATE_PRIVATE()
@@ -1116,12 +1114,13 @@ This is the "ss" message pattern:
   k = keydata[32:64]
   n = 0
   ad = h
+  ciphertext = ENCRYPT(k, n, payload, ad)
 
   End of "ss" message pattern.
 
   // MixHash(ciphertext)
   // Save for New Session Reply KDF
-  h = SHA256(h || encrypted payload section)
+  h = SHA256(h || ciphertext)
 
   TODO tag = HKDF(...)
 
@@ -1134,6 +1133,13 @@ KDF for Payload Section (without Alice static key)
 Note that this is a Noise "N" pattern, but we use the same "IK" initializer
 as for bound sessions.
 
+New Session essages can not be identified as containing Alice's static key or not
+until the static key is decrypted and inspected to determine if it contains all zeros.
+Therefore, the receiver must use the "IK" state machine for all
+New Session messages.
+If the static key is all zeros, the "ss" message pattern must be skipped.
+
+
 
 .. raw:: html
 
@@ -1142,6 +1148,7 @@ chainKey = from Flags/Static key section
   k = from Flags/Static key section
   n = 1
   ad = h from Flags/Static key section
+  ciphertext = ENCRYPT(k, n, payload, ad)
 
 {% endhighlight %}
 
@@ -1217,8 +1224,8 @@ Optional blocks can have multiple I2NP blocks, but only a single padding block.
 If present, the padding block must be the final block.
 
 
-KDF for Ephemeral Key Section Encrypted Contents
-````````````````````````````````````````````````
+KDF for Reply Key Section Encrypted Contents
+````````````````````````````````````````````
 
 .. raw:: html
 
@@ -1252,7 +1259,8 @@ KDF for Ephemeral Key Section Encrypted Contents
 
   This is the "ee" message pattern:
 
-  // MixKey(sharedSecret)
+  // MixKey(DH())
+  //[chainKey, k] = MixKey(sharedSecret)
   // ChaChaPoly parameters to encrypt/decrypt
   // chainKey from original New Session Payload Section
   sharedSecret = DH(aesk, bepk) = DH(besk, bepk)
@@ -1263,18 +1271,22 @@ KDF for Ephemeral Key Section Encrypted Contents
 
   This is the "se" message pattern:
 
-  // MixKey(sharedSecret)
-  sharedSecret = DH(ask, rbpk) = DH(rbsk, apk)
+  // MixKey(DH())
+  //[chainKey, k] = MixKey(sharedSecret)
+  sharedSecret = DH(ask, bepk) = DH(besk, apk)
   keydata = HKDF(chainKey, sharedSecret, "", 64)
   chainKey = keydata[0:31]
+
+  // AEAD parameters
   k = keydata[32:64]
   n = 0
-  ad = SHA-256(rbpk)
+  ad = SHA-256(bepk)
+  ciphertext = ENCRYPT(k, n, ZEROLEN, ad)
 
   End of "se" message pattern.
 
   // MixHash()
-  h = SHA256(h || encrypted payload section)
+  h = SHA256(h || ciphertext)
 
   chainKey is used in the ratchet below.
 
@@ -1950,7 +1962,8 @@ so the max unencrypted data is 65519 bytes.
 
   blk :: 1 byte
          0 datetime
-         1-2 reserved
+         1 session id
+         2 reserved
          3 Garlic Message
          4 termination
          5 options
@@ -2012,6 +2025,42 @@ Multiple Padding blocks are not allowed in a single frame.
 Other block types probably won't have multiple blocks in
 a single frame, but it is not prohibited.
 
+
+DateTime
+````````
+Assists in reply prevention.
+
+.. raw:: html
+
+  {% highlight lang='dataspec' %}
++----+----+----+----+----+----+----+
+  | 0  |    4    |     timestamp     |
+  +----+----+----+----+----+----+----+
+
+  blk :: 0
+  size :: 2 bytes, big endian, value = 4
+  timestamp :: Unix timestamp, unsigned seconds.
+               Wraps around in 2106
+
+{% endhighlight %}
+
+
+Session ID
+``````````
+This may only be useful for debugging.
+
+.. raw:: html
+
+  {% highlight lang='dataspec' %}
++----+----+----+----+----+----+----+
+  | 1  |    4    |        id         |
+  +----+----+----+----+----+----+----+
+
+  blk :: 1
+  size :: 2 bytes, big endian, value = 4
+  id :: random number
+
+{% endhighlight %}
 
 
 Garlic Message
