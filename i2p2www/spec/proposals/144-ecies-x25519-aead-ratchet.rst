@@ -5,7 +5,7 @@ ECIES-X25519-AEAD-Ratchet
     :author: zzz, chisana
     :created: 2018-11-22
     :thread: http://zzz.i2p/topics/2639
-    :lastupdated: 2019-09-20
+    :lastupdated: 2019-09-21
     :status: Open
 
 .. contents::
@@ -1249,11 +1249,17 @@ KDF for Reply Key Section Encrypted Contents
   // Bob's X25519 ephemeral keys
   besk = GENERATE_PRIVATE_ELG2()
   bepk = DERIVE_PUBLIC(besk)
+
+  // Bob's ephemeral public key
+  // MixHash(bepk)
+  // || below means append
+  h = SHA256(h || bepk);
+
   // elg2_bepk is sent in cleartext in the
   // beginning of the new session message
   elg2_bepk = ENCODE_ELG2(bepk)
   // As decoded by Bob
-  ibpk = DECODE_ELG2(elg2_bepk)
+  bepk = DECODE_ELG2(elg2_bepk)
 
   End of "e" message pattern.
 
@@ -1280,12 +1286,12 @@ KDF for Reply Key Section Encrypted Contents
   // AEAD parameters
   k = keydata[32:64]
   n = 0
-  ad = SHA-256(bepk)
+  ad = h
   ciphertext = ENCRYPT(k, n, ZEROLEN, ad)
 
   End of "se" message pattern.
 
-  // MixHash()
+  // MixHash(ciphertext)
   h = SHA256(h || ciphertext)
 
   chainKey is used in the ratchet below.
