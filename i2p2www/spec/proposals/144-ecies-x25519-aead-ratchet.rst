@@ -2160,7 +2160,7 @@ This may only be useful for debugging.
 
 
 Garlic Message
-````````````
+````````````````
 
 A single decrypted Garlic Message as specified in [I2NP]_.
 Garlic messages may not be fragmented across blocks or
@@ -3334,3 +3334,10 @@ References
 
 .. [Signal]
     https://signal.org/docs/specifications/doubleratchet/
+
+.. [SSU]
+    {{ site_url('docs/transport/ssu', True) }}
+
+.. [STS]
+    Diffie, W.; van Oorschot P. C.; Wiener M. J., Authentication and
+    Authenticated Key Exchanges
