@@ -5,7 +5,7 @@ ECIES-X25519-AEAD-Ratchet
     :author: zzz, chisana
     :created: 2018-11-22
     :thread: http://zzz.i2p/topics/2639
-    :lastupdated: 2019-09-24
+    :lastupdated: 2019-09-28
     :status: Open
 
 .. contents::
@@ -995,6 +995,10 @@ This is standard [NOISE]_ for IK with a modified protocol name.
 Note that we use the same initializer for both the IK pattern (bound sessions)
 and for N pattern (unbound sessions).
 
+The protocol name is modified for two reasons.
+First, to indicate that the ephemeral keys are encoded with Elligator2,
+and second, to indicate that MixHash() is called before the second message
+to mix in the tag value.
 
 .. raw:: html
 
@@ -1002,8 +1006,8 @@ and for N pattern (unbound sessions).
 This is the "e" message pattern:
 
   // Define protocol_name.
-  Set protocol_name = "Noise_IKelg2_25519_ChaChaPoly_SHA256"
-   (36 bytes, US-ASCII encoded, no NULL termination).
+  Set protocol_name = "Noise_IKelg2+hs2_25519_ChaChaPoly_SHA256"
+   (40 bytes, US-ASCII encoded, no NULL termination).
 
   // Define Hash h = 32 bytes
   h = SHA256(protocol_name);
@@ -1125,12 +1129,6 @@ This is the "ss" message pattern:
   // Save for New Session Reply KDF
   h = SHA256(h || ciphertext)
 
-  tagset = TAGSET.CREATE(chainKey, TODO, 1, session, isInbound = false)
-
-  tagsetEntry = tagset.GET_NEXT_ENTRY()
-
-  tag = tagsetEntry.SESSION_TAG
-
 {% endhighlight %}
 
 
@@ -1163,6 +1161,9 @@ chainKey = from Flags/Static key section
 
 1g) New Session Reply format
 ----------------------------
+
+One or more New Session Replies may be sent in response to a single New Session message.
+Each reply is prepended by a tag, which is generated from a TagSet for the session.
 
 The New Session Reply is in two parts.
 The first part is the completion of the Noise IK handshake with a prepended tag.
@@ -1218,7 +1219,8 @@ Encrypted format:
 
 Notes
 `````
-The tag is generated in the New Session payload KDF.
+The tag is generated in the Tags KDF, as initialized
+in the TagSet KDF below.
 This correlates the reply to the session.
 
 
@@ -1238,6 +1240,22 @@ Optional blocks can have multiple I2NP blocks, but only a single padding block.
 If present, the padding block must be the final block.
 
 
+KDF for Reply TagSet
+`````````````````````
+
+One or more tags are created from the TagSet, which is initialized using
+the KDF below, using the chainKey from the New Session message.
+
+.. raw:: html
+
+  {% highlight lang='text' %}
+// Generate tagset
+  tagsetKey = HKDF(chainKey, ZEROLEN, "SessionReplyTags", 32)
+  tagset = TAGSET.CREATE(tagsetKey, n = 1, session, isInbound = false)
+
+{% endhighlight %}
+
+
 KDF for Reply Key Section Encrypted Contents
 ````````````````````````````````````````````
 
@@ -1254,6 +1272,10 @@ KDF for Reply Key Section Encrypted Contents
   // Bob's X25519 static keys
   // bsk = Bob private static key
   // bpk = Bob public static key
+
+  // Generate the tag
+  tagsetEntry = tagset.GET_NEXT_ENTRY()
+  tag = tagsetEntry.SESSION_TAG
 
   // MixHash(tag)
   h = SHA256(h || tag)
@@ -1316,15 +1338,27 @@ KDF for Reply Key Section Encrypted Contents
 KDF for Payload Section Encrypted Contents
 ``````````````````````````````````````````
 
-TODO basically like the first Existing Session message,
-post-split.
+This is like the first Existing Session message,
+post-split, but without a separate tag.
+Additionally, we use the hash from above to bind the
+payload to the NSR message.
+
 
 .. raw:: html
 
   {% highlight lang='text' %}
-TODO
+// split()
+  keydata = HKDF(chainKey, ZEROLEN, "", 64)
+  k_ab = keydata[0:31]
+  k_ba = keydata[32:63]
 
+  // AEAD parameters for New Session Reply payload
+  k = HKDF(k_ba, ZEROLEN, "AttachPayloadKDF", 32)
+  n = 0
+  ad = h
+  ciphertext = ENCRYPT(k, n, payload, ad)
 {% endhighlight %}
+
 
 Notes
 -----
@@ -1680,8 +1714,8 @@ TAGSET_ENTRY
 TAGSET
     A collection of TAGSET_ENTRIES.
 
-    CREATE(key, data, n, session, isOutgoing)
-        Generate a new TAGSET using initial cryptographic material key and data, both 32 bytes.
+    CREATE(key, n, session, isOutgoing)
+        Generate a new TAGSET using initial cryptographic key material of 32 bytes.
         The associated session identifier is provided.
         isOutgoing is true for an outgoing session, false for an incoming session.
         The initial number of of tags to create is specified; this is generally 0 or 1
@@ -1792,7 +1826,7 @@ Issues
 KDF
 ~~~
 
-This is the definition of TAGSET.CREATE(key, data, n, session, isInbound).
+This is the definition of TAGSET.CREATE(key, n, session, isInbound).
 
 
 .. raw:: html
