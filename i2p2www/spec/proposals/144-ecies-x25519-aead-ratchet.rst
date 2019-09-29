@@ -5,7 +5,7 @@ ECIES-X25519-AEAD-Ratchet
     :author: zzz, chisana
     :created: 2018-11-22
     :thread: http://zzz.i2p/topics/2639
-    :lastupdated: 2019-09-28
+    :lastupdated: 2019-09-29
     :status: Open
 
 .. contents::
@@ -1251,7 +1251,7 @@ the KDF below, using the chainKey from the New Session message.
   {% highlight lang='text' %}
 // Generate tagset
   tagsetKey = HKDF(chainKey, ZEROLEN, "SessionReplyTags", 32)
-  tagset = TAGSET.CREATE(tagsetKey, n = 1, session, isInbound = false)
+  tagset = TAGSET.CREATE(tagsetKey, n = 1)
 
 {% endhighlight %}
 
@@ -1514,6 +1514,10 @@ as the generator must keep retrying utnil a suitable key pair is found.
 This overhead may be managed by doing key generation in advance,
 in a separate thread, to keep a pool of suitable keys.
 
+The generator does the ENCODE_ELG2() function to determine suitability.
+Therefore, the generator should store the result of ENCODE_ELG2()
+so it does not have to be calculated again.
+
 Additionally, the unsuitable keys may be added to the pool of keys
 used for [NTCP2]_, where Elligator2 is not used.
 The security issues of doing so is TBD.
@@ -1525,10 +1529,13 @@ The security issues of doing so is TBD.
 --------------------
 
 AEAD using ChaCha20 and Poly1305, same as in [NTCP2]_.
+This corresponds to [RFC-7539]_, which is also
+used similarly in TLS [RFC-7905]_.
 
 
-New Session Inputs
-``````````````````
+
+New Session and New Session Reply Inputs
+````````````````````````````````````````
 
 Inputs to the encryption/decryption functions
 for an AEAD block in a new session message:
@@ -1537,13 +1544,13 @@ for an AEAD block in a new session message:
 
   {% highlight lang='dataspec' %}
 k :: 32 byte cipher key
-       See new session message KDF above.
+       See New Session and New Session Reply KDFs above.
 
   n :: Counter-based nonce, 12 bytes.
        n = 0
 
   ad :: Associated data, 32 bytes.
-        The SHA256 hash of the preceding data (public key)
+        The SHA256 hash of the preceding data, as output from mixHash()
 
   data :: Plaintext data, 0 or more bytes
 
@@ -1605,9 +1612,6 @@ Output of the encryption function, input to the decryption function:
 
 {% endhighlight %}
 
-For ChaCha20, what is described here corresponds to [RFC-7539]_, which is also
-used similarly in TLS [RFC-7905]_.
-
 Notes
 `````
 - Since ChaCha20 is a stream cipher, plaintexts need not be padded.
@@ -1639,11 +1643,7 @@ Used in [NTCP2]_.
 Notes
 `````
 
-
-Issues
-``````
-
-Avoid using random nonces. If we do need random nonces,
+We do not use random nonces. If we do need random nonces,
 we may need a different AEAD with a larger nonce that's resistant to nonce reuse,
 so we can use random nonces. (SIV?)
 
@@ -1714,10 +1714,9 @@ TAGSET_ENTRY
 TAGSET
     A collection of TAGSET_ENTRIES.
 
-    CREATE(key, n, session, isOutgoing)
+    CREATE(key, n)
         Generate a new TAGSET using initial cryptographic key material of 32 bytes.
         The associated session identifier is provided.
-        isOutgoing is true for an outgoing session, false for an incoming session.
         The initial number of of tags to create is specified; this is generally 0 or 1
         for an outgoing session.
         LAST_INDEX = -1
@@ -1727,17 +1726,23 @@ TAGSET
         Generate n more TAGSET_ENTRIES by calling EXTEND() n times.
 
     EXTEND()
-        Generate one more TAGSET_ENTRY.
+        Generate one more TAGSET_ENTRY, unless the maximum number SESSION_TAGS have
+        already been generated.
+        If LAST_INDEX is greater than or equal to 65535, return.
         ++ LAST_INDEX
         Create a new TAGSET_ENTRY with the LAST_INDEX value and the calculated SESSION_TAG.
-        Calls RATCHET_TAG and (optionally) RATCHET_KEY.
+        Calls RATCHET_TAG() and (optionally) RATCHET_KEY().
         For inbound sessions, the calculation of the SESSION_KEY may
         be deferred and calculated in GET_SESSION_KEY().
+        Calls EXPIRE()
 
-    RATCHET_TAG
+    EXPIRE()
+        Remove tags and keys that are too old, or if the TAGSET size exceeds some limit.
+
+    RATCHET_TAG()
         Calculates the next SESSION_TAG based on the last SESSION_TAG.
 
-    RATCHET_KEY
+    RATCHET_KEY()
         Calculates the next SESSION_KEY based on the last SESSION_KEY.
 
     SESSION
@@ -1752,6 +1757,8 @@ TAGSET
     GET_NEXT_ENTRY()
         Used for outgoing sessions only.
         EXTEND(1) is called if there are no remaining TAGSET_ENTRIES.
+        If EXTEND(1) did nothing, the max of 65535 TAGSETS have been used,
+        and return an error.
         Returns the next unused TAGSET_ENTRY.
 
     GET_SESSION_KEY(sessionTag)
@@ -1826,7 +1833,7 @@ Issues
 KDF
 ~~~
 
-This is the definition of TAGSET.CREATE(key, n, session, isInbound).
+This is the definition of TAGSET.CREATE(key, n).
 
 
 .. raw:: html
