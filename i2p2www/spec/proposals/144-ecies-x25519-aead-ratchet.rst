@@ -5,7 +5,7 @@ ECIES-X25519-AEAD-Ratchet
     :author: zzz, chisana
     :created: 2018-11-22
     :thread: http://zzz.i2p/topics/2639
-    :lastupdated: 2019-09-29
+    :lastupdated: 2019-10-01
     :status: Open
 
 .. contents::
@@ -349,7 +349,9 @@ Bound sessions are similar to the Noise IK pattern.
 <- s
   ...
   e es s ss p ->
-  <- tag e ee se p
+  <- tag e ee se
+  <- p
+  p ->
 
 {% endhighlight %}
 
@@ -1219,9 +1221,10 @@ Encrypted format:
 
 Notes
 `````
-The tag is generated in the Tags KDF, as initialized
-in the TagSet KDF below.
+The tag is generated in the Session Tags KDF, as initialized
+in the DH Initialization KDF below.
 This correlates the reply to the session.
+The Session Key from the DH Initialization is not used.
 
 
 Payload
@@ -1233,10 +1236,9 @@ Payload section must contain the following blocks (in order):
 
 Optional payload blocks
 
-- I2NP (3)
+- Garlic (3)
 - Padding (254)
 
-Optional blocks can have multiple I2NP blocks, but only a single padding block.
 If present, the padding block must be the final block.
 
 
@@ -1251,7 +1253,7 @@ the KDF below, using the chainKey from the New Session message.
   {% highlight lang='text' %}
 // Generate tagset
   tagsetKey = HKDF(chainKey, ZEROLEN, "SessionReplyTags", 32)
-  tagset = TAGSET.CREATE(tagsetKey, n = 1)
+  tagset_nsr = DH_INITIALIZE(chainKey, tagsetKey)
 
 {% endhighlight %}
 
@@ -1274,7 +1276,7 @@ KDF for Reply Key Section Encrypted Contents
   // bpk = Bob public static key
 
   // Generate the tag
-  tagsetEntry = tagset.GET_NEXT_ENTRY()
+  tagsetEntry = tagset_nsr.GET_NEXT_ENTRY()
   tag = tagsetEntry.SESSION_TAG
 
   // MixHash(tag)
@@ -1351,6 +1353,8 @@ payload to the NSR message.
   keydata = HKDF(chainKey, ZEROLEN, "", 64)
   k_ab = keydata[0:31]
   k_ba = keydata[32:63]
+  tagset_ab = DH_INITIALIZE(chainKey, k_ab)
+  tagset_ba = DH_INITIALIZE(chainKey, k_ba)
 
   // AEAD parameters for New Session Reply payload
   k = HKDF(k_ba, ZEROLEN, "AttachPayloadKDF", 32)
@@ -1428,11 +1432,13 @@ KDF
 .. raw:: html
 
   {% highlight lang='text' %}
-See message key ratchet below.
+See AEAD section below.
 
-  Key: KDF TBD
-  IV: KDF TBD
-  Nonce: The message number N in the current chain, as retrieved from the associated Session Tag.
+  // AEAD parameters for Existing Session payload
+  k = The 32-byte session key associated with this session tag
+  n = The message number N in the current chain, as retrieved from the associated Session Tag.
+  ad = The session tag, 8 bytes
+  ciphertext = ENCRYPT(k, n, payload, ad)
 {% endhighlight %}
 
 
@@ -1566,7 +1572,7 @@ for an AEAD block in an existing session message:
 .. raw:: html
 
   {% highlight lang='dataspec' %}
-k :: 32 byte cipher key
+k :: 32 byte session key
        As looked up from the accompanying session tag.
 
   n :: Counter-based nonce, 12 bytes.
@@ -1694,8 +1700,8 @@ If a DH ratchet step isn't triggered, then the received N minus the length of th
 is the number of skipped messages in that chain.
 
 
-Recommended Implementation
-``````````````````````````
+Sample Implementation
+``````````````````````
 
 We define the following data structures and functions to implement these ratchets.
 
@@ -1810,8 +1816,8 @@ the session should be removed.
 To avoid a KCI and/or resource exhaustion attack, where an attacker drops Bob's NSR replies to keep Alice sending NS messages,
 Alice should avoid starting new sessions to Bob after a certain number of retries due to timer expiration.
 
-Alice and Bob each do one DH ratchet to create the inbound and outbound Existing Session
-session tag and symmetric key ratchet chains, and once for every Next DH Key block received.
+Alice and Bob each do one DH initialization to create the inbound and outbound Existing Session
+session tag and symmetric key ratchet chains, and do a DH ratchet for every Next DH Key block received.
 
 Alice and Bob each do two session tag ratchets and two symmetric keys ratchets after each
 DH ratchet. For each new ES message in a given direction, Alice and Bob advance the session
@@ -1830,25 +1836,52 @@ Issues
 ~~~~~~
 
 
-KDF
-~~~
+DH INITIALIZATION KDF
+~~~~~~~~~~~~~~~~~~~~~~~
 
-This is the definition of TAGSET.CREATE(key, n).
+This is the definition of DH_INITIALIZE(rootKey, k)
+for a single direction. It creates a tagset, and a
+root key to be used for a subsequent DH ratchet if necessary.
+
+TODO why are we using the chain key after split() ?
 
 
 .. raw:: html
 
   {% highlight lang='text' %}
 Inputs:
-  1) Root key
-  2) sharedSecret (the DH result from the new session message)
-
-  Received New Session message:
-  sharedSecret = k from Payload Section
-  rootKey = chainKey from Payload Section
+  1) rootKey = chainKey from Payload Section
+  2) k from split()
 
   // KDF_RK(rk, dh_out)
-  keydata = HKDF(rootKey, sharedSecret, "KDFDHRatchetStep", 64)
+  keydata = HKDF(rootKey, k, "KDFDHRatchetStep", 64)
+
+  // Output 1: The next Root Key (KDF input for the next ratchet)
+  nextRootKey = keydata[0:31]
+  // Output 2: The chain key to initialize the new
+  // session tag and symmetric key ratchets
+  // for Alice to Bob transmissions
+  ck = keydata[32:63]
+
+  // session tag and symmetric key chain keys
+  keydata = HKDF(ck, ZEROLEN, "TagAndKeyGenKeys", 64)
+  sessTag_ck = keydata[0:31]
+  symmKey_ck = keydata[32:63]
+
+{% endhighlight %}
+
+
+DH RATCHET KDF
+~~~~~~~~~~~~~~~
+
+This is used after new DH keys are exchanged, before a tagset
+is exhausted.
+
+TODO
+
+.. raw:: html
+
+  {% highlight lang='text' %}
 
   // See New Session Reply KDF for generating Bob's reply message
   // and first set of ephemeral keys
@@ -1867,37 +1900,8 @@ Inputs:
   rootKey = nextRootKey from previous DH Ratchet
   keydata = HKDF(rootKey, sharedSecret, "KDFDHRatchetStep", 64)
 
-  For unidirectional (unbound) DH Ratchets
-  // Output 1: The next Root Key (KDF input for the next ratchet)
-  nextRootKey = keydata[0:31]
-  // Output 2: The chain key to initialize the new
-  // session tag and symmetric key ratchets
-  // for Alice to Bob transmissions
-  ck = keydata[32:63]
-  // Inbound session tag and symmetric key chain keys
-  keydata = HKDF(ck, ZEROLEN, "TagAndKeyGenKeys", 64)
-  sessTag_ck = keydata[0:31]
-  symmKey_ck = keydata[32:63]
-
-  For bidirectional (bound) DH Ratchets:
-  // Output 1: The next Root Key (KDF input for the next ratchet)
-  nextRootKey = keydata[0:31]
-  // Output 2: The chain key to initialize the new
-  // session tag and symmetric key ratchets
-  // for Alice to Bob transmissions
-  ck = keydata[32:63]
-  // Split()
-  // Needed to separate key states for inbound and outbound sessions
-  // Alice's outbound and Bob's inbound session tag and symmetric key chain keys
-  keydata = HKDF(ck, ZEROLEN, "TagAndKeyGenKeys", 64)
-  aToBSessTag_ck = keydata[0:31]
-  aToBSymmKey_ck = keydata[32:63]
-  // Alice's inbound and Bob's outbound session tag and symmetric key chain keys
-  keydata = HKDF(ck, ZEROLEN, "BtoAChainsTagSym", 64)
-  bToASessTag_ck = keydata[0:31]
-  bToASymmKey_ck = keydata[32:63]
-
-
+  //TODO
+  newTagSet = DH_INITIALIZE(rootKey, sharedSecret)
 
 {% endhighlight %}
 
@@ -1950,6 +1954,7 @@ Inputs:
      First time: output from DH ratchet
      Subsequent times: output from previous session tag ratchet
 
+  Generated:
   2) input_key_material = SESSTAG_CONSTANT
      Must be unique for this chain (generated from chain key),
      so that the sequence isn't predictable, since session tags
@@ -2021,6 +2026,8 @@ Inputs:
   1) Symmetric Key Chain key symmKey_ck
      First time: output from DH ratchet
      Subsequent times: output from previous symmetric key ratchet
+
+  Generated:
   2) input_key_material = SYMMKEY_CONSTANT = ZEROLEN
      No need for uniqueness. Symmetric keys never go out on the wire.
      TODO: Set a constant anyway?
