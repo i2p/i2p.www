@@ -5,7 +5,7 @@
 .. meta::
    :author: sadie
    :date: 2019-08-30
-   :category: release
+   :category: conferences
    :excerpt: {% trans %}USENIX FOCI Trip Report{% endtrans %}
 
 {% trans -%}USENIX FOCI Trip Report{%- endtrans %}

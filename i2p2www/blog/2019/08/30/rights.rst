@@ -5,7 +5,7 @@
 .. meta::
    :author: sadie
    :date: 2019-08-30
-   :category: release
+   :category: conferences
    :excerpt: {% trans %}RightsCon Trip Report{% endtrans %}
 
 {% trans -%}RightsCon Trip Report{%- endtrans %}

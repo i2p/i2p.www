@@ -5,7 +5,7 @@
 .. meta::
    :author: zzz
    :date: 2019-08-30
-   :category: release
+   :category: conferences
    :excerpt: {% trans %}Def Con Trip Report- zzz{% endtrans %}
 
 {% trans -%}Def Con Trip Report{%- endtrans %}
