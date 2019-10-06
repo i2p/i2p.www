@@ -3,7 +3,7 @@ I2CP Specification
 ==================
 .. meta::
     :category: Protocols
-    :lastupdated: September 2019
+    :lastupdated: October 2019
     :accuratefor: 0.9.43
 
 .. contents::
@@ -535,8 +535,10 @@ Contents
   - Bit order: 76543210
   - Bit 0: 0 for everybody, 1 for per-client
   - Bits 3-1: Authentication scheme, if bit 0 is set to 1 for per-client, otherwise 000
-              000: DH client authentication (or no per-client authentication)
-              001: PSK client authentication
+
+    * 000: DH client authentication (or no per-client authentication)
+    * 001: PSK client authentication
+
   - Bit 4: 1 if secret required, 0 if no secret required
   - Bits 7-5: Unused, set to 0 for future compatibility
 
@@ -559,10 +561,10 @@ Contents
             [SigningPublicKey]_ (length as implied by sig type)
 
 7. [PrivateKey]_ Decryption key
-   Only present if flag bit 0 is set to 1
+   Only present if flag bit 0 is set to 1.
    A 32-byte ECIES_X25519 private key
 8. [String]_ Lookup Password
-   Only present if flag bit 4 is set to 1
+   Only present if flag bit 4 is set to 1.
 
 
 Notes

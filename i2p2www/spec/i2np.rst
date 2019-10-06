@@ -3,8 +3,8 @@ I2NP Specification
 ==================
 .. meta::
     :category: Protocols
-    :lastupdated: June 2019
-    :accuratefor: 0.9.41
+    :lastupdated: October 2019
+    :accuratefor: 0.9.43
 
 .. contents::
 
@@ -50,6 +50,8 @@ below.
 
    0.9.38       DSM type bits 3-0 now contain the type;
                 LeaseSet2 may be sent in a DSM
+
+   0.9.36       NTCP2 transport support (if advertised in router address)
 
    0.9.28       RSA sig types disallowed
 
@@ -141,6 +143,14 @@ Standard (16 bytes):
   |type| short_expiration  |
   +----+----+----+----+----+
 
+  Short (NTCP2, 9 bytes):
+
+  +----+----+----+----+----+----+----+----+
+  |type|      msg_id       | short_expira-
+  +----+----+----+----+----+----+----+----+
+   tion|
+  +----+
+
   type :: `Integer`
           length -> 1 byte
           purpose -> identifies the message type (see table below)
@@ -177,8 +187,13 @@ Standard (16 bytes):
 Notes
 `````
 * When transmitted over [SSU]_, the 16-byte standard header is not used. Only a
-  1-byte type and a 4-byte expiration in seconds is included. The message id
-  and size are incorporated into various parts of the SSU data packet format.
+  1-byte type and a 4-byte expiration in seconds are included. The message id
+  and size are incorporated in the SSU data packet format.
+  The checksum is not required since errors are caught in decryption.
+
+* When transmitted over [NTCP2]_, the 16-byte standard header is not used. Only a
+  1-byte type, 4-byte message id, and a 4-byte expiration in seconds are included.
+  The size is incorporated in the NTCP2 data packet format.
   The checksum is not required since errors are caught in decryption.
 
 * The standard header is also required for I2NP messages contained in other
@@ -986,7 +1001,8 @@ Used to wrap multiple encrypted I2NP Messages
 
 Contents
 ````````
-When decrypted, a series of `Garlic Cloves`_.
+When decrypted, a series of `Garlic Cloves`_ and additional
+data, also known as a Clove Set.
 
 Encrypted:
 
@@ -1010,7 +1026,8 @@ Encrypted:
        $length bytes
        ElGamal encrypted data
 {% endhighlight %}
-Unencrypted data:
+
+Decrypted data, also known as a Clove Set:
 
 .. raw:: html
 
@@ -1331,6 +1348,9 @@ References
 
 .. [Integer]
     {{ ctags_url('Integer') }}
+
+.. [NTCP2]
+    {{ spec_url('ntcp2') }}
 
 .. [RouterIdentity]
     {{ ctags_url('RouterIdentity') }}
