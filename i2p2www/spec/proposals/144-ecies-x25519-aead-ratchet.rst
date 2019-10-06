@@ -5,7 +5,7 @@ ECIES-X25519-AEAD-Ratchet
     :author: zzz, chisana
     :created: 2018-11-22
     :thread: http://zzz.i2p/topics/2639
-    :lastupdated: 2019-10-01
+    :lastupdated: 2019-10-06
     :status: Open
 
 .. contents::
@@ -310,19 +310,21 @@ This proposal defines the following enhancements to
 Noise_XK_25519_ChaChaPoly_SHA256.  These generally follow the guidelines in
 [NOISE]_ section 13.
 
-1) Cleartext ephemeral keys are encoded with [Elligator2]_.ion using a known
+1) Cleartext ephemeral keys are encoded with [Elligator2]_.
 
 2) The reply is prefixed with a cleartext tag.
 
 3) The payload format is defined for messages 1, 2, and the data phase.
    Of course, this is not defined in Noise.
 
+All messages include an [I2NP]_ Garlic Message header.
+The data phase uses encryption similar to, but not compatible with, the Noise data phase.
 
 
 Handshake Patterns
 ------------------
 
-Handshakes are to [Noise]_ handshake patterns.
+Handshakes use [Noise]_ handshake patterns.
 
 The following letter mapping is used:
 
@@ -605,7 +607,42 @@ Issues
 1) Message format
 -----------------
 
+
 Review of Current Message Format
+````````````````````````````````
+
+The Garlic Message as specified in [I2NP]_ is as follows.
+As a design goal is that intermediate hops cannot distinguish new from old crypto,
+this format cannot change, even though the length field is redundant.
+The format is shown with the full 16-byte header, although the
+actual header may be in a different format, depending on the transport used.
+
+When decrypted the data contains a series of `Garlic Cloves`_ and additional
+data, also known as a Clove Set.
+
+See [I2NP]_ for details and a full specification.
+
+
+.. raw:: html
+
+  {% highlight lang='dataspec' %}
++----+----+----+----+----+----+----+----+
+  |type|      msg_id       |  expiration
+  +----+----+----+----+----+----+----+----+
+                           |  size   |chks|
+  +----+----+----+----+----+----+----+----+
+  |      length       |                   |
+  +----+----+----+----+                   +
+  |          encrypted data               |
+  ~                                       ~
+  ~                                       ~
+  |                                       |
+  +----+----+----+----+----+----+----+----+
+
+{% endhighlight %}
+
+
+Review of Encrypted Data Format
 ````````````````````````````````
 
 The current message format, used for over 15 years,
@@ -932,7 +969,7 @@ Typical contents include the following blocks:
 ==================================  ============= ============
 DateTime                                  0            7      
 Session ID (debug)                        1            7      
-Garlic Message                            3         varies    
+Clove Set                                 3         varies    
 Options                                   5            9      
 Next Key                                  7           37      
 ACK Request                               9         varies    
@@ -951,10 +988,10 @@ Specification TBD.
 
 
 
-Garlic Message Contents
-~~~~~~~~~~~~~~~~~~~~~~~~
+Clove Set Contents
+~~~~~~~~~~~~~~~~~~
 
-The decrypted Garlic Message as specified in [I2NP]_.
+The decrypted Garlic Message as specified in [I2NP]_, also known as a Clove Set.
 
 
 Options Contents
@@ -1576,13 +1613,14 @@ k :: 32 byte session key
        As looked up from the accompanying session tag.
 
   n :: Counter-based nonce, 12 bytes.
-       Starts at 0 and incremented for each message.
+       Starts at 0 and incremented for each message when transmitting.
+       For the receiver, the value
+       as looked up from the accompanying session tag.
        First four bytes are always zero.
-       As looked up from the accompanying session tag.
        Last eight bytes are the message number (n), little-endian encoded.
-       Maximum value is 2**64 - 2.
-       Session must be ratcheted before N reaches that value.
-       The value 2**64 - 1 must never be used.
+       Maximum value is 65535.
+       Session must be ratcheted when N reaches that value.
+       Higher values must never be used.
 
   ad :: Associated data
         The session tag
@@ -1769,8 +1807,8 @@ TAGSET
 
     GET_SESSION_KEY(sessionTag)
         Used for incoming sessions only.
-        Returns the SESSION_KEY associated with the sessionTag.
-        If found, the associated TAGSET_ENTRY is removed.
+        Returns the TAGSET_ENTRY containing the sessionTag.
+        If found, the TAGSET_ENTRY is removed.
         If the SESSION_KEY calculation was deferred, it is calculated now.
         If there are few TAGSET_ENTRIES remaining, EXTEND(n) is called.
 
@@ -1843,6 +1881,11 @@ This is the definition of DH_INITIALIZE(rootKey, k)
 for a single direction. It creates a tagset, and a
 root key to be used for a subsequent DH ratchet if necessary.
 
+We use DH initialization in two places. First, we use it
+to generate a tag set for the New Session Replies.
+Second, we use it to generate two tag sets, one for each direction,
+for use in existing session messages.
+
 TODO why are we using the chain key after split() ?
 
 
@@ -1851,7 +1894,7 @@ TODO why are we using the chain key after split() ?
   {% highlight lang='text' %}
 Inputs:
   1) rootKey = chainKey from Payload Section
-  2) k from split()
+  2) k from the new session KDF or split()
 
   // KDF_RK(rk, dh_out)
   keydata = HKDF(rootKey, k, "KDFDHRatchetStep", 64)
@@ -2108,7 +2151,7 @@ so the max unencrypted data is 65519 bytes.
          0 datetime
          1 session id
          2 reserved
-         3 Garlic Message
+         3 Clove Set
          4 termination
          5 options
          6 message number and previous message number (ratchet)
@@ -2142,7 +2185,7 @@ the following blocks are required, in the following order:
 
 Other allowed blocks:
 
-- Garlic message (type 3)
+- Clove Set (type 3)
 - Padding (type 254)
 
 In the new session reply message,
@@ -2152,7 +2195,7 @@ the following blocks are required:
 
 Other allowed blocks:
 
-- Garlic message (type 3)
+- Clove Set (type 3)
 - Padding (type 254)
 
 No other blocks are allowed.
@@ -2207,41 +2250,45 @@ This may only be useful for debugging.
 {% endhighlight %}
 
 
-Garlic Message
-````````````````
+Clove Set
+`````````
 
-A single decrypted Garlic Message as specified in [I2NP]_.
-Garlic messages may not be fragmented across blocks or
+A single decrypted Garlic Message body as specified in [I2NP]_,
+also known as a Clove Set.
+Clove Sets may not be fragmented across blocks or
 across ChaChaPoly frames.
-
-This uses the first 9 bytes from the standard NTCP I2NP header,
-and removes the last 7 bytes of the header, as follows:
-truncate the expiration from 8 to 4 bytes,
-remove the 2 byte length (use the block size - 9),
-and remove the one-byte SHA256 checksum.
-
 
 .. raw:: html
 
   {% highlight lang='dataspec' %}
 +----+----+----+----+----+----+----+----+
-  | 3  |  size   |type|    msg id         |
-  +----+----+----+----+----+----+----+----+
-  |   short exp       |     message       |
-  +----+----+----+----+                   +
+  | num|  clove 1                         |
+  +----+                                  +
   |                                       |
-  ~               .   .   .               ~
+  ~                                       ~
+  ~                                       ~
   |                                       |
   +----+----+----+----+----+----+----+----+
+  |         clove 2 ...                   |
+  ~                                       ~
+  ~                                       ~
+  |                                       |
+  +----+----+----+----+----+----+----+----+
+  | Certificate  |   Message_ID      |     
+  +----+----+----+----+----+----+----+----+
+            Expiration               |
+  +----+----+----+----+----+----+----+
 
-  blk :: 3
-  size :: 2 bytes, big endian, size of type + msg id + exp + message to follow
-          I2NP message body size is (size - 9).
-  type :: 1 byte, I2NP msg type (11 for Garlic Message)
-  msg id :: 4 bytes, big endian, I2NP message ID
-  short exp :: 4 bytes, big endian, I2NP message expiration, Unix timestamp, unsigned seconds.
-               Wraps around in 2106
-  message :: Decrypted Garlic Message body
+  num ::
+       1 byte `Integer` number of `GarlicClove`s to follow
+
+  clove ::  a `GarlicClove`
+
+  Certificate :: always NULL in the current implementation (3 bytes total, all zeroes)
+
+  Message_ID :: 4 byte `Integer`
+
+  Expiration :: `Date` (8 bytes)
 
 {% endhighlight %}
 
@@ -2251,6 +2298,14 @@ Notes
   malformed or malicious data will not cause reads to
   overrun into the next block.
 
+- This is identical to the specification of the
+  decrypted Garlic Message body in [I2NP]_.
+
+Issues
+``````
+- Do we still need the certificate?
+- Can we use the message ID from the I2NP header?
+- Can we use a short expiration, or use the expiration from the I2NP header?
 
 
 Termination
@@ -3343,6 +3398,9 @@ References
     https://elligator.cr.yp.to/elligator-20130828.pdf
     https://www.imperialviolet.org/2013/12/25/elligator.html
     See also OBFS4 code
+
+.. [GARLICSPEC]
+    {{ site_url('docs/how/garlic-routing', True) }}
 
 .. [I2NP]
     {{ spec_url('i2np') }}
