@@ -5,7 +5,7 @@ ECIES-X25519-AEAD-Ratchet
     :author: zzz, chisana
     :created: 2018-11-22
     :thread: http://zzz.i2p/topics/2639
-    :lastupdated: 2019-10-06
+    :lastupdated: 2019-10-17
     :status: Open
 
 .. contents::
@@ -136,7 +136,7 @@ Goals
 - Recipient is able to efficiently distinguish new from old crypto coming down
   same tunnel
 - Others cannot distinguish new from old crypto
-- Eliminate new vs. existing session length classification (support padding)
+- Eliminate new vs. Existing Session length classification (support padding)
 - No new I2NP messages required
 - Replace SHA-256 checksum in AES payload with AEAD
 - (Optimistic) Add extensions or hooks to support multicast
@@ -191,7 +191,7 @@ This proposal (finally) specifies that ratchet mechanism, and eliminates tag del
 
 By using a ratchet (a synchronized PRNG) to generate the
 session tags, we eliminate the overhead of sending session tags
-in the new session message and subsequent messages when needed.
+in the New Session message and subsequent messages when needed.
 For a typical tag set of 32 tags, this is 1KB.
 This also eliminates the storage of session tags on the sending side,
 thus cutting the storage requirements in half.
@@ -210,7 +210,7 @@ The MitM nodes are the OBEP and IBGW and are assumed to have full view of
 the current or historical global NetDB, by colluding with floodfills.
 
 The goal is to prevent these MitMs from classifying traffic as
-new and existing session messages, or as new crypto vs. old crypto.
+new and Existing Session messages, or as new crypto vs. old crypto.
 
 
 
@@ -226,7 +226,7 @@ Summary of Cryptographic Design
 There are five portions of the protocol to be redesigned:
 
 
-- 1) The new and existing session container formats
+- 1) The new and Existing Session container formats
   are replaced with new formats.
 - 2) ElGamal (256 byte public keys, 128 byte private keys) is be replaced
   with ECIES-X25519 (32 byte public and private keys)
@@ -368,7 +368,7 @@ Acknowledgements are out-of-band using a DeliveryStatusMessage
 (wrapped in a GarlicMessage) in the clove.
 
 There is substantial inefficiency in a unidirectional protocol.
-Any reply must also use an expensive 'new session' message.
+Any reply must also use an expensive 'New Session' message.
 This causes higher bandwidth, CPU, and memory usage.
 
 There are also security weaknesses in a unidirectional protocol.
@@ -441,7 +441,7 @@ As the sessions ratchet, they continue to be bound to the far-end Destination.
 
 When an inbound session is created at the receiver (Bob),
 it may be bound to the far-end Destination (Alice), at Alice's option.
-If Alice includes binding information (her static key) in the new session message,
+If Alice includes binding information (her static key) in the New Session message,
 the session will be bound to that destination,
 and a outbound session will be created and bound to same Destination.
 As the sessions ratchet, they continue to be bound to the far-end Destination.
@@ -454,7 +454,7 @@ For the common, streaming case, we expect Alice and Bob to use the protocol as f
 
 - Alice pairs her new outbound session to a new inbound session, both bound to the far-end destination (Bob).
 - Alice includes the binding information and signature, and a reply request, in the
-  new session message sent to Bob.
+  New Session message sent to Bob.
 - Bob pairs his new inbound session to a new outbound session, both bound to the far-end destination (Alice).
 - Bob sends a reply (ack) to Alice in the paired session, with a ratchet to a new DH key.
 - Alice ratchets to a new outbound session with Bob's new key, paired to the existing inbound session.
@@ -480,7 +480,7 @@ This mechanism is out-of-band from the perspective of the protocol.
 In the new protocol, since the inbound and outbound sessions are paired,
 we can have ACKs in-band. No separate clove is required.
 
-An explicit ACK is simply an existing session message with no I2NP block.
+An explicit ACK is simply an Existing Session message with no I2NP block.
 However, in most cases, an explict ACK can be avoided, as there is reverse traffic.
 It may be desirable for implementations to wait a short time (perhaps a hundred ms)
 before sending an explicit ACK, to give the streaming or application layer time to respond.
@@ -617,7 +617,7 @@ this format cannot change, even though the length field is redundant.
 The format is shown with the full 16-byte header, although the
 actual header may be in a different format, depending on the transport used.
 
-When decrypted the data contains a series of `Garlic Cloves`_ and additional
+When decrypted the data contains a series of Garlic Cloves and additional
 data, also known as a Clove Set.
 
 See [I2NP]_ for details and a full specification.
@@ -663,8 +663,8 @@ These messages are encapsulated in a I2NP garlic message, which contains
 a length field, so the length is known.
 
 Note that there is no padding defined to a non-mod-16 length,
-so the new session is always (mod 16 == 2),
-and an existing session is always (mod 16 == 0).
+so the New Session is always (mod 16 == 2),
+and an Existing Session is always (mod 16 == 0).
 We need to fix this.
 
 The receiver first attempts to look up the first 32 bytes as a Session Tag.
@@ -684,13 +684,13 @@ In Signal Double Ratchet, the header contains:
 
 By using a session tag, we can eliminate most of that.
 
-In new session, we put only the public key in the unencrytped header.
+In New Session, we put only the public key in the unencrytped header.
 
-In existing session, we use a session tag for the header.
+In Existing Session, we use a session tag for the header.
 The session tag is associated with the current ratchet public key,
 and the message number.
 
-In both new and existing session, PN and N are in the encrypted body.
+In both new and Existing Session, PN and N are in the encrypted body.
 
 In Signal, things are constantly ratcheting. A new DH public key requires the
 receiver to ratchet and send a new public key back, which also serves
@@ -718,13 +718,13 @@ N might be at most 128, but 32 or even less may be a better choice.
 New Session One Time Public key (32 bytes)
 Encrypted data and MAC (remaining bytes)
 
-The new session message may or may not contain the sender's static public key.
+The New Session message may or may not contain the sender's static public key.
 If it is included, the reverse session is bound to that key.
 The static key should be included if replies are expected,
 i.e. for streaming and repliable datagrams.
 It should not be included for raw datagrams.
 
-The new session message is similar to the one-way Noise [NOISE]_ pattern
+The New Session message is similar to the one-way Noise [NOISE]_ pattern
 "N" (if the static key is not sent),
 or the two-way pattern "IK" (if the static key is sent).
 
@@ -784,6 +784,28 @@ Encrypted format:
 {% endhighlight %}
 
 
+New Session Ephemeral Key
+`````````````````````````
+
+The ephemeral key is 32 bytes, encoded with Elligator2.
+This key is never reused; a new key is generated with
+each message, including retransmissions.
+
+Static Key
+``````````
+
+When decryptied, Alice's X25519 static key, 32 bytes.
+
+
+Payload
+```````
+
+Encrypted length is the remainder of the data.
+Decrypted length is 16 less than the encrypted length.
+Payload must contain a DateTime block and will usually contain a Clove Set block.
+See the payload section below for format and additional requirements.
+
+
 
 1c) New session format (without binding)
 ----------------------------------------
@@ -841,10 +863,33 @@ Encrypted format:
 
 {% endhighlight %}
 
+New Session Ephemeral Key
+`````````````````````````
+
+Alice's ephemeral key.
+The ephemeral key is 32 bytes, encoded with Elligator2.
+This key is never reused; a new key is generated with
+each message, including retransmissions.
+
+
+Flags Section Decrypted data
+````````````````````````````
+
+The Flags section contains nothing.
+It is always 32 bytes, because it must be the same length
+as the static key for New Session messages with binding.
+Bob determines whether it's a static key or a flags section
+by testing if the 32 bytes are all zeros.
+
+TODO any flags needed here?
+
 Payload
 ```````
 
-The payload section must contain an ACK Request block.
+Encrypted length is the remainder of the data.
+Decrypted length is 16 less than the encrypted length.
+Payload must contain a DateTime block and will usually contain a Clove Set block.
+See the payload section below for format and additional requirements.
 
 
 
@@ -906,15 +951,6 @@ Encrypted format:
 
 {% endhighlight %}
 
-Payload
-```````
-
-The payload section must not contain an ACK Request block.
-
-
-1e) New session contents
-------------------------
-
 
 New Session One Time Key
 ````````````````````````
@@ -929,10 +965,9 @@ Flags Section Decrypted data
 
 The Flags section contains nothing.
 It is always 32 bytes, because it must be the same length
-as the static key for new session messages with binding.
+as the static key for New Session messages with binding.
 Bob determines whether it's a static key or a flags section
 by testing if the 32 bytes are all zeros.
-
 
 TODO any flags needed here?
 
@@ -954,73 +989,13 @@ TODO any flags needed here?
 {% endhighlight %}
 
 
+Payload
+```````
 
-Payload Section Decrypted data
-``````````````````````````````
-
-See AEAD section below.
 Encrypted length is the remainder of the data.
 Decrypted length is 16 less than the encrypted length.
-All block types are supported.
-Typical contents include the following blocks:
-
-==================================  ============= ============
-       Payload Block Type            Type Number  Block Length
-==================================  ============= ============
-DateTime                                  0            7      
-Session ID (debug)                        1            7      
-Clove Set                                 3         varies    
-Options                                   5            9      
-Next Key                                  7           37      
-ACK Request                               9         varies    
-Padding                                 254         varies    
-==================================  ============= ============
-
-
-DateTime Message Contents
-~~~~~~~~~~~~~~~~~~~~~~~~~
-
-The current time.
-Bob must validate that the message is recent, using this timestamp.
-Bob must implement a Bloom filter or other mechanism to prevent replay attacks,
-if the time is valid.
-Specification TBD.
-
-
-
-Clove Set Contents
-~~~~~~~~~~~~~~~~~~
-
-The decrypted Garlic Message as specified in [I2NP]_, also known as a Clove Set.
-
-
-Options Contents
-~~~~~~~~~~~~~~~~
-
-See the Session Tag Length Analysis section below for more information.
-
-- STL = 8
-
-
-Next Key Contents
-~~~~~~~~~~~~~~~~~
-
-- Key ID = 0
-- Key = Alice's first ratchet public key rapk (See KDF for part 2 below),
-  remains constant for every new session message for this session
-
-
-ACK Request Contents
-~~~~~~~~~~~~~~~~~~~~
-
-Delivery instructions for the ack.
-
-
-
-Padding Contents
-~~~~~~~~~~~~~~~~
-
-As desired.
+Payload must contain a DateTime block and a Clove Set block.
+See the payload section below for format and additional requirements.
 
 
 
@@ -1094,7 +1069,7 @@ This is the "e" message pattern:
   // h is used as the associated data for the AEAD in the New Session Message
   // Retain the Hash h for the New Session Reply KDF
   // eapk is sent in cleartext in the
-  // beginning of the new session message
+  // beginning of the New Session message
   elg2_aepk = ENCODE_ELG2(aepk)
   // As decoded by Bob
   aepk = DECODE_ELG2(elg2_aepk)
@@ -1256,27 +1231,29 @@ Encrypted format:
 
 {% endhighlight %}
 
-Notes
-`````
+Session Tag
+```````````
 The tag is generated in the Session Tags KDF, as initialized
 in the DH Initialization KDF below.
 This correlates the reply to the session.
 The Session Key from the DH Initialization is not used.
 
 
+New Session Reply Ephemeral Key
+````````````````````````````````
+
+Bob's ephemeral key.
+The ephemeral key is 32 bytes, encoded with Elligator2.
+This key is never reused; a new key is generated with
+each message, including retransmissions.
+
+
 Payload
 ```````
-
-Payload section must contain the following blocks (in order):
-
-- Options (5)
-
-Optional payload blocks
-
-- Garlic (3)
-- Padding (254)
-
-If present, the padding block must be the final block.
+Encrypted length is the remainder of the data.
+Decrypted length is 16 less than the encrypted length.
+Payload will usually contain a Clove Set block.
+See the payload section below for format and additional requirements.
 
 
 KDF for Reply TagSet
@@ -1331,7 +1308,7 @@ KDF for Reply Key Section Encrypted Contents
   h = SHA256(h || bepk);
 
   // elg2_bepk is sent in cleartext in the
-  // beginning of the new session message
+  // beginning of the New Session message
   elg2_bepk = ENCODE_ELG2(bepk)
   // As decoded by Bob
   bepk = DECODE_ELG2(elg2_bepk)
@@ -1414,7 +1391,7 @@ and Bob must receive an ES message from Alice before sending ES messages.
 The ``chainKey`` and ``k`` from Bob's NSR Payload Section are used
 as inputs for the initial ES DH Ratchets (both directions, see DH Ratchet KDF).
 
-Bob must only retain existing sessions for the ES messages received from Alice.
+Bob must only retain Existing Sessions for the ES messages received from Alice.
 Any other created inbound and outbound sessions (for multiple NSRs) should be
 destroyed immediately after receiving Alice's first ES message for a given session.
 
@@ -1438,7 +1415,7 @@ Encrypted:
   |       Session Tag                     |
   +----+----+----+----+----+----+----+----+
   |                                       |
-  +                                       +
+  +            Payload Section            +
   |       ChaCha20 encrypted data         |
   ~                                       ~
   |                                       |
@@ -1452,15 +1429,18 @@ Encrypted:
 
   Session Tag :: 8 bytes, cleartext
 
-  encrypted data :: Same size as plaintext data, size varies
+  Payload Section encrypted data :: remaining data minus 16 bytes
 
   MAC :: Poly1305 message authentication code, 16 bytes
 
 {% endhighlight %}
 
 
-Decrypted:
-  See AEAD section below.
+Payload
+```````
+Encrypted length is the remainder of the data.
+Decrypted length is 16 less than the encrypted length.
+See the payload section below for format and requirements.
 
 
 KDF
@@ -1581,7 +1561,7 @@ New Session and New Session Reply Inputs
 ````````````````````````````````````````
 
 Inputs to the encryption/decryption functions
-for an AEAD block in a new session message:
+for an AEAD block in a New Session message:
 
 .. raw:: html
 
@@ -1604,7 +1584,7 @@ Existing Session Inputs
 ```````````````````````
 
 Inputs to the encryption/decryption functions
-for an AEAD block in an existing session message:
+for an AEAD block in an Existing Session message:
 
 .. raw:: html
 
@@ -1717,7 +1697,7 @@ we use session tags instead.
 By using a DH ratchet, we acheive forward secrecy, which was never implemented
 in ElGamal/AES+SessionTags.
 
-Note: The new session one-time public key is not part of the ratchet, its sole function
+Note: The New Session one-time public key is not part of the ratchet, its sole function
 is to encrypt Alice's initial DH ratchet key.
 
 
@@ -1820,10 +1800,10 @@ TAGSET
 
 Ratchets but not nearly as fast as Signal does.
 We separate the ack of the received key from generating the new key.
-In typical usage, Alice and Bob will each ratchet (twice) immediately in a new session,
+In typical usage, Alice and Bob will each ratchet (twice) immediately in a New Session,
 but will not ratchet again.
 
-Note that a ratchet is for a single direction, and generates a new session tag / message key ratchet chain for that direction.
+Note that a ratchet is for a single direction, and generates a New Session tag / message key ratchet chain for that direction.
 To generate keys for both directions, you have to ratchet twice.
 
 You ratchet every time you generate and send a new key.
@@ -1852,7 +1832,7 @@ Alice should use a timer for receiving a NSR message from Bob. If the timer expi
 the session should be removed.
 
 To avoid a KCI and/or resource exhaustion attack, where an attacker drops Bob's NSR replies to keep Alice sending NS messages,
-Alice should avoid starting new sessions to Bob after a certain number of retries due to timer expiration.
+Alice should avoid starting New Sessions to Bob after a certain number of retries due to timer expiration.
 
 Alice and Bob each do one DH initialization to create the inbound and outbound Existing Session
 session tag and symmetric key ratchet chains, and do a DH ratchet for every Next DH Key block received.
@@ -1884,7 +1864,7 @@ root key to be used for a subsequent DH ratchet if necessary.
 We use DH initialization in two places. First, we use it
 to generate a tag set for the New Session Replies.
 Second, we use it to generate two tag sets, one for each direction,
-for use in existing session messages.
+for use in Existing Session messages.
 
 TODO why are we using the chain key after split() ?
 
@@ -1894,7 +1874,7 @@ TODO why are we using the chain key after split() ?
   {% highlight lang='text' %}
 Inputs:
   1) rootKey = chainKey from Payload Section
-  2) k from the new session KDF or split()
+  2) k from the New Session KDF or split()
 
   // KDF_RK(rk, dh_out)
   keydata = HKDF(rootKey, k, "KDFDHRatchetStep", 64)
@@ -2115,6 +2095,30 @@ ordering and valid block rules are different for the two contexts.
 
 
 
+
+Payload Section Decrypted data
+``````````````````````````````
+
+Encrypted length is the remainder of the data.
+Decrypted length is 16 less than the encrypted length.
+All block types are supported.
+Typical contents include the following blocks:
+
+==================================  ============= ============
+       Payload Block Type            Type Number  Block Length
+==================================  ============= ============
+DateTime                                  0            7      
+Session ID (debug)                        1            7      
+Clove Set                                 3         varies    
+Options                                   5            9      
+Next Key                                  7           37      
+ACK Request                               9         varies    
+Padding                                 254         varies    
+==================================  ============= ============
+
+
+
+
 Unencrypted data
 ````````````````
 There are zero or more blocks in the encrypted frame.
@@ -2177,37 +2181,34 @@ so the max unencrypted data is 65519 bytes.
 
 Block Ordering Rules
 ````````````````````
-In the new session message,
-the following blocks are required, in the following order:
-
-- DateTime (type 0)
-- Options (type 5)
+In the New Session message,
+the DateTime block is required, and must be the first block.
 
 Other allowed blocks:
 
 - Clove Set (type 3)
+- Options (type 5)
 - Padding (type 254)
 
-In the new session reply message,
-the following blocks are required:
-
-- Options (type 5)
+In the New Session Reply message,
+no blocks are required.
 
 Other allowed blocks:
 
 - Clove Set (type 3)
+- Options (type 5)
 - Padding (type 254)
 
 No other blocks are allowed.
 Padding, if present, must be the last block.
 
-In the existing session message, order is unspecified, except for the
+In the Existing Session message, no blocks are required, and order is unspecified, except for the
 following requirements:
-TBD
-Padding, if present, must be the last block.
-Termination, if present, must be the last block except for Padding.
 
-There may be multiple I2NP blocks in a single frame.
+Termination, if present, must be the last block except for Padding.
+Padding, if present, must be the last block.
+
+There may be multiple Clove Set blocks in a single frame.
 Multiple Padding blocks are not allowed in a single frame.
 Other block types probably won't have multiple blocks in
 a single frame, but it is not prohibited.
@@ -2215,7 +2216,12 @@ a single frame, but it is not prohibited.
 
 DateTime
 ````````
+An expiration.
 Assists in reply prevention.
+Bob must validate that the message is recent, using this timestamp.
+Bob must implement a Bloom filter or other mechanism to prevent replay attacks,
+if the time is valid.
+Generally included in New Session messages only.
 
 .. raw:: html
 
@@ -2353,6 +2359,7 @@ Options
 ```````
 Pass updated options.
 Options include various parameters for the session.
+See the Session Tag Length Analysis section below for more information.
 
 The options block may be variable length,
 nine or more bytes, as more_options may be present.
@@ -2424,7 +2431,7 @@ Also contains the public key id, used for acks.
   blk :: 6
   size :: 6
   Key ID :: The ID of the current key being used, 2 bytes big endian.
-            65535 (0xffff) when in a new session message.
+            65535 (0xffff) when in a New Session message.
   PN :: 2 bytes big endian. The number of keys in the previous sending chain.
         i.e. one more than the last 'N' sent in the previous chain.
         Use 0 if there was no previous sending chain.
@@ -2439,7 +2446,7 @@ Notes
 - Maximum PN and N is 65535. Do not allow to roll over. Sender must ratchet the DH key, send it,
   and receive an ack, before the sending chain reaches 65535.
 
-- N is not strictly needed in an existing session message, as it's associated with the Session Tag
+- N is not strictly needed in an Existing Session message, as it's associated with the Session Tag
 
 - The definitions of PN and N are identical to that in Signal.
   This is similar to what Signal does, but in Signal, PN and N are in the header.
@@ -2460,6 +2467,11 @@ and it is optional. We don't ratchet every time.
 (This is different than in signal, where it is in the header, and sent every time)
 For typical usage patterns, Alice and Bob each ratchet a single time
 at the beginning.
+
+For the first ratchet,
+Key ID = 0 and
+Key = Alice's first ratchet public key rapk (See KDF for part 2),
+remains constant for every New Session message for this session
 
 
 .. raw:: html
@@ -2540,6 +2552,7 @@ Issues
 
 Ack Request
 ```````````
+Delivery instructions for the ack.
 To replace the out-of-band DeliveryStatus Message in the Garlic Clove.
 Also (optionally) binds the outbound session to the far-end Destination or Router.
 
@@ -2711,7 +2724,7 @@ Alice                           Bob
                       with bundled HTTP reply part 3
 
   After reception of any of these messages,
-  Alice switches to use existing session messages,
+  Alice switches to use Existing Session messages,
   creates a new inbound + outbound session pair,
   and ratchets.
 
@@ -2725,7 +2738,7 @@ Alice                           Bob
 
 
   After reception of any of these messages,
-  Bob switches to use existing session messages.
+  Bob switches to use Existing Session messages.
 
 
   <--------------     Existing Session
@@ -2806,7 +2819,7 @@ Alice                           Bob
                       with bundled streaming ack
 
   After reception of any of these messages,
-  Alice switches to use existing session messages,
+  Alice switches to use Existing Session messages,
   creates a new inbound + outbound session pair,
   and ratchets.
 
@@ -2823,14 +2836,14 @@ Alice                           Bob
 
 
   After reception of any of these messages,
-  Bob switches to use existing session messages.
+  Bob switches to use Existing Session messages.
 
 
   <--------------     Existing Session
                       with bundled streaming ack
 
   After reception of any of this message,
-  Alice switches to use existing session messages,
+  Alice switches to use Existing Session messages,
   and Alice ratchets.
 
 
@@ -2882,7 +2895,7 @@ Alice                           Bob
                       with bundled reply part 2
 
   After reception of either message,
-  Alice switches to use existing session messages,
+  Alice switches to use Existing Session messages,
   and ratchets.
 
   If the Existing Session message arrives first,
@@ -2959,7 +2972,7 @@ Alice                           Bob
   <--------------     Delivery Status Message 3
 
   After reception of any of these messages,
-  Alice switches to use existing session messages.
+  Alice switches to use Existing Session messages.
 
   Existing Session     ------------------->
 
@@ -3048,8 +3061,8 @@ ElGamal/AES+SessionTags, classify incoming messages as follows:
 
 Due to a flaw in the ElGamal/AES+SessionTags specification,
 the AES block is not padded to a random non-mod-16 length.
-Therefore, the length of existing session messages mod 16 is always 0,
-and the length of new session messages mod 16 is always 2 (since the
+Therefore, the length of Existing Session messages mod 16 is always 0,
+and the length of New Session messages mod 16 is always 2 (since the
 ElGamal block is 514 bytes long).
 
 If the length mod 16 is not 0 or 2,
@@ -3086,7 +3099,7 @@ Bandwidth overhead estimate
 
 Message overhead for the first two messages in each direction are as follows.
 This assumes only one message in each direction before the ACK,
-or that any additional messages are sent speculatively as existing session messages.
+or that any additional messages are sent speculatively as Existing Session messages.
 If there is no speculative acks of delivered session tags, the
 overhead or the old protocol is much higher.
 
@@ -3142,7 +3155,7 @@ For ECIES-X25519-AEAD-Ratchet
 
 TODO update this section after proposal is stable.
 
-Alice-Bob new session message:
+Alice-Bob New Session message:
 
 .. raw:: html
 
@@ -3160,7 +3173,7 @@ Alice-Bob new session message:
   212 bytes
 {% endhighlight %}
 
-Bob-Alice existing session message:
+Bob-Alice Existing Session message:
 
 .. raw:: html
 
@@ -3207,7 +3220,7 @@ Processing overhead estimate
 TODO update this section after proposal is stable.
 
 The following cryptographic operations are required by each party to initiate
-a new session and do the first ratchet:
+a New Session and do the first ratchet:
 
 - HMAC-SHA256: 3 per HKDF, total TBD
 - ChaChaPoly: 2 each
