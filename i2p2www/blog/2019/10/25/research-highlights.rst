@@ -37,10 +37,10 @@ and others can better understand who is using I2P, finding that there are about
 20,000 relays in the network on a daily basis.
 {%- endtrans %}
 
-{% trans -%}(Excerpt taken from the original blog post){%- endtrans %}
+{% trans -%}(Excerpt taken from OTF blog post){%- endtrans %}
 
 -  `Blog
-   Post <https://www.opentech.fund/news/empirical-study-i2p-anonymity-network-and-its-censorship-resistance/>`__
+   Post <https://homepage.np-tokumei.net/post/notes-otf-wrapup-blogpost/>`__
 -  `Metrics Portal <https://i2p-metrics.np-tokumei.net/>`__
 
 {% trans -%}
