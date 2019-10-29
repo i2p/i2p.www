@@ -39,9 +39,11 @@ and others can better understand who is using I2P, finding that there are about
 
 {% trans -%}(Excerpt taken from OTF blog post){%- endtrans %}
 
--  `Blog
+-  `Original Blog
    Post <https://homepage.np-tokumei.net/post/notes-otf-wrapup-blogpost/>`__
--  `Metrics Portal <https://i2p-metrics.np-tokumei.net/>`__
+-  `OTF Mirror of the Blog
+   Post <https://www.opentech.fund/news/empirical-study-i2p-anonymity-network-and-its-censorship-resistance/>`__
+-  `I2P Metrics Portal <https://i2p-metrics.np-tokumei.net/>`__
 
 {% trans -%}
 The research paper is also available here:
