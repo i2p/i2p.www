@@ -2110,10 +2110,10 @@ Typical contents include the following blocks:
 ==================================  ============= ============
 DateTime                                  0            7      
 Session ID (debug)                        1            7      
-Garlic Clove                              3         varies    
 Options                                   5            9      
 Next Key                                  7           37      
 ACK Request                               9         varies    
+Garlic Clove                             11         varies    
 Padding                                 254         varies    
 ==================================  ============= ============
 
@@ -2156,13 +2156,15 @@ so the max unencrypted data is 65519 bytes.
          0 datetime
          1 session id
          2 reserved
-         3 Garlic Clove
+         3 reserved
          4 termination
          5 options
          6 message number and previous message number (ratchet)
          7 next session key
          8 ack of reverse session key
          9 reply delivery instructions
+         10 reserved
+         11 Garlic Clove
          224-253 reserved for experimental features
          254 for padding
          255 reserved for future extension
