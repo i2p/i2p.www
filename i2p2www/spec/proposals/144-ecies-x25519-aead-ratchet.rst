@@ -5,7 +5,7 @@ ECIES-X25519-AEAD-Ratchet
     :author: zzz, chisana
     :created: 2018-11-22
     :thread: http://zzz.i2p/topics/2639
-    :lastupdated: 2019-10-17
+    :lastupdated: 2019-10-30
     :status: Open
 
 .. contents::
@@ -145,8 +145,9 @@ Goals
   This will also allow replies to have forward secrecy immediately.
 - Enable end-to-end encryption of certain messages (RouterInfo stores)
   that we currently don't due to CPU overhead.
-- Do not change the I2NP Garlic Message, Garlic Message Clove,
+- Do not change the I2NP Garlic Message
   or Garlic Message Delivery Instructions format.
+- Eliminate unused or redundant fields in the Garlic Clove Set and Clove formats.
 
 
 Non-Goals / Out-of-scope
@@ -802,7 +803,7 @@ Payload
 
 Encrypted length is the remainder of the data.
 Decrypted length is 16 less than the encrypted length.
-Payload must contain a DateTime block and will usually contain a Clove Set block.
+Payload must contain a DateTime block and will usually contain one or more Garlic Clove blocks.
 See the payload section below for format and additional requirements.
 
 
@@ -888,7 +889,7 @@ Payload
 
 Encrypted length is the remainder of the data.
 Decrypted length is 16 less than the encrypted length.
-Payload must contain a DateTime block and will usually contain a Clove Set block.
+Payload must contain a DateTime block and will usually contain one or more Garlic Clove blocks.
 See the payload section below for format and additional requirements.
 
 
@@ -994,7 +995,7 @@ Payload
 
 Encrypted length is the remainder of the data.
 Decrypted length is 16 less than the encrypted length.
-Payload must contain a DateTime block and a Clove Set block.
+Payload must contain a DateTime block and will usually contain one or more Garlic Clove blocks.
 See the payload section below for format and additional requirements.
 
 
@@ -1252,7 +1253,7 @@ Payload
 ```````
 Encrypted length is the remainder of the data.
 Decrypted length is 16 less than the encrypted length.
-Payload will usually contain a Clove Set block.
+Payload will usually contain one or more Garlic Clove blocks.
 See the payload section below for format and additional requirements.
 
 
@@ -2109,7 +2110,7 @@ Typical contents include the following blocks:
 ==================================  ============= ============
 DateTime                                  0            7      
 Session ID (debug)                        1            7      
-Clove Set                                 3         varies    
+Garlic Clove                              3         varies    
 Options                                   5            9      
 Next Key                                  7           37      
 ACK Request                               9         varies    
@@ -2155,7 +2156,7 @@ so the max unencrypted data is 65519 bytes.
          0 datetime
          1 session id
          2 reserved
-         3 Clove Set
+         3 Garlic Clove
          4 termination
          5 options
          6 message number and previous message number (ratchet)
@@ -2186,7 +2187,7 @@ the DateTime block is required, and must be the first block.
 
 Other allowed blocks:
 
-- Clove Set (type 3)
+- Garlic Clove (type 3)
 - Options (type 5)
 - Padding (type 254)
 
@@ -2195,7 +2196,7 @@ no blocks are required.
 
 Other allowed blocks:
 
-- Clove Set (type 3)
+- Garlic Clove (type 3)
 - Options (type 5)
 - Padding (type 254)
 
@@ -2208,7 +2209,7 @@ following requirements:
 Termination, if present, must be the last block except for Padding.
 Padding, if present, must be the last block.
 
-There may be multiple Clove Set blocks in a single frame.
+There may be multiple Garlic Clove blocks in a single frame.
 Multiple Padding blocks are not allowed in a single frame.
 Other block types probably won't have multiple blocks in
 a single frame, but it is not prohibited.
@@ -2256,45 +2257,46 @@ This may only be useful for debugging.
 {% endhighlight %}
 
 
-Clove Set
-`````````
+Garlic Clove
+````````````
 
-A single decrypted Garlic Message body as specified in [I2NP]_,
-also known as a Clove Set.
-Clove Sets may not be fragmented across blocks or
+A single decrypted Garlic Clove as specified in [I2NP]_,
+with modifications to remove fields that are unused
+or redundant.
+Garlic Cloves may not be fragmented across blocks or
 across ChaChaPoly frames.
 
 .. raw:: html
 
   {% highlight lang='dataspec' %}
 +----+----+----+----+----+----+----+----+
-  | num|  clove 1                         |
+  |  3 |  size   |                        |
+  +----+----+----+                        +
+  |      Delivery Instructions            |
+  ~                                       ~
+  ~                                       ~
+  |                                       |
+  +----+----+----+----+----+----+----+----+
+  |type|  Message_ID       | Expiration   
+  +----+----+----+----+----+----+----+----+
+       |      I2NP Message body           |
   +----+                                  +
-  |                                       |
   ~                                       ~
   ~                                       ~
   |                                       |
   +----+----+----+----+----+----+----+----+
-  |         clove 2 ...                   |
-  ~                                       ~
-  ~                                       ~
-  |                                       |
-  +----+----+----+----+----+----+----+----+
-  | Certificate  |   Message_ID      |     
-  +----+----+----+----+----+----+----+----+
-            Expiration               |
-  +----+----+----+----+----+----+----+
 
-  num ::
-       1 byte `Integer` number of `GarlicClove`s to follow
+  size :: size of all data to follow
 
-  clove ::  a `GarlicClove`
+  Delivery Instructions :: As specified in
+         the Garlic Clove section of [I2NP]_.
+         Length varies but is typically 1, 33, or 37 bytes
 
-  Certificate :: always NULL in the current implementation (3 bytes total, all zeroes)
+  type :: I2NP message type
 
-  Message_ID :: 4 byte `Integer`
+  Message_ID :: 4 byte `Integer` I2NP message ID
 
-  Expiration :: `Date` (8 bytes)
+  Expiration :: 4 bytes, seconds since the epoch
 
 {% endhighlight %}
 
@@ -2304,14 +2306,28 @@ Notes
   malformed or malicious data will not cause reads to
   overrun into the next block.
 
-- This is identical to the specification of the
-  decrypted Garlic Message body in [I2NP]_.
+- The Clove Set format specified in [I2NP]_ is not used.
+  Each clove is contained in its own block.
 
-Issues
-``````
-- Do we still need the certificate?
-- Can we use the message ID from the I2NP header?
-- Can we use a short expiration, or use the expiration from the I2NP header?
+- The I2NP message header is 9 bytes, with an identical format
+  to that used in [NTCP2]_.
+
+- The Certificate, Message ID, and Expiration from the
+  Garlic Message definition in [I2NP]_ are not included.
+
+- The Certificate, Clove ID, and Expiration from the
+  Garlic Clove definition in [I2NP]_ are not included.
+
+Justification
+`````````````
+- The certificates were never used.
+- The separate message ID and clove IDs were never used.
+- The separate expirations were never used.
+- The overall savings compared to the old Clove Set and Clove formats
+  is approximately 35 bytes for 1 clove, 54 bytes for 2 cloves,
+  and 73 bytes for 3 cloves.
+- The block format is extensible and any new fields may be added
+  as new block types.
 
 
 Termination
