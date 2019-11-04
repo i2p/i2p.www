@@ -5,7 +5,7 @@ ECIES-X25519-AEAD-Ratchet
     :author: zzz, chisana
     :created: 2018-11-22
     :thread: http://zzz.i2p/topics/2639
-    :lastupdated: 2019-10-30
+    :lastupdated: 2019-11-04
     :status: Open
 
 .. contents::
@@ -2189,7 +2189,7 @@ the DateTime block is required, and must be the first block.
 
 Other allowed blocks:
 
-- Garlic Clove (type 3)
+- Garlic Clove (type 11)
 - Options (type 5)
 - Padding (type 254)
 
@@ -2198,7 +2198,7 @@ no blocks are required.
 
 Other allowed blocks:
 
-- Garlic Clove (type 3)
+- Garlic Clove (type 11)
 - Options (type 5)
 - Padding (type 254)
 
@@ -2272,7 +2272,7 @@ across ChaChaPoly frames.
 
   {% highlight lang='dataspec' %}
 +----+----+----+----+----+----+----+----+
-  |  3 |  size   |                        |
+  | 11 |  size   |                        |
   +----+----+----+                        +
   |      Delivery Instructions            |
   ~                                       ~
