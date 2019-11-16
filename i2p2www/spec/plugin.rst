@@ -2,8 +2,8 @@
 Plugin Specification
 ====================
 .. meta::
-    :lastupdated: December 2017
-    :accuratefor: 0.9.32
+    :lastupdated: November 2019
+    :accuratefor: 0.9.43
 
 .. contents::
 
@@ -414,6 +414,10 @@ Don't bundle library jars in the webapp; put them in lib/ and put a classpath
 in webapps.config.  Then you can make separate install and update plugins,
 where the update plugin does not contain the library jars.
 
+Never bundle Jetty, Tomcat, or servlet jars in your plugin, as they may
+conflict with the version in the I2P installation.
+Take care not to bundle any conflicting libraries.
+
 Don't include .java or .jsp files; otherwise Jetty will recompile them at
 installation, which will increase the startup time.
 While most I2P installations will have a working Java and JSP
@@ -421,6 +425,12 @@ compiler in the classpath, this is not guaranteed, and may not work in all cases
 
 For now, a webapp needing to add classpath files in $PLUGIN must be the same
 name as the plugin.  For example, a webapp in plugin foo must be named foo.war.
+
+While I2P has supported Servlet 3.0 since I2P release 0.9.30,
+it does NOT support annotation scanning for @WebContent (no web.xml file).
+Several additional runtime jars would be required, and we do not provide
+those in a standard installation.
+Contact the I2P developers if you need support for @WebContent.
 
 
 Eepsite notes
@@ -584,14 +594,16 @@ the requirements are not met.
 =====================  ============================  ==============================================
          Jar                     Contains                         Usage
 =====================  ============================  ==============================================
-commons-logging.jar    Apache Logging                For plugins requiring Apache logging.
+addressbook.jar        Subscription and blockfile    No plugin should need; use the NamingService
+                       support                       interface
+commons-logging.jar    Apache Logging                Empty since release 0.9.30.
 
                                                      * Prior to Jetty 6 (release 0.9), this
                                                        contained Apache Commons Logging only.
                                                      * From release 0.9 to release 0.9.23, this
                                                        contained both Commons Logging and Tomcat
                                                        JULI.
-                                                     * As of release 0.9.24, this contains
+                                                     * As of release 0.9.24, this contained
                                                        Apache Tomcat JULI logging only.
                                                      * As of release 0.9.30 (Jetty 9),
                                                        this is empty.
@@ -613,6 +625,7 @@ javax.servlet.jar      Servlet API                   Needed for plugins with JSP
                                                      * As of release 0.9.30 (Jetty 9), this contains
                                                        the Servlet 3.1 and JSP 2.3 APIs.
 jbigi.jar              Binaries                      No plugin should need
+jetty-i2p.jar          Support utilities             Some plugins will need. As of release 0.9.
 mstreaming.jar         Streaming API                 Most plugins will need
 org.mortbay.jetty.jar  Jetty Base                    Only plugins starting their own Jetty instance
                                                      will need. Recommended way of starting Jetty
@@ -621,6 +634,7 @@ org.mortbay.jetty.jar  Jetty Base                    Only plugins starting their
                                                      from Jetty API changes.
 router.jar             Router                        Only plugins using router context will need;
                                                      most will not
+routerconsole.jar      Console libraries             No plugin should need, not a public API
 sam.jar                SAM API                       No plugin should need
 streaming.jar          Streaming Implementation      Most plugins will need
 systray.jar            URL Launcher                  Most plugins should not need
