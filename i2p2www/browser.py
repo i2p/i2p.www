@@ -21,6 +21,9 @@ def browser_download():
 def browser_releasenotes():
   return render_template('site/browser/releasenotes.html')
 
+def browser_roadmap():
+  return render_template('site/browser/roadmap.html')
+
 #def browser_known_issues():
 #  return render_template('site/browser/known_issues.html')
 
