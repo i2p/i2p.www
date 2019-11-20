@@ -2,8 +2,8 @@
 Blockfile and Hosts Database Specification
 ==========================================
 .. meta::
-    :lastupdated: November 2014
-    :accuratefor: 0.9.17
+    :lastupdated: November 2019
+    :accuratefor: 0.9.43
 
 .. contents::
 
@@ -172,10 +172,10 @@ Properties Skiplist
 entries containing only one entry:
 
     info
-        a Properties (UTF-9 String/String Map), serialized as a [Mapping]_:
+        a Properties (UTF-8 String/String Map), serialized as a [Mapping]_:
 
         version
-            "3"
+            "4"
 
         created
             Java long time (ms)
@@ -211,12 +211,25 @@ hosts.txt, userhosts.txt, and privatehosts.txt Skiplists
 --------------------------------------------------------
 
 For each host database, there is a skiplist containing the hosts for that
-database.  The keys/values in these skiplists are as follows:
+database. Note that the version 4 format supports multiple Destinations
+per hostname. This format was introduced in I2P release 0.9.26.
+Version 3 databases are automatically migrated to verrsion 4.
+
+The keys/values in these skiplists are as follows:
 
     key
         a UTF-8 String (the hostname)
 
     value
+        Database version 4:
+        A DestEntry, which is:
+        A one-byte number of Properties/Destination pairs to follow
+        That number of pairs of:
+        A Properties (a UTF-8 String/String Map)
+        serialized as a [Mapping]_ followed by a binary [Destination]_
+        (serialized as usual).
+
+        Database version 3:
         a DestEntry, which is a Properties (a UTF-8 String/String Map)
         serialized as a [Mapping]_ followed by a binary [Destination]_
         (serialized as usual).
@@ -226,9 +239,19 @@ The DestEntry Properties typically contains:
     "a"
         The time added (Java long time in ms)
 
+    "a"
+        The time added (Java long time in ms)
+
+    "notes"
+        User-supplied comments
+
     "s"
         The original source of the entry (typically a file name or subscription
         URL)
+
+    "v"
+        If the signature of the entry was verified, "true" or "false"
+
 
 Hostname keys are stored in lower-case and always end in ".i2p".
 
