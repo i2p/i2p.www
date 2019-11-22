@@ -1,5 +1,5 @@
 {% extends "global/layout.html" %}
-{% block title %}{{ _('The I2P Browser') }}{% endblock %}
+{% block title %}{% trans bname=browser_name(), bsuff=browser_postname()%}{{ bname }} {{ bsuff }} {% endtrans %}{% endblock %}
 {% block content_nav %}
 <ol>
 <li style="list-style: none; display: inline">
@@ -10,11 +10,10 @@
 <!--<li style="list-style: none;">{% trans troubleshooting=get_url('browser_troubleshooting') %}<a href="{{ troubleshooting }}">Troubleshooting</a>{% endtrans %}</li>-->
 <!--<li style="list-style: none;">{% trans known_issues=get_url('browser_known_issues') %}<a href="{{ known_issues }}">Known Issues</a>{% endtrans %}</li>-->
 <li style="list-style: none;">{% trans releasenotes=get_url('browser_releasenotes') %}<a href="{{ releasenotes }}">Release Notes</a>{% endtrans %}</li>
-<li style="list-style: none;">{% trans releasenotes=get_url('browser_roadmap') %}<a href="{{ releasenotes }}">Road Map</a>{% endtrans %}</li>
+<li style="list-style: none;">{% trans roadmap=get_url('browser_roadmap') %}<a href="{{ roadmap }}">Road Map</a>{% endtrans %}</li>
 <li style="list-style: none;">{% trans develop=get_url('browser_develop') %}<a href="{{ develop }}">Get Involved</a>{% endtrans %}</li>
 <li style="list-style: none;">{% trans donate=site_url('get-involved/donate') %}<a href="{{ donate }}">Donate</a>{% endtrans %}</li>
 
-<!--<li style="list-style: none;">{% trans faq=get_url('browser_faq') %}<a href="{{ faq }}">I2P Browser FAQ</a>{% endtrans %}</li>-->
 </ol>
 {% endblock %}
 
@@ -25,7 +24,7 @@
     <img class="browser-clip-circle" src="{{ url_for('static', filename=icon) }}" alt="{{ name }}" title="{{ name }}" />
     <a class="get-i2p-browser" href="{{ dlink }}">{{ caller() }}</a>
 
-    {% trans download=get_url('browser_download') %}<a href="{{ download }}">Click here to download I2P Browser in another language or platform</a>{% endtrans %}
+    {% trans download=get_url('browser_download'), bname=browser_name() %}<a href="{{ download }}">Click here to download {{ bname }} in another language or platform</a>{% endtrans %}
   </div>
 </div>
 {%- endmacro %}
@@ -35,29 +34,35 @@
 
 
 <section class="browser-front-wrapper">
-  <h1>{% trans %}Resist. Block. Defend.{% endtrans %}</h1>
+  <h1>{% trans bname=browser_name(), bsuff=browser_postname()%}{{ bname }}: {{ bsuff }}{% endtrans %}</h1>
 {%- if detected_os == 'windows' -%}
+  {%- set version  = browser_version() -%}
+  {%- set bname    = browser_name()-%}
   {%- set name     = 'Windows' -%}
   {%- set icon     = 'images/browser/garlic.svg' -%}
-  {%- set link     = 'https://download.i2p2.de/experimental/i2pbrowser-beta7/windows64/i2pbrowser-install-win64-2.0-beta7_en-US.exe' -%}
+  {%- set link     = 'https://download.i2p2.de/experimental/i2pbrowser-'+version+'/windows64/i2pbrowser-install-win64-2.0-'+''+version+''+'_en-US.exe' -%}
   {% call browser_download(name, icon, link) %}
-    Get I2P Browser for Windows
+    Get {{ bname }} for Windows
   {% endcall %}
 
 {%- elif detected_os == 'macosx' -%}
+  {%- set version  = browser_version() -%}
+  {%- set bname    = browser_name()-%}
   {%- set name     = 'Mac OS X' -%}
   {%- set icon     = 'images/browser/garlic.svg' -%}
-  {%- set link     = 'https://download.i2p2.de/experimental/i2pbrowser-beta7/macosx64/I2PBrowser-2.0-beta7-osx64_en-US.dmg' -%}
+  {%- set link     = 'https://download.i2p2.de/experimental/i2pbrowser-'+version+'/macosx64/I2PBrowser-2.0-'+version+'-osx64_en-US.dmg' -%}
   {% call browser_download(name, icon, link) %}
-  Get I2P Browser for Mac OS X
+  Get {{ bname }} for Mac OS X
   {% endcall %}
 
 {%- elif detected_os == 'linux' -%}
+  {%- set version  = browser_version() -%}
+  {%- set bname    = browser_name()-%}
   {%- set name     = 'Linux' -%}
   {%- set icon     = 'images/browser/garlic.svg' -%}
-  {%- set link     = 'https://download.i2p2.de/experimental/i2pbrowser-beta7/linux64/i2p-browser-linux64-2.0-beta7_en-US.tar.xz' -%}
+  {%- set link     = 'https://download.i2p2.de/experimental/i2pbrowser-'+version+'/linux64/i2p-browser-linux64-2.0-'+version+'_en-US.tar.xz' -%}
   {% call browser_download(name, icon, link) %}
-  Get I2P Browser for Linux x64
+  Get {{ bname }} for Linux x64
   {% endcall %}
 
 {%- endif -%}
@@ -65,54 +70,21 @@
 
 <section class="browser-onboarding">
   <div class="row">
-    <h1>{% trans %}Why use the I2P Browser?{% endtrans %}</h1>
-  </div>
-  <div class="row">
-    <div class="row-image">
-      <img src="{{ url_for('static', filename='images/browser/fp_protection.svg') }}" />
-    </div>
-    <div class="row-text">
-      <h4>Avoid fingerprinting</h4>
-      I2P Browser aims to make all users look the same making it difficult for you to be fingerprinted based on your browser and device information.
-    </div>
-  </div>
-  <div class="row">
     <div class="row-image">
       <img src="{{ url_for('static', filename='images/browser/routing.svg') }}" />
     </div>
     <div class="row-text">
-      <h4>Garlic Routing</h4>
-      I2P Browser uses the I2P network to enable garlic routing of your traffic keeping it safe from any internet service providers.
+      <h4>{% trans bname=browser_name() %} {{ bname }} {% endtrans %}</h4>
+      {% trans bname=browser_name() %}
+      {{ bname }} is an enhanced private browser(Originally based on Tor Browser/Firefox ESR) for the
+      decentralized, private I2P network and an easy to use client for I2P applications like
+      peer-to-peer file-sharing, messaging, and e-mail.
+      {% endtrans %}
     </div>
   </div>
   <div class="row">
-    <div class="row-image">
-      <img src="{{ url_for('static', filename='images/browser/encryption.svg') }}" />
-    </div>
-    <div class="row-text">
-      <h4>Multi layer encryption</h4>
-      Your traffic is relayed and encrypted six times with default settings as it passes over the I2P network. The network is comprised of thousands of other routers connected to the I2P network.
-    </div>
+    <h1>{% trans intro=get_url('browser_intro'), bname=browser_name() %}<a href="{{ intro }}">Take The Tour</a>{% endtrans %}</h1>
   </div>
-  <div class="row">
-    <div class="row-image">
-      <img src="{{ url_for('static', filename='images/browser/block_trackers.svg') }}" />
-    </div>
-    <div class="row-text">
-      <h4>Block Trackers</h4>
-      I2P Browser isolates each website you visit so third-party trackers and ads can't follow you. Any cookies automatically clear when you're done browsing. So will your browsing history.
-    </div>
-  </div>
-  <div class="row">
-    <div class="row-image">
-      <img src="{{ url_for('static', filename='images/browser/surveillance.svg') }}" />
-    </div>
-    <div class="row-text">
-      <h4>Circumvent surveillance</h4>
-      I2P Browser prevents someone watching your connection from knowing what websites you visit. All anyone monitoring your browsing habits can see is that you're using I2P.
-    </div>
-  </div>
-  <div class="row"></div>
 </section>
 
 

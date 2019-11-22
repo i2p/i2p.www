@@ -34,6 +34,12 @@ CLEAR_HTTP = [
     'zzz.i2p',
     ]
 
+#BROWSER_NAME = 'I2P Rhizome'
+BROWSER_NAME = 'I2P Browser'
+BROWSER_VERSION = 'beta7'
+#BROWSER_SUBTITLE = 'Communication Security Toolkit'
+BROWSER_SUBTITLE = ''
+BROWSER_FILE = 'i2pbrowser-install'
 
 ####################
 # Template functions
@@ -203,6 +209,18 @@ def utility_processor():
             return string % CURRENT_I2P_FIREFOX_PROFILE_VERSION
         return CURRENT_I2P_FIREFOX_PROFILE_VERSION
 
+    def browser_current_version():
+        return BROWSER_VERSION
+
+    def browser_short_name():
+        return BROWSER_NAME
+
+    def browser_suffix_name():
+        return BROWSER_SUBTITLE
+
+    def browser_filename_name(version="beta7", platform="linux", series="2.0", language="en-US", exe=None):
+        return 'i2pbrowser-install-' + platform + "-" + series + "-" + version + "_" + language + exe
+
     return dict(i2pconv=convert_url_to_clearnet,
                 i2pclr=convert_url_to_clearnet_inc_https,
                 url_for_other_page=url_for_other_page,
@@ -218,5 +236,9 @@ def utility_processor():
                 ver=get_current_version,
                 pver=get_current_firefox_profile_version,
                 canonical=get_canonical_link,
+                browser_version=browser_current_version,
+                browser_name=browser_short_name,
+                browser_postname=browser_suffix_name,
+                browser_filename=browser_filename_name,
                 supported_langs=SUPPORTED_LANGS,
                 lang_names=SUPPORTED_LANG_NAMES)
