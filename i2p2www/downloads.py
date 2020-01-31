@@ -79,6 +79,9 @@ def downloads_firefox():
 def downloads_lab():
     return render_template('downloads/lab.html')
 
+def downloads_config():
+    return render_template('downloads/config.html')
+
 # Specific file downloader
 def downloads_select(version, file):
     mirrors=read_mirrors()
