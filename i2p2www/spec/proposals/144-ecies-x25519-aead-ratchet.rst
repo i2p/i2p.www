@@ -5,7 +5,7 @@ ECIES-X25519-AEAD-Ratchet
     :author: zzz, chisana
     :created: 2018-11-22
     :thread: http://zzz.i2p/topics/2639
-    :lastupdated: 2019-11-04
+    :lastupdated: 2020-02-07
     :status: Open
 
 .. contents::
@@ -571,6 +571,7 @@ DH
 
     ENCODE_ELG2(pubkey)
         Returns the Elligator2-encoded public key corresponding to the given public key (inverse mapping).
+        Encoded keys are little endian.
 
     DECODE_ELG2(pubkey)
         Returns the public key corresponding to the given Elligator2-encoded public key.
@@ -868,7 +869,7 @@ New Session Ephemeral Key
 `````````````````````````
 
 Alice's ephemeral key.
-The ephemeral key is 32 bytes, encoded with Elligator2.
+The ephemeral key is 32 bytes, encoded with Elligator2, little endian.
 This key is never reused; a new key is generated with
 each message, including retransmissions.
 
@@ -956,7 +957,7 @@ Encrypted format:
 New Session One Time Key
 ````````````````````````
 
-The one time key is 32 bytes, encoded with Elligator2.
+The one time key is 32 bytes, encoded with Elligator2, little endian.
 This key is never reused; a new key is generated with
 each message, including retransmissions.
 
@@ -1244,7 +1245,7 @@ New Session Reply Ephemeral Key
 ````````````````````````````````
 
 Bob's ephemeral key.
-The ephemeral key is 32 bytes, encoded with Elligator2.
+The ephemeral key is 32 bytes, encoded with Elligator2, little endian.
 This key is never reused; a new key is generated with
 each message, including retransmissions.
 
@@ -1322,7 +1323,7 @@ KDF for Reply Key Section Encrypted Contents
   //[chainKey, k] = MixKey(sharedSecret)
   // ChaChaPoly parameters to encrypt/decrypt
   // chainKey from original New Session Payload Section
-  sharedSecret = DH(aesk, bepk) = DH(besk, bepk)
+  sharedSecret = DH(aesk, bepk) = DH(besk, aepk)
   keydata = HKDF(chainKey, sharedSecret, "", 32)
   chainKey = keydata[0:31]
 
@@ -1519,6 +1520,7 @@ Format
 ``````
 
 32-byte public and private keys.
+Encoded keys are little endian.
 
 
 Justification
@@ -2110,8 +2112,11 @@ Typical contents include the following blocks:
 ==================================  ============= ============
 DateTime                                  0            7      
 Session ID (debug)                        1            7      
+Termination (TBD)                         4          TBD      
 Options                                   5            9      
+Message Numbers (TBD)                     6          TBD      
 Next Key                                  7           37      
+Next Key Ack (TBD)                        8          TBD      
 ACK Request                               9         varies    
 Garlic Clove                             11         varies    
 Padding                                 254         varies    
