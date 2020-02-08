@@ -3,8 +3,8 @@ I2CP Specification
 ==================
 .. meta::
     :category: Protocols
-    :lastupdated: October 2019
-    :accuratefor: 0.9.43
+    :lastupdated: February 2020
+    :accuratefor: 0.9.44
 
 .. contents::
 
@@ -236,13 +236,16 @@ below.
    Version      Required I2CP Features
 ==============  ======================
    0.9.43       BlindingInfo message supported
+
                 Additional HostReply message failure codes
 
    0.9.41       EncryptedLeaseSet options
 
-   0.9.39       CreateLeaseSet2 message supported
+   0.9.39       CreateLeaseSet2 message (type 41) and options supported
 
-   0.9.38       Preliminary CreateLeaseSet2 message supported (abandoned)
+                Dest/LS key certs w/ RedDSA Ed25519 sig type supported
+
+   0.9.38       Preliminary CreateLeaseSet2 message (type 40) support (abandoned)
 
    0.9.21       Multiple sessions on a single I2CP connection supported
 
