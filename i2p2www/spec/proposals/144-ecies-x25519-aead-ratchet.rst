@@ -5,7 +5,7 @@ ECIES-X25519-AEAD-Ratchet
     :author: zzz, chisana
     :created: 2018-11-22
     :thread: http://zzz.i2p/topics/2639
-    :lastupdated: 2020-02-07
+    :lastupdated: 2020-02-09
     :status: Open
 
 .. contents::
@@ -572,9 +572,12 @@ DH
     ENCODE_ELG2(pubkey)
         Returns the Elligator2-encoded public key corresponding to the given public key (inverse mapping).
         Encoded keys are little endian.
+        Encoded key must be 256 bits indistinguishable from random data.
+        See Elligator2 section below for specification.
 
     DECODE_ELG2(pubkey)
         Returns the public key corresponding to the given Elligator2-encoded public key.
+        See Elligator2 section below for specification.
 
     DH(privkey, pubkey)
         Generates a shared secret from the given private and public keys.
@@ -1205,7 +1208,7 @@ Encrypted format:
   |                                       |
   +----+----+----+----+----+----+----+----+
   |  Poly1305 Message Authentication Code |
-  +         (MAC) for Key Section         +
+  +  (MAC) for Key Section (no data)      +
   |             16 bytes                  |
   +----+----+----+----+----+----+----+----+
   |                                       |
@@ -1226,6 +1229,7 @@ Encrypted format:
   Public Key :: 32 bytes, little endian, Elligator2, cleartext
 
   MAC :: Poly1305 message authentication code, 16 bytes
+         Note: The ChaCha20 plaintext data is empty (ZEROLEN)
 
   Payload Section encrypted data :: remaining data minus 16 bytes
 
@@ -1521,6 +1525,40 @@ Format
 
 32-byte public and private keys.
 Encoded keys are little endian.
+
+As defined in [Elligator2]_, the encoded keys are indistinguishable from 254 random bits.
+We require 256 random bits (32 bytes). Therefore, the encoding and decoding are
+defined as follows:
+
+Encoding:
+
+.. raw:: html
+
+  {% highlight lang='text' %}
+ENCODE_ELG2() Definition
+
+  // Encode as defined in Elligator2 specification
+  encodedKey = encode(pubkey)
+  // OR in 2 random bits to MSB
+  randomByte = CSRNG(1)
+  encodedKey[31] |= (randomByte & 0xc0)
+{% endhighlight %}
+
+
+Decoding:
+
+.. raw:: html
+
+  {% highlight lang='text' %}
+DECODE_ELG2() Definition
+
+  // Mask out 2 random bits from MSB
+  encodedKey[31] &= 0x3f
+  // Decode as defined in Elligator2 specification
+  pubkey = decode(encodedKey)
+{% endhighlight %}
+
+
 
 
 Justification
