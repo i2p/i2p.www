@@ -241,11 +241,11 @@ below.
 
    0.9.41       EncryptedLeaseSet options
 
-   0.9.39       CreateLeaseSet2 message (type 41) and options supported
+   0.9.39       CreateLeaseSet2 message and options supported
 
                 Dest/LS key certs w/ RedDSA Ed25519 sig type supported
 
-   0.9.38       Preliminary CreateLeaseSet2 message (type 40) support (abandoned)
+   0.9.38       Preliminary CreateLeaseSet2 message supported (abandoned)
 
    0.9.21       Multiple sessions on a single I2CP connection supported
 
