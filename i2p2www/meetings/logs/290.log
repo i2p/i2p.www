@@ -1,0 +1,222 @@
+20:59:49 <eyedeekay> Hi everybody, about a minute until meeting time, who all is here?
+20:00:33 <eche|on> Ok, it is time. Welcome to the IRC dev meeting 3rd march 2020. 
+20:00:40 <eche|on> Agenda:
+20:00:40 <eche|on> 0) Hi
+20:00:40 <eche|on> 1) 0.9.45 release status 
+20:00:40 <eche|on> 2) 0.9.46 plans
+20:00:40 <eche|on> 3) I2P Android state/future
+20:00:40 <eche|on> 4) MTN => Git plans
+20:00:40 <eche|on> 5) misc - UX plans for 2020; donation page
+20:01:28 <eche|on> so, as the old baffer is nearly unuseable for me, and I do not have a new one yet, lets start
+20:01:31 <eche|on> 0) hi
+20:01:33 <nextloop> hi!
+20:01:38 <eche|on> I am here, eyedeekay is here, nextloop is here
+20:01:40 <zzz> hi
+20:02:21 <eche|on> ok, lets go on to 1)
+20:02:36 <eche|on> 0.9.45 was released some days ago and it looks fine so far
+20:02:42 <eche|on> any comments?
+20:03:03 <zzz> all went smoothly on my side
+20:03:11 <nextloop> what's the status of android?
+20:03:16 <zzz> in-net, PPA, deb repo. No major reports so far
+20:03:31 <eche|on> android still not done, see point 3
+20:03:34 <zzz> I leave it to you to report maven/fdroid/android/mac, I have no insights on that
+20:03:47 <eche|on> mac was built and put online
+20:04:09 <eche|on> from my side it went well enough
+20:04:13 <eche|on> hi sadie_ 
+20:04:45 <eche|on> ok, and now go on to 2, the 0.9.46 plans
+20:04:55 <eche|on> zzz: any plans for 0.9.46 on your roadmap?
+20:05:17 <sadie_> hi
+20:05:51 <zzz> rrd4j is in replacing jrobin
+20:05:56 <zzz> about 30 checkins so far in a week
+20:06:10 <zzz> orignal and I hope to finish up ratchet (prop. 144)
+20:06:28 <eche|on> good pace, will slow down for sure. Will ratchet be in .46 or a maybe?
+20:06:41 <zzz> jogger SSU fixes... maybe... maybe not...
+20:07:23 <zzz> ratchet is in 45, it works, but a lot of the details aren't finished, hopefully will be for 46
+20:07:36 <eche|on> ok, good.
+20:08:15 <zzz> ratchet todo list http://zzz.i2p/topics/2639
+20:08:49 <eche|on> whats the estimated timeframe for a 0.9.46 release? may?
+20:08:50 <zzz> what's everybody else's plans?
+20:09:15 <eche|on> eyedeekay, sadie, plan for 0.9.46 ?
+20:09:18 <eyedeekay> My top priority is the readme located in the router console at this time, currently I am slightly blocked on a chat recommendation still but will resolve that soon. I'll be building on this to progressively work on our in-console help.
+20:09:24 <zzz> late may is my proposal, subject to other's agreement
+20:10:07 <eche|on> ok, late may looks good, will verify with others the next days.
+20:10:20 <eyedeekay> I am happy with late May
+20:10:32 <mikalv_> same
+20:10:43 <eche|on> ok, any other notes on 0.9.46 plans?
+20:10:51 <eche|on> comments, questions?
+20:11:24 <mikalv_> no but we should land the android architecture support question now that we got everyone here
+20:11:32 <eche|on> thats point 3 :-)
+20:11:44 <mikalv_> basically google says: support x64 or drop the platform (if only provided 32bit)
+20:11:47 <eche|on> wo which we come now after no one stood up for another question on point 2
+20:11:56 <mikalv_> great
+20:11:59 <eche|on> mikalv_: whats the state of android 0.9.45 ?
+20:12:31 <mikalv_> I've built it, got google's complaint, and awaited this meeting for a administrative decision to what we should do
+20:12:48 <mikalv_> if we should drop mips and such, or try produce the 64bit binaries for it
+20:13:04 <zzz> whats your recommendation?
+20:13:34 <mikalv_> once that's landed, we should be ready to release at any time if we remove it, and not sure if we need to produce the 64bit binaries as I've not tried that before
+20:13:42 <eche|on> IMHO not much MIPS and x86 android devices available, so drop them for 0.9.45, but keep it on mind
+20:13:57 <sadie_> For me ,Information architecture  review of  console and website , then Identity and values workshop with Ura and Simply Secure. Post install work, infrastructure and policy review
+20:14:06 <mikalv_> I tried to get google play to somehow tell me how much they where used (the different architectures) but I couldn't find any metrics for it
+20:14:10 <zzz> you have user stats mikal?
+20:14:22 <eche|on> ok, sadie, point 2 addition, noted :-)
+20:14:23 <mikalv_> the closest we get is a list of devices 
+20:14:27 <nextloop> the architecture is just relevant for the NDK jbigi lib right?
+20:14:35 <mikalv_> but then, we need to know what arch all the different devices is 
+20:14:38 <zzz> sounds like an easy decision to me
+20:14:40 <eche|on> yes, nextloop, mostly yes
+20:14:44 <mikalv_> yes nextloop 
+20:14:48 <nextloop> because it gets built from source every f-droid release
+20:15:17 <nextloop> i never veryfied if it really gets used or uses the java fallback
+20:15:25 <eche|on> ok
+20:15:25 <mikalv_> but is that for the 64bit versions so the f-droid has binaries that don't exists in the gplay version?
+20:16:24 <nextloop> it just runs the shell script i believe. whatever is built there gets built
+20:16:50 <eche|on> mikalv_: please check the shell script/f-droid version, if 64 bit available, use it, else drop that architecture
+20:17:24 <mikalv_> okay I'll do so then unless any objections
+20:17:35 <eyedeekay> No objections from me.
+20:17:40 <mikalv_> (?)
+20:17:43 <mikalv_> great
+20:17:46 <eche|on> now to the more interesting point: future of android I2P version. As bote is nearly dead and not in use, and no dev available, the use case for android I2P is gone
+20:17:57 <eche|on> do we want a future android I2P release?
+20:18:09 <eche|on> even without bote and nearly null use case?
+20:18:16 <eche|on> eyedeekay: opinion? zzz?
+20:18:28 <zzz> your premise is that the sole use case for the android router app is bote?
+20:18:47 <eche|on> as the browser has other issues (as mikalv_ told me), what is left?
+20:18:59 <eyedeekay> People are using Java I2P on Android for non-Bote things. There's a dude hosting Yacy on top of termux or some crazy nonsense like that. I don't want to stifle people.
+20:19:03 <eche|on> beside being a simple router on small devices
+20:19:18 <zzz> it's simply not true that browsing is broken
+20:19:34 <mikalv_> its basically no "non technical" way to use the android version of today
+20:19:39 <eche|on> ok, good, so your both vote for future of android
+20:19:41 <zzz> right idk?
+20:19:48 <mikalv_> you can tweak firefox in about:config which mozilla warns you to not do
+20:20:06 <eyedeekay> Yes I think Android can have a future.
+20:20:06 <mikalv_> but beyond that, it need some kind of life purpose in my point of view
+20:20:45 <eche|on> but as I have seen also, android will change owner to eyedeekay, is that correct?
+20:20:46 <zzz> what's behind this? does the team not want to support it?
+20:20:51 <eyedeekay> Yes
+20:21:00 <eche|on> O
+20:21:01 <eche|on> ok
+20:21:12 <eche|on> zzz: I try to figure opinions and ideas
+20:21:26 <eche|on> and as it looks, eyedeekay will support androif for 0.9.46 and further on
+20:21:35 <eyedeekay> I will continue to at least maintain Android builds, I will take ownership of it. I do wish to keep supporting it. Just to clarify
+20:21:45 <zzz> I think android is important. Right now we're providing terrible support. We aren't fixing _any_ bugs and there's no new development
+20:21:48 <eche|on> and as users seem to use it, it will be supported
+20:22:12 <zzz> if we can't increase our support with the current team than we should hire somebody new to do it
+20:22:33 <eche|on> ok
+20:22:48 <sadie_> I have applied for support that I would suggest going to Android. No answer yet.
+20:23:12 <sadie_> I think that Android is important
+20:23:38 <eche|on> so android i2p will live on and we try to get better support for it, at least better than just supllying new releases
+20:23:59 <eche|on> and if funding is available, get a dev on funds to support android dev
+20:24:25 <eche|on> any questions, comments, hints on point 3 android?
+20:25:43 <eche|on> ok, going on to topic 4) the forthcoming monotone to Git translation
+20:26:20 <eche|on> we decided to drop monotone and use git instead, a translation plan is still in work to maintain best useability and features which are needed for I2P development
+20:26:40 <eche|on> currently eyedeekay did setup a git server on http://git.idk.i2p and made a howto on https://github.com/eyedeekay/git-over-i2p/blob/master/GIT.md
+20:27:02 <eche|on> we do work on getting trac into the git instance and migrate all the tickets into git
+20:27:26 <eche|on> after that migration is done securly and verified, we decide on a date to switch
+20:27:46 <eche|on> currently we do look out for testers of the guide and the git server inside of I2P 
+20:28:03 <eche|on> and for sure: for more hints, tips, ideas, feature requests on this topic
+20:28:07 <eche|on> so, please
+20:28:12 <eche|on> eyedeekay: more comments on this?
+20:28:39 <eyedeekay> I've also been working on adding SOCKS support to webtorrent, which will hopefully make it possible for us to use gittorrent as well in the near future.
+20:29:19 <eche|on> nextloop: comments? as you do work the sync script currently?
+20:29:49 <zzz> is muwire code set up and bridged to GH as we planned?
+20:30:18 <eyedeekay> While my testing over the past few weeks has been successful, I would like it very much if people could review my guide and make comments where it could be clarified or simplified.
+20:30:37 <nextloop> the topic of breaking connections during initial cloneing is solved by doing shallow clone and iterative unshallowing, am I right?
+20:30:46 <eche|on> zzz: no idea yet, not yet worked on my side
+20:30:55 <eyedeekay> Yes that works right now.
+20:30:56 <zzz> idk?
+20:31:13 <eche|on> yes, nextloop, that does help a bit, but even the depth of 1 version is still ~100 MB to fetch
+20:31:37 <eche|on> with unshallowing it grows slightly bigger (4-5 times in my experiment)
+20:31:49 <zzz> I have a question about user names on git.idk - do we need to pick a username unused on GH, or do we need to defensively register it on GH, to make it all work right?
+20:32:12 <nextloop> zzz: github identifies the committers based on e-mail addresses.
+20:32:17 <zzz> there was a report on zzz.i2p a while back that there are several fake zzz-i2p accounts on GH. is that a problem?
+20:32:42 <nextloop> so if you add your email you use for i2p git to github the commit will be linked to your account
+20:33:16 <nextloop> eyedeekay: is the regular torrent archive already in place? if i remember correctly you were working on that
+20:33:48 <eyedeekay> Well it's generatable, but there's nothing scheduling it yet
+20:34:32 <zzz> so I need to register on git.idk with a valid clearnet email address if I want to (before or after) register on GH? or that's a local setup thing?
+20:34:55 <zzz> anyway, we're in the weeds here, sorry, I'll work with idk to figure it out
+20:35:17 <eyedeekay> You don't need to pick an unused GH username AFAIK, you could work entirely from the gitlab instance and we wouldn't need github at all
+20:35:17 <eche|on> clearnet email should be in this case the i2pmail.org address IMHO
+20:35:46 <nextloop> zzz: yes for github you need to verify the email. use i2p-mail.org perhaps?
+20:35:54 <eche|on> currently the plan is to use the gitlab (idk in i2p net git instance) for our work and sync to github
+20:36:23 <eche|on> the trac tickets would be on in-net gitlab server
+20:36:25 <nextloop> eyedeekay: i would be motivated to setup such an automatic archiving
+20:36:27 <zzz> I just want to make sure it's not linked to some fake zzz account when it gets bridged to GH
+20:36:47 <eche|on> (sorry for the hassle, gitlab and github are both servers with lots of features around git, both do nearly the same tasks)
+20:37:18 <eche|on> valid point, zzz 
+20:37:47 <eche|on> ok, before going into much deeper details, any more comments?
+20:39:06 <eche|on> going on to topic 5 - misc topics. currently 2 from my side: a) donation page and b) UX plans for 2020
+20:39:40 <eche|on> 5a) a new donation page is setup by mikalv_ on https://donate.i2p.io/ and those accounts are all benefits to the I2P company mikalv_ is running with torkel in norway
+20:40:07 <eche|on> it is live and do collect donations from now on, soon (tm) it will be advertised on webpage and twitter
+20:40:24 <eche|on> any comments on this? issues, problems?
+20:41:29 <eche|on> 5)b) UX plans for 2020 - sadie is working with elio on a UX project, in whic elio has been granted funds to work on I2P UX 
+20:41:42 <eche|on> sadie, any more information, plans, ideas, comments?
+20:42:05 <sadie_> Information architecture  review of  console and website , then Identity and values workshop with Ura and Simply Secure will be the work for this month
+20:42:41 <sadie_> We have received very good feedback on the set up wizard!
+20:43:31 <eyedeekay> From me, the Browser project has been officially placed on hiatus. We pretty much couldn't have picked a worse time to attempt such a thing, as Mozilla's codebase has been changing drastically as we tried to work with it. The project will be revisited when we have less of a moving target. I will be making improvements to I2P and web browsing in less time-dominating projects.
+20:43:36 <sadie_> So research, synthesis and documentation phase for now. 
+20:44:03 <zzz> eyedeekay, status of beta 8, promised in 'a couple days' at the meeting a month ago?
+20:44:24 <eyedeekay> It is cancelled. There was no use in creating it, as it will only be viable for a very short time.
+20:44:35 <eche|on> thank you sadie, whats the timeframe for the whole project? end date 
+20:44:56 <eche|on> eyedeekay: please announce that on webpage
+20:45:21 <eyedeekay> Will do
+20:45:22 <sadie_> End date projection for study is mid June
+20:45:49 <zzz> if beta 8 would not have been viable for long, I assume beta 7 on our website is long since obsolete and should be removed, for sure
+20:45:53 <eche|on> ok, and is there a rough idea at which timepoint UX enhancements will get into I2P code?
+20:46:59 <eche|on> sadie?
+20:47:28 <eche|on> zzz: that should be done with the announcement of the final end of the browser project
+20:47:33 <sadie_> It will not be until after June. We need to go through the process first. If there are improvements we can execute on easily as they are suggested and approved we will.
+20:47:35 <zzz> sadie_, is the funding organization for Ura public? and if so who?
+20:47:46 <mikalv_> yes the browser project was unluckly started at the wrong time as mozilla rewrote basically everything in their codebase the same year
+20:48:05 <anonymousmaybe> i2pbrowser currently has many security vulnerabilities didnt fixed since ages because it didnt catch up with TB/FF patched releases
+20:48:09 <mikalv_> so each release had quite some different code than the previous one and so on
+20:48:23 <eche|on> sadie_: ok, looks like early 0.9.47, maybe 0.9.48 will be first i2p version whcih will get changes of this project
+20:48:25 <sadie_> The funding for this study is provided through usability lab. 
+20:48:39 <zzz> which is OTF?
+20:48:40 <sadie_> correct ech
+20:48:47 <mikalv_> tbb had 10 people rewrite all their patches like three or four times in 2019
+20:49:34 <eche|on> https://www.opentech.fund/labs/usability-lab/
+20:49:45 <sadie_> OTF Resource Labs 
+20:49:58 <zzz> would be good to get some thanks-tweets and a blog post out there if it's public, this is big news that we should be telling people about!
+20:50:37 <fug> you should also tell people how you gutted the UI and removed docs
+20:51:09 <eche|on> On a minor down side, the InternetFreedomFestival in Valencia, spain, was canclled due to high risk on the corona-virus. 
+20:51:18 <eche|on> so new I2P participation in there
+20:51:38 <eche|on> zzz: noted and will happen 
+20:52:15 <sadie_> zzz, yes I have announced it on forum last week. PR rollout has been planned
+20:52:26 <eche|on> any more comments, topics under topic 5) misc?
+20:52:51 <eche|on> http://i2pforum.i2p/viewtopic.php?f=27&t=925
+20:53:00 <eche|on> is the forum entry with news entries
+20:53:10 <fug> zzz: github does detection based on the email specified in commits, said email needs to be registered with a github account, and registration requires sending a confirmation link to the email
+20:53:33 <fug> zzz: so in case of your commits with .i2p mail, you won't be able to confirm them
+20:53:55 <anonymousmaybe> any road map for i2prouter isolation? https://trac.i2p2.de/ticket/2132
+20:54:47 <eche|on> i2p debian package split up is IMHO on hold currently
+20:54:51 <eyedeekay> No road map on that yet.
+20:55:02 <anonymousmaybe> ah sad..
+20:55:22 <eche|on> AFAIK some discussion with the deb maintainer were made, with no productive outcome yet
+20:56:02 <anonymousmaybe> ticket already there but no work done for it 
+20:56:17 <zzz> no 45 for sid yet either, no news from mhatta
+20:56:38 <anonymousmaybe> mikalv_ fixed trac filtering Tor/I2P users? 
+20:56:42 <fug> there's https://github.com/tracboat/tracboat for trac->gitlab migration, has it been evaluated?
+20:57:25 <eche|on> IMHO eyedeekay does trying tracboat for the migration, at least the name was mentioned
+20:57:28 <fug> where is some information page that describes status of migration to git?
+20:57:46 <eche|on> currently no page except for the howto and git server mentioned above
+20:57:56 <eche|on> as we are still in early phase
+20:58:17 <fug> you still should have a page for that info
+20:58:21 <eche|on> noted to create a info page
+20:58:22 <mikalv_> I hope it's fixed, has anyone had issues with it the past days?
+20:58:38 <eyedeekay> trac? Not lately
+20:58:49 <eche|on> yes, mikalv_, there was a user in here trying to push a ticket and got spam blocked
+20:58:59 <eche|on> but ok, any other comment for dev meeting?
+20:59:09 <zzz> outproxy is still a pile of crap but trac working well for me
+20:59:20 <mikalv_> and now we're talking about trac's own system, and not the i2ptunnel right?
+20:59:26 <eche|on> yes
+20:59:43 <eche|on> uhh, the 60 min limit is here...
+20:59:55 <eche|on> any further comments?
+21:00:05 <fug> yes, info about developing i2p
+21:00:16 <fug> should mention usage of new git instance instead of mtn that no one uses
+21:00:45 <eche|on> will be done, if it is valid and verified to be done 100% 
+21:01:24 <eche|on> If no other comment gets in, the timeframe of this IRC meeting getting nearly a 60 min, which is a soft border, I would like to close this meeting. Due to a missing appropriate buffer, I'll make a "plopp" sound.
+21:01:45 <eche|on> so, ears up: "plopp"
+21:01:56 <sadie_> mic drop
+21:02:02 <eche|on> dev meeting over. thank you all for your time, ideas and comments
+21:02:14 <eche|on> a log will be posted soon
+21:02:14 <sadie_> thanks ech
