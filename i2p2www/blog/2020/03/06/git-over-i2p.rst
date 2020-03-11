@@ -20,9 +20,7 @@ overall effort to transition I2P from monotone to Git.
 Depending on how the git service is configured, it may or may not offer
 all services on the same address. In the case of git.idk.i2p, there is a
 public HTTP URL, but this URL is read-only and cannot be used to make
-changes. To do that, you must also know the SSH base32, which isn’t
-public at this time. Unless I’ve told you the SSH base32 to git.idk.i2p,
-head over to the `Server <GITLAB.md>`__ tutorial to set up your own.
+changes.
 {%- endtrans %}
 
 {% trans -%}First: Set up an account at a Git service{%- endtrans %}
@@ -99,8 +97,8 @@ configure git to use the pre-configured I2P HTTP Proxy. For example:
 Then, add the address you will be pushing and pulling from. Note that
 this example address is for Read-Only HTTP-over-I2P clones, if your
 admin does not allow the git HTTP(Smart HTTP) protocol, then you will
-need to get the SSH clone base32 from them. If you have an SSH clone
-base32, substitute it for the base32 in this step, which will fail.
+need to get the SSH clone base32 from them. Use this Base32 to connect the
+client tunnel to the Git SSH service: **63sgpiu6f33arldcxkbjsn3jgf6asyx3onjmz6j6gsk7hgbiehkq.b32.i2p**
 {%- endtrans %}
 
 .. class:: screenshot
