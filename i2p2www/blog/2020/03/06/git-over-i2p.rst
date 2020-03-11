@@ -4,7 +4,7 @@
 
 .. meta::
     :author: idk
-    :date: 2019-05-20
+    :date: 2020-03-06
     :excerpt: {% trans %}Help Bootstrap I2P-Bote!{% endtrans %}
 
 {% trans -%}
