@@ -210,7 +210,7 @@ is a little bit more complicated and merits it’s own instructions.
 {%- endtrans %}
 
 {% trans -%}Gitlab SSH Interface{%- endtrans %}
-~~~~~~~~~~~~~~`~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 {% trans -%}
 For the SSH interface, use a “Standard” server tunnel. From
