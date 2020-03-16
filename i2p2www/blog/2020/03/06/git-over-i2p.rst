@@ -5,7 +5,7 @@
 .. meta::
     :author: idk
     :date: 2020-03-06
-    :excerpt: {% trans %}Help Bootstrap I2P-Bote!{% endtrans %}
+    :excerpt: {% trans %}Git over I2P{% endtrans %}
 
 {% trans -%}
 Tutorial for setting up git access through an I2P Tunnel. This tunnel
