@@ -83,7 +83,8 @@ configure git to use the pre-configured I2P HTTP Proxy. For example:
 
 ::
 
-       http_proxy=http://localhost:4444 git clone http://git.idk.i2p/welshlyluvah1967/i2p.i2p
+       http_proxy=http://localhost:4444 git clone --depth=1 http://git.idk.i2p/welshlyluvah1967/i2p.i2p
+       git fetch --unshallow
 
 .. class:: screenshot
 .. figure:: /_static/images/git/wizard1.png
