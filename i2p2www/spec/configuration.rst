@@ -2,8 +2,8 @@
 Configuration File Specification
 ================================
 .. meta::
-    :lastupdated: September 2019
-    :accuratefor: 0.9.43
+    :lastupdated: March 2020
+    :accuratefor: 0.9.45
 
 .. contents::
 
@@ -266,6 +266,9 @@ Properties are as follows::
 
     # Servers only. Persistent private leaseset key
     tunnel.N.option.i2cp.leaseSetSigningPrivateKey=sigtype:base64
+
+    # Clients only. Create a new destination when reopening the socket manager
+    tunnel.N.option.i2cp.newDestOnResume=true|false
 
     # Servers only. The maximum size of the thread pool, default 65. Ignored
     # for standard servers.
