@@ -5,7 +5,7 @@ ECIES-X25519-AEAD-Ratchet
     :author: zzz, chisana
     :created: 2018-11-22
     :thread: http://zzz.i2p/topics/2639
-    :lastupdated: 2020-02-09
+    :lastupdated: 2020-03-20
     :status: Open
 
 .. contents::
@@ -2627,16 +2627,16 @@ any message sent to that key constitutes an ack, no explicit ack is required.
 
   {% highlight lang='dataspec' %}
 +----+----+----+----+----+----+----+----+
-  |  9 |  size   | sessionID         |flg |
-  +----+----+----+----+----+----+----+----+
-  |  Garlic Clove Delivery Instructions   |
+  |  9 |  size   | keyID   |flg |         |
+  +----+----+----+----+----+----+         +
+     Garlic Clove Delivery Instructions   |
   ~               .   .   .               ~
-  |                                       |
+  |            optional if flag is 1      |
   +----+----+----+----+----+----+----+----+
 
   blk :: 9
-  size :: varies, typically 100
-  session ID :: reverse session ID, length 4 bytes big endian
+  size :: varies, typically 3 or 36
+  keyID :: key ID, 2 bytes, big endian
   flg :: 1 byte flags
          bit order: 76543210
          bits 7-0: Unused, set to 0 for future compatibility
@@ -2648,6 +2648,12 @@ any message sent to that key constitutes an ack, no explicit ack is required.
 
 Notes
 ``````
+
+- Not allowed in NS or NSR. Only included in Existing Session mnessages
+
+- Key ID and Delivery Instructions unused, TBD to remove
+
+- Interaction with next key TBD
 
 - When the delivery instructions contains the hash of the destination,
   and the session is not previously bound, this binds the session to the destination.
