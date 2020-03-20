@@ -33,7 +33,12 @@ corresponding to an existing ``git bundle`` that they have already
 generated for you. A recent, correctly-generated bundle of the mainline
 i2p.i2p source code as-of Wednesday, March 18, 2020, can be found inside
 of I2P at my pastebin
-`paste.idk.i2p/f/4hq37i <http://paste.idk.i2p/f/4hq37i>`__.{%- endtrans %}
+`paste.idk.i2p/f/4hq37i <http://paste.idk.i2p/f/4hq37i>`__. You can also use a
+`magnet link <magnet:?xt=urn:btih:72be6b12fdb38529acc3a22ad7e927842fdaa04f&tr=http://zviyq72xcmjupynn5y2f5qa3u7bxyu34jnqmwt6czte2l7idxm7q.b32.i2p/announce>`__,
+and if you're a BiglyBT user who wants to bridge the torrent, use 
+`this magnet link instead <magnet:?xt=urn:btih:OK7GWEX5WOCSTLGDUIVNP2JHQQX5VICP&dn=i2p.i2p.bundle&net=Public&net=I2P&net=Tor&tr=http%3A%2F%2Fzviyq72xcmjupynn5y2f5qa3u7bxyu34jnqmwt6czte2l7idxm7q.b32.i2p%2Fannounce&tr=http%3A%2F%2Ftracker.opentrackr.org%3A1337%2Fannounce&tr=http%3A%2F%2Ftracker1.itzmx.com%3A8080%2Fannounce&tr=http%3A%2F%2Ftracker2.postman.i2p%2Fannounce.php&tr=http%3A%2F%2Fs5ikrdyjwbcgxmqetxb3nyheizftms7euacuub2hic7defkh3xhq.b32.i2p%2Fa&tr=http%3A%2F%2Fuajd4nctepxpac4c4bdyrdw7qvja2a5u3x25otfhkptcjgd53ioq.b32.i2p%2Fannounce&tr=http%3A%2F%2Fw7tpbzncbcocrqtwwm3nezhnnsw4ozadvi2hmvzdhrqzfxfum7wa.b32.i2p%2Fa&tr=udp%3A%2F%2Fp4p.arenabg.com%3A1337%2Fannounce&tr=udp%3A%2F%2Ftracker.leechers-paradise.org%3A6969%2Fannounce&tr=udp%3A%2F%2Ftracker.internetwarriors.net%3A1337%2Fannounce&tr=udp%3A%2F%2Fopen.stealth.si%2Fannounce&tr=udp%3A%2F%2Ftracker.cyberia.is%3A6969%2Fannounce&tr=udp%3A%2F%2Fretracker.lanta-net.ru%3A2710%2Fannounce&tr=udp%3A%2F%2Ftracker.sbsub.com%3A2710%2Fannounce&tr=udp%3A%2F%2Ftracker.tiny-vps.com%3A6969%2Fannounce&tr=udp%3A%2F%2Ftracker.torrent.eu.org%3A451%2Fannounce&tr=udp%3A%2F%2Ftracker.moeking.me%3A6969%2Fannounce&tr=http%3A%2F%2Ftracker.nyap2p.com%3A8080%2Fannounce&tr=udp%3A%2F%2Fbt1.archive.org%3A6969%2Fannounce&tr=udp%3A%2F%2Ftracker3.itzmx.com%3A6961%2Fannounce&tr=udp%3A%2F%2Fbt2.archive.org%3A6969%2Fannounce&tr=udp%3A%2F%2Fipv4.tracker.harry.lu%2Fannounce&tr=udp%3A%2F%2F9.rarbg.to%3A2940%2Fannounce&tr=udp%3A%2F%2F9.rarbg.me%3A2790%2Fannounce&tr=udp%3A%2F%2Fexodus.desync.com%3A6969%2Fannounce>`__
+to announce to clearnet trackers as well.
+{%- endtrans %}
 
 {% trans -%}Once you have a bundle, you will need to use git to create a working
 repository from it. If you’re using GNU/Linux and i2psnark, the git
