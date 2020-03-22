@@ -99,7 +99,7 @@ Then, add the address you will be pushing and pulling from. Note that
 this example address is for Read-Only HTTP-over-I2P clones, if your
 admin does not allow the git HTTP(Smart HTTP) protocol, then you will
 need to get the SSH clone base32 from them. Use this Base32 to connect the
-client tunnel to the Git SSH service: **63sgpiu6f33arldcxkbjsn3jgf6asyx3onjmz6j6gsk7hgbiehkq.b32.i2p**
+client tunnel to the Git SSH service: **g6u4vqiuy6bdc3dbu6a7gmi3ip45sqwgtbgrr6uupqaaqfyztrka.b32.i2p**
 {%- endtrans %}
 
 .. class:: screenshot
