@@ -11,8 +11,11 @@ Database Lookups from ECIES Destinations
 .. contents::
 
 
+Overview
+========
+
 Definitions
-===========
+-----------
 
 - AEAD: ChaCha20/Poly1305
 - DLM: I2NP Database Lookup Message
@@ -26,8 +29,8 @@ Definitions
 - reply: I2NP DSM or DSRM
 
 
-Overview
-========
+Summary
+-------
 
 When sending a DLM for a LS to a floodfill, the DLM generally specifies
 that the reply be tagged, AES encrypted, and sent down a tunnel to the destination.
@@ -47,7 +50,7 @@ This proposal documents a new option in the DLM to request ECIES-encrypted repli
 
 
 Goals
-=====
+-----
 
 - New flags for DLM when an encrypted reply is requested down a tunnel to a ECIES destination
 - For the reply, add forward secrecy and sender authentication resistant to
@@ -56,7 +59,7 @@ Goals
 - Minimize crypto overhead
 
 Non-Goals
-=========
+---------
 
 - No change to the encryption or security properties of the lookup (DLM).
   The lookup has forward secrecy for requester key compromise only.
@@ -129,7 +132,11 @@ Flag bits 4/1  From Dest  To Router  Reply   DH?  notes
 ElG to ElG
 ----------
 
-Minor changes.
+ElG destination sends a lookup to a ElG router.
+
+Minor changes to the specification to check for new bit 4.
+No changes to the existing binary format.
+
 
 Requester key generation (clarification):
 
@@ -140,7 +147,7 @@ reply_key :: CSRNG(32) 32 bytes random data
   reply_tags :: Each is CSRNG(32) 32 bytes random data
 {% endhighlight %}
 
-Message format:
+Message format (add check for ECIESFlag):
 
 .. raw:: html
 
@@ -165,6 +172,8 @@ reply_key ::
 
 ECIES to ElG
 ------------
+
+ECIES destination sends a lookup to a ElG router.
 
 The reply_key and reply_tags fields are redefined for an ECIES-encrypted reply.
 
@@ -226,6 +235,8 @@ tag :: 8 byte reply_tag
 
 ECIES to ECIES
 --------------
+
+ECIES destination sends a lookup to a ECIES router.
 
 The lookup will use the "one time format" in [ECIES]_
 as the requester is anonymous.
