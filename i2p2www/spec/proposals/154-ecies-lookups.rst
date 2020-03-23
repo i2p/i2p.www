@@ -91,12 +91,12 @@ Design
 ======
 
 - New DLM format will add a bit to the flags field to specify ECIES-encrypted replies.
-ECIES-encrypted replies will use the [ECIES]_ Existing Session message format,
-with a prepended tag and a ChaCha/Poly payload and MAC.
+  ECIES-encrypted replies will use the [ECIES]_ Existing Session message format,
+  with a prepended tag and a ChaCha/Poly payload and MAC.
 
 - Define two variants. One for ElG routers, where a DH operation is not possible,
-and one for future ECIES routers, where a DH operation is possible and may provide
-additional security. For further study.
+  and one for future ECIES routers, where a DH operation is possible and may provide
+  additional security. For further study.
 
 DH is not possible for replies from ElG routers because they do not publish
 a X25519 public key.
@@ -118,7 +118,7 @@ Flag bit 4 must only be set when sending to routers with version 0.9.TBD or high
 =============  =========  =========  ======  ===  =======
 Flag bits 4/1  From Dest  To Router  Reply   DH?  notes
 =============  =========  =========  ======  ===  =======
-0 0            Any        Any        no enc. no   current
+0 0            Any        Any        no enc  no   current
 0 1            ElG        ElG        AES     no   current
 0 1            ECIES      ElG        AES     no   i2pd workaround
 1 0            ECIES      ElG        AEAD    no   new, no DH
