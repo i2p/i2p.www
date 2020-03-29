@@ -5,7 +5,7 @@ Database Lookups from ECIES Destinations
     :author: zzz
     :created: 2020-03-23
     :thread: http://zzz.i2p/topics/2856
-    :lastupdated: 2020-03-23
+    :lastupdated: 2020-03-29
     :status: Open
 
 .. contents::
@@ -113,7 +113,19 @@ Specification
 In the [I2NP]_ DLM (DatabaseLookup) specification, make the following changes.
 
 
-Add flag bit 4 "ECIESFlag" for more encryption options.
+Add flag bit 4 "ECIESFlag" for the new encryption options.
+
+.. raw:: html
+
+  {% highlight lang='dataspec' %}
+flags ::
+       bit 4: ECIESFlag
+               before release 0.9.TBD, ignored
+               as of release 0.9.TBD:
+               0  => send unencrypted or ElGamal reply
+               1  => send ECIES encrypted reply using enclosed key and tag
+{% endhighlight %}
+
 Existing flag bit 1 used in combination with bit 4 to determine the reply encryption mode.
 Flag bit 4 must only be set when sending to routers with version 0.9.TBD or higher.
 
