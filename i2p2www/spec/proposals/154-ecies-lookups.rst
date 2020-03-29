@@ -76,7 +76,7 @@ Alternatives
 ============
 
 In the absence of a defined way to encrypt replies to ECIES destinations, there
-are three alternatives:
+are several alternatives:
 
 1) Do not request encrypted replies. Replies will be unencrypted.
 Java I2P currently uses this approach.
@@ -84,10 +84,13 @@ Java I2P currently uses this approach.
 2) Add support for 32-byte tags and AES-encrypted replies to ECIES-only destinations,
 and request AES-encrypted replies as usual. i2pd currently uses this approach.
 
-3) For dual ElG and ECIES destinations,
+3) Request AES-encrypted replies as usual, but route them back through
+exploratory tunnels to the router.
+Java I2P currently uses this approach in some cases.
+
+4) For dual ElG and ECIES destinations,
 request AES-encrypted replies as usual. Java I2P currently uses this approach.
 i2pd has not yet implemented dual-crypto destinations.
-
 
 
 Design
@@ -210,12 +213,12 @@ reply_key ::
 
   tags ::
        1 byte `Integer`
-       valid range: 1-32 (typically 1)
+       required value: 1
        the number of reply tags that follow
        only included if encryptionFlag == 1 AND ECIESFlag == 0, only as of release 0.9.TBD
 
   reply_tags ::
-       one or more 8 byte ECIES `SessionTag`s (typically one)
+       an 8 byte ECIES `SessionTag`
        only included if encryptionFlag == 1 AND ECIESFlag == 0, only as of release 0.9.TBD
 
 {% endhighlight %}
