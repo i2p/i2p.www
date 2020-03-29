@@ -5,7 +5,7 @@ ECIES-X25519-AEAD-Ratchet
     :author: zzz, chisana
     :created: 2018-11-22
     :thread: http://zzz.i2p/topics/2639
-    :lastupdated: 2020-03-20
+    :lastupdated: 2020-03-29
     :status: Open
 
 .. contents::
@@ -1891,6 +1891,83 @@ After the final handshake KDF on bound sessions, Bob and Alice must run the Nois
 resulting CipherState to create independent symmetric and tag chain keys for inbound and outbound sessions.
 
 
+DH RATCHET MESSAGE FLOW
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The next key exchange for a tag set must be initiated by the
+sender of those tags (the owner of the outbound tag set).
+The receiver (owner of the inbound tag set) will respond.
+For a typical HTTP session, Bob will send more messages and will ratchet first
+by initiating the key exchange; the diagram below shows that.
+When Alice ratchets, the same thing happens in reverse.
+
+The first tag set used after the NS/NSR handshake is tag set 0.
+When that tag set is almost exhausted, new keys must be exchanged to create tag set 1.
+After that, a new key is only sent in one direction.
+For tag set 2, Bob sends the ID of his old key and requests a new key from Alice.
+Both sides do a DH.
+
+For tag set 3, Bob sends a new key and Alice sends the ID of her old key.
+Both sides do a DH.
+
+Subsequent tag sets are generated as for tag sets 2 and 3.
+The tag set number is (1 + bob's key id + alice's key id).
+
+
+.. raw:: html
+
+  {% highlight %}
+Alice                           Bob
+
+                              (Tagset #0 almost empty)
+                              (generate new key #0)
+
+  <--------------     Next Key, forward, request reverse, with key #0
+                              (repeat until next key received)
+
+  (generate new key #0, do DH, create IB Tagset #1)
+
+  Next Key, reverse, with key #0         ------------------->
+  (repeat until tag received on new tagset)
+
+                              (do DH, create OB Tagset #1)
+                  ...
+                              (Tagset #1 almost empty)
+                              (resend key #0)
+
+  <--------------     Next Key, forward, request reverse, id 0
+                              (repeat until next key received)
+
+  (generate new key #1, do DH, create IB Tagset #2)
+
+  Next Key, reverse, with key #1         ------------------->
+  (repeat until tag received on new tagset)
+
+                              (do DH, create OB Tagset #2)
+                  ...
+                              (Tagset #2 almost empty)
+                              (generate new key #1)
+
+  <--------------     Next Key, forward, with key #1
+                              (repeat until next key received)
+
+  (reuse key #1, do DH, create IB Tagset #3)
+
+  Next Key, reverse, id 1       ------------------->
+  (repeat until tag received on new tagset)
+
+                              (do DH, create OB Tagset #3)
+
+                              Repeat the above patterns for tagsets
+                              2 and 3.
+                              Every even tagset, Bob resends his key
+                              and requests a reverse key from Alice.
+                              Every odd tagset, Bob sends a new key
+                              and Alice sends an ACK.
+
+{% endhighlight %}
+
+
 Issues
 ~~~~~~
 
@@ -1951,11 +2028,12 @@ TODO
   // and first set of ephemeral keys
 
   Received Next DH Key block:
-  // Alice's generates new X25519 ephemeral keys
+  // Alice generates new X25519 ephemeral keys
   rask = GENERATE_PRIVATE()
   rapk = DERIVE_PUBLIC(rask)
   
-  rbsk = Bob's current ephemeral private key
+  // Bob generates new X25519 ephemeral keys
+  rbsk = GENERATE_PRIVATE()
   rbpk = DERIVE_PUBLIC(rbsk)
 
   sharedSecret = DH(rask, rbpk) = DH(rbsk, rapk)
@@ -1973,13 +2051,6 @@ TODO
 Notes
 ~~~~~
 
-Bob may choose to rekey his ephemeral keys on receiving a Next DH Key block from Alice,
-but care must be taken to not cause an infinite rekeying loop. Should a flag be included
-in Next DH Key blocks for receiver rekey, or a timer be set from last rekey? TBD.
-
-On receiving a Next DH Key block on a bound session, the corresponding outbound session
-should be synchronized with the received ephemeral key, and a new ephemeral keypair
-(unless recently rekeyed).
 
 
 4b) Session Tag Ratchet
@@ -2150,12 +2221,12 @@ Typical contents include the following blocks:
 ==================================  ============= ============
 DateTime                                  0            7      
 Session ID (debug)                        1            7      
-Termination (TBD)                         4          TBD      
+Termination (TBD)                         4         9 typ.    
 Options                                   5            9      
 Message Numbers (TBD)                     6          TBD      
-Next Key                                  7           37      
-Next Key Ack (TBD)                        8          TBD      
-ACK Request                               9         varies    
+Next Key                                  7         3 or 35  
+ACK                                       8         4 typ. 
+ACK Request                               9            3   
 Garlic Clove                             11         varies    
 Padding                                 254         varies    
 ==================================  ============= ============
@@ -2204,8 +2275,8 @@ so the max unencrypted data is 65519 bytes.
          5 options
          6 message number and previous message number (ratchet)
          7 next session key
-         8 ack of reverse session key
-         9 reply delivery instructions
+         8 ack
+         9 ack request
          10 reserved
          11 Garlic Clove
          224-253 reserved for experimental features
@@ -2526,34 +2597,38 @@ Next DH Ratchet Public Key
 The next DH ratchet key is in the payload,
 and it is optional. We don't ratchet every time.
 (This is different than in signal, where it is in the header, and sent every time)
-For typical usage patterns, Alice and Bob each ratchet a single time
-at the beginning.
 
 For the first ratchet,
-Key ID = 0 and
-Key = Alice's first ratchet public key rapk (See KDF for part 2),
-remains constant for every New Session message for this session
+Key ID = 0.
 
 
 .. raw:: html
 
   {% highlight lang='dataspec' %}
 +----+----+----+----+----+----+----+----+
-  | 7  |  size   |  key ID |              |
-  +----+----+----+----+----+              +
+  | 7  |  size   |flag|  key ID |         |
+  +----+----+----+----+----+----+         +
   |                                       |
   +                                       +
   |     Next DH Ratchet Public Key        |
   +                                       +
   |                                       |
-  +                        +----+----+----+
-  |                        |
-  +----+----+----+----+----+
+  +                             +----+----+
+  |                             |
+  +----+----+----+----+----+----+
 
   blk :: 7
-  size :: 34
-  key ID :: The key ID of this key. 2 bytes, big endian, used for ack
-  Public Key :: The next public key, 32 bytes, little endian
+  size :: 3 or 35
+  flag :: 1 byte flags
+          bit order: 76543210
+          bit 0: 1 for key present, 0 for no key present
+          bit 1: 1 for reverse key, 0 for forward key
+          bit 2: 1 to request reverse key, 0 for no request
+                 only set if bit 1 is 0
+          bits 7-2: Unused, set to 0 for future compatibility
+  key ID :: The key ID of this key. 2 bytes, big endian
+  Public Key :: The next X25519 public key, 32 bytes, little endian
+                Only if bit 0 is 1
 
 
 {% endhighlight %}
@@ -2563,9 +2638,9 @@ remains constant for every New Session message for this session
 Notes
 ``````
 
-- Key ID can be just an incrementing counter.
+- Key ID is an incrementing counter, starting at 0.
+  The ID must not change unless the key changes.
   It may not be strictly necessary, but it's useful for debugging.
-  Also, we use it for explicit ACKs.
   Signal does not use a key ID.
 
 
@@ -2585,7 +2660,7 @@ Multiple acks may be present to ack multiple messages.
 
   {% highlight lang='dataspec' %}
 +----+----+----+----+----+----+----+----+
-  | 8  |  size   |  key id |   N     |    |
+  | 8  |  size   |tagsetid |   N     |    |
   +----+----+----+----+----+----+----+    +
   |             more acks                 |
   ~               .   .   .               ~
@@ -2595,7 +2670,7 @@ Multiple acks may be present to ack multiple messages.
   blk :: 8
   size :: 4 * number of acks to follow, minimum 1 ack
   for each ack:
-  key ID :: 2 bytes, big endian, from the message being acked
+  tagsetid :: 2 bytes, big endian, from the message being acked
   N :: 2 bytes, big endian, from the message being acked
 
 
@@ -2627,7 +2702,7 @@ any message sent to that key constitutes an ack, no explicit ack is required.
 
   {% highlight lang='dataspec' %}
 +----+----+----+----+----+----+----+----+
-  |  9 |  size   | keyID   |flg |         |
+  |  9 |  size   |tagsetid |flg |         |
   +----+----+----+----+----+----+         +
      Garlic Clove Delivery Instructions   |
   ~               .   .   .               ~
@@ -2636,7 +2711,7 @@ any message sent to that key constitutes an ack, no explicit ack is required.
 
   blk :: 9
   size :: varies, typically 3 or 36
-  keyID :: key ID, 2 bytes, big endian
+  tagsetid :: key ID, 2 bytes, big endian
   flg :: 1 byte flags
          bit order: 76543210
          bits 7-0: Unused, set to 0 for future compatibility
@@ -2651,7 +2726,9 @@ Notes
 
 - Not allowed in NS or NSR. Only included in Existing Session mnessages
 
-- Key ID and Delivery Instructions unused, TBD to remove
+- tagsetid is known to receiver, TBD to remove
+
+- Delivery Instructions unused, TBD to remove
 
 - Interaction with next key TBD
 
