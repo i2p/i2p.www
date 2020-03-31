@@ -5,7 +5,7 @@ Database Lookups from ECIES Destinations
     :author: zzz
     :created: 2020-03-23
     :thread: http://zzz.i2p/topics/2856
-    :lastupdated: 2020-03-29
+    :lastupdated: 2020-03-31
     :status: Open
 
 .. contents::
@@ -123,14 +123,15 @@ Add flag bit 4 "ECIESFlag" for the new encryption options.
   {% highlight lang='dataspec' %}
 flags ::
        bit 4: ECIESFlag
-               before release 0.9.TBD, ignored
-               as of release 0.9.TBD:
+               before release 0.9.46 ignored
+               as of release 0.9.46:
                0  => send unencrypted or ElGamal reply
-               1  => send ECIES encrypted reply using enclosed key and tag
+               1  => send ChaCha/Poly encrypted reply using enclosed key
+                     (whether tag is enclosed depends on bit 1)
 {% endhighlight %}
 
 Existing flag bit 1 used in combination with bit 4 to determine the reply encryption mode.
-Flag bit 4 must only be set when sending to routers with version 0.9.TBD or higher.
+Flag bit 4 must only be set when sending to routers with version 0.9.46 or higher.
 
 
 =============  =========  =========  ======  ===  =======
@@ -189,6 +190,7 @@ ECIES to ElG
 ------------
 
 ECIES destination sends a lookup to a ElG router.
+Supported as of 0.9.46.
 
 The reply_key and reply_tags fields are redefined for an ECIES-encrypted reply.
 
@@ -209,17 +211,17 @@ Redefine reply_key and reply_tags fields as follows:
   {% highlight lang='dataspec' %}
 reply_key ::
        32 byte ECIES `SessionKey` big-endian
-       only included if encryptionFlag == 1 AND ECIESFlag == 0, only as of release 0.9.TBD
+       only included if encryptionFlag == 1 AND ECIESFlag == 0, only as of release 0.9.46
 
   tags ::
        1 byte `Integer`
        required value: 1
        the number of reply tags that follow
-       only included if encryptionFlag == 1 AND ECIESFlag == 0, only as of release 0.9.TBD
+       only included if encryptionFlag == 1 AND ECIESFlag == 0, only as of release 0.9.46
 
   reply_tags ::
        an 8 byte ECIES `SessionTag`
-       only included if encryptionFlag == 1 AND ECIESFlag == 0, only as of release 0.9.TBD
+       only included if encryptionFlag == 1 AND ECIESFlag == 0, only as of release 0.9.46
 
 {% endhighlight %}
 
@@ -234,7 +236,7 @@ tag :: 8 byte reply_tag
   k :: 32 byte session key
      The reply_key.
 
-  n :: The index of the reply_tag. Typically 0.
+  n :: 0
 
   ad :: Associated data. ZEROLEN.
 
@@ -252,6 +254,7 @@ ECIES to ECIES
 --------------
 
 ECIES destination sends a lookup to a ECIES router.
+Supported as of 0.9.TBD.
 
 The lookup will use the "one time format" in [ECIES]_
 as the requester is anonymous.
@@ -383,6 +386,8 @@ The above proposal is the easiest and minimizes the change to the lookup format.
 Notes
 =====
 
+Database lookups and stores to ElG routers must be ElGamal/AESSessionTag encrypted
+as usual.
 
 
 Issues
@@ -395,11 +400,12 @@ Further analysis is required on the security of the two ECIES reply options.
 Migration
 =========
 
-No backward compatibility issues. Routers advertising a router.version of 0.9.TBD or higher
+No backward compatibility issues. Routers advertising a router.version of 0.9.46 or higher
 in their RouterInfo must support this feature.
-Routers must not send a DatabaseLookup with the new flags to routers with a version less than 0.9.TBD.
-
-
+Routers must not send a DatabaseLookup with the new flags to routers with a version less than 0.9.46.
+If a database lookup message with bit 4 set and bit 1 unset is mistakenly sent to
+a router without support, it will probably ignore the supplied key and tag, and
+sent the reply unencrypted.
 
 References
 ==========

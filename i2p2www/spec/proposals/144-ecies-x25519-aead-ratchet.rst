@@ -5,7 +5,7 @@ ECIES-X25519-AEAD-Ratchet
     :author: zzz, chisana
     :created: 2018-11-22
     :thread: http://zzz.i2p/topics/2639
-    :lastupdated: 2020-03-29
+    :lastupdated: 2020-03-31
     :status: Open
 
 .. contents::
@@ -2651,7 +2651,7 @@ Issues
 
 Ack
 ```
-This is only if an explicit ack was requested by the far end.
+This is only sent if an ack request block was received.
 Multiple acks may be present to ack multiple messages.
 
 
@@ -2688,35 +2688,25 @@ Issues
 
 Ack Request
 ```````````
-Delivery instructions for the ack.
+Request an in-band ack.
 To replace the out-of-band DeliveryStatus Message in the Garlic Clove.
-Also (optionally) binds the outbound session to the far-end Destination or Router.
 
-If an explicit ack is requested, the current key ID and message number (N)
-are returned in an ack block. When a next public key is included,
-any message sent to that key constitutes an ack, no explicit ack is required.
+If an explicit ack is requested, the current tagset ID and message number (N)
+are returned in an ack block.
 
 
 
 .. raw:: html
 
   {% highlight lang='dataspec' %}
-+----+----+----+----+----+----+----+----+
-  |  9 |  size   |tagsetid |flg |         |
-  +----+----+----+----+----+----+         +
-     Garlic Clove Delivery Instructions   |
-  ~               .   .   .               ~
-  |            optional if flag is 1      |
-  +----+----+----+----+----+----+----+----+
++----+----+----+----+
+  |  9 |  size   |flg |
+  +----+----+----+----+
 
   blk :: 9
-  size :: varies, typically 3 or 36
-  tagsetid :: key ID, 2 bytes, big endian
+  size :: 1
   flg :: 1 byte flags
-         bit order: 76543210
          bits 7-0: Unused, set to 0 for future compatibility
-  Delivery Instructions :: as defined in I2NP spec, 33 bytes for DESTINATION type
-
 
 {% endhighlight %}
 
@@ -2726,32 +2716,11 @@ Notes
 
 - Not allowed in NS or NSR. Only included in Existing Session mnessages
 
-- tagsetid is known to receiver, TBD to remove
-
-- Delivery Instructions unused, TBD to remove
-
-- Interaction with next key TBD
-
-- When the delivery instructions contains the hash of the destination,
-  and the session is not previously bound, this binds the session to the destination.
-
-- After a session is bound, any subsequent destination delivery instructions must contain
-  the same hash as previously, or this is an error.
-
 - See ACK section above for more information.
 
 
 Issues
 ``````
-
-- Java router must have the actual signing private key, not a dummy,
-  see new I2CP Create LeaseSet2 Message in proposal 123.
-
-- For easier processing, LS clove should precede Garlic clove in the message.
-
-- Is the next public key the right thing to sign?
-
-- Use alice's static pubkey instead?
 
 
 
