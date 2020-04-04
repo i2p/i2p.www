@@ -19,8 +19,8 @@ overall effort to transition I2P from monotone to Git.
 {% trans -%}
 Depending on how the git service is configured, it may or may not offer
 all services on the same address. In the case of git.idk.i2p, there is a
-public HTTP URL, but this URL is read-only and cannot be used to make
-changes.
+public HTTP URL, and an SSH URL(g6u4vqiuy6bdc3dbu6a7gmi3ip45sqwgtbgrr6uupqaaqfyztrka.b32.i2p) to configure for your Git SSH client. Either
+can be used to push or pull, but SSH is recommended.
 {%- endtrans %}
 
 {% trans -%}First: Set up an account at a Git service{%- endtrans %}
@@ -64,11 +64,11 @@ Then, fork it to your account.
 
 .. class:: screenshot
 .. figure:: /_static/images/git/fork.png
-   :alt: Roger is forking
+   :alt: User is forking
 
 .. class:: screenshot
 .. figure:: /_static/images/git/forked.png
-   :alt: Roger is finished
+   :alt: User is finished
 
 {% trans -%}Third: Set up your git client tunnel{%- endtrans %}
 ---------------------------------------------------------------
@@ -83,7 +83,7 @@ configure git to use the pre-configured I2P HTTP Proxy. For example:
 
 ::
 
-       http_proxy=http://localhost:4444 git clone --depth=1 http://git.idk.i2p/welshlyluvah1967/i2p.i2p
+       http_proxy=http://localhost:4444 git clone --depth=1 http://git.idk.i2p/youruser/i2p.i2p
        git fetch --unshallow
 
 .. class:: screenshot
@@ -141,7 +141,7 @@ Now your tunnel is all set up, you can attempt a clone over SSH.
 ::
 
        GIT_SSH_COMMAND="ssh -p 7442" \
-           git clone git@127.0.0.1:welshlyluvah1967/i2p.i2p
+           git clone git@127.0.0.1:youruser/i2p.i2p
 
 {% trans -%}
 You might get an error where the remote end hangs up unexpectedly.
@@ -153,7 +153,7 @@ easiest is to try and clone to a shallow depth:
 ::
 
        GIT_SSH_COMMAND="ssh -p 7442" \
-           git clone --depth 1 git@127.0.0.1:welshlyluvah1967/i2p.i2p
+           git clone --depth 1 git@127.0.0.1:youruser/i2p.i2p
 
 {% trans -%}
 Once you’ve performed a shallow clone, you can fetch the rest resumably
