@@ -1974,9 +1974,6 @@ After the DH ratchet is complete for an inbound tagset, and a new inbound tagset
 the receiver should listen for tags in both tagsets, and delete the old tagset
 after a short time, about 3 minutes.
 
-Issues
-~~~~~~
-
 
 DH INITIALIZATION KDF
 ~~~~~~~~~~~~~~~~~~~~~~~
@@ -2024,8 +2021,6 @@ DH RATCHET KDF
 This is used after new DH keys are exchanged in NextKey blocks,
 before a tagset is exhausted.
 
-TODO
-
 .. raw:: html
 
   {% highlight lang='text' %}
@@ -2046,10 +2041,6 @@ TODO
   newTagSet = DH_INITIALIZE(rootKey, tagsetKey)
 
 {% endhighlight %}
-
-
-Notes
-~~~~~
 
 
 
