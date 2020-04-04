@@ -5,7 +5,7 @@ ECIES-X25519-AEAD-Ratchet
     :author: zzz, chisana
     :created: 2018-11-22
     :thread: http://zzz.i2p/topics/2639
-    :lastupdated: 2020-03-31
+    :lastupdated: 2020-04-04
     :status: Open
 
 .. contents::
@@ -1875,10 +1875,10 @@ the session should be removed.
 To avoid a KCI and/or resource exhaustion attack, where an attacker drops Bob's NSR replies to keep Alice sending NS messages,
 Alice should avoid starting New Sessions to Bob after a certain number of retries due to timer expiration.
 
-Alice and Bob each do one DH initialization to create the inbound and outbound Existing Session
-session tag and symmetric key ratchet chains, and do a DH ratchet for every Next DH Key block received.
+Alice and Bob each
+do a DH ratchet for every NextKey block received.
 
-Alice and Bob each do two session tag ratchets and two symmetric keys ratchets after each
+Alice and Bob each generate new tag setstchets and two symmetric keys ratchets after each
 DH ratchet. For each new ES message in a given direction, Alice and Bob advance the session
 tag and symmtric key ratchets.
 
@@ -1967,6 +1967,12 @@ Alice                           Bob
 
 {% endhighlight %}
 
+After the DH ratchet is complete for an outbound tagset, and a new outbound tagset is created,
+it should be used immediately, and the old outbound tagset may be deleted.
+
+After the DH ratchet is complete for an inbound tagset, and a new inbound tagset is created,
+the receiver should listen for tags in both tagsets, and delete the old tagset
+after a short time, about 3 minutes.
 
 Issues
 ~~~~~~
@@ -1977,14 +1983,14 @@ DH INITIALIZATION KDF
 
 This is the definition of DH_INITIALIZE(rootKey, k)
 for a single direction. It creates a tagset, and a
-root key to be used for a subsequent DH ratchet if necessary.
+"next root key" to be used for a subsequent DH ratchet if necessary.
 
-We use DH initialization in two places. First, we use it
+We use DH initialization in three places. First, we use it
 to generate a tag set for the New Session Replies.
 Second, we use it to generate two tag sets, one for each direction,
 for use in Existing Session messages.
-
-TODO why are we using the chain key after split() ?
+Lastly, we use it after a DH Ratchet to generate a new tag set
+in a single direction for additional Existing Session messages.
 
 
 .. raw:: html
@@ -2015,8 +2021,8 @@ Inputs:
 DH RATCHET KDF
 ~~~~~~~~~~~~~~~
 
-This is used after new DH keys are exchanged, before a tagset
-is exhausted.
+This is used after new DH keys are exchanged in NextKey blocks,
+before a tagset is exhausted.
 
 TODO
 
@@ -2024,26 +2030,20 @@ TODO
 
   {% highlight lang='text' %}
 
-  // See New Session Reply KDF for generating Bob's reply message
-  // and first set of ephemeral keys
-
-  Received Next DH Key block:
   // Alice generates new X25519 ephemeral keys
+  // and sends rapk to Bob in a NextKey block
   rask = GENERATE_PRIVATE()
   rapk = DERIVE_PUBLIC(rask)
   
   // Bob generates new X25519 ephemeral keys
+  // and sends rbpk to Alice in a NextKey block
   rbsk = GENERATE_PRIVATE()
   rbpk = DERIVE_PUBLIC(rbsk)
 
   sharedSecret = DH(rask, rbpk) = DH(rbsk, rapk)
-
-  // KDF_RK(rk, dh_out)
-  rootKey = nextRootKey from previous DH Ratchet
-  keydata = HKDF(rootKey, sharedSecret, "KDFDHRatchetStep", 64)
-
-  //TODO
-  newTagSet = DH_INITIALIZE(rootKey, sharedSecret)
+  tagsetKey = HKDF(sharedSecret, ZEROLEN, "XDHRatchetTagSet", 32)
+  rootKey = nextRootKey // from previous tagset in this direction
+  newTagSet = DH_INITIALIZE(rootKey, tagsetKey)
 
 {% endhighlight %}
 
