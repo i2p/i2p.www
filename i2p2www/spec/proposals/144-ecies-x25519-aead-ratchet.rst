@@ -5,7 +5,7 @@ ECIES-X25519-AEAD-Ratchet
     :author: zzz, chisana
     :created: 2018-11-22
     :thread: http://zzz.i2p/topics/2639
-    :lastupdated: 2020-04-04
+    :lastupdated: 2020-04-14
     :status: Open
 
 .. contents::
@@ -1891,13 +1891,38 @@ After the final handshake KDF on bound sessions, Bob and Alice must run the Nois
 resulting CipherState to create independent symmetric and tag chain keys for inbound and outbound sessions.
 
 
+KEY AND TAG SET IDS
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Key and tag set ID numbers are used to identify keys and tag sets.
+Key IDs are used in NextKey blocks to identify the key sent or used.
+Tag set IDs are used (with the message number) in ACK blocks to identify the message being acked.
+Both key and tag set ids apply to the tag sets for a single direction.
+
+In the first tag sets used for a session in each direction, the tag set ID is 0.
+No NextKey blocks have been sent, so there are no key IDs.
+
+To begin a DH ratchet, the sender transmits a new NextKey block with a key ID of 0.
+The receiver replies with a new NextKey block with a key ID of 0.
+The sender then starts using a new tag set with a tag set ID of 1.
+
+Subsequent tag sets are generated similarly.
+For all tag sets used after NextKey exchanges, the tag set number is (1 + Alice's key ID + Bob's key ID).
+
+Key and tag set IDs start at 0 and increment sequentially.
+The maximum key and tag set ID is 65535.
+When a tag set is almost exhausted, the tag set sender must initiate a NextKey exchange.
+When tag set 65535 is almost exhausted, the tag set sender must initiate a new session
+by sending a New Session message.
+
+
 DH RATCHET MESSAGE FLOW
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 
 The next key exchange for a tag set must be initiated by the
 sender of those tags (the owner of the outbound tag set).
 The receiver (owner of the inbound tag set) will respond.
-For a typical HTTP session, Bob will send more messages and will ratchet first
+For a typical HTTP GET traffic at the application layer, Bob will send more messages and will ratchet first
 by initiating the key exchange; the diagram below shows that.
 When Alice ratchets, the same thing happens in reverse.
 
@@ -1911,7 +1936,7 @@ For tag set 3, Bob sends a new key and Alice sends the ID of her old key.
 Both sides do a DH.
 
 Subsequent tag sets are generated as for tag sets 2 and 3.
-The tag set number is (1 + bob's key id + alice's key id).
+The tag set number is (1 + Alice's key id + Bob's key id).
 
 
 .. raw:: html
@@ -1973,6 +1998,21 @@ it should be used immediately, and the old outbound tagset may be deleted.
 After the DH ratchet is complete for an inbound tagset, and a new inbound tagset is created,
 the receiver should listen for tags in both tagsets, and delete the old tagset
 after a short time, about 3 minutes.
+
+
+Summary of tag set and key ID progression:
+
+==========  =============  ===========
+Tag Set ID  Sender key ID  Rcvr key ID
+==========  =============  ===========
+0           n/a            n/a
+1           0              0
+2           1              0
+3           1              1
+4           2              1
+5           2              2
+...
+==========  =============  ===========
 
 
 DH INITIALIZATION KDF
@@ -2629,10 +2669,10 @@ Key ID = 0.
 Notes
 ``````
 
-- Key ID is an incrementing counter, starting at 0.
-  The ID must not change unless the key changes.
-  It may not be strictly necessary, but it's useful for debugging.
-  Signal does not use a key ID.
+Key ID is an incrementing counter for the local key used for that tag set, starting at 0.
+The ID must not change unless the key changes.
+It may not be strictly necessary, but it's useful for debugging.
+Signal does not use a key ID.
 
 
 Issues
@@ -2670,6 +2710,10 @@ Multiple acks may be present to ack multiple messages.
 
 Notes
 ``````
+The tag set ID and N uniquely identify the message being acked.
+In the first tag sets used for a session in each direction, the tag set ID is 0.
+No NextKey blocks have been sent, so there are no key IDs.
+For all tag sets used after NextKey exchanges, The tag set number is (1 + Alice's key ID + Bob's key ID).
 
 
 Issues
