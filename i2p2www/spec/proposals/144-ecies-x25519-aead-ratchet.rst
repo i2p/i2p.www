@@ -5,7 +5,7 @@ ECIES-X25519-AEAD-Ratchet
     :author: zzz, chisana
     :created: 2018-11-22
     :thread: http://zzz.i2p/topics/2639
-    :lastupdated: 2020-04-14
+    :lastupdated: 2020-04-17
     :status: Open
 
 .. contents::
@@ -1910,10 +1910,20 @@ Subsequent tag sets are generated similarly.
 For all tag sets used after NextKey exchanges, the tag set number is (1 + Alice's key ID + Bob's key ID).
 
 Key and tag set IDs start at 0 and increment sequentially.
-The maximum key and tag set ID is 65535.
+The maximum tag set ID is 65535.
+The maximum key ID is 32767.
 When a tag set is almost exhausted, the tag set sender must initiate a NextKey exchange.
 When tag set 65535 is almost exhausted, the tag set sender must initiate a new session
 by sending a New Session message.
+
+With a streaming maximum message size of 1730, and assuming no retransmissions,
+the theoretical maximum data transfer using a single tag set is 1730 * 65536 ~= 108 MB.
+The actual maximum will be lower due to retransmissions.
+
+The theoretical maximum data transfer with all 65536 available tag sets, before
+the session would have to be discarded and replaced,
+is 64K * 108 MB ~= 6.9 TB.
+
 
 
 DH RATCHET MESSAGE FLOW
@@ -2011,7 +2021,9 @@ Tag Set ID  Sender key ID  Rcvr key ID
 3           1              1
 4           2              1
 5           2              2
-...
+...         ...            ...
+65534       32767          32766
+65535       32767          32767
 ==========  =============  ===========
 
 
@@ -2658,6 +2670,7 @@ Key ID = 0.
                  only set if bit 1 is 0
           bits 7-2: Unused, set to 0 for future compatibility
   key ID :: The key ID of this key. 2 bytes, big endian
+            0 - 32767
   Public Key :: The next X25519 public key, 32 bytes, little endian
                 Only if bit 0 is 1
 
@@ -2673,10 +2686,7 @@ Key ID is an incrementing counter for the local key used for that tag set, start
 The ID must not change unless the key changes.
 It may not be strictly necessary, but it's useful for debugging.
 Signal does not use a key ID.
-
-
-Issues
-``````
+The maximum Key ID is 32767.
 
 
 
@@ -2714,10 +2724,6 @@ The tag set ID and N uniquely identify the message being acked.
 In the first tag sets used for a session in each direction, the tag set ID is 0.
 No NextKey blocks have been sent, so there are no key IDs.
 For all tag sets used after NextKey exchanges, The tag set number is (1 + Alice's key ID + Bob's key ID).
-
-
-Issues
-``````
 
 
 
