@@ -140,7 +140,7 @@ Now your tunnel is all set up, you can attempt a clone over SSH.
 
 ::
 
-       GIT_SSH_COMMAND="ssh -p 7442" \
+       GIT_SSH_COMMAND="ssh -p 7670" \
            git clone git@127.0.0.1:youruser/i2p.i2p
 
 {% trans -%}
@@ -152,7 +152,7 @@ easiest is to try and clone to a shallow depth:
 
 ::
 
-       GIT_SSH_COMMAND="ssh -p 7442" \
+       GIT_SSH_COMMAND="ssh -p 7670" \
            git clone --depth 1 git@127.0.0.1:youruser/i2p.i2p
 
 {% trans -%}
