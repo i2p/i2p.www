@@ -3,8 +3,8 @@ I2NP Specification
 ==================
 .. meta::
     :category: Protocols
-    :lastupdated: October 2019
-    :accuratefor: 0.9.43
+    :lastupdated: April 2020
+    :accuratefor: 0.9.46
 
 .. contents::
 
@@ -42,6 +42,8 @@ below.
 ==============  ================================================================
    Version      Required I2NP Features
 ==============  ================================================================
+   0.9.46       DatabaseLookup flag bit 4 for AEAD reply
+
    0.9.40       MetaLeaseSet may be sent in a DSM
 
    0.9.39       EncryptedLeaseSet may be sent in a DSM
@@ -817,7 +819,13 @@ Contents
                11  => exploration lookup, return `DatabaseSearchReplyMessage`
                       containing non-floodfill routers only (replaces an
                       excludedPeer of all zeroes)
-       bits 7-4:
+       bit 4: ECIESFlag
+               before release 0.9.46 ignored
+               as of release 0.9.46:
+               0  => send unencrypted or ElGamal reply
+               1  => send ChaCha/Poly encrypted reply using enclosed key
+                     (whether tag is enclosed depends on bit 1)
+       bits 7-5:
                through release 0.9.5, must be set to 0
                as of release 0.9.6, ignored, set to 0 for compatibility with
                future uses and with older routers
@@ -841,19 +849,178 @@ Contents
                 to list non-floodfill routers only.
 
   reply_key ::
-       32 byte `SessionKey`
-       only included if encryptionFlag == 1, only as of release 0.9.7
+       32 byte key
+       see below
 
   tags ::
        1 byte `Integer`
        valid range: 1-32 (typically 1)
        the number of reply tags that follow
-       only included if encryptionFlag == 1, only as of release 0.9.7
+       see below
+
+  reply_tags ::
+       one or more 8 or 32 byte session tags (typically one)
+       see below
+{% endhighlight %}
+
+
+Reply Encryption
+````````````````
+
+Flag bit 4 is used in combination with bit 1 to determine the reply encryption mode.
+Flag bit 4 must only be set when sending to routers with version 0.9.46 or higher.
+See proposal 154 for details.
+
+=============  =========  =========  ======  ===  =======
+Flag bits 4,1  From Dest  To Router  Reply   DH?  notes
+=============  =========  =========  ======  ===  =======
+0 0            Any        Any        no enc  no   
+0 1            ElG        ElG        AES     no   As of 0.9.7
+1 0            ECIES      ElG        AEAD    no   As of 0.9.46
+1 1            ECIES      ECIES      AEAD    yes  TBD
+=============  =========  =========  ======  ===  =======
+
+No Encryption
+``````````````
+reply_key, tags, and reply_tags are not present.
+
+
+ElG to ElG
+``````````````
+Supported as of 0.9.7.
+ElG destination sends a lookup to a ElG router.
+
+Requester key generation:
+
+.. raw:: html
+
+  {% highlight lang='dataspec' %}
+reply_key :: CSRNG(32) 32 bytes random data
+  reply_tags :: Each is CSRNG(32) 32 bytes random data
+{% endhighlight %}
+
+Message format:
+
+.. raw:: html
+
+  {% highlight lang='dataspec' %}
+reply_key ::
+       32 byte `SessionKey` big-endian
+       only included if encryptionFlag == 1 AND ECIESFlag == 0, only as of release 0.9.7
+
+  tags ::
+       1 byte `Integer`
+       valid range: 1-32 (typically 1)
+       the number of reply tags that follow
+       only included if encryptionFlag == 1 AND ECIESFlag == 0, only as of release 0.9.7
 
   reply_tags ::
        one or more 32 byte `SessionTag`s (typically one)
-       only included if encryptionFlag == 1, only as of release 0.9.7
+       only included if encryptionFlag == 1 AND ECIESFlag == 0, only as of release 0.9.7
 {% endhighlight %}
+
+
+ECIES to ElG
+``````````````
+Supported as of 0.9.46.
+ECIES destination sends a lookup to a ElG router.
+The reply_key and reply_tags fields are redefined for an ECIES-encrypted reply.
+
+Requester key generation:
+
+.. raw:: html
+
+  {% highlight lang='dataspec' %}
+reply_key :: CSRNG(32) 32 bytes random data
+  reply_tags :: Each is CSRNG(8) 8 bytes random data
+{% endhighlight %}
+
+Message format:
+Redefine reply_key and reply_tags fields as follows:
+
+.. raw:: html
+
+  {% highlight lang='dataspec' %}
+reply_key ::
+       32 byte ECIES `SessionKey` big-endian
+       only included if encryptionFlag == 0 AND ECIESFlag == 1, only as of release 0.9.46
+
+  tags ::
+       1 byte `Integer`
+       required value: 1
+       the number of reply tags that follow
+       only included if encryptionFlag == 0 AND ECIESFlag == 1, only as of release 0.9.46
+
+  reply_tags ::
+       an 8 byte ECIES `SessionTag`
+       only included if encryptionFlag == 0 AND ECIESFlag == 1, only as of release 0.9.46
+
+{% endhighlight %}
+
+
+The reply is an ECIES Existing Session message, as defined in [ECIES]_.
+
+Reply format
+````````````
+
+This is the existing session message,
+same as in [ECIES]_, copied below for reference.
+
+.. raw:: html
+
+  {% highlight lang='dataspec' %}
++----+----+----+----+----+----+----+----+
+  |       Session Tag                     |
+  +----+----+----+----+----+----+----+----+
+  |                                       |
+  +            Payload Section            +
+  |       ChaCha20 encrypted data         |
+  ~                                       ~
+  |                                       |
+  +                                       +
+  |                                       |
+  +----+----+----+----+----+----+----+----+
+  |  Poly1305 Message Authentication Code |
+  +              (MAC)                    +
+  |             16 bytes                  |
+  +----+----+----+----+----+----+----+----+
+
+  Session Tag :: 8 bytes, cleartext
+
+  Payload Section encrypted data :: remaining data minus 16 bytes
+
+  MAC :: Poly1305 message authentication code, 16 bytes
+
+{% endhighlight %}
+
+AEAD parameters:
+
+.. raw:: html
+
+  {% highlight lang='dataspec' %}
+tag :: 8 byte reply_tag
+
+  k :: 32 byte session key
+     The reply_key.
+
+  n :: 0
+
+  ad :: Associated data. ZEROLEN.
+
+  payload :: Plaintext data, the DSM or DSRM.
+
+  ciphertext = ENCRYPT(k, n, payload, ad)
+
+{% endhighlight %}
+
+
+ECIES to ECIES
+``````````````
+This option is not yet fully defined.
+ECIES routers do not yet exist and there is no documented proposal
+for ECIES routers at this time.
+See proposal 154.
+
 
 Notes
 `````
@@ -1333,6 +1500,9 @@ References
 
 .. [Date]
     {{ ctags_url('Date') }}
+
+.. [ECIES]
+   {{ proposal_url('144') }}
 
 .. [ElG-AES]
     {{ site_url('docs/how/elgamal-aes', True) }}

@@ -5,10 +5,22 @@ Database Lookups from ECIES Destinations
     :author: zzz
     :created: 2020-03-23
     :thread: http://zzz.i2p/topics/2856
-    :lastupdated: 2020-03-31
-    :status: Open
+    :lastupdated: 2020-04-21
+    :status: Closed
+    :target: 0.9.46
+    :implementedin: 0.9.46
 
 .. contents::
+
+
+Note
+====
+ECIES to ElG is implemented and the proposal phase is closed.
+See [I2NP]_ for the official specification.
+This proposal may still be referenced for background information.
+ECIES to ECIES is not fully specified or implemented at this time.
+The ECIES-to-ECIES section may be reopened or incorporated
+in a future proposal.
 
 
 Overview
@@ -130,12 +142,12 @@ flags ::
                      (whether tag is enclosed depends on bit 1)
 {% endhighlight %}
 
-Existing flag bit 1 used in combination with bit 4 to determine the reply encryption mode.
+Flag bit 4 is used in combination with bit 1 to determine the reply encryption mode.
 Flag bit 4 must only be set when sending to routers with version 0.9.46 or higher.
 
 
 =============  =========  =========  ======  ===  =======
-Flag bits 4/1  From Dest  To Router  Reply   DH?  notes
+Flag bits 4,1  From Dest  To Router  Reply   DH?  notes
 =============  =========  =========  ======  ===  =======
 0 0            Any        Any        no enc  no   current
 0 1            ElG        ElG        AES     no   current
@@ -211,17 +223,17 @@ Redefine reply_key and reply_tags fields as follows:
   {% highlight lang='dataspec' %}
 reply_key ::
        32 byte ECIES `SessionKey` big-endian
-       only included if encryptionFlag == 1 AND ECIESFlag == 0, only as of release 0.9.46
+       only included if encryptionFlag == 0 AND ECIESFlag == 1, only as of release 0.9.46
 
   tags ::
        1 byte `Integer`
        required value: 1
        the number of reply tags that follow
-       only included if encryptionFlag == 1 AND ECIESFlag == 0, only as of release 0.9.46
+       only included if encryptionFlag == 0 AND ECIESFlag == 1, only as of release 0.9.46
 
   reply_tags ::
        an 8 byte ECIES `SessionTag`
-       only included if encryptionFlag == 1 AND ECIESFlag == 0, only as of release 0.9.46
+       only included if encryptionFlag == 0 AND ECIESFlag == 1, only as of release 0.9.46
 
 {% endhighlight %}
 
