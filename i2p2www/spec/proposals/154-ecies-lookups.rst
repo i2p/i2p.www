@@ -33,7 +33,7 @@ Definitions
 - DLM: I2NP Database Lookup Message
 - DSM: I2NP Database Store Message
 - DSRM: I2NP Database Search Reply Message
-- ECIES: ECIES-X25510-AEAD-Ratchet (propoosal 144)
+- ECIES: ECIES-X25519-AEAD-Ratchet (propoosal 144)
 - ElG: ElGamal
 - ENCRYPT(k, n, payload, ad): As defined in [ECIES]_
 - LS: Leaseset
@@ -250,7 +250,7 @@ tag :: 8 byte reply_tag
 
   n :: 0
 
-  ad :: Associated data. ZEROLEN.
+  ad :: The 8 byte reply_tag
 
   payload :: Plaintext data, the DSM or DSRM.
 

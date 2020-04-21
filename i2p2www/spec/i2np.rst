@@ -1005,7 +1005,7 @@ tag :: 8 byte reply_tag
 
   n :: 0
 
-  ad :: Associated data. ZEROLEN.
+  ad :: The 8 byte reply_tag
 
   payload :: Plaintext data, the DSM or DSRM.
 
