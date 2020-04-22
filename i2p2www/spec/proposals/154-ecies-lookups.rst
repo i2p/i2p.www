@@ -5,7 +5,7 @@ Database Lookups from ECIES Destinations
     :author: zzz
     :created: 2020-03-23
     :thread: http://zzz.i2p/topics/2856
-    :lastupdated: 2020-04-21
+    :lastupdated: 2020-04-22
     :status: Closed
     :target: 0.9.46
     :implementedin: 0.9.46
@@ -338,7 +338,7 @@ See [ECIES]_ for all definitions.
 
   n :: The index of the tag. Typically 0.
 
-  ad :: Associated data. ZEROLEN.
+  ad :: The 8 byte tag
 
   payload :: Plaintext data, the DSM or DSRM.
 

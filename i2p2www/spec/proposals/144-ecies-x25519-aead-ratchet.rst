@@ -5,8 +5,10 @@ ECIES-X25519-AEAD-Ratchet
     :author: zzz, chisana
     :created: 2018-11-22
     :thread: http://zzz.i2p/topics/2639
-    :lastupdated: 2020-04-17
+    :lastupdated: 2020-04-22
     :status: Open
+    :target: 0.9.46
+    :implementedin: 0.9.46
 
 .. contents::
 
@@ -3486,67 +3488,48 @@ with 8 byte tags.
 
 
 
-Common Structures Spec Changes Required
-=======================================
-
-TODO
-
-
-Key Certificates
-----------------
-
-
-
-Encryption Spec Changes Required
-================================
-
-TODO
-
-
-
 I2NP Changes Required
 =====================
 
-TODO
+Database Lookups from ECIES Destinations: See [Prop154]_.
 
 
 
 I2CP Changes Required
 =====================
 
+No changes are required to the I2CP specifications.
+All support was designed, specified, and implemented in [Prop123]_ implemented in 0.9.38.
+
+
+The option required to enable ECIES is a single I2CP property
+for I2CP, BOB, SAM, or i2ptunnel.
+
+Typical values are i2cp.leaseSetEncType=4 for ECIES only,
+or i2cp.leaseSetEncType=4,0 for ECIES and ElGamal dual keys.
+
+
+
 I2CP Options
 ------------
 
-This section is copied from proposal 123.
+This section is copied from [Prop123]_.
 
-New options in SessionConfig Mapping:
+Option in SessionConfig Mapping:
 
 ::
 
-  i2cp.leaseSetEncType=nnn  The encryption type to be used.
-                            0: ElGamal
-                            1-3: See proposal 145
-                            4: This proposal.
-                            Other values to be defined in future proposals.
+  i2cp.leaseSetEncType=nnn[,nnn]  The encryption types to be used.
+                                  0: ElGamal
+                                  1-3: See proposal 145
+                                  4: This proposal.
 
 
 Create Leaseset2 Message
 ------------------------
 
-See proposal 123 for specification.
-
-
-SAM Changes Required
-====================
-
-TODO
-
-
-
-BOB Changes Required
-====================
-
-TODO
+This proposal requires LS2 which is supported as of release 0.9.38.
+See [I2CP]_ for specification and [Prop123]_ for background.
 
 
 
@@ -3554,7 +3537,11 @@ TODO
 Publishing, Migration, Compatibility
 ====================================
 
-TODO
+Database Lookups from ECIES Destinations: See [Prop154]_.
+
+Any router supporting LS2 with dual keys (0.9.38 or higher) should support
+connection to destinations with dual keys.
+
 
 
 
@@ -3568,6 +3555,9 @@ References
 
 .. [GARLICSPEC]
     {{ site_url('docs/how/garlic-routing', True) }}
+
+.. [I2CP]
+    {{ spec_url('i2cp') }}
 
 .. [I2NP]
     {{ spec_url('i2np') }}
@@ -3586,6 +3576,9 @@ References
 
 .. [Prop142]
     {{ proposal_url('142') }}
+
+.. [Prop154]
+    {{ proposal_url('154') }}
 
 .. [RFC-2104]
     https://tools.ietf.org/html/rfc2104
