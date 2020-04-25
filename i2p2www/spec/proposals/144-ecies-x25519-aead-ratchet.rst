@@ -5,7 +5,7 @@ ECIES-X25519-AEAD-Ratchet
     :author: zzz, chisana
     :created: 2018-11-22
     :thread: http://zzz.i2p/topics/2639
-    :lastupdated: 2020-04-22
+    :lastupdated: 2020-04-25
     :status: Open
     :target: 0.9.46
     :implementedin: 0.9.46
@@ -1939,68 +1939,89 @@ by initiating the key exchange; the diagram below shows that.
 When Alice ratchets, the same thing happens in reverse.
 
 The first tag set used after the NS/NSR handshake is tag set 0.
-When that tag set is almost exhausted, new keys must be exchanged to create tag set 1.
+When tag set 0 is almost exhausted, new keys must be exchanged in both directions to create tag set 1.
 After that, a new key is only sent in one direction.
-For tag set 2, Bob sends the ID of his old key and requests a new key from Alice.
+
+To create tag set 2, the tag sender sends a new key and the tag receiver sends the ID of his old key as an acknowledgement.
 Both sides do a DH.
 
-For tag set 3, Bob sends a new key and Alice sends the ID of her old key.
+To create tag set 3, the tag sender sends the ID of his old key and requests a new key from the tag receiver.
 Both sides do a DH.
 
 Subsequent tag sets are generated as for tag sets 2 and 3.
-The tag set number is (1 + Alice's key id + Bob's key id).
+The tag set number is (1 + sender key id + receiver key id).
 
 
 .. raw:: html
 
   {% highlight %}
-Alice                           Bob
+Tag Sender                    Tag Receiver
 
-                              (Tagset #0 almost empty)
-                              (generate new key #0)
+                   ... use tag set #0 ...
 
-  <--------------     Next Key, forward, request reverse, with key #0
-                              (repeat until next key received)
 
-  (generate new key #0, do DH, create IB Tagset #1)
+  (Tagset #0 almost empty)
+  (generate new key #0)
 
-  Next Key, reverse, with key #0         ------------------->
-  (repeat until tag received on new tagset)
+  Next Key, forward, request reverse, with key #0  -------->
+  (repeat until next key received)
 
-                              (do DH, create OB Tagset #1)
-                  ...
-                              (Tagset #1 almost empty)
-                              (resend key #0)
+                              (generate new key #0, do DH, create IB Tagset #1)
 
-  <--------------     Next Key, forward, request reverse, id 0
-                              (repeat until next key received)
+          <-------------      Next Key, reverse, with key #0
+                              (repeat until tag received on new tagset)
 
-  (generate new key #1, do DH, create IB Tagset #2)
+  (do DH, create OB Tagset #1)
 
-  Next Key, reverse, with key #1         ------------------->
-  (repeat until tag received on new tagset)
 
-                              (do DH, create OB Tagset #2)
-                  ...
-                              (Tagset #2 almost empty)
-                              (generate new key #1)
+                   ... use tag set #1 ...
 
-  <--------------     Next Key, forward, with key #1
-                              (repeat until next key received)
 
+  (Tagset #1 almost empty)
+  (generate new key #1)
+
+  Next Key, forward, with key #1        -------->
+  (repeat until next key received)
+
+                              (reuse key #0, do DH, create IB Tagset #2)
+
+          <--------------     Next Key, reverse, id 0
+                              (repeat until tag received on new tagset)
+
+  (do DH, create OB Tagset #2)
+
+
+                   ... use tag set #2 ...
+
+
+  (Tagset #2 almost empty)
+  (reuse key #1)
+
+  Next Key, forward, request reverse, id 1  -------->
+  (repeat until next key received)
+
+                              (generate new key #1, do DH, create IB Tagset #3)
+
+          <--------------     Next Key, reverse, with key #1
+
+  (do DH, create OB Tagset #3)
   (reuse key #1, do DH, create IB Tagset #3)
 
-  Next Key, reverse, id 1       ------------------->
-  (repeat until tag received on new tagset)
 
-                              (do DH, create OB Tagset #3)
 
-                              Repeat the above patterns for tagsets
-                              2 and 3.
-                              Every even tagset, Bob resends his key
-                              and requests a reverse key from Alice.
-                              Every odd tagset, Bob sends a new key
-                              and Alice sends an ACK.
+                   ... use tag set #3 ...
+
+
+
+       After tag set 3, repeat the above
+       patterns as shown for tag sets 2 and 3.
+
+       To create a new even-numbered tag set, the sender sends a new key
+       to the receiver. The receiver sends his old key ID
+       back as an acknowledgement.
+
+       To create a new odd-numbered tag set, the sender sends a reverse request
+       to the receiver. The receiver sends a new reverse key to the sender.
 
 {% endhighlight %}
 
@@ -2012,21 +2033,23 @@ the receiver should listen for tags in both tagsets, and delete the old tagset
 after a short time, about 3 minutes.
 
 
-Summary of tag set and key ID progression:
+Summary of tag set and key ID progression is in the table below.
+* indicates that a new key is generated.
 
-==========  =============  ===========
-Tag Set ID  Sender key ID  Rcvr key ID
-==========  =============  ===========
-0           n/a            n/a
-1           0              0
-2           1              0
-3           1              1
-4           2              1
-5           2              2
-...         ...            ...
-65534       32767          32766
-65535       32767          32767
-==========  =============  ===========
+
+==============  =============  ===========
+New Tag Set ID  Sender key ID  Rcvr key ID
+==============  =============  ===========
+0               n/a            n/a
+1               0 *            0 *
+2               1 *            0
+3               1              1 *
+4               2 *            1
+5               2              2 *
+...             ...            ...
+65534           32767 *        32766
+65535           32767          32767 *
+==========      =============  ===========
 
 
 DH INITIALIZATION KDF
