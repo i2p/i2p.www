@@ -2,7 +2,7 @@
 ECIES-X25519-AEAD-Ratchet
 =========================
 .. meta::
-    :author: zzz, chisana
+    :author: zzz, chisana, orignal
     :created: 2018-11-22
     :thread: http://zzz.i2p/topics/2639
     :lastupdated: 2020-04-25
@@ -2499,7 +2499,7 @@ UNIMPLEMENTED, for further study.
 Drop the session.
 This must be the last non-padding block in the frame.
 
-Not allowed in NS or NSR. Only included in Existing Session mnessages.
+Not allowed in NS or NSR. Only included in Existing Session messages.
 
 
 .. raw:: html
@@ -2634,7 +2634,7 @@ and it is optional. We don't ratchet every time.
 For the first ratchet,
 Key ID = 0.
 
-Not allowed in NS or NSR. Only included in Existing Session mnessages.
+Not allowed in NS or NSR. Only included in Existing Session messages.
 
 .. raw:: html
 
@@ -2686,7 +2686,7 @@ Ack
 This is only sent if an ack request block was received.
 Multiple acks may be present to ack multiple messages.
 
-Not allowed in NS or NSR. Only included in Existing Session mnessages.
+Not allowed in NS or NSR. Only included in Existing Session messages.
 
 
 .. raw:: html
@@ -2727,7 +2727,7 @@ To replace the out-of-band DeliveryStatus Message in the Garlic Clove.
 If an explicit ack is requested, the current tagset ID and message number (N)
 are returned in an ack block.
 
-Not allowed in NS or NSR. Only included in Existing Session mnessages.
+Not allowed in NS or NSR. Only included in Existing Session messages.
 
 
 .. raw:: html
