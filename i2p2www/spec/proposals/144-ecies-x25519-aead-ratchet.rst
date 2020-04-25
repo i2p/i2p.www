@@ -2077,11 +2077,11 @@ Inputs:
   // KDF_RK(rk, dh_out)
   keydata = HKDF(rootKey, k, "KDFDHRatchetStep", 64)
 
-  // Output 1: The next Root Key (KDF input for the next ratchet)
+  // Output 1: The next Root Key (KDF input for the next DH ratchet)
   nextRootKey = keydata[0:31]
   // Output 2: The chain key to initialize the new
   // session tag and symmetric key ratchets
-  // for Alice to Bob transmissions
+  // for the tag set
   ck = keydata[32:63]
 
   // session tag and symmetric key chain keys
@@ -2102,13 +2102,13 @@ before a tagset is exhausted.
 
   {% highlight lang='text' %}
 
-  // Alice generates new X25519 ephemeral keys
-  // and sends rapk to Bob in a NextKey block
+// Tag sender generates new X25519 ephemeral keys
+  // and sends rapk to tag receiver in a NextKey block
   rask = GENERATE_PRIVATE()
   rapk = DERIVE_PUBLIC(rask)
   
-  // Bob generates new X25519 ephemeral keys
-  // and sends rbpk to Alice in a NextKey block
+  // Tag receiver generates new X25519 ephemeral keys
+  // and sends rbpk to Tag sender in a NextKey block
   rbsk = GENERATE_PRIVATE()
   rbpk = DERIVE_PUBLIC(rbsk)
 
@@ -2288,10 +2288,9 @@ Typical contents include the following blocks:
        Payload Block Type            Type Number  Block Length
 ==================================  ============= ============
 DateTime                                  0            7      
-Session ID (debug)                        1            7      
 Termination (TBD)                         4         9 typ.    
-Options                                   5            9      
-Message Numbers (TBD)                     6          TBD      
+Options (TBD)                             5            9      
+Message Number (TBD)                      6          TBD      
 Next Key                                  7         3 or 35  
 ACK                                       8         4 typ. 
 ACK Request                               9            3   
@@ -2336,12 +2335,10 @@ so the max unencrypted data is 65519 bytes.
 
   blk :: 1 byte
          0 datetime
-         1 session id
-         2 reserved
-         3 reserved
+         1-3 reserved
          4 termination
          5 options
-         6 message number and previous message number (ratchet)
+         6 previous message number
          7 next session key
          8 ack
          9 ack request
@@ -2423,24 +2420,6 @@ Generally included in New Session messages only.
 {% endhighlight %}
 
 
-Session ID
-``````````
-This may only be useful for debugging.
-
-.. raw:: html
-
-  {% highlight lang='dataspec' %}
-+----+----+----+----+----+----+----+
-  | 1  |    4    |        id         |
-  +----+----+----+----+----+----+----+
-
-  blk :: 1
-  size :: 2 bytes, big endian, value = 4
-  id :: random number
-
-{% endhighlight %}
-
-
 Garlic Clove
 ````````````
 
@@ -2516,8 +2495,11 @@ Justification
 
 Termination
 ```````````
+UNIMPLEMENTED, for further study.
 Drop the session.
 This must be the last non-padding block in the frame.
+
+Not allowed in NS or NSR. Only included in Existing Session mnessages.
 
 
 .. raw:: html
@@ -2557,6 +2539,7 @@ Additional reasons listed are for consistency, logging, debugging, or if policy 
 
 Options
 ```````
+UNIMPLEMENTED, for further study.
 Pass updated options.
 Options include various parameters for the session.
 See the Session Tag Length Analysis section below for more information.
@@ -2613,51 +2596,33 @@ Options Issues
 
 Message Numbers
 ```````````````
-
-The message's number (N) in the current sending chain (N=0,1,2,...)
-and the length (number of message keys) in the previous sending chain (PN).
-Also contains the public key id, used for acks.
+UNIMPLEMENTED, for further study.
+The length (number of message keys) in the previous sending chain (PN).
 
 
 .. raw:: html
 
   {% highlight lang='dataspec' %}
-+----+----+----+----+----+----+----+----+
-  | 6  |  size   | key ID |   PN    |  N
- +----+----+----+----+----+----+----+----+
-      |
- +----+
++----+----+----+----+----+
+  | 6  |  size   |  PN    |
+ +----+----+----+----+----+
 
   blk :: 6
-  size :: 6
-  Key ID :: The ID of the current key being used, 2 bytes big endian.
-            65535 (0xffff) when in a New Session message.
+  size :: 2
   PN :: 2 bytes big endian. The number of keys in the previous sending chain.
         i.e. one more than the last 'N' sent in the previous chain.
         Use 0 if there was no previous sending chain.
-  N :: 2 bytes big endian. The message number in the current sending chain.
-       Starts with 0.
 
 {% endhighlight %}
 
 
 Notes
 ``````
-- Maximum PN and N is 65535. Do not allow to roll over. Sender must ratchet the DH key, send it,
-  and receive an ack, before the sending chain reaches 65535.
-
-- N is not strictly needed in an Existing Session message, as it's associated with the Session Tag
+- Maximum PN is 65535.
 
 - The definitions of PN and N are identical to that in Signal.
   This is similar to what Signal does, but in Signal, PN and N are in the header.
   Here, they're in the encrypted message body.
-
-- Key ID can be just an incrementing counter.
-  It may not be strictly necessary, but it's useful for debugging.
-  Also, we use it for explicit ACKs.
-  Signal does not use a key ID.
-
-
 
 
 Next DH Ratchet Public Key
@@ -2669,6 +2634,7 @@ and it is optional. We don't ratchet every time.
 For the first ratchet,
 Key ID = 0.
 
+Not allowed in NS or NSR. Only included in Existing Session mnessages.
 
 .. raw:: html
 
@@ -2720,6 +2686,7 @@ Ack
 This is only sent if an ack request block was received.
 Multiple acks may be present to ack multiple messages.
 
+Not allowed in NS or NSR. Only included in Existing Session mnessages.
 
 
 .. raw:: html
@@ -2760,6 +2727,7 @@ To replace the out-of-band DeliveryStatus Message in the Garlic Clove.
 If an explicit ack is requested, the current tagset ID and message number (N)
 are returned in an ack block.
 
+Not allowed in NS or NSR. Only included in Existing Session mnessages.
 
 
 .. raw:: html
@@ -2777,25 +2745,13 @@ are returned in an ack block.
 {% endhighlight %}
 
 
-Notes
-``````
-
-- Not allowed in NS or NSR. Only included in Existing Session mnessages
-
-- See ACK section above for more information.
-
-
-Issues
-``````
-
-
 
 Padding
 ```````
 All padding is inside AEAD frames.
 TODO Padding inside AEAD should roughly adhere to the negotiated parameters.
-TODO Bob sent his requested tx/rx min/max parameters in message 2.
-TODO Alice sent her requested tx/rx min/max parameters in message 3.
+TODO Alice sent her requested tx/rx min/max parameters in the NS message.
+TODO Bob sent his requested tx/rx min/max parameters in the NSR message.
 Updated options may be sent during the data phase.
 See options block information above.
 
@@ -2815,28 +2771,26 @@ If present, this must be the last block in the frame.
   +----+----+----+----+----+----+----+----+
 
   blk :: 254
-  size :: 2 bytes, big endian, size of padding to follow
-  padding :: random data
+  size :: 2 bytes, big endian, 0-65516
+  padding :: zeros or random data
 
 {% endhighlight %}
 
 Notes
 `````
+- All-zero padding is fine, as it will be encrypted.
 - Padding strategies TBD.
-- Minimum padding TBD.
 - Padding-only frames are allowed.
-- Padding defaults TBD.
+- Padding default is 0-15 bytes.
 - See options block for padding parameter negotiation
 - See options block for min/max padding parameters
-- Message size limit is 64KB. If more padding is necessary, send multiple frames.
 - Router response on violation of negotiated padding is implementation-dependent.
 
 
 Other block types
 `````````````````
 Implementations should ignore unknown block types for
-forward compatibility, except in message 3 part 2, where
-unknown blocks are not allowed.
+forward compatibility.
 
 
 Future work
@@ -3282,7 +3236,8 @@ or that any additional messages are sent speculatively as Existing Session messa
 If there is no speculative acks of delivered session tags, the
 overhead or the old protocol is much higher.
 
-No padding is assumed for the new protocol.
+No padding is assumed for analysis of the new protocol.
+No bundled leaseset is assumed.
 
 
 For ElGamal/AES+SessionTags
@@ -3301,13 +3256,17 @@ ElGamal block:
   - 2 byte tag count
   - 1024 bytes of tags (32 typical)
   - 4 byte payload size
+  - 16 byte I2NP header
+  - 15 byte msg cert, id, exp.
+  - 33 byte Garlic deliv. inst.
+  - 15 byte clove cert, id, exp.
   - 32 byte hash of payload
   - 1 byte flags
   - 8 byte (average) padding to 16 bytes
-  1071 total
+  1150 total
 
   Total:
-  1585 bytes
+  1664 bytes
 {% endhighlight %}
 
 Existing session messages, same each direction:
@@ -3319,54 +3278,58 @@ AES block:
   - 32 byte session tag
   - 2 byte tag count
   - 4 byte payload size
+  - 16 byte I2NP header
+  - 15 byte msg cert, id, exp.
+  - 33 byte Garlic deliv. inst.
+  - 15 byte clove cert, id, exp.
   - 32 byte hash of payload
   - 1 byte flags
   - 8 byte (average) padding to 16 bytes
-  79 total
+  158 total
+{% endhighlight %}
 
-  Four message total (two each direction)
-  3328 bytes
+  {% highlight lang='text' %}
+Four message total (two each direction)
+  3644 bytes overhead
 {% endhighlight %}
 
 
 For ECIES-X25519-AEAD-Ratchet
 `````````````````````````````
 
-TODO update this section after proposal is stable.
-
-Alice-Bob New Session message:
+Alice-to-Bob New Session message:
 
 .. raw:: html
 
   {% highlight lang='text' %}
-- 32 byte public key
-  - 8 byte nonce
-  - 6 byte message ID block
-  - 7 byte options block
-  - 37 byte next key ratchet block
-  - 103 byte ack request block
-  - 3 byte I2NP block overhead ?
-  - 16 byte Poly1305 tag
+- 32 byte ephemeral public key
+  - 32 byte static public key
+  - 16 byte Poly1305 MAC
+  - 7 byte DateTime block
+  - 3 byte Garlic block overhead
+  - 9 byte I2NP header
+  - 33 byte Garlic deliv. inst.
+  - 16 byte Poly1305 MAC
 
   Total:
-  212 bytes
+  148 bytes overhead
 {% endhighlight %}
 
-Bob-Alice Existing Session message:
+Bob-to-Alice New Session Reply message:
 
 .. raw:: html
 
   {% highlight lang='text' %}
 - 8 byte session tag
-  - 6 byte message ID block
-  - 7 byte options block
-  - 37 byte next key ratchet block
-  - 4 byte ack request block
-  - 3 byte I2NP block overhead ?
-  - 16 byte Poly1305 tag
+  - 32 byte ephemeral public key
+  - 16 byte Poly1305 MAC
+  - 3 byte Garlic block overhead
+  - 9 byte I2NP header
+  - 33 byte Garlic deliv. inst.
+  - 16 byte Poly1305 MAC
 
   Total:
-  81 bytes
+  117 bytes overhead
 {% endhighlight %}
 
 Existing session messages, same each direction:
@@ -3375,12 +3338,13 @@ Existing session messages, same each direction:
 
   {% highlight lang='text' %}
 - 8 byte session tag
-  - 6 byte message ID block
-  - 3 byte I2NP block overhead ?
-  - 16 byte Poly1305 tag
+  - 3 byte Garlic block overhead
+  - 9 byte I2NP header
+  - 33 byte Garlic deliv. inst.
+  - 16 byte Poly1305 MAC
 
   Total:
-  33 bytes
+  69 bytes
 {% endhighlight %}
 
 Four message total (two each direction):
@@ -3388,8 +3352,28 @@ Four message total (two each direction):
 .. raw:: html
 
   {% highlight lang='text' %}
-359 bytes
-  89% (approx. 10x) reduction compared to ElGamal/AEs+SessionTags
+372 bytes
+  90% (approx. 10x) reduction compared to ElGamal/AES+SessionTags
+{% endhighlight %}
+
+Handshake only:
+
+.. raw:: html
+
+  {% highlight lang='text' %}
+ElGamal: 1664 + 1664 = 3328 bytes
+  Ratchet: 148 _ 117 = 265 bytes
+  92% (approx. 12x) reduction compared to ElGamal/AES+SessionTags
+{% endhighlight %}
+
+Long-term total (ignoring handshakes):
+
+.. raw:: html
+
+  {% highlight lang='text' %}
+ElGamal: 158 + 32 byte tag sent previously = 190 bytes
+  Ratchet: 69 bytes
+  64% (approx. 3x) reduction compared to ElGamal/AES+SessionTags
 {% endhighlight %}
 
 
@@ -3398,8 +3382,8 @@ Processing overhead estimate
 
 TODO update this section after proposal is stable.
 
-The following cryptographic operations are required by each party to initiate
-a New Session and do the first ratchet:
+The following cryptographic operations are required by each party to exchange
+New Session and New Session Reply messages:
 
 - HMAC-SHA256: 3 per HKDF, total TBD
 - ChaChaPoly: 2 each
@@ -3412,8 +3396,9 @@ and 3 for each of Bob's NSR messages.
 
 Bob also calculates 6 ECDHs per-bound-session, 3 for each of Alice's NS messages, and 3 for each of his NSR messages.
 
-The following cryptographic operations are required by each party for each data phase message:
+The following cryptographic operations are required by each party for each Existing Session message:
 
+- HKDF: 2
 - ChaChaPoly: 1
 
 
@@ -3424,7 +3409,6 @@ Session Tag Length Analysis
 Current session tag length is 32 bytes.
 We have not yet found any justification for that length, but we are continuing to research the archives.
 The proposal above defines the new tag length as 8 bytes.
-This decision is preliminary.
 The analysis justifying an 8 byte tag is as follows:
 
 The session tag ratchet is assumed to generate random, uniformly distributed tags.
@@ -3509,6 +3493,18 @@ By reducing the target to 1 in 10,000, there's plenty of margin
 with 8 byte tags.
 
 
+Storage Savings
+```````````````
+
+The sender generates tags and keys on the fly, so there is no storage.
+This cuts overall storage requirements in half compared to ElGamal/AES.
+ECIES tags are 8 bytes instead of 32 for ElGamal/AES.
+This cuts overall storage requiremens by another factor of 4.
+Per-tag session keys are not stored at the receiver except for "gaps",
+which are minimal for reasonable loss rates.
+
+Therefore, the total space savings vs. ElGamal/AES is a factor of 8, or 87%.
+
 
 
 I2NP Changes Required
@@ -3516,14 +3512,19 @@ I2NP Changes Required
 
 Database Lookups from ECIES Destinations: See [Prop154]_.
 
+This proposal requires LS2 support to publish the X25519 public key with the leaseset.
+No changes are required to the LS2 specifications in [I2NP]_.
+All support was designed, specified, and implemented in [Prop123]_ implemented in 0.9.38.
+
 
 
 I2CP Changes Required
 =====================
 
-No changes are required to the I2CP specifications.
+None.
+This proposal requires LS2 support, and a property to be set in the I2CP options to be enabled.
+No changes are required to the [I2CP]_ specifications.
 All support was designed, specified, and implemented in [Prop123]_ implemented in 0.9.38.
-
 
 The option required to enable ECIES is a single I2CP property
 for I2CP, BOB, SAM, or i2ptunnel.
@@ -3552,7 +3553,8 @@ Create Leaseset2 Message
 ------------------------
 
 This proposal requires LS2 which is supported as of release 0.9.38.
-See [I2CP]_ for specification and [Prop123]_ for background.
+No changes are required to the [I2CP]_ specifications.
+All support was designed, specified, and implemented in [Prop123]_ implemented in 0.9.38.
 
 
 
