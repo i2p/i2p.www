@@ -3,8 +3,8 @@ I2CP Specification
 ==================
 .. meta::
     :category: Protocols
-    :lastupdated: February 2020
-    :accuratefor: 0.9.44
+    :lastupdated: April 2020
+    :accuratefor: 0.9.46
 
 .. contents::
 
@@ -565,7 +565,7 @@ Contents
 
 7. [PrivateKey]_ Decryption key
    Only present if flag bit 0 is set to 1.
-   A 32-byte ECIES_X25519 private key
+   A 32-byte ECIES_X25519 private key, little-endian
 8. [String]_ Lookup Password
    Only present if flag bit 4 is set to 1.
 

@@ -3,8 +3,8 @@ Common structures Specification
 ===============================
 .. meta::
     :category: Design
-    :lastupdated: July 2019
-    :accuratefor: 0.9.42
+    :lastupdated: April 2020
+    :accuratefor: 0.9.46
 
 .. contents::
 
@@ -66,7 +66,7 @@ PublicKey
 
 Description
 ```````````
-This structure is used in ElGamal encryption, representing only the exponent,
+This structure is used in ElGamal or other asymmetric encryption, representing only the exponent,
 not the primes, which are constant and defined in the cryptography
 specification [ELGAMAL]_.
 Other encryption schemes are in the process of being defined, see the table below.
@@ -74,19 +74,20 @@ Other encryption schemes are in the process of being defined, see the table belo
 Contents
 ````````
 Key type and length are inferred from context or are specified in the Key
-Certificate of a Destination or RouterInfo, or the key type field in a LeaseSet2_.
+Certificate of a Destination or RouterInfo, or the fields in a LeaseSet2_ or other data structure.
 The default type is ElGamal.  As of release
 0.9.38, other types may be supported, depending on context.
+Keys are big-endian unless otherwise noted.
 
-=======  ==============  =====  =====
- Type    Length (bytes)  Since  Usage
-=======  ==============  =====  =====
-ElGamal       256               All Router Identities and Destinations
-P256           64         TBD   Reserved, see proposal 145
-P384           96         TBD   Reserved, see proposal 145
-P521          132         TBD   Reserved, see proposal 145
-X25519         32         TBD   Reserved, see proposal 144
-=======  ==============  =====  =====
+=======  ==============  ======  =====
+ Type    Length (bytes)  Since   Usage
+=======  ==============  ======  =====
+ElGamal       256                All Router Identities and Destinations
+P256           64         TBD    Reserved, see proposal 145
+P384           96         TBD    Reserved, see proposal 145
+P521          132         TBD    Reserved, see proposal 145
+X25519         32        0.9.38  Little-endian. See proposal 144
+=======  ==============  ======  =====
 
 JavaDoc: http://{{ i2pconv('echelon.i2p/javadoc') }}/net/i2p/data/PublicKey.html
 
@@ -97,7 +98,7 @@ PrivateKey
 
 Description
 ```````````
-This structure is used in ElGamal decryption, representing only the exponent,
+This structure is used in ElGamal or other asymmetric decryption, representing only the exponent,
 not the primes which are constant and defined in the cryptography specification
 [ELGAMAL]_.
 Other encryption schemes are in the process of being defined, see the table below.
@@ -105,19 +106,20 @@ Other encryption schemes are in the process of being defined, see the table belo
 Contents
 ````````
 Key type and length are inferred from context or are specified in the Key
-Certificate of a Destination or RouterInfo, or the key type field in a LeaseSet2_.
+Certificate of a Destination or RouterInfo, or the fields in a LeaseSet2_ or other data structure.
 The default type is ElGamal.  As of release
 0.9.38, other types may be supported, depending on context.
+Keys are big-endian unless otherwise noted.
 
-=======  ==============  =====  =====
- Type    Length (bytes)  Since  Usage
-=======  ==============  =====  =====
-ElGamal       256               All Router Identities and Destinations
-P256           32         TBD   Reserved, see proposal 145
-P384           48         TBD   Reserved, see proposal 145
-P521           66         TBD   Reserved, see proposal 145
-X25519         32         TBD   Reserved, see proposal 144
-=======  ==============  =====  =====
+=======  ==============  ======  =====
+ Type    Length (bytes)  Since   Usage
+=======  ==============  ======  =====
+ElGamal       256                All Router Identities and Destinations
+P256           32         TBD    Reserved, see proposal 145
+P384           48         TBD    Reserved, see proposal 145
+P521           66         TBD    Reserved, see proposal 145
+X25519         32        0.9.38  Little-endian. See proposal 144
+=======  ==============  ======  =====
 
 JavaDoc: http://{{ i2pconv('echelon.i2p/javadoc') }}/net/i2p/data/PrivateKey.html
 
@@ -128,7 +130,7 @@ SessionKey
 
 Description
 ```````````
-This structure is used for AES256 encryption and decryption.
+This structure is used for symmetric AES256 encryption and decryption.
 
 Contents
 ````````
@@ -172,7 +174,7 @@ Notes
   serialized by padding each element to length/2 with leading zeros if
   necessary.
 
-* All types are Big Endian, except for EdDSA, which is stored and transmitted
+* All types are Big Endian, except for EdDSA and RedDSA, which are stored and transmitted
   in a Little Endian format.
 
 JavaDoc: http://{{ i2pconv('echelon.i2p/javadoc') }}/net/i2p/data/SigningPublicKey.html
@@ -212,7 +214,7 @@ Notes
   serialized by padding each element to length/2 with leading zeros if
   necessary.
 
-* All types are Big Endian, except for EdDSA, which is stored and transmitted
+* All types are Big Endian, except for EdDSA and RedDSA, which are stored and transmitted
   in a Little Endian format.
 
 JavaDoc: http://{{ i2pconv('echelon.i2p/javadoc') }}/net/i2p/data/SigningPrivateKey.html
@@ -253,7 +255,7 @@ Notes
   serialized by padding each element to length/2 with leading zeros if
   necessary.
 
-* All types are Big Endian, except for EdDSA, which is stored and transmitted
+* All types are Big Endian, except for EdDSA and RedDSA, which are stored and transmitted
   in a Little Endian format.
 
 JavaDoc: http://{{ i2pconv('echelon.i2p/javadoc') }}/net/i2p/data/Signature.html
@@ -437,7 +439,7 @@ ElGamal        0                 256            All Router Identities and Destin
 P256           1                  64            Reserved, see proposal 145
 P384           2                  96            Reserved, see proposal 145
 P521           3                 132            Reserved, see proposal 145
-X25519         4                  32            Reserved, see proposal 144
+X25519         4                  32            Not for use in key certs. See proposal 144
 reserved  65280-65534                           Reserved for experimental use
 reserved     65535                              Reserved for future expansion
 ========  ===========  =======================  =====
@@ -1188,8 +1190,9 @@ Notes
 * The encryption keys are used for end-to-end ElGamal/AES+SessionTag encryption
   [ELGAMAL-AES]_ (type 0) or other end-to-end encryption schemes.
   See proposals 123, 144, and 145.
-  They are currently generated anew at every router startup
-  they are not persistent.
+  They may be generated anew at every router startup
+  or they may be persistent.
+  X25519 (type 4, proposal 144) is supported as of release 0.9.44.
 
 * The signature is over the data above, PREPENDED with the single byte
   containing the DatabaseStore type (3).
@@ -1202,7 +1205,7 @@ Notes
   may parse the structure even if not all encryption types are known or supported.
 
 
-JavaDoc: http://{{ i2pconv('echelon.i2p/javadoc') }}/net/i2p/data/LeaseSet.html
+JavaDoc: http://{{ i2pconv('echelon.i2p/javadoc') }}/net/i2p/data/LeaseSet2.html
 
 
 .. _struct-MetaLease:

@@ -44,6 +44,8 @@ below.
 ==============  ================================================================
    0.9.46       DatabaseLookup flag bit 4 for AEAD reply
 
+   0.9.44       X25519 keys in LeaseSet2
+
    0.9.40       MetaLeaseSet may be sent in a DSM
 
    0.9.39       EncryptedLeaseSet may be sent in a DSM
