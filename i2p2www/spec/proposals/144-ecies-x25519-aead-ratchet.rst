@@ -5,7 +5,7 @@ ECIES-X25519-AEAD-Ratchet
     :author: zzz, chisana, orignal
     :created: 2018-11-22
     :thread: http://zzz.i2p/topics/2639
-    :lastupdated: 2020-04-26
+    :lastupdated: 2020-04-27
     :status: Open
     :target: 0.9.46
     :implementedin: 0.9.46
@@ -693,6 +693,7 @@ In Signal Double Ratchet, the header contains:
 - PN: Previous chain message length
 - N: Message Number
 
+Signal's "sending chains" are roughly equivalent to our tag sets.
 By using a session tag, we can eliminate most of that.
 
 In New Session, we put only the public key in the unencrytped header.
@@ -1471,41 +1472,14 @@ See AEAD section below.
 {% endhighlight %}
 
 
-Justification
-`````````````
-
-Notes
-`````
-
-
-Issues
-``````
-
-
 
 2) ECIES-X25519
 ---------------
 
 
-Format
-``````
+Format: 32-byte public and private keys, little-endian.
 
-32-byte public and private keys.
-
-
-Justification
-`````````````
-
-Used in [NTCP2]_.
-
-
-
-Notes
-`````
-
-
-Issues
-``````
+Justification: Used in [NTCP2]_.
 
 
 
@@ -1752,17 +1726,11 @@ Message Numbers
 ```````````````
 
 The Double Ratchet handles lost or out-of-order messages by including in each message header
-the message's number in the sending chain (N=0,1,2,...)
-and the length (number of message keys) in the previous sending chain (PN).
-This enables the recipient to advance to the relevant message key while storing skipped message keys
-in case the skipped messages arrive later.
-
-On receiving a message, if a DH ratchet step is triggered then the received PN
-minus the length of the current receiving chain is the number of skipped messages in that receiving chain.
-The received N is the number of skipped messages in the new receiving chain (i.e. the chain after the DH ratchet).
-
-If a DH ratchet step isn't triggered, then the received N minus the length of the receiving chain
-is the number of skipped messages in that chain.
+a tag. The receiver looks up the index of the tag, this is the message number N.
+If the message contains a Message Number block with a PN value,
+the recipient can delete any tags higher than that value in the previous tag set,
+while retaining skipped tags
+from the previous tag set in case the skipped messages arrive later.
 
 
 Sample Implementation
@@ -1903,7 +1871,8 @@ KEY AND TAG SET IDS
 Key and tag set ID numbers are used to identify keys and tag sets.
 Key IDs are used in NextKey blocks to identify the key sent or used.
 Tag set IDs are used (with the message number) in ACK blocks to identify the message being acked.
-Both key and tag set ids apply to the tag sets for a single direction.
+Both key and tag set IDs apply to the tag sets for a single direction.
+Key and tag set ID numbers must be sequential.
 
 In the first tag sets used for a session in each direction, the tag set ID is 0.
 No NextKey blocks have been sent, so there are no key IDs.
@@ -2054,6 +2023,8 @@ New Tag Set ID  Sender key ID  Rcvr key ID
 65534           32767 *        32766
 65535           32767          32767 *
 ==============  =============  ===========
+
+Key and tag set ID numbers must be sequential.
 
 
 DH INITIALIZATION KDF
@@ -2395,6 +2366,7 @@ Termination, if present, must be the last block except for Padding.
 Padding, if present, must be the last block.
 
 There may be multiple Garlic Clove blocks in a single frame.
+There may be up to two Next Key blocks in a single frame.
 Multiple Padding blocks are not allowed in a single frame.
 Other block types probably won't have multiple blocks in
 a single frame, but it is not prohibited.
@@ -2430,6 +2402,8 @@ Garlic Clove
 A single decrypted Garlic Clove as specified in [I2NP]_,
 with modifications to remove fields that are unused
 or redundant.
+Warning: This format is significantly different than
+the one for ElGamal/AES. Each clove is a separate payload block.
 Garlic Cloves may not be fragmented across blocks or
 across ChaChaPoly frames.
 
@@ -2485,8 +2459,8 @@ Notes:
 - The Certificate, Clove ID, and Expiration from the
   Garlic Clove definition in [I2NP]_ are not included.
 
-Justification
-`````````````
+Justification:
+
 - The certificates were never used.
 - The separate message ID and clove IDs were never used.
 - The separate expirations were never used.
@@ -2532,12 +2506,6 @@ Not allowed in NS or NSR. Only included in Existing Session messages.
 
 {% endhighlight %}
 
-Notes:
-
-- Not all reasons may actually be used, implementation dependent.
-- Additional reasons listed are for consistency, logging, debugging, or if policy changes.
-
-
 
 
 Options
@@ -2566,16 +2534,13 @@ nine or more bytes, as more_options may be present.
 
   blk :: 5
   size :: 2 bytes, big endian, size of options to follow, 6 bytes minimum
-  STL :: Session tag length (default 8), min and max TBD
-  OTW :: Outbound Session tag window (max lookahead)
-  STimeout :: Session idle timeout
-  MITW :: Max Inbound Session Tag window (max lookahead)
+  STL :: Session tag length (must be 8), other values unimplemented
+  OTW :: Outbound Session tag window (max lookahead), big endian
+  STimeout :: Session idle timeout (seconds), big endian
+  MITW :: Max Inbound Session Tag window (max lookahead), big endian
   flg :: 1 byte flags
-         bit order: 76543210
-         bit 0: 1 to request a ratchet (new key), 0 if not
-         bits 7-1: Unused, set to 0 for future compatibility
-
-  more_options :: Format TBD
+         bits 7-0: Unused, set to 0 for future compatibility
+  more_options :: Format undefined, for future use
 
 {% endhighlight %}
 
@@ -2584,14 +2549,10 @@ Notes:
 
 - Support for non-default session tag length is optional,
   probably not necessary
-
 - The tag window is MAX_SKIP in the Signal documentation.
-
-
 
 Issues:
 
-- more_options format is TBD.
 - Options negotiation is TBD.
 - Padding parameters also?
 - Is 255 big enough for max MITW?
@@ -2600,7 +2561,7 @@ Issues:
 Message Numbers
 ```````````````
 UNIMPLEMENTED, for further study.
-The length (number of message keys) in the previous sending chain (PN).
+The length (number of messages sent) in the previous tag set (PN).
 
 
 .. raw:: html
@@ -2612,9 +2573,7 @@ The length (number of message keys) in the previous sending chain (PN).
 
   blk :: 6
   size :: 2
-  PN :: 2 bytes big endian. The number of keys in the previous sending chain.
-        i.e. one more than the last 'N' sent in the previous chain.
-        Use 0 if there was no previous sending chain.
+  PN :: 2 bytes big endian. The index of the last tag sent in the previous tag set.
 
 {% endhighlight %}
 
@@ -2622,10 +2581,10 @@ The length (number of message keys) in the previous sending chain (PN).
 Notes:
 
 - Maximum PN is 65535.
-
-- The definitions of PN and N are identical to that in Signal.
+- The definitions of PN is equal to the definition Signal, minus one.
   This is similar to what Signal does, but in Signal, PN and N are in the header.
   Here, they're in the encrypted message body.
+- Do not send this block in tag set 0, because there was no previous tag set.
 
 
 Next DH Ratchet Public Key
@@ -2676,11 +2635,13 @@ Notes:
 - Key ID is an incrementing counter for the local key used for that tag set, starting at 0.
 - The ID must not change unless the key changes.
 - It may not be strictly necessary, but it's useful for debugging.
-- Signal does not use a key ID.
+  Signal does not use a key ID.
 - The maximum Key ID is 32767.
 - In the rare case that the tag sets in both directions are ratcheting at
   the same time, a frame will contain two Next Key blocks, one for
   the forward key and one for the reverse key.
+- Key and tag set ID numbers must be sequential.
+- See the DH Ratchet section above for details.
 
 
 Ack
