@@ -2282,7 +2282,7 @@ There are zero or more blocks in the encrypted frame.
 Each block contains a one-byte identifier, a two-byte length,
 and zero or more bytes of data.
 
-For extensibility, receivers must ignore blocks with unknown identifiers,
+For extensibility, receivers MUST ignore blocks with unknown type nunmbers,
 and treat them as padding.
 
 Encrypted data is 65535 bytes max, including a 16-byte authentication header,
@@ -2473,9 +2473,10 @@ Justification:
 
 Termination
 ```````````
-UNIMPLEMENTED, for further study.
+Implementation is optional.
 Drop the session.
 This must be the last non-padding block in the frame.
+No more messages will be sent in this session.
 
 Not allowed in NS or NSR. Only included in Existing Session messages.
 
@@ -2484,22 +2485,17 @@ Not allowed in NS or NSR. Only included in Existing Session messages.
 
   {% highlight lang='dataspec' %}
 +----+----+----+----+----+----+----+----+
-  | 4  |  size   |    valid data frames
-  +----+----+----+----+----+----+----+----+
-      received   | rsn|     addl data     |
+  | 4  |  size   | rsn|     addl data     |
   +----+----+----+----+                   +
   ~               .   .   .               ~
   +----+----+----+----+----+----+----+----+
 
   blk :: 4
-  size :: 2 bytes, big endian, value = 9 or more
-  valid data frames received :: The number of valid AEAD data phase frames received
-                                (current receive nonce value)
-                                0 if error occurs in handshake phase
-                                8 bytes, big endian
+  size :: 2 bytes, big endian, value = 1 or more
   rsn :: reason, 1 byte:
          0: normal close or unspecified
          1: termination received
+         others: optional, impementation-specific
   addl data :: optional, 0 or more bytes, for future expansion, debugging,
                or reason text.
                Format unspecified and may vary based on reason code.
@@ -2560,8 +2556,11 @@ Issues:
 
 Message Numbers
 ```````````````
-UNIMPLEMENTED, for further study.
+Implementation is optional.
 The length (number of messages sent) in the previous tag set (PN).
+Receiver may immediately delete tags higher than PN from the previous tag set.
+Receiver may expire tags less than or equal to PN from the previous tag set
+after a short time (e.g. 2 minutes).
 
 
 .. raw:: html
@@ -3141,7 +3140,7 @@ Recommended parameters and timeouts:
 - ES tagset 0 size: tsmin 24, tsmax 160
 - ES tagset (1+) size: 160 tsmin and tsmax
 - NSR tagset timeout: 3 minutes for receiver
-- ES tagset timeout: 12 minutes for sender, 15 minutes for receiver
+- ES tagset timeout: 8 minutes for sender, 10 minutes for receiver
 - Remove previous ES tagset after: 3 minutes
 - Tagset look ahead of tag N: min(tsmax, tsmin + N/4)
 - Tagset trim behind tag N: min(tsmax, tsmin + N/4) / 2
