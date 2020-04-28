@@ -5,7 +5,7 @@ ECIES-X25519-AEAD-Ratchet
     :author: zzz, chisana, orignal
     :created: 2018-11-22
     :thread: http://zzz.i2p/topics/2639
-    :lastupdated: 2020-04-27
+    :lastupdated: 2020-04-28
     :status: Open
     :target: 0.9.46
     :implementedin: 0.9.46
@@ -3512,11 +3512,14 @@ Storage
 The sender generates tags and keys on the fly, so there is no storage.
 This cuts overall storage requirements in half compared to ElGamal/AES.
 ECIES tags are 8 bytes instead of 32 for ElGamal/AES.
-This cuts overall storage requiremens by another factor of 4.
+This cuts overall storage requirements by another factor of 4.
 Per-tag session keys are not stored at the receiver except for "gaps",
 which are minimal for reasonable loss rates.
 
-Therefore, the total space savings vs. ElGamal/AES is a factor of 8, or 87%.
+The 33% reduction in tag expiration time creates another 33% savings,
+assuming short session times.
+
+Therefore, the total space savings vs. ElGamal/AES is a factor of 10.7, or 92%.
 
 
 
