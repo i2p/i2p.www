@@ -3,8 +3,8 @@ Low-level Cryptography Specification
 ====================================
 .. meta::
     :category: Design
-    :lastupdated: March 2019
-    :accuratefor: 0.9.39
+    :lastupdated: April 2020
+    :accuratefor: 0.9.46
 
 .. contents::
 
@@ -14,24 +14,60 @@ Overview
 
 This page specifies the low-level details of the cryptography in I2P.
 
-There are a handful of cryptographic algorithms in use within I2P, but we have
-reduced them to a bare minimum to deal with our needs - one symmetric algorithm,
+There are several cryptographic algorithms in use within I2P.
+In I2P's original design, there was only one of each type - one symmetric algorithm,
 one asymmetric algorithm, one signing algorithm, and one hashing algorithm.
-However, we do combine them in some particular ways to provide message
-integrity (rather than relying on a MAC).  In addition, as much as we hate
-doing anything new in regards to cryptography, we can't seem to find a
-reference discussing (or even naming) the technique used in
-ElGamal/AES+SessionTag [ELG-AES]_ (but we're sure others have done it).
+There was no provision to add more algorithms or migrate to
+ones with more security.
+
+In recent years we have added a framework to support multiple
+primitives and combinations in a backward-compatible way.
+Numerous signature algorithms, with varying key and signature lengths,
+are defined by "signature types".
+End-to-end encryption schemes, using a combination of asymmetric and symmetric encryption,
+and with varying key lengths, are defined by "encryption types".
+
+Various protocols and data structures in I2P include fields to
+specify the signature type and/or encryption type.
+These fields, together with the type definitions, define the key and signature
+lengths and the cryptographic primitives required to use them.
+The definitions of the signature and encryption types
+is in the Common Structures specification [Common]_.
+
+The original I2P protocols NTCP, SSU, and ElGamal/AES+SessionTags use a combination
+of ElGamal asymmetric encryption and AES symmetric encryption.
+Newer protocols NTCP2 and ECIES-X25519-AEAD-Ratchet
+use a combination of X25519 key exchange and ChaCha20/Poly1305 symmetric encryption.
+
+- NTCP2 has replaced NTCP.
+- ECIES-X25519-AEAD-Ratchet design and implementation are complete,
+  and will replace ElGamal/AES+SessionTags in late 2020.
+- SSU2, using X25519 and ChaCha20/Poly1305, is scheduled for design in late 2020
+  to replace SSU in 2021.
 
 
-Asymmetric encryption
+Asymmetric Encryption
 =====================
+
+The original asymmetric encryption algorithm in I2P is ElGamal.
+The newer algorithm, used in several places, is ECIES X25519 DH key exchange.
+
+We are in the process of migrating all ElGamal usage to X25519.
+
+NTCP (with ElGamal) was migrated to NTCP2 (with X25519).
+ElGamal/AES+SessionTag is being migrated to ECIES-X25519-AEAD-Ratchet.
+
+
+X25519
+------
+
+For the details of X25519 usage see [NTCP2]_ and [ECIES]_.
+
 
 ElGamal
 -------
 
-ElGamal is used for asymmetric encryption.  ElGamal is used in several places
-in I2P:
+ElGamal is used in several places in I2P:
 
 * To encrypt router-to-router [TunnelBuild]_ messages
 
@@ -140,7 +176,9 @@ Also, [Koshiba2004]_ apparently supports this, according to this sci.crypt
 thread [SCI.CRYPT]_.  The remainder of the PrivateKey is padded with zeroes.
 
 Prior to release 0.9.8, all routers used the short exponent.  As of release
-0.9.8, 64-bit x86 routers use a full 2048-bit exponent.  Other routers continue
+0.9.8, 64-bit x86 routers use a full 2048-bit exponent.
+All router now use the full exponent except for a small number of routers
+on very slow hardware, who continue
 to use the short exponent due to concerns about processor load.  The transition
 to a longer exponent for these platforms is a topic for further study.
 
@@ -151,15 +189,31 @@ transitioning to a longer bit length is to be studied.  It may be quite
 difficult to make any change backward-compatible.
 
 
-Symmetric encryption
+Symmetric Encryption
 ====================
+
+The original symmetric encryption algorithm in I2P is AES.
+The newer algorithm, used in several places, is
+Autheticated Encryption with Associated Data (AEAD) ChaCha20/Poly1305.
+
+We are in the process of migrating all AES usage to ChaCha20/Poly1305.
+
+NTCP (with AES) was migrated to NTCP2 (with ChaCha20/Poly1305).
+ElGamal/AES+SessionTag is being migrated to ECIES-X25519-AEAD-Ratchet.
+
+
+ChaCha20/Poly1305
+-----------------
+
+For the details of ChaCha20/Poly1305 usage see [NTCP2]_ and [ECIES]_.
+
 
 AES
 ---
 
 AES is used for symmetric encryption, in several cases:
 
-* For transport encryption (see section "`Transports`_") after DH key exchange
+* For SSU transport encryption (see section "`Transports`_") after DH key exchange
 
 * For end-to-end (destination-to-destination) encryption as a part of
   ElGamal/AES+SessionTag [ELG-AES]_
@@ -241,8 +295,13 @@ References
 Signatures
 ==========
 
-DSA is the default signature algorithm, but we are in the process of migrating
-to more secure algorithms. See below.
+Numerous signature algorithms, with varying key and signature lengths,
+are defined by signature types. It is relatively easy
+to add more signature types.
+
+EdDSA-SHA512-Ed25519 is the current default signature algorithm.
+DSA, which was the original algorithm before we added support for signature types,
+is still in use in the network.
 
 DSA
 ---
@@ -315,19 +374,21 @@ New Signature Algorithms
 ========================
 
 As of release 0.9.12, the router supports additional signature algorithms that
-are more secure than 1024-bit DSA.  The first usage is for Destinations;
-support for Router Identities was added in release 0.9.16.  Support for
-migrating existing Destinations from old to new signatures will be added in a
-future release.  Signature type is encoded in the Destination and Router
+are more secure than 1024-bit DSA.  The first usage was for Destinations;
+support for Router Identities was added in release 0.9.16.
+Existing Destinations cannot be migrated from old to new signatures;
+however, there is support for a single tunnel with multiple
+Destinations, and this provides a way to switch to newer signature types.
+Signature type is encoded in the Destination and Router
 Identity, so that new signature algorithms or curves may be added at any time.
 
 The current supported signature types are as follows:
 
 * DSA-SHA1
 * ECDSA-SHA256-P256
-* ECDSA-SHA384-P384
-* ECDSA-SHA512-P521
-* EdDSA-SHA512-Ed25519 (as of release 0.9.15)
+* ECDSA-SHA384-P384 (not widely used)
+* ECDSA-SHA512-P521 (not widely used)
+* EdDSA-SHA512-Ed25519 (default as of release 0.9.15)
 * RedDSA-SHA512-Ed25519 (as of release 0.9.39)
 
 
@@ -335,10 +396,10 @@ Additional signature types are used at the application layer only,
 primarily for signing and verifying su3 files.
 These signature types are as follows:
 
-* RSA-SHA256-2048
-* RSA-SHA384-3072
+* RSA-SHA256-2048 (not widely used)
+* RSA-SHA384-3072 (not widely used)
 * RSA-SHA512-4096
-* EdDSA-SHA512-Ed25519ph (as of release 0.9.25)
+* EdDSA-SHA512-Ed25519ph (as of release 0.9.25; not widely used)
 
 
 ECDSA
@@ -346,7 +407,7 @@ ECDSA
 
 ECDSA uses the standard NIST curves and standard SHA-2 hashes.
 
-We will migrate new destinations to ECDSA-SHA256-P256 in the 0.9.16 - 0.9.19
+We migrated new destinations to ECDSA-SHA256-P256 in the 0.9.16 - 0.9.19
 release time frame.  Usage for Router Identities is supported as of release
 0.9.16 and migration of existing routers happened in 2015.
 
@@ -372,7 +433,7 @@ Destinations and Router Identities were migrated in late 2015.
 
 
 RedDSA 25519
---=---------
+------------
 
 Standard EdDSA using curve 25519 and standard 512-bit SHA-2 hashes,
 but with different private keys, and minor modifications to signing.
@@ -385,10 +446,16 @@ Supported as of release 0.9.39.
 Hashes
 ======
 
+Hashes are used in signature algorithms and as keys in the network's DHT.
+
+Older signature algorithms use SHA1 and SHA256.
+Newer signature algorithms use SHA512.
+The DHT uses SHA256.
+
 SHA256
 ------
 
-Hashes within I2P are plain old SHA256, as implemented in [SHA256Generator]_.
+DHT hashes within I2P are standard SHA256.
 
 Obsolescence
 ````````````
@@ -405,29 +472,27 @@ Transports
 ==========
 
 At the lowest protocol layer, point-to-point inter-router communication is
-protected by the transport layer security.  Both transports use 256 byte (2048
+protected by the transport layer security.
+
+NTCP2 connections use X25519 Diffie-Hellman and ChaCha20/Poly1305 authenticated encryption.
+
+SSU and the obsolete NTCP transports use 256 byte (2048
 bit) Diffie-Hellman key exchange using the same shared prime and generator as
 specified above for ElGamal_, followed by symmetric AES encryption as described
-above.  This provides perfect forward secrecy [PFS]_ on the transport links.
+above.
+
+SSU is planned to be migrated to SSU2 (with X25519 and ChaCha20/Poly1305).
+
+All transports provide perfect forward secrecy [PFS]_ on the transport links.
+
 
 .. _tcp:
-
-NTCP connections
-----------------
-
-NTCP connections are negotiated with a 2048 Diffie-Hellman implementation,
-using the router's identity to proceed with a station to station agreement,
-followed by some encrypted protocol specific fields, with all subsequent data
-encrypted with AES (as above).  The primary reason to do the DH negotiation
-instead of using ElGamalAES+SessionTag [ELG-AES]_ is that it provides
-'(perfect) forward secrecy' [PFS]_, while ElGamalAES+SessionTag does not.
-
-See the NTCP specification [NTCP]_ for details.
 
 NTCP2 connections
 -----------------
 
-NTCP2 connections use X25519 Diffie-Hellman and ChaCha20_Poly1305 authenticated encryption.
+NTCP2 connections use X25519 Diffie-Hellman and ChaCha20/Poly1305 authenticated encryption,
+and the Noise protocol framework [Noise]_.
 
 See the NTCP2 specification [NTCP2]_ for details and references.
 
@@ -450,6 +515,20 @@ to MD5-128 for performance reasons, but left the 32-byte buffer size intact.
 See HMACGenerator.java and the 2005-07-05 status notes [STATUS-HMAC]_ for
 details.
 
+NTCP connections
+----------------
+
+NTCP is no longer used, it was replaced by NTCP2.
+
+NTCP connections were negotiated with a 2048 Diffie-Hellman implementation,
+using the router's identity to proceed with a station to station agreement,
+followed by some encrypted protocol specific fields, with all subsequent data
+encrypted with AES (as above).  The primary reason to do the DH negotiation
+instead of using ElGamalAES+SessionTag [ELG-AES]_ is that it provides
+'(perfect) forward secrecy' [PFS]_, while ElGamalAES+SessionTag does not.
+
+See the NTCP specification [NTCP]_ for details.
+
 
 References
 ==========
@@ -463,6 +542,9 @@ References
 .. [CHOOSING-CONSTANTS]
     http://article.gmane.org/gmane.comp.security.invisiblenet.iip.devel/343
 
+.. [Common]
+    {{ spec_url('common-structures') }}
+
 .. [CryptixAESEngine]
     https://github.com/i2p/i2p.i2p/tree/master/core/java/src/net/i2p/crypto/CryptixAESEngine.java
 
@@ -474,6 +556,9 @@ References
 
 .. [DSAEngine]
     https://github.com/i2p/i2p.i2p/tree/master/core/java/src/net/i2p/crypto/DSAEngine.java
+
+.. [ECIES]
+    {{ proposal_url('145') }}
 
 .. [ELG-AES]
     {{ site_url('docs/how/elgamal-aes', True) }}
@@ -511,6 +596,9 @@ References
 .. [NIST-800-57]
     http://csrc.nist.gov/publications/nistpubs/800-57/sp800-57-Part1-revised2_Mar08-2007.pdf
 
+.. [NOISE]
+    http://noiseprotocol.org/noise.html
+
 .. [NTCP]
     {{ site_url('docs/transport/ntcp', True) }}
 
@@ -537,9 +625,6 @@ References
 
 .. [SHA-2]
     https://en.wikipedia.org/wiki/SHA-2
-
-.. [SHA256Generator]
-    https://github.com/i2p/i2p.i2p/tree/master/core/java/src/net/i2p/crypto/SHA256Generator.java
 
 .. [SigningPrivateKey]
     {{ ctags_url('SigningPrivateKey') }}
