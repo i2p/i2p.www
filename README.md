@@ -100,3 +100,15 @@ in `etc/translation.vars` can be overridden by creating the file
     ```
     $ tx push -s
     ```
+
+## Updating spec tags:
+
+ctags is used to generate references to the specifications.
+The tags file is i2p2www/spec/spectags.
+When the specifications are changed, the file should be regenerated and checked in.
+
+Command to generate the file:
+
+    ```
+    $ cd i2p2www/spec && ctags -f spectags --langdef=rst --langmap=rst:.rst --regex-rst=/_type-\([a-zA-Z0-9]+\)/\\1/t,type/ --regex-rst=/_struct-\([a-zA-Z0-9]+\)/\\1/s,struct/ --regex-rst=/_msg-\([a-zA-Z]+\)/\\1/m,msg/ -R -n *.rst
+    ```
