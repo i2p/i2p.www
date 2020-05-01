@@ -5,7 +5,7 @@ ECIES-X25519-AEAD-Ratchet
     :author: zzz, chisana, orignal
     :created: 2018-11-22
     :thread: http://zzz.i2p/topics/2639
-    :lastupdated: 2020-04-28
+    :lastupdated: 2020-05-01
     :status: Open
     :target: 0.9.46
     :implementedin: 0.9.46
@@ -2134,7 +2134,7 @@ Inputs:
 
   Generated:
   2) input_key_material = SESSTAG_CONSTANT
-     Must be unique for this chain (generated from chain key),
+     Must be unique for this tag set (generated from chain key),
      so that the sequence isn't predictable, since session tags
      go out on the wire in plaintext.
 
@@ -3265,17 +3265,18 @@ ElGamal block:
   - 2 byte tag count
   - 1024 bytes of tags (32 typical)
   - 4 byte payload size
-  - 16 byte I2NP header
-  - 15 byte msg cert, id, exp.
-  - 33 byte Garlic deliv. inst.
-  - 15 byte clove cert, id, exp.
   - 32 byte hash of payload
   - 1 byte flags
-  - 8 byte (average) padding to 16 bytes
-  1150 total
+  - 1 byte clove count
+  - 33 byte Garlic deliv. inst.
+  - 16 byte I2NP header
+  - 15 byte clove cert, id, exp.
+  - 15 byte msg cert, id, exp.
+  - 0 byte padding assuming 1936 byte message
+  1143 total
 
   Total:
-  1664 bytes
+  1657 bytes
 {% endhighlight %}
 
 Existing session messages, same each direction:
@@ -3287,19 +3288,20 @@ AES block:
   - 32 byte session tag
   - 2 byte tag count
   - 4 byte payload size
-  - 16 byte I2NP header
-  - 15 byte msg cert, id, exp.
-  - 33 byte Garlic deliv. inst.
-  - 15 byte clove cert, id, exp.
   - 32 byte hash of payload
   - 1 byte flags
-  - 8 byte (average) padding to 16 bytes
-  158 total
+  - 1 byte clove count
+  - 33 byte Garlic deliv. inst.
+  - 16 byte I2NP header
+  - 15 byte msg cert, id, exp.
+  - 15 byte clove cert, id, exp.
+  - 0 byte padding assuming 1936 byte message
+  151 total
 {% endhighlight %}
 
   {% highlight lang='text' %}
 Four message total (two each direction)
-  3644 bytes overhead
+  3616 bytes overhead
 {% endhighlight %}
 
 
@@ -3374,7 +3376,7 @@ Handshake only:
 .. raw:: html
 
   {% highlight lang='text' %}
-ElGamal: 1664 + 1664 = 3328 bytes
+ElGamal: 1657 + 1657 = 3314 bytes
   Ratchet: 148 _ 117 = 265 bytes
   92% (approx. 12x) reduction compared to ElGamal/AES+SessionTags
 {% endhighlight %}
@@ -3384,7 +3386,7 @@ Long-term total (ignoring handshakes):
 .. raw:: html
 
   {% highlight lang='text' %}
-ElGamal: 158 + 32 byte tag sent previously = 190 bytes
+ElGamal: 151 + 32 byte tag sent previously = 183 bytes
   Ratchet: 69 bytes
   64% (approx. 3x) reduction compared to ElGamal/AES+SessionTags
 {% endhighlight %}

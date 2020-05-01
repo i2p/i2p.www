@@ -3,8 +3,8 @@ Streaming Library Specification
 ===============================
 .. meta::
     :category: Protocols
-    :lastupdated: February 2019
-    :accuratefor: 0.9.39
+    :lastupdated: May 2020
+    :accuratefor: 0.9.46
 
 .. contents::
 
@@ -59,7 +59,12 @@ Protocol Specification
 Packet Format
 -------------
 
-The format of a single packet in the streaming protocol is:
+The format of a single packet in the streaming protocol is shown below.
+The minimum header size, without NACKs or option data, is 22 bytes.
+
+There is no length field in the streaming protocol.
+Framing is provided by the lower layers - I2CP and I2NP.
+
 
 .. raw:: html
 
@@ -69,14 +74,16 @@ The format of a single packet in the streaming protocol is:
   +----+----+----+----+----+----+----+----+
   | sequence  Num     | ack Through       |
   +----+----+----+----+----+----+----+----+
-  | nc |   NACKs ...
+  | nc |  nc*4 bytes of NACKs (optional)
   +----+----+----+----+----+----+----+----+
        | rd |  flags  | opt size| opt data
   +----+----+----+----+----+----+----+----+
-     ...                                  |
+     ...  (optional, see below)           |
   +----+----+----+----+----+----+----+----+
   |   payload ...
   +----+----+----+-//
+
+
 
   sendStreamId :: 4 byte `Integer`
                   Random number selected by the packet recipient before sending
