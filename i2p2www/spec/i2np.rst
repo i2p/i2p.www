@@ -3,7 +3,7 @@ I2NP Specification
 ==================
 .. meta::
     :category: Protocols
-    :lastupdated: April 2020
+    :lastupdated: May 2020
     :accuratefor: 0.9.46
 
 .. contents::
@@ -691,7 +691,7 @@ with reply token:
 
   data ::
        If type == 0, data is a 2-byte `Integer` specifying the number of bytes that follow,
-                     followed by a gzip-compressed `RouterInfo`.
+                     followed by a gzip-compressed `RouterInfo`. See note below.
        If type == 1, data is an uncompressed `LeaseSet`.
        If type == 3, data is an uncompressed `LeaseSet2`.
        If type == 5, data is an uncompressed `EncryptedLeaseSet`.
@@ -713,6 +713,12 @@ Notes
   reply token is included, the reply tunnel ID is nonzero, and the
   reply gateway/tunnelID pair is found in the LeaseSet as a lease,
   the recipient may reroute the reply to any other lease in the LeaseSet.
+
+* To hide the router OS and implementation, match the Java router implementation
+  of gzip by setting the modification time to 0 and the OS byte to 0xFF,
+  and use max compression.
+  First 10 bytes of the compressed router info will be (hex):
+  1F 8B 08 00 00 00 00 00 02 FF
 
 
 .. _msg-DatabaseLookup:
