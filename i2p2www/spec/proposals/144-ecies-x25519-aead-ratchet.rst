@@ -5,7 +5,7 @@ ECIES-X25519-AEAD-Ratchet
     :author: zzz, chisana, orignal
     :created: 2018-11-22
     :thread: http://zzz.i2p/topics/2639
-    :lastupdated: 2020-05-01
+    :lastupdated: 2020-05-03
     :status: Open
     :target: 0.9.46
     :implementedin: 0.9.46
@@ -2264,7 +2264,7 @@ Typical contents include the following blocks:
 ==================================  ============= ============
 DateTime                                  0            7      
 Termination (TBD)                         4         9 typ.    
-Options (TBD)                             5            9      
+Options (TBD)                             5           21+     
 Message Number (TBD)                      6          TBD      
 Next Key                                  7         3 or 35  
 ACK                                       8         4 typ. 
@@ -2512,46 +2512,80 @@ Options include various parameters for the session.
 See the Session Tag Length Analysis section below for more information.
 
 The options block may be variable length,
-nine or more bytes, as more_options may be present.
+as more_options may be present.
 
 
 .. raw:: html
 
   {% highlight lang='dataspec' %}
 +----+----+----+----+----+----+----+----+
-  | 5  |  size   |STL |OTW |STimeout |MITW|
+  | 5  |  size   |ver |flg |STL |STimeout |
   +----+----+----+----+----+----+----+----+
-  |flg |         more_options             |
-  +----+                                  +
-  |                                       |
+  |  SOTW   |  RITW   |tmin|tmax|rmin|rmax|
+  +----+----+----+----+----+----+----+----+
+  |  tdmy   |  rdmy   |  tdelay |  rdelay |
+  +----+----+----+----+----+----+----+----+
+  |              more_options             |
   ~               .   .   .               ~
   |                                       |
   +----+----+----+----+----+----+----+----+
 
   blk :: 5
-  size :: 2 bytes, big endian, size of options to follow, 6 bytes minimum
-  STL :: Session tag length (must be 8), other values unimplemented
-  OTW :: Outbound Session tag window (max lookahead), big endian
-  STimeout :: Session idle timeout (seconds), big endian
-  MITW :: Max Inbound Session Tag window (max lookahead), big endian
+  size :: 2 bytes, big endian, size of options to follow, 21 bytes minimum
+  ver :: Protocol version, must be 0
   flg :: 1 byte flags
          bits 7-0: Unused, set to 0 for future compatibility
+  STL :: Session tag length (must be 8), other values unimplemented
+  STimeout :: Session idle timeout (seconds), big endian
+  SOTW :: Sender Outbound Tag Window, 2 bytes big endian
+  RITW :: Receiver Inbound Tag Window 2 bytes big endian
+
+  tmin, tmax, rmin, rmax :: requested padding limits
+      tmin and rmin are for desired resistance to traffic analysis.
+      tmax and rmax are for bandwidth limits.
+      tmin and tmax are the transmit limits for the router sending this options block.
+      rmin and rmax are the receive limits for the router sending this options block.
+      Each is a 4.4 fixed-point float representing 0 to 15.9375
+      (or think of it as an unsigned 8-bit integer divided by 16.0).
+      This is the ratio of padding to data. Examples:
+      Value of 0x00 means no padding
+      Value of 0x01 means add 6 percent padding
+      Value of 0x10 means add 100 percent padding
+      Value of 0x80 means add 800 percent (8x) padding
+      Alice and Bob will negotiate the minimum and maximum in each direction.
+      These are guidelines, there is no enforcement.
+      Sender should honor receiver's maximum.
+      Sender may or may not honor receiver's minimum, within bandwidth constraints.
+
+  tdmy: Max dummy traffic willing to send, 2 bytes big endian, bytes/sec average
+  rdmy: Requested dummy traffic, 2 bytes big endian, bytes/sec average
+  tdelay: Max intra-message delay willing to insert, 2 bytes big endian, msec average
+  rdelay: Requested intra-message delay, 2 bytes big endian, msec average
+
   more_options :: Format undefined, for future use
 
 {% endhighlight %}
 
+SOTW is the sender's recommendation to the receiver for the
+receiver's inbound tag window (the maximum lookahead).
+RITW is the sender's declaration of the inbound tag window
+(maximum lookahead) that he plans to use.
+Each side then sets or adjusts the lookahead based
+on some minimum or maximum or other calculation.
+
 
 Notes:
 
-- Support for non-default session tag length is optional,
-  probably not necessary
+- Support for non-default session tag length will hopefully
+  never be required.
 - The tag window is MAX_SKIP in the Signal documentation.
 
 Issues:
 
 - Options negotiation is TBD.
-- Padding parameters also?
-- Is 255 big enough for max MITW?
+- Defaults TBD.
+- Padding and delay options are copied from NTCP2,
+  but those options have not been fully implemented or studied there.
 
 
 Message Numbers
