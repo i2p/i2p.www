@@ -184,8 +184,8 @@ Bit order: 15....0 (15 is MSB)
                                                [Integer]_       wants the recipient to wait before sending any more data. A
                                                                 value greater than 60000 indicates choking.
 
-  7    MAX_PACKET_SIZE_INCLUDED        3       2 byte           Currently sent with SYNCHRONIZE only. Was also sent in
-                                               [Integer]_       retransmitted packets until release 0.9.1.
+  7    MAX_PACKET_SIZE_INCLUDED        3       2 byte           The maximum length of the payload. Send with SYNCHRONIZE.
+                                               [Integer]_
 
   8    PROFILE_INTERACTIVE            --             --         Unused or ignored; the interactive profile is unimplemented.
 
