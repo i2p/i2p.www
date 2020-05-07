@@ -2,22 +2,33 @@
 ECIES-X25519-AEAD-Ratchet
 =========================
 .. meta::
-    :author: zzz, chisana, orignal
-    :created: 2018-11-22
-    :thread: http://zzz.i2p/topics/2639
+    :category: Protocols
     :lastupdated: 2020-05-07
-    :status: Open
-    :target: 0.9.46
-    :implementedin: 0.9.46
+    :accuratefor: 0.9.46
 
 .. contents::
+
+
+Note
+====
+Network deployment and testing in progress.
+Subject to minor revisions.
+See [Prop144]_ for the original proposal, including background discussion and additional information.
+
+The following features are not implemented as of 0.9.46:
+
+- MessageNumbers, Options, and Termination blocks
+- Protocol-layer responses
+- Zero static key
+- Multicast
+
 
 
 Overview
 ========
 
-This is a proposal for the first new end-to-end encryption type
-since the beginning of I2P, to replace ElGamal/AES+SessionTags [Elg-AES]_.
+This is the new end-to-end encryption protocol
+to replace ElGamal/AES+SessionTags [ElG-AES]_.
 
 It relies on previous work as follows:
 
@@ -33,198 +44,22 @@ It relies on previous work as follows:
 - [Noise]_ protocol
 - [Signal]_ double ratchet algorithm
 
-The goal is to support new encryption for end-to-end,
+It supports new encryption for end-to-end,
 destination-to-destination communication.
 
-The design will use a Noise handshake and data phase incorporating Signal's double ratchet.
+The design uses a Noise handshake and data phase incorporating Signal's double ratchet.
 
-All references to Signal and Noise in this proposal are for background information only.
+All references to Signal and Noise in this specification are for background information only.
 Knowledge of Signal and Noise protocols is not required to understand
-or implement this proposal.
+or implement this specification.
+
+This specification is supported as of version 0.9.46.
 
 
-Current ElGamal Uses
---------------------
-
-As a review,
-ElGamal 256-byte public keys may be found in the following data structures.
-Reference the common structures specification.
-
-- In a Router Identity
-  This is the router's encryption key.
-
-- In a Destination
-  The public key of the destination was used for the old i2cp-to-i2cp encryption
-  which was disabled in version 0.6, it is currently unused except for
-  the IV for LeaseSet encryption, which is deprecated.
-  The public key in the LeaseSet is used instead.
-
-- In a LeaseSet
-  This is the destination's encryption key.
-
-- In a LS2
-  This is the destination's encryption key.
-
-
-
-EncTypes in Key Certs
----------------------
-
-As a review,
-we added support for encryption types when we added support for signature types.
-The encryption type field is always zero, both in Destinations and RouterIdentities.
-Whether to ever change that is TBD.
-Reference the common structures specification [Common]_.
-
-
-
-
-Asymmetric Crypto Uses
-----------------------
-
-As a review, we use ElGamal for:
-
-1) Tunnel Build messages (key is in RouterIdentity)
-   Replacement is not covered in this proposal.
-   See proposal 152 [Prop152]_.
-
-2) Router-to-router encryption of netdb and other I2NP msgs (Key is in RouterIdentity)
-   Depends on this proposal.
-   Requires a proposal for 1) also, or putting the key in the RI options.
-
-3) Client End-to-end ElGamal+AES/SessionTag (key is in LeaseSet, the Destination key is unused)
-   Replacement IS covered in this proposal.
-
-4) Ephemeral DH for NTCP1 and SSU
-   Replacement is not covered in this proposal.
-   See proposal 111 for NTCP2.
-   No current proposal for SSU2.
-
-
-Goals
------
-
-- Backwards compatible
-- Requires and builds on LS2 (proposal 123)
-- Leverage new crypto or primitives added for NTCP2 (proposal 111)
-- No new crypto or primitives required for support
-- Maintain decoupling of crypto and signing; support all current and future versions
-- Enable new crypto for destinations
-- Enable new crypto for routers, but only for garlic messages - tunnel building would
-  be a separate proposal
-- Don't break anything that relies on 32-byte binary destination hashes, e.g. bittorrent
-- Maintain 0-RTT message delivery using ephemeral-static DH
-- Do not require buffering / queueing of messages at this protocol layer;
-  continue to support unlimited message delivery in both directions without waiting for a response
-- Upgrade to ephemeral-ephemeral DH after 1 RTT
-- Maintain handling of out-of-order messages
-- Maintain 256-bit security
-- Add forward secrecy
-- Add authentication (AEAD)
-- Much more CPU-efficient than ElGamal
-- Don't rely on Java jbigi to make DH efficient
-- Minimize DH operations
-- Much more bandwidth-efficient than ElGamal (514 byte ElGamal block)
-- Support new and old crypto on same tunnel if desired
-- Recipient is able to efficiently distinguish new from old crypto coming down
-  same tunnel
-- Others cannot distinguish new from old or future crypto
-- Eliminate new vs. Existing Session length classification (support padding)
-- No new I2NP messages required
-- Replace SHA-256 checksum in AES payload with AEAD
-- Support binding of transmit and receive sessions so that
-  acknowledgements may happen within the protocol, rather than solely out-of-band.
-  This will also allow replies to have forward secrecy immediately.
-- Enable end-to-end encryption of certain messages (RouterInfo stores)
-  that we currently don't due to CPU overhead.
-- Do not change the I2NP Garlic Message
-  or Garlic Message Delivery Instructions format.
-- Eliminate unused or redundant fields in the Garlic Clove Set and Clove formats.
-
-Eliminate several problems with session tags, including:
-
-- Inability to use AES until the first reply
-- Unreliability and stalls if tag delivery assumed
-- Bandwidth inefficient, especially on first delivery
-- Huge space inefficiency to store tags
-- Huge bandwidth overhead to deliver tags
-- Highly complex, difficult to implement
-- Difficult to tune for various use cases
-  (streaming vs. datagrams, server vs. client, high vs. low bandwidth)
-- Memory exhaustion vulnerabilities due to tag delivery
-
-
-Non-Goals / Out-of-scope
-------------------------
-
-- LS2 format changes (proposal 123 is done)
-- New DHT rotation algorithm or shared random generation
-- New encryption for tunnel building.
-  See proposal 152 [Prop152]_.
-- New encryption for tunnel layer encryption.
-  See proposal 153 [Prop153]_.
-- Methods of encryption, transmission, and reception of I2NP DLM / DSM / DSRM messages.
-  Not changing.
-- No LS1-to-LS2 or ElGamal/AES-to-this-proposal communication is supported.
-  This proposal is a bidirectional protocol.
-  Destinations may handle backward compatibility by publishing two leasesets
-  using the same tunnels, or put both encryption types in the LS2.
-- Threat model changes
-- Implementation details are not discussed here and are left to each project.
-- (Optimistic) Add extensions or hooks to support multicast
-
-
-
-Justification
--------------
-
-ElGamal/AES+SessionTag has been our sole end-to-end protocol for about 15 years,
-essentially without modifications to the protocol.
-There are now cryptographic primitives that are faster.
-We need to enhance the security of the protocol.
-We have also developed heuristic strategies and workarounds to minimize the
-memory and bandwidth overhead of the protocol, but those strategies
-are fragile, difficult to tune, and render the protocol even more prone
-to break, causing the session to drop.
-
-For about the same time period, the ElGamal/AES+SessionTag specification and related
-documentation have described how bandwidth-expensive it is to deliver session tags,
-and have proposed replacing session tag delivery with a "synchronized PRNG".
-A synchronized PRNG deterministically generates the same tags at both ends,
-derived from a common seed.
-A synchronized PRNG can also be termed a "ratchet".
-This proposal (finally) specifies that ratchet mechanism, and eliminates tag delivery.
-
-By using a ratchet (a synchronized PRNG) to generate the
-session tags, we eliminate the overhead of sending session tags
-in the New Session message and subsequent messages when needed.
-For a typical tag set of 32 tags, this is 1KB.
-This also eliminates the storage of session tags on the sending side,
-thus cutting the storage requirements in half.
-
-A full two-way handshake, similar to Noise IK pattern, is needed to avoid Key Compromise Impersonation (KCI) attacks.
-See the Noise "Payload Security Properties" table in [NOISE]_.
-For more information on KCI, see the paper https://www.usenix.org/system/files/conference/woot15/woot15-paper-hlauschek.pdf
-
-
-
-Threat Model
-------------
-
-The threat model is somewhat different than for NTCP2 (proposal 111).
-The MitM nodes are the OBEP and IBGW and are assumed to have full view of
-the current or historical global NetDB, by colluding with floodfills.
-
-The goal is to prevent these MitMs from classifying traffic as
-new and Existing Session messages, or as new crypto vs. old crypto.
-
-
-
-Detailed Proposal
+Specification
 =================
 
-This proposal defines a new end-to-end protocol to replace ElGamal/AES+SessionTags.
-The design will use a Noise handshake and data phase incorporating Signal's double ratchet.
+The design uses a Noise handshake and data phase incorporating Signal's double ratchet.
 
 
 Summary of Cryptographic Design
@@ -247,24 +82,6 @@ There are five portions of the protocol to be redesigned:
 Each of the five changes has its own section below.
 
 
-New Cryptographic Primitives for I2P
-------------------------------------
-
-Existing I2P router implementations will require implementations for
-the following standard cryptographic primitives,
-which are not required for current I2P protocols:
-
-- ECIES (but this is essentially X25519)
-- Elligator2
-
-Existing I2P router implementations that have not yet implemented [NTCP2]_ ([Prop111]_)
-will also require implementations for:
-
-- X25519 key generation and DH
-- AEAD_ChaCha20_Poly1305 (abbreviated as ChaChaPoly below)
-- HKDF
-
-
 Crypto Type
 -----------
 
@@ -279,13 +96,13 @@ Crypto types 1-3 are reserved for ECIES-ECDH-AES-SessionTag, see proposal 145 [P
 Noise Protocol Framework
 ------------------------
 
-This proposal provides the requirements based on the Noise Protocol Framework
+This protocol provides the requirements based on the Noise Protocol Framework
 [NOISE]_ (Revision 34, 2018-07-11).
 Noise has similar properties to the Station-To-Station protocol
 [STS]_, which is the basis for the [SSU]_ protocol.  In Noise parlance, Alice
 is the initiator, and Bob is the responder.
 
-This proposal is based on the Noise protocol Noise_IK_25519_ChaChaPoly_SHA256.
+This specification is based on the Noise protocol Noise_IK_25519_ChaChaPoly_SHA256.
 (The actual identifier for the initial key derivation function
 is "Noise_IKelg2_25519_ChaChaPoly_SHA256"
 to indicate I2P extensions - see KDF 1 section below)
@@ -313,7 +130,7 @@ This Noise protocol uses the following primitives:
 Additions to the Framework
 ``````````````````````````
 
-This proposal defines the following enhancements to
+This specification defines the following enhancements to
 Noise_XK_25519_ChaChaPoly_SHA256.  These generally follow the guidelines in
 [NOISE]_ section 13.
 
@@ -368,25 +185,13 @@ Bound sessions are similar to the Noise IK pattern.
 Sessions
 --------
 
-The current ElGamal/AES+SessionTag protocol is unidirectional.
+The ElGamal/AES+SessionTag protocol is unidirectional.
 At this layer, the receiver doesn't know where a message is from.
 Outbound and inbound sessions are not associated.
 Acknowledgements are out-of-band using a DeliveryStatusMessage
 (wrapped in a GarlicMessage) in the clove.
 
-There is substantial inefficiency in a unidirectional protocol.
-Any reply must also use an expensive 'New Session' message.
-This causes higher bandwidth, CPU, and memory usage.
-
-There are also security weaknesses in a unidirectional protocol.
-All sessions are based on ephemeral-static DH.
-Without a return path, there is no way for Bob to "ratchet" his static key
-to an ephemeral key.
-Without knowing where a message is from, there's no way to use
-the received ephemeral key for outbound messages,
-so the initial reply also uses ephemeral-static DH.
-
-For this proposal, we define two mechanisms to create a bidirectional protocol -
+For this specification, we define two mechanisms to create a bidirectional protocol -
 "pairing" and "binding".
 These mechanisms provide increased efficiency and security.
 
@@ -404,7 +209,7 @@ allow correlation among the various local destinations,
 or between a local destination and a router.
 
 When a given destination supports both ElGamal/AES+SessionTags
-and this proposal, both types of sessions may share a context.
+and this specification, both types of sessions may share a context.
 See section 1c) below.
 
 
@@ -610,6 +415,7 @@ MixKey(d)
 
 
 
+
 1) Message format
 -----------------
 
@@ -651,8 +457,6 @@ See [I2NP]_ for details and a full specification.
 Review of Encrypted Data Format
 ````````````````````````````````
 
-The current message format, used for over 15 years,
-is ElGamal/AES+SessionTags.
 In ElGamal/AES+SessionTags, there are two message formats:
 
 1) New session:
@@ -663,15 +467,8 @@ In ElGamal/AES+SessionTags, there are two message formats:
 - 32 byte Session Tag
 - AES block (128 bytes minimum, multiple of 16)
 
-The minimum padding to 128 is as implemented in Java I2P but is not enforced on reception.
-
 These messages are encapsulated in a I2NP garlic message, which contains
 a length field, so the length is known.
-
-Note that there is no padding defined to a non-mod-16 length,
-so the New Session is always (mod 16 == 2),
-and an Existing Session is always (mod 16 == 0).
-We need to fix this.
 
 The receiver first attempts to look up the first 32 bytes as a Session Tag.
 If found, he decrypts the AES block.
@@ -1474,8 +1271,6 @@ See AEAD section below.
 
 Format: 32-byte public and private keys, little-endian.
 
-Justification: Used in [NTCP2]_.
-
 
 
 2a) Elligator2
@@ -1533,13 +1328,6 @@ DECODE_ELG2() Definition
   pubkey = decode(encodedKey)
 {% endhighlight %}
 
-
-
-
-Justification
-`````````````
-
-Required to prevent the OBEP and IBGW from classifying traffic.
 
 
 Notes
@@ -1673,11 +1461,6 @@ AEAD Error Handling
 All received data that fails the AEAD verification must be discarded.
 No response is returned.
 
-
-Justification
-`````````````
-
-Used in [NTCP2]_.
 
 
 
@@ -2444,16 +2227,6 @@ Notes:
 - The Certificate, Clove ID, and Expiration from the
   Garlic Clove definition in [I2NP]_ are not included.
 
-Justification:
-
-- The certificates were never used.
-- The separate message ID and clove IDs were never used.
-- The separate expirations were never used.
-- The overall savings compared to the old Clove Set and Clove formats
-  is approximately 35 bytes for 1 clove, 54 bytes for 2 cloves,
-  and 73 bytes for 3 cloves.
-- The block format is extensible and any new fields may be added
-  as new block types.
 
 
 Termination
@@ -3251,322 +3024,19 @@ the efficient ES messages as soon as possible.
 
 
 
-Analysis
-========
-
-
-Overhead
------------
-
-Message overhead for the first two messages in each direction are as follows.
-This assumes only one message in each direction before the ACK,
-or that any additional messages are sent speculatively as Existing Session messages.
-If there is no speculative acks of delivered session tags, the
-overhead or the old protocol is much higher.
-
-No padding is assumed for analysis of the new protocol.
-No bundled leaseset is assumed.
-
-
-ElGamal/AES+SessionTags
-```````````````````````````
-
-New session message, same each direction:
-
-
-.. raw:: html
-
-  {% highlight lang='text' %}
-ElGamal block:
-  514 bytes
-
-  AES block:
-  - 2 byte tag count
-  - 1024 bytes of tags (32 typical)
-  - 4 byte payload size
-  - 32 byte hash of payload
-  - 1 byte flags
-  - 1 byte clove count
-  - 33 byte Garlic deliv. inst.
-  - 16 byte I2NP header
-  - 15 byte clove cert, id, exp.
-  - 15 byte msg cert, id, exp.
-  - 0 byte padding assuming 1936 byte message
-  1143 total
-
-  Total:
-  1657 bytes
-{% endhighlight %}
-
-Existing session messages, same each direction:
-
-.. raw:: html
-
-  {% highlight lang='text' %}
-AES block:
-  - 32 byte session tag
-  - 2 byte tag count
-  - 4 byte payload size
-  - 32 byte hash of payload
-  - 1 byte flags
-  - 1 byte clove count
-  - 33 byte Garlic deliv. inst.
-  - 16 byte I2NP header
-  - 15 byte msg cert, id, exp.
-  - 15 byte clove cert, id, exp.
-  - 0 byte padding assuming 1936 byte message
-  151 total
-{% endhighlight %}
-
-  {% highlight lang='text' %}
-Four message total (two each direction)
-  3616 bytes overhead
-{% endhighlight %}
-
-
-ECIES-X25519-AEAD-Ratchet
-`````````````````````````````
-
-Alice-to-Bob New Session message:
-
-.. raw:: html
-
-  {% highlight lang='text' %}
-- 32 byte ephemeral public key
-  - 32 byte static public key
-  - 16 byte Poly1305 MAC
-  - 7 byte DateTime block
-  - 3 byte Garlic block overhead
-  - 9 byte I2NP header
-  - 33 byte Garlic deliv. inst.
-  - 16 byte Poly1305 MAC
-
-  Total:
-  148 bytes overhead
-{% endhighlight %}
-
-Bob-to-Alice New Session Reply message:
-
-.. raw:: html
-
-  {% highlight lang='text' %}
-- 8 byte session tag
-  - 32 byte ephemeral public key
-  - 16 byte Poly1305 MAC
-  - 3 byte Garlic block overhead
-  - 9 byte I2NP header
-  - 33 byte Garlic deliv. inst.
-  - 16 byte Poly1305 MAC
-
-  Total:
-  117 bytes overhead
-{% endhighlight %}
-
-Existing session messages, same each direction:
-
-.. raw:: html
-
-  {% highlight lang='text' %}
-- 8 byte session tag
-  - 3 byte Garlic block overhead
-  - 9 byte I2NP header
-  - 33 byte Garlic deliv. inst.
-  - 16 byte Poly1305 MAC
-
-  Total:
-  69 bytes
-{% endhighlight %}
-
-
-Comparison
-````````````````
-
-Four message total (two each direction):
-
-.. raw:: html
-
-  {% highlight lang='text' %}
-372 bytes
-  90% (approx. 10x) reduction compared to ElGamal/AES+SessionTags
-{% endhighlight %}
-
-Handshake only:
-
-.. raw:: html
-
-  {% highlight lang='text' %}
-ElGamal: 1657 + 1657 = 3314 bytes
-  Ratchet: 148 _ 117 = 265 bytes
-  92% (approx. 12x) reduction compared to ElGamal/AES+SessionTags
-{% endhighlight %}
-
-Long-term total (ignoring handshakes):
-
-.. raw:: html
-
-  {% highlight lang='text' %}
-ElGamal: 151 + 32 byte tag sent previously = 183 bytes
-  Ratchet: 69 bytes
-  64% (approx. 3x) reduction compared to ElGamal/AES+SessionTags
-{% endhighlight %}
-
-
-CPU
-------
-
-TODO update this section after proposal is stable.
-
-The following cryptographic operations are required by each party to exchange
-New Session and New Session Reply messages:
-
-- HMAC-SHA256: 3 per HKDF, total TBD
-- ChaChaPoly: 2 each
-- X25519 key generation: 2 Alice, 1 Bob
-- X25519 DH: 3 each
-- Signature verification: 1 (Bob)
-
-Alice calculates 5 ECDHs per-bound-session (minimum), 2 for each NS message to Bob,
-and 3 for each of Bob's NSR messages.
-
-Bob also calculates 6 ECDHs per-bound-session, 3 for each of Alice's NS messages, and 3 for each of his NSR messages.
-
-The following cryptographic operations are required by each party for each Existing Session message:
-
-- HKDF: 2
-- ChaChaPoly: 1
-
-
-
-Tag Length
---------------------
-
-Current session tag length is 32 bytes.
-We have not yet found any justification for that length, but we are continuing to research the archives.
-The proposal above defines the new tag length as 8 bytes.
-The analysis justifying an 8 byte tag is as follows:
-
-The session tag ratchet is assumed to generate random, uniformly distributed tags.
-There is no cryptographic reason for a particular session tag length.
-The session tag ratchet is synchronized to, but generates an independent output from,
-the symmetric key ratchet. The outputs of the two ratchets may be different lengths.
-
-Therefore, the only concern is session tag collision.
-It is assumed that implementations will not attempt to handle collisions
-by trying to decrypt with both sessions;
-implementations will simply associate the tag with either the previous or new
-session, and any message received with that tag on the other session
-will be dropped after the decryption fails.
-
-The goal is to select a session tag length that is large enough
-to minimize the risk of collisions, while small enough
-to minimize memory usage.
-
-This assumes that implementations limit session tag storage to
-prevent memory exhaustion attacks. This also will greatly reduce the chances that an attacker
-can create collisions. See the Implementation Considerations section below.
-
-For a worst case, assume a busy server with 64 new inbound sessions per second.
-Assume 15 minute inbound session tag lifetime (same as now, probably should be reduced).
-Assume inbound session tag window of 32.
-64 * 15 * 60 * 32 =  1,843,200 tags
-Current Java I2P max inbound tags is 750,000 and has never been hit as far as we know.
-
-A target of 1 in a million (1e-6) session tag collisions is probably sufficient.
-The probability of dropping a message along the way due to congestion is far higher than that.
-
-Ref: https://en.wikipedia.org/wiki/Birthday_paradox
-Probability table section.
-
-With 32 byte session tags (256 bits) the session tag space is 1.2e77.
-The probability of a collision with probability 1e-18 requires 4.8e29 entries.
-The probability of a collision with probability 1e-6 requires 4.8e35 entries.
-1.8 million tags of 32 bytes each is about 59 MB total.
-
-With 16 byte session tags (128 bits) the session tag space is 3.4e38.
-The probability of a collision with probability 1e-18 requires 2.6e10 entries.
-The probability of a collision with probability 1e-6 requires 2.6e16 entries.
-1.8 million tags of 16 bytes each is about 30 MB total.
-
-With 8 byte session tags (64 bits) the session tag space is 1.8e19.
-The probability of a collision with probability 1e-18 requires 6.1 entries.
-The probability of a collision with probability 1e-6 requires 6.1e6 (6,100,000) entries.
-1.8 million tags of 8 bytes each is about 15 MB total.
-
-6.1 million active tags is over 3x more than our worst-case estimate of 1.8 million tags.
-So the probability of collision would be less than one in a million.
-We therefore conclude that 8 byte session tags are sufficient.
-This results in a 4x reduction of storage space,
-in addition to the 2x reduction because transmit tags are not stored.
-So we will have a 8x reduction in session tag memory usage compared to ElGamal/AES+SessionTags.
-
-To maintain flexibility should these assumptions be wrong,
-we will include a session tag length field in the options,
-so that the default length may be overridden on a per-session basis.
-We do not expect to implement dynamic tag length negotiation
-unless absolutely necessary.
-
-Implementations should, at a minimum, recognize session tag collisions,
-handle them gracefully, and log or count the number of collisions.
-While still extremely unlikely, they will be much more likely than
-they were for ElGamal/AES+SessionTags, and could actually happen.
-
-
-Alternate
-``````````````````
-
-Using twice the sessions per second (128) and twice the tag window (64),
-we have 4 times the tags (7.4 million). Max for one in a million
-chance of collision is 6.1 million tags.
-12 byte (or even 10 byte) tags would add a huge margin.
-
-However, is the one in a million chance of collision a good target?
-Much larger than the chance of being dropped along the way is not much use.
-The false-positive target for Java's DecayingBloomFilter is roughly
-1 in 10,000, but even 1 in 1000 isn't of grave concern.
-By reducing the target to 1 in 10,000, there's plenty of margin
-with 8 byte tags.
-
-
-Storage
-```````````
-
-The sender generates tags and keys on the fly, so there is no storage.
-This cuts overall storage requirements in half compared to ElGamal/AES.
-ECIES tags are 8 bytes instead of 32 for ElGamal/AES.
-This cuts overall storage requirements by another factor of 4.
-Per-tag session keys are not stored at the receiver except for "gaps",
-which are minimal for reasonable loss rates.
-
-The 33% reduction in tag expiration time creates another 33% savings,
-assuming short session times.
-
-Therefore, the total space savings vs. ElGamal/AES is a factor of 10.7, or 92%.
-
 
 
 Related Changes
 =====================
 
-
-
-I2NP Changes Required
------------------------
-
 Database Lookups from ECIES Destinations: See [Prop154]_,
 now incorporated in [I2NP]_ for release 0.9.46.
 
-This proposal requires LS2 support to publish the X25519 public key with the leaseset.
+This specification requires LS2 support to publish the X25519 public key with the leaseset.
 No changes are required to the LS2 specifications in [I2NP]_.
 All support was designed, specified, and implemented in [Prop123]_ implemented in 0.9.38.
 
-
-
-I2CP Changes Required
-------------------------
-
-None.
-This proposal requires LS2 support, and a property to be set in the I2CP options to be enabled.
-No changes are required to the [I2CP]_ specifications.
+This specification requires a property to be set in the I2CP options to be enabled.
 All support was designed, specified, and implemented in [Prop123]_ implemented in 0.9.38.
 
 The option required to enable ECIES is a single I2CP property
@@ -3577,38 +3047,13 @@ or i2cp.leaseSetEncType=4,0 for ECIES and ElGamal dual keys.
 
 
 
-I2CP Options
-``````````````````
-
-This section is copied from [Prop123]_.
-
-Option in SessionConfig Mapping:
-
-::
-
-  i2cp.leaseSetEncType=nnn[,nnn]  The encryption types to be used.
-                                  0: ElGamal
-                                  1-3: See proposal 145
-                                  4: This proposal.
-
-
-Create Leaseset2 Message
-````````````````````````````
-
-This proposal requires LS2 which is supported as of release 0.9.38.
-No changes are required to the [I2CP]_ specifications.
-All support was designed, specified, and implemented in [Prop123]_ implemented in 0.9.38.
-
-
-
-
 Compatibility
-------------------
+===============
 
 Any router supporting LS2 with dual keys (0.9.38 or higher) should support
 connection to destinations with dual keys.
 
-ECIES-only destinations will require a majority of the floodfills to be updated
+ECIES-only destinations require a majority of the floodfills to be updated
 to 0.9.46 to get encrypted lookup replies. See [Prop154]_.
 
 ECIES-only destinations can only connect with other destinations that are
@@ -3625,13 +3070,13 @@ References
 .. [CRYPTO-ELG]
     {{ site_url('docs/how/cryptography', True) }}#elgamal
 
-.. [ElG-AES]
-    {{ site_url('docs/how/elgamal-aes', True) }}
-
 .. [Elligator2]
     https://elligator.cr.yp.to/elligator-20130828.pdf
     https://www.imperialviolet.org/2013/12/25/elligator.html
     See also OBFS4 code
+
+.. [ElG-AES]
+    {{ site_url('docs/how/elgamal-aes', True) }}
 
 .. [GARLICSPEC]
     {{ site_url('docs/how/garlic-routing', True) }}
@@ -3656,6 +3101,9 @@ References
 
 .. [Prop142]
     {{ proposal_url('142') }}
+
+.. [Prop144]
+    {{ proposal_url('144') }}
 
 .. [Prop145]
     {{ proposal_url('145') }}

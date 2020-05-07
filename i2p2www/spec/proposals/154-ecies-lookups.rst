@@ -5,7 +5,7 @@ Database Lookups from ECIES Destinations
     :author: zzz
     :created: 2020-03-23
     :thread: http://zzz.i2p/topics/2856
-    :lastupdated: 2020-04-22
+    :lastupdated: 2020-05-07
     :status: Closed
     :target: 0.9.46
     :implementedin: 0.9.46
@@ -423,7 +423,7 @@ References
 ==========
 
 .. [ECIES]
-   {{ proposal_url('144') }}
+   {{ spec_url('ecies') }}
 
 .. [I2NP]
     {{ spec_url('i2np') }}

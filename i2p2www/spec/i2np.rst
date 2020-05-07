@@ -1510,7 +1510,7 @@ References
     {{ ctags_url('Date') }}
 
 .. [ECIES]
-   {{ proposal_url('144') }}
+   {{ spec_url('ecies') }}
 
 .. [ElG-AES]
     {{ site_url('docs/how/elgamal-aes', True) }}

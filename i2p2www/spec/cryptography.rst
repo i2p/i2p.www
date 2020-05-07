@@ -558,7 +558,7 @@ References
     https://github.com/i2p/i2p.i2p/tree/master/core/java/src/net/i2p/crypto/DSAEngine.java
 
 .. [ECIES]
-    {{ proposal_url('145') }}
+    {{ specl_url('ecies') }}
 
 .. [ELG-AES]
     {{ site_url('docs/how/elgamal-aes', True) }}

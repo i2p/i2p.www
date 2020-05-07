@@ -9,13 +9,6 @@ NTCP 2
 .. contents::
 
 
-Note
-====
-Network deployment and testing in progress.
-Subject to minor revisions.
-See [Prop111]_ for the original proposal, including background discussion and additional information.
-
-
 Overview
 ========
 
@@ -31,6 +24,7 @@ for point-to-point (router-to-router) transport of I2NP messages.
 It is not a general-purpose data pipe.
 
 NTCP2 is supported as of version 0.9.36.
+See [Prop111]_ for the original proposal, including background discussion and additional information.
 
 
 

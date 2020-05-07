@@ -5,7 +5,7 @@ Streaming MTU for ECIES Destinations
     :author: zzz
     :created: 2020-05-06
     :thread: http://zzz.i2p/topics/2886
-    :lastupdated: 2020-05-06
+    :lastupdated: 2020-05-07
     :status: Open
     :target: 0.9.47
 
@@ -128,11 +128,11 @@ will negotiate downward, as usual.
 References
 ==========
 
-.. [ECIES]
-   {{ proposal_url('144') }}#overhead
-
 .. [CALCULATION]
    https://github.com/i2p/i2p.i2p/blob/master/apps/streaming/java/src/net/i2p/client/streaming/impl/ConnectionOptions.java#L220
+
+.. [ECIES]
+   {{ spec_url('ecies') }}#overhead
 
 .. [STREAMING-OPTIONS]
     {{ site_url('docs/api/streaming', True) }}
