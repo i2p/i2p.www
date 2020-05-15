@@ -74,9 +74,18 @@ As noted in [STREAMING-OPTIONS]_,
 the data in the SYN packets sent from Alice to Bob may exceed Bob's MTU.
 This is a weakness in the streaming protocol.
 Therefore, dual-key clients must limit the data in the sent SYN packets
-to 1730 bytes, while sending an MTU option of 1820.
-Once an 1820 MTU is received from Bob, Alice may increase the actual maximum
+to 1730 bytes, while sending a higher MTU option.
+Once the higher MTU is received from Bob, Alice may increase the actual maximum
 payload sent.
+
+
+Analysis
+----------
+
+As described in [ECIES]_, the ElGamal overhead for existing session messages is
+151 bytes, and the Ratchet overhead is 69 bytes.
+Therefore, we may increase the MTU for ratchet connections by (151 - 69) = 82 bytes,
+from 1730 to 1812.
 
 
 
@@ -93,7 +102,7 @@ Clients must use the minimum of the sent and received MTU, as usual.
 There are four related MTU contants and variables:
 
 - DEFAULT_MTU: 1730, unchanged, for all connections
-- i2cp.streaming.maxMessageSize: default 1730 or 1820, may be changed by configuration
+- i2cp.streaming.maxMessageSize: default 1730 or 1812, may be changed by configuration
 - ALICE_SYN_MAX_DATA: The maximum data that Alice may include in a SYN packet
 - negotiated_mtu: The minimum of Alice's and Bob's MTU, to be used as the max data size
   in the SYN ACK from Bob to Alice, and in all subsequent packets sent in both directions
@@ -113,10 +122,10 @@ No change, 1730 MTU in all packets.
 
 2) Alice ECIES-only
 ---------------------------------
-1820 MTU in all packets.
+1812 MTU in all packets.
 
-- ALICE_SYN_MAX_DATA = 1820
-- i2cp.streaming.maxMessageSize default: 1820
+- ALICE_SYN_MAX_DATA = 1812
+- i2cp.streaming.maxMessageSize default: 1812
 - Alice must send MAX_PACKET_SIZE_INCLUDED in SYN
 
 
@@ -126,27 +135,27 @@ No change, 1730 MTU in all packets.
 1730 MTU in all packets.
 
 - ALICE_SYN_MAX_DATA = 1730
-- i2cp.streaming.maxMessageSize default: 1820
+- i2cp.streaming.maxMessageSize default: 1812
 - Alice may send MAX_PACKET_SIZE_INCLUDED in SYN, not required unless != 1730
 
 
 
 4) Alice Dual-Key and knows Bob is ECIES
 ------------------------------------------
-1820 MTU in all packets.
+1812 MTU in all packets.
 
-- ALICE_SYN_MAX_DATA = 1820
-- i2cp.streaming.maxMessageSize default: 1820
+- ALICE_SYN_MAX_DATA = 1812
+- i2cp.streaming.maxMessageSize default: 1812
 - Alice must send MAX_PACKET_SIZE_INCLUDED in SYN
 
 
 
 5) Alice Dual-Key and Bob key is unknown
 ------------------------------------------
-Send 1820 as MAX_PACKET_SIZE_INCLUDED in SYN packet but limit SYN packet data to 1730.
+Send 1812 as MAX_PACKET_SIZE_INCLUDED in SYN packet but limit SYN packet data to 1730.
 
 - ALICE_SYN_MAX_DATA = 1730
-- i2cp.streaming.maxMessageSize default: 1820
+- i2cp.streaming.maxMessageSize default: 1812
 - Alice must send MAX_PACKET_SIZE_INCLUDED in SYN
 
 
@@ -164,18 +173,37 @@ Justification
 =============
 
 See [CALCULATION]_ for why the current value is 1730.
-See [ECIES]_ for why the ECIES overhead is 90 bytes less than ElGamal.
+See [ECIES]_ for why the ECIES overhead is 82 bytes less than ElGamal.
 
 
 
-Notes
-=====
+Implementation Notes
+=====================
+
+If streaming is creating messages of optimal size, it's very important that
+the ECIES-Ratchet layer does not pad beyond that size.
+
+The optimal Garlic Message size to fit into two tunnel messages,
+including the 16 byte Garlic Message I2NP header, 4 byte Garlic Message Length,
+8 byte ES tag, and 16 byte MAC, is 1956 bytes.
+
+A recommended padding algorithm in ECIES is as follows:
+
+- If the total length of the Garlic Message would be 1954-1956 bytes,
+  do not add a padding block (no room)
+- If the total length of the Garlic Message would be 1938-1953 bytes,
+  add a padding block to pad to exactly 1956 bytes.
+- Otherwise, pad as usual, for example with a random amount 0-15 bytes.
+
+Similar strategies could be used at the optimal one-tunnel-message size (964)
+and three-tunnel-message size (2952), although these sizes should be rare in practice.
+
 
 
 Issues
 ======
 
-The 1820 value is preliminary. To be confirmed and possibly adjusted.
+The 1812 value is preliminary. To be confirmed and possibly adjusted.
 
 
 
