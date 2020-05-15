@@ -65,13 +65,25 @@ in `etc/translation.vars` can be overridden by creating the file
     $ ./update-existing-po.sh
     ```
 
-3. Check in the updated translations:
+3. Look for errors in po files:
 
     ```
-    $ mtn ci i2p2www/translations/ -m "Updated translations"
+    $ ./checkpo.sh
     ```
 
-4. Check in any new translations:
+4. Find which po files have new strings:
+
+    ```
+    $ ./findpochanges.sh
+    ```
+
+5. Check in the updated translations:
+
+    ```
+    $ mtn ci `cat newtranslations.txt` -m "Updated translations"
+    ```
+
+6. Check in any new translations:
    First, look to see which translations are supported in i2pwww/__init__.py.
    For any new translations that are NOT in __init__.py,
    either delete the po directory i2p2www/translations/xx (if it's not translated enough to add it to the website),
