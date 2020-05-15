@@ -3,7 +3,7 @@ I2CP Specification
 ==================
 .. meta::
     :category: Protocols
-    :lastupdated: April 2020
+    :lastupdated: May 2020
     :accuratefor: 0.9.46
 
 .. contents::
@@ -933,8 +933,8 @@ Description
 ```````````
 Deliver the payload of a message to the client.
 
-Sent from Router to Client.  The client responds with a
-ReceiveMessageEndMessage_.
+Sent from Router to Client.
+If i2cp.fastReceive=true, which is not the default, the client responds with a ReceiveMessageEndMessage_.
 
 Contents
 ````````
