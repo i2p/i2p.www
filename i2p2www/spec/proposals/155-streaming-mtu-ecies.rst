@@ -5,7 +5,7 @@ Streaming MTU for ECIES Destinations
     :author: zzz
     :created: 2020-05-06
     :thread: http://zzz.i2p/topics/2886
-    :lastupdated: 2020-05-07
+    :lastupdated: 2020-05-15
     :status: Open
     :target: 0.9.47
 
@@ -47,22 +47,22 @@ Use the existing MAX_PACKET_SIZE_INCLUDED option and MTU negotiation.
 Streaming continues to use the minimum of the sent and received MTU.
 The default remains 1730 for all connections, no matter what keys are used.
 
-Implementations are encouraged to include the option in all SYN packets, in both directions,
+Implementations are encouraged to include the MAX_PACKET_SIZE_INCLUDED option in all SYN packets, in both directions,
 although this is not a requirement.
 
-If a destination is ECIES-only, send the higher value (either as Alice or Bob).
+If a destination is ECIES-only, use the higher value (either as Alice or Bob).
 If a destination is dual-key, behavior may vary:
 
 If dual-key client is outside the router (in an external application),
-it may not "know" the key being used at the far-end, and Alice must
-send the standard value of 1730.
+it may not "know" the key being used at the far-end, and Alice may request
+a higher value in the SYN, while the max data in the SYN remains 1730.
 
 If dual-key client is inside the router, the information of what key
 is being used may or may not be known to the client.
 The leaseset may not have been fetched yet, or the internal API interfaces
 may not easily make that information available to the client.
-If the information is available, Alice may send the higher value;
-otherwise, Alice must send the standard value of 1730.
+If the information is available, Alice may use the higher value;
+otherwise, Alice must use the standard value of 1730 until negotiated.
 
 A dual-key client as Bob may send the higher value in response,
 even if no value or a value of 1730 was received from Alice;
@@ -70,16 +70,93 @@ however, there is no provision for negotiating upwards in streaming,
 so the MTU should remain at 1730.
 
 
+As noted in [STREAMING-OPTIONS]_,
+the data in the SYN packets sent from Alice to Bob may exceed Bob's MTU.
+This is a weakness in the streaming protocol.
+Therefore, dual-key clients must limit the data in the sent SYN packets
+to 1730 bytes, while sending an MTU option of 1820.
+Once an 1820 MTU is received from Bob, Alice may increase the actual maximum
+payload sent.
+
+
 
 Specification
 =============
 
-ECIES and dual-key ECIES destinations may send an MTU of up to 1820.
-The default remains 1730 for all connections, no matter what keys are used.
+Add the following changes and clarifications to the MTU Selection and Negotiation section of [STREAMING-OPTIONS]_.
+No changes to [STREAMING-SPEC]_.
+
+
+The default value of the option i2p.streaming.maxMessageSize remains 1730 for all connections, no matter what keys are used.
 Clients must use the minimum of the sent and received MTU, as usual.
 
-This will be added as a note to [STREAMING-OPTIONS]_. 
-No change to [STREAMING-SPEC]_.
+There are four related MTU contants and variables:
+
+- DEFAULT_MTU: 1730, unchanged, for all connections
+- i2cp.streaming.maxMessageSize: default 1730 or 1820, may be changed by configuration
+- ALICE_SYN_MAX_DATA: The maximum data that Alice may include in a SYN packet
+- negotiated_mtu: The minimum of Alice's and Bob's MTU, to be used as the max data size
+  in the SYN ACK from Bob to Alice, and in all subsequent packets sent in both directions
+
+
+There are five cases to consider:
+
+
+1) Alice ElGamal-only
+---------------------------------
+No change, 1730 MTU in all packets.
+
+- ALICE_SYN_MAX_DATA = 1730
+- i2cp.streaming.maxMessageSize default: 1730
+- Alice may send MAX_PACKET_SIZE_INCLUDED in SYN, not required unless != 1730
+
+
+2) Alice ECIES-only
+---------------------------------
+1820 MTU in all packets.
+
+- ALICE_SYN_MAX_DATA = 1820
+- i2cp.streaming.maxMessageSize default: 1820
+- Alice must send MAX_PACKET_SIZE_INCLUDED in SYN
+
+
+
+3) Alice Dual-Key and knows Bob is ElGamal
+----------------------------------------------
+1730 MTU in all packets.
+
+- ALICE_SYN_MAX_DATA = 1730
+- i2cp.streaming.maxMessageSize default: 1820
+- Alice may send MAX_PACKET_SIZE_INCLUDED in SYN, not required unless != 1730
+
+
+
+4) Alice Dual-Key and knows Bob is ECIES
+------------------------------------------
+1820 MTU in all packets.
+
+- ALICE_SYN_MAX_DATA = 1820
+- i2cp.streaming.maxMessageSize default: 1820
+- Alice must send MAX_PACKET_SIZE_INCLUDED in SYN
+
+
+
+5) Alice Dual-Key and Bob key is unknown
+------------------------------------------
+Send 1820 as MAX_PACKET_SIZE_INCLUDED in SYN packet but limit SYN packet data to 1730.
+
+- ALICE_SYN_MAX_DATA = 1730
+- i2cp.streaming.maxMessageSize default: 1820
+- Alice must send MAX_PACKET_SIZE_INCLUDED in SYN
+
+
+For all cases
+-----------------
+
+Alice and Bob calculate
+negotiated_mtu, the minimum of Alice's and Bob's MTU, to be used as the max data size
+in the SYN ACK from Bob to Alice, and in all subsequent packets sent in both directions.
+
 
 
 
@@ -93,16 +170,6 @@ See [ECIES]_ for why the ECIES overhead is 90 bytes less than ElGamal.
 
 Notes
 =====
-
-As noted in [STREAMING-OPTIONS],
-the data in the SYN packets sent from Alice to Bob may exceed Bob's MTU.
-This is a weakness in the streaming protocol.
-
-It may be advisable, in dual-key clients, to limit the data in the sent SYN packets
-to 1730 bytes, while sending an MTU option of 1820.
-Once an 1820 MTU is received from Bob, Alice may increase the actual maximum
-payload sent.
-
 
 
 Issues
