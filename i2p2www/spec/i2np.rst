@@ -716,7 +716,8 @@ Notes
 
 * To hide the router OS and implementation, match the Java router implementation
   of gzip by setting the modification time to 0 and the OS byte to 0xFF,
-  and use max compression.
+  and set XFL to 0x02 (max compression, slowest algorithm).
+  See RFC 1952.
   First 10 bytes of the compressed router info will be (hex):
   1F 8B 08 00 00 00 00 00 02 FF
 
