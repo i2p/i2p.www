@@ -22,7 +22,7 @@ except ImportError:
 ###########
 # Constants
 
-CURRENT_I2P_VERSION = '0.9.45'
+CURRENT_I2P_VERSION = '0.9.46'
 CURRENT_I2P_FIREFOX_PROFILE_VERSION = '0.02a'
 
 CANONICAL_DOMAIN = 'geti2p.net'
