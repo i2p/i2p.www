@@ -5,12 +5,18 @@ Streaming MTU for ECIES Destinations
     :author: zzz
     :created: 2020-05-06
     :thread: http://zzz.i2p/topics/2886
-    :lastupdated: 2020-05-15
-    :status: Open
+    :lastupdated: 2020-05-30
+    :status: Closed
     :target: 0.9.47
+    :implementedin: 0.9.47
 
 .. contents::
 
+
+Note
+====
+Network deployment and testing in progress.
+Subject to minor revisions.
 
 
 Overview

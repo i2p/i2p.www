@@ -5,12 +5,26 @@ ECIES-X25519-AEAD-Ratchet
     :author: zzz, chisana, orignal
     :created: 2018-11-22
     :thread: http://zzz.i2p/topics/2639
-    :lastupdated: 2020-05-07
-    :status: Open
+    :lastupdated: 2020-05-30
+    :status: Closed
     :target: 0.9.46
     :implementedin: 0.9.46
 
 .. contents::
+
+
+Note
+====
+Network deployment and testing in progress.
+Subject to minor revisions.
+See [SPEC]_ for the official specification.
+
+The following features are not implemented as of 0.9.46:
+
+- MessageNumbers, Options, and Termination blocks
+- Protocol-layer responses
+- Zero static key
+- Multicast
 
 
 Overview
@@ -3689,6 +3703,9 @@ References
 
 .. [Signal]
     https://signal.org/docs/specifications/doubleratchet/
+
+.. [SPEC]
+    {{ spec_url('ecies') }}
 
 .. [SSU]
     {{ site_url('docs/transport/ssu', True) }}
