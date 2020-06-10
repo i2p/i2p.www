@@ -3,7 +3,7 @@ I2CP Specification
 ==================
 .. meta::
     :category: Protocols
-    :lastupdated: May 2020
+    :lastupdated: 2020-06
     :accuratefor: 0.9.46
 
 .. contents::
@@ -240,6 +240,8 @@ below.
                 Additional HostReply message failure codes
 
    0.9.41       EncryptedLeaseSet options
+
+                MessageStatus message Meta LS error code
 
    0.9.39       CreateLeaseSet2 message and options supported
 
@@ -1081,6 +1083,14 @@ Status Code  As Of Release           Name           Description
                                                     failure, equivalent to a DNS lookup failure.
 
                                                     This is a guaranteed failure.
+
+    22          0.9.41      Meta Leaseset           The far-end destination's lease set was a meta lease set,
+                                                    and cannot be sent to. The client should request the meta
+                                                    lease set's contents with a HostLookupMessage, and select
+                                                    one of the hashes contained within to look up and send to.
+
+                                                    This is a guaranteed failure.
+
 ===========  =============  ======================  ==========================================================
 
 When status = 1 (accepted), the nonce matches the nonce in the
