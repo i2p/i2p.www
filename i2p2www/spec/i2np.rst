@@ -3,7 +3,7 @@ I2NP Specification
 ==================
 .. meta::
     :category: Protocols
-    :lastupdated: May 2020
+    :lastupdated: 2020-06
     :accuratefor: 0.9.46
 
 .. contents::
@@ -49,6 +49,7 @@ below.
    0.9.40       MetaLeaseSet may be sent in a DSM
 
    0.9.39       EncryptedLeaseSet may be sent in a DSM
+
                 RedDSA_SHA512_Ed25519 signature type supported for
                 destinations and leasesets
 
@@ -57,7 +58,11 @@ below.
 
    0.9.36       NTCP2 transport support (if advertised in router address)
 
+                Minimum peers will build tunnels through, as of 0.9.46
+
    0.9.28       RSA sig types disallowed
+
+                Minimum floodfill peers will send DSM to, as of 0.9.34
 
    0.9.18       DSM type bits 7-1 ignored
 
