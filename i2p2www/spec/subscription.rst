@@ -2,35 +2,24 @@
 Addressbook Subscription Feed Commands
 ======================================
 .. meta::
-    :author: zzz
-    :created: 2014-09-15
-    :thread: http://zzz.i2p/topics/1704
-    :lastupdated: 2020-07-16
-    :status: Closed
-    :target: 0.9.26
-    :implementedin: 0.9.26
+    :lastupdated: 2020-07
+    :accuratefor: 0.9.46
 
 .. contents::
-
-
-Note
-====
-Network deployment completed.
-See [SPEC]_ for the official specification.
 
 
 Overview
 ========
 
-This proposal is about extending the address subscription feed with commands, to
+This specification extends the address subscription feed with commands, to
 enable name servers to broadcast entry updates from hostname holders.
-Implemented in 0.9.26.
+Implemented in 0.9.26, originally proposed in proposal 112.
 
 
 Motivation
 ==========
 
-Right now, the hosts.txt subscription servers just send data in a hosts.txt
+Previously, the hosts.txt subscription servers just sent data in a hosts.txt
 format, which is as follows::
 
     example.i2p=b64destination
@@ -49,9 +38,9 @@ There are several problems with this:
 Design
 ======
 
-This proposal adds a number of command lines to the hosts.txt format. With these
+This specification adds a number of command lines to the hosts.txt format. With these
 commands, name servers can extend their services to provide a number of
-additional features. Clients that implement this proposal will be able to listen
+additional features. Clients that implement this specification will be able to listen
 for these features through the regular subscription process.
 
 All command lines must be signed by the corresponding Destination. This ensures
@@ -61,7 +50,7 @@ that changes are only made at the request of the hostname holder.
 Security implications
 =====================
 
-This proposal has no implications on anonymity.
+This specification does not affect anonymity.
 
 There is an increase in the risk associated with losing control of a Destination
 key, as someone who obtains it can use these commands to make changes to any
@@ -79,7 +68,7 @@ Specification
 New line types
 --------------
 
-This proposal adds two new types of lines:
+There are two new types of lines:
 
 1. Add and Change commands::
 
@@ -346,11 +335,3 @@ old comments, but will start listening to new commands in subsequent fetches of
 their subscription feeds. Thus it is important for name servers to persist
 command entries in some fashion, or enable etag support so that routers can
 fetch all past commands.
-
-
-
-References
-==========
-
-.. [SPEC]
-    {{ spec_url('subscription') }}
