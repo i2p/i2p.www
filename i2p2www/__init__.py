@@ -77,7 +77,7 @@ SUPPORTED_LANG_NAMES = {
     'he': u'Hebrew עברית',
     'it': u'Italiano',
     'ja': u'Japanese 日本語',
-    'ko': u'Korean 한국말',
+    'ko': u'Korean 한국어',
     'mg': u'Fiteny Malagasy',
     'nl': u'Nederlands',
     'fa': u'Persian فارسی',
