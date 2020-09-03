@@ -5,7 +5,7 @@ ECIES Routers
     :author: zzz, orignal
     :created: 2020-09-01
     :thread: http://zzz.i2p/topics/2950
-    :lastupdated: 2020-09-01
+    :lastupdated: 2020-09-03
     :status: Open
     :target: 0.9.51
 
@@ -28,7 +28,7 @@ The proposals for LS2 [Prop123]_ and ECIES-X25519-AEAD-Ratchet [Prop144]_
 (now specified in [ECIES]_) defined the replacement of ElGamal with ECIES
 for Destinations.
 
-This proposal defines the replacement of ElGamal with ECIES for routers.
+This proposal defines the replacement of ElGamal with ECIES-X25519 for routers.
 This proposal provides an overview of the changes required.
 Most of the details are in other proposals and specifications.
 See the reference section for links.
@@ -37,7 +37,9 @@ See the reference section for links.
 Goals
 -----
 
-- Replace ElGamal with ECIES-X25519
+See [Prop152]_ for additional goals.
+
+- Replace ElGamal with ECIES-X25519 in Router Identities
 - Reuse existing cryptographic primitives
 - Improve tunnel build message security where possible while maintaining compatibility
 - Support tunnels with mixed ElGamal/ECIES peers
@@ -50,7 +52,7 @@ Non-Goals
 -----------
 
 - No requirement for dual-key routers
-
+- Complete redesign of tunnel build messages requiring a "flag day", for that see [Prop153]_
 
 
 Design
@@ -238,7 +240,6 @@ This code gives each router a small random chance of rekeying at each restart.
 After several restarts, a router will probably have rekeyed to ECIES.
 
 Rekeying may take several releases.
-
 Probably start rekeying mid-2021.
 
 Target release: TBD
