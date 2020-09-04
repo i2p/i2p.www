@@ -3,7 +3,7 @@ Low-level Cryptography Specification
 ====================================
 .. meta::
     :category: Design
-    :lastupdated: 2020-08
+    :lastupdated: 2020-09
     :accuratefor: 0.9.47
 
 .. contents::
@@ -438,7 +438,7 @@ RedDSA 25519
 Standard EdDSA using curve 25519 and standard 512-bit SHA-2 hashes,
 but with different private keys, and minor modifications to signing.
 For encrypted leasesets.
-See [EncryptedLeaseSet]__ and [Red25519]_ for details.
+See [EncryptedLeaseSet]_ and [Red25519]_ for details.
 
 Supported as of release 0.9.39.
 
