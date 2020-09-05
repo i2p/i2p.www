@@ -5,7 +5,7 @@ ECIES Routers
     :author: zzz, orignal
     :created: 2020-09-01
     :thread: http://zzz.i2p/topics/2950
-    :lastupdated: 2020-09-03
+    :lastupdated: 2020-09-05
     :status: Open
     :target: 0.9.51
 
@@ -51,6 +51,8 @@ See [Prop152]_ for additional goals.
 Non-Goals
 -----------
 
+See [Prop152]_ for additional non-goals.
+
 - No requirement for dual-key routers
 - Complete redesign of tunnel build messages requiring a "flag day", for that see [Prop153]_
 
@@ -77,6 +79,9 @@ This is the standard construction as defined in the common structures spec [Comm
 
 This is identical to the method proposed for ECIES-P256
 for crypto types 1-3 in proposal 145 [Prop145]_.
+While this proposal was never adopted, the Java implementation developers prepared for
+crypto types in Router Identity key certificates by adding checks in several
+places in the code base. Most of this work was done in mid-2019.
 
 
 Tunnel Build Message
@@ -184,15 +189,17 @@ Basic Point-to-Point
 ---------------------
 
 ECIES routers can connect to and receive connections from ElGamal routers.
-This should be possible now, but ensure there's nothing in the code bases
-that blacklists non-ElGamal routers or prevents point-to-point connections.
+This should be possible now, as several checks were added to the Java code base
+by mid-2019 in reaction to unfinished proposal 145 [Prop145]_.
+Ensure there's nothing in the code bases
+that prevents point-to-point connections to non-ElGamal routers.
 
-Until later phases:
+Until later phases, when specifications and implementations are complete:
 
 - Ensure that tunnel builds are not attempted by ElGamal routers through ECIES routers.
 - Ensure that encrypted ElGamal messages are not sent by ElGamal routers to ECIES floodfill routers.
 - Ensure that encrypted ECIES messages are not sent by ECIES routers to ElGamal floodfill routers.
-- Ensure that ECIES routers are not floodfill.
+- Ensure that ECIES routers do not automatically become floodfill.
 
 Target release, if changes required: 0.9.48
 
@@ -201,8 +208,10 @@ NetDB Compatibility
 ---------------------
 
 Ensure that ECIES router infos may be stored to and retrieved from ElGamal floodfills.
-This should be possible now, but ensure there's nothing in the code bases
-that blacklists non-ElGamal routers.
+This should be possible now, as several checks were added to the Java code base
+by mid-2019 in reaction to unfinished proposal 145 [Prop145]_.
+Ensure there's nothing in the code bases
+that prevents storage of non-ElGamal RouterInfos in the network database.
 
 Target release, if changes required: 0.9.48
 
@@ -217,7 +226,7 @@ use its own build request record for an inbound tunnel to test and debug.
 Then test and support ECIES routers building tunnels with a mix of
 ElGamal and ECIES hops.
 
-Then enable tunnel building through ECIES routers.
+Then enable tunnel building through ECIES routers with a minimum version TBD.
 
 Target release: 0.9.49 or 0.9.50, early-mid 2021
 
@@ -227,6 +236,7 @@ Ratchet messages to ECIES floodfills
 
 Implement and test reception of ECIES messages (with zero static key) by ECIES floodfills.
 Enable auto-floodfill by ECIES routers.
+Then enable sending ECIES messages to ECIES routers with a minimum version TBD.
 
 Target release: 0.9.49 or 0.9.50, early-mid 2021
 
