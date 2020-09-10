@@ -4,7 +4,10 @@ rm -f $TMP2
 touch $TMP2
 for i in i2p2www/translations/*/*/*.po
 do
-	mtn diff $i | grep '+msgstr' | grep -v '+msgstr ""' > $TMP
+	if [ -d ./.git ]; then
+		git diff $i | grep '+msgstr' | grep -v '+msgstr ""' > $TMP
+	fi
+		mtn diff $i | grep '+msgstr' | grep -v '+msgstr ""' > $TMP
 	if [ -s $TMP ]
 	then
 		echo $i >> $TMP2
