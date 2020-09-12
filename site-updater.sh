@@ -9,8 +9,8 @@ TMP=$(mktemp XXXXXXXXXX)
 trap 'rm -f $TMP;exit' 0 1 2 15
 
 if [ -d ./.git ]; then
-  #$MTN pull -k "" "mtn://$MTNURL?$MTNBRANCH"
   git pull origin master 2>&1 | tee $TMP
+
   if grep "i2p2www/translations/" "$TMP" >/dev/null ; then
     echo "Translations updated, compiling messages"
     ./compile-messages.sh
@@ -22,7 +22,9 @@ if [ -d ./.git ]; then
     echo "Python files changed, restarting server"
     touch $TOUCHFILE
   fi
+  
 else
+
   $MTN pull -k "" "mtn://$MTNURL?$MTNBRANCH"
   $MTN up 2>&1 | tee $TMP
   if grep "^mtn: \(add\|patch\|dropp\|updat\)\(ed\|ing\) 'i2p2www/translations/" "$TMP" >/dev/null ; then
