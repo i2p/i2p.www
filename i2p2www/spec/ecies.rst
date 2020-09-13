@@ -3,8 +3,8 @@ ECIES-X25519-AEAD-Ratchet
 =========================
 .. meta::
     :category: Protocols
-    :lastupdated: 2020-05-07
-    :accuratefor: 0.9.46
+    :lastupdated: 2020-09
+    :accuratefor: 0.9.47
 
 .. contents::
 
@@ -2936,7 +2936,7 @@ Recommended parameters and timeouts:
 - Remove previous ES tagset after: 3 minutes
 - Tagset look ahead of tag N: min(tsmax, tsmin + N/4)
 - Tagset trim behind tag N: min(tsmax, tsmin + N/4) / 2
-- Send next key at tag: TBD
+- Send next key at tag: 4096
 - Send next key after tagset lifetime: TBD
 - Replace session if NS received after: 3 minutes
 - Max clock skew: -5 minutes to +2 minutes

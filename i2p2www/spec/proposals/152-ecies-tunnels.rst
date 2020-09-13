@@ -6,7 +6,7 @@ ECIES Tunnels
     :author: chisana, zzz
     :created: 2019-07-04
     :thread: http://zzz.i2p/topics/2737
-    :lastupdated: 2020-09-05
+    :lastupdated: 2020-09-13
     :status: Open
     :target: 0.9.51
 
@@ -173,6 +173,10 @@ Request Record Unencrypted (ElGamal)
 `````````````````````````````````````````
 
 For reference, this is the current specification of the tunnel BuildRequestRecord for ElGamal routers, taken from [I2NP]_.
+The unencrypted data is prepended with a nonzero byte and the SHA-256 hash of the data before encryption,
+as defined in [Cryptography]_.
+
+All fields are big-endian.
 
 Unencrypted size: 222 bytes
 
@@ -267,6 +271,8 @@ If the Properties structure is empty, this is two bytes 0x00 0x00.
 Request Record Encrypted (ECIES)
 `````````````````````````````````````
 
+All fields are big-endian except for the ephemeral public key which is little-endian.
+
 Encrypted size: 528 bytes
 
 .. raw:: html
@@ -274,7 +280,7 @@ Encrypted size: 528 bytes
   {% highlight lang='dataspec' %}
 
 bytes    0-15: Hop's truncated identity hash
-  bytes   16-47: Sender's ephemeral public key
+  bytes   16-47: Sender's ephemeral X25519 public key
   bytes  48-511: ChaCha20 encrypted BuildRequestRecord
   bytes 512-527: Poly1305 MAC
 
@@ -290,6 +296,11 @@ Encrypted BuildReplyRecords are 528 bytes for both ElGamal and ECIES, for compat
 
 Reply Record Unencrypted (ElGamal)
 `````````````````````````````````````
+ElGamal replies are encrypted with AES.
+
+All fields are big-endian.
+
+Unencrypted size: 528 bytes
 
 .. raw:: html
 
@@ -306,6 +317,9 @@ bytes 0-31   :: SHA-256 Hash of bytes 32-527
 
 Reply Record Unencrypted (ECIES)
 `````````````````````````````````````
+ECIES replies are encrypted with ChaCha20/Poly1305.
+
+All fields are big-endian.
 
 Unencrypted size: 512 bytes
 
@@ -633,6 +647,10 @@ Issues
 
 * Is an HKDF required for the keys, what's the advantage of doing that vs.
   just including them in the build record as before?
+
+* Make KDFs be similar to those in Noise (NTCP2) and Ratchet
+
+* HKDF output no more than 64 bytes preferred
 
 * In the current Java implementation, the full router hash field in the build
   request record at bytes 4-35 is not checked and does not appear to be necessary.

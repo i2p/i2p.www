@@ -2,8 +2,8 @@
 Blockfile and Hosts Database Specification
 ==========================================
 .. meta::
-    :lastupdated: November 2019
-    :accuratefor: 0.9.43
+    :lastupdated: 2020-09
+    :accuratefor: 0.9.47
 
 .. contents::
 
@@ -168,7 +168,7 @@ The maximum number of entries per span is 16.
 Properties Skiplist
 -------------------
 
-"%%__INFO__%%" is the master database skiplist with String/Properties key/value
+"%%__INFO__%%" is the main database skiplist with String/Properties key/value
 entries containing only one entry:
 
     info

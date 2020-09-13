@@ -3,8 +3,8 @@ Common structures Specification
 ===============================
 .. meta::
     :category: Design
-    :lastupdated: April 2020
-    :accuratefor: 0.9.46
+    :lastupdated: 2020-09
+    :accuratefor: 0.9.47
 
 .. contents::
 
@@ -86,7 +86,7 @@ ElGamal       256                All Router Identities and Destinations
 P256           64         TBD    Reserved, see proposal 145
 P384           96         TBD    Reserved, see proposal 145
 P521          132         TBD    Reserved, see proposal 145
-X25519         32        0.9.38  Little-endian. See proposal 144
+X25519         32        0.9.38  Little-endian. See [ECIES]_ and proposal 156
 =======  ==============  ======  =====
 
 JavaDoc: http://{{ i2pconv('echelon.i2p/javadoc') }}/net/i2p/data/PublicKey.html
@@ -118,7 +118,7 @@ ElGamal       256                All Router Identities and Destinations
 P256           32         TBD    Reserved, see proposal 145
 P384           48         TBD    Reserved, see proposal 145
 P521           66         TBD    Reserved, see proposal 145
-X25519         32        0.9.38  Little-endian. See proposal 144
+X25519         32        0.9.38  Little-endian. See [ECIES]_ and proposal 156
 =======  ==============  ======  =====
 
 JavaDoc: http://{{ i2pconv('echelon.i2p/javadoc') }}/net/i2p/data/PrivateKey.html
@@ -439,7 +439,7 @@ ElGamal        0                 256            All Router Identities and Destin
 P256           1                  64            Reserved, see proposal 145
 P384           2                  96            Reserved, see proposal 145
 P521           3                 132            Reserved, see proposal 145
-X25519         4                  32            Not for use in key certs. See proposal 144
+X25519         4                  32            See [ECIES]_ and proposal 156
 reserved  65280-65534                           Reserved for experimental use
 reserved     65535                              Reserved for future expansion
 ========  ===========  =======================  =====
@@ -1189,10 +1189,10 @@ Notes
 
 * The encryption keys are used for end-to-end ElGamal/AES+SessionTag encryption
   [ELGAMAL-AES]_ (type 0) or other end-to-end encryption schemes.
-  See proposals 123, 144, and 145.
+  See [ECIES]_ and proposals 145 and 156.
   They may be generated anew at every router startup
   or they may be persistent.
-  X25519 (type 4, proposal 144) is supported as of release 0.9.44.
+  X25519 (type 4, see [ECIES]_) is supported as of release 0.9.44.
 
 * The signature is over the data above, PREPENDED with the single byte
   containing the DatabaseStore type (3).
@@ -1710,6 +1710,9 @@ Specification [GARLIC-DELIVERY]_.
 
 References
 ==========
+
+.. [ECIES]
+   {{ spec_url('ecies') }}
 
 .. [ELGAMAL]
     {{ site_url('docs/how/cryptography', True) }}#elgamal
