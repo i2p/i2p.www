@@ -6,7 +6,7 @@ ECIES Tunnels
     :author: chisana, zzz
     :created: 2019-07-04
     :thread: http://zzz.i2p/topics/2737
-    :lastupdated: 2020-09-13
+    :lastupdated: 2020-09-15
     :status: Open
     :target: 0.9.51
 
@@ -15,14 +15,14 @@ ECIES Tunnels
 Overview
 ========
 
-This document proposes for changes to Tunnel Build message encryption
+This document proposes changes to Tunnel Build message encryption
 using crypto primitives introduced by [ECIES-X25519]_.
 It is a portion of the overall proposal
 [Prop156]_ for converting routers from ElGamal to ECIES-X25519 keys.
 
 For the purposes of transitioning the network from ElGamal + AES256 to ECIES + ChaCha20,
 tunnels with mixed ElGamal and ECIES routers are necessary.
-Specifications for how to handle mixed tunnel hops are provided.
+Specifications for handling mixed tunnel hops are provided.
 No changes will be made to the format, processing, or encryption of ElGamal hops.
 
 ElGamal tunnel creators will need create ephemeral X25519 keypairs per-hop, and
@@ -38,10 +38,16 @@ Cryptographic Primitives
 
 No new cryptographic primitives are introduced. The primitives required to implement this proposal are:
 
-- ChaCha20(msg, nonce, key) - as in [RFC-7539]_
-- ChaCha20Poly1305(msg, nonce, AD, key) - as in [NTCP2]_ and [ECIES-X25519]_
-- X25519(privateKey, publicKey) - as in [NTCP2]_ and [ECIES-X25519]_
-- HKDF(rootKey, sharedSecret, CONTEXT, keylen) - as in [NTCP2]_ and [ECIES-X25519]_
+- AES-256-CBC as in [Cryptography]_
+- STREAM ChaCha20/Poly1305 functions:
+  ENCRYPT(k, n, plaintext, ad) and DECRYPT(k, n, ciphertext, ad) - as in [NTCP2]_ [ECIES-X25519]_ and [RFC-7539]_
+- X25519 DH functions - as in [NTCP2]_ and [ECIES-X25519]_
+- HKDF(salt, ikm, info, n) - as in [NTCP2]_ and [ECIES-X25519]_
+
+Other Noise functions defined elsewhere:
+
+- MixHash(d) - as in [NTCP2]_ and [ECIES-X25519]_
+- MixKey(d) - as in [NTCP2]_ and [ECIES-X25519]_
 
 
 Goals
@@ -137,6 +143,64 @@ TODO: Does the current design prevent all these attacks?
 Design
 ======
 
+Noise Protocol Framework
+------------------------
+
+This proposal provides the requirements based on the Noise Protocol Framework
+[NOISE]_ (Revision 34, 2018-07-11).
+Noise has similar properties to the Station-To-Station protocol
+[STS]_, which is the basis for the [SSU]_ protocol.  In Noise parlance, Alice
+is the initiator, and Bob is the responder.
+
+This proposal is based on the Noise protocol Noise_N_25519_ChaChaPoly_SHA256.
+This Noise protocol uses the following primitives:
+
+- One-Way Handshake Pattern: N
+  Alice does not transmit her static key to Bob (N)
+
+- DH Function: X25519
+  X25519 DH with a key length of 32 bytes as specified in [RFC-7748]_.
+
+- Cipher Function: ChaChaPoly
+  AEAD_CHACHA20_POLY1305 as specified in [RFC-7539]_ section 2.8.
+  12 byte nonce, with the first 4 bytes set to zero.
+  Identical to that in [NTCP2]_.
+
+- Hash Function: SHA256
+  Standard 32-byte hash, already used extensively in I2P.
+
+
+Additions to the Framework
+``````````````````````````
+
+None.
+
+
+Handshake Patterns
+------------------
+
+Handshakes use [Noise]_ handshake patterns.
+
+The following letter mapping is used:
+
+- e = one-time ephemeral key
+- s = static key
+- p = message payload
+
+The build request is identical to the Noise N pattern.
+This is also identical to the first (Session Request) message in the XK pattern used in [NTCP2]_.
+
+
+.. raw:: html
+
+  {% highlight lang='dataspec' %}
+<- s
+  ...
+  e es p ->
+
+{% endhighlight %}
+
+
 Request encryption
 -----------------------
 
@@ -144,8 +208,42 @@ Build request records are created by the tunnel creator and asymmetrically encry
 This asymmetric encryption of request records is currently ElGamal as defined in [Cryptography]_
 and contains a SHA-256 checksum. This design is not forward-secret.
 
-The new design will use ECIES-X25519 ephemeral-static DH, with an HKDF, and
+The new design will use the one-way Noise pattern "N" with ECIES-X25519 ephemeral-static DH, with an HKDF, and
 ChaCha20/Poly1305 AEAD for forward secrecy, integrity, and authentication.
+Alice is the tunnel build requestor. Each hop in the tunnel is a Bob.
+
+
+(Payload Security Properties)
+
+.. raw:: html
+
+  {% highlight lang='text' %}
+N:                      Authentication   Confidentiality
+    -> e, es                  0                2
+
+    Authentication: None (0).
+    This payload may have been sent by any party, including an active attacker.
+
+    Confidentiality: 2.
+    Encryption to a known recipient, forward secrecy for sender compromise
+    only, vulnerable to replay.  This payload is encrypted based only on DHs
+    involving the recipient's static key pair.  If the recipient's static
+    private key is compromised, even at a later date, this payload can be
+    decrypted.  This message can also be replayed, since there's no ephemeral
+    contribution from the recipient.
+
+    "e": Alice generates a new ephemeral key pair and stores it in the e
+         variable, writes the ephemeral public key as cleartext into the
+         message buffer, and hashes the public key along with the old h to
+         derive a new h.
+
+    "es": A DH is performed between the Alice's ephemeral key pair and the
+          Bob's static key pair.  The result is hashed along with the old ck to
+          derive a new ck and k, and n is set to zero.
+
+
+{% endhighlight %}
+
 
 
 Reply encryption
@@ -156,6 +254,17 @@ This symmetric encryption of reply records is currently AES with a prepended SHA
 and contains a SHA-256 checksum. This design is not forward-secret.
 
 The new design will use ChaCha20/Poly1305 AEAD for integrity, and authentication.
+
+
+Justification
+-----------------
+
+The ephemeral public key in the request does not need to be obfuscated with AES
+or Elligator2. The previous hop is the only one that can see it, and that hop
+knows that the next hop is ECIES.
+
+Reply records do not need full asymmetric encryption with another DH.
+
 
 
 Specification
@@ -223,6 +332,17 @@ Request Record Unencrypted (ECIES)
 ```````````````````````````````````````
 
 This is the proposed specification of the tunnel BuildRequestRecord for ECIES-X25519 routers.
+Summary of changes:
+
+- Remove unused 32-byte router hash
+- Remove reply IV
+- Change request time from hours to minutes
+- Add expiration field for future variable tunnel time
+- Add more space for flags
+- Add Properties for additional build options
+- AES-256 reply key and IV are not used for the hop's own reply record
+- Unencrypted record is longer because there is less encryption overhead
+
 
 The request record does not contain any explicit tunnel or reply keys.
 Those keys are derived from a KDF. See below.
@@ -236,15 +356,18 @@ Unencrypted size: 464 bytes
   {% highlight lang='dataspec' %}
 
 bytes     0-3: tunnel ID to receive messages as, nonzero
-  bytes    4-35: local router identity hash
-  bytes   36-39: next tunnel ID, nonzero
-  bytes   40-71: next router identity hash
-  bytes   72-74: unused, set to 0 for compatibility
-  byte       75: flags
-  bytes   76-79: request time (in minutes since the epoch, rounded down)
-  bytes   80-83: request expiration (in minutes since creation, rounded down)
-  bytes   84-87: next message ID
-  bytes    88-x: tunnel build options (Properties)
+  bytes     4-7: next tunnel ID, nonzero
+  bytes    8-39: next router identity hash
+  bytes   40-71: AES-256 tunnel layer key
+  bytes  72-103: AES-256 tunnel IV key
+  bytes 104-135: AES-256 reply key
+  bytes 136-151: AES-256 reply IV
+  byte      152: flags
+  bytes 153-155: more flags, unused, set to 0 for compatibility
+  bytes 156-159: request time (in minutes since the epoch, rounded down)
+  bytes 160-163: request expiration (in seconds since creation)
+  bytes 164-167: next message ID
+  bytes   168-x: tunnel build options (Properties)
   bytes     x-x: other data as implied by flags or options
   bytes   x-463: random padding
 
@@ -317,6 +440,12 @@ bytes 0-31   :: SHA-256 Hash of bytes 32-527
 
 Reply Record Unencrypted (ECIES)
 `````````````````````````````````````
+This is the proposed specification of the tunnel BuildRequestRecord for ECIES-X25519 routers.
+Summary of changes:
+
+- Add Properties for build reply options
+- Unencrypted record is longer because there is less encryption overhead
+
 ECIES replies are encrypted with ChaCha20/Poly1305.
 
 All fields are big-endian.
@@ -327,18 +456,19 @@ Unencrypted size: 512 bytes
 
   {% highlight lang='dataspec' %}
 
-bytes    0-x: Tunnel Build Options (Properties)
+bytes    0-x: Tunnel Build Reply Options (Properties)
   bytes    x-x: other data as implied by options
   bytes  x-510: Random padding
   bytes    511: Reply byte
 
 {% endhighlight %}
 
-The tunnel build options is a Properties structure as defined in [Common]_.
+The tunnel build reply options is a Properties structure as defined in [Common]_.
 This is for future use. No options are currently defined.
 If the Properties structure is empty, this is two bytes 0x00 0x00.
 
-Reply flags for ECIES reply records should use the following values to avoid fingerprinting:
+The reply byte is one of the following values
+as defined in [Tunnel-Creation]_ to avoid fingerprinting:
 
 - 0x00 (accept)
 - 30 (TUNNEL_REJECT_BANDWIDTH)
@@ -460,79 +590,40 @@ These keys are explicitly included in ElGamal BuildRequestRecords.
 For ECIES BuildRequestRecords, these keys are derived from the DH exchange.
 See [Prop156]_ for details of the router static ECIES keys.
 
-The ``recordKey`` takes the place of the product of the ElGamal exchange. It is used
-to AEAD encrypt request records for ECIES hops.
-
 Below is a description of how to derive the keys previously transmitted in request records.
 
-.. raw:: html
 
-  {% highlight lang='dataspec' %}
+KDF for Initial h
+````````````````````````
 
-// Sender generates an X25519 ephemeral keypair per ECIES hop in the VTBM (sesk, sepk)
-  sesk = GENERATE_PRIVATE()
-  sepk = DERIVE_PUBLIC(sesk)
-
-  // Each hop's X25519 static keypair (hesk, hepk) from the Router Identity
-  hesk = GENERATE_PRIVATE()
-  hepk = DERIVE_PUBLIC(hesk)
-
-  // Sender performs an X25519 DH with Hop's static public key.
-  // Each Hop, finds the record w/ their truncated identity hash,
-  // and extracts the Sender's ephemeral key preceding the encrypted record.
-  sharedSecret = DH(sesk, hepk) = DH(hesk, sepk)
-
-  // Derive a root key from the Sha256 of Sender's ephemeral key and Hop's full identity hash
-  rootKey = Sha256(sepk || hop_ident_hash)
-
-  keydata = HKDF(rootKey, sharedSecret, "RequestReplyGener", 96)
-  chainKey = keydata[0:31]  // used below
-  recordKey = keydata[32:63]  // AEAD key for Request Record encryption
-  replyKey = keydata[64:95]  // Hop reply key
-
-  keydata = HKDF(chainKey, sharedSecret, "TunnelLayerRando", 80)
-  layerKey = keydata[0:31]  // Tunnel layer key
-  layerIVkey = keydata[32:63]  // Tunnel IV key
-  replyIV = keydata[64:79]  // Reply record IV
-
-{% endhighlight %}
-
-``replyKey``, ``layerKey`` and ``layerIV`` must still be included inside ElGamal records,
-and can be generated randomly. For ElGamal, the ``recordKey`` is not needed, since the
-tunnel creator can directly encrypt to an ElGamal hop's public key.
-
-Keys are omitted from ECIES records (since they can be derived at the hop).
-
-
-BuildRequestRecord Encryption for ECIES Hops
---------------------------------------------
+This is standard [NOISE]_ for N with a standard protocol name.
 
 .. raw:: html
 
-  {% highlight lang='dataspec' %}
+  {% highlight lang='text' %}
+This is the "e" message pattern:
 
-// See record key KDF for key generation
-  // Repeat for each ECIES hop record in the VTBM
-  (ciphertext, mac) = ChaCha20-Poly1305(msg = unencrypted record, nonce = 0, AD = Sha256(hop's recordKey), key = hop's recordKey)
-  encryptedRecord = ciphertext || MAC
+  // Define protocol_name.
+  Set protocol_name = "Noise_N_25519_ChaChaPoly_SHA256"
+  (31 bytes, US-ASCII encoded, no NULL termination).
 
-  For subsequent records past the initial hop, pre-emptively decrypt for each preceding hop in the tunnel
+  // Define Hash h = 32 bytes
+  // Pad to 32 bytes. Do NOT hash it, because it is not more than 32 bytes.
+  h = protocol_name || 0
 
-  // If the preceding hop is ECIES:
-  nonce = one + number of records + zero-indexed order of record in the VariableTunnelBuildMessage
-  key = replyKey of preceding hop
-  symCiphertext = ChaCha20(msg = encryptedRecord, nonce, key)
+  Define ck = 32 byte chaining key. Copy the h data to ck.
+  Set chainKey = h
 
-  // If the preceding hop is ElGamal:
-  IV = reply IV of preceding hop
-  key = reply key of preceding hop
-  symCiphertext = AES256/CBC-Decrypt(msg = encryptedRecord, IV, key) 
+  // MixHash(null prologue)
+  h = SHA256(h);
+
+  // up until here, can all be precalculated by all routers.
 
 {% endhighlight %}
 
 
-KDFs
---------------------------------------------------------------
+KDF for Request Record
+````````````````````````
 
 ElGamal tunnel creators generate an ephemeral X25519 keypair for each
 ECIES hop in the tunnel, and use scheme above for encrypting their BuildRequestRecord.
@@ -547,65 +638,101 @@ This means that tunnel hops will only see encrypted records from their same encr
 For ElGamal and ECIES tunnel creators, they will generate unique ephemeral X25519 keypairs
 per-hop for encrypting to ECIES hops.
 
+**IMPORTANT**:
 Ephemeral keys must be unique per ECIES hop, and per build record.
+Failing to use unique keys opens an attack vector for colluding hops to confirm they are in the same tunnel.
 
-**IMPORTANT**: Failing to use unique keys opens an attack vector for colluding hops to confirm they are in the same tunnel.
 
 .. raw:: html
 
   {% highlight lang='dataspec' %}
 
-// See reply key KDF for key generation
-  // Encrypting an ECIES hop request record
-  AD = Sha256(hop static key || hop Identity hash)
-  (ciphertext, MAC) = ChaCha20-Poly1305(msg = BuildRequestRecord, nonce = 0, AD, key = hop's recordKey)
+// Each hop's X25519 static keypair (hesk, hepk) from the Router Identity
+  hesk = GENERATE_PRIVATE()
+  hepk = DERIVE_PUBLIC(hesk)
 
-  // Encrypting an ElGamal hop request record
-  ciphertext = ElGamal-Encrypt(msg = BuildRequestRecord, key = hop's ElGamal public key)
+  // MixHash(hepk)
+  // || below means append
+  h = SHA256(h || hepk);
+
+  // up until here, can all be precalculated by each router
+  // for all incoming build requests
+
+  // Sender generates an X25519 ephemeral keypair per ECIES hop in the VTBM (sesk, sepk)
+  sesk = GENERATE_PRIVATE()
+  sepk = DERIVE_PUBLIC(sesk)
+
+  End of "e" message pattern.
+
+  This is the "es" message pattern:
+
+  // Noise es
+  // Sender performs an X25519 DH with Hop's static public key.
+  // Each Hop, finds the record w/ their truncated identity hash,
+  // and extracts the Sender's ephemeral key preceding the encrypted record.
+  sharedSecret = DH(sesk, hepk) = DH(hesk, sepk)
+
+  // MixKey(DH())
+  //[chainKey, k] = MixKey(sharedSecret)
+  // ChaChaPoly parameters to encrypt/decrypt
+  keydata = HKDF(chainKey, sharedSecret, "", 64)
+  // Save for Reply Record KDF
+  chainKey = keydata[0:31]
+
+  // AEAD parameters
+  k = keydata[32:64]
+  n = 0
+  plaintext = 464 byte build request record
+  ad = h
+  ciphertext = ENCRYPT(k, n, plaintext, ad)
+
+  End of "es" message pattern.
+
+  // MixHash(ciphertext)
+  // Save for Reply Record KDF
+  h = SHA256(h || ciphertext)
 
 {% endhighlight %}
+
+``replyKey``, ``layerKey`` and ``layerIV`` must still be included inside ElGamal records,
+and can be generated randomly.
+
+
+Request Record Encryption (ElGamal)
+----------------------------------------
+
+As defined in [Tunnel-Creation]_.
+There are no changes to encryption for ElGamal hops.
+
+
 
 
 Reply Record Encryption (ECIES)
 --------------------------------------
 
-The nonces must be unique per ChaCha20/ChaCha20-Poly1305 invocation using the same key.
-
-See [RFC-7539]_ Security Considerations for more information.
+The reply record is ChaCha20/Poly1305 encrypted.
 
 .. raw:: html
 
   {% highlight lang='dataspec' %}
 
-// See reply key KDF for key generation
-  msg = reply byte || build options || random padding
-  (ciphertext, MAC) = ChaCha20-Poly1305(msg, nonce = 0, AD = Sha256(replyKey), key = replyKey)
-
-  // Other request/reply record encryption
-  // Use a unique nonce per-record
-  nonce = one + number of records + zero-indexed order of record in the VariableTunnelBuildMessage
-  symCiphertext = ChaCha20(msg = multiple encrypted record, nonce, key = replyKey)
+// AEAD parameters
+  k = chainkey from build request
+  n = 0
+  plaintext = 512 byte build reply record
+  ad = h from build request
+  ciphertext = ENCRYPT(k, n, plaintext, ad)
 
 {% endhighlight %}
 
-While mixed tunnels are used, reply records are the same size, though the format is different.
-
-After full transition to ECIES, random padding can be a range of included padding.
-
-When ranged padding is used, random padding will be formatted using the Padding block structure from [ECIES-X25519]_ and [NTCP2]_.
-
-For symmetric encryption by other hops, it's necessary to know full record length (w/ padding) without asymmetric decryption.
-
-When/if records become variable-length, it may become necessary to include an unencrypted Data block header before each record, TBD.
-
-BuildReplyRecord may or may not need to match BuildRequestRecord length if both are preceded by Data block header, TBD.
 
 
 Reply Record Encryption (ElGamal)
 ----------------------------------------
 
 As defined in [Tunnel-Creation]_.
-There are no changes for how ElGamal hops encrypt their replies.
+There are no changes to encryption for ElGamal hops.
+
 
 
 Security Analysis
@@ -693,6 +820,9 @@ References
 .. [I2NP]
    {{ spec_url('i2np') }}
 
+.. [NOISE]
+    https://noiseprotocol.org/noise.html
+
 .. [NTCP2]
    {{ spec_url('ntcp2') }}
 
@@ -716,3 +846,9 @@ References
 
 .. [RFC-7539]
    https://tools.ietf.org/html/rfc7539
+
+.. [RFC-7748]
+   https://tools.ietf.org/html/rfc7748
+
+
+
