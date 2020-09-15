@@ -3,7 +3,7 @@ ECIES Tunnels
 =============
 
 .. meta::
-    :author: chisana, zzz
+    :author: chisana, zzz, orignal
     :created: 2019-07-04
     :thread: http://zzz.i2p/topics/2737
     :lastupdated: 2020-09-15
@@ -148,9 +148,7 @@ Noise Protocol Framework
 
 This proposal provides the requirements based on the Noise Protocol Framework
 [NOISE]_ (Revision 34, 2018-07-11).
-Noise has similar properties to the Station-To-Station protocol
-[STS]_, which is the basis for the [SSU]_ protocol.  In Noise parlance, Alice
-is the initiator, and Bob is the responder.
+In Noise parlance, Alice is the initiator, and Bob is the responder.
 
 This proposal is based on the Noise protocol Noise_N_25519_ChaChaPoly_SHA256.
 This Noise protocol uses the following primitives:
@@ -339,7 +337,7 @@ Summary of changes:
 - Change request time from hours to minutes
 - Add expiration field for future variable tunnel time
 - Add more space for flags
-- Add Properties for additional build options
+- Add Mapping for additional build options
 - AES-256 reply key and IV are not used for the hop's own reply record
 - Unencrypted record is longer because there is less encryption overhead
 
@@ -367,7 +365,7 @@ bytes     0-3: tunnel ID to receive messages as, nonzero
   bytes 156-159: request time (in minutes since the epoch, rounded down)
   bytes 160-163: request expiration (in seconds since creation)
   bytes 164-167: next message ID
-  bytes   168-x: tunnel build options (Properties)
+  bytes   168-x: tunnel build options (Mapping)
   bytes     x-x: other data as implied by flags or options
   bytes   x-463: random padding
 
@@ -385,9 +383,9 @@ Bit 7 indicates that the hop will be an inbound gateway (IBGW).  Bit 6
 indicates that the hop will be an outbound endpoint (OBEP).  If neither bit is
 set, the hop will be an intermediate participant.  Both cannot be set at once.
 
-The tunnel build options is a Properties structure as defined in [Common]_.
+The tunnel build options is a Mapping structure as defined in [Common]_.
 This is for future use. No options are currently defined.
-If the Properties structure is empty, this is two bytes 0x00 0x00.
+If the Mapping structure is empty, this is two bytes 0x00 0x00.
 
 
 
@@ -443,7 +441,7 @@ Reply Record Unencrypted (ECIES)
 This is the proposed specification of the tunnel BuildRequestRecord for ECIES-X25519 routers.
 Summary of changes:
 
-- Add Properties for build reply options
+- Add Mapping for build reply options
 - Unencrypted record is longer because there is less encryption overhead
 
 ECIES replies are encrypted with ChaCha20/Poly1305.
@@ -456,16 +454,16 @@ Unencrypted size: 512 bytes
 
   {% highlight lang='dataspec' %}
 
-bytes    0-x: Tunnel Build Reply Options (Properties)
+bytes    0-x: Tunnel Build Reply Options (Mapping)
   bytes    x-x: other data as implied by options
   bytes  x-510: Random padding
   bytes    511: Reply byte
 
 {% endhighlight %}
 
-The tunnel build reply options is a Properties structure as defined in [Common]_.
+The tunnel build reply options is a Mapping structure as defined in [Common]_.
 This is for future use. No options are currently defined.
-If the Properties structure is empty, this is two bytes 0x00 0x00.
+If the Mapping structure is empty, this is two bytes 0x00 0x00.
 
 The reply byte is one of the following values
 as defined in [Tunnel-Creation]_ to avoid fingerprinting:
@@ -596,7 +594,7 @@ Below is a description of how to derive the keys previously transmitted in reque
 KDF for Initial h
 ````````````````````````
 
-This is standard [NOISE]_ for N with a standard protocol name.
+This is standard [NOISE]_ for pattern "N" with a standard protocol name.
 
 .. raw:: html
 
@@ -721,6 +719,7 @@ The reply record is ChaCha20/Poly1305 encrypted.
   n = 0
   plaintext = 512 byte build reply record
   ad = h from build request
+
   ciphertext = ENCRYPT(k, n, plaintext, ad)
 
 {% endhighlight %}
