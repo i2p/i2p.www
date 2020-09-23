@@ -597,7 +597,7 @@ References
     http://csrc.nist.gov/publications/nistpubs/800-57/sp800-57-Part1-revised2_Mar08-2007.pdf
 
 .. [NOISE]
-    http://noiseprotocol.org/noise.html
+    https://noiseprotocol.org/noise.html
 
 .. [NTCP]
     {{ site_url('docs/transport/ntcp', True) }}

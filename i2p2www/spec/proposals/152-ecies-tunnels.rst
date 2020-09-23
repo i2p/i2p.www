@@ -6,7 +6,7 @@ ECIES Tunnels
     :author: chisana, zzz, orignal
     :created: 2019-07-04
     :thread: http://zzz.i2p/topics/2737
-    :lastupdated: 2020-09-15
+    :lastupdated: 2020-09-23
     :status: Open
     :target: 0.9.51
 
@@ -427,9 +427,9 @@ Unencrypted size: 528 bytes
 
   {% highlight lang='dataspec' %}
 
-bytes 0-31   :: SHA-256 Hash of bytes 32-527
-  bytes 32-526 :: random data
-  byte  527    :: reply
+bytes   0-31: SHA-256 Hash of bytes 32-527
+  bytes 32-526: random data
+  byte     527: reply
 
   total length: 528
 
@@ -457,7 +457,7 @@ Unencrypted size: 512 bytes
 bytes    0-x: Tunnel Build Reply Options (Mapping)
   bytes    x-x: other data as implied by options
   bytes  x-510: Random padding
-  bytes    511: Reply byte
+  byte     511: Reply byte
 
 {% endhighlight %}
 
@@ -481,7 +481,7 @@ Encrypted size: 528 bytes
 
   {% highlight lang='dataspec' %}
 
-bytes     0-511: ChaCha20 encrypted BuildReplyRecord
+bytes   0-511: ChaCha20 encrypted BuildReplyRecord
   bytes 512-527: Poly1305 MAC
 
 {% endhighlight %}

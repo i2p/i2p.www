@@ -3660,7 +3660,7 @@ References
     {{ spec_url('ntcp2') }}
 
 .. [NOISE]
-    http://noiseprotocol.org/noise.html
+    https://noiseprotocol.org/noise.html
 
 .. [Prop111]
     {{ proposal_url('111') }}
