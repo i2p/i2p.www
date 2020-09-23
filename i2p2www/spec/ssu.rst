@@ -3,8 +3,8 @@ SSU Protocol Specification
 ==========================
 .. meta::
     :category: Transports
-    :lastupdated: August 2019
-    :accuratefor: 0.9.42
+    :lastupdated: 2020-09
+    :accuratefor: 0.9.48
 
 .. contents::
 
@@ -250,7 +250,8 @@ Common structures specification [SESSIONKEY]_.  The key used for the MAC and
 encryption is specified for each message below.
 
 Introduction keys are delivered through an external channel (the network
-database, where they are identical to the router Hash for now).
+database), where they have traditionally been identical to the router Hash through release 0.9.47,
+but may be random as of release 0.9.48.
 
 
 Notes
