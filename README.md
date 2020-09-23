@@ -7,7 +7,7 @@ To run locally (for testing purposes):
 - Pull in the dependencies:
 
     ```
-    $ proxychains ./setup_venv.qsh
+    $ proxychains ./setup_venv.sh
     ```
 
     (you can also pull them non-anon by leaving out proxychains)
@@ -43,6 +43,21 @@ If you want to mirror the I2P website, thanks! Here is a checklist:
   recompile the translations when necessary, and touch a file in `/tmp/`
   (look in `etc/update.vars` for the filename, your webserver should restart
   WSGI when the timestamp of this file changes).
+  
+## Running a mirror with Docker
+
+It's possible to set up a mirror using apache2 inside of a Docker container.
+It is intended to provide a HTTP server, to use HTTPS, using a reverse proxy
+is the easiest way. You should not need to make any modifications to the
+service running inside the container, but you may make the same modifications
+to the containerized mirror that you would to a normal mirror by changing your
+local copy of the site according to the recommendations in the previous 
+settings.
+
+- To automatically start an HTTP mirror on port 8090, run: `site-updater-docker.sh`
+
+- When you have your mirror configured, add `site-updater-docker.sh` to your crontab
+to keep the site up-to-date.
 
 ## Configuration
 
