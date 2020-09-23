@@ -10,6 +10,7 @@ WORKDIR /var/www/i2p.www
 RUN apt-get update && \
     apt-get -y install apache2 apache2-utils libapache2-mod-wsgi python2-dev python-pip patch python-virtualenv git && \
     ## Start setting up the site
+    rm -rfv env && \
     virtualenv --distribute env                && \  
     . env/bin/activate                          && \
     pip install -r etc/reqs.txt                 && \
@@ -19,7 +20,7 @@ RUN apt-get update && \
     ## We've now updated the site
     ## Next let's configure WSGI
     ## Set ownership of site to server
-    cp etc/docker.i2p.wsgi i2p.wsgi && \
+    cp etc/docker.wsgi.i2p i2p.wsgi && \
     chown -R www-data /var/www/i2p.www                    && \ 
     ## Make the WSGI script owned by the server 
     chown www-data:www-data /var/www/i2p.www/i2p.wsgi     && \  
@@ -31,7 +32,6 @@ RUN apt-get update && \
     a2ensite i2p && \
     ls /etc/apache2 && \
     sed -i 's|IncludeOptional sites-enabled|# IncludeOptional sites-enabled|g' /etc/apache2/apache2.conf && \
-    sed -i '1 i\IncludeOptional sites-enabled/i2p.conf' /etc/apache2/apache2.conf && \
-    cat /etc/apache2/apache2.conf
+    sed -i '1 i\IncludeOptional sites-enabled/i2p.conf' /etc/apache2/apache2.conf
 
 CMD service apache2 restart && tail -f /var/log/apache2/access.log
