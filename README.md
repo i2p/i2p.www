@@ -7,7 +7,7 @@ To run locally (for testing purposes):
 - Pull in the dependencies:
 
     ```
-    $ proxychains ./setup_venv.sh
+    $ proxychains ./setup_venv.qsh
     ```
 
     (you can also pull them non-anon by leaving out proxychains)
