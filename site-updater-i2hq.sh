@@ -16,7 +16,7 @@ if [ -d ./.git ]; then
     ./compile-messages-i2hq.sh
   fi
 
-  echo "Git revision: $(git log -n 1 | grep commit | sed 's/commit //' | sed 's/ .*$//')" >./i2p2www/pages/include/mtnversion
+  echo "Git revision: $(git log -n 1 | grep commit | sed 's/commit: //' | sed 's/ .*$//')" >./i2p2www/pages/include/mtnversion
 
   if grep "^git: updating 'i2p2www/.*\.py\|^mtn: updating 'i2p2www/.*/.*\.py" "$TMP" >/dev/null ; then
     echo "Python files changed, restarting server"
