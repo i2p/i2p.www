@@ -1,0 +1,95 @@
+{% extends "global/layout.html" %}
+{% block title %}{% trans %}Setting up Gitlab with I2P{% endtrans %}{% endblock %}
+{% block lastupdated %}2020-09{% endblock %}
+{% block accuratefor %}0.9.47{% endblock %}
+{% block content %}
+<h1 id="gitlab-over-i2p-setup">{% trans -%}Gitlab over I2P Setup{%- endtrans %}</h1>
+<div class="meta" data-author="idk" data-date="2020-03-16" data-excerpt="{% trans -%}Mirror I2P Git repositories and Bridge Clearnet repositories for others.{%- endtrans %}">
+
+</div>
+<p>{% trans -%} This is the setup process I use for configuring Gitlab and I2P, with Docker in place to manage the service itself. Gitlab is very easy to host on I2P in this fashion, it can be administered by one person without much difficulty. In my configuration, I use a Debian VM to host docker containers and an I2P router, on a Debian Host system, however, this may be more than necessary for some people. These instructions should work on any Debian-based system, regardless of whether it is in a VM or not, and should easily translate to any system where Docker and an I2P router are available. This guide starts at Docker and does not assume any VM underneath. {%- endtrans %}</p>
+<h2 id="dependencies-and-docker">{% trans -%}Dependencies and Docker{%- endtrans %}</h2>
+<p>{% trans -%} Because Gitlab runs in a container, we only need to install the dependencies required for the container on our main system. Conveniently, you can install everything you need with: {%- endtrans %}</p>
+<pre><code>sudo apt install docker.io</code></pre>
+<p>{% trans -%} on an otherwise unmodified Debian system, or if you have added Docker’s own “Community” Debian repository, you may use: {%- endtrans %}</p>
+<pre><code>sudo apt install docker-ce</code></pre>
+<p>{% trans -%} instead. {%- endtrans %}</p>
+<h3 id="fetch-the-docker-containers">{% trans -%}Fetch the Docker Containers{%- endtrans %}</h3>
+<p>{% trans -%} Once you have docker installed, you can fetch the docker containers required for gitlab. <em>Don’t run them yet.</em> {%- endtrans %}</p>
+<pre><code>docker pull gitlab/gitlab-ce</code></pre>
+<p>{% trans -%} For those who are concerned, the gitlab-ce Docker image is built using only Ubuntu Docker images as a parent, which are built from scratch images. Since there are no third-party images involved here, updates should come as soon as they are available in the host images. To review the Dockerfile for yourself, visit the <a href="https://gitlab.com/gitlab-org/omnibus-gitlab/-/blob/master/docker/Dockerfile">Gitlab source code</a>. {%- endtrans %}</p>
+<h2 id="set-up-an-i2p-http-proxy-for-gitlab-to-useimportant-information-optional-steps">{% trans -%}Set up an I2P HTTP Proxy for Gitlab to use(Important information, optional steps){%- endtrans %}</h2>
+<p>{% trans -%} Gitlab servers inside of I2P can be run with or without the ability to interact with servers on the internet outside of I2P. In the case where the Gitlab server is <em>not allowed</em> to interact with servers outside of I2P, they cannot be de-anonymized by cloning a git repository from a git server on the internet outside of I2P. They can, however, export and mirror repositories from other git services inside of I2P. {%- endtrans %}</p>
+<p>{% trans -%} In the case where the Gitlab server is <em>allowed</em> to interact with servers outside of I2P, it can act as a “Bridge” for the users, who can use it to mirror content outside I2P to an I2P-accessible source, however it <em>is not anonymous</em> in this case. Git services on the non-anonymous internet will be connected to directly. {%- endtrans %}</p>
+<p>{% trans -%} <strong>If you want to have a bridged, non-anonymous Gitlab instance with access to</strong> <strong>web repositories,</strong> no further modification is necessary. {%- endtrans %}</p>
+<p>{% trans -%} <strong>If you want to have an I2P-Only Gitlab instance with no access to Web-Only</strong> <strong>Repositories</strong>, you will need to configure Gitlab to use an I2P HTTP Proxy. Since the default I2P HTTP proxy only listens on <code>127.0.0.1</code>, you will need to set up a new one for Docker that listens on the Host/Gateway address of the Docker network, which is usually <code>172.17.0.1</code>. I configure mine on port <code>4446</code>. {%- endtrans %}</p>
+<h2 id="start-the-container-locally">{% trans -%}Start the Container Locally{%- endtrans %}</h2>
+<p>{% trans -%} Once you have that set up, you can start the container and publish your Gitlab instance locally. {%- endtrans %}</p>
+<pre><code>docker run --detach \
+  --env HTTP_PROXY=http://172.17.0.1:4446 \
+  --publish 127.0.0.1:8443:443 --publish 127.0.0.1:8080:80 --publish 127.0.0.1:8022:22 \
+  --name gitlab \
+  --restart always \
+  --volume /srv/gitlab/config:/etc/gitlab:Z \
+  --volume /srv/gitlab/logs:/var/log/gitlab:Z \
+  --volume /srv/gitlab/data:/var/opt/gitlab:Z \
+  gitlab/gitlab-ce:latest</code></pre>
+<p>{% trans -%} Visit your Local Gitlab instance and set up your admin account. Choose a strong password, and configure user account limits to match your resources. {%- endtrans %}</p>
+<h2 id="modify-gitlab.rboptional-but-a-good-idea-for-bridged-non-anonymous-hosts">{% trans -%}Modify gitlab.rb(Optional, but a good idea for “Bridged non-anonymous” hosts){%- endtrans %}</h2>
+<p>{% trans -%} It’s also possible to apply your HTTP Proxy settings in a more granular way, so that you can only allow users to mirror repositories from the domains that you choose. Since the domain is presumably operated by an organization, you can use this to ensure that repositories that are mirrorable follow a reasonable set of policies. After all, there is far more abusive content on the non-anonymous internet than there is on I2P, we wouldn’t want to make it too easy to introduce abusive content from such a nefarious place. {%- endtrans %}</p>
+<p>{% trans -%} Add the following lines to your gitlab.rb file inside the /src/gitlab/config container. These settings will take effect when you restart in a moment. {%- endtrans %}</p>
+<pre><code>gitlab_rails[&#39;env&#39;] = {
+    &quot;http_proxy&quot; =&gt; &quot;http://172.17.0.1:4446&quot;,
+    &quot;https_proxy&quot; =&gt; &quot;http://172.17.0.1:4446&quot;,
+    &quot;no_proxy&quot; =&gt; &quot;.github.com,.gitlab.com&quot;
+}
+gitaly[&#39;env&#39;] = {
+    &quot;http_proxy&quot; =&gt; &quot;http://172.17.0.1:4446&quot;,
+    &quot;https_proxy&quot; =&gt; &quot;http://172.17.0.1:4446&quot;,
+    &quot;no_proxy&quot; =&gt; &quot;unix,.github.com,.gitlab.com&quot;
+}
+gitlab_workhorse[&#39;env&#39;] = {
+    &quot;http_proxy&quot; =&gt; &quot;http
+    &quot;https_proxy&quot; =&gt; &quot;http://172.17.0.1:4446&quot;,
+    &quot;no_proxy&quot; =&gt; &quot;unix,.github.com,.gitlab.com&quot;
+}</code></pre>
+<h3 id="set-up-your-service-tunnels-and-sign-up-for-a-hostname">{% trans -%}Set up your Service tunnels and sign up for a Hostname{%- endtrans %}</h3>
+<p>{% trans -%} Once you have Gitlab set up locally, go to the I2P Router console. You will need to set up two server tunnels, one leading to the Gitlab web(HTTP) interface on TCP port 8080, and one to the Gitlab SSH interface on TCP Port 8022. {%- endtrans %}</p>
+<h4 id="gitlab-webhttp-interface">{% trans -%}Gitlab Web(HTTP) Interface{%- endtrans %}</h4>
+<p>{% trans -%} For the Web interface, use an “HTTP” server tunnel. From <a href="http://127.0.0.1:7657/i2ptunnelmgr">http://127.0.0.1:7657/i2ptunnelmgr</a> launch the “New Tunnel Wizard” and enter the following values at each step: {%- endtrans %}</p>
+<ol type="1">
+<li>{% trans -%}Select “Server Tunnel”{%- endtrans %}</li>
+<li>{% trans -%}Select “HTTP Server”{%- endtrans %}</li>
+<li>{% trans -%}Fill in “Gitlab Web Service” or otherwise describe the tunnel{%- endtrans %}</li>
+<li>{% trans -%}Fill in <code>127.0.0.1</code> for the host and <code>8080</code> for the port.{%- endtrans %}</li>
+<li>{% trans -%}Select “Automatically start tunnel when Router Starts”{%- endtrans %}</li>
+<li>{% trans -%}Confirm your selections.{%- endtrans %}</li>
+</ol>
+<h5 id="register-a-hostnameoptional">{% trans -%}Register a Hostname(Optional){%- endtrans %}</h5>
+<p>{% trans -%} Web services on I2P can register hostnames for themselves by providing an authentication string to a jump service provider like <a href="http://stats.i2p">stats.i2p</a>. To do this, open the <a href="http://127.0.0.1:7657/i2ptunnelmgr">http://127.0.0.1:7657/i2ptunnelmgr</a> again and click on the “Gitlab Web Service” item you just set up. Scroll to the bottom of the “Edit Server Settings” section and click Registration Authentication. Copy the field that says “Authentication for adding Hostname” and visit <a href="http://stats.i2p/i2p/addkey.html">stats.i2p</a> to add your hostname. Note that if you want to use a subdomain(Like git.idk.i2p) then you will have to use the correct authentication string for your subdomain, which is a little bit more complicated and merits it’s own instructions. {%- endtrans %}</p>
+<h4 id="gitlab-ssh-interface">{% trans -%}Gitlab SSH Interface{%- endtrans %}</h4>
+<p>{% trans -%} For the SSH interface, use a “Standard” server tunnel. From <a href="http://127.0.0.1:7657/i2ptunnelmgr">http://127.0.0.1:7657/i2ptunnelmgr</a> launch the “New Tunnel Wizard” and enter the following values at each step: {%- endtrans %}</p>
+<ol type="1">
+<li>{% trans -%}Select “Server Tunnel”{%- endtrans %}</li>
+<li>{% trans -%}Select “Standard Server”{%- endtrans %}</li>
+<li>{% trans -%}Fill in “Gitlab SSH Service” or otherwise describe the tunnel{%- endtrans %}</li>
+<li>{% trans -%}Fill in <code>127.0.0.1</code> for the host and <code>8022</code> for the port.{%- endtrans %}</li>
+<li>{% trans -%}Select “Automatically start tunnel when Router Starts”{%- endtrans %}</li>
+<li>{% trans -%}Confirm your selections.{%- endtrans %}</li>
+</ol>
+<h2 id="re-start-the-gitlab-service-with-the-new-hostname">{% trans -%}Re-start the Gitlab Service with the new Hostname{%- endtrans %}</h2>
+<p>{% trans -%} Finally, if you either modified <code>gitlab.rb</code> or you registered a hostname, you will need to re-start the gitlab service for the settings to take effect. {%- endtrans %}</p>
+<pre><code>docker stop gitlab
+docker rm gitlab
+docker run --detach \
+  --hostname your.hostname.i2p \
+  --hostname thisisreallylongbase32hostnamewithfiftytwocharacters.b32.i2p \
+  --env HTTP_PROXY=http://172.17.0.1:4446 \
+  --publish 127.0.0.1:8443:443 --publish 127.0.0.1:8080:80 --publish 127.0.0.1:8022:22 \
+  --name gitlab \
+  --restart always \
+  --volume /srv/gitlab/config:/etc/gitlab:Z \
+  --volume /srv/gitlab/logs:/var/log/gitlab:Z \
+  --volume /srv/gitlab/data:/var/opt/gitlab:Z \
+  gitlab/gitlab-ce:latest</code></pre>
+{% endblock %}
