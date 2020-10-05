@@ -90,6 +90,7 @@ url('/<lang:lang>/browser/develop', 'browser.browser_develop')
 
 url('/<lang:lang>/download', 'downloads.downloads_list')
 url('/<lang:lang>/download/debian', 'downloads.downloads_debian')
+url('/<lang:lang>/download/windows', 'downloads.downloads_windows')
 url('/<lang:lang>/download/firefox', 'downloads.downloads_firefox')
 url('/<lang:lang>/download/config', 'downloads.downloads_config')
 url('/<lang:lang>/download/lab', 'downloads.downloads_lab')
