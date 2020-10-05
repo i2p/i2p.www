@@ -66,6 +66,10 @@ def downloads_list():
 def downloads_debian():
     return render_template('downloads/debian.html')
 
+# Windows-specific page
+def downloads_windows():
+    return render_template('downloads/windows.html')
+
 # Firefox-specific page
 def downloads_firefox():
     # TODO: read mirror list or list of available files
