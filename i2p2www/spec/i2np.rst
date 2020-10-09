@@ -3,8 +3,8 @@ I2NP Specification
 ==================
 .. meta::
     :category: Protocols
-    :lastupdated: 2020-06
-    :accuratefor: 0.9.46
+    :lastupdated: 2020-10
+    :accuratefor: 0.9.48
 
 .. contents::
 
@@ -1476,7 +1476,7 @@ Notes
 * The I2NP message ID for this message must be set according to the tunnel
   creation specification.
 
-* Typical number of records in today's network is 5.
+* Typical number of records in today's network is 4, for a total size of 2113.
 
 .. _msg-VariableTunnelBuildReply:
 
@@ -1503,7 +1503,7 @@ Notes
 * The I2NP message ID for this message must be set according to the tunnel
   creation specification.
 
-* Typical number of records in today's network is 5.
+* Typical number of records in today's network is 4, for a total size of 2113.
 
 
 References
