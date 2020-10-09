@@ -6,7 +6,7 @@ ECIES Tunnels
     :author: chisana, zzz, orignal
     :created: 2019-07-04
     :thread: http://zzz.i2p/topics/2737
-    :lastupdated: 2020-09-23
+    :lastupdated: 2020-10-09
     :status: Open
     :target: 0.9.51
 
@@ -84,6 +84,7 @@ Non-Goals
 - Shrinking tunnel build messages (requires all-ECIES hops and a new proposal)
 - Use of tunnel build options as defined in [Prop143]_, only required for small messages
 - Bidirectional tunnels - for that see [Prop119]_
+- Smaller tunnel build messages - for that see [Prop157]_
 
 
 Threat Model
@@ -836,6 +837,9 @@ References
 
 .. [Prop156]
     {{ proposal_url('156') }}
+
+.. [Prop157]
+    {{ proposal_url('157') }}
 
 .. [Tunnel-Creation]
    {{ spec_url('tunnel-creation') }}

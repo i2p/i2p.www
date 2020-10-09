@@ -5,7 +5,7 @@ ECIES Routers
     :author: zzz, orignal
     :created: 2020-09-01
     :thread: http://zzz.i2p/topics/2950
-    :lastupdated: 2020-09-05
+    :lastupdated: 2020-10-09
     :status: Open
     :target: 0.9.51
 
@@ -46,6 +46,7 @@ See [Prop152]_ for additional goals.
 - Maximize compatibility with current network
 - Do not require "flag day" upgrade to entire network
 - Gradual rollout to minimize risk
+- New, smaller tunnel build message
 
 
 Non-Goals
@@ -54,7 +55,7 @@ Non-Goals
 See [Prop152]_ for additional non-goals.
 
 - No requirement for dual-key routers
-- Complete redesign of tunnel build messages requiring a "flag day", for that see [Prop153]_
+- Layer encryption changes, for that see [Prop153]_
 
 
 Design
@@ -92,9 +93,17 @@ are required to use ECIES instead of ElGamal.
 In addition, we will make improvements to the tunnel build messages
 to increase security.
 
+In phase 1, we will change the format and encryption of the
+Build Request Record and Build Response Record for ECIES hops.
+These changes will be compatible with existing ElGamal routers.
 These changes are defined in proposal 152 [Prop152]_.
-Proposal 152 is preliminary and has not been fully reviewed.
-It will require significant corrections and cleanup.
+
+In phase 2, we will add a new version of the
+Build Request Message, Build Reply Message,
+Build Request Record and Build Response Record.
+The size will be reduced for efficiency.
+These changes must be supported by all hops in a tunnel, and all hops must be ECIES.
+These changes are defined in proposal 157 [Prop157]_.
 
 
 
@@ -147,6 +156,7 @@ Tunnel Building: See [Prop152]_.
 
 End-to-End Encryption: See [ECIES]_.
 
+New Tunnel Build Message: See [Prop157]_.
 
 
 Justification
@@ -255,6 +265,18 @@ Probably start rekeying mid-2021.
 Target release: TBD
 
 
+New Tunnel Build Message
+--------------------------
+
+Implement and test the new Tunnel Build Message.
+Roll the support out in a release.
+Do additional testing, then enable it in the next release.
+
+Probably mid-2021.
+
+Target release: TBD
+
+
 ECIES for New Installs
 --------------------------
 
@@ -305,6 +327,9 @@ References
 
 .. [Prop154]
     {{ proposal_url('154') }}
+
+.. [Prop157]
+    {{ proposal_url('157') }}
 
 .. [Tunnel-Creation]
     {{ spec_url('tunnel-creation') }}
