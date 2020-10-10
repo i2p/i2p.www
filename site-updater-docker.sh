@@ -1,4 +1,4 @@
-#! /usr/bin/env sh
+#! /usr/bin/env bash
 
 ## Set additional docker run arguments by changing the variable
 ## i2p_www_docker_run_args
