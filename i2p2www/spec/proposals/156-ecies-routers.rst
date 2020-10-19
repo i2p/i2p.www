@@ -5,7 +5,7 @@ ECIES Routers
     :author: zzz, orignal
     :created: 2020-09-01
     :thread: http://zzz.i2p/topics/2950
-    :lastupdated: 2020-10-09
+    :lastupdated: 2020-10-19
     :status: Open
     :target: 0.9.51
 
@@ -204,13 +204,23 @@ by mid-2019 in reaction to unfinished proposal 145 [Prop145]_.
 Ensure there's nothing in the code bases
 that prevents point-to-point connections to non-ElGamal routers.
 
+Code correctness checks:
+
+- Ensure that ElGamal routers do not request AEAD-encrypted replies to DatabaseLookup messages
+  (when the reply comes back through an exploratory tunnel to the router)
+- Ensure that ECIES routers do not request AES-encrypted replies to DatabaseLookup messages
+  (when the reply comes back through an exploratory tunnel to the router)
+
 Until later phases, when specifications and implementations are complete:
 
 - Ensure that tunnel builds are not attempted by ElGamal routers through ECIES routers.
 - Ensure that encrypted ElGamal messages are not sent by ElGamal routers to ECIES floodfill routers.
+  (DatabaseLookups and DatabaseStores)
 - Ensure that encrypted ECIES messages are not sent by ECIES routers to ElGamal floodfill routers.
+  (DatabaseLookups and DatabaseStores)
 - Ensure that ECIES routers do not automatically become floodfill.
 
+No changes should be required.
 Target release, if changes required: 0.9.48
 
 
@@ -223,6 +233,7 @@ by mid-2019 in reaction to unfinished proposal 145 [Prop145]_.
 Ensure there's nothing in the code bases
 that prevents storage of non-ElGamal RouterInfos in the network database.
 
+No changes should be required.
 Target release, if changes required: 0.9.48
 
 
@@ -236,19 +247,25 @@ use its own build request record for an inbound tunnel to test and debug.
 Then test and support ECIES routers building tunnels with a mix of
 ElGamal and ECIES hops.
 
-Then enable tunnel building through ECIES routers with a minimum version TBD.
+Then enable tunnel building through ECIES routers.
+No minimum version check should be necessary unless incompatible changes
+to proposal 152 are made after a release.
 
-Target release: 0.9.49 or 0.9.50, early-mid 2021
+Target release: 0.9.48, late 2020
 
 
 Ratchet messages to ECIES floodfills
 ----------------------------------------
 
 Implement and test reception of ECIES messages (with zero static key) by ECIES floodfills.
-Enable auto-floodfill by ECIES routers.
-Then enable sending ECIES messages to ECIES routers with a minimum version TBD.
+Implement ant test reception of AEAD replies to DatabaseLookup messages by ECIES routers.
 
-Target release: 0.9.49 or 0.9.50, early-mid 2021
+Enable auto-floodfill by ECIES routers.
+Then enable sending ECIES messages to ECIES routers.
+No minimum version check should be necessary unless incompatible changes
+to proposal 152 are made after a release.
+
+Target release: 0.9.49, early 2021
 
 
 Rekeying
@@ -268,7 +285,7 @@ Target release: TBD
 New Tunnel Build Message
 --------------------------
 
-Implement and test the new Tunnel Build Message.
+Implement and test the new Tunnel Build Message as defined in proposal 157 [Prop157]_.
 Roll the support out in a release.
 Do additional testing, then enable it in the next release.
 
