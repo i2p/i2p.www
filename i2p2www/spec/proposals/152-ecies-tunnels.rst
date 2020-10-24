@@ -6,7 +6,7 @@ ECIES Tunnels
     :author: chisana, zzz, orignal
     :created: 2019-07-04
     :thread: http://zzz.i2p/topics/2737
-    :lastupdated: 2020-10-09
+    :lastupdated: 2020-10-24
     :status: Open
     :target: 0.9.51
 
@@ -660,6 +660,9 @@ Failing to use unique keys opens an attack vector for colluding hops to confirm 
   // Sender generates an X25519 ephemeral keypair per ECIES hop in the VTBM (sesk, sepk)
   sesk = GENERATE_PRIVATE()
   sepk = DERIVE_PUBLIC(sesk)
+
+  // MixHash(sepk)
+  h = SHA256(h || sepk);
 
   End of "e" message pattern.
 
