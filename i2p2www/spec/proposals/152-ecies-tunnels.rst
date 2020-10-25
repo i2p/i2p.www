@@ -6,7 +6,7 @@ ECIES Tunnels
     :author: chisana, zzz, orignal
     :created: 2019-07-04
     :thread: http://zzz.i2p/topics/2737
-    :lastupdated: 2020-10-24
+    :lastupdated: 2020-10-25
     :status: Open
     :target: 0.9.51
 
@@ -31,6 +31,9 @@ follow this spec for creating tunnels containing ECIES hops.
 This proposal specifies changes needed for ECIES-X25519 Tunnel Building.
 For an overview of all changes required for ECIES routers, see proposal 156 [Prop156]_.
 
+This proposal maintains the same size for tunnel build records,
+as required for compatibility. Smaller build records and messages will be
+implemented later - see [Prop157]_.
 
 
 Cryptographic Primitives
@@ -383,6 +386,9 @@ The flags field is the same as defined in [Tunnel-Creation]_ and contains the fo
 Bit 7 indicates that the hop will be an inbound gateway (IBGW).  Bit 6
 indicates that the hop will be an outbound endpoint (OBEP).  If neither bit is
 set, the hop will be an intermediate participant.  Both cannot be set at once.
+
+The request exipration is for future variable tunnel duration.
+For now, the only supported value is 600 (10 minutes).
 
 The tunnel build options is a Mapping structure as defined in [Common]_.
 This is for future use. No options are currently defined.
@@ -769,34 +775,14 @@ This design minimizes risk.
 Implementation Notes
 =====================
 
-
+* Older routers do not check the encryption type of the hop and will send ElGamal-encrypted
+  records. Some recent routers are buggy and will send various types of malformed records.
+  Implementers should detect and reject these records prior to the DH operation
+  if possible, to reduce CPU usage.
 
 
 Issues
 ======
-
-* Is an HKDF required for the keys, what's the advantage of doing that vs.
-  just including them in the build record as before?
-
-* Make KDFs be similar to those in Noise (NTCP2) and Ratchet
-
-* HKDF output no more than 64 bytes preferred
-
-* In the current Java implementation, the full router hash field in the build
-  request record at bytes 4-35 is not checked and does not appear to be necessary.
-
-* Each record is CBC encrypted with the same AES reply key and IV, as with the current design.
-  Is this a problem? Can it be fixed?
-
-* In the current Java implementation, the originator leaves one record empty
-  for itself. Thus a message of n records can only build a tunnel of n-1 hops.
-  This is necessary for inbound tunnels (where the next-to-last hop
-  can see the hash prefix for the next hop), but not for outbound tunnels.
-  However, if the build message length is different for inbound and outbound
-  tunnels, this would allow hops to determine which direction the tunnel was.
-
-* Should we define new, smaller VTBM/VTBRM I2NP messages for all-ECIES tunnels
-  now instead of waiting for the rollout?
 
 
 
