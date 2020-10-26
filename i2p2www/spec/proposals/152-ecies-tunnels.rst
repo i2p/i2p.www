@@ -6,7 +6,7 @@ ECIES Tunnels
     :author: chisana, zzz, orignal
     :created: 2019-07-04
     :thread: http://zzz.i2p/topics/2737
-    :lastupdated: 2020-10-25
+    :lastupdated: 2020-10-26
     :status: Open
     :target: 0.9.51
 
@@ -346,7 +346,7 @@ Summary of changes:
 - Unencrypted record is longer because there is less encryption overhead
 
 
-The request record does not contain any explicit tunnel or reply keys.
+The request record does not contain any ChaCha reply keys.
 Those keys are derived from a KDF. See below.
 
 All fields are big-endian.
@@ -592,7 +592,8 @@ Request Record Keys (ECIES)
 -----------------------------------------------------------------------
 
 These keys are explicitly included in ElGamal BuildRequestRecords.
-For ECIES BuildRequestRecords, these keys are derived from the DH exchange.
+For ECIES BuildRequestRecords, the tunnel keys and AES reply keys are included,
+but the ChaCha reply keys are derived from the DH exchange.
 See [Prop156]_ for details of the router static ECIES keys.
 
 Below is a description of how to derive the keys previously transmitted in request records.
