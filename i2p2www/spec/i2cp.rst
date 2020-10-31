@@ -3,8 +3,8 @@ I2CP Specification
 ==================
 .. meta::
     :category: Protocols
-    :lastupdated: 2020-06
-    :accuratefor: 0.9.46
+    :lastupdated: 2020-10
+    :accuratefor: 0.9.48
 
 .. contents::
 
@@ -1223,7 +1223,7 @@ Contents
 2. 1 byte [Integer]_ number of tunnels
 3. That many pairs of:
 
-   1. [RouterIdentity]_
+   1. [Hash]_
    2. [TunnelId]_
 
 4. End [Date]_
