@@ -6,9 +6,9 @@ ECIES Tunnels
     :author: chisana, zzz, orignal
     :created: 2019-07-04
     :thread: http://zzz.i2p/topics/2737
-    :lastupdated: 2020-10-26
+    :lastupdated: 2020-11-05
     :status: Open
-    :target: 0.9.51
+    :target: 0.9.48
 
 .. contents::
 
@@ -337,7 +337,6 @@ This is the proposed specification of the tunnel BuildRequestRecord for ECIES-X2
 Summary of changes:
 
 - Remove unused 32-byte router hash
-- Remove reply IV
 - Change request time from hours to minutes
 - Add expiration field for future variable tunnel time
 - Add more space for flags
@@ -393,6 +392,8 @@ For now, the only supported value is 600 (10 minutes).
 The tunnel build options is a Mapping structure as defined in [Common]_.
 This is for future use. No options are currently defined.
 If the Mapping structure is empty, this is two bytes 0x00 0x00.
+The maximum size of the Mapping (including the length field) is 296 bytes,
+and the maximum value of the Mapping length field is 294.
 
 
 
@@ -471,6 +472,8 @@ bytes    0-x: Tunnel Build Reply Options (Mapping)
 The tunnel build reply options is a Mapping structure as defined in [Common]_.
 This is for future use. No options are currently defined.
 If the Mapping structure is empty, this is two bytes 0x00 0x00.
+The maximum size of the Mapping (including the length field) is 511 bytes,
+and the maximum value of the Mapping length field is 509.
 
 The reply byte is one of the following values
 as defined in [Tunnel-Creation]_ to avoid fingerprinting:
@@ -599,7 +602,7 @@ See [Prop156]_ for details of the router static ECIES keys.
 Below is a description of how to derive the keys previously transmitted in request records.
 
 
-KDF for Initial h
+KDF for Initial ck and h
 ````````````````````````
 
 This is standard [NOISE]_ for pattern "N" with a standard protocol name.
