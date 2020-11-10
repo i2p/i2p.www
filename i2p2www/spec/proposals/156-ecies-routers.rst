@@ -5,7 +5,7 @@ ECIES Routers
     :author: zzz, orignal
     :created: 2020-09-01
     :thread: http://zzz.i2p/topics/2950
-    :lastupdated: 2020-10-19
+    :lastupdated: 2020-11-10
     :status: Open
     :target: 0.9.51
 
@@ -126,6 +126,7 @@ This is as documented in [Prop154]_,  now specified in [I2NP]_.
 The design should enable the router to have a single ECIES Session Key Manager.
 There should be no need to run "dual key" Session Key Managers as
 described in [ECIES]_ for Destinations.
+Routers only have one public key.
 
 An ECIES router does not have an ElGamal static key.
 The router still needs an implementation of ElGamal to build tunnels
@@ -141,7 +142,7 @@ pre-0.9.46 floodfill router.
 This is optional. Decision may vary in various I2P implementations
 and may depend on the amount of the network that has upgraded to
 0.9.46 or higher.
-As of this date, approximately 80% of the network is 0.9.46 or higher.
+As of this date, approximately 85% of the network is 0.9.46 or higher.
 
 
 
@@ -172,13 +173,20 @@ This design minimizes risk.
 Implementation Notes
 =====================
 
+Older routers do not check the encryption type of the router and will send ElGamal-encrypted
+build records or netdb messages.
+Some recent routers are buggy and will send various types of malformed build records.
+Some recent routers may send non-anonymous (full ratchet) netdb messages.
+Implementers should detect and reject these records and messages
+as early as possible, to reduce CPU usage.
 
 
 
 Issues
 ======
 
-
+Proposal 145 [Prop145]_ may or may not be rewritten to be mostly-compatible with
+Proposal 152 [Prop152]_.
 
 
 
@@ -257,7 +265,8 @@ Target release: 0.9.48, late 2020
 Ratchet messages to ECIES floodfills
 ----------------------------------------
 
-Implement and test reception of ECIES messages (with zero static key) by ECIES floodfills.
+Implement and test reception of ECIES messages (with zero static key) by ECIES floodfills,
+as defined in proposal 144 [Prop144]_.
 Implement ant test reception of AEAD replies to DatabaseLookup messages by ECIES routers.
 
 Enable auto-floodfill by ECIES routers.
@@ -265,43 +274,53 @@ Then enable sending ECIES messages to ECIES routers.
 No minimum version check should be necessary unless incompatible changes
 to proposal 152 are made after a release.
 
+Preliminary support: 0.9.48, late 2020.
+ECIES routers will not automatically become floodfill; must be manually configured.
+
 Target release: 0.9.49, early 2021
+ECIES routers may automatically become floodfill.
 
 
-Rekeying
-------------
+Rekeying and New Installs
+---------------------------
+
+New installs will default to ECIES at some point.
 
 Gradually rekey all routers to minimize risk and disruption to the network.
 Use existing code that did the rekeying for sig type migration years ago.
 This code gives each router a small random chance of rekeying at each restart.
 After several restarts, a router will probably have rekeyed to ECIES.
 
-Rekeying may take several releases.
-Probably start rekeying mid-2021.
+The criterion for starting rekeying is that a sufficient portion of the network,
+perhaps 50%, can build tunnels through ECIES routers (0.9.48 or higher).
 
-Target release: TBD
+Before aggressively rekeying the entire network, the vast majority
+(perhaps 90% or more) must be able to build tunnels through ECIES routers (0.9.48 or higher)
+AND send messages to ECIES floodfills.
+
+Rekeying will take several releases.
+
+Target release: 0.9.49 or 0.9.50 to start rekeying;
+0.9.49 or 0.9.50 for new routers to default to ECIES;
+late 2021 for the majority of the network to be rekeyed.
 
 
-New Tunnel Build Message
---------------------------
+New Tunnel Build Message (Phase 2)
+------------------------------------
 
 Implement and test the new Tunnel Build Message as defined in proposal 157 [Prop157]_.
 Roll the support out in a release.
 Do additional testing, then enable it in the next release.
 
-Probably mid-2021.
+Testing will be difficult.
+Before this can be widely tested, a good subset of the network must support it.
+Before it is broadly useful, a majority of the network must support it.
+If specification or implementation changes are required after testing,
+that would delay the rollout for an additional release.
 
-Target release: TBD
+Probably mid- or late-2021.
 
-
-ECIES for New Installs
---------------------------
-
-New installs are ECIES routers.
-
-Target release: TBD
-Probably mid-late 2021.
-
+Target release: TBD; proposal 157 is incomplete.
 
 
 Rekeying Complete
