@@ -6,9 +6,9 @@ ECIES Tunnels
     :author: chisana, zzz, orignal
     :created: 2019-07-04
     :thread: http://zzz.i2p/topics/2737
-    :lastupdated: 2020-10-09
+    :lastupdated: 2020-11-05
     :status: Open
-    :target: 0.9.51
+    :target: 0.9.48
 
 .. contents::
 
@@ -31,6 +31,9 @@ follow this spec for creating tunnels containing ECIES hops.
 This proposal specifies changes needed for ECIES-X25519 Tunnel Building.
 For an overview of all changes required for ECIES routers, see proposal 156 [Prop156]_.
 
+This proposal maintains the same size for tunnel build records,
+as required for compatibility. Smaller build records and messages will be
+implemented later - see [Prop157]_.
 
 
 Cryptographic Primitives
@@ -334,7 +337,6 @@ This is the proposed specification of the tunnel BuildRequestRecord for ECIES-X2
 Summary of changes:
 
 - Remove unused 32-byte router hash
-- Remove reply IV
 - Change request time from hours to minutes
 - Add expiration field for future variable tunnel time
 - Add more space for flags
@@ -343,7 +345,7 @@ Summary of changes:
 - Unencrypted record is longer because there is less encryption overhead
 
 
-The request record does not contain any explicit tunnel or reply keys.
+The request record does not contain any ChaCha reply keys.
 Those keys are derived from a KDF. See below.
 
 All fields are big-endian.
@@ -384,9 +386,14 @@ Bit 7 indicates that the hop will be an inbound gateway (IBGW).  Bit 6
 indicates that the hop will be an outbound endpoint (OBEP).  If neither bit is
 set, the hop will be an intermediate participant.  Both cannot be set at once.
 
+The request exipration is for future variable tunnel duration.
+For now, the only supported value is 600 (10 minutes).
+
 The tunnel build options is a Mapping structure as defined in [Common]_.
 This is for future use. No options are currently defined.
 If the Mapping structure is empty, this is two bytes 0x00 0x00.
+The maximum size of the Mapping (including the length field) is 296 bytes,
+and the maximum value of the Mapping length field is 294.
 
 
 
@@ -465,6 +472,8 @@ bytes    0-x: Tunnel Build Reply Options (Mapping)
 The tunnel build reply options is a Mapping structure as defined in [Common]_.
 This is for future use. No options are currently defined.
 If the Mapping structure is empty, this is two bytes 0x00 0x00.
+The maximum size of the Mapping (including the length field) is 511 bytes,
+and the maximum value of the Mapping length field is 509.
 
 The reply byte is one of the following values
 as defined in [Tunnel-Creation]_ to avoid fingerprinting:
@@ -586,13 +595,14 @@ Request Record Keys (ECIES)
 -----------------------------------------------------------------------
 
 These keys are explicitly included in ElGamal BuildRequestRecords.
-For ECIES BuildRequestRecords, these keys are derived from the DH exchange.
+For ECIES BuildRequestRecords, the tunnel keys and AES reply keys are included,
+but the ChaCha reply keys are derived from the DH exchange.
 See [Prop156]_ for details of the router static ECIES keys.
 
 Below is a description of how to derive the keys previously transmitted in request records.
 
 
-KDF for Initial h
+KDF for Initial ck and h
 ````````````````````````
 
 This is standard [NOISE]_ for pattern "N" with a standard protocol name.
@@ -660,6 +670,9 @@ Failing to use unique keys opens an attack vector for colluding hops to confirm 
   // Sender generates an X25519 ephemeral keypair per ECIES hop in the VTBM (sesk, sepk)
   sesk = GENERATE_PRIVATE()
   sepk = DERIVE_PUBLIC(sesk)
+
+  // MixHash(sepk)
+  h = SHA256(h || sepk);
 
   End of "e" message pattern.
 
@@ -766,34 +779,14 @@ This design minimizes risk.
 Implementation Notes
 =====================
 
-
+* Older routers do not check the encryption type of the hop and will send ElGamal-encrypted
+  records. Some recent routers are buggy and will send various types of malformed records.
+  Implementers should detect and reject these records prior to the DH operation
+  if possible, to reduce CPU usage.
 
 
 Issues
 ======
-
-* Is an HKDF required for the keys, what's the advantage of doing that vs.
-  just including them in the build record as before?
-
-* Make KDFs be similar to those in Noise (NTCP2) and Ratchet
-
-* HKDF output no more than 64 bytes preferred
-
-* In the current Java implementation, the full router hash field in the build
-  request record at bytes 4-35 is not checked and does not appear to be necessary.
-
-* Each record is CBC encrypted with the same AES reply key and IV, as with the current design.
-  Is this a problem? Can it be fixed?
-
-* In the current Java implementation, the originator leaves one record empty
-  for itself. Thus a message of n records can only build a tunnel of n-1 hops.
-  This is necessary for inbound tunnels (where the next-to-last hop
-  can see the hash prefix for the next hop), but not for outbound tunnels.
-  However, if the build message length is different for inbound and outbound
-  tunnels, this would allow hops to determine which direction the tunnel was.
-
-* Should we define new, smaller VTBM/VTBRM I2NP messages for all-ECIES tunnels
-  now instead of waiting for the rollout?
 
 
 

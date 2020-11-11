@@ -95,6 +95,12 @@ in `etc/translation.vars` can be overridden by creating the file
 5. Check in the updated translations:
 
     ```
+    # git instructions
+    $ git commit -am "Updated translations"
+    ```
+
+    ```
+    # older mtn instructions
     $ mtn ci `cat newtranslations.txt` -m "Updated translations"
     ```
 
@@ -105,6 +111,12 @@ in `etc/translation.vars` can be overridden by creating the file
    or add the language to the table in __init__.py (if it's translated enough to add it to the website).
 
     ```
+    # git instructions
+    $ git add i2p2www/translations/* && git commit -am "New translations"
+    ```
+
+    ```
+    # older mtn instructions
     $ mtn add -R i2p2www/translations/ && mtn ci i2p2www/translations/ -m "New translations"
     ```
 
@@ -119,6 +131,12 @@ in `etc/translation.vars` can be overridden by creating the file
 2. Check in any changes to the .pot files (optional):
 
     ```
+    # git instructions
+    $ git commit -am "Updated translation strings"
+    ```
+
+    ```
+    # older mtn instructions
     $ mtn ci pots/ -m "Updated translation strings"
     ```
 
