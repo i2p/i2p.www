@@ -3,7 +3,7 @@ I2NP Specification
 ==================
 .. meta::
     :category: Protocols
-    :lastupdated: 2020-10
+    :lastupdated: 2020-11
     :accuratefor: 0.9.48
 
 .. contents::
@@ -42,6 +42,8 @@ below.
 ==============  ================================================================
    Version      Required I2NP Features
 ==============  ================================================================
+   0.9.48       ECIES-X25519 Build Request/Response records
+
    0.9.46       DatabaseLookup flag bit 4 for AEAD reply
 
    0.9.44       X25519 keys in LeaseSet2
@@ -225,16 +227,17 @@ Description
 ```````````
 One Record in a set of multiple records to request the creation of one hop in
 the tunnel. For more details see the tunnel overview [TUNNEL-IMPL]_ and the
-tunnel creation specification [TUNNEL-CREATION]_.
+ElGamal tunnel creation specification [TUNNEL-CREATION]_.
 
-Contents
-````````
+For ECIES-X25519 BuildRequestRecords, see [TUNNEL-CREATION-ECIES].
+
+
+Contents (ElGamal)
+```````````````````
 [TunnelId]_ to receive messages on, followed by the [Hash]_ of our
 [RouterIdentity]_. After that the [TunnelId]_ and the [Hash]_ of the next
 router's [RouterIdentity]_ follow.
 
-Definition
-``````````
 ElGamal and AES encrypted:
 
 .. raw:: html
@@ -396,6 +399,18 @@ Notes
 
 BuildResponseRecord
 -------------------
+
+Description
+```````````
+One Record in a set of multiple records with responses to a build request.
+For more details see the tunnel overview [TUNNEL-IMPL]_ and the
+ElGamal tunnel creation specification [TUNNEL-CREATION]_.
+
+For ECIES-X25519 BuildResponseRecords, see [TUNNEL-CREATION-ECIES].
+
+
+Contents (ElGamal)
+```````````````````
 
 .. raw:: html
 
@@ -1412,6 +1427,8 @@ TunnelBuild
 
 Notes
 `````
+* As of 0.9.48, may also contain ECIES-X25519 BuildRequestRecords, see [TUNNEL-CREATION-ECIES]_.
+
 * See also the tunnel creation specification [TUNNEL-CREATION]_.
 
 * The I2NP message ID for this message must be set according to the tunnel
@@ -1434,6 +1451,8 @@ Same format as `TunnelBuildMessage`, with `BuildResponseRecord`s
 
 Notes
 `````
+* As of 0.9.48, may also contain ECIES-X25519 BuildResponseRecords, see [TUNNEL-CREATION-ECIES]_.
+
 * See also the tunnel creation specification [TUNNEL-CREATION]_.
 
 * The I2NP message ID for this message must be set according to the tunnel
@@ -1468,6 +1487,8 @@ VariableTunnelBuild
 
 Notes
 `````
+* As of 0.9.48, may also contain ECIES-X25519 BuildRequestRecords, see [TUNNEL-CREATION-ECIES]_.
+
 * This message was introduced in router version 0.7.12, and may not be sent to
   tunnel participants earlier than that version.
 
@@ -1495,6 +1516,8 @@ VariableTunnelBuildReply
 
 Notes
 `````
+* As of 0.9.48, may also contain ECIES-X25519 BuildResponseRecords, see [TUNNEL-CREATION-ECIES]_.
+
 * This message was introduced in router version 0.7.12, and may not be sent to
   tunnel participants earlier than that version.
 
@@ -1550,6 +1573,9 @@ References
 
 .. [TUNNEL-CREATION]
     {{ spec_url('tunnel-creation') }}
+
+.. [TUNNEL-CREATION-ECIES]
+    {{ spec_url('tunnel-creation-ecies') }}
 
 .. [TUNNEL-MSG]
     {{ spec_url('tunnel-message') }}
