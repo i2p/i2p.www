@@ -6,8 +6,9 @@ for i in i2p2www/translations/*/*/*.po
 do
 	if [ -d ./.git ]; then
 		git diff $i | grep '+msgstr' | grep -v '+msgstr ""' > $TMP
-	fi
+	else
 		mtn diff $i | grep '+msgstr' | grep -v '+msgstr ""' > $TMP
+	fi
 	if [ -s $TMP ]
 	then
 		echo $i >> $TMP2
