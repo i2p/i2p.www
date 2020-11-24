@@ -1,38 +1,36 @@
-=============
-ECIES Tunnels
-=============
+=============================
+ECIES-X25519 Tunnel Creation
+=============================
 
 .. meta::
-    :author: chisana, zzz, orignal
-    :created: 2019-07-04
-    :thread: http://zzz.i2p/topics/2737
-    :lastupdated: 2020-11-16
-    :status: Closed
-    :target: 0.9.48
-    :implementedin: 0.9.48
+    :category: Protocols
+    :lastupdated: 2020-11
+    :accuratefor: 0.9.48
 
 .. contents::
 
 Overview
 ========
 
-This document proposes changes to Tunnel Build message encryption
+This document specifies Tunnel Build message encryption
 using crypto primitives introduced by [ECIES-X25519]_.
 It is a portion of the overall proposal
 [Prop156]_ for converting routers from ElGamal to ECIES-X25519 keys.
+This specification is implemented as of release 0.9.48.
 
 For the purposes of transitioning the network from ElGamal + AES256 to ECIES + ChaCha20,
 tunnels with mixed ElGamal and ECIES routers are necessary.
 Specifications for handling mixed tunnel hops are provided.
 No changes will be made to the format, processing, or encryption of ElGamal hops.
 
-ElGamal tunnel creators will need create ephemeral X25519 keypairs per-hop, and
+ElGamal tunnel creators will generate ephemeral X25519 keypairs per-hop, and
 follow this spec for creating tunnels containing ECIES hops.
 
-This proposal specifies changes needed for ECIES-X25519 Tunnel Building.
+This document specifies ECIES-X25519 Tunnel Building.
 For an overview of all changes required for ECIES routers, see proposal 156 [Prop156]_.
+For additional background on the development of this specification, see proposal 152 [Prop152]_.
 
-This proposal maintains the same size for tunnel build records,
+This format maintains the same size for tunnel build records,
 as required for compatibility. Smaller build records and messages will be
 implemented later - see [Prop157]_.
 
@@ -40,7 +38,7 @@ implemented later - see [Prop157]_.
 Cryptographic Primitives
 ------------------------
 
-No new cryptographic primitives are introduced. The primitives required to implement this proposal are:
+The primitives required to implement this specification are:
 
 - AES-256-CBC as in [Cryptography]_
 - STREAM ChaCha20/Poly1305 functions:
@@ -54,96 +52,6 @@ Other Noise functions defined elsewhere:
 - MixKey(d) - as in [NTCP2]_ and [ECIES-X25519]_
 
 
-Goals
------
-
-- Increase speed of crypto operations
-- Replace ElGamal + AES256/CBC with ECIES primitives for tunnel BuildRequestRecords and BuildReplyRecords.
-- No change to size of encrypted BuildRequestRecords and BuildReplyRecords (528 bytes) for compatibility
-- No new I2NP messages
-- Maintain encrypted build record size for compatibility
-- Add forward secrecy for Tunnel Build Messages.
-- Add authenticated encryption
-- Detect hops reordering BuildRequestRecords
-- Increase resolution of timestamp so that Bloom filter size may be reduced
-- Add field for tunnel expiration so that varying tunnel lifetimes will be possible (all-ECIES tunnels only)
-- Add extensible options field for future features
-- Reuse existing cryptographic primitives
-- Improve tunnel build message security where possible while maintaining compatibility
-- Support tunnels with mixed ElGamal/ECIES peers
-- Improve defenses against "tagging" attacks on build messages
-- Hops do not need to know the encryption type of the next hop before processing the build message,
-  as they may not have the next hop's RI at that time
-- Maximize compatibility with current network
-- No change to tunnel build AES request/reply encryption for ElGamal routers
-- No change to tunnel AES "layer" encryption, for that see [Prop153]_
-- Continue to support both 8-record TBM/TBRM and variable-size VTBM/VTBRM
-- Do not require "flag day" upgrade to entire network
-
-
-Non-Goals
------------
-
-- Complete redesign of tunnel build messages requiring a "flag day".
-- Shrinking tunnel build messages (requires all-ECIES hops and a new proposal)
-- Use of tunnel build options as defined in [Prop143]_, only required for small messages
-- Bidirectional tunnels - for that see [Prop119]_
-- Smaller tunnel build messages - for that see [Prop157]_
-
-
-Threat Model
-==============
-
-Design Goals
--------------
-
-- No hops are able to determine the originator of the tunnel.
-
-- Middle hops must not be able to determine the direction of the tunnel
-  or their position in the tunnel.
-
-- No hops can read any contents of other request or reply records, except
-  for truncated router hash and ephemeral key for next hop
-
-- No member of reply tunnel for outbound build can read any reply records.
-
-- No member of outbound tunnel for inbound build can read any request records,
-  except that OBEP can see truncated router hash and ephemeral key for IBGW
-
-
-
-
-Tagging Attacks
-----------------
-
-A major goal of the tunnel building design is to make it harder
-for colluding routers X and Y to know that they are in a single tunnel.
-If router X is at hop m and router Y is at hop m+1, they obviously will know.
-But if router X is at hop m and router Y is at hop m+n for n>1, this should be much harder.
-
-Tagging attacks are where middle-hop router X alters the tunnel build message in such a way that
-router Y can detect the alteration when the build message gets there.
-The goal is for any altered message is dropped by a router between X and Y before it gets to router Y.
-For modifications that are not dropped before router Y, the tunnel creator should detect the corruption in the reply
-and discard the tunnel.
-
-Possible attacks:
-
-- Alter a build record
-- Replace a build record
-- Add or remove a build record
-- Reorder the build records
-
-
-
-
-
-TODO: Does the current design prevent all these attacks?
-
-
-
-
-
 
 Design
 ======
@@ -151,11 +59,11 @@ Design
 Noise Protocol Framework
 ------------------------
 
-This proposal provides the requirements based on the Noise Protocol Framework
+This specification provides the requirements based on the Noise Protocol Framework
 [NOISE]_ (Revision 34, 2018-07-11).
 In Noise parlance, Alice is the initiator, and Bob is the responder.
 
-This proposal is based on the Noise protocol Noise_N_25519_ChaChaPoly_SHA256.
+It is based on the Noise protocol Noise_N_25519_ChaChaPoly_SHA256.
 This Noise protocol uses the following primitives:
 
 - One-Way Handshake Pattern: N
@@ -171,12 +79,6 @@ This Noise protocol uses the following primitives:
 
 - Hash Function: SHA256
   Standard 32-byte hash, already used extensively in I2P.
-
-
-Additions to the Framework
-``````````````````````````
-
-None.
 
 
 Handshake Patterns
@@ -211,41 +113,9 @@ Build request records are created by the tunnel creator and asymmetrically encry
 This asymmetric encryption of request records is currently ElGamal as defined in [Cryptography]_
 and contains a SHA-256 checksum. This design is not forward-secret.
 
-The new design will use the one-way Noise pattern "N" with ECIES-X25519 ephemeral-static DH, with an HKDF, and
+The ECIES design uses the one-way Noise pattern "N" with ECIES-X25519 ephemeral-static DH, with an HKDF, and
 ChaCha20/Poly1305 AEAD for forward secrecy, integrity, and authentication.
 Alice is the tunnel build requestor. Each hop in the tunnel is a Bob.
-
-
-(Payload Security Properties)
-
-.. raw:: html
-
-  {% highlight lang='text' %}
-N:                      Authentication   Confidentiality
-    -> e, es                  0                2
-
-    Authentication: None (0).
-    This payload may have been sent by any party, including an active attacker.
-
-    Confidentiality: 2.
-    Encryption to a known recipient, forward secrecy for sender compromise
-    only, vulnerable to replay.  This payload is encrypted based only on DHs
-    involving the recipient's static key pair.  If the recipient's static
-    private key is compromised, even at a later date, this payload can be
-    decrypted.  This message can also be replayed, since there's no ephemeral
-    contribution from the recipient.
-
-    "e": Alice generates a new ephemeral key pair and stores it in the e
-         variable, writes the ephemeral public key as cleartext into the
-         message buffer, and hashes the public key along with the old h to
-         derive a new h.
-
-    "es": A DH is performed between the Alice's ephemeral key pair and the
-          Bob's static key pair.  The result is hashed along with the old ck to
-          derive a new ck and k, and n is set to zero.
-
-
-{% endhighlight %}
 
 
 
@@ -253,20 +123,10 @@ Reply encryption
 -----------------------
 
 Build reply records are created by the hops creator and symmetrically encrypted to the creator.
-This symmetric encryption of reply records is currently AES with a prepended SHA-256 checksum.
+This symmetric encryption of ElGamal reply records is AES with a prepended SHA-256 checksum.
 and contains a SHA-256 checksum. This design is not forward-secret.
 
-The new design will use ChaCha20/Poly1305 AEAD for integrity, and authentication.
-
-
-Justification
------------------
-
-The ephemeral public key in the request does not need to be obfuscated with AES
-or Elligator2. The previous hop is the only one that can see it, and that hop
-knows that the next hop is ECIES.
-
-Reply records do not need full asymmetric encryption with another DH.
+ECIES replies use ChaCha20/Poly1305 AEAD for integrity, and authentication.
 
 
 
@@ -281,60 +141,12 @@ Build Request Records
 Encrypted BuildRequestRecords are 528 bytes for both ElGamal and ECIES, for compatibility.
 
 
-Request Record Unencrypted (ElGamal)
-`````````````````````````````````````````
-
-For reference, this is the current specification of the tunnel BuildRequestRecord for ElGamal routers, taken from [I2NP]_.
-The unencrypted data is prepended with a nonzero byte and the SHA-256 hash of the data before encryption,
-as defined in [Cryptography]_.
-
-All fields are big-endian.
-
-Unencrypted size: 222 bytes
-
-.. raw:: html
-
-  {% highlight lang='dataspec' %}
-
-bytes     0-3: tunnel ID to receive messages as, nonzero
-  bytes    4-35: local router identity hash
-  bytes   36-39: next tunnel ID, nonzero
-  bytes   40-71: next router identity hash
-  bytes  72-103: AES-256 tunnel layer key
-  bytes 104-135: AES-256 tunnel IV key
-  bytes 136-167: AES-256 reply key
-  bytes 168-183: AES-256 reply IV
-  byte      184: flags
-  bytes 185-188: request time (in hours since the epoch, rounded down)
-  bytes 189-192: next message ID
-  bytes 193-221: uninterpreted / random padding
-
-{% endhighlight %}
 
 
-Request Record Encrypted (ElGamal)
-`````````````````````````````````````
-
-For reference, this is the current specification of the tunnel BuildRequestRecord for ElGamal routers, taken from [I2NP]_.
-
-Encrypted size: 528 bytes
-
-.. raw:: html
-
-  {% highlight lang='dataspec' %}
-
-bytes    0-15: Hop's truncated identity hash
-  bytes  16-528: ElGamal encrypted BuildRequestRecord
-
-{% endhighlight %}
-
-
-
-
-Request Record Unencrypted (ECIES)
+Request Record Unencrypted
 ```````````````````````````````````````
 
-This is the proposed specification of the tunnel BuildRequestRecord for ECIES-X25519 routers.
+This is the specification of the tunnel BuildRequestRecord for ECIES-X25519 routers.
 Summary of changes:
 
 - Remove unused 32-byte router hash
@@ -398,7 +210,7 @@ and the maximum value of the Mapping length field is 294.
 
 
 
-Request Record Encrypted (ECIES)
+Request Record Encrypted
 `````````````````````````````````````
 
 All fields are big-endian except for the ephemeral public key which is little-endian.
@@ -424,30 +236,9 @@ Build Reply Records
 Encrypted BuildReplyRecords are 528 bytes for both ElGamal and ECIES, for compatibility.
 
 
-Reply Record Unencrypted (ElGamal)
+Reply Record Unencrypted
 `````````````````````````````````````
-ElGamal replies are encrypted with AES.
-
-All fields are big-endian.
-
-Unencrypted size: 528 bytes
-
-.. raw:: html
-
-  {% highlight lang='dataspec' %}
-
-bytes   0-31: SHA-256 Hash of bytes 32-527
-  bytes 32-526: random data
-  byte     527: reply
-
-  total length: 528
-
-{% endhighlight %}
-
-
-Reply Record Unencrypted (ECIES)
-`````````````````````````````````````
-This is the proposed specification of the tunnel BuildRequestRecord for ECIES-X25519 routers.
+This is the specification of the tunnel BuildRequestRecord for ECIES-X25519 routers.
 Summary of changes:
 
 - Add Mapping for build reply options
@@ -483,7 +274,7 @@ as defined in [Tunnel-Creation]_ to avoid fingerprinting:
 - 30 (TUNNEL_REJECT_BANDWIDTH)
 
 
-Reply Record Encrypted (ECIES)
+Reply Record Encrypted
 ```````````````````````````````````
 
 Encrypted size: 528 bytes
@@ -592,7 +383,7 @@ The tunnel creator, a.k.a. Inbound Endpoint (IBEP), postprocesses the reply:
   - H1's reply key (AES256/CBC)
 
 
-Request Record Keys (ECIES)
+Request Record Keys
 -----------------------------------------------------------------------
 
 These keys are explicitly included in ElGamal BuildRequestRecords.
@@ -711,16 +502,8 @@ Failing to use unique keys opens an attack vector for colluding hops to confirm 
 and can be generated randomly.
 
 
-Request Record Encryption (ElGamal)
-----------------------------------------
 
-As defined in [Tunnel-Creation]_.
-There are no changes to encryption for ElGamal hops.
-
-
-
-
-Reply Record Encryption (ECIES)
+Reply Record Encryption
 --------------------------------------
 
 The reply record is ChaCha20/Poly1305 encrypted.
@@ -741,42 +524,6 @@ The reply record is ChaCha20/Poly1305 encrypted.
 
 
 
-Reply Record Encryption (ElGamal)
-----------------------------------------
-
-As defined in [Tunnel-Creation]_.
-There are no changes to encryption for ElGamal hops.
-
-
-
-Security Analysis
---------------------------------------------------------------
-
-ElGamal does not provide forward secrecy for Tunnel Build Messages.
-
-AES256/CBC is in slightly better standing, only being vulnerable to a theoretical weakening from a
-known plaintext `biclique` attack.
-
-The only known practical attack against AES256/CBC is a padding oracle attack, when the IV is known to the attacker.
-
-An attacker would need to break the next hop's ElGamal encryption to gain the AES256/CBC key info (reply key and IV).
-
-ElGamal is significantly more CPU-intensive than ECIES, leading to potential resource exhaustion.
-
-ECIES, used with new ephemeral keys per-BuildRequestRecord or VariableTunnelBuildMessage, provides forward-secrecy.
-
-ChaCha20Poly1305 provides AEAD encryption, allowing the recipient to verify message integrity before attempting decryption.
-
-
-Justification
-=============
-
-This design maximizes reuse of existing cryptographic primitives, protocols, and code.
-This design minimizes risk.
-
-
-
-
 Implementation Notes
 =====================
 
@@ -784,18 +531,6 @@ Implementation Notes
   records. Some recent routers are buggy and will send various types of malformed records.
   Implementers should detect and reject these records prior to the DH operation
   if possible, to reduce CPU usage.
-
-
-Issues
-======
-
-
-
-Migration
-=========
-
-See [Prop156]_.
-
 
 
 
@@ -825,6 +560,9 @@ References
 
 .. [Prop143]
    {{ proposal_url('143') }}
+
+.. [Prop152]
+    {{ proposal_url('152') }}
 
 .. [Prop153]
     {{ proposal_url('153') }}

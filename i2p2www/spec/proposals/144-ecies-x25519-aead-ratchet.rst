@@ -5,7 +5,7 @@ ECIES-X25519-AEAD-Ratchet
     :author: zzz, chisana, orignal
     :created: 2018-11-22
     :thread: http://zzz.i2p/topics/2639
-    :lastupdated: 2020-05-30
+    :lastupdated: 2020-11-12
     :status: Closed
     :target: 0.9.46
     :implementedin: 0.9.46
@@ -328,7 +328,7 @@ Additions to the Framework
 ``````````````````````````
 
 This proposal defines the following enhancements to
-Noise_XK_25519_ChaChaPoly_SHA256.  These generally follow the guidelines in
+Noise_IK_25519_ChaChaPoly_SHA256.  These generally follow the guidelines in
 [NOISE]_ section 13.
 
 1) Cleartext ephemeral keys are encoded with [Elligator2]_.
