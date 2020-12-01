@@ -3,7 +3,7 @@ I2CP Specification
 ==================
 .. meta::
     :category: Protocols
-    :lastupdated: 2020-10
+    :lastupdated: 2020-11
     :accuratefor: 0.9.48
 
 .. contents::
@@ -1455,8 +1455,8 @@ Description
 ```````````
 Instruct the client as to the status of its session.
 
-Sent from Router to Client, possibly in response to a CreateSessionMessage_ or
-ReconfigureSessionMessage_.
+Sent from Router to Client, possibly in response to a CreateSessionMessage_,
+ReconfigureSessionMessage_, or DestroySessionMessage_.
 
 Contents
 ````````
@@ -1467,6 +1467,7 @@ Contents
 Status  Since     Name     Definition
 ======  ======  =========  =============================================================
    0            Destroyed  The session with the given ID is terminated.
+                           May be a response to a DestroySessionMessage_.
 
    1            Created    In response to a CreateSessionMessage_, a new session with
                            the given ID is now active.
@@ -1487,9 +1488,10 @@ Status  Since     Name     Definition
 
 Notes
 `````
-Status values include 0 for destroyed, 1 for created, 2 for updated, and 3 for
-invalid session.  If created, the Session ID is the identifier to be used for
-the rest of the session.
+Status values are defined above.
+If the status is Created, the Session ID is the identifier to be used for the rest of the session.
+
+
 
 .. _msg-SetDate:
 .. _SetDateMessage:
