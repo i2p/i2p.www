@@ -5,7 +5,7 @@ ECIES Routers
     :author: zzz, orignal
     :created: 2020-09-01
     :thread: http://zzz.i2p/topics/2950
-    :lastupdated: 2020-11-10
+    :lastupdated: 2020-12-09
     :status: Open
     :target: 0.9.51
 
@@ -110,21 +110,83 @@ These changes are defined in proposal 157 [Prop157]_.
 End-to-End Encryption
 -----------------------
 
-When sending encrypted messages to routers, usually database lookups and stores,
-they will be encrypted with
+History
+```````````
+
+In the original design of Java I2P, there was a single ElGamal Session Key Manager (SKM)
+shared by the router and all its local Destinations.
+As a shared SKM could leak information and allow correlation by attackers,
+the design was changed to support separate ElGamal SKMs for the router and each Destination.
+The ElGamal design supported only anonymous senders;
+the sender sent ephemeral keys only, not a static key.
+The message was not bound to the sender's identity.
+
+Then, we designed the ECIES Ratchet SKM in
 ECIES-X25519-AEAD-Ratchet [Prop144]_,  now specified in [ECIES]_.
+This design was specified using the Noise "IK" pattern, which included the sender's
+static key in the first message. This protocol is used for ECIES (type 4) Destinations.
+The IK pattern does not allow for anonymous senders.
 
-Generally, these will be New Session messages and will be sent with a zero static key
-(no binding or session), as the sender of the message is anonymous.
+Therefore, we included in the proposal a way to also send anonymous messages
+to a Ratchet SKM, using a zero-filled static key. This simulated a Noise "N" pattern,
+but in a compatible way, so a ECIES SKM could receive both anonymous and non-anonymous messages.
+The intent was to use zero-key for ECIES routers.
 
-This mode of the protocol is not currently used for Destinations
-and may need to be implemented and debugged for this use case.
+
+Use Cases and Threat Models
+```````````````````````````````
+
+The use case and threat model for messages sent to routers is very different from
+that for end-to-end messages between Destinations.
+
+
+Destination use case and threat model:
+
+- Non-anonymous from/to destinations (sender includes static key)
+- Efficiently support sustained traffic between destinations (full handshake, streaming, and tags)
+- Always sent through outbound and inbound tunnels
+- Hide all identifying characteristics from OBEP and IBGW, requiring Elligator2 encoding of ephemeral keys.
+- Both participants must use the same encryption type
+
+
+Router use case and threat model:
+
+- Anonymous messages from routers or destinations (sender does not include static key)
+- For encrypted Database Lookups and Stores only, generally to floodfills
+- Occasional messages
+- Multiple messages should not be correlated
+- Always sent through outbound tunnel directly to a router. No inbound tunnels used
+- OBEP knows that it is forwarding the message to a router and knows its encryption type
+- The two participants may have different encryption types
+- Database Lookup replies are one-time messages using the reply key and tag in the Database Lookup message
+- Database Store confirmations are one-time messages using a bundled Delivery Status message
+
+
+Router use-case non-goals:
+
+- No need for non-anonymous messages
+- No need to send messages through inbound exploratory tunnels (a router does not publish exploratory leasesets)
+- No need for sustained message traffic using tags
+- No need to run "dual key" Session Key Managers as described in [ECIES]_ for Destinations. Routers only have one public key.
+
+
+Design Conclusions
+```````````````````````
+
+The ECIES Router SKM does not need a full Ratchet SKM as specified in [ECIES]_ for Destinations.
+There is no requirement for non-anonymous messages using the IK pattern.
+The threat model does not require Elligator2-encoded ephemeral keys.
+
+Therefore, the router SKM will use the Noise "N" pattern, same as specified
+in [Prop152]_ for tunnel building.
+It will use the same payload format as specified in [ECIES]_ for Destinations.
+The zero static key (no binding or session) mode of IK specified in [ECIES]_ will not be used.
 
 Replies to lookups will be encrypted with a ratchet tag if requested in the lookup.
 This is as documented in [Prop154]_,  now specified in [I2NP]_.
 
-The design should enable the router to have a single ECIES Session Key Manager.
-There should be no need to run "dual key" Session Key Managers as
+The design enables the router to have a single ECIES Session Key Manager.
+There is no need to run "dual key" Session Key Managers as
 described in [ECIES]_ for Destinations.
 Routers only have one public key.
 
@@ -155,9 +217,142 @@ Router Identity and Key Certificate: See [Common]_.
 
 Tunnel Building: See [Prop152]_.
 
-End-to-End Encryption: See [ECIES]_.
-
 New Tunnel Build Message: See [Prop157]_.
+
+
+Request Encryption
+---------------------
+
+The request encryption is the same as that specified in [Tunnel-Creation-ECIES]_ and [Prop152]_,
+using the Noise "N" pattern.
+
+Replies to lookups will be encrypted with a ratchet tag if requested in the lookup.
+Database Lookup request messages contain the 32-byte reply key and 8-byte reply tag
+as specified in [I2NP]_ and [Prop154]_. The key and tag are used to encrypt the reply.
+
+Tag sets are not created.
+The zero static key scheme specified in
+ECIES-X25519-AEAD-Ratchet [Prop144]_ and [ECIES]_ will not be used.
+Ephemeral keys will not be Elligator2-encoded.
+
+Generally, these will be New Session messages and will be sent with a zero static key
+(no binding or session), as the sender of the message is anonymous.
+
+
+KDF for Initial ck and h
+````````````````````````
+
+This is standard [NOISE]_ for pattern "N" with a standard protocol name.
+This is the same as specified in [Tunnel-Creation-ECIES]_ and [Prop152]_ for tunnel build messages.
+
+
+.. raw:: html
+
+  {% highlight lang='text' %}
+This is the "e" message pattern:
+
+  // Define protocol_name.
+  Set protocol_name = "Noise_N_25519_ChaChaPoly_SHA256"
+  (31 bytes, US-ASCII encoded, no NULL termination).
+
+  // Define Hash h = 32 bytes
+  // Pad to 32 bytes. Do NOT hash it, because it is not more than 32 bytes.
+  h = protocol_name || 0
+
+  Define ck = 32 byte chaining key. Copy the h data to ck.
+  Set chainKey = h
+
+  // MixHash(null prologue)
+  h = SHA256(h);
+
+  // up until here, can all be precalculated by all routers.
+
+{% endhighlight %}
+
+
+KDF for Message
+````````````````````````
+
+Message creators generate an ephemeral X25519 keypair for each message.
+Ephemeral keys must be unique per message.
+This is the same as specified in [Tunnel-Creation-ECIES]_ and [Prop152]_ for tunnel build messages.
+
+
+.. raw:: html
+
+  {% highlight lang='dataspec' %}
+
+// Target router's X25519 static keypair (hesk, hepk) from the Router Identity
+  hesk = GENERATE_PRIVATE()
+  hepk = DERIVE_PUBLIC(hesk)
+
+  // MixHash(hepk)
+  // || below means append
+  h = SHA256(h || hepk);
+
+  // up until here, can all be precalculated by each router
+  // for all incoming messages
+
+  // Sender generates an X25519 ephemeral keypair
+  sesk = GENERATE_PRIVATE()
+  sepk = DERIVE_PUBLIC(sesk)
+
+  // MixHash(sepk)
+  h = SHA256(h || sepk);
+
+  End of "e" message pattern.
+
+  This is the "es" message pattern:
+
+  // Noise es
+  // Sender performs an X25519 DH with receiver's static public key.
+  // The target router
+  // extracts the sender's ephemeral key preceding the encrypted record.
+  sharedSecret = DH(sesk, hepk) = DH(hesk, sepk)
+
+  // MixKey(DH())
+  //[chainKey, k] = MixKey(sharedSecret)
+  // ChaChaPoly parameters to encrypt/decrypt
+  keydata = HKDF(chainKey, sharedSecret, "", 64)
+  // Chain key is not used
+  //chainKey = keydata[0:31]
+
+  // AEAD parameters
+  k = keydata[32:64]
+  n = 0
+  plaintext = 464 byte build request record
+  ad = h
+  ciphertext = ENCRYPT(k, n, plaintext, ad)
+
+  End of "es" message pattern.
+
+  // MixHash(ciphertext) is not required
+  //h = SHA256(h || ciphertext)
+
+{% endhighlight %}
+
+
+
+Payload
+````````````````````````
+
+The payload is the same block format as defined in [ECIES]_ and [Prop144]_.
+All messages must contain a DateTime block for replay prevention.
+
+
+Reply Encryption
+---------------------
+
+Replies to Database Lookup messages are Database Store or Database Search Reply messages.
+They are encrypted as Existing Session messages with
+the 32-byte reply key and 8-byte reply tag
+as specified in [I2NP]_ and [Prop154]_.
+
+
+There are no explicit replies to Database Store messages. The sender may bundle its
+own reply as a Garlic Message to itself, containing a Delivery Status message.
+
+
 
 
 Justification
@@ -274,10 +469,10 @@ Then enable sending ECIES messages to ECIES routers.
 No minimum version check should be necessary unless incompatible changes
 to proposal 152 are made after a release.
 
-Preliminary support: 0.9.48, late 2020.
+Preliminary support: 0.9.49, early 2021.
 ECIES routers will not automatically become floodfill; must be manually configured.
 
-Target release: 0.9.49, early 2021
+Target release: 0.9.50, mid-2021
 ECIES routers may automatically become floodfill.
 
 
@@ -300,8 +495,8 @@ AND send messages to ECIES floodfills.
 
 Rekeying will take several releases.
 
-Target release: 0.9.49 or 0.9.50 to start rekeying;
-0.9.49 or 0.9.50 for new routers to default to ECIES;
+Target release: 0.9.50 or 0.9.51 to start rekeying;
+0.9.50 or 0.9.51 for new routers to default to ECIES;
 late 2021 for the majority of the network to be rekeyed.
 
 
@@ -346,6 +541,9 @@ References
 .. [I2NP]
     {{ spec_url('i2np') }}
 
+.. [NOISE]
+    https://noiseprotocol.org/noise.html
+
 .. [Prop123]
     {{ proposal_url('123') }}
 
@@ -370,3 +568,5 @@ References
 .. [Tunnel-Creation]
     {{ spec_url('tunnel-creation') }}
 
+.. [Tunnel-Creation-ECIES]
+   {{ spec_url('tunnel-creation-ecies') }}

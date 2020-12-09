@@ -6,12 +6,20 @@ ECIES Tunnels
     :author: chisana, zzz, orignal
     :created: 2019-07-04
     :thread: http://zzz.i2p/topics/2737
-    :lastupdated: 2020-11-16
+    :lastupdated: 2020-12-09
     :status: Closed
     :target: 0.9.48
     :implementedin: 0.9.48
 
 .. contents::
+
+
+Note
+====
+Network deployment and testing in progress.
+Subject to minor revisions.
+See [SPEC]_ for the official specification.
+
 
 Overview
 ========
@@ -834,6 +842,9 @@ References
 
 .. [Prop157]
     {{ proposal_url('157') }}
+
+.. [SPEC]
+   {{ spec_url('tunnel-creation-ecies') }}
 
 .. [Tunnel-Creation]
    {{ spec_url('tunnel-creation') }}
