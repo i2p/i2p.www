@@ -33,8 +33,8 @@ Monotone to Git officially.
 {%- endtrans %}
 
 {% trans -%}
-While our use of mtn has been questioned in the past, I'd like to take this moment,
-and it's not always been a popular choice, as perhaps the very last project to use
+While our use of mtn has been questioned in the past, and it's not always been a
+popular choice, I'd like to take this moment, as perhaps the very last project to use
 Monotone to thank the Monotone developers, current and former, wherever they are,
 for the software they created.
 {%- endtrans %}
