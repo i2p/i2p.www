@@ -39,6 +39,8 @@ Monotone to thank the Monotone developers, current and former, wherever they are
 for the software they created.
 {%- endtrans %}
 
+.. image:: /_static/images/GoodbyeMTN.png
+
 {% trans -%}
 GPG Signing
 {%- endtrans %}
