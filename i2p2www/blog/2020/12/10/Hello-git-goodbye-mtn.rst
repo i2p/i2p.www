@@ -20,14 +20,14 @@ The I2P Git Migration is nearly concluded
 
 {% trans -%}
 For over a decade, I2P has relied on the venerable Monotone service to support
-it's version-control needs, but during the past few years, most of the world has
-moved on to the now almost-universal Git version-control system. In that same
+its version control needs, but during the past few years, most of the world has
+moved on to the now-universal Git version control system. In that same
 time, the I2P Network has become faster and more reliable, and accessible
 workarounds to Git's non-resumability have been developed.
 {%- endtrans %}
 
 {% trans -%}
-Today marks a significant occasion for I2P, today we switched-off the old mtn
+Today marks a significant occasion for I2P, as we switched off the old mtn
 i2p.i2p branch, and moved the development of the core Java I2P libraries from
 Monotone to Git officially.
 {%- endtrans %}
@@ -60,7 +60,7 @@ Official Repositories and Gitlab/Github Syncing
 {% trans -%}
 The official repository is the one hosted at https://i2pgit.org/i2p-hackers/i2p.i2p
 and at https://git.idk.i2p/i2p-hackers/i2p.i2p, but there is a "Mirror" available
-at Github at https://github.com/eyedeekay/i2p.i2p.
+at Github at https://github.com/i2p/i2p.i2p.
 {%- endtrans %}
 
 {% trans -%}
