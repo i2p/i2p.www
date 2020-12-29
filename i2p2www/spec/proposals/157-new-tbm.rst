@@ -5,7 +5,7 @@ Smaller Tunnel Build Messages
     :author: zzz, orignal
     :created: 2020-10-09
     :thread: http://zzz.i2p/topics/2957
-    :lastupdated: 2020-10-09
+    :lastupdated: 2020-12-29
     :status: Open
     :target: 0.9.51
 
@@ -74,17 +74,16 @@ See appendix for calculations.
 
 Encrypted request and reply records will be 236 bytes, compared to 528 bytes now.
 
-The plaintext request records will be either 160 or 172 bytes,
+The plaintext request records will be 172 bytes,
 compared to 222 bytes for ElGamal records,
 and 464 bytes for ECIES records as defined in [Prop152]_.
 
-The plaintext response records will be either 160 or 172 bytes,
+The plaintext response records will be 172 bytes,
 compared to 496 bytes for ElGamal records,
 and 512 bytes for ECIES records as defined in [Prop152]_.
 
-If we use AES for reply encryption, records must be a multiple of 16.
-If we use ChaCha20 (NOT ChaCha20/Poly1305), they can be 172 bytes.
-TBD.
+The reply encryption will be ChaCha20 (NOT ChaCha20/Poly1305),
+so the plaintext records do not need to be a multiple of 16 bytes.
 
 Request records will be made smaller by using HKDF to create the
 layer and reply keys, so they do not need to be explicitly included in the request.
@@ -100,7 +99,7 @@ Build: Type 25
 
 Reply: Type 26
 
-Total length: 641 or 689 bytes
+Total length: 689 bytes
 
 
 Record Encryption
@@ -108,7 +107,30 @@ Record Encryption
 
 Request and reply record encryption: as defined in [Prop152]_.
 
-Reply record encryption for other slots: AES or ChaCha20?
+Reply record encryption for other slots: ChaCha20.
+
+
+Layer Encryption
+------------------
+
+Currently there is no plan to change layer encryption for tunnels built with
+this specification; it would remain AES, as currently used for all tunnels.
+
+Changing layer encryption to ChaCha20 is a topic for additional research.
+
+
+
+New Tunnel Data Message
+-------------------------
+
+Currently there is no plan to change the 1KB Tunnel Data Message used for tunnels built with
+this specification.
+
+It may be useful to introduce a new I2NP message that is larger or variable-sized, concurrent with this proposal,
+for use over these tunnels.
+This would reduce overhead for large messages.
+This is a topic for additional research.
+
 
 
 
@@ -147,7 +169,7 @@ This design maximizes reuse of existing cryptographic primitives, protocols, and
 
 This design minimizes risk.
 
-
+ChaCha20 is faster than AES for small records, in Java testing.
 
 
 Implementation Notes
@@ -160,7 +182,7 @@ Issues
 ======
 
 - HKDF details
-- AES or ChaCha for reply encryption?
+- Layer encryption changes?
 - Should we do additional hiding from the paired OBEP or IBGW? Garlic?
 
 
