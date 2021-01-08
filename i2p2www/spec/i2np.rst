@@ -612,6 +612,8 @@ TunnelBuild_                           21
 TunnelBuildReply_                      22
 VariableTunnelBuild_                   23
 VariableTunnelBuildReply_              24
+Reserved [Prop157]_                    25
+Reserved [Prop157]_                    26
 Reserved                               0
 Reserved for experimental messages  224-254
 Reserved for future expansion         255
@@ -1589,6 +1591,9 @@ References
 
 .. [Prop156]
     {{ proposal_url('156') }}
+
+.. [Prop157]
+    {{ proposal_url('157') }}
 
 .. [RouterIdentity]
     {{ ctags_url('RouterIdentity') }}
