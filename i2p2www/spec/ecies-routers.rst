@@ -315,6 +315,9 @@ References
 .. [Cryptography]
    {{ spec_url('cryptography') }}
 
+.. [ECIES]
+   {{ spec_url('ecies') }}
+
 .. [ECIES-X25519]
    {{ spec_url('ecies') }}
 
@@ -333,11 +336,17 @@ References
 .. [Prop143]
    {{ proposal_url('143') }}
 
+.. [Prop144]
+    {{ proposal_url('144') }}
+
 .. [Prop152]
     {{ proposal_url('152') }}
 
 .. [Prop153]
     {{ proposal_url('153') }}
+
+.. [Prop154]
+    {{ proposal_url('154') }}
 
 .. [Prop156]
     {{ proposal_url('156') }}
@@ -345,17 +354,17 @@ References
 .. [Prop157]
     {{ proposal_url('157') }}
 
-.. [Tunnel-Creation]
-   {{ spec_url('tunnel-creation') }}
-
-.. [Multiple-Encryption]
-   https://en.wikipedia.org/wiki/Multiple_encryption
-
 .. [RFC-7539]
    https://tools.ietf.org/html/rfc7539
 
 .. [RFC-7748]
    https://tools.ietf.org/html/rfc7748
+
+.. [Tunnel-Creation]
+   {{ spec_url('tunnel-creation') }}
+
+.. [Tunnel-Creation-ECIES]
+   {{ spec_url('tunnel-creation-ecies') }}
 
 
 
