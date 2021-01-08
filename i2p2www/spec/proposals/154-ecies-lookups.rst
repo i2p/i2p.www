@@ -5,7 +5,7 @@ Database Lookups from ECIES Destinations
     :author: zzz
     :created: 2020-03-23
     :thread: http://zzz.i2p/topics/2856
-    :lastupdated: 2020-05-07
+    :lastupdated: 2021-01-08
     :status: Closed
     :target: 0.9.46
     :implementedin: 0.9.46
@@ -15,11 +15,11 @@ Database Lookups from ECIES Destinations
 
 Note
 ====
-ECIES to ElG is implemented and the proposal phase is closed.
+ECIES to ElG is implemented in 0.9.46 and the proposal phase is closed.
 See [I2NP]_ for the official specification.
 This proposal may still be referenced for background information.
-ECIES to ECIES is not fully specified or implemented at this time.
-The ECIES-to-ECIES section may be reopened or incorporated
+ECIES to ECIES with included keys is implemented as of 0.9.48.
+The ECIES-to-ECIES (derived keys) section may be reopened or incorporated
 in a future proposal.
 
 
@@ -146,14 +146,21 @@ Flag bit 4 is used in combination with bit 1 to determine the reply encryption m
 Flag bit 4 must only be set when sending to routers with version 0.9.46 or higher.
 
 
+In the table below,
+"DH n/a" means that the reply is not encrypted.
+"DH no" means that the reply keys are included in the request.
+"DH yes" means that the reply keys are derived from the DH operation.
+
+
 =============  =========  =========  ======  ===  =======
 Flag bits 4,1  From Dest  To Router  Reply   DH?  notes
 =============  =========  =========  ======  ===  =======
-0 0            Any        Any        no enc  no   current
+0 0            Any        Any        no enc  n/a  current
 0 1            ElG        ElG        AES     no   current
 0 1            ECIES      ElG        AES     no   i2pd workaround
-1 0            ECIES      ElG        AEAD    no   new, no DH
-1 1            ECIES      ECIES      AEAD    yes  future, with DH
+1 0            ECIES      ElG        AEAD    no   this proposal
+1 0            ECIES      ECIES      AEAD    no   0.9.49
+1 1            ECIES      ECIES      AEAD    yes  future
 =============  =========  =========  ======  ===  =======
 
 
@@ -262,11 +269,28 @@ tag :: 8 byte reply_tag
 
 
 
-ECIES to ECIES
---------------
+ECIES to ECIES (0.9.49)
+-----------------------------
 
-ECIES destination sends a lookup to a ECIES router.
-Supported as of 0.9.TBD.
+ECIES destination or router sends a lookup to a ECIES router, with bundled reply keys.
+Supported as of 0.9.49.
+
+ECIES routers were introduced in 0.9.48, see [Prop156]_.
+As of 0.9.49, ECIES destinations and routers may use the same format as in
+the "ECIES to ElG" section above, with reply keys included in the request.
+The lookup will use the "one time format" in [ECIES]_
+as the requester is anonymous.
+
+For a new method with derived keys, see the next section.
+
+
+
+
+ECIES to ECIES (future)
+-----------------------------
+
+ECIES destination or router sends a lookup to a ECIES router, and the reply keys are derived from the DH.
+Not fully defined or supported, implementation is TBD.
 
 The lookup will use the "one time format" in [ECIES]_
 as the requester is anonymous.
@@ -275,8 +299,6 @@ Redefine reply_key field as follows. There are no associated tags.
 The tags will be generated in the KDF below.
 
 This section is incomplete and requires further study.
-ECIES routers do not yet exist and there is no documented proposal
-for ECIES routers at this time.
 
 
 .. raw:: html
@@ -428,3 +450,5 @@ References
 .. [I2NP]
     {{ spec_url('i2np') }}
 
+.. [Prop156]
+    {{ proposal_url('156') }}

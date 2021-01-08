@@ -3,8 +3,8 @@ Common structures Specification
 ===============================
 .. meta::
     :category: Design
-    :lastupdated: 2020-09
-    :accuratefor: 0.9.47
+    :lastupdated: 2021-01
+    :accuratefor: 0.9.49
 
 .. contents::
 
@@ -79,6 +79,11 @@ The default type is ElGamal.  As of release
 0.9.38, other types may be supported, depending on context.
 Keys are big-endian unless otherwise noted.
 
+X25519 keys are supported in Destinations and LeaseSet2 as of release 0.9.44.
+X25519 keys are supported in RouterIdentities as of release 0.9.48.
+
+
+
 =======  ==============  ======  =====
  Type    Length (bytes)  Since   Usage
 =======  ==============  ======  =====
@@ -86,7 +91,7 @@ ElGamal       256                All Router Identities and Destinations
 P256           64         TBD    Reserved, see proposal 145
 P384           96         TBD    Reserved, see proposal 145
 P521          132         TBD    Reserved, see proposal 145
-X25519         32        0.9.38  Little-endian. See [ECIES]_ and proposal 156
+X25519         32        0.9.38  Little-endian. See [ECIES]_ and [ECIES-ROUTERS]_
 =======  ==============  ======  =====
 
 JavaDoc: http://{{ i2pconv('echelon.i2p/javadoc') }}/net/i2p/data/PublicKey.html
@@ -105,8 +110,8 @@ Other encryption schemes are in the process of being defined, see the table belo
 
 Contents
 ````````
-Key type and length are inferred from context or are specified in the Key
-Certificate of a Destination or RouterInfo, or the fields in a LeaseSet2_ or other data structure.
+Key type and length are inferred from context or are stored separately
+in a data structure or a private key file.
 The default type is ElGamal.  As of release
 0.9.38, other types may be supported, depending on context.
 Keys are big-endian unless otherwise noted.
@@ -118,7 +123,7 @@ ElGamal       256                All Router Identities and Destinations
 P256           32         TBD    Reserved, see proposal 145
 P384           48         TBD    Reserved, see proposal 145
 P521           66         TBD    Reserved, see proposal 145
-X25519         32        0.9.38  Little-endian. See [ECIES]_ and proposal 156
+X25519         32        0.9.38  Little-endian. See [ECIES]_ and [ECIES-ROUTERS]_
 =======  ==============  ======  =====
 
 JavaDoc: http://{{ i2pconv('echelon.i2p/javadoc') }}/net/i2p/data/PrivateKey.html
@@ -279,6 +284,9 @@ JavaDoc: http://{{ i2pconv('echelon.i2p/javadoc') }}/net/i2p/data/Hash.html
 
 Session Tag
 -----------
+
+Note: Session Tags for ECIES-X25519 destinations (ratchet) and ECIES-X25519 routers
+are 8 bytes. See [ECIES]_ and [ECIES-ROUTERS]_.
 
 Description
 ```````````
@@ -667,6 +675,10 @@ Notes
 
 * The Crypto Public Key is aligned at the start and the Signing Public Key is
   aligned at the end. The padding (if any) is in the middle.
+
+* RouterIdentities with a key certificate and a ECIES_X25519 public key
+  are supported as of release 0.9.48.
+  Prior to that, all RouterIdentities were ElGamal.
 
 JavaDoc: http://{{ i2pconv('echelon.i2p/javadoc') }}/net/i2p/data/router/RouterIdentity.html
 
@@ -1713,6 +1725,9 @@ References
 
 .. [ECIES]
    {{ spec_url('ecies') }}
+
+.. [ECIES-ROUTERS]
+   {{ spec_url('ecies-routers') }}
 
 .. [ELGAMAL]
     {{ site_url('docs/how/cryptography', True) }}#elgamal

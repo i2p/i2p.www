@@ -12,6 +12,19 @@ ECIES Routers
 .. contents::
 
 
+Note
+====
+Network deployment and testing in progress.
+Subject to revision.
+Status:
+
+- ECIES Routers implemented as of 0.9.48, see [Common]_.
+- Tunnel building implemented as of 0.9.48, see [Tunnel-Creation-ECIES]_.
+- Encrypted messages to ECIES routers implemented as of 0.9.49, see [ECIES-ROUTERS]_.
+- New tunnel build message is not yet defined or implemented.
+
+
+
 
 Overview
 ========
@@ -537,6 +550,9 @@ References
 
 .. [ECIES]
    {{ spec_url('ecies') }}
+
+.. [ECIES-ROUTERS]
+   {{ spec_url('ecies-routers') }}
 
 .. [I2NP]
     {{ spec_url('i2np') }}

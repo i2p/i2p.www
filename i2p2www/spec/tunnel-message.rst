@@ -3,8 +3,8 @@ Tunnel Message Specification
 ============================
 .. meta::
     :category: Design
-    :lastupdated: September 2016
-    :accuratefor: 0.9.26
+    :lastupdated: 2021-01
+    :accuratefor: 0.9.49
 
 .. contents::
 
@@ -60,7 +60,7 @@ These are the contents of a tunnel data message after encryption.
 
   Tunnel ID :: `TunnelId`
          4 bytes
-         the ID of the next hop
+         the ID of the next hop, nonzero
 
   IV ::
          16 bytes
@@ -121,7 +121,7 @@ These are the contents of a tunnel data message when decrypted.
 
   Tunnel ID :: `TunnelId`
          4 bytes
-         the ID of the next hop
+         the ID of the next hop, nonzero
 
   IV ::
          16 bytes
@@ -225,7 +225,7 @@ or a complete (unfragmented) I2NP message, and the instructions are:
   Tunnel ID :: `TunnelId`
          4 bytes
          Optional, present if delivery type is TUNNEL
-         The destination tunnel ID
+         The destination tunnel ID, nonzero
 
   To Hash ::
          32 bytes

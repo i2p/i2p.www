@@ -3,8 +3,8 @@ I2NP Specification
 ==================
 .. meta::
     :category: Protocols
-    :lastupdated: 2020-11
-    :accuratefor: 0.9.48
+    :lastupdated: 2021-01
+    :accuratefor: 0.9.49
 
 .. contents::
 
@@ -42,11 +42,15 @@ below.
 ==============  ================================================================
    Version      Required I2NP Features
 ==============  ================================================================
-   0.9.48       ECIES-X25519 Build Request/Response records
+   0.9.49       Garlic messages to ECIES-X25519 routers
+
+   0.9.48       ECIES-X25519 Routers
+
+                ECIES-X25519 Build Request/Response records
 
    0.9.46       DatabaseLookup flag bit 4 for AEAD reply
 
-   0.9.44       X25519 keys in LeaseSet2
+   0.9.44       ECIES-X25519 keys in LeaseSet2
 
    0.9.40       MetaLeaseSet may be sent in a DSM
 
@@ -576,7 +580,7 @@ Delivery Instructions!
   Tunnel ID :: `TunnelId`
          4 bytes
          Optional, present if delivery type is TUNNEL
-         The destination tunnel ID
+         The destination tunnel ID, nonzero
 
   Delay :: `Integer`
          4 bytes
@@ -862,7 +866,7 @@ Contents
   reply_tunnelId ::
                  4 byte `TunnelID`
                  only included if deliveryFlag == 1
-                 tunnelId of the tunnel to send the reply to
+                 tunnelId of the tunnel to send the reply to, nonzero
 
   size ::
        2 byte `Integer`
@@ -898,14 +902,21 @@ Reply Encryption
 
 Flag bit 4 is used in combination with bit 1 to determine the reply encryption mode.
 Flag bit 4 must only be set when sending to routers with version 0.9.46 or higher.
-See proposal 154 for details.
+See proposals 154 and 156 for details.
+
+In the table below,
+"DH n/a" means that the reply is not encrypted.
+"DH no" means that the reply keys are included in the request.
+"DH yes" means that the reply keys are derived from the DH operation.
 
 =============  =========  =========  ======  ===  =======
-Flag bits 4,1  From Dest  To Router  Reply   DH?  notes
+Flag bits 4,1  From       To Router  Reply   DH?  notes
 =============  =========  =========  ======  ===  =======
-0 0            Any        Any        no enc  no   
+0 0            Any        Any        no enc  n/a  no encryption
 0 1            ElG        ElG        AES     no   As of 0.9.7
 1 0            ECIES      ElG        AEAD    no   As of 0.9.46
+1 0            ECIES      ECIES      AEAD    no   As of 0.9.49
+1 1            ElG        ECIES      AES     yes  TBD
 1 1            ECIES      ECIES      AEAD    yes  TBD
 =============  =========  =========  ======  ===  =======
 
@@ -1043,12 +1054,24 @@ tag :: 8 byte reply_tag
 {% endhighlight %}
 
 
-ECIES to ECIES
-``````````````
+ECIES to ECIES (0.9.49)
+-----------------------------
+
+ECIES destination or router sends a lookup to a ECIES router.
+Supported as of 0.9.49.
+
+ECIES routers were introduced in 0.9.48, see [Prop156]_.
+ECIES destinations and routers may use the same format as in
+the "ECIES to ElG" section above, with reply keys included in the request.
+The lookup message encryption is specified in [ECIES-ROUTERS]_.
+The requester is anonymous.
+
+
+ECIES to ECIES (future)
+-----------------------------
+
 This option is not yet fully defined.
-ECIES routers do not yet exist and there is no documented proposal
-for ECIES routers at this time.
-See proposal 154.
+See [Prop156]_.
 
 
 Notes
@@ -1313,6 +1336,7 @@ Contents
   tunnelId ::
            4 byte `TunnelId`
            identifies the tunnel this message is directed at
+           nonzero
 
   data ::
        1024 bytes
@@ -1347,6 +1371,7 @@ Contents
   tunnelId ::
            4 byte `TunnelId`
            identifies the tunnel this message is directed at
+           nonzero
 
   length ::
          2 byte `Integer`
@@ -1541,6 +1566,9 @@ References
 .. [ECIES]
    {{ spec_url('ecies') }}
 
+.. [ECIES-ROUTERS]
+   {{ spec_url('ecies-routers') }}
+
 .. [ElG-AES]
     {{ site_url('docs/how/elgamal-aes', True) }}
 
@@ -1558,6 +1586,9 @@ References
 
 .. [NTCP2]
     {{ spec_url('ntcp2') }}
+
+.. [Prop156]
+    {{ proposal_url('156') }}
 
 .. [RouterIdentity]
     {{ ctags_url('RouterIdentity') }}
