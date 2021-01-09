@@ -5,7 +5,7 @@ Smaller Tunnel Build Messages
     :author: zzz, orignal
     :created: 2020-10-09
     :thread: http://zzz.i2p/topics/2957
-    :lastupdated: 2020-12-29
+    :lastupdated: 2021-01-09
     :status: Open
     :target: 0.9.51
 
@@ -60,7 +60,8 @@ See [Prop156]_ for additional non-goals.
 
 - No requirement for mixed ElGamal/ECIES tunnels
 - Layer encryption changes, for that see [Prop153]_
-- No speedups of crypto operations. It's assumed that ChaCha20 and AES are similar.
+- No speedups of crypto operations. It's assumed that ChaCha20 and AES are similar,
+  even with AESNI, at least for the small data sizes in question.
 
 
 Design
@@ -99,7 +100,7 @@ Build: Type 25
 
 Reply: Type 26
 
-Total length: 689 bytes
+Typical length (with 4 records): 945 bytes
 
 
 Record Encryption
@@ -159,6 +160,10 @@ TBD
 Tunnel Build Messages
 -----------------------
 
+Type 25
+
+Type 26
+
 TBD
 
 
@@ -169,12 +174,20 @@ This design maximizes reuse of existing cryptographic primitives, protocols, and
 
 This design minimizes risk.
 
-ChaCha20 is faster than AES for small records, in Java testing.
+ChaCha20 is slightly faster than AES for small records, in Java testing.
+ChaCha20 avoids a requirement for data size multiples of 16.
 
 
 Implementation Notes
 =====================
 
+- As with the existing variable tunnel build message,
+  messages smaller than 4 records are not recommended.
+  The typical default is 3 hops.
+  Inbound tunnels must be built with an extra record for
+  the originator, so the last hop does not know it is last.
+  So that middle hops don't know if a tunnel is inbound or outbound,
+  outbound tunnels should be built with 4 records also.
 
 
 
@@ -183,7 +196,18 @@ Issues
 
 - HKDF details
 - Layer encryption changes?
-- Should we do additional hiding from the paired OBEP or IBGW? Garlic?
+
+ Should we do additional hiding from the paired OBEP or IBGW? Garlic?
+- For an IB build, the build message could be garlic encrypted to the IBGW,
+  but then it would be larger.
+- We could do this for IB now for existing build messages if desired,
+  but it's more expensive for ElGamal.
+- Is it worth it, or does the size of the message (much larger than
+  typical database lookup, but maybe not database store) plus the
+  delivery instructions make it obvious anyway?
+- For an OB build, the build reply message would have to be garlic encrypted
+  by the OBEP to the originator, but that would not be anonymous.
+  Is there another way? probably not.
 
 
 Migration
