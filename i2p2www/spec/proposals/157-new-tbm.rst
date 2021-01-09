@@ -34,7 +34,7 @@ than ElGamal.
 Smaller messages would save bandwidth. Also, if the messages could fit in a
 single tunnel message, the reverse path would be three times more efficient.
 
-This proposal defines new request and reply records and new Buid Request and Build Reply messages.
+This proposal defines new request and reply records and new Build Request and Build Reply messages.
 
 
 Goals
@@ -48,6 +48,8 @@ See [Prop152]_ and [Prop156]_ for additional goals.
 - Support ECIES hops only
 - Maintain improvements implemented in [Prop152]_
 - Maximize compatibility with current network
+- Hide inbound build messages from the OBGW
+- Hide outbound build reply messages from the IBEP
 - Do not require "flag day" upgrade to entire network
 - Gradual rollout to minimize risk
 - Reuse existing cryptographic primitives
@@ -96,11 +98,27 @@ Tunnel Build Messages
 Both will be "variable" with a one-byte number of records field,
 as with the existing Variable messages.
 
-Build: Type 25
+ShortTunnelBuild: Type 25
 
-Reply: Type 26
+ShortTunnelBuildReply: Type 26
 
 Typical length (with 4 records): 945 bytes
+
+Additionally, we define a new InboundTunnelBuild message, Type 27.
+This is used for inbound tunnel builds only.
+The purpose is to hide inbound build messages from the OBGW.
+It must be garlic encrypted by the originator, targeting the inbound gateway
+(delivery instructions ROUTER).
+The IBGW decrypts the message,
+constructs a ShortTunnelBuild message,
+and puts the reply into the correct slot specified.
+The other records go into the other slots.
+It then sends the ShortTunnelBuildMessage to the next hop.
+As the ShortTunnelBuild message is garlic encrypted,
+the build record for the IBGW does not need to be encrypted again.
+
+TODO: Any way to do a InboundTunnelBuildReply message?
+
 
 
 Record Encryption
@@ -157,14 +175,109 @@ KDF
 TBD
 
 
-Tunnel Build Messages
------------------------
 
-Type 25
+.. _msg-ShortTunnelBuild:
 
-Type 26
+ShortTunnelBuild
+-------------------
+I2NP Type 25
 
-TBD
+.. raw:: html
+
+  {% highlight lang='dataspec' %}
++----+----+----+----+----+----+----+----+
+  | num| ShortBuildRequestRecords...
+  +----+----+----+----+----+----+----+----+
+
+  num ::
+         1 byte `Integer`
+         Valid values: 1-8
+
+  record size: 236 bytes
+  total size: 1+$num*236
+{% endhighlight %}
+
+Notes
+`````
+* Typical number of records is 4, for a total size of 945.
+
+
+
+.. _msg-ShortTunnelBuildReply:
+
+ShortTunnelBuildReply
+------------------------
+I2NP Type 26
+
+.. raw:: html
+
+  {% highlight lang='dataspec' %}
++----+----+----+----+----+----+----+----+
+  | num| ShortBuildResponseRecords...
+  +----+----+----+----+----+----+----+----+
+
+  num ::
+         1 byte `Integer`
+         Valid values: 1-8
+
+  record size: 236 bytes
+  total size: 1+$num*236
+{% endhighlight %}
+
+Notes
+`````
+* Typical number of records is 4, for a total size of 945.
+
+
+.. _msg-InboundTunnelBuild:
+
+InboundTunnelBuild
+-------------------
+I2NP Type 27
+
+.. raw:: html
+
+  {% highlight lang='dataspec' %}
++----+----+----+----+----+----+----+----+
+  | num| ShortBuildRequestRecords...
+  +----+----+----+----+----+----+----+----+
+                                          |
+  +----+----+----+----+----+----+----+----+
+  |slot| length  |   Cleartext
+  +----+----+----+----+----+----+----+----+
+              BuildRequestRecord          |
+  +----+----+----+----+----+----+----+----+
+
+  num ::
+         Number of encrypted records to follow
+         1 byte `Integer`
+         Valid values: 0-7
+
+  slot ::
+         Slot for the plaintext record to follow
+         1 byte `Integer`
+         Valid values: 0-7
+
+  length ::
+         Length of the plaintext record to follow
+         2 byte `Integer`
+         Valid values: TBD-172
+
+  BuildRequestRecord ::
+         Plaintext record for IBGW
+         length: TBD-172
+
+  encrypted record size: 236 bytes
+  cleartext record size: 236 bytes
+  total size: varies
+{% endhighlight %}
+
+Notes
+`````
+* The Cleartext BuildRequestRecord does NOT contain padding after
+  the properties field. It does not need to be fixed length.
+  This hopefully allows the garlic encrypted message to fit in
+  one tunnel message. Calculation TBD.
 
 
 Justification
