@@ -5,7 +5,7 @@ Smaller Tunnel Build Messages
     :author: zzz, orignal
     :created: 2020-10-09
     :thread: http://zzz.i2p/topics/2957
-    :lastupdated: 2021-01-09
+    :lastupdated: 2021-01-10
     :status: Open
     :target: 0.9.51
 
@@ -117,7 +117,16 @@ It then sends the ShortTunnelBuildMessage to the next hop.
 As the ShortTunnelBuild message is garlic encrypted,
 the build record for the IBGW does not need to be encrypted again.
 
-TODO: Any way to do a InboundTunnelBuildReply message?
+Also, we define a new OutboundTunnelBuildReply message, Type 28.
+This is used for outbound tunnel builds only.
+The purpose is to hide outbound build reply messages from the IBEP.
+It must be garlic encrypted by the OBGW, targeting the originator
+(delivery instructions TUNNEL).
+The OBEP decrypts the tunnel build message,
+constructs a OutboundTunnelBuildReply message,
+and puts the reply into the cleartext field.
+The other records go into the other slots.
+It then garlic encrypts the message to originator with the derived symmetric keys.
 
 
 
@@ -278,6 +287,58 @@ Notes
   the properties field. It does not need to be fixed length.
   This hopefully allows the garlic encrypted message to fit in
   one tunnel message. Calculation TBD.
+* This message MUST be garlic encrypted.
+
+
+
+OutboundTunnelBuildReply
+------------------------------
+I2NP Type 28
+
+.. raw:: html
+
+  {% highlight lang='dataspec' %}
++----+----+----+----+----+----+----+----+
+  | num| ShortBuildReplyRecords...
+  +----+----+----+----+----+----+----+----+
+                                          |
+  +----+----+----+----+----+----+----+----+
+  |slot| length  |   Cleartext
+  +----+----+----+----+----+----+----+----+
+              BuildReplyRecord            |
+  +----+----+----+----+----+----+----+----+
+
+  num ::
+         Number of encrypted records to follow
+         1 byte `Integer`
+         Valid values: 0-7
+
+  slot ::
+         Slot for the plaintext record to follow
+         1 byte `Integer`
+         Valid values: 0-7
+
+  length ::
+         Length of the plaintext record to follow
+         2 byte `Integer`
+         Valid values: TBD-172
+
+  BuildReplyRecord ::
+         Plaintext record for OBEP
+         length: TBD-172
+
+  encrypted record size: 236 bytes
+  cleartext record size: 236 bytes
+  total size: varies
+{% endhighlight %}
+
+Notes
+`````
+* The Cleartext BuildReplyRecord does NOT contain padding after
+  the properties field. It does not need to be fixed length.
+  This hopefully allows the garlic encrypted message to fit in
+  one tunnel message. Calculation TBD.
+* This message MUST be garlic encrypted.
 
 
 Justification
