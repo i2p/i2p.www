@@ -5,7 +5,7 @@ ECIES Routers
     :author: zzz, orignal
     :created: 2020-09-01
     :thread: http://zzz.i2p/topics/2950
-    :lastupdated: 2021-01-08
+    :lastupdated: 2021-01-14
     :status: Open
     :target: 0.9.51
 
@@ -482,17 +482,14 @@ Then enable sending ECIES messages to ECIES routers.
 No minimum version check should be necessary unless incompatible changes
 to proposal 152 are made after a release.
 
-Preliminary support: 0.9.49, early 2021.
-ECIES routers will not automatically become floodfill; must be manually configured.
-
-Target release: 0.9.50, mid-2021
+Target release: 0.9.49, early 2021.
 ECIES routers may automatically become floodfill.
 
 
 Rekeying and New Installs
 ---------------------------
 
-New installs will default to ECIES at some point.
+New installs will default to ECIES as of release 0.9.49.
 
 Gradually rekey all routers to minimize risk and disruption to the network.
 Use existing code that did the rekeying for sig type migration years ago.
@@ -504,12 +501,15 @@ perhaps 50%, can build tunnels through ECIES routers (0.9.48 or higher).
 
 Before aggressively rekeying the entire network, the vast majority
 (perhaps 90% or more) must be able to build tunnels through ECIES routers (0.9.48 or higher)
-AND send messages to ECIES floodfills.
+AND send messages to ECIES floodfills (0.9.49 or higher).
+This target will probably be reached for the 0.9.52 release.
 
 Rekeying will take several releases.
 
-Target release: 0.9.50 or 0.9.51 to start rekeying;
-0.9.50 or 0.9.51 for new routers to default to ECIES;
+Target release:
+0.9.49 for new routers to default to ECIES;
+0.9.49 to slowly start rekeying;
+0.9.50 - 0.9.52 to repeatedly increase the rekeying rate;
 late 2021 for the majority of the network to be rekeyed.
 
 
@@ -528,7 +528,7 @@ that would delay the rollout for an additional release.
 
 Probably mid- or late-2021.
 
-Target release: TBD; proposal 157 is incomplete.
+Target release: TBD; proposal 157 is currently incomplete.
 
 
 Rekeying Complete
