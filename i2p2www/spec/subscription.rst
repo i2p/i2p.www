@@ -2,8 +2,8 @@
 Addressbook Subscription Feed Commands
 ======================================
 .. meta::
-    :lastupdated: 2020-07
-    :accuratefor: 0.9.46
+    :lastupdated: 2021-01
+    :accuratefor: 0.9.49
 
 .. contents::
 
@@ -258,7 +258,7 @@ sig
 
 Example::
 
-  #!action=removeall#name=example.i2p#dest=b64destsig=b64sig
+  #!action=remove#name=example.i2p#dest=b64destsig=b64sig
 
 Remove all with this destination
 ````````````````````````````````
