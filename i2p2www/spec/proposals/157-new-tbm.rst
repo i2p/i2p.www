@@ -5,7 +5,7 @@ Smaller Tunnel Build Messages
     :author: zzz, orignal
     :created: 2020-10-09
     :thread: http://zzz.i2p/topics/2957
-    :lastupdated: 2021-01-10
+    :lastupdated: 2021-02-18
     :status: Open
     :target: 0.9.51
 
@@ -269,19 +269,18 @@ I2NP Type 26
 
   {% highlight lang='dataspec' %}
 +----+----+----+----+----+----+----+----+
-  | num| ShortBuildReplyRecords...
-  +----+----+----+----+----+----+----+----+
-                                          |
-  +----+----+----+----+----+----+----+----+
-  |slot| length  |   Cleartext
+  | num|slot| length  |   Cleartext
   +----+----+----+----+----+----+----+----+
               BuildReplyRecord            |
   +----+----+----+----+----+----+----+----+
+  |      ShortBuildReplyRecords...        |
+  +----+----+----+----+----+----+----+----+
 
   num ::
-         Number of encrypted records to follow
+         Total number of records,
+         equal to 1 + the number of encrypted reply records
          1 byte `Integer`
-         Valid values: 0-7
+         Valid values: 1-8
 
   slot ::
          Slot for the plaintext record to follow
@@ -297,8 +296,12 @@ I2NP Type 26
          Plaintext record for OBEP
          length: TBD-172
 
+  ShortBuildReplyRecords ::
+         Encrypted records
+         length: (num-1) * 236
+
+  cleartext record size: TBD-172 bytes
   encrypted record size: 236 bytes
-  cleartext record size: 236 bytes
   total size: varies
 {% endhighlight %}
 
@@ -323,19 +326,18 @@ I2NP Type 27
 
   {% highlight lang='dataspec' %}
 +----+----+----+----+----+----+----+----+
-  | num| ShortBuildRequestRecords...
-  +----+----+----+----+----+----+----+----+
-                                          |
-  +----+----+----+----+----+----+----+----+
-  |slot| length  |   Cleartext
+  | num|slot| length  |   Cleartext
   +----+----+----+----+----+----+----+----+
               BuildRequestRecord          |
   +----+----+----+----+----+----+----+----+
+  |      ShortBuildRequestRecords...      |
+  +----+----+----+----+----+----+----+----+
 
   num ::
-         Number of encrypted records to follow
+         Total number of records,
+         equal to 1 + the number of encrypted request records
          1 byte `Integer`
-         Valid values: 0-7
+         Valid values: 1-8
 
   slot ::
          Slot for the plaintext record to follow
@@ -351,8 +353,12 @@ I2NP Type 27
          Plaintext record for IBGW
          length: TBD-172
 
+  ShortBuildReplyRecords ::
+         Encrypted records
+         length: (num-1) * 236
+
+  cleartext record size: TBD-172 bytes
   encrypted record size: 236 bytes
-  cleartext record size: 236 bytes
   total size: varies
 {% endhighlight %}
 
