@@ -18,8 +18,8 @@ DEFAULT_MIRROR = {
 DEFAULT_I2P_MIRROR = {
     'net': 'i2p',
     'protocol': 'http',
-    'domain':   'whnxvjwjhzsske5yevyokhskllvtisv5ueokw6yvh6t7zqrpra2q.b32.i2p',
-    'org':      'sigterm.no',
+    'domain':   'mgp6yzdxeoqds3wucnbhfrdgpjjyqbiqjdwcfezpul3or7bzm4ga.b32.i2p',
+    'org':      'eyedeekay.github.io',
     'country':  'i2p',
 }
 
