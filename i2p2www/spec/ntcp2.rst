@@ -3,8 +3,8 @@ NTCP 2
 ======
 .. meta::
     :category: Transports
-    :lastupdated: August 2019
-    :accuratefor: 0.9.42
+    :lastupdated: 2021-03
+    :accuratefor: 0.9.50
 
 .. contents::
 
@@ -1789,6 +1789,21 @@ symmetric crypto keys, and related information.
 
 Published Router Info
 =====================
+
+Capabilities
+------------
+
+As of release 0.9.50, the "caps" option is supported in NTCP2 addresses,
+similar to SSU. There are two capabilities defined:
+
+4: Indicates outbound IPv4 capability.
+If an IP is published in the host field, this capability is not necessary.
+If the router is hidden, or NTCP2 is outbound only, '4' and '6' may be combined in a single address.
+
+6: Indicates outbound IPv6 capability.
+If an IP is published in the host field, this capability is not necessary.
+If the router is hidden, or NTCP2 is outbound only, '4' and '6' may be combined in a single address.
+
 
 
 Published Addresses
