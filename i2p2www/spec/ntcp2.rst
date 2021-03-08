@@ -1794,7 +1794,10 @@ Capabilities
 ------------
 
 As of release 0.9.50, the "caps" option is supported in NTCP2 addresses,
-similar to SSU. There are two capabilities defined:
+similar to SSU.
+One or more capabilities may be published in the "caps" option.
+Capabilities may be in any order, but "46" is the recommended order, for consistency across implementations.
+There are two capabilities defined:
 
 4: Indicates outbound IPv4 capability.
 If an IP is published in the host field, this capability is not necessary.
