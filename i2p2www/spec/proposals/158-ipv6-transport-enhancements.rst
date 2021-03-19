@@ -1,6 +1,6 @@
-=================
-IPv6 Peer Testing
-=================
+================================
+IPv6 Transport Enhancements
+================================
 .. meta::
     :author: zzz, orignal
     :created: 2021-03-19
@@ -296,7 +296,7 @@ Migration
 
 All old routers should ignore the caps property in NTCP2, and unknown capability characters in the SSU caps property.
 
-
+TODO add introducer info
 
 
 
