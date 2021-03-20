@@ -144,6 +144,8 @@ Specification
 4/6 Caps
 --------
 
+This was originally implemented without a formal proposal, but it is required for
+IPv6 introductions, so we include it here.
 See also [CAPS]_.
 
 
@@ -210,17 +212,22 @@ IPv6 Introducers for IPv4
 ----------------------------
 
 The following changes are required to correct errors and inconsistencies in the specs.
+We have also described this as "part 1" of the proposal.
 
 Spec Changes
 ~~~~~~~~~~~~~~~~
 
-[SSU}_ currently says (IPv6 notes):
+[SSU]_ currently says (IPv6 notes):
 
 IPv6 is supported as of version 0.9.8. Published relay addresses may be IPv4 or IPv6, and Alice-Bob communication may be via IPv4 or IPv6.
 
 Add the following:
 
 While the specification was changed as of version 0.9.8, Alice-Bob communication via IPv6 was not actually supported until version 0.9.50.
+Earlier versions of Java routers erroneously published the 'C' capability for IPv6 addresses,
+even though they did not actually act as an introducer via IPv6.
+Therefore, routers should only trust the 'C' capability on an IPv6 address if the router version is 0.9.50 or higher.
+
 
 
 [SSU-SPEC]_ currently says (Relay Request):
@@ -245,6 +252,9 @@ to indicate the length of the (Alice, Bob, or Charlie) IP address to follow.
 
 Therefore, no change to the format of the messages is required.
 Only textual changes to the specifications, indicating that 16-byte IP addresses are allowed.
+
+The following changes are required to the specs.
+We have also described this as "part 2" of the proposal.
 
 
 Spec Changes
@@ -288,7 +298,9 @@ For IPv4, this message must be sent via an established IPv4 connection,
 as that's the only way that Bob knows Charlie's IPv4 address to return to Alice in the RelayResponse.
 As of release 0.9.xx, IPv6 is supported, and this message may be sent via an established IPv6 connection.
 
+Also add:
 
+As of release 0.9.xx, any SSU address published with introducers must contain "4" or "6" in the "caps" option.
 
 
 Migration
@@ -296,7 +308,9 @@ Migration
 
 All old routers should ignore the caps property in NTCP2, and unknown capability characters in the SSU caps property.
 
-TODO add introducer info
+Any SSU address with introducers that does not contain a "4" or "6" cap is assumed to be for IPv4 introduction.
+
+
 
 
 
