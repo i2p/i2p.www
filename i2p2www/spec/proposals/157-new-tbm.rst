@@ -5,7 +5,7 @@ Smaller Tunnel Build Messages
     :author: zzz, orignal
     :created: 2020-10-09
     :thread: http://zzz.i2p/topics/2957
-    :lastupdated: 2021-02-18
+    :lastupdated: 2021-03-21
     :status: Open
     :target: 0.9.51
 
@@ -20,12 +20,12 @@ Overview
 Summary
 -------
 
-The current size of the encrypted tunnel Build Request and Response records is 528.
+The current size of the encrypted tunnel Build Request and Reply records is 528.
 For typical Variable Tunnel Build and Variable Tunnel Build Reply messages,
 the total size is 2113 bytes. This message is fragmented into 1KB three tunnel
 messages for the reverse path.
 
-Changes to the 528-byte record format for ECIES-X25519 routers are specified in [Prop152]_.
+Changes to the 528-byte record format for ECIES-X25519 routers are specified in [Prop152]_ and [Tunnel-Creation-ECIES]_.
 For a mix of ElGamal and ECIES-X25519 routers in a tunnel, the record size must remain
 528 bytes. However, if all routers in a tunnel are ECIES-X25519, a new, smaller
 build record is possible, because ECIES-X25519 encryption has much less overhead
@@ -43,10 +43,10 @@ Goals
 See [Prop152]_ and [Prop156]_ for additional goals.
 
 - Smaller records and messages
-- Maintain sufficient space for future options, as in [Prop152]_
+- Maintain sufficient space for future options, as in [Prop152]_ and [Tunnel-Creation-ECIES]_
 - Fit in one tunnel message for the reverse path
 - Support ECIES hops only
-- Maintain improvements implemented in [Prop152]_
+- Maintain improvements implemented in [Prop152]_ and [Tunnel-Creation-ECIES]_
 - Maximize compatibility with current network
 - Hide inbound build messages from the OBGW
 - Hide outbound build reply messages from the IBEP
@@ -79,11 +79,11 @@ Encrypted request and reply records will be 236 bytes, compared to 528 bytes now
 
 The plaintext request records will be 172 bytes,
 compared to 222 bytes for ElGamal records,
-and 464 bytes for ECIES records as defined in [Prop152]_.
+and 464 bytes for ECIES records as defined in [Prop152]_ and [Tunnel-Creation-ECIES]_.
 
 The plaintext response records will be 172 bytes,
 compared to 496 bytes for ElGamal records,
-and 512 bytes for ECIES records as defined in [Prop152]_.
+and 512 bytes for ECIES records as defined in [Prop152]_ and [Tunnel-Creation-ECIES]_.
 
 The reply encryption will be ChaCha20 (NOT ChaCha20/Poly1305),
 so the plaintext records do not need to be a multiple of 16 bytes.
@@ -180,7 +180,7 @@ STBM: Short tunnel build message (type 25)
 Record Encryption
 ------------------
 
-Request and reply record encryption: as defined in [Prop152]_.
+Request and reply record encryption: as defined in [Prop152]_ and [Tunnel-Creation-ECIES]_.
 
 Reply record encryption for other slots: ChaCha20.
 
@@ -213,16 +213,161 @@ Specification
 =============
 
 
-Request Record
+Short Request Record
 -----------------------
 
-TBD
 
 
-Response Record
+Short Request Record Unencrypted
+```````````````````````````````````````
+
+This is the proposed specification of the tunnel BuildRequestRecord for ECIES-X25519 routers.
+Summary of changes from [Tunnel-Creation-ECIES]_:
+
+- Change unencrypted length from 464 to 172 bytes
+- Change encrypted length from 528 to 236 bytes
+- Remove layer and reply keys and IVs, they will be generated from split() and a KDF
+
+
+The request record does not contain any ChaCha reply keys.
+Those keys are derived from a KDF. See below.
+
+All fields are big-endian.
+
+Unencrypted size: 172 bytes, except when in the first record of an InboundTunnelBuild message.
+Variable size in the first record of an InboundTunnelBuild message.
+Minimum size in the first record of an InboundTunnelBuild message: 58 bytes.
+
+
+.. raw:: html
+
+  {% highlight lang='dataspec' %}
+
+bytes     0-3: tunnel ID to receive messages as, nonzero
+  bytes     4-7: next tunnel ID, nonzero
+  bytes    8-39: next router identity hash
+  byte       40: flags
+  bytes   41-43: more flags, unused, set to 0 for compatibility
+  bytes   44-47: request time (in minutes since the epoch, rounded down)
+  bytes   48-51: request expiration (in seconds since creation)
+  bytes   52-55: next message ID
+  bytes    56-x: tunnel build options (Mapping)
+  bytes     x-x: other data as implied by flags or options
+  bytes   x-171: random padding (see below)
+
+{% endhighlight %}
+
+The flags field is the same as defined in [Tunnel-Creation]_ and contains the following::
+
+ Bit order: 76543210 (bit 7 is MSB)
+ bit 7: if set, allow messages from anyone
+ bit 6: if set, allow messages to anyone, and send the reply to the
+        specified next hop in a Tunnel Build Reply Message
+ bits 5-0: Undefined, must set to 0 for compatibility with future options
+
+Bit 7 indicates that the hop will be an inbound gateway (IBGW).  Bit 6
+indicates that the hop will be an outbound endpoint (OBEP).  If neither bit is
+set, the hop will be an intermediate participant.  Both cannot be set at once.
+
+The request exipration is for future variable tunnel duration.
+For now, the only supported value is 600 (10 minutes).
+
+The tunnel build options is a Mapping structure as defined in [Common]_.
+This is for future use. No options are currently defined.
+If the Mapping structure is empty, this is two bytes 0x00 0x00.
+The maximum size of the Mapping (including the length field) is 116 bytes,
+and the maximum value of the Mapping length field is 114.
+
+NOTE: The random padding is NOT included in the first record of an InboundTunnelBuild message.
+That record is variable-length and is preceded by a length field.
+
+
+
+Short Request Record Encrypted
+`````````````````````````````````````
+
+All fields are big-endian except for the ephemeral public key which is little-endian.
+
+Encrypted size: 236 bytes
+
+.. raw:: html
+
+  {% highlight lang='dataspec' %}
+
+bytes    0-15: Hop's truncated identity hash
+  bytes   16-47: Sender's ephemeral X25519 public key
+  bytes  48-219: ChaCha20 encrypted ShortBuildRequestRecord
+  bytes 220-235: Poly1305 MAC
+
+{% endhighlight %}
+
+
+
+Short Reply Record
 -----------------------
 
-TBD
+
+Encrypted BuildReplyRecords are 528 bytes for both ElGamal and ECIES, for compatibility.
+
+
+Short Reply Record Unencrypted
+`````````````````````````````````````
+This is the proposed specification of the tunnel ShortBuildReplyRecord for ECIES-X25519 routers.
+Summary of changes from [Tunnel-Creation-ECIES]_:
+
+- Change unencrypted length from 512 to 172 bytes
+- Change encrypted length from 528 to 236 bytes
+
+
+ECIES replies are encrypted with ChaCha20/Poly1305.
+
+All fields are big-endian.
+
+Unencrypted size: 172 bytes, except when in the first record of an OutboundTunnelBuildReply message.
+Variable size in the first record of an OutboundTunnelBuildReply message.
+Minimum size in the first record of an OutboundTunnelBuildReply message: 3 bytes.
+
+.. raw:: html
+
+  {% highlight lang='dataspec' %}
+
+bytes    0-x: Tunnel Build Reply Options (Mapping)
+  bytes    x-x: other data as implied by options
+  bytes  x-170: Random padding (see below)
+  byte     171: Reply byte
+
+{% endhighlight %}
+
+The tunnel build reply options is a Mapping structure as defined in [Common]_.
+This is for future use. No options are currently defined.
+If the Mapping structure is empty, this is two bytes 0x00 0x00.
+The maximum size of the Mapping (including the length field) is 171 bytes,
+and the maximum value of the Mapping length field is 169.
+
+NOTE: The random padding is NOT included in the first record of an OutboundTunnelBuildReply message.
+That record is variable-length and is preceded by a length field.
+
+The reply byte is one of the following values
+as defined in [Tunnel-Creation]_ to avoid fingerprinting:
+
+- 0x00 (accept)
+- 30 (TUNNEL_REJECT_BANDWIDTH)
+
+
+Short Reply Record Encrypted
+```````````````````````````````````
+
+Encrypted size: 236 bytes
+
+.. raw:: html
+
+  {% highlight lang='dataspec' %}
+
+bytes   0-219: ChaCha20 encrypted ShortBuildReplyRecord
+  bytes 220-235: Poly1305 MAC
+
+{% endhighlight %}
+
 
 
 KDF
@@ -290,11 +435,11 @@ I2NP Type 26
   length ::
          Length of the plaintext record to follow
          2 byte `Integer`
-         Valid values: TBD-172
+         Valid values: 3-172
 
   BuildReplyRecord ::
          Plaintext record for OBEP
-         length: TBD-172
+         length: 3-172
 
   ShortBuildReplyRecords ::
          Encrypted records
@@ -347,11 +492,11 @@ I2NP Type 27
   length ::
          Length of the plaintext record to follow
          2 byte `Integer`
-         Valid values: TBD-172
+         Valid values: 58-172
 
   BuildRequestRecord ::
          Plaintext record for IBGW
-         length: TBD-172
+         length: 58-172
 
   ShortBuildReplyRecords ::
          Encrypted records
@@ -520,4 +665,7 @@ References
 
 .. [Tunnel-Creation]
     {{ spec_url('tunnel-creation') }}
+
+.. [Tunnel-Creation-ECIES]
+    {{ spec_url('tunnel-creation-ecies') }}
 

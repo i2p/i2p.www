@@ -4,8 +4,8 @@ ECIES-X25519 Tunnel Creation
 
 .. meta::
     :category: Protocols
-    :lastupdated: 2020-11
-    :accuratefor: 0.9.48
+    :lastupdated: 2021-03
+    :accuratefor: 0.9.49
 
 .. contents::
 
@@ -238,7 +238,7 @@ Encrypted BuildReplyRecords are 528 bytes for both ElGamal and ECIES, for compat
 
 Reply Record Unencrypted
 `````````````````````````````````````
-This is the specification of the tunnel BuildRequestRecord for ECIES-X25519 routers.
+This is the specification of the tunnel BuildReplyRecord for ECIES-X25519 routers.
 Summary of changes:
 
 - Add Mapping for build reply options

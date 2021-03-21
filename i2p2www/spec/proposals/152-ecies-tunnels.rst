@@ -6,7 +6,7 @@ ECIES Tunnels
     :author: chisana, zzz, orignal
     :created: 2019-07-04
     :thread: http://zzz.i2p/topics/2737
-    :lastupdated: 2020-12-09
+    :lastupdated: 2021-03-21
     :status: Closed
     :target: 0.9.48
     :implementedin: 0.9.48
@@ -455,7 +455,7 @@ bytes   0-31: SHA-256 Hash of bytes 32-527
 
 Reply Record Unencrypted (ECIES)
 `````````````````````````````````````
-This is the proposed specification of the tunnel BuildRequestRecord for ECIES-X25519 routers.
+This is the proposed specification of the tunnel BuildReplyRecord for ECIES-X25519 routers.
 Summary of changes:
 
 - Add Mapping for build reply options
