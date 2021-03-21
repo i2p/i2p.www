@@ -227,6 +227,7 @@ Summary of changes from [Tunnel-Creation-ECIES]_:
 - Change unencrypted length from 464 to 172 bytes
 - Change encrypted length from 528 to 236 bytes
 - Remove layer and reply keys and IVs, they will be generated from split() and a KDF
+- Padding omitted when in ITBM.
 
 
 The request record does not contain any ChaCha reply keys.
@@ -236,8 +237,9 @@ All fields are big-endian.
 
 Unencrypted size: 172 bytes, except when in the first record of an InboundTunnelBuild message.
 Variable size in the first record of an InboundTunnelBuild message.
-Minimum size in the first record of an InboundTunnelBuild message: 58 bytes.
+Minimum size in the first record of an InboundTunnelBuild message: 90 bytes.
 
+Standard format:
 
 .. raw:: html
 
@@ -257,6 +259,27 @@ bytes     0-3: tunnel ID to receive messages as, nonzero
 
 {% endhighlight %}
 
+
+Format in first (plaintext) record in the Inbound Tunnel Build Message:
+
+.. raw:: html
+
+  {% highlight lang='dataspec' %}
+
+bytes     0-3: tunnel ID to receive messages as, nonzero
+  bytes     4-7: next tunnel ID, nonzero
+  bytes    8-39: next router identity hash
+  byte       40: flags
+  bytes   41-43: more flags, unused, set to 0 for compatibility
+  bytes   44-47: request time (in minutes since the epoch, rounded down)
+  bytes   48-51: request expiration (in seconds since creation)
+  bytes   52-55: next message ID
+  bytes   56-87: creator ephemeral public key for KDF
+  bytes    88-x: tunnel build options (Mapping)
+  bytes     x-x: other data as implied by flags or options
+
+{% endhighlight %}
+
 The flags field is the same as defined in [Tunnel-Creation]_ and contains the following::
 
  Bit order: 76543210 (bit 7 is MSB)
@@ -271,6 +294,11 @@ set, the hop will be an intermediate participant.  Both cannot be set at once.
 
 The request exipration is for future variable tunnel duration.
 For now, the only supported value is 600 (10 minutes).
+
+The creator ephemeral public key is an ECIES key, big-endian.
+It is used for the KDF for the IBGW layer and reply keys and IVs.
+This is only included in the plaintext record in an Inbound Tunnel Build message.
+It is required because there is no DH at this layer for the build record.
 
 The tunnel build options is a Mapping structure as defined in [Common]_.
 This is for future use. No options are currently defined.
@@ -317,6 +345,7 @@ Summary of changes from [Tunnel-Creation-ECIES]_:
 
 - Change unencrypted length from 512 to 172 bytes
 - Change encrypted length from 528 to 236 bytes
+- Padding omitted when in OTBRM.
 
 
 ECIES replies are encrypted with ChaCha20/Poly1305.
@@ -492,11 +521,11 @@ I2NP Type 27
   length ::
          Length of the plaintext record to follow
          2 byte `Integer`
-         Valid values: 58-172
+         Valid values: 90-172
 
   BuildRequestRecord ::
          Plaintext record for IBGW
-         length: 58-172
+         length: 90-172
 
   ShortBuildReplyRecords ::
          Encrypted records
