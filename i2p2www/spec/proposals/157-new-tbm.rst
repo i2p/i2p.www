@@ -36,6 +36,10 @@ single tunnel message, the reverse path would be three times more efficient.
 
 This proposal defines new request and reply records and new Build Request and Build Reply messages.
 
+The tunnel creator and all hops in the created tunnel must ECIES-X25519, and at least version TBD.
+This proposal will not be useful until a majority of the routers in the network are ECIES-X25519.
+This is expected to happen by year-end 2021.
+
 
 Goals
 -----
@@ -99,9 +103,14 @@ Both will be "variable" with a one-byte number of records field,
 as with the existing Variable messages.
 
 ShortTunnelBuild: Type 25
+````````````````````````````````
+
 Typical length (with 4 records): 945 bytes
 
+
 OutboundTunnelBuildReply: Type 26
+``````````````````````````````````````
+
 We define a new OutboundTunnelBuildReply message.
 This is used for outbound tunnel builds only.
 The purpose is to hide outbound build reply messages from the IBEP.
@@ -114,7 +123,9 @@ The other records go into the other slots.
 It then garlic encrypts the message to originator with the derived symmetric keys.
 
 
-Additionally, we define a new InboundTunnelBuild message, Type 27.
+InboundTunnelBuild: Type 27
+`````````````````````````````````
+We define a new InboundTunnelBuild message, Type 27.
 This is used for inbound tunnel builds only.
 The purpose is to hide inbound build messages from the OBGW.
 It must be garlic encrypted by the originator, targeting the inbound gateway
@@ -126,6 +137,15 @@ The other records go into the other slots.
 It then sends the ShortTunnelBuildMessage to the next hop.
 As the ShortTunnelBuild message is garlic encrypted,
 the build record for the IBGW does not need to be encrypted again.
+
+
+Notes
+```````
+
+By garlic encrypting the OTBRM and ITBM, we also avoid any potential
+issues with compatibility at the IBEP and OBGW of the paired tunnels.
+
+
 
 
 Message Flow
@@ -142,6 +162,7 @@ STBM: Short tunnel build message (type 25)
   Reply through existing inbound D-E-F
 
 
+                  New Tunnel
            STBM      STBM      STBM
   Creator ------> A ------> B ------> C ---\
                                      OBEP   \
@@ -150,7 +171,7 @@ STBM: Short tunnel build message (type 25)
                                             | (TUNNEL delivery)
                                             | from OBEP to
                                             | creator
-                                            /
+                Existing Tunnel             /
   Creator <-------F---------E-------- D <--/
                                      IBGW
 
@@ -160,13 +181,14 @@ STBM: Short tunnel build message (type 25)
   Sent through existing outbound A-B-C
 
 
+                Existing Tunnel
   Creator ------> A ------> B ------> C ---\
                                     OBEP    \
                                             | Garlic wrapped
                                             | ITBM
                                             | (ROUTER delivery)
                                             | from creator
-                                            | to IBGW
+                  New Tunnel                | to IBGW
             STBM      STBM      STBM        /
   Creator <------ F <------ E <------ D <--/
                                      IBGW
@@ -601,19 +623,23 @@ the pace of development.
 Details of the implementation and migration may vary for
 each I2P implementation.
 
-Tunnel creator must ensure that all hops are ECIES-X25519, AND are at least version TBD.
+Tunnel creator must ensure that all hops in the created tunnel are ECIES-X25519, AND are at least version TBD.
 The tunnel creator does NOT have to be ECIES-X25519; it can be ElGamal.
 However, if the creator is ElGamal, it reveals to the closest hop that it is the creator.
 So, in practice, these tunnels should only be created by ECIES routers.
 
-It should NOT be necessary for the paired-tunnel OBEP or IBGW is ECIES or
-of any particular version, because they SHOULD support
-relaying of unknown message types.
-This should be verified in testing.
+It should NOT be necessary for the paired tunnel OBEP or IBGW is ECIES or
+of any particular version.
+The new messages are garlic-wrapped and not visible at the OBEP or IBGW
+of the paired tunnel.
 
 Phase 1: Implementation, not enabled by default
 
 Phase 2 (next release): Enable by default
+
+There are no backward-compatibility issues. The new messages may only be sent to routers that support them.
+
+
 
 
 Appendix
