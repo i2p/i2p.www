@@ -5,7 +5,7 @@ Smaller Tunnel Build Messages
     :author: zzz, orignal
     :created: 2020-10-09
     :thread: http://zzz.i2p/topics/2957
-    :lastupdated: 2021-03-21
+    :lastupdated: 2021-03-22
     :status: Open
     :target: 0.9.51
 
@@ -52,8 +52,8 @@ See [Prop152]_ and [Prop156]_ for additional goals.
 - Support ECIES hops only
 - Maintain improvements implemented in [Prop152]_ and [Tunnel-Creation-ECIES]_
 - Maximize compatibility with current network
-- Hide inbound build messages from the OBGW
-- Hide outbound build reply messages from the IBEP
+- Hide inbound build messages from the OBEP
+- Hide outbound build reply messages from the IBGW
 - Do not require "flag day" upgrade to entire network
 - Gradual rollout to minimize risk
 - Reuse existing cryptographic primitives
@@ -113,8 +113,8 @@ OutboundTunnelBuildReply: Type 26
 
 We define a new OutboundTunnelBuildReply message.
 This is used for outbound tunnel builds only.
-The purpose is to hide outbound build reply messages from the IBEP.
-It must be garlic encrypted by the OBGW, targeting the originator
+The purpose is to hide outbound build reply messages from the IBGW.
+It must be garlic encrypted by the OBEP, targeting the originator
 (delivery instructions TUNNEL).
 The OBEP decrypts the tunnel build message,
 constructs a OutboundTunnelBuildReply message,
@@ -127,7 +127,7 @@ InboundTunnelBuild: Type 27
 `````````````````````````````````
 We define a new InboundTunnelBuild message, Type 27.
 This is used for inbound tunnel builds only.
-The purpose is to hide inbound build messages from the OBGW.
+The purpose is to hide inbound build messages from the OBEP.
 It must be garlic encrypted by the originator, targeting the inbound gateway
 (delivery instructions ROUTER).
 The IBGW decrypts the message,
@@ -143,7 +143,7 @@ Notes
 ```````
 
 By garlic encrypting the OTBRM and ITBM, we also avoid any potential
-issues with compatibility at the IBEP and OBGW of the paired tunnels.
+issues with compatibility at the IBGW and OBEP of the paired tunnels.
 
 
 
