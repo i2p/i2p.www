@@ -5,7 +5,7 @@ Smaller Tunnel Build Messages
     :author: zzz, orignal
     :created: 2020-10-09
     :thread: http://zzz.i2p/topics/2957
-    :lastupdated: 2021-03-22
+    :lastupdated: 2021-03-29
     :status: Open
     :target: 0.9.51
 
@@ -271,7 +271,8 @@ bytes     0-3: tunnel ID to receive messages as, nonzero
   bytes     4-7: next tunnel ID, nonzero
   bytes    8-39: next router identity hash
   byte       40: flags
-  bytes   41-43: more flags, unused, set to 0 for compatibility
+  bytes   41-42: more flags, unused, set to 0 for compatibility
+  byte       43: layer encryption type
   bytes   44-47: request time (in minutes since the epoch, rounded down)
   bytes   48-51: request expiration (in seconds since creation)
   bytes   52-55: next message ID
@@ -292,7 +293,8 @@ bytes     0-3: tunnel ID to receive messages as, nonzero
   bytes     4-7: next tunnel ID, nonzero
   bytes    8-39: next router identity hash
   byte       40: flags
-  bytes   41-43: more flags, unused, set to 0 for compatibility
+  bytes   41-42: more flags, unused, set to 0 for compatibility
+  byte       43: layer encryption type
   bytes   44-47: request time (in minutes since the epoch, rounded down)
   bytes   48-51: request expiration (in seconds since creation)
   bytes   52-55: next message ID
@@ -313,6 +315,9 @@ The flags field is the same as defined in [Tunnel-Creation]_ and contains the fo
 Bit 7 indicates that the hop will be an inbound gateway (IBGW).  Bit 6
 indicates that the hop will be an outbound endpoint (OBEP).  If neither bit is
 set, the hop will be an intermediate participant.  Both cannot be set at once.
+
+Layer encryption type: 0 for AES (as in current tunnels);
+1 for future (ChaCha?)
 
 The request exipration is for future variable tunnel duration.
 For now, the only supported value is 600 (10 minutes).
