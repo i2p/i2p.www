@@ -3,7 +3,7 @@ Common structures Specification
 ===============================
 .. meta::
     :category: Design
-    :lastupdated: 2021-01
+    :lastupdated: 2021-04
     :accuratefor: 0.9.49
 
 .. contents::
@@ -879,6 +879,10 @@ Notes
 * The signature may be verified using the signing public key of the
   destination.
 
+* A LeaseSet with zero Leases is allowed but is unused.
+  It was intended for LeaseSet revocation, which is unimplemented.
+  All LeaseSet2 variants require at least one Lease.
+
 * The signing_key is currently unused. It was intended for LeaseSet revocation,
   which is unimplemented. It is currently generated anew at every router
   startup, it is not persistent. The signing key type is always the same as the
@@ -1080,8 +1084,8 @@ Notes
 `````
 * Total size: 395 bytes minimum
 
-* Maximum actual expires time is TBD, will be about 11 minutes for
-  LeaseSet2_ and the full 18.2 hours for MetaLeaseSet_.
+* Maximum actual expires time is about 660 (11 minutes) for
+  LeaseSet2_ and 65535 (the full 18.2 hours) for MetaLeaseSet_.
 
 
 
@@ -1096,9 +1100,8 @@ Contained in a I2NP DatabaseStore message of type 3.
 Supported as of 0.9.38; see proposal 123 for more information.
 
 Contains all of the currently authorized Lease2_ for a particular Destination_,
-the PublicKey_ to which garlic messages can be encrypted, and then the
-SigningPublicKey_ that can be used to revoke this particular version of the
-structure. The LeaseSet is one of the two structures stored in the network
+and the PublicKey_ to which garlic messages can be encrypted.
+A LeaseSet is one of the two structures stored in the network
 database (the other being RouterInfo_), and is keyed under the SHA256 of the
 contained Destination_.
 
@@ -1297,9 +1300,8 @@ Defined as of 0.9.38; scheduled to be working as of 0.9.40;
 see proposal 123 for more information.
 
 Contains all of the currently authorized MetaLease_ for a particular Destination_,
-the PublicKey_ to which garlic messages can be encrypted, and then the
-SigningPublicKey_ that can be used to revoke this particular version of the
-structure. The LeaseSet is one of the two structures stored in the network
+and the PublicKey_ to which garlic messages can be encrypted.
+A LeaseSet is one of the two structures stored in the network
 database (the other being RouterInfo_), and is keyed under the SHA256 of the
 contained Destination_.
 
@@ -1516,7 +1518,7 @@ Notes
 
 * This structure does not use the LeaseSet2Header_.
 
-* Maximum actual expires time is about 11 minutes, unless
+* Maximum actual expires time is about 660 (11 minutes), unless
   it is an encrypted MetaLeaseSet_.
 
 * See proposal 123 for notes on using offline signatures
