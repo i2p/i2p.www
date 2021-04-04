@@ -3,7 +3,7 @@ SSU Protocol Specification
 ==========================
 .. meta::
     :category: Transports
-    :lastupdated: 2020-09
+    :lastupdated: 2021-04
     :accuratefor: 0.9.48
 
 .. contents::
@@ -542,8 +542,9 @@ required if the Router Identity must be fragmented.
   +----+----+----+----+----+----+----+----+
 {% endhighlight %}
  
-Typical size including header, in current implementation: 480 bytes (before
-non-mod-16 padding)
+Typical size including header, in current implementation: 512 bytes (with Ed25519 signature)
+or 480 bytes (with DSA-SHA1 signature)
+(before non-mod-16 padding)
 
 Notes
 `````
