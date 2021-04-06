@@ -1,0 +1,264 @@
+(04:02:03 PM) eyedeekay: Hi everyone, zzz, zlatinb, community members, welcome to the April 6, 2020 meeting
+(04:02:09 PM) eyedeekay: A lot to discuss today:
+(04:02:12 PM) eyedeekay: 1) Hi
+(04:02:12 PM) eyedeekay: 2) Mac Launcher Report, jpackage/dmg
+(04:02:12 PM) eyedeekay: 3) Mac user interest survey results
+(04:02:12 PM) eyedeekay: 4) Windows all-in-one installer
+(04:02:12 PM) eyedeekay: 5) Update channels - http://git.idk.i2p/i2p-hackers/i2p.i2p/-/wikis/...
+(04:02:12 PM) eyedeekay: 6) Trac Migration Report/Evaluation
+(04:02:12 PM) eyedeekay: 7) 0.9.50 release
+(04:02:39 PM) eyedeekay: 1) Hi is everybody here?
+(04:02:43 PM) zzz: hi
+(04:02:46 PM) eyedeekay: Hi zzz
+(04:02:54 PM) zlatinb: hi
+(04:02:59 PM) eyedeekay: Hi zlatinb
+(04:03:08 PM) eyedeekay: Anybody else?
+(04:03:40 PM) eyedeekay: OK On to 2) then Mac Launcher Report
+(04:04:13 PM) eyedeekay: This was my topic but I think zlatinb and I should share it a bit, I have more to add to the User Interest Survey section
+(04:04:54 PM) zlatinb: ok
+(04:05:24 PM) eyedeekay: The current situation as I understand it is that we've decided that the old launcher is not the way, reflected in zzz removing the code from the main git branch this morning
+(04:07:04 PM) eyedeekay: And that we can deal with the issue of doing updates in the background in order to avoid making the update process more complicated while making the install process less
+(04:08:42 PM) eyedeekay: That "real" service installs probably won't be part of the jpackaged version of the router, because auto-starting apps start when the user logs in and not when the system is ready
+(04:08:53 PM) zlatinb: I think that is accurate.  I have verified that the sequence of steps in the script that is on the wiki page is completely "silent"
+(04:08:53 PM) zlatinb: the end-to-end flow needs to be tested ofc
+(04:08:53 PM) zzz: yeah I think the install experience is better, the update experience could be a little to a lot worse, TBD
+(04:09:25 PM) zzz: although if you include java updates in the izpack update experience, maybe we wouldn't be any worse
+(04:09:28 PM) mode (+v anonymousmaybe) by ChanServ
+(04:09:39 PM) zzz: thats the part we need to investigate further
+(04:09:58 PM) zzz: and decide how to make those tradeoffs
+(04:11:17 PM) eyedeekay: I think I think the Java nagware makes it almost the same
+(04:11:34 PM) eyedeekay: But I haven't actually had to do a Java update on my Mac yet either
+(04:12:35 PM) zzz: do we have any quantitative sense of how much better JRE 16 is over 8?
+(04:12:37 PM) eyedeekay: There was a slightly surprising result on the user-interest survey, a slim majority of users found installing Java to be easy, including one user who marked him or herself as a beginnger
+(04:13:37 PM) zlatinb: 16 vs 8? not atm, can google for benchmarks ofc, but the new apis are useful
+(04:14:01 PM) zlatinb: such as getting the pid from inside java, dock badges and notifications, etc.
+(04:15:14 PM) zlatinb: regarding an investigation of the full update process, it will organically be done as part of the work on the new update process, to be discussed later in this meeting
+(04:16:19 PM) zlatinb: I'm confident it can be very smooth; the implementation question is AppleScript vs bash script vs ?? 
+(04:16:57 PM) zzz: I thought it was just exec 'open xxx.dmg'?
+(04:17:54 PM) zlatinb: someone hasn't been following the wiki page tsk tsk :)  no it's a quite involved process of converting the .dmg to another format.  That avoids any visual promopts and license agreement
+(04:19:12 PM) zlatinb: basically 1. convert the .dmg to .cdr 2. mount cdr 3. move the existing AppBundle out of the way 4. cp -R new AppBundle 5. clean up, unmount .cdr 6. launch new app bundle
+(04:20:12 PM) zlatinb: I tested and verified the conversion and mounting are entirely "silent".  If we do not want to be silent but want the user to see what is happening, we can use AppleScript
+(04:20:20 PM) zlatinb: no idea why we would want that but it's on the table
+(04:21:14 PM) eyedeekay: Neat. Not that I think it matters that much, but is that how .dmg bundles are "supposed" to update? Is there a chance that would be disabled in the future without a path to fix it?
+(04:22:03 PM) zlatinb: the official way of updating is to use a Mac OS facility that relies on the existence of a clearnet server.  VLC updates that way for example.
+(04:22:30 PM) zzz: given the size of the agenda, I suggest we move on to find out if the survey says anybody wants this at all
+(04:22:49 PM) eyedeekay: Can do
+(04:23:49 PM) eyedeekay: The results of the survey summarized as follows:
+(04:23:49 PM) eyedeekay:  - Most of the people surveyed did not have Java installed when they were first  attempting to install I2P.
+(04:23:49 PM) eyedeekay:  - Users found installing Java easy, with a slim majority(3/5) of respondents saying that installing Java was not difficult. This included people who marked themselves as "beginner" computer user. This actually surprised me quite a bit.
+(04:23:49 PM) eyedeekay:  - 6 of 12 users skipped some or all of the Yes/No questions.
+(04:23:49 PM) eyedeekay:  - We had several users who skipped multiple Yes/No questions who left free-response answers. They were universally not complimentary to the install process.
+(04:23:49 PM) eyedeekay:  - All but one of the Yes/No respondents who answered the question were users of the .dmg bundle. Of these, there were 5/13. All others were non-responses. This  could indicate the overwhelming popularity of the .dmg approach.
+(04:23:49 PM) eyedeekay:  - The one non-user of the old .dmg bundle answered "Yes" to would use a new one if it emerged
+(04:24:31 PM) eyedeekay: That's copied directly from a longer summary I'll post to zzz.i2p later today
+(04:25:16 PM) zzz: we didn't ask directly if people want a dmg installer vs izpack? Or how can we infer that?
+(04:26:02 PM) eyedeekay: We referred to the izpack as the ".jar" installer since end users don't know what packaging tools we use
+(04:26:09 PM) zzz: or, an even simpler question: does the survey tell us we should do a dmg installer or not?
+(04:26:25 PM) eyedeekay: I believe the survey supports doing a .dmg installer
+(04:26:52 PM) zzz: strongly? weakly? "overwhelmingly"?
+(04:27:25 PM) eyedeekay: Pretty strongly, the only counterpoint to the .dmg installer was that people found installing Java easy
+(04:27:41 PM) eyedeekay: Thereby recommending the incumbent in that case
+(04:27:51 PM) zzz: ok
+(04:28:03 PM) eyedeekay: Everybody who answered the question said ".dmg installer"
+(04:28:47 PM) zlatinb: but that hasn't even been available for download for a while.  Do we know if they refer to the experimental one we just built or to the old one?
+(04:29:08 PM) eyedeekay: I specifically asked "The .dmg installer which lost support earlier this year"
+(04:29:17 PM) zlatinb: ok
+(04:29:51 PM) eyedeekay: Also I asked about whether they were able to transition from the old .dmg installer back to an IzPack installer
+(04:30:16 PM) eyedeekay: No one was able, but I think we knew that because of the unstoppable restarts issue
+(04:30:18 PM) mode (+v subatomic) by ChanServ
+(04:31:20 PM) zlatinb: that issue may have been specific to my system, I have no way of knowing.  I may have helped meeh run an interim build that may have been broken... many possibilities.
+(04:32:50 PM) eyedeekay: I remember seeing it on my old Mac that was a lemon so same
+(04:32:59 PM) eyedeekay: I'll have an extended summary with the raw anonymized results to post to zzz.i2p this evening
+(04:33:03 PM) eyedeekay: EOT #3
+(04:34:22 PM) zlatinb: I would ask that we go back to #2 for a bit
+(04:34:32 PM) zlatinb: and at least decide on a deadline for making a decision
+(04:35:05 PM) zlatinb: because with the lack of notarization the current izpack installer is pretty hideous.  Sadie posted on medium the full workflow and it's something like 35 steps
+(04:35:24 PM) zlatinb: that include the user turning off some OS protections which are on by default
+(04:35:53 PM) zlatinb: fyi I asked orignal and some guy from the ilita irc what they do for i2pd
+(04:36:10 PM) zlatinb: and the short answer was: disarm all assemssments and roll with it
+(04:36:32 PM) zzz: I'm not hearing any objections, so I think we keep working toward a solution. I'm not sure we need a deadline, especially if the effort is modest
+(04:36:33 PM) zlatinb: I really don't think we can expect our users to do that
+(04:37:20 PM) zlatinb: effot is modest if we do not count the update system overhaul which we'll discuss separately
+(04:37:33 PM) zlatinb: eot
+(04:37:55 PM) zzz: ok, then we'll find out what the deadline is to resolve the update stuff
+(04:38:53 PM) zlatinb: ok
+(04:40:25 PM) eyedeekay: Are we deciding that here and now? Because my vote would go to having it all ready to phase in at 0.9.51.
+(04:40:58 PM) zlatinb: we'll discuss it as part of 5), right?
+(04:41:09 PM) eyedeekay: Sure sounds good
+(04:41:21 PM) eyedeekay: On to 4) then Windows all in one installer
+(04:41:49 PM) eyedeekay: zlatinb added this to the agenda, but I'll probably have a lot to add here too. Do you want to get us started zlatinb?
+(04:42:40 PM) zlatinb: well eyedeekay did most of the hard work on combining the firefox profile installer with a JRE image and a router and making sure it installs and runs.  There's ofc some rough edges atm.
+(04:42:59 PM) zlatinb: There's also a wiki page that can be used for questions
+(04:43:30 PM) zlatinb: I think it's worth giving it some attention and spending the time to do a proper product definition with requirements and all that, similar to what was done for the .dmg
+(04:43:58 PM) zlatinb: We're working with users on r/i2p who have helped us greatly and continue to help us
+(04:44:15 PM) zlatinb: but ofc atm this is a PoC
+(04:44:15 PM) zlatinb: eot
+(04:45:38 PM) zzz: there seems to be no wikis listed on the index page at http://git.idk.i2p/i2p-hackers/i2p.i2p/-/wikis/home so ppl need the full url?
+(04:45:41 PM) eyedeekay: Yes despite being an early POC, most of the feedback I've received has been positive. One unfortunate thing is that apparently NSIS goes crazy if the user has a different character set than the administrator, the hardest part has been avoiding this pitfall so far
+(04:46:01 PM) eyedeekay: Right-hand side for me, I'll get you the full URL
+(04:46:29 PM) eyedeekay: https://i2pgit.org/i2p-hackers/i2p.firefox/-/wikis/All-in-One-I2P-Installer-for-Windows
+(04:47:08 PM) zzz: hmm if not logged in it says 'no wiki pages'. if logged in it gives you a 'create new wiki' page.
+(04:47:57 PM) zlatinb: check that you're in i2p.firefox project, not i2p.i2p
+(04:48:07 PM) zzz: oh ok
+(04:49:19 PM) psi: hi (lurking)
+(04:49:42 PM) zlatinb: hi psi
+(04:49:52 PM) eyedeekay: Hi psi
+(04:50:07 PM) eyedeekay: And here's the branch in case you need it: https://i2pgit.org/i2p-hackers/i2p.firefox/-/tree/EXPERIMENTAL-jpackage
+(04:50:34 PM) psi: wasn't there talk about using nsis for windows packaging?
+(04:50:56 PM) eyedeekay: Yes this is some of that talk
+(04:50:56 PM) psi: (that's item 4 nvm)
+(04:51:27 PM) psi: oh
+(04:51:30 PM) psi: i see we are on that
+(04:51:55 PM) psi: so if you are using cmake/cpack nsis is great because you cross compile for windows from linux trivially
+(04:52:04 PM) psi: not sure how it works in java land
+(04:52:23 PM) zzz: I've raised a few objections about this windows proposal over the last month, none fatal, but I don't think they've been adequately addressed
+(04:52:29 PM) zzz: I'll list 3 here
+(04:52:47 PM) eyedeekay: Unfortunately we might to this to take advantage of jpackage builds, which do require us to build on the target platform at this time
+(04:53:03 PM) zzz: 1) it's all a distraction from the mac installer that got us started and is probably higher priority and we'll learn from doing it first
+(04:53:15 PM) psi: point 1 is enough there
+(04:53:24 PM) zzz: 2) almost all the justifications listed or theorized are weaker than that for the mac installer
+(04:53:34 PM) psi: i'd say focus on the mac infra before wandering out into the packaging aybss
+(04:53:55 PM) psi: you'll find a way to have scope creep
+(04:53:57 PM) zzz: 3) the so-far-unofficial firefox profile is assumed included, but hasn't been justified or reviewed separately
+(04:54:02 PM) zzz: eot
+(04:54:31 PM) psi: for now macos packaging is plenty of a task and you need not increase scope
+(04:54:47 PM) psi: once you get the macos infra working come back to windows nsis 
+(04:55:03 PM) psi: i for one want to drop macos support at work becuase it's just bad
+(04:55:12 PM) psi: the whole target is getting worse with each release
+(04:55:33 PM) psi: and apple is actively hostile to free software projects
+(04:55:51 PM) psi: if you dont mind bending over to let apple in then it's probably fine
+(04:56:10 PM) zlatinb: well that's a picturesque way of putting it psi :)
+(04:56:12 PM) psi: it's all a question of how much time you want to burn dealing with them
+(04:56:29 PM) psi: if the number of users is low enough it's just not worth it
+(04:56:39 PM) eyedeekay: I can definitely live with waiting for Mac to be ready to take Windows further, I think everyone sees my point re: the installer and it's relationship to onboarding
+(04:57:00 PM) zlatinb: but I've already gone through the joys of notarization so that part's taken care of
+(04:57:10 PM) zlatinb: (that's the most unpleasant part btw)
+(04:57:33 PM) psi: so this is a kind of high level directional question, windows is actually getting a bit better and apple is getting worse, the projected direction each are going is pretty clear to me
+(04:57:52 PM) psi: if we dont have a dedicate mac guy then the mac parts will rot
+(04:58:00 PM) psi: dedicated mac guy*
+(04:58:05 PM) psi: that is what happened at work D:
+(04:58:34 PM) zlatinb: well I try to document everything that I do, but you're right, one of the requirements is an Apple Id which means de-anoning
+(04:58:44 PM) psi: that's probably fine
+(04:58:50 PM) psi: the real problem is the everything else part
+(04:58:57 PM) zlatinb: it's not that bad
+(04:59:05 PM) psi: it is if you need eleveated privs
+(04:59:05 PM) zlatinb: we can discuss after the meeting if you're interested
+(04:59:16 PM) psi: for i2p is fine
+(04:59:16 PM) zlatinb: we don't for I2P, it's a slide install
+(04:59:19 PM) zzz: the thing I still don't understand is that we had a broken link to the old dmg installer for a year and nobody complained. during that time we thought we had a dedicated mac guy, but he vanished
+(04:59:19 PM) psi: and yea we can talk later
+(04:59:30 PM) psi: yea
+(04:59:44 PM) psi: if a mac users tries it and it's broken they'll just uninstall
+(04:59:48 PM) psi: they wont report a bug
+(04:59:52 PM) zlatinb: exactly
+(05:00:03 PM) psi: and with i2pd being a thing they can just try that
+(05:00:12 PM) psi: if i2pd works they'll use that
+(05:00:16 PM) eyedeekay: I bet if I really combed I could find a reddit question
+(05:00:25 PM) zlatinb: it doesn't, requires disarming all assessments
+(05:00:53 PM) eyedeekay: But another factor is that until a few months ago the .dmg installer would have installed and may have updated, because the signature on it hadn't expired yet
+(05:02:24 PM) zlatinb: there is like one mac guy on ilita and he is a very advanced mac user
+(05:02:33 PM) zlatinb: anyway, we're drifting
+(05:02:33 PM) psi: yea
+(05:02:33 PM) zlatinb: psi is right that mac users won't complain and just give up
+(05:02:33 PM) psi: are there regular project level UX aditing for each platform?
+(05:02:33 PM) zzz: not true, the link was broken as of 0.9.44, because the last dmg release was .43
+(05:02:33 PM) psi: i.e. seeing if platform X is broken?
+(05:02:33 PM) zlatinb: sadly no
+(05:02:33 PM) psi: thinking out loud i see a common overaching theme
+(05:02:33 PM) psi: over arching theme
+(05:02:34 PM) zzz: correction .45 was the last, broken as of .46
+(05:03:03 PM) zlatinb: we had the windows installer broken for two days until parg complained about it, just a data point
+(05:03:27 PM) zzz: one hour in, eyedeekay can you keep things moving please?
+(05:03:35 PM) eyedeekay: Yes
+(05:03:52 PM) eyedeekay: I think we've done enough on #4 for now anyway
+(05:03:58 PM) psi: yea
+(05:04:07 PM) eyedeekay: 5) update channels
+(05:04:21 PM) eyedeekay: This one is yours zlatinb
+(05:04:56 PM) zlatinb: right, so the main purpose of update channels is to support the new installers, but of course it can turn out to be useful in other situations as well.
+(05:04:57 PM) zlatinb: such as:
+(05:05:16 PM) zlatinb: if we decide to transition to stable-vs-beta releases after 1.0.0
+(05:05:46 PM) zlatinb: to summarize what's on the wiki page:
+(05:06:09 PM) zlatinb: we introduce the notion of an update channel which is platform X readiness tuple
+(05:06:29 PM) psi: i2p has been effectively rolling release for a decade right?
+(05:06:57 PM) zlatinb: to do it in backwards-compatible way with least amount of work the update url will be constructed http://...b32.i2p/<platform>/<readiness>/news.su3
+(05:07:25 PM) zlatinb: no changes to news.xml format
+(05:08:08 PM) zlatinb: So very little modifications to the workflow of the su3 generators
+(05:08:33 PM) zlatinb: small changes to the backend of the router, and small-to-medium changes to the console ui
+(05:09:04 PM) zlatinb: for more detailed discussion see the wiki page
+(05:09:36 PM) zlatinb: at this meeting I would like to agree on what priority this should be, when do we want it done, who will do which part ideally too
+(05:09:38 PM) zlatinb: eot
+(05:10:04 PM) zzz: the issues are who runs and manages and translates the new feeds and their backups ... same as now, or different
+(05:10:11 PM) zzz: if it's option 1 then it's almost no dev effort
+(05:10:35 PM) zlatinb: oh yeah option 2 (from the wiki page) is out, ignore it completely
+(05:10:59 PM) zzz: so are you proposing the same news hosts as now for the new feeds? (ech and idk), if so, need their buyin, if not, need to know who
+(05:11:44 PM) zlatinb: I would say start with the same hosts for now
+(05:12:08 PM) eyedeekay: I'm absolutely happy to host the new feeds on my end
+(05:12:27 PM) zlatinb: I'll reach out to ech sometime soon about it
+(05:13:51 PM) eyedeekay: Since option 2 is out by extension option 3 is as well, right?
+(05:13:59 PM) zlatinb: yeah
+(05:14:36 PM) zlatinb: option 1 achieves everything and is very little effort relative to the other options
+(05:15:31 PM) zlatinb: so... 
+(05:16:23 PM) zlatinb: since this is a prerequisite for enabling in-network updates of a .dmg installer and we seem to be in agreement that we're going ahead with that, shall we say 0.9.51 for this item?
+(05:16:49 PM) eyedeekay: +1
+(05:17:08 PM) zzz: oh I thought you wanted a deadline for deciding. thats a deadline for finishing
+(05:17:24 PM) zzz: but sure, that's a reasonable target
+(05:17:50 PM) zlatinb: I wanted a deadline for deciding on the .dmg installer.. but I can retreat if there are reasonable arguments against deciding now :)
+(05:18:03 PM) mode (+v val) by ChanServ
+(05:18:26 PM) zzz: sounds good
+(05:19:10 PM) zlatinb: ok... we have one more meeting before the 0.9.51 cycle starts in earnest, right?
+(05:19:17 PM) eyedeekay: Yes we do
+(05:19:44 PM) zlatinb: we can then expand on the details on the wiki, including specific code locations that need to change by then
+(05:19:56 PM) zlatinb: I'm reluctant to start actual coding even if on a branch
+(05:20:18 PM) zzz: there shouldn't be any coding really, or very little
+(05:20:37 PM) zlatinb: I'll try to scope it out by the next meeting
+(05:21:18 PM) zlatinb: ok, that's eot from me on 5)
+(05:21:26 PM) eyedeekay: Ok then moving on to 6) Trac Migration Report/Evaluation
+(05:22:30 PM) eyedeekay: I've made a chart, it's been approved, I've done a dry run on a server at home, it worked. There are hundreds of tickets to migrate, almost all of which will be added to i2p.i2p with tags corresponding to the "component" they were on trac.
+(05:23:54 PM) eyedeekay: I think I can do the whole migration this month and have it done by the start of the next meeting. I'm going to go from small-to-large like I did with mtn->git. I'm going to go much faster this time, most of these can expected to take one day or less to complete. I'll be starting with i2p.www
+(05:24:21 PM) zzz: have we definitely decided to do it, or are there open issues e.g. registration for tickets, spam, etc. ?????
+(05:24:29 PM) mode (+v anonymousmaybe) by ChanServ
+(05:24:59 PM) eyedeekay: Spam has dropped considerably over the past month, user registrations are now open without my approval. Anyone who can confirm an email can register.
+(05:25:32 PM) eyedeekay: I can still "approve" users who cannot or do not wish to use a real e-mail.
+(05:25:35 PM) zzz: iirc we know where we're headed but we haven't made the final decision yet, especially because of the reg. issue
+(05:25:53 PM) zzz: but I don't have last month's meeting logs in front of me
+(05:26:14 PM) eyedeekay: The biggest issue, approval-only for registration, is no longer the case
+(05:26:48 PM) zzz: ok so that and the migration tech issues were the biggest. anything else that's a blocker, or are you recommending we proceed?
+(05:27:35 PM) eyedeekay: I am believe that I should proceed this month with the ticket migration
+(05:27:45 PM) mode (+v dr|z3d) by ChanServ
+(05:27:51 PM) zzz: sounds good
+(05:28:02 PM) eyedeekay: OK I'll get started probably at the end of this week
+(05:28:26 PM) eyedeekay: Last but not least the 7) 0.9.50 release update
+(05:28:29 PM) zzz: oh I remember
+(05:28:29 PM) zzz: notifications
+(05:28:40 PM) zzz: on tickets, MRs, etc. seem completely broken
+(05:29:04 PM) zzz: ofc they are on trac also...
+(05:29:44 PM) zzz: so maybe not a blocker but def. an annoyance
+(05:29:47 PM) eyedeekay: Are you not getting them? I thought I had them fixed, I started getting mine. I'll figure out why it is and deal with it ASAP
+(05:30:19 PM) zzz: nope. zlatinb how about you?
+(05:30:28 PM) zlatinb: nada
+(05:30:34 PM) zlatinb: did get a few at one point but after the update or downtime nothing
+(05:30:55 PM) zlatinb: but I check the activity feeds obsessively :)
+(05:31:19 PM) eyedeekay: Shoot. OK I must have missed it when I put the server back up after the thing in December. I'll fix it soon.
+(05:31:38 PM) eyedeekay: Wait no I have an email from zzz on the X-i2p-location issue...
+(05:31:46 PM) eyedeekay: Can't be that. Anyway, I'll find it
+(05:32:14 PM) zzz: thanks
+(05:32:16 PM) zzz: re: 7)
+(05:32:23 PM) zzz: I'll be very brief
+(05:32:37 PM) zzz: we're 7 weeks into a nominal 12 wk cycle, target mid-to-late May
+(05:32:45 PM) zzz: all big changes should be in
+(05:32:49 PM) zzz: lots of SSU and IPv6 stuff
+(05:33:08 PM) zzz: doing testing w/ i2pd on prop. 158 (ipv6 introducers)
+(05:33:18 PM) zzz: for draft release announcement see zzz.i2p
+(05:33:20 PM) zzz: EOT
+(05:33:52 PM) zlatinb: I just want to chime in re: bandwidth utilisation
+(05:34:04 PM) zlatinb: this release has the potential to improve throughput by a LOT
+(05:34:40 PM) zlatinb: so with the changes to RED and CDQ tuning we should keep an eye on whatever network metrics we can get
+(05:34:50 PM) zzz: let's hope. also lots of i2pd fixes in their mid-cycle release a couple weeks ago, and more in the next one, will help network performance
+(05:35:38 PM) zlatinb: I'm just worried we'll hit some bottlenecks that we never hit before
+(05:35:50 PM) zlatinb: but that's growing pains I guess
+(05:36:09 PM) zzz: same story different day
+(05:36:48 PM) eyedeekay: Thanks zzz, thanks zlatinb.
+(05:37:53 PM) eyedeekay: I've got very little to add here, and I think we've been here long enough, so unless there's anything else you want to discuss I'm going to call us to a close
+(05:38:03 PM) eyedeekay: Timeout 1m
+(05:39:19 PM) eyedeekay: Thanks everyone for coming, see around IRC
+(05:39:31 PM) eyedeekay: I will post meeting logs in a few minutes
