@@ -4,7 +4,7 @@ SSU Protocol Specification
 .. meta::
     :category: Transports
     :lastupdated: 2021-04
-    :accuratefor: 0.9.48
+    :accuratefor: 0.9.50
 
 .. contents::
 
@@ -667,8 +667,10 @@ Notes
   always 0 and the port is always 0, and the receiver should use the packet's
   source address and port.
 
-* This message may be sent via IPv4 or IPv6. If IPv6, Alice must include her
-  IPv4 address and port.
+* This message may be sent via IPv4 or IPv6.
+  If the message is over IPv6 for an IPv4 introduction,
+  or (as of release 0.9.50) over IPv4 for an IPv6 introduction,
+  Alice must include her introduction address and port.
 
 * If Alice includes her address/port, Bob may perform additional validation
   before continuing.
@@ -678,7 +680,7 @@ Notes
 
 * Challenge is unimplemented, challenge size is always zero
 
-* There are no plans to implement relaying for IPv6.
+* Relaying for IPv6 is supported as of release 0.9.50.
 
 * Prior to release 0.9.12, Bob's intro key was always used. As of release
   0.9.12, the session key is used if there is an established session between
@@ -738,10 +740,11 @@ Notes
   RelayRequest on (not necessarily the IP Alice included in the RelayRequest),
   and may be IPv4 or IPv6. Alice currently ignores these on receive.
 
-* Charlie's IP address must be IPv4, as that is the address that Alice will
+* Charlie's IP address may be IPv4, or, as of release 0.9.50, IPv6.
+  as that is the address that Alice will
   send the SessionRequest to after the Hole Punch.
 
-* There are no plans to implement relaying for IPv6.
+* Relaying for IPv6 is supported as of release 0.9.50.
 
 * Prior to release 0.9.12, Alice's intro key was always used. As of release
   0.9.12, the session key is used if there is an established session between
@@ -789,12 +792,17 @@ non-mod-16 padding)
 
 Notes
 `````
-* Alice's IP address is always 4 bytes in the current implementation, because
-  Alice is trying to connect to Charlie via IPv4.
+* For IPv4, Alice's IP address is always 4 bytes, because Alice is trying to connect to Charlie via IPv4.
+  As of release 0.9.xx, IPv6 is supported, and Alice's IP address may be 16 bytes.
 
 * This message must be sent via an established IPv4 connection, as that's the
   only way that Bob knows Charlie's IPv4 address to return to Alice in the
   RelayResponse_.
+* For IPv4, this message must be sent via an established IPv4 connection,
+  as that's the only way that Bob knows Charlie's IPv4 address to return to Alice in the RelayResponse_.
+  As of release 0.9.50, IPv6 is supported, and this message may be sent via an established IPv6 connection.
+
+* As of release 0.9.50, any SSU address published with introducers must contain "4" or "6" in the "caps" option.
 
 * Challenge is unimplemented, challenge size is always zero
 

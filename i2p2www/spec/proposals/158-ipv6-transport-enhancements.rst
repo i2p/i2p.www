@@ -5,11 +5,17 @@ IPv6 Transport Enhancements
     :author: zzz, orignal
     :created: 2021-03-19
     :thread: http://zzz.i2p/topics/3060
-    :lastupdated: 2021-03-19
-    :status: Open
+    :lastupdated: 2021-04-26
+    :status: Closed
     :target: 0.9.50
 
 .. contents::
+
+
+Note
+====
+Network deployment and testing in progress.
+Subject to minor revisions.
 
 
 Overview
