@@ -663,14 +663,13 @@ included) or 112 bytes (4-byte Alice IP included) (before non-mod-16 padding)
 Notes
 `````
 * The IP address is only included if it is be different than the packet's
-  source address and port. In the current implementation, the IP length is
-  always 0 and the port is always 0, and the receiver should use the packet's
   source address and port.
 
 * This message may be sent via IPv4 or IPv6.
   If the message is over IPv6 for an IPv4 introduction,
   or (as of release 0.9.50) over IPv4 for an IPv6 introduction,
   Alice must include her introduction address and port.
+  This is supported as of release 0.9.50.
 
 * If Alice includes her address/port, Bob may perform additional validation
   before continuing.
