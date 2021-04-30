@@ -5,7 +5,7 @@ Smaller Tunnel Build Messages
     :author: zzz, orignal
     :created: 2020-10-09
     :thread: http://zzz.i2p/topics/2957
-    :lastupdated: 2021-03-29
+    :lastupdated: 2021-04-30
     :status: Open
     :target: 0.9.51
 
@@ -439,6 +439,12 @@ ShortTunnelBuild
 -------------------
 I2NP Type 25
 
+This message is sent to middle hops, OBEP, and IBEP (creator).
+It may not be sent to the IBGW (use garlic wrapped InboundTunnelBuild instead).
+When received by the OBEP, it is transformed to an OutboundTunnelBuildReply,
+garlic wrapped, and sent to the originator.
+
+
 .. raw:: html
 
   {% highlight lang='dataspec' %}
@@ -465,6 +471,10 @@ Notes
 OutboundTunnelBuildReply
 ---------------------------
 I2NP Type 26
+
+This message is only sent by the OBEP to the IBEP (creator) via an existing inbound tunnel.
+It may not be sent to any other hop.
+It is always garlic encrypted.
 
 .. raw:: html
 
@@ -522,6 +532,10 @@ Notes
 InboundTunnelBuild
 -------------------
 I2NP Type 27
+
+This message is only sent to the IBGW.
+It may not be sent to any other hop.
+The IBGW transforms it to a ShortTunnelBuild before sending it to the next hop.
 
 .. raw:: html
 
