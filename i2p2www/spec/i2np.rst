@@ -236,7 +236,7 @@ One Record in a set of multiple records to request the creation of one hop in
 the tunnel. For more details see the tunnel overview [TUNNEL-IMPL]_ and the
 ElGamal tunnel creation specification [TUNNEL-CREATION]_.
 
-For ECIES-X25519 BuildRequestRecords, see [TUNNEL-CREATION-ECIES].
+For ECIES-X25519 BuildRequestRecords, see [TUNNEL-CREATION-ECIES]_.
 
 
 Contents (ElGamal)
@@ -413,7 +413,7 @@ One Record in a set of multiple records with responses to a build request.
 For more details see the tunnel overview [TUNNEL-IMPL]_ and the
 ElGamal tunnel creation specification [TUNNEL-CREATION]_.
 
-For ECIES-X25519 BuildResponseRecords, see [TUNNEL-CREATION-ECIES].
+For ECIES-X25519 BuildResponseRecords, see [TUNNEL-CREATION-ECIES]_.
 
 
 Contents (ElGamal)
