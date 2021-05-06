@@ -3,8 +3,8 @@ I2NP Specification
 ==================
 .. meta::
     :category: Protocols
-    :lastupdated: 2021-01
-    :accuratefor: 0.9.49
+    :lastupdated: 2021-05
+    :accuratefor: 0.9.50
 
 .. contents::
 
@@ -12,11 +12,12 @@ I2NP Specification
 Overview
 ========
 
-The I2P Network Protocol (I2NP), which is sandwiched between I2CP and the
-various I2P transport protocols, manages the routing and mixing of messages
-between routers, as well as the selection of what transports to use when
-communicating with a peer for which there are multiple common transports
-supported.
+The I2P Network Protocol (I2NP) is the layer above the
+I2P transport protocols. It is a router-to-router protocol.
+It is used for network database lookups and replies, for creating
+tunnels, and for encrypted router and client data messages.
+I2NP messages may be sent point-to-point to another router,
+or sent anonymously through tunnels to that router.
 
 
 .. _versions:
@@ -25,7 +26,8 @@ Protocol Versions
 =================
 
 All routers must publish their I2NP protocol version in the "router.version"
-field in the RouterInfo properties.  This version field indicates their level
+field in the RouterInfo properties.
+This version field is the API version, indiciating the level
 of support for various I2NP protocol features, and is not necessarily the
 actual router version.
 
@@ -33,7 +35,8 @@ If alternative (non-Java) routers wish to publish any version information about
 the actual router implementation, they must do so in another property.
 Versions other than those listed below are allowed. Support will be determined
 through a numeric comparison; for example, 0.9.13 implies support for 0.9.12
-features.  Note that the "coreVersion" property is not used for determination
+features.  Note that the "coreVersion" property is no longer published
+in the router info, and was never used for determination
 of the I2NP protocol version.
 
 A basic summary of the I2NP protocol versions is as follows. For details, see
@@ -597,9 +600,9 @@ Delivery Instructions!
 Messages
 ========
 
-==================================  =======
-             Message                 Type
-==================================  =======
+==================================  =======  =======
+             Message                 Type     Since
+==================================  =======  =======
 DatabaseStore_                         1
 DatabaseLookup_                        2
 DatabaseSearchReply_                   3
@@ -610,15 +613,15 @@ TunnelGateway_                         19
 Data_                                  20
 TunnelBuild_                           21
 TunnelBuildReply_                      22
-VariableTunnelBuild_                   23
-VariableTunnelBuildReply_              24
-Reserved [Prop157]_                    25
-Reserved [Prop157]_                    26
-Reserved [Prop157]_                    27
+VariableTunnelBuild_                   23     0.7.12
+VariableTunnelBuildReply_              24     0.7.12
+Reserved [Prop157]_                    25      TBD
+Reserved [Prop157]_                    26      TBD
+Reserved [Prop157]_                    27      TBD
 Reserved                               0
 Reserved for experimental messages  224-254
 Reserved for future expansion         255
-==================================  =======
+==================================  =======  =======
 
 .. _msg-DatabaseStore:
 
