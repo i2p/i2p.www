@@ -5,7 +5,7 @@ Smaller Tunnel Build Messages
     :author: zzz, orignal
     :created: 2020-10-09
     :thread: http://zzz.i2p/topics/2957
-    :lastupdated: 2021-04-30
+    :lastupdated: 2021-05-13
     :status: Open
     :target: 0.9.51
 
@@ -22,7 +22,7 @@ Summary
 
 The current size of the encrypted tunnel Build Request and Reply records is 528.
 For typical Variable Tunnel Build and Variable Tunnel Build Reply messages,
-the total size is 2113 bytes. This message is fragmented into 1KB three tunnel
+the total size is 2113 bytes. This message is fragmented into three 1KB tunnel
 messages for the reverse path.
 
 Changes to the 528-byte record format for ECIES-X25519 routers are specified in [Prop152]_ and [Tunnel-Creation-ECIES]_.
