@@ -5,7 +5,7 @@ Smaller Tunnel Build Messages
     :author: zzz, orignal
     :created: 2020-10-09
     :thread: http://zzz.i2p/topics/2957
-    :lastupdated: 2021-05-13
+    :lastupdated: 2021-06-03
     :status: Open
     :target: 0.9.51
 
@@ -362,15 +362,12 @@ Short Reply Record
 -----------------------
 
 
-Encrypted BuildReplyRecords are 528 bytes for both ElGamal and ECIES, for compatibility.
-
-
 Short Reply Record Unencrypted
 `````````````````````````````````````
 This is the proposed specification of the tunnel ShortBuildReplyRecord for ECIES-X25519 routers.
 Summary of changes from [Tunnel-Creation-ECIES]_:
 
-- Change unencrypted length from 512 to 172 bytes
+- Change unencrypted length from 512 to 220 bytes
 - Change encrypted length from 528 to 236 bytes
 - Padding omitted when in OTBRM.
 
@@ -379,7 +376,7 @@ ECIES replies are encrypted with ChaCha20/Poly1305.
 
 All fields are big-endian.
 
-Unencrypted size: 172 bytes, except when in the first record of an OutboundTunnelBuildReply message.
+Unencrypted size: 220 bytes, except when in the first record of an OutboundTunnelBuildReply message.
 Variable size in the first record of an OutboundTunnelBuildReply message.
 Minimum size in the first record of an OutboundTunnelBuildReply message: 3 bytes.
 
@@ -389,16 +386,16 @@ Minimum size in the first record of an OutboundTunnelBuildReply message: 3 bytes
 
 bytes    0-x: Tunnel Build Reply Options (Mapping)
   bytes    x-x: other data as implied by options
-  bytes  x-170: Random padding (see below)
-  byte     171: Reply byte
+  bytes  x-218: Random padding (see below)
+  byte     219: Reply byte
 
 {% endhighlight %}
 
 The tunnel build reply options is a Mapping structure as defined in [Common]_.
 This is for future use. No options are currently defined.
 If the Mapping structure is empty, this is two bytes 0x00 0x00.
-The maximum size of the Mapping (including the length field) is 171 bytes,
-and the maximum value of the Mapping length field is 169.
+The maximum size of the Mapping (including the length field) is 219 bytes,
+and the maximum value of the Mapping length field is 217.
 
 NOTE: The random padding is NOT included in the first record of an OutboundTunnelBuildReply message.
 That record is variable-length and is preceded by a length field.
