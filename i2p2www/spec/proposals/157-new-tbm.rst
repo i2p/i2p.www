@@ -85,7 +85,7 @@ The plaintext request records will be 172 bytes,
 compared to 222 bytes for ElGamal records,
 and 464 bytes for ECIES records as defined in [Prop152]_ and [Tunnel-Creation-ECIES]_.
 
-The plaintext response records will be 172 bytes,
+The plaintext response records will be 220 bytes,
 compared to 496 bytes for ElGamal records,
 and 512 bytes for ECIES records as defined in [Prop152]_ and [Tunnel-Creation-ECIES]_.
 
@@ -498,17 +498,17 @@ It is always garlic encrypted.
   length ::
          Length of the plaintext record to follow
          2 byte `Integer`
-         Valid values: 3-172
+         Valid values: 3-220
 
   BuildReplyRecord ::
          Plaintext record for OBEP
-         length: 3-172
+         length: 3-220
 
   ShortBuildReplyRecords ::
          Encrypted records
          length: (num-1) * 236
 
-  cleartext record size: TBD-172 bytes
+  cleartext record size: 3-220 bytes
   encrypted record size: 236 bytes
   total size: varies
 {% endhighlight %}
@@ -569,7 +569,7 @@ The IBGW transforms it to a ShortTunnelBuild before sending it to the next hop.
          Encrypted records
          length: (num-1) * 236
 
-  cleartext record size: TBD-172 bytes
+  cleartext record size: 90-172 bytes
   encrypted record size: 236 bytes
   total size: varies
 {% endhighlight %}
