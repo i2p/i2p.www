@@ -5,7 +5,7 @@ Smaller Tunnel Build Messages
     :author: zzz, orignal
     :created: 2020-10-09
     :thread: http://zzz.i2p/topics/2957
-    :lastupdated: 2021-06-03
+    :lastupdated: 2021-06-08
     :status: Open
     :target: 0.9.51
 
@@ -477,9 +477,9 @@ It is always garlic encrypted.
 
   {% highlight lang='dataspec' %}
 +----+----+----+----+----+----+----+----+
-  | num|slot| length  |   Cleartext
-  +----+----+----+----+----+----+----+----+
-              BuildReplyRecord            |
+  | num|slot| length  |                   |
+  +----+----+----+----+                   +
+  |     CleartextBuildReplyRecord         |
   +----+----+----+----+----+----+----+----+
   |      ShortBuildReplyRecords...        |
   +----+----+----+----+----+----+----+----+
@@ -500,7 +500,7 @@ It is always garlic encrypted.
          2 byte `Integer`
          Valid values: 3-220
 
-  BuildReplyRecord ::
+  CleartextBuildReplyRecord ::
          Plaintext record for OBEP
          length: 3-220
 
@@ -538,9 +538,9 @@ The IBGW transforms it to a ShortTunnelBuild before sending it to the next hop.
 
   {% highlight lang='dataspec' %}
 +----+----+----+----+----+----+----+----+
-  | num|slot| length  |   Cleartext
-  +----+----+----+----+----+----+----+----+
-              BuildRequestRecord          |
+  | num|slot| length  |                   |
+  +----+----+----+----+                   +
+  |     CleartextBuildRequestRecord       |
   +----+----+----+----+----+----+----+----+
   |      ShortBuildRequestRecords...      |
   +----+----+----+----+----+----+----+----+
@@ -561,7 +561,7 @@ The IBGW transforms it to a ShortTunnelBuild before sending it to the next hop.
          2 byte `Integer`
          Valid values: 90-172
 
-  BuildRequestRecord ::
+  CleartextBuildRequestRecord ::
          Plaintext record for IBGW
          length: 90-172
 
