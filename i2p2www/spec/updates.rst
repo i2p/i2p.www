@@ -2,8 +2,8 @@
 Software Update Specification
 =============================
 .. meta::
-    :lastupdated: August 2019
-    :accuratefor: 0.9.42
+    :lastupdated: June 2021
+    :accuratefor: 0.9.51
 
 .. contents::
 
@@ -238,6 +238,8 @@ Bytes   Contents
         * 0x02 = html file (as of 0.9.17)
         * 0x03 = xml.gz file (as of 0.9.17)
         * 0x04 = txt.gz file (as of 0.9.28)
+        * 0x05 = dmg file (as of 0.9.51)
+        * 0x06 = exe file (as of 0.9.51)
 
  26     unused = 0
 
