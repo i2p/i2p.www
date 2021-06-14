@@ -3,7 +3,7 @@ SSU Protocol Specification
 ==========================
 .. meta::
     :category: Transports
-    :lastupdated: 2021-04
+    :lastupdated: 2021-06
     :accuratefor: 0.9.50
 
 .. contents::
@@ -990,6 +990,7 @@ PeerTest (type 7)
 -----------------
 
 See [SSU-PEERTEST]_ for details.
+Note: IPv6 peer testing is supported as of release 0.9.27.
 
 ====================  ==========================================================
 **Peer:**             Any
@@ -1081,8 +1082,7 @@ Notes
   Alice thinks her address is.
 
 * When sent by Bob or Charlie, IP and port are present, and IP address is
-  always 4 bytes in the current implementation. IPv6 testing is not currently
-  supported.
+  4 or 16 bytes. IPv6 testing is supported as of release 0.9.27.
 
 * IPv6 Notes: Through release 0.9.26, only testing of IPv4 addresses is supported. Therefore, all
   Alice-Bob and Alice-Charlie communication must be via IPv4. Bob-Charlie
