@@ -5,7 +5,7 @@ Smaller Tunnel Build Messages
     :author: zzz, orignal
     :created: 2020-10-09
     :thread: http://zzz.i2p/topics/2957
-    :lastupdated: 2021-06-08
+    :lastupdated: 2021-06-19
     :status: Open
     :target: 0.9.51
 
@@ -662,6 +662,10 @@ Appendix
 ==========
 
 
+Without garlic overhead for unencrypted inbound STBM,
+if we don't use ITBM:
+
+
 .. raw:: html
 
   {% highlight lang='text' %}
@@ -673,32 +677,93 @@ Current 4-slot size: 4 * 528 + overhead = 3 tunnel messages
   - 21 fragment header
   ----
   1003
-  - 39 unfragmented instructions
+  - 35 unfragmented ROUTER delivery instructions
   ----
-  964
+  968
   - 16 I2NP header
   ----
-  948
+  952
   - 1 number of slots
   ----
-  947
+  951
   / 4 slots
   ----
-  236 New encrypted build record size (vs. 528 now)
+  237 New encrypted build record size (vs. 528 now)
   - 16 trunc. hash
   - 32 eph. key
   - 16 MAC
   ----
-  172 cleartext build record max (vs. 222 now)
-
-  Current build record cleartext size before unused padding: 193
-
-  Removal of full router hash and HKDF generation of keys/IVs would free up plenty of room for future options.
-  If everything is HKDF, required cleartext space is about 82 bytes (without any options)
+  173 cleartext build record max (vs. 222 now)
 
 
 
 {% endhighlight %}
+
+
+With garlic overhead for 'N' noise pattern to encrypt inbound STBM,
+if we don't use ITBM:
+
+.. raw:: html
+
+  {% highlight lang='text' %}
+Current 4-slot size: 4 * 528 + overhead = 3 tunnel messages
+
+  4-slot garlic-encrypted build message to fit in one tunnel message, ECIES-only:
+
+  1024
+  - 21 fragment header
+  ----
+  1003
+  - 35 unfragmented ROUTER delivery instructions
+  ----
+  968
+  - 16 I2NP header
+  -  4 length
+  ----
+  948
+  - 32 byte eph. key
+  ----
+  916
+  - 7 byte DateTime block
+  ----
+  909
+  - 3 byte Garlic block overhead
+  ----
+  906
+  - 9 byte I2NP header
+  ----
+  897
+  - 1 byte Garlic LOCAL delivery instructions
+  ----
+  896
+  - 16 byte Poly1305 MAC
+  ----
+  880
+  - 1 number of slots
+  ----
+  879
+  / 4 slots
+  ----
+  219 New encrypted build record size (vs. 528 now)
+  - 16 trunc. hash
+  - 32 eph. key
+  - 16 MAC
+  ----
+  155 cleartext build record max (vs. 222 now)
+
+
+{% endhighlight %}
+
+Notes:
+
+Current build record cleartext size before unused padding: 193
+
+Removal of full router hash and HKDF generation of keys/IVs would free up plenty of room for future options.
+If everything is HKDF, required cleartext space is about 58 bytes (without any options).
+
+OTBRM is much smaller because there's one small plaintext record and one less encrypted record.
+
+
 
 
 References
