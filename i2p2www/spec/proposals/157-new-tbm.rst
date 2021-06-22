@@ -5,7 +5,7 @@ Smaller Tunnel Build Messages
     :author: zzz, orignal
     :created: 2020-10-09
     :thread: http://zzz.i2p/topics/2957
-    :lastupdated: 2021-06-19
+    :lastupdated: 2021-06-22
     :status: Open
     :target: 0.9.51
 
@@ -79,13 +79,13 @@ Records
 
 See appendix for calculations.
 
-Encrypted request and reply records will be 236 bytes, compared to 528 bytes now.
+Encrypted request and reply records will be 218 bytes, compared to 528 bytes now.
 
-The plaintext request records will be 172 bytes,
+The plaintext request records will be 154 bytes,
 compared to 222 bytes for ElGamal records,
 and 464 bytes for ECIES records as defined in [Prop152]_ and [Tunnel-Creation-ECIES]_.
 
-The plaintext response records will be 220 bytes,
+The plaintext response records will be 202 bytes,
 compared to 496 bytes for ElGamal records,
 and 512 bytes for ECIES records as defined in [Prop152]_ and [Tunnel-Creation-ECIES]_.
 
@@ -105,7 +105,19 @@ as with the existing Variable messages.
 ShortTunnelBuild: Type 25
 ````````````````````````````````
 
-Typical length (with 4 records): 945 bytes
+Typical length (with 4 records): 873 bytes
+
+When used for inbound tunnel builds,
+it is recommended (but not required) that this message be garlic encrypted by the originator,
+targeting the inbound gateway (delivery instructions ROUTER),
+to hide inbound build messages from the OBEP.
+The IBGW decrypts the message,
+puts the reply into the correct slot,
+and sends the ShortTunnelBuildMessage to the next hop.
+
+The record length is selected so that a garlic-encrypted STBM will fit
+in a single tunnel message. See the appendix below.
+
 
 
 OutboundTunnelBuildReply: Type 26
@@ -123,26 +135,10 @@ The other records go into the other slots.
 It then garlic encrypts the message to originator with the derived symmetric keys.
 
 
-InboundTunnelBuild: Type 27
-`````````````````````````````````
-We define a new InboundTunnelBuild message, Type 27.
-This is used for inbound tunnel builds only.
-The purpose is to hide inbound build messages from the OBEP.
-It must be garlic encrypted by the originator, targeting the inbound gateway
-(delivery instructions ROUTER).
-The IBGW decrypts the message,
-constructs a ShortTunnelBuild message,
-and puts the reply into the correct slot specified.
-The other records go into the other slots.
-It then sends the ShortTunnelBuildMessage to the next hop.
-As the ShortTunnelBuild message is garlic encrypted,
-the build record for the IBGW does not need to be encrypted again.
-
-
 Notes
 ```````
 
-By garlic encrypting the OTBRM and ITBM, we also avoid any potential
+By garlic encrypting the OTBRM and STBM, we also avoid any potential
 issues with compatibility at the IBGW and OBEP of the paired tunnels.
 
 
@@ -156,7 +152,6 @@ Message Flow
   {% highlight %}
 STBM: Short tunnel build message (type 25)
   OTBRM: Outbound tunnel build reply message (type 26)
-  ITBM: Inbound tunnel build message (type 27)
 
   Outbound Build A-B-C
   Reply through existing inbound D-E-F
@@ -184,8 +179,8 @@ STBM: Short tunnel build message (type 25)
                 Existing Tunnel
   Creator ------> A ------> B ------> C ---\
                                     OBEP    \
-                                            | Garlic wrapped
-                                            | ITBM
+                                            | Garlic wrapped (optional)
+                                            | STBM
                                             | (ROUTER delivery)
                                             | from creator
                   New Tunnel                | to IBGW
@@ -246,10 +241,9 @@ Short Request Record Unencrypted
 This is the proposed specification of the tunnel BuildRequestRecord for ECIES-X25519 routers.
 Summary of changes from [Tunnel-Creation-ECIES]_:
 
-- Change unencrypted length from 464 to 172 bytes
-- Change encrypted length from 528 to 236 bytes
+- Change unencrypted length from 464 to 154 bytes
+- Change encrypted length from 528 to 218 bytes
 - Remove layer and reply keys and IVs, they will be generated from split() and a KDF
-- Padding omitted when in ITBM.
 
 
 The request record does not contain any ChaCha reply keys.
@@ -257,11 +251,7 @@ Those keys are derived from a KDF. See below.
 
 All fields are big-endian.
 
-Unencrypted size: 172 bytes, except when in the first record of an InboundTunnelBuild message.
-Variable size in the first record of an InboundTunnelBuild message.
-Minimum size in the first record of an InboundTunnelBuild message: 90 bytes.
-
-Standard format:
+Unencrypted size: 154 bytes.
 
 .. raw:: html
 
@@ -278,31 +268,10 @@ bytes     0-3: tunnel ID to receive messages as, nonzero
   bytes   52-55: next message ID
   bytes    56-x: tunnel build options (Mapping)
   bytes     x-x: other data as implied by flags or options
-  bytes   x-171: random padding (see below)
+  bytes   x-153: random padding (see below)
 
 {% endhighlight %}
 
-
-Format in first (plaintext) record in the Inbound Tunnel Build Message:
-
-.. raw:: html
-
-  {% highlight lang='dataspec' %}
-
-bytes     0-3: tunnel ID to receive messages as, nonzero
-  bytes     4-7: next tunnel ID, nonzero
-  bytes    8-39: next router identity hash
-  byte       40: flags
-  bytes   41-42: more flags, unused, set to 0 for compatibility
-  byte       43: layer encryption type
-  bytes   44-47: request time (in minutes since the epoch, rounded down)
-  bytes   48-51: request expiration (in seconds since creation)
-  bytes   52-55: next message ID
-  bytes   56-87: creator ephemeral public key for KDF
-  bytes    88-x: tunnel build options (Mapping)
-  bytes     x-x: other data as implied by flags or options
-
-{% endhighlight %}
 
 The flags field is the same as defined in [Tunnel-Creation]_ and contains the following::
 
@@ -330,8 +299,8 @@ It is required because there is no DH at this layer for the build record.
 The tunnel build options is a Mapping structure as defined in [Common]_.
 This is for future use. No options are currently defined.
 If the Mapping structure is empty, this is two bytes 0x00 0x00.
-The maximum size of the Mapping (including the length field) is 116 bytes,
-and the maximum value of the Mapping length field is 114.
+The maximum size of the Mapping (including the length field) is 98 bytes,
+and the maximum value of the Mapping length field is 96.
 
 NOTE: The random padding is NOT included in the first record of an InboundTunnelBuild message.
 That record is variable-length and is preceded by a length field.
@@ -343,7 +312,7 @@ Short Request Record Encrypted
 
 All fields are big-endian except for the ephemeral public key which is little-endian.
 
-Encrypted size: 236 bytes
+Encrypted size: 218 bytes
 
 .. raw:: html
 
@@ -351,8 +320,8 @@ Encrypted size: 236 bytes
 
 bytes    0-15: Hop's truncated identity hash
   bytes   16-47: Sender's ephemeral X25519 public key
-  bytes  48-219: ChaCha20 encrypted ShortBuildRequestRecord
-  bytes 220-235: Poly1305 MAC
+  bytes  48-201: ChaCha20 encrypted ShortBuildRequestRecord
+  bytes 202-217: Poly1305 MAC
 
 {% endhighlight %}
 
@@ -367,8 +336,8 @@ Short Reply Record Unencrypted
 This is the proposed specification of the tunnel ShortBuildReplyRecord for ECIES-X25519 routers.
 Summary of changes from [Tunnel-Creation-ECIES]_:
 
-- Change unencrypted length from 512 to 220 bytes
-- Change encrypted length from 528 to 236 bytes
+- Change unencrypted length from 512 to 202 bytes
+- Change encrypted length from 528 to 218 bytes
 - Padding omitted when in OTBRM.
 
 
@@ -376,9 +345,7 @@ ECIES replies are encrypted with ChaCha20/Poly1305.
 
 All fields are big-endian.
 
-Unencrypted size: 220 bytes, except when in the first record of an OutboundTunnelBuildReply message.
-Variable size in the first record of an OutboundTunnelBuildReply message.
-Minimum size in the first record of an OutboundTunnelBuildReply message: 3 bytes.
+Unencrypted size: 202 bytes.
 
 .. raw:: html
 
@@ -386,16 +353,16 @@ Minimum size in the first record of an OutboundTunnelBuildReply message: 3 bytes
 
 bytes    0-x: Tunnel Build Reply Options (Mapping)
   bytes    x-x: other data as implied by options
-  bytes  x-218: Random padding (see below)
-  byte     219: Reply byte
+  bytes  x-200: Random padding (see below)
+  byte     201: Reply byte
 
 {% endhighlight %}
 
 The tunnel build reply options is a Mapping structure as defined in [Common]_.
 This is for future use. No options are currently defined.
 If the Mapping structure is empty, this is two bytes 0x00 0x00.
-The maximum size of the Mapping (including the length field) is 219 bytes,
-and the maximum value of the Mapping length field is 217.
+The maximum size of the Mapping (including the length field) is 201 bytes,
+and the maximum value of the Mapping length field is 199.
 
 NOTE: The random padding is NOT included in the first record of an OutboundTunnelBuildReply message.
 That record is variable-length and is preceded by a length field.
@@ -410,14 +377,14 @@ as defined in [Tunnel-Creation]_ to avoid fingerprinting:
 Short Reply Record Encrypted
 ```````````````````````````````````
 
-Encrypted size: 236 bytes
+Encrypted size: 218 bytes
 
 .. raw:: html
 
   {% highlight lang='dataspec' %}
 
-bytes   0-219: ChaCha20 encrypted ShortBuildReplyRecord
-  bytes 220-235: Poly1305 MAC
+bytes   0-201: ChaCha20 encrypted ShortBuildReplyRecord
+  bytes 202-217: Poly1305 MAC
 
 {% endhighlight %}
 
@@ -453,13 +420,13 @@ garlic wrapped, and sent to the originator.
          1 byte `Integer`
          Valid values: 1-8
 
-  record size: 236 bytes
-  total size: 1+$num*236
+  record size: 218 bytes
+  total size: 1+$num*218
 {% endhighlight %}
 
 Notes
 `````
-* Typical number of records is 4, for a total size of 945.
+* Typical number of records is 4, for a total size of 873.
 
 
 
@@ -498,18 +465,18 @@ It is always garlic encrypted.
   length ::
          Length of the plaintext record to follow
          2 byte `Integer`
-         Valid values: 3-220
+         Valid values: 3-202
 
   CleartextBuildReplyRecord ::
          Plaintext record for OBEP
-         length: 3-220
+         length: 3-202
 
   ShortBuildReplyRecords ::
          Encrypted records
-         length: (num-1) * 236
+         length: (num-1) * 218
 
-  cleartext record size: 3-220 bytes
-  encrypted record size: 236 bytes
+  cleartext record size: 3-202 bytes
+  encrypted record size: 218 bytes
   total size: varies
 {% endhighlight %}
 
@@ -520,68 +487,6 @@ Notes
   This hopefully allows the garlic encrypted message to fit in
   one tunnel message. Calculation TBD.
 * This message MUST be garlic encrypted.
-
-
-
-
-.. _msg-InboundTunnelBuild:
-
-InboundTunnelBuild
--------------------
-I2NP Type 27
-
-This message is only sent to the IBGW.
-It may not be sent to any other hop.
-The IBGW transforms it to a ShortTunnelBuild before sending it to the next hop.
-
-.. raw:: html
-
-  {% highlight lang='dataspec' %}
-+----+----+----+----+----+----+----+----+
-  | num|slot| length  |                   |
-  +----+----+----+----+                   +
-  |     CleartextBuildRequestRecord       |
-  +----+----+----+----+----+----+----+----+
-  |      ShortBuildRequestRecords...      |
-  +----+----+----+----+----+----+----+----+
-
-  num ::
-         Total number of records,
-         equal to 1 + the number of encrypted request records
-         1 byte `Integer`
-         Valid values: 1-8
-
-  slot ::
-         Slot for the plaintext record to follow
-         1 byte `Integer`
-         Valid values: 0-7
-
-  length ::
-         Length of the plaintext record to follow
-         2 byte `Integer`
-         Valid values: 90-172
-
-  CleartextBuildRequestRecord ::
-         Plaintext record for IBGW
-         length: 90-172
-
-  ShortBuildReplyRecords ::
-         Encrypted records
-         length: (num-1) * 236
-
-  cleartext record size: 90-172 bytes
-  encrypted record size: 236 bytes
-  total size: varies
-{% endhighlight %}
-
-Notes
-`````
-* The Cleartext BuildRequestRecord does NOT contain padding after
-  the properties field. It does not need to be fixed length.
-  This hopefully allows the garlic encrypted message to fit in
-  one tunnel message. Calculation TBD.
-* This message MUST be garlic encrypted.
-
 
 
 
