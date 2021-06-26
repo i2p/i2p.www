@@ -8,12 +8,22 @@ from random import randint
 from i2p2www import CURRENT_I2P_VERSION, MIRRORS_FILE
 
 DEFAULT_MIRROR = {
-    'net': 'clearnet',
-    'protocol': 'https',
-    'domain':   'download.i2p2.de',
-    'org':      'sigterm.no',
-    'country':  'no',
+    "net": "clearnet",
+    "protocol": "https",
+    "domain": "launchpad.net",
+    "path": "/i2p/trunk/%(version)s/+download/%(file)s",
+    "org": "Launchpad",
+    "org_url": "https://launchpad.net", 
+    "country": "us"
 }
+
+#{
+ #   'net': 'clearnet',
+ #   'protocol': 'https',
+ #   'domain':   'download.i2p2.de',
+ #   'org':      'sigterm.no',
+ #   'country':  'no',
+#}
 
 DEFAULT_I2P_MIRROR = {
     'net': 'i2p',
