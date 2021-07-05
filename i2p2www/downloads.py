@@ -80,6 +80,10 @@ def downloads_debian():
 def downloads_windows():
     return render_template('downloads/windows.html')
 
+# Docker-specific page
+def downloads_docker():
+    return render_template('downloads/docker.html')
+
 # Firefox-specific page
 def downloads_firefox():
     # TODO: read mirror list or list of available files
