@@ -1,0 +1,90 @@
+{% extends "global/layout.html" %}
+{% block title %}Docker{% endblock %}
+{% block accuratefor %}0.9.50{% endblock %}
+{% block content %}
+<h1 id="i2p-in-docker">{% trans -%}Installing I2P in Docker{%- endtrans %}</h1>
+<h3 id="building-an-image">{% trans -%}Building an image{%- endtrans %}</h3>
+<p>{% trans -%}There is an i2P image available over at <a href="https://hub.docker.com">DockerHub</a>. If you do not want to use that one, you can build one yourself:{%- endtrans %}</p>
+<pre><code>docker build -t i2p .</code></pre>
+<h3 id="running-a-container">{% trans -%}Running a container{%- endtrans %}</h3>
+<h4 id="volumes">{% trans -%}Volumes{%- endtrans %}</h4>
+<p>{% trans -%}The container requires a volume for the configuration data to be mounted. Optionally, you can mount a separate volume for torrent (“i2psnark”) downloads. See the example below.{%- endtrans %}</p>
+<h4 id="memory-usage">{% trans -%}Memory usage{%- endtrans %}</h4>
+<p>{% trans -%}By the default the image limits the memory available to the Java heap to 512MB. You can override that with the <code>JVM_XMX</code> environment variable.{%- endtrans %}</p>
+<h4 id="ports">{% trans -%}Ports{%- endtrans %}</h4>
+<p>{% trans -%}There are several ports which are exposed by the image. You can choose which ones to publish depending on your specific needs.{%- endtrans %}</p>
+<table>
+<thead>
+<tr class="header">
+<th>{% trans -%}Port{%- endtrans %}</th>
+<th>{% trans -%}Description{%- endtrans %}</th>
+<th>{% trans -%}TCP/UDP{%- endtrans %}</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>4444</td>
+<td>{% trans -%}HTTP Proxy{%- endtrans %}</td>
+<td>{% trans -%}TCP{%- endtrans %}</td>
+</tr>
+<tr class="even">
+<td>4445</td>
+<td>{% trans -%}HTTPS Proxy{%- endtrans %}</td>
+<td>{% trans -%}TCP{%- endtrans %}</td>
+</tr>
+<tr class="odd">
+<td>6668</td>
+<td>{% trans -%}IRC Proxy{%- endtrans %}</td>
+<td>{% trans -%}TCP{%- endtrans %}</td>
+</tr>
+<tr class="even">
+<td>7654</td>
+<td>{% trans -%}I2CP Protocol{%- endtrans %}</td>
+<td>{% trans -%}TCP{%- endtrans %}</td>
+</tr>
+<tr class="odd">
+<td>7656</td>
+<td>{% trans -%}SAM Bridge TCP{%- endtrans %}</td>
+<td>{% trans -%}TCP{%- endtrans %}</td>
+</tr>
+<tr class="even">
+<td>7657</td>
+<td>{% trans -%}Router console{%- endtrans %}</td>
+<td>{% trans -%}TCP{%- endtrans %}</td>
+</tr>
+<tr class="odd">
+<td>7658</td>
+<td>{% trans -%}I2P Site{%- endtrans %}</td>
+<td>{% trans -%}TCP{%- endtrans %}</td>
+</tr>
+<tr class="even">
+<td>7659</td>
+<td>{% trans -%}SMTP Proxy{%- endtrans %}</td>
+<td>{% trans -%}TCP{%- endtrans %}</td>
+</tr>
+<tr class="odd">
+<td>7660</td>
+<td>{% trans -%}POP Proxy{%- endtrans %}</td>
+<td>{% trans -%}TCP{%- endtrans %}</td>
+</tr>
+<tr class="even">
+<td>12345</td>
+<td>{% trans -%}I2NP Protocol{%- endtrans %}</td>
+<td>{% trans -%}TCP and UDP{%- endtrans %}</td>
+</tr>
+</tbody>
+</table>
+<p>{% trans -%}You probably want at least the Router Console (7657) and the HTTP Proxy (4444). If you want I2P to be able to receive incoming connections from the internet, and hence not think it’s firewalled, publish the I2NP Protocol port (12345) - but make sure you publish to a different random port, otherwise others may be able to guess you’re running I2P in a Docker image.{%- endtrans %}</p>
+<h4 id="example">{% trans -%}Example{%- endtrans %}</h4>
+<p>{% trans -%}Here is an example container that mounts <code>i2phome</code> as home directory, <code>i2ptorrents</code> for torrents, and opens HTTP Proxy, IRC, Router Console and I2NP Protocols. It also limits the memory available to the JVM to 256MB.{%- endtrans %}</p>
+<pre><code>docker run \
+    -e JVM_XMX=256m \
+    -v i2phome:/i2p/.i2p \
+    -v i2ptorrents:/i2psnark \
+    -p 4444:4444 \
+    -p 6668:6668 \
+    -p 7657:7657 \
+    -p 54321:12345 \
+    -p 54321:12345/udp \  # I2NP port needs TCP and UDP.  Change the 54321 to something random, greater than 1024.
+    i2p:latest</code></pre>
+{% endblock %}
