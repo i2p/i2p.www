@@ -504,29 +504,29 @@ Both use the same key, nonce is record's position in the message starring from 0
 .. raw:: html
 
   {% highlight lang='dataspec' %}
-  ck = HKDF(ck, ZEROLEN, "SMTunnelReplyKey", 64)
-replyKey = ck[32:63]
+ck = HKDF(ck, ZEROLEN, "SMTunnelReplyKey", 64)
+  replyKey = ck[32:63]
 
-Layer key:
-Layer key is always AES for now, but same KDF can be used from Chacha20
+  Layer key:
+  Layer key is always AES for now, but same KDF can be used from Chacha20
 
-ck = HKDF(ck, ZEROLEN, "SMTunnelLayerKey", 64)
-replyKey = ck[32:63]
+  ck = HKDF(ck, ZEROLEN, "SMTunnelLayerKey", 64)
+  replyKey = ck[32:63]
 
-IV key:
-For non_OBEP record
+  IV key:
+  For non_OBEP record
 
-ivKey = ck[0:32]
-because it's last
+  ivKey = ck[0:32]
+  because it's last
 
-for OBEP record
-ck = HKDF(ck, ZEROLEN, "TunnelLayerIVKey", 64)
-ivKey = ck[32:63]
+  for OBEP record
+  ck = HKDF(ck, ZEROLEN, "TunnelLayerIVKey", 64)
+  ivKey = ck[32:63]
 
-OBEP garlic reply key/tag:
-ck = HKDF(ck, ZEROLEN, "RGarlicKeyAndTag", 64)
-key = ck[32:64]
-tag = ck[0:8]
+  OBEP garlic reply key/tag:
+  ck = HKDF(ck, ZEROLEN, "RGarlicKeyAndTag", 64)
+  key = ck[32:64]
+  tag = ck[0:8]
 
 {% endhighlight %}
 
