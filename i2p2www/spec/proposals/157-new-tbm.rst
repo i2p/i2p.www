@@ -393,7 +393,7 @@ bytes   0-201: ChaCha20 encrypted ShortBuildReplyRecord
 KDF
 -----------------------
 
-TBD
+See KDF section below.
 
 
 
@@ -494,7 +494,7 @@ KDF
 ---
 
 We use ck from Noise state after tunnel build record encryption/decrytion
-to derivve following keys: reply key, AES layer key, AES iv key and garlic reply key/tag for OBEP.
+to derive following keys: reply key, AES layer key, AES IV key and garlic reply key/tag for OBEP.
 
 Reply key:
 Unlike long records we can't use left part of ck for reply key, because it's not last and will be used later.
@@ -504,29 +504,30 @@ Both use the same key, nonce is record's position in the message starring from 0
 .. raw:: html
 
   {% highlight lang='dataspec' %}
-ck = HKDF(ck, ZEROLEN, "SMTunnelReplyKey", 64)
-  replyKey = ck[32:63]
+keydata = HKDF(ck, ZEROLEN, "SMTunnelReplyKey", 64)
+  replyKey = keydata[32:63]
+  ck = keydata[0:31]
 
   Layer key:
   Layer key is always AES for now, but same KDF can be used from Chacha20
 
-  ck = HKDF(ck, ZEROLEN, "SMTunnelLayerKey", 64)
-  replyKey = ck[32:63]
+  keydata = HKDF(ck, ZEROLEN, "SMTunnelLayerKey", 64)
+  layerKey = keydata[32:63]
 
-  IV key:
-  For non_OBEP record
-
-  ivKey = ck[0:32]
+  IV key for non-OBEP record:
+  ivKey = keydata[0:31]
   because it's last
 
-  for OBEP record
-  ck = HKDF(ck, ZEROLEN, "TunnelLayerIVKey", 64)
-  ivKey = ck[32:63]
+  IV key for OBEP record:
+  ck = keydata[0:31]
+  keydata = HKDF(ck, ZEROLEN, "TunnelLayerIVKey", 64)
+  ivKey = keydata[32:63]
+  ck = keydata[0:31]
 
   OBEP garlic reply key/tag:
-  ck = HKDF(ck, ZEROLEN, "RGarlicKeyAndTag", 64)
-  key = ck[32:64]
-  tag = ck[0:8]
+  keydata = HKDF(ck, ZEROLEN, "RGarlicKeyAndTag", 64)
+  replyKey = keydata[32:63]
+  replyTag = keydata[0:7]
 
 {% endhighlight %}
 
