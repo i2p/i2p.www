@@ -5,7 +5,7 @@ Smaller Tunnel Build Messages
     :author: zzz, orignal
     :created: 2020-10-09
     :thread: http://zzz.i2p/topics/2957
-    :lastupdated: 2021-06-22
+    :lastupdated: 2021-07-12
     :status: Open
     :target: 0.9.51
 
@@ -487,6 +487,50 @@ Notes
   This hopefully allows the garlic encrypted message to fit in
   one tunnel message. Calculation TBD.
 * This message MUST be garlic encrypted.
+
+
+
+KDF
+---
+
+We use ck from Noise state after tunnel build record encryption/decrytion
+to derivve following keys: reply key, AES layer key, AES iv key and garlic reply key/tag for OBEP.
+
+Reply key:
+Unlike long records we can't use left part of ck for reply key, because it's not last and will be used later.
+Reply key is use to encypt reply that record using AEAD/Chaha20/Poly1305 and Chacha20 to reply other records.
+Both use the same key, nonce is record's position in the message starring from 0.
+
+.. raw:: html
+
+  {% highlight lang='dataspec' %}
+ck = HKDF(ck, ZEROLEN, "SMTunnelReplyKey", 64)
+  replyKey = ck[32:63]
+
+  Layer key:
+  Layer key is always AES for now, but same KDF can be used from Chacha20
+
+  ck = HKDF(ck, ZEROLEN, "SMTunnelLayerKey", 64)
+  replyKey = ck[32:63]
+
+  IV key:
+  For non_OBEP record
+
+  ivKey = ck[0:32]
+  because it's last
+
+  for OBEP record
+  ck = HKDF(ck, ZEROLEN, "TunnelLayerIVKey", 64)
+  ivKey = ck[32:63]
+
+  OBEP garlic reply key/tag:
+  ck = HKDF(ck, ZEROLEN, "RGarlicKeyAndTag", 64)
+  key = ck[32:64]
+  tag = ck[0:8]
+
+{% endhighlight %}
+
+
 
 
 
