@@ -273,7 +273,7 @@ bytes     0-3: tunnel ID to receive messages as, nonzero
 {% endhighlight %}
 
 
-The flags field is the same as defined in [Tunnel-Creation]_ and contains the following:
+The flags field is the same as defined in [Tunnel-Creation]_ and contains the following::
 
  Bit order: 76543210 (bit 7 is MSB)
  bit 7: if set, allow messages from anyone
