@@ -3,7 +3,7 @@ I2NP Specification
 ==================
 .. meta::
     :category: Protocols
-    :lastupdated: 2021-05
+    :lastupdated: 2021-07
     :accuratefor: 0.9.50
 
 .. contents::
@@ -617,7 +617,6 @@ VariableTunnelBuild_                   23     0.7.12
 VariableTunnelBuildReply_              24     0.7.12
 Reserved [Prop157]_                    25      TBD
 Reserved [Prop157]_                    26      TBD
-Reserved [Prop157]_                    27      TBD
 Reserved                               0
 Reserved for experimental messages  224-254
 Reserved for future expansion         255
