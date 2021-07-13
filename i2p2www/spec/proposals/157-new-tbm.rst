@@ -5,7 +5,7 @@ Smaller Tunnel Build Messages
     :author: zzz, orignal
     :created: 2020-10-09
     :thread: http://zzz.i2p/topics/2957
-    :lastupdated: 2021-07-12
+    :lastupdated: 2021-07-13
     :status: Open
     :target: 0.9.51
 
@@ -273,7 +273,7 @@ bytes     0-3: tunnel ID to receive messages as, nonzero
 {% endhighlight %}
 
 
-The flags field is the same as defined in [Tunnel-Creation]_ and contains the following::
+The flags field is the same as defined in [Tunnel-Creation]_ and contains the following:
 
  Bit order: 76543210 (bit 7 is MSB)
  bit 7: if set, allow messages from anyone
@@ -301,9 +301,6 @@ This is for future use. No options are currently defined.
 If the Mapping structure is empty, this is two bytes 0x00 0x00.
 The maximum size of the Mapping (including the length field) is 98 bytes,
 and the maximum value of the Mapping length field is 96.
-
-NOTE: The random padding is NOT included in the first record of an InboundTunnelBuild message.
-That record is variable-length and is preceded by a length field.
 
 
 
@@ -338,7 +335,6 @@ Summary of changes from [Tunnel-Creation-ECIES]_:
 
 - Change unencrypted length from 512 to 202 bytes
 - Change encrypted length from 528 to 218 bytes
-- Padding omitted when in OTBRM.
 
 
 ECIES replies are encrypted with ChaCha20/Poly1305.
@@ -363,9 +359,6 @@ This is for future use. No options are currently defined.
 If the Mapping structure is empty, this is two bytes 0x00 0x00.
 The maximum size of the Mapping (including the length field) is 201 bytes,
 and the maximum value of the Mapping length field is 199.
-
-NOTE: The random padding is NOT included in the first record of an OutboundTunnelBuildReply message.
-That record is variable-length and is preceded by a length field.
 
 The reply byte is one of the following values
 as defined in [Tunnel-Creation]_ to avoid fingerprinting:
@@ -444,49 +437,28 @@ It is always garlic encrypted.
 
   {% highlight lang='dataspec' %}
 +----+----+----+----+----+----+----+----+
-  | num|slot| length  |                   |
-  +----+----+----+----+                   +
-  |     CleartextBuildReplyRecord         |
-  +----+----+----+----+----+----+----+----+
+  | num|                                  |
+  +----+                                  +
   |      ShortBuildReplyRecords...        |
   +----+----+----+----+----+----+----+----+
 
   num ::
          Total number of records,
-         equal to 1 + the number of encrypted reply records
          1 byte `Integer`
          Valid values: 1-8
 
-  slot ::
-         Slot for the plaintext record to follow
-         1 byte `Integer`
-         Valid values: 0-7
-
-  length ::
-         Length of the plaintext record to follow
-         2 byte `Integer`
-         Valid values: 3-202
-
-  CleartextBuildReplyRecord ::
-         Plaintext record for OBEP
-         length: 3-202
-
   ShortBuildReplyRecords ::
          Encrypted records
-         length: (num-1) * 218
+         length: num * 218
 
-  cleartext record size: 3-202 bytes
   encrypted record size: 218 bytes
-  total size: varies
+  total size: 1+$num*218
 {% endhighlight %}
 
 Notes
 `````
-* The Cleartext BuildReplyRecord does NOT contain padding after
-  the properties field. It does not need to be fixed length.
-  This hopefully allows the garlic encrypted message to fit in
-  one tunnel message. Calculation TBD.
-* This message MUST be garlic encrypted.
+* Typical number of records is 4, for a total size of 873.
+* This message should be garlic encrypted.
 
 
 
