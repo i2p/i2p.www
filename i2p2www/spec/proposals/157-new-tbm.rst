@@ -5,7 +5,7 @@ Smaller Tunnel Build Messages
     :author: zzz, orignal
     :created: 2020-10-09
     :thread: http://zzz.i2p/topics/2957
-    :lastupdated: 2021-07-13
+    :lastupdated: 2021-07-28
     :status: Open
     :target: 0.9.51
 
@@ -534,20 +534,6 @@ Implementation Notes
 Issues
 ======
 
-- HKDF details
-- Layer encryption changes?
-
- Should we do additional hiding from the paired OBEP or IBGW? Garlic?
-- For an IB build, the build message could be garlic encrypted to the IBGW,
-  but then it would be larger.
-- We could do this for IB now for existing build messages if desired,
-  but it's more expensive for ElGamal.
-- Is it worth it, or does the size of the message (much larger than
-  typical database lookup, but maybe not database store) plus the
-  delivery instructions make it obvious anyway?
-- For an OB build, the build reply message would have to be garlic encrypted
-  by the OBEP to the originator, but that would not be anonymous.
-  Is there another way? probably not.
 
 
 Migration
@@ -683,8 +669,10 @@ Current build record cleartext size before unused padding: 193
 Removal of full router hash and HKDF generation of keys/IVs would free up plenty of room for future options.
 If everything is HKDF, required cleartext space is about 58 bytes (without any options).
 
-OTBRM is much smaller because there's one small plaintext record and one less encrypted record.
-
+The garlic-wrapped OTBRM will be slightly smaller than the garlic-wrapped STBM,
+because the delivery instructions are LOCAL not ROUTER,
+there's no DATETIME block included, and
+it uses an 8-byte tag rather than the 32-byte ephemeral key for a full 'N' message.
 
 
 
