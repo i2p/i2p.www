@@ -18,9 +18,9 @@ It is a portion of the overall proposal
 [Prop156]_ for converting routers from ElGamal to ECIES-X25519 keys.
 
 There are two versions specified.
-The first uses the existing build record size, for compatibility with ElGamal routers.
+The first uses the existing build messages and build record size, for compatibility with ElGamal routers.
 This specification is implemented as of release 0.9.48.
-The second uses a smaller build record size, and may only be used with ECIES routers.
+The second uses two new build messages and a smaller build record size, and may only be used with ECIES routers.
 This specification is implemented as of release 0.9.51.
 
 For the purposes of transitioning the network from ElGamal + AES256 to ECIES + ChaCha20,
@@ -533,11 +533,14 @@ The reply record is ChaCha20/Poly1305 encrypted.
 Short Record Specification
 ===========================
 
+This specification uses two new I2NP tunnel build messages,
+Short Tunnel Build Message (type 25) and Outbound Tunnel Build Reply Message (type 26).
+
 The tunnel creator and all hops in the created tunnel must ECIES-X25519, and at least version 0.9.51.
 The hops in the reply tunnel (for an outbound build) or the outbound tunnel (for an inbound build)
 do not have any requirements.
 
-Encrypted request and reply records will be 218 bytes, compared to 528 bytes now.
+Encrypted request and reply records will be 218 bytes, compared to 528 bytes for all other build messages.
 
 The plaintext request records will be 154 bytes,
 compared to 222 bytes for ElGamal records,
@@ -547,11 +550,11 @@ The plaintext response records will be 202 bytes,
 compared to 496 bytes for ElGamal records,
 and 512 bytes for ECIES records as defined above.
 
-The reply encryption will be ChaCha20 (NOT ChaCha20/Poly1305),
-so the plaintext records do not need to be a multiple of 16 bytes.
+The reply encryption will be ChaCha20/Poly1305 for the hop's own record,
+and ChaCha20 (NOT ChaCha20/Poly1305) for the other records in the build message.
 
 Request records will be made smaller by using HKDF to create the
-layer and reply keys, so they do not need to be explicitly included in the request.
+layer and reply keys, so they are not explicitly included in the request.
 
 
 
@@ -831,9 +834,9 @@ EXCEPT that 'n' is the record number 0-7, instead of always being 0.
 {% endhighlight %}
 
 
-The other records are encrypted with ChaCha20.
+The other records are symmetrically encrypted with ChaCha20 (NOT ChaCha20/Poly1305).
 This is different from the long record specification above, which
-uses AES.
+uses AES and does not use the record number.
 
 .. raw:: html
 
