@@ -792,9 +792,7 @@ keydata = HKDF(ck, ZEROLEN, "SMTunnelReplyKey", 64)
   replyKey = keydata[32:63]
   ck = keydata[0:31]
 
-  Layer key:
-  Layer key is always AES for now, but same KDF can be used from Chacha20
-
+  AES Layer key:
   keydata = HKDF(ck, ZEROLEN, "SMTunnelLayerKey", 64)
   layerKey = keydata[32:63]
 
@@ -814,6 +812,9 @@ keydata = HKDF(ck, ZEROLEN, "SMTunnelReplyKey", 64)
   garlicReplyTag = keydata[0:7]
 
 {% endhighlight %}
+
+Note: The KDF for the IV key at the OBEP is different from that for the other hops,
+even if the reply is not garlic encrypted.
 
 
 Record Encryption
