@@ -5,11 +5,19 @@ Smaller Tunnel Build Messages
     :author: zzz, orignal
     :created: 2020-10-09
     :thread: http://zzz.i2p/topics/2957
-    :lastupdated: 2021-07-28
+    :lastupdated: 2021-07-31
     :status: Open
     :target: 0.9.51
 
 .. contents::
+
+
+Note
+====
+Implemented as of API version 0.9.51.
+Network deployment and testing in progress.
+Subject to minor revision.
+See [I2NP]_ and [Tunnel-Creation-ECIES]_ for the final specification.
 
 
 

@@ -837,6 +837,8 @@ uses AES.
 
 .. raw:: html
 
+  {% highlight lang='dataspec' %}
+
 // Parameters
   k = replyKey from KDF above
   n = record number 0-7
@@ -847,6 +849,26 @@ uses AES.
 
   {% highlight lang='dataspec' %}
 {% endhighlight %}
+
+
+Garlic Encryption
+```````````````````````
+
+Garlic wrapping of the messages hides them from the OBEP (for an inbound build)
+or the IBGW (for an outbound build). This is recommended but not required.
+If the OBEP and IBGW are the same router, it is not necessary.
+
+Garlic encryption of an inbound Short Tunnel Build Message,
+by the creator, encrypted to the ECIES IBGW, uses Noise 'N' encryption,
+as defined in [ECIES-ROUTERS]_.
+
+Garlic encryption of an Outbound Tunnel Build Reply Message,
+by the OBEP, encrypted to the creator, uses
+They are encrypted as Existing Session messages with
+the 32-byte garlic reply key and 8-byte garlic reply tag from the KDF above.
+The format is as specified for replies to Database Lookups in [I2NP]_,
+[ECIES-ROUTERS]_, and [ECIES-X25519]_.
+
 
 
 Implementation Notes
@@ -867,6 +889,9 @@ References
 
 .. [Cryptography]
    {{ spec_url('cryptography') }}
+
+.. [ECIES-ROUTERS]
+   {{ spec_url('ecies-routers') }}
 
 .. [ECIES-X25519]
    {{ spec_url('ecies') }}
