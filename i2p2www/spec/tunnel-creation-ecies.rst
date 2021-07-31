@@ -823,7 +823,7 @@ Record Encryption
 The hop's own reply record is encrypted with ChaCha20/Poly1305.
 This is the same as for the long record specification above,
 EXCEPT that 'n' is the record number 0-7, instead of always being 0.
-See [RFC7539]_.
+See [RFC-7539]_.
 
 .. raw:: html
 
@@ -846,7 +846,7 @@ uses AES and does not use the record number.
 
 The record number is put in the IV at byte 4, because ChaCha20
 uses a 12-byte IV with a little-endian nonce at bytes 4-11.
-See [RFC7539]_.
+See [RFC-7539]_.
 
 
 .. raw:: html
