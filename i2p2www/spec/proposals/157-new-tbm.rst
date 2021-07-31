@@ -36,7 +36,7 @@ single tunnel message, the reverse path would be three times more efficient.
 
 This proposal defines new request and reply records and new Build Request and Build Reply messages.
 
-The tunnel creator and all hops in the created tunnel must ECIES-X25519, and at least version TBD.
+The tunnel creator and all hops in the created tunnel must ECIES-X25519, and at least version 0.9.51.
 This proposal will not be useful until a majority of the routers in the network are ECIES-X25519.
 This is expected to happen by year-end 2021.
 
@@ -470,8 +470,8 @@ to derive following keys: reply key, AES layer key, AES IV key and garlic reply 
 
 Reply key:
 Unlike long records we can't use left part of ck for reply key, because it's not last and will be used later.
-Reply key is use to encypt reply that record using AEAD/Chaha20/Poly1305 and Chacha20 to reply other records.
-Both use the same key, nonce is record's position in the message starring from 0.
+Reply key is used to encypt reply that record using AEAD/Chaha20/Poly1305 and Chacha20 to reply other records.
+Both use the same key, nonce is record's position in the message starting from 0.
 
 .. raw:: html
 

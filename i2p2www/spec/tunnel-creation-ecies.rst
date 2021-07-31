@@ -4,8 +4,8 @@ ECIES-X25519 Tunnel Creation
 
 .. meta::
     :category: Protocols
-    :lastupdated: 2021-03
-    :accuratefor: 0.9.49
+    :lastupdated: 2021-07
+    :accuratefor: 0.9.51
 
 .. contents::
 
@@ -16,23 +16,27 @@ This document specifies Tunnel Build message encryption
 using crypto primitives introduced by [ECIES-X25519]_.
 It is a portion of the overall proposal
 [Prop156]_ for converting routers from ElGamal to ECIES-X25519 keys.
+
+There are two versions specified.
+The first uses the existing build record size, for compatibility with ElGamal routers.
 This specification is implemented as of release 0.9.48.
+The second uses a smaller build record size, and may only be used with ECIES routers.
+This specification is implemented as of release 0.9.51.
 
 For the purposes of transitioning the network from ElGamal + AES256 to ECIES + ChaCha20,
 tunnels with mixed ElGamal and ECIES routers are necessary.
 Specifications for handling mixed tunnel hops are provided.
 No changes will be made to the format, processing, or encryption of ElGamal hops.
+This format maintains the same size for tunnel build records,
+as required for compatibility.
 
 ElGamal tunnel creators will generate ephemeral X25519 keypairs per-hop, and
 follow this spec for creating tunnels containing ECIES hops.
 
 This document specifies ECIES-X25519 Tunnel Building.
 For an overview of all changes required for ECIES routers, see proposal 156 [Prop156]_.
-For additional background on the development of this specification, see proposal 152 [Prop152]_.
-
-This format maintains the same size for tunnel build records,
-as required for compatibility. Smaller build records and messages will be
-implemented later - see [Prop157]_.
+For additional background on the development of the long record specification, see proposal 152 [Prop152]_.
+For additional background on the development of the short record specification, see proposal 157 [Prop157]_.
 
 
 Cryptographic Primitives
@@ -41,6 +45,8 @@ Cryptographic Primitives
 The primitives required to implement this specification are:
 
 - AES-256-CBC as in [Cryptography]_
+- STREAM ChaCha20 functions:
+  ENCRYPT(k, iv, plaintext) and DECRYPT(k, iv, ciphertext) - as in [EncryptedLeaseSet]_ and [RFC-7539]_
 - STREAM ChaCha20/Poly1305 functions:
   ENCRYPT(k, n, plaintext, ad) and DECRYPT(k, n, ciphertext, ad) - as in [NTCP2]_ [ECIES-X25519]_ and [RFC-7539]_
 - X25519 DH functions - as in [NTCP2]_ and [ECIES-X25519]_
@@ -130,7 +136,7 @@ ECIES replies use ChaCha20/Poly1305 AEAD for integrity, and authentication.
 
 
 
-Specification
+Long Record Specification
 =========================
 
 
@@ -524,6 +530,325 @@ The reply record is ChaCha20/Poly1305 encrypted.
 
 
 
+Short Record Specification
+===========================
+
+The tunnel creator and all hops in the created tunnel must ECIES-X25519, and at least version 0.9.51.
+The hops in the reply tunnel (for an outbound build) or the outbound tunnel (for an inbound build)
+do not have any requirements.
+
+Encrypted request and reply records will be 218 bytes, compared to 528 bytes now.
+
+The plaintext request records will be 154 bytes,
+compared to 222 bytes for ElGamal records,
+and 464 bytes for ECIES records as defined above.
+
+The plaintext response records will be 202 bytes,
+compared to 496 bytes for ElGamal records,
+and 512 bytes for ECIES records as defined above.
+
+The reply encryption will be ChaCha20 (NOT ChaCha20/Poly1305),
+so the plaintext records do not need to be a multiple of 16 bytes.
+
+Request records will be made smaller by using HKDF to create the
+layer and reply keys, so they do not need to be explicitly included in the request.
+
+
+
+Message Flow
+------------------
+
+.. raw:: html
+
+  {% highlight %}
+STBM: Short tunnel build message (type 25)
+  OTBRM: Outbound tunnel build reply message (type 26)
+
+  Outbound Build A-B-C
+  Reply through existing inbound D-E-F
+
+
+                  New Tunnel
+           STBM      STBM      STBM
+  Creator ------> A ------> B ------> C ---\
+                                     OBEP   \
+                                            | Garlic wrapped (optional)
+                                            | OTBRM
+                                            | (TUNNEL delivery)
+                                            | from OBEP to
+                                            | creator
+                Existing Tunnel             /
+  Creator <-------F---------E-------- D <--/
+                                     IBGW
+
+
+
+  Inbound Build D-E-F
+  Sent through existing outbound A-B-C
+
+
+                Existing Tunnel
+  Creator ------> A ------> B ------> C ---\
+                                    OBEP    \
+                                            | Garlic wrapped (optional)
+                                            | STBM
+                                            | (ROUTER delivery)
+                                            | from creator
+                  New Tunnel                | to IBGW
+            STBM      STBM      STBM        /
+  Creator <------ F <------ E <------ D <--/
+                                     IBGW
+
+
+
+{% endhighlight %}
+
+
+Notes
+`````
+Garlic wrapping of the messages hides them from the OBEP (for an inbound build)
+or the IBGW (for an outbound build). This is recommended but not required.
+If the OBEP and IBGW are the same router, it is not necessary.
+
+
+
+Short Build Request Records
+-------------------------------------
+
+Short encrypted BuildRequestRecords are 218 bytes.
+
+
+Short Request Record Unencrypted
+```````````````````````````````````````
+
+Summary of changes from long records:
+
+- Change unencrypted length from 464 to 154 bytes
+- Change encrypted length from 528 to 218 bytes
+- Remove layer and reply keys and IVs, they will be generated from a KDF
+
+
+The request record does not contain any ChaCha reply keys.
+Those keys are derived from a KDF. See below.
+
+All fields are big-endian.
+
+Unencrypted size: 154 bytes.
+
+.. raw:: html
+
+  {% highlight lang='dataspec' %}
+
+bytes     0-3: tunnel ID to receive messages as, nonzero
+  bytes     4-7: next tunnel ID, nonzero
+  bytes    8-39: next router identity hash
+  byte       40: flags
+  bytes   41-42: more flags, unused, set to 0 for compatibility
+  byte       43: layer encryption type
+  bytes   44-47: request time (in minutes since the epoch, rounded down)
+  bytes   48-51: request expiration (in seconds since creation)
+  bytes   52-55: next message ID
+  bytes    56-x: tunnel build options (Mapping)
+  bytes     x-x: other data as implied by flags or options
+  bytes   x-153: random padding (see below)
+
+{% endhighlight %}
+
+
+The flags field is the same as defined in [Tunnel-Creation]_ and contains the following::
+
+ Bit order: 76543210 (bit 7 is MSB)
+ bit 7: if set, allow messages from anyone
+ bit 6: if set, allow messages to anyone, and send the reply to the
+        specified next hop in a Tunnel Build Reply Message
+ bits 5-0: Undefined, must set to 0 for compatibility with future options
+
+Bit 7 indicates that the hop will be an inbound gateway (IBGW).  Bit 6
+indicates that the hop will be an outbound endpoint (OBEP).  If neither bit is
+set, the hop will be an intermediate participant.  Both cannot be set at once.
+
+Layer encryption type: 0 for AES (as in current tunnels);
+1 for future (ChaCha?)
+
+The request exipration is for future variable tunnel duration.
+For now, the only supported value is 600 (10 minutes).
+
+The creator ephemeral public key is an ECIES key, big-endian.
+It is used for the KDF for the IBGW layer and reply keys and IVs.
+This is only included in the plaintext record in an Inbound Tunnel Build message.
+It is required because there is no DH at this layer for the build record.
+
+The tunnel build options is a Mapping structure as defined in [Common]_.
+This is for future use. No options are currently defined.
+If the Mapping structure is empty, this is two bytes 0x00 0x00.
+The maximum size of the Mapping (including the length field) is 98 bytes,
+and the maximum value of the Mapping length field is 96.
+
+
+Short Request Record Encrypted
+`````````````````````````````````````
+
+All fields are big-endian except for the ephemeral public key which is little-endian.
+
+Encrypted size: 218 bytes
+
+.. raw:: html
+
+  {% highlight lang='dataspec' %}
+
+bytes    0-15: Hop's truncated identity hash
+  bytes   16-47: Sender's ephemeral X25519 public key
+  bytes  48-201: ChaCha20 encrypted ShortBuildRequestRecord
+  bytes 202-217: Poly1305 MAC
+
+{% endhighlight %}
+
+
+Short Build Reply Records
+-------------------------------------
+
+Short encrypted BuildReplyRecords are 218 bytes.
+
+
+Short Reply Record Unencrypted
+`````````````````````````````````````
+
+Summary of changes from long records:
+
+- Change unencrypted length from 512 to 202 bytes
+- Change encrypted length from 528 to 218 bytes
+
+
+ECIES replies are encrypted with ChaCha20/Poly1305.
+
+All fields are big-endian.
+
+Unencrypted size: 202 bytes.
+
+.. raw:: html
+
+  {% highlight lang='dataspec' %}
+
+bytes    0-x: Tunnel Build Reply Options (Mapping)
+  bytes    x-x: other data as implied by options
+  bytes  x-200: Random padding (see below)
+  byte     201: Reply byte
+
+{% endhighlight %}
+
+The tunnel build reply options is a Mapping structure as defined in [Common]_.
+This is for future use. No options are currently defined.
+If the Mapping structure is empty, this is two bytes 0x00 0x00.
+The maximum size of the Mapping (including the length field) is 201 bytes,
+and the maximum value of the Mapping length field is 199.
+
+The reply byte is one of the following values
+as defined in [Tunnel-Creation]_ to avoid fingerprinting:
+
+- 0x00 (accept)
+- 30 (TUNNEL_REJECT_BANDWIDTH)
+
+
+Short Reply Record Encrypted
+```````````````````````````````````
+
+Encrypted size: 218 bytes
+
+.. raw:: html
+
+  {% highlight lang='dataspec' %}
+
+bytes   0-201: ChaCha20 encrypted ShortBuildReplyRecord
+  bytes 202-217: Poly1305 MAC
+
+{% endhighlight %}
+
+
+
+KDF
+---
+
+We use the chaining key (ck) from Noise state after tunnel build record encryption/decrytion
+to derive following keys: reply key, AES layer key, AES IV key and garlic reply key/tag for OBEP.
+
+Reply keys:
+Note that the KDF is slightly different for the OBEP and non-OBEP hops.
+Unlike long records we can't use left part of ck for reply key, because it's not last and will be used later.
+Reply key is used to encypt reply that record using AEAD/Chaha20/Poly1305 and Chacha20 to reply other records.
+Both use the same key, nonce is record's position in the message starting from 0.
+
+
+.. raw:: html
+
+  {% highlight lang='dataspec' %}
+keydata = HKDF(ck, ZEROLEN, "SMTunnelReplyKey", 64)
+  replyKey = keydata[32:63]
+  ck = keydata[0:31]
+
+  Layer key:
+  Layer key is always AES for now, but same KDF can be used from Chacha20
+
+  keydata = HKDF(ck, ZEROLEN, "SMTunnelLayerKey", 64)
+  layerKey = keydata[32:63]
+
+  IV key for non-OBEP record:
+  ivKey = keydata[0:31]
+  because it's last
+
+  IV key for OBEP record:
+  ck = keydata[0:31]
+  keydata = HKDF(ck, ZEROLEN, "TunnelLayerIVKey", 64)
+  ivKey = keydata[32:63]
+  ck = keydata[0:31]
+
+  OBEP garlic reply key/tag:
+  keydata = HKDF(ck, ZEROLEN, "RGarlicKeyAndTag", 64)
+  garlicReplyKey = keydata[32:63]
+  garlicReplyTag = keydata[0:7]
+
+{% endhighlight %}
+
+
+Record Encryption
+```````````````````````
+
+The hop's own reply record is encrypted with ChaCha20/Poly1305.
+This is the same as for the long record specification above,
+EXCEPT that 'n' is the record number 0-7, instead of always being 0.
+
+.. raw:: html
+
+  {% highlight lang='dataspec' %}
+
+// AEAD parameters
+  k = replyKey from KDF above
+  n = record number 0-7
+  plaintext = 202 byte build reply record
+  ad = h from build request
+
+  ciphertext = ENCRYPT(k, n, plaintext, ad)
+
+{% endhighlight %}
+
+
+The other records are encrypted with ChaCha20.
+This is different from the long record specification above, which
+uses AES.
+
+.. raw:: html
+
+// Parameters
+  k = replyKey from KDF above
+  n = record number 0-7
+  iv = 12 bytes, all zeros except iv[4] = n
+  plaintext = 218 byte encrypted record
+
+  ciphertext = ENCRYPT(k, iv, plaintext)
+
+  {% highlight lang='dataspec' %}
+{% endhighlight %}
+
+
 Implementation Notes
 =====================
 
@@ -545,6 +870,9 @@ References
 
 .. [ECIES-X25519]
    {{ spec_url('ecies') }}
+
+.. [EncryptedLeaseSet]
+   {{ site_url('docs/spec/encryptedleaseset') }}
 
 .. [I2NP]
    {{ spec_url('i2np') }}

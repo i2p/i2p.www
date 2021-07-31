@@ -5,7 +5,7 @@ ECIES Routers
     :author: zzz, orignal
     :created: 2020-09-01
     :thread: http://zzz.i2p/topics/2950
-    :lastupdated: 2021-01-14
+    :lastupdated: 2021-07-31
     :status: Open
     :target: 0.9.51
 
@@ -21,7 +21,7 @@ Status:
 - ECIES Routers implemented as of 0.9.48, see [Common]_.
 - Tunnel building implemented as of 0.9.48, see [Tunnel-Creation-ECIES]_.
 - Encrypted messages to ECIES routers implemented as of 0.9.49, see [ECIES-ROUTERS]_.
-- New tunnel build message is not yet defined or implemented.
+- New tunnel build messages implemented as of 0.9.51.
 
 
 
@@ -517,8 +517,8 @@ New Tunnel Build Message (Phase 2)
 ------------------------------------
 
 Implement and test the new Tunnel Build Message as defined in proposal 157 [Prop157]_.
-Roll the support out in a release.
-Do additional testing, then enable it in the next release.
+Roll the support out in release 0.9.51.
+Do additional testing, then enable in release 0.9.52.
 
 Testing will be difficult.
 Before this can be widely tested, a good subset of the network must support it.
@@ -526,9 +526,7 @@ Before it is broadly useful, a majority of the network must support it.
 If specification or implementation changes are required after testing,
 that would delay the rollout for an additional release.
 
-Probably mid- or late-2021.
-
-Target release: TBD; proposal 157 is currently incomplete.
+Target release: 0.9.52, late 2021.
 
 
 Rekeying Complete
@@ -537,8 +535,7 @@ Rekeying Complete
 At this point, routers older than some version TBD will
 not be able to build tunnels through most peers.
 
-Target release: TBD
-Probably early-mid 2022.
+Target release: 0.9.53, early 2022.
 
 
 
