@@ -4,7 +4,7 @@ I2NP Specification
 .. meta::
     :category: Protocols
     :lastupdated: 2021-07
-    :accuratefor: 0.9.50
+    :accuratefor: 0.9.51
 
 .. contents::
 
@@ -43,8 +43,10 @@ A basic summary of the I2NP protocol versions is as follows. For details, see
 below.
 
 ==============  ================================================================
-   Version      Required I2NP Features
+ API Version    Required I2NP Features
 ==============  ================================================================
+   0.9.51       Short tunnel build messages for ECIES-X25519 routers
+
    0.9.49       Garlic messages to ECIES-X25519 routers
 
    0.9.48       ECIES-X25519 Routers
@@ -459,6 +461,29 @@ Notes
 * See the tunnel creation specification [TUNNEL-CREATION]_ for details on the
   reply field.
 
+
+
+.. _struct-ShortBuildRequestRecord:
+
+ShortBuildRequestRecord
+-----------------------
+
+For ECIES-X25519 routers only, as of API version 0.9.51.
+218 bytes when encrypted.
+See [TUNNEL-CREATION-ECIES]_.
+
+
+.. _struct-ShortBuildResponseRecord:
+
+ShortBuildResponseRecord
+------------------------
+
+For ECIES-X25519 routers only, as of API version 0.9.51.
+218 bytes when encrypted.
+See [TUNNEL-CREATION-ECIES]_.
+
+
+
 .. _struct-GarlicClove:
 .. _Garlic Cloves:
 
@@ -615,8 +640,8 @@ TunnelBuild_                           21
 TunnelBuildReply_                      22
 VariableTunnelBuild_                   23     0.7.12
 VariableTunnelBuildReply_              24     0.7.12
-Reserved [Prop157]_                    25      TBD
-Reserved [Prop157]_                    26      TBD
+ShortTunnelBuild_                      25     0.9.51
+OutboundTunnelBuildReply_              26     0.9.51
 Reserved                               0
 Reserved for experimental messages  224-254
 Reserved for future expansion         255
@@ -1557,6 +1582,74 @@ Notes
   creation specification.
 
 * Typical number of records in today's network is 4, for a total size of 2113.
+
+
+
+
+.. _msg-ShortTunnelBuild:
+
+ShortTunnelBuild
+-------------------
+
+Description
+```````````
+As of API version 0.9.51, for ECIES-X25519 routers only.
+
+
+.. raw:: html
+
+  {% highlight lang='dataspec' %}
++----+----+----+----+----+----+----+----+
+  | num| ShortBuildRequestRecords...
+  +----+----+----+----+----+----+----+----+
+
+  Same format as `VariableTunnelBuildMessage`,
+  except that the record size is 218 bytes instead of 528
+
+  num ::
+         1 byte `Integer`
+         Valid values: 1-8
+
+  record size: 218 bytes
+  total size: 1+$num*218
+{% endhighlight %}
+
+Notes
+`````
+* As of 0.9.51. See [TUNNEL-CREATION-ECIES]_.
+
+* This message was introduced in router version 0.9.51, and may not be sent to
+  tunnel participants earlier than that version.
+
+* Typical number of records in today's network is 4, for a total size of 873.
+
+
+
+.. _msg-OutboundTunnelBuildReply:
+
+OutboundTunnelBuildReply
+------------------------
+
+Description
+```````````
+Sent from the outbound gateway of a new tunnel to the originator.
+As of API version 0.9.51, for ECIES-X25519 routers only.
+
+.. raw:: html
+
+  {% highlight lang='dataspec' %}
++----+----+----+----+----+----+----+----+
+  | num| ShortBuildResponseRecords...
+  +----+----+----+----+----+----+----+----+
+
+  Same format as `ShortTunnelBuildMessage`, with `ShortBuildResponseRecord`s.
+{% endhighlight %}
+
+Notes
+`````
+* As of 0.9.51. See [TUNNEL-CREATION-ECIES]_.
+
+* Typical number of records in today's network is 4, for a total size of 873.
 
 
 References
