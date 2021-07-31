@@ -751,6 +751,9 @@ as defined in [Tunnel-Creation]_ to avoid fingerprinting:
 - 0x00 (accept)
 - 30 (TUNNEL_REJECT_BANDWIDTH)
 
+An additional reply value may be defined in the future to
+represent rejection for unsupported options.
+
 
 Short Reply Record Encrypted
 ```````````````````````````````````
@@ -772,13 +775,14 @@ KDF
 ---
 
 We use the chaining key (ck) from Noise state after tunnel build record encryption/decrytion
-to derive following keys: reply key, AES layer key, AES IV key and garlic reply key/tag for OBEP.
+to derive following keys: reply key, AES layer key, AES IV key and garlic reply key/tag for the OBEP.
 
 Reply keys:
 Note that the KDF is slightly different for the OBEP and non-OBEP hops.
 Unlike long records we can't use left part of ck for reply key, because it's not last and will be used later.
-Reply key is used to encypt reply that record using AEAD/Chaha20/Poly1305 and Chacha20 to reply other records.
-Both use the same key, nonce is record's position in the message starting from 0.
+The reply key is used to encypt reply that record using AEAD/Chaha20/Poly1305 and Chacha20 to reply other records.
+Both use the same key. The nonce is the record's position in the message starting from 0.
+See below for details.
 
 
 .. raw:: html
@@ -818,6 +822,7 @@ Record Encryption
 The hop's own reply record is encrypted with ChaCha20/Poly1305.
 This is the same as for the long record specification above,
 EXCEPT that 'n' is the record number 0-7, instead of always being 0.
+See [RFC7539]_.
 
 .. raw:: html
 
@@ -834,9 +839,14 @@ EXCEPT that 'n' is the record number 0-7, instead of always being 0.
 {% endhighlight %}
 
 
-The other records are symmetrically encrypted with ChaCha20 (NOT ChaCha20/Poly1305).
+The other records are iteratively and symmetrically encrypted at each hop with ChaCha20 (NOT ChaCha20/Poly1305).
 This is different from the long record specification above, which
 uses AES and does not use the record number.
+
+The record number is put in the IV at byte 4, because ChaCha20
+uses a 12-byte IV with a little-endian nonce at bytes 4-11.
+See [RFC7539]_.
+
 
 .. raw:: html
 
@@ -850,7 +860,6 @@ uses AES and does not use the record number.
 
   ciphertext = ENCRYPT(k, iv, plaintext)
 
-  {% highlight lang='dataspec' %}
 {% endhighlight %}
 
 
@@ -871,6 +880,18 @@ They are encrypted as Existing Session messages with
 the 32-byte garlic reply key and 8-byte garlic reply tag from the KDF above.
 The format is as specified for replies to Database Lookups in [I2NP]_,
 [ECIES-ROUTERS]_, and [ECIES-X25519]_.
+
+
+Layer Encryption
+``````````````````
+
+This specification includes a layer encryption type field in the build request record.
+The only layer encryption currently supported is type 0, which is AES.
+This is unchanged from previous specifications, except that the layer key and IV key
+are derived from the KDF above rather than being included in the build request record.
+
+Adding new layer encryption types, for example ChaCha20, is a topic for additional research,
+and is not currently a part of this specification.
 
 
 
