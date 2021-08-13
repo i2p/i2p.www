@@ -9,5 +9,6 @@ cd "$DIR"
 git pull origin master
 docker build --no-cache -t i2p-mirror/i2p.www .
 docker rm -f mirror.i2p.www
-docker run -itd $i2p_www_docker_run_args --name mirror.i2p.www -p 0.0.0.0:8090:80 i2p-mirror/i2p.www
+#docker run -itd $i2p_www_docker_run_args --name mirror.i2p.www -p 0.0.0.0:8090:80 i2p-mirror/i2p.www
+docker run -it --net=host --name i2p.www -p 5000:5000 --volume "`pwd`":/var/www/i2p.www --env DEV=on i2p-mirror/i2p.www ./runserver.py
 #docker run -td --name mirror.i2p.www --restart=always -p 0.0.0.0:5000:5000 i2p-mirror/i2p.www
