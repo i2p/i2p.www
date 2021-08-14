@@ -8,7 +8,7 @@ WORKDIR /var/www/i2p.www
 
     ## Install the dependencies
 RUN apt-get update && \
-    apt-get -y install apache2 apache2-utils libapache2-mod-wsgi python2-dev python-pip patch python-virtualenv git && \
+    apt-get -y install apache2 apache2-utils libapache2-mod-wsgi python2-dev python-pip patch python-virtualenv git python-polib && \
     ## Start setting up the site
     rm -rfv env && \
     virtualenv --distribute env                && \  
