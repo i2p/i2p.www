@@ -11,10 +11,10 @@ DEFAULT_MIRROR = {
     "net": "clearnet",
     "protocol": "https",
     "domain": "download.i2p2.de",
-    "path": "/releases/%(version)s/%(file)s,
+    "path": "/releases/%(version)s/%(file)s",
     "org": "i2p2.de",
     "org_url": "https://download.i2p2.de", 
-    "country": "de"
+    "country": "de",
 }
 
 #{
