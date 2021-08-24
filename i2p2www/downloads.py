@@ -11,7 +11,7 @@ DEFAULT_MIRROR = {
     "net": "clearnet", 
     "protocol": "https", 
     "domain": "files.i2p-projekt.de", 
-    "path": "/releases/%(version)s/%(file)s", 
+    "path": "/%(version)s/%(file)s", 
     "org": "i2p-projekt", 
     "country": "de",
 }
