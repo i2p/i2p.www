@@ -10,11 +10,11 @@ from i2p2www import CURRENT_I2P_VERSION, MIRRORS_FILE
 DEFAULT_MIRROR = {
     "net": "clearnet",
     "protocol": "https",
-    "domain": "launchpad.net",
-    "path": "/i2p/trunk/%(version)s/+download/%(file)s",
-    "org": "Launchpad",
-    "org_url": "https://launchpad.net", 
-    "country": "us"
+    "domain": "download.i2p2.de",
+    "path": "/releases/%(version)s/%(file)s,
+    "org": "i2p2.de",
+    "org_url": "https://download.i2p2.de", 
+    "country": "de"
 }
 
 #{
