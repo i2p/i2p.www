@@ -1,4 +1,4 @@
-FROM debian:stable
+FROM debian:buster
 ENV SERVERNAME=geti2p.net
 ENV SERVERMAIL=example@geti2p.net
 
