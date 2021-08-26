@@ -19,6 +19,7 @@ LEGACY_FUNCTIONS_MAP={
     'debian':        {'function': 'downloads_debian', 'params': {}},
     'firefox':        {'function': 'downloads_firefox', 'params': {}},
     'lab':           {'function': 'downloads_lab',    'params': {}},
+    'mac':           {'function': 'downloads_mac',    'params': {}},
     'download':      {'function': 'downloads_list',   'params': {}},
     'installation':  {'function': 'downloads_list',   'params': {}},
     'meetings':      {'function': 'meetings_index',   'params': {}},

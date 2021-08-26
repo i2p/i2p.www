@@ -104,7 +104,21 @@ def downloads_firefox():
 
 # The Lab
 def downloads_lab():
-    return render_template('downloads/lab.html')
+    # TODO: read mirror list or list of available files
+    if request.headers.get('X-I2P-Desthash') and not request.headers.get('X-Forwarded-Server'):
+        def_mirror = DEFAULT_I2P_MIRROR
+    else:
+        def_mirror = DEFAULT_MIRROR
+    return render_template('downloads/lab.html', def_mirror=def_mirror)
+
+# Mac DMG page
+def downloads_mac():
+    # TODO: read mirror list or list of available files
+    if request.headers.get('X-I2P-Desthash') and not request.headers.get('X-Forwarded-Server'):
+        def_mirror = DEFAULT_I2P_MIRROR
+    else:
+        def_mirror = DEFAULT_MIRROR
+    return render_template('downloads/mac.html', def_mirror=def_mirror)
 
 def downloads_config():
     return render_template('downloads/config.html')

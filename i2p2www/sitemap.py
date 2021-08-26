@@ -115,6 +115,9 @@ def render_sitemap():
     urls.append({
         'path': '/download/lab',
         })
+    urls.append({
+        'path': '/download/mac',
+        })
 
     # Render and return the sitemap
     response = make_response(render_template('global/sitemap.xml', url_root=url_root, langs=LANG_FRAGS,
