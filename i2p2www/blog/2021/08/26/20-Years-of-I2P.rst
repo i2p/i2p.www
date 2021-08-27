@@ -1,5 +1,5 @@
 ===========================================
-{% trans -%}I2P Celebrates it's 20th Year{%- endtrans %}
+{% trans -%}I2P Celebrates its 20th Year{%- endtrans %}
 ===========================================
 
 .. meta::
@@ -14,10 +14,10 @@
 ============================================
 
 {% trans -%}
-It's hard to believe, but I2P has been around for nearly 20 years! From it's
-beginnging as a C project which provided anonymous access to IRC, we've had
+It's hard to believe, but I2P has been around for nearly 20 years! From its
+beginning as a C project which provided anonymous access to IRC, we've had
 hundreds of contributors, accepted checkins from dozens of coders, used 2
-main languages, 3 version control systems, experienced a migration of it's
+main languages, 3 version control systems, experienced a migration of its
 crypography, and multiple soft-forks. There have been around 500 registered
 sites on the Invisible Web, and countless unregistered I2P sites that were only
 accessible via their cryptographic hostnames.
@@ -28,7 +28,7 @@ Thanks to the participation of users like you, the network has grown from a tiny
 group of power users to over 75,000 nodes operated from all over the world,
 made of I2P routers bundled in perhaps dozens of applications. Today I2P is
 available in on Windows, Mac OSX, Linux, and has ports for FreeBSD, OpenBSD, and
-many other systems. I2P can run on phones and even in SOHO routers(thanks to the
+many other systems. I2P can run on phones and even in SOHO routers (thanks to the
 independent C++ implementation of the protocol, i2pd).
 {%- endtrans %}
 
@@ -41,7 +41,7 @@ A Routing Protocol with Flagship Applications
 Even before other anonymity projects were providing their own application
 bundles, I2P was a tool for building applications that were configured for
 anonymity. Over the years, we've leaned on this strength, by expanding our
-API's to support more and more versatile applications. Today, we're still
+APIs to support more and more versatile applications. Today, we're still
 developing new ways of building I2P into applications.
 {%- endtrans %}
 
@@ -60,9 +60,9 @@ An Anonymous Network By Everyone, For Everyone
 ----------------------------------------------
 
 {% trans -%}
-I2P has always been a decentralized network, because it's obvious that providing
+I2P has always been a decentralized network, because its obvious that providing
 an anonymity network is an intrinsically collaborative process. To illustrate
-with the the most extreme example, a single computer user cannot provide itself
+with the most extreme example, a single computer cannot provide itself
 with anonymity, nor can it be a useful network, by definiton. However, building
 I2P in this fully-decentralized manner hasn't always been easy.
 {%- endtrans %}
@@ -93,7 +93,7 @@ and enhance I2P, and showcase the best of our community. Check back here for
 more in the coming days!
 {%- endtrans %}
 
-* {% trans -%}Dependency-Free I2P of the Future - Jpackage Bundles and I2P-Zero(from Monero){%- endtrans %}
+* {% trans -%}Dependency-Free I2P of the Future - Jpackage Bundles and I2P-Zero (from Monero){%- endtrans %}
 * {% trans -%}Level-Up your I2P use with Encrypted LeaseSets{%- endtrans %}
 * {% trans -%}The History of I2P{%- endtrans %}
 * {% trans -%}Dividing the Triangle: How I2P Eases Naming and Increases Flexibility for End-Users{%- endtrans %}
