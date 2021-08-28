@@ -7,24 +7,24 @@ from random import randint
 
 from i2p2www import CURRENT_I2P_VERSION, MIRRORS_FILE
 
-DEFAULT_MIRROR = {
-    "net": "clearnet", 
-    "protocol": "https", 
-    "domain": "files.i2p-projekt.de", 
-    "path": "/%(version)s/%(file)s", 
-    "org": "i2p-projekt", 
-    "country": "de",
-}
-
-#{
-#    "net": "clearnet",
-#    "protocol": "https",
-#    "domain": "download.i2p2.de",
-#    "path": "/releases/%(version)s/%(file)s",
-#    "org": "i2p2.de",
-#    "org_url": "https://download.i2p2.de", 
+#DEFAULT_MIRROR = {
+#    "net": "clearnet", 
+#    "protocol": "https", 
+#    "domain": "files.i2p-projekt.de", 
+#    "path": "/%(version)s/%(file)s", 
+#    "org": "i2p-projekt", 
 #    "country": "de",
 #}
+
+DEFAULT_MIRROR = {
+    "net": "clearnet",
+    "protocol": "https",
+    "domain": "download.i2p2.de",
+    "path": "/releases/%(version)s/%(file)s",
+    "org": "sigterm.no",
+    "org_url": "https://download.i2p2.de", 
+    "country": "no",
+}
 
 #{
  #   'net': 'clearnet',

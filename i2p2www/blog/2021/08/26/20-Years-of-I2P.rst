@@ -93,9 +93,10 @@ and enhance I2P, and showcase the best of our community. Check back here for
 more in the coming days!
 {%- endtrans %}
 
+* {% trans -%}`The History of I2P
+  </en/blog/post/2021/08/28/History-of-I2P>`_{%- endtrans %}
 * {% trans -%}Dependency-Free I2P of the Future - Jpackage Bundles and I2P-Zero (from Monero){%- endtrans %}
 * {% trans -%}Level-Up your I2P use with Encrypted LeaseSets{%- endtrans %}
-* {% trans -%}The History of I2P{%- endtrans %}
 * {% trans -%}Dividing the Triangle: How I2P Eases Naming and Increases Flexibility for End-Users{%- endtrans %}
 * {% trans -%}I2P's Usability Journey{%- endtrans %}
 * {% trans -%}Building Bridges - Making Connections with Other Privacy Projects{%- endtrans %}
