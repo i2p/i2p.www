@@ -275,7 +275,7 @@ archive was quickly downloaded.{%- endtrans %}
   get the project back up and running. Welterde started a new website at
   `i2p2.de <http://i2p2.de>`__. I2P needed to move to a decentralized
   source code control system. They tested bazaar and that did not work
-  well over i2P. Git was just getting started. jrandom had used monotone
+  well over I2P. Git was just getting started. jrandom had used monotone
   for Syndie and liked its security properties, and it worked well over
   I2P, so it was selected.{%- endtrans %}
 | {% trans -%}Several people set up new services. The next release, 0.6.1.31, was
