@@ -104,11 +104,11 @@ of I2P, a much more thorough and secure option could be an Encrypted LeaseSet.
 {%- endtrans %}
 
 {% trans -%}
-Before continuing, please read and understand that if you do the following
-procedure without an Encrypted LeaseSet, you will be defeating the security of
-your I2P router. Do not configure access to your router console over I2P without
-an Encrypted LeaseSet. Additionally, do not share your Encrypted LeaseSet PSK's
-with any devices you do not control. You have been warned.
+**Before continuing, please read and understand that if you do the following**
+**procedure without an Encrypted LeaseSet, you will be defeating the security of**
+**your I2P router. Do not configure access to your router console over I2P without**
+**an Encrypted LeaseSet. Additionally, do not share your Encrypted LeaseSet PSK's**
+**with any devices you do not control.**
 {%- endtrans %}
 
 {% trans -%}
