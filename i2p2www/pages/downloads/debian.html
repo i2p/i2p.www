@@ -103,40 +103,13 @@ user to root with <code>su</code> or by prefixing each command with <code>sudo</
   <li>{% trans file='/etc/apt/sources.list.d/i2p.list',file2='/etc/debian_version' %}
     Check which version of Debian you are using on this page at the <a href="https://wiki.debian.org/LTS/" target="_blank">Debian wiki</a>
     and verify with <code>{{ file2 }}</code> on your system.
-    Then, add lines like the following to <code>{{ file }}</code>.{% endtrans %}<br>
-<br />
-For Buster (stable):<br />
+    Then, for all Current Debian distributions run the following command to create <code>{{ file }}</code>.{% endtrans %}<br>
 <pre>
-    <code>deb https://deb.i2p2.de/ buster main
-    deb-src https://deb.i2p2.de/ buster main</code>
+<code>
+echo "deb [signed-by=/usr/share/keyrings/i2p-archive-keyring.asc] https://deb.i2p2.de/ $(lsb_release -sc) main" \
+| sudo tee /etc/apt/sources.list.d/i2p.list
+</code>
 </pre>
-
-<br />
-For Stretch (oldstable):<br />
-<pre>
-    <code>deb https://deb.i2p2.de/ stretch main
-    deb-src https://deb.i2p2.de/ stretch main</code>
-</pre>
-
-<br />
-For Jessie (oldoldstable):<br />
-<pre>
-    <code>deb https://deb.i2p2.de/ jessie main
-    deb-src https://deb.i2p2.de/ jessie main</code>
-</pre>
-
-<br />
-For Wheezy (obsolete):<br>
-<pre>
-    <code>deb https://deb.i2p2.de/ wheezy main
-    deb-src https://deb.i2p2.de/ wheezy main</code>
-</pre>
-<br />
-
-{% trans -%}Note: If you are running Debian Sid (testing), then you can install I2P directly from Debian's main repository{%- endtrans %}:
-  <pre>
-  <code>sudo apt-get install i2p</code>
-  </pre>
 
   </li>
 
@@ -144,7 +117,7 @@ For Wheezy (obsolete):<br>
 Download <a href="{{ repokey }}">the  key used to sign the repository</a>:{%- endtrans %}
 <pre>
 <code>
-  curl -o i2p-debian-repo.key.asc https://geti2p.net/_static/i2p-debian-repo.key.asc</code>
+  curl -o i2p-archive-keyring.asc https://geti2p.net/_static/i2p-debian-repo.key.asc</code>
 </pre>
   </li>
 
@@ -154,18 +127,10 @@ Download <a href="{{ repokey }}">the  key used to sign the repository</a>:{%- en
     {% trans -%}Check the fingerprint and owner of the key without importing anything{%- endtrans %}:<br />
     <pre>
     <code>
-  gpg -n --import --import-options import-show i2p-debian-repo.key.asc</code>
+  sudo mv ~/i2p-archive-keyring.asc /usr/share/keyrings</code>
     </pre>
   </li>
-
-  <li>
-    {% trans -%} Add the key to APT's keyring{%- endtrans %}:<br />
-    <pre>
-    <code>
-  sudo apt-key add i2p-debian-repo.key.asc</code>
-    </pre>
-  </li>
-
+  
   <li>
     {% trans %}Notify your package manager of the new repository by entering{% endtrans %}<br />
     <pre>
