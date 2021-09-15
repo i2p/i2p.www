@@ -89,6 +89,15 @@ def downloads_debian():
 def downloads_windows():
     return render_template('downloads/windows.html')
 
+# AIO-Windows-specific page
+def downloads_nsis():
+    # TODO: read mirror list or list of available files
+    if request.headers.get('X-I2P-Desthash') and not request.headers.get('X-Forwarded-Server'):
+        def_mirror = DEFAULT_I2P_MIRROR
+    else:
+        def_mirror = DEFAULT_MIRROR
+    return render_template('downloads/nsis.html', def_mirror=def_mirror)
+
 # Docker-specific page
 def downloads_docker():
     return render_template('downloads/docker.html')
