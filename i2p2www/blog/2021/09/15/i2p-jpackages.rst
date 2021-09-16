@@ -74,7 +74,7 @@ makes setting up I2P on Mac OSX easier than it's ever been.
 
 Get the dmg_.
 
-.. _dmg: https://geti2p.net/en/download/mac
+.. _dmg: /mac
 
 {% trans -%}
 The I2P of the future is Easy to Install
@@ -99,4 +99,4 @@ Windows.
 
 Get the installer_.
 
-.. _installer: https://geti2p.net/en/download/nsis
+.. _installer: /nsis

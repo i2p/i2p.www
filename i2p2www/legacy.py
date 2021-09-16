@@ -20,6 +20,8 @@ LEGACY_FUNCTIONS_MAP={
     'firefox':        {'function': 'downloads_firefox', 'params': {}},
     'lab':           {'function': 'downloads_lab',    'params': {}},
     'mac':           {'function': 'downloads_mac',    'params': {}},
+    'nsis':           {'function': 'downloads_nsis',    'params': {}},
+    'windows':           {'function': 'downloads_windows',    'params': {}},
     'download':      {'function': 'downloads_list',   'params': {}},
     'installation':  {'function': 'downloads_list',   'params': {}},
     'meetings':      {'function': 'meetings_index',   'params': {}},
