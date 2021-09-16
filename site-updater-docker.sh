@@ -42,11 +42,14 @@ if [ -z $port ]; then
 	port="8090"
 fi
 
+if [ -z $i2p_www_branch ]; then
+	i2p_www_branch=master
+fi
 
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )" || exit
 cd "$DIR"
 
-git pull origin master
+git pull origin $i2p_www_branch
 docker build $i2p_www_docker_build_args -t i2p-mirror/i2p.www$suffix .
 docker rm -f mirror.i2p.www$suffix
 docker run $i2p_www_docker_run_args --name mirror.i2p.www$suffix -p 0.0.0.0:$port:80 i2p-mirror/i2p.www$suffix $@
