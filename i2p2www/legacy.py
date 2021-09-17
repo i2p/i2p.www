@@ -21,6 +21,7 @@ LEGACY_FUNCTIONS_MAP={
     'lab':           {'function': 'downloads_lab',    'params': {}},
     'mac':           {'function': 'downloads_mac',    'params': {}},
     'easyinstall':           {'function': 'downloads_easyinstall',    'params': {}},
+    'nsis':           {'function': 'downloads_easyinstall',    'params': {}},
     'windows':           {'function': 'downloads_windows',    'params': {}},
     'download':      {'function': 'downloads_list',   'params': {}},
     'installation':  {'function': 'downloads_list',   'params': {}},
