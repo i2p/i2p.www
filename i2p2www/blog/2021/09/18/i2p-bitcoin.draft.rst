@@ -88,7 +88,7 @@ the following Tor related configuration options::
   onion=127.0.0.1:9050
   onlynet=tor
 
-Finally, you'll need to "Include" these configuration options in your Bitcoin
+Finally, you'll need to "include" these configuration options in your Bitcoin
 configuration file, called "bitcoin.conf" in the Data Directory. Add these two
 lines to your bitcoin.conf file::
 
