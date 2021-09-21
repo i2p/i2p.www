@@ -63,7 +63,10 @@ Getting Bitcoin itself launched in an anonymous mode still requires editing some
 configuration files in the Bitcoin Data Directory, which is %APPDATA%\Bitcoin on
 Windows, ~/.bitcoin on Linux, and ~/Library/Application Support/Bitcoin/ on Mac
 OSX. It also requires at least version 22.0.0 for I2P support to be present. 
-After following the following instructions, you should have a private Bitcoin
+{%- endtrans %}
+
+{% trans -%}
+After following these instructions, you should have a private Bitcoin
 node which uses I2P for I2P connections, and Tor for .onion and clearnet
 connections, so that all your connections are anonymous. For convenience,
 Windows users should open their Bitcoin Data Directory by opening the start menu
