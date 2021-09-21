@@ -12,10 +12,9 @@
 An event months in the making, Bitcoin Core has added official support for I2P!
 Bitcoin-over-I2P nodes can interact fully with the rest of the Bitcoin nodes,
 using the help of nodes that operate within both I2P and the clearnet, making
-them first-class participants in the Bitcoin network. This is exciting news, in
-part because it highlights some of the things I2P is singularly good at, like
-empowering application developers to build I2P connections programmatically and
-conveniently.
+them first-class participants in the Bitcoin network. It's exciting to see
+large communities like Bitcoin taking notice of the advantages I2P can bring
+to them providing privacy and reachability to people all over the world.
 {%- endtrans %}
 
 {% trans -%}
@@ -24,5 +23,10 @@ How it Works
 ------------
 
 {% trans -%}
-I2P support is automatic, via the SAM API.
+I2P support is automatic, via the SAM API. This is also exciting news, because
+it highlights some of the things I2P is singularly good at, like empowering 
+application developers to build I2P connections programmatically and
+conveniently. Bitcoin-over-I2P users can use I2P with no manual configuration by
+enabling the SAM API.
 {%- endtrans %}
+
