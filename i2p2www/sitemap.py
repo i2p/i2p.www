@@ -119,7 +119,7 @@ def render_sitemap():
         'path': '/download/mac',
         })
     urls.append({
-        'path': '/download/nsis',
+        'path': '/download/easyinstall',
         })
     urls.append({
         'path': '/download/windows',
