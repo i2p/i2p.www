@@ -104,52 +104,67 @@ user to root with <code>su</code> or by prefixing each command with <code>sudo</
     Check which version of Debian you are using on this page at the <a href="https://wiki.debian.org/LTS/" target="_blank">Debian wiki</a>
     and verify with <code>{{ file2 }}</code> on your system.
     Then, for all Current Debian distributions run the following command to create <code>{{ file }}</code>.{% endtrans %}<br>
-<pre>
-<code>
-echo "deb [signed-by=/usr/share/keyrings/i2p-archive-keyring.gpg] https://deb.i2p2.de/ $(lsb_release -sc) main" \
-| sudo tee /etc/apt/sources.list.d/i2p.list
-</code>
-</pre>
+    <pre>
+    <code>
+  echo "deb [signed-by=/usr/share/keyrings/i2p-archive-keyring.gpg] https://deb.i2p2.de/ $(lsb_release -sc) main" \
+  | sudo tee /etc/apt/sources.list.d/i2p.list
+    </code>
+    </pre>
 
   </li>
 
   <li>{% trans repokey=url_for('static', filename='i2p-debian-repo.key.gpg') -%}
-Download <a href="{{ repokey }}">the  key used to sign the repository</a>:{%- endtrans %}
-<pre>
-<code>
+  Download <a href="{{ repokey }}">the  key used to sign the repository</a>:{%- endtrans %}
+    <pre>
+    <code>
   curl -o i2p-archive-keyring.gpg https://geti2p.net/_static/i2p-archive-keyring.gpg</code>
-</pre>
+    </pre>
   </li>
 
   <br />
 
-  <li>
+  <li>{% trans -%}Display the key fingerprint.{%- endtrans %}
     <pre>
     <code>
-  sudo mv ~/i2p-archive-keyring.gpg /usr/share/keyrings</code>
+  gpg --keyid-format long --import --import-options show-only --with-fingerprint i2p-archive-keyring.gpg
+    </code>
+    </pre>
+    {% trans -%}Verify that this key fingerprint matches the output:{%- endtrans %}
+    <pre>
+    <code>
+  7840 E761 0F28 B904 7535  49D7 67EC E560 5BCF 1346</code>
+    </pre>
+  </li>
+
+  <br />
+
+  <li>{% trans -%}Copy the keyring to the keyrings directory:{%- endtrans %}
+    <pre>
+    <code>
+  sudo cp ~/i2p-archive-keyring.gpg /usr/share/keyrings</code>
     </pre>
   </li>
   
   <li>
-    {% trans %}Notify your package manager of the new repository by entering{% endtrans %}<br />
+    {% trans %}Notify your package manager of the new repository by entering:{% endtrans %}<br />
     <pre>
     <code>
   sudo apt-get update</code>
-    </pre>
-{% trans -%}
-This command will retrieve the latest list of software from every
-repository enabled on your system, including the I2P repository added in step
-1.
-{%- endtrans %}
-  </li><br />
-  <li>{% trans -%}
-You are now ready to install I2P! Installing the <code>i2p-keyring</code>
-package will ensure that you receive updates to the repository's GPG key.
-{%- endtrans %}<br />
-<pre>
+    </pre>{% trans -%}This command will retrieve the latest list of software
+    from every repository enabled on your system, including the I2P repository
+    added in step 1.{%- endtrans %}
+  </li>
+  
+  <br />
+
+  <li>{% trans -%}You are now ready to install I2P! Installing the <code>i2p-keyring</code>
+  package will ensure that you receive updates to the repository's GPG key.
+  {%- endtrans %}<br />
+    <pre>
     <code>
   sudo apt-get install i2p i2p-keyring</code>
-  </pre></li>
+    </pre>
+  </li>
 </ol>
 <p>
 {% trans -%}
