@@ -85,9 +85,63 @@ def downloads_list():
 def downloads_debian():
     return render_template('downloads/debian.html')
 
-# Windows-specific page
+# Windows-specific instructions page
 def downloads_windows():
     return render_template('downloads/windows.html')
+    
+# Windows-specific download page
+def downloads_windows_only():
+    # TODO: read mirror list or list of available files
+    if request.headers.get('X-I2P-Desthash') and not request.headers.get('X-Forwarded-Server'):
+        def_mirror = DEFAULT_I2P_MIRROR
+    else:
+        def_mirror = DEFAULT_MIRROR
+    return render_template('downloads/download_windows.html', def_mirror=def_mirror)
+
+# OSX-specific download page
+def downloads_osx_only():
+    # TODO: read mirror list or list of available files
+    if request.headers.get('X-I2P-Desthash') and not request.headers.get('X-Forwarded-Server'):
+        def_mirror = DEFAULT_I2P_MIRROR
+    else:
+        def_mirror = DEFAULT_MIRROR
+    return render_template('downloads/download_osx.html', def_mirror=def_mirror)
+
+# Linux-specific download page
+def downloads_linux_only():
+    # TODO: read mirror list or list of available files
+    if request.headers.get('X-I2P-Desthash') and not request.headers.get('X-Forwarded-Server'):
+        def_mirror = DEFAULT_I2P_MIRROR
+    else:
+        def_mirror = DEFAULT_MIRROR
+    return render_template('downloads/download_linux.html', def_mirror=def_mirror)
+
+# Ubuntu-specific download page
+def downloads_debian_only():
+    # TODO: read mirror list or list of available files
+    if request.headers.get('X-I2P-Desthash') and not request.headers.get('X-Forwarded-Server'):
+        def_mirror = DEFAULT_I2P_MIRROR
+    else:
+        def_mirror = DEFAULT_MIRROR
+    return render_template('downloads/download_debian.html', def_mirror=def_mirror)
+
+# Debian-specific download page
+def downloads_ubuntu_only():
+    # TODO: read mirror list or list of available files
+    if request.headers.get('X-I2P-Desthash') and not request.headers.get('X-Forwarded-Server'):
+        def_mirror = DEFAULT_I2P_MIRROR
+    else:
+        def_mirror = DEFAULT_MIRROR
+    return render_template('downloads/download_ubuntu.html', def_mirror=def_mirror)
+
+# Android-specific download page
+def downloads_android_only():
+    # TODO: read mirror list or list of available files
+    if request.headers.get('X-I2P-Desthash') and not request.headers.get('X-Forwarded-Server'):
+        def_mirror = DEFAULT_I2P_MIRROR
+    else:
+        def_mirror = DEFAULT_MIRROR
+    return render_template('downloads/download_android.html', def_mirror=def_mirror)
 
 # AIO-Windows-specific page
 def downloads_easyinstall():

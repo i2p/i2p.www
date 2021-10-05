@@ -124,6 +124,24 @@ def render_sitemap():
     urls.append({
         'path': '/download/windows',
         })
+    urls.append({
+        'path': '/download/download_windows',
+        })
+    urls.append({
+        'path': '/download/download_osx',
+        })
+    urls.append({
+        'path': '/download/download_linux',
+        })
+    urls.append({
+        'path': '/download/download_debian',
+        })
+    urls.append({
+        'path': '/download/download_ubuntu',
+        })
+    urls.append({
+        'path': '/download/download_android',
+        })
     # Render and return the sitemap
     response = make_response(render_template('global/sitemap.xml', url_root=url_root, langs=LANG_FRAGS,
                                              curlang=to_url(g.lang), urls=urls))

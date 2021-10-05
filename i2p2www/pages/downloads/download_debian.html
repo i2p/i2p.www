@@ -1,0 +1,177 @@
+{% extends "global/layout.html" %}
+{% block title %}Debian/Ubuntu{% endblock %}
+{% block content %}
+{% block content_nav %}
+<script type="text/javascript" src="/_static/site.js"></script>
+<ul>
+<li><a href="/download_windows">Windows</a>
+<li><a href="/download_osx">Mac OS X</a>
+<li><a href="/download_linux">GNU/Linux / BSD / Solaris</a>
+<li><a href="/download_debian">Ubuntu</a>
+<li><a href="/download_debian">Debian</a>
+<li><a href="/download_android">Android</a>
+<li><a href="/download_docker">Docker</a>
+<li><a href="/download_source">{{ _('Source package') }}</a>
+<li><a href="/download_update">{{ _('Manual updates') }}</a>
+</ul>
+{% endblock %}
+<h1>{{ _('Debian I2P Packages') }}</h1>
+<h2 id="bionic">{{ _('Debian Buster, Ubuntu Bionic, and later') }}</h2>
+{% trans -%}
+I2P is available in the official repositories for Ubuntu Bionic and later, and Debian Buster and Sid.
+However, Debian Buster and Ubuntu Bionic (LTS) distributions will have older I2P versions.
+If you are not running Debian Sid or the latest Ubuntu release,
+use our Debian repo or Launchpad PPA to ensure you're running the latest I2P version.
+{%- endtrans %}
+
+<h2 id="others">{{ _('Debian or Ubuntu, All Versions') }}</h2>
+{% trans -%}The Debian packages should work on most platforms running:{%- endtrans %}
+<ul>
+  <li>{% trans %}<a href="#ubuntu">Ubuntu</a> (Precise <em>12.04</em> and newer){% endtrans %}</li>
+  <li><a href="#ubuntu">Mint</a></li>
+  <li>{% trans %}<a href="#debian">Debian Linux</a> (Wheezy and newer){% endtrans %}</li>
+  <li><a href="#debian">Knoppix</a></li>
+</ul>
+
+{% trans trac='http://trac.i2p2.de/newticket?component=package/debian&owner=killyourtv&cc=killyourtv@mail.i2p' -%}
+The I2P packages <em>may</em> work on systems not listed above. Please report any issues
+with these packages on <a href="{{ trac }}">Trac</a> at
+<a href="{{ trac }}">https://trac.i2p2.de</a>.
+{%- endtrans %}
+<h2 id="debian">{{ _('Instructions for Debian') }}</h2>
+
+<em>{% trans -%}Currently supported architectures{%- endtrans %}: amd64, i386, armhf, arm64, powerpc, ppc64el, s390x</em>
+
+<p>{% trans -%}
+Note: The steps below should be performed with root access (i.e., switching
+user to root with <code>su</code> or by prefixing each command with <code>sudo</code>).
+{%- endtrans %}</p>
+<ol>,
+  <li>{% trans -%}Ensure that <code>apt-transport-https</code>, <code>curl</code>, <code>lsb-release</code> are installed.{%- endtrans %}
+    <pre>
+    <code>
+    sudo apt-get update
+    sudo apt-get install apt-transport-https lsb-release curl</code>
+    </pre>
+  </li>
+  <li>{% trans file='/etc/apt/sources.list.d/i2p.list',file2='/etc/debian_version' %}
+    Check which version of Debian you are using on this page at the <a href="https://wiki.debian.org/LTS/" target="_blank">Debian wiki</a>
+    and verify with <code>{{ file2 }}</code> on your system.
+    Then, for all Current Debian distributions run the following command to create <code>{{ file }}</code>.{% endtrans %}<br>
+    <pre>
+    <code>
+  echo "deb [signed-by=/usr/share/keyrings/i2p-archive-keyring.gpg] https://deb.i2p2.de/ $(lsb_release -sc) main" \
+  | sudo tee /etc/apt/sources.list.d/i2p.list
+    </code>
+    </pre>
+
+  </li>
+
+  <li>{% trans repokey=url_for('static', filename='i2p-debian-repo.key.gpg') -%}
+  Download <a href="{{ repokey }}">the  key used to sign the repository</a>:{%- endtrans %}
+    <pre>
+    <code>
+  curl -o i2p-archive-keyring.gpg https://geti2p.net/_static/i2p-archive-keyring.gpg</code>
+    </pre>
+  </li>
+
+  <br />
+
+  <li>{% trans -%}Display the key fingerprint.{%- endtrans %}
+    <pre>
+    <code>
+  gpg --keyid-format long --import --import-options show-only --with-fingerprint i2p-archive-keyring.gpg
+    </code>
+    </pre>
+    {% trans -%}Verify that this key fingerprint matches the output:{%- endtrans %}
+    <pre>
+    <code>
+  7840 E761 0F28 B904 7535  49D7 67EC E560 5BCF 1346</code>
+    </pre>
+  </li>
+
+  <br />
+
+  <li>{% trans -%}Copy the keyring to the keyrings directory:{%- endtrans %}
+    <pre>
+    <code>
+  sudo cp ~/i2p-archive-keyring.gpg /usr/share/keyrings</code>
+    </pre>
+  </li>
+  
+  <li>
+    {% trans %}Notify your package manager of the new repository by entering:{% endtrans %}<br />
+    <pre>
+    <code>
+  sudo apt-get update</code>
+    </pre>{% trans -%}This command will retrieve the latest list of software
+    from every repository enabled on your system, including the I2P repository
+    added in step 1.{%- endtrans %}
+  </li>
+  
+  <br />
+
+  <li>{% trans -%}You are now ready to install I2P! Installing the <code>i2p-keyring</code>
+  package will ensure that you receive updates to the repository's GPG key.
+  {%- endtrans %}<br />
+    <pre>
+    <code>
+  sudo apt-get install i2p i2p-keyring</code>
+    </pre>
+  </li>
+</ol>
+<p>
+{% trans -%}
+After the installation process completes you can move on to the next part of <a href="#Post-install_work">starting I2P</a> and configuring it for your system.
+{%- endtrans %}
+</p>
+
+<h2 id="Post-install_work">{{ _('Post-install work') }}</h2>
+
+{% trans -%}
+Using these I2P packages the I2P router can be started in the following
+three ways:
+{%- endtrans %}
+<ul>
+  <li>
+    {% trans -%}
+    &quot;on demand&quot; using the i2prouter script. Simply run &quot;<code>i2prouter
+start</code>&quot; from a command prompt. (Note: Do <strong><u>not</u></strong> use
+sudo or run it as root!)
+    {%- endtrans %}
+  </li>
+  <li>
+    {% trans -%}
+    &quot;on demand&quot; without the <a href="http://wrapper.tanukisoftware.com/">java service wrapper</a>
+(needed on non-Linux/non-x86 systems) by running "<code>i2prouter-nowrapper</code>".
+(Note: Do <strong><u>not</u></strong>
+use sudo or run it as root!)
+    {%- endtrans %}
+  </li>
+  <li>
+    {% trans -%}
+    as a service that automatically runs when your system boots, even
+before logging in. The service can be enabled with "<code>dpkg-reconfigure
+i2p</code>" as root or using sudo. This is the recommended means of operation.
+    {%- endtrans %}
+  </li>
+</ul>
+
+<p>{% trans -%}
+When installing for the first time, please remember to <b>adjust your NAT/firewall</b>
+if you can. The ports to forward can be found on the <a href="http://127.0.0.1:7657/confignet">
+network configuration page</a> in the router console. If guidance with respect to forwarding ports is needed,
+you may find <a href="http://portforward.com">portforward.com</a> to be helpful.
+{%- endtrans %}</p>
+
+<p>{% trans -%}
+Please review and <b>adjust the bandwidth settings</b> on the
+<a href="http://127.0.0.1:7657/config.jsp">configuration page</a>,
+as the default settings of 96 KB/s down / 40 KB/s up are fairly conservative.
+{%- endtrans %}</p>
+
+<p>{% trans browserconfig=site_url('about/browser-config') -%}
+If you want to reach I2P Sites via your browser, have a look on the <a href="{{ browserconfig }}">browser proxy setup</a> page for an easy howto.
+{%- endtrans %}</p>
+
+{% endblock %}
