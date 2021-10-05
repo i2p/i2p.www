@@ -23,6 +23,7 @@ LEGACY_FUNCTIONS_MAP={
     'easyinstall':           {'function': 'downloads_easyinstall',    'params': {}},
     'nsis':           {'function': 'downloads_easyinstall',    'params': {}},
     'windows':           {'function': 'downloads_windows',    'params': {}},
+    'download_docker':           {'function': 'downloads_docker',    'params': {}},
     'download_windows':           {'function': 'downloads_windows_only',    'params': {}},
     'download_osx':           {'function': 'downloads_osx_only',    'params': {}},
     'download_linux':           {'function': 'downloads_linux_only',    'params': {}},
