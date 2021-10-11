@@ -34,9 +34,7 @@ If you want to mirror the I2P website, thanks! Here is a checklist:
   - In particular, do not change the `CANONICAL_DOMAIN` variable in
     `i2p2www/__init__.py`, it needs to point to the official site for SEO.
 - If you need to edit variables in `etc/update.vars`, copy the file to
-  `etc/update.vars.custom` and edit appropriately. The only variable you
-  may need to edit is `MTNURL` in `etc/update.vars` (if your Monotone client
-  tunnel is listening on a different port).
+  `etc/update.vars.custom` and edit appropriately.
 - If you want to enable caching, copy `i2p2www/settings.py.sample` to
   `i2p2www/settings.py` and edit appropriately.
 - Add `./site-updater.sh` to your crontab. This will keep the site updated,
@@ -99,11 +97,6 @@ in `etc/translation.vars` can be overridden by creating the file
     $ git commit -am "Updated translations"
     ```
 
-    ```
-    # older mtn instructions
-    $ mtn ci `cat newtranslations.txt` -m "Updated translations"
-    ```
-
 6. Check in any new translations:
    First, look to see which translations are supported in i2pwww/__init__.py.
    For any new translations that are NOT in __init__.py,
@@ -113,11 +106,6 @@ in `etc/translation.vars` can be overridden by creating the file
     ```
     # git instructions
     $ git add i2p2www/translations/* && git commit -am "New translations"
-    ```
-
-    ```
-    # older mtn instructions
-    $ mtn add -R i2p2www/translations/ && mtn ci i2p2www/translations/ -m "New translations"
     ```
 
 ## Pushing updated translation source (.pot) files to Transifex:
@@ -133,11 +121,6 @@ in `etc/translation.vars` can be overridden by creating the file
     ```
     # git instructions
     $ git commit -am "Updated translation strings"
-    ```
-
-    ```
-    # older mtn instructions
-    $ mtn ci pots/ -m "Updated translation strings"
     ```
 
 3. Push pots file changes to Transifex:
