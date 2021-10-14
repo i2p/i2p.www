@@ -86,7 +86,7 @@ Design Goals
   Also ensure that the messages going to a single peer or set of peers do not
   have a similar pattern of bits.
 
-- Fix loss of bits in DH due to Java format [Ticket1112]_, possibly (probably?)
+- Fix loss of bits in DH due to Java format [Ticket1112]_, and speed up the DH
   by switching to X25519.
 
 - Switch to a real key derivation function (KDF) rather than using the DH
@@ -104,14 +104,12 @@ Design Goals
 
 - Add options/version in handshake for future extensibility.
 
-- Add resistance to malicious MitM TCP segmentation if possible.
-
 - Don't add significantly to CPU required for connection setup; if possible,
   reduce it significantly.
 
 - Add message authentication (MAC) using ChaCha/Poly1305.
 
-- Use a 3-message,  one-round-trip handshake, as in [SSU]_.
+- Use a 3-message,  one-round-trip handshake, as in [NTCP2]_ and [SSU]_.
 
 - Minimize protocol overhead before padding. While padding will be added,
   overhead before padding is still overhead.
@@ -2170,8 +2168,12 @@ is the initiator, and Bob is the responder.
 
 SSU2 is based on the Noise protocol Noise_XK_25519_ChaChaPoly_SHA256.
 (The actual identifier for the initial key derivation function
-is "Noise_XKaesobfse+hs2+hs3_25519_ChaChaPoly_SHA256"
+is "Noise_XKaesobfse+hs1+hs2+hs3_25519_ChaChaPoly_SHA256"
 to indicate I2P extensions - see KDF 1 section below)
+
+NOTE: This identifier is different than that used for NTCP2, because 
+all three handshake messages use the header as associated data.
+
 This Noise protocol uses the following primitives:
 
 - Handshake Pattern: XK
@@ -2325,7 +2327,7 @@ Before header obfuscation and protection:
 +----+----+----+----+----+----+----+----+
   |      Destination Connection ID        |
   +----+----+----+----+----+----+----+----+
-  | id | ver|type|flag|  Packet Number    |
+  |type  ver| id |flag|  Packet Number    |
   +----+----+----+----+----+----+----+----+
   |        Source Connection ID           |
   +----+----+----+----+----+----+----+----+
@@ -2334,11 +2336,11 @@ Before header obfuscation and protection:
 
   Destination Connection ID :: 8 bytes, unsigned big endian integer
 
-  id :: 1 byte, the network ID (currently 2, except for test networks)
+  type :: The message type, 0-255
 
   ver :: The protocol version, equal to 2
 
-  type :: The message type, 0-10
+  id :: 1 byte, the network ID (currently 2, except for test networks)
 
   flag :: 1 byte, unused, set to 0 for future compatibility
 
@@ -2519,8 +2521,8 @@ exactly as defined in the Noise spec.
 This is the "e" message pattern:
 
   // Define protocol_name.
-  Set protocol_name = "Noise_XKaesobfse+hs2+hs3_25519_ChaChaPoly_SHA256"
-   (48 bytes, US-ASCII encoded, no NULL termination).
+  Set protocol_name = "Noise_XKaesobfse+hs1+hs2+hs3_25519_ChaChaPoly_SHA256"
+   (52 bytes, US-ASCII encoded, no NULL termination).
 
   // Define Hash h = 32 bytes
   h = SHA256(protocol_name);
@@ -2599,8 +2601,8 @@ This is the "e" message pattern:
 
 
 
-1) SessionRequest
-------------------
+SessionRequest (Type 0)
+------------------------
 
 Alice sends to Bob.
 
@@ -2701,7 +2703,7 @@ Unencrypted data (Poly1305 authentication tag not shown):
 +----+----+----+----+----+----+----+----+
   |      Destination Connection ID        |
   +----+----+----+----+----+----+----+----+
-  | id | ver|type|flag|  Packet Number    |
+  |type  ver| id |flag|  Packet Number    |
   +----+----+----+----+----+----+----+----+
   |        Source Connection ID           |
   +----+----+----+----+----+----+----+----+
@@ -2743,38 +2745,6 @@ Unencrypted data (Poly1305 authentication tag not shown):
 
 {% endhighlight %}
 
-Options block:
-Note: All fields are big-endian.
-
-.. raw:: html
-
-  {% highlight lang='dataspec' %}
-+----+----+----+----+----+----+----+----+
-  | id | ver|  padLen | m3p2len | Rsvd(0) |
-  +----+----+----+----+----+----+----+----+
-  |        tsA        |   Reserved (0)    |
-  +----+----+----+----+----+----+----+----+
-
-  id :: 1 byte, the network ID (currently 2, except for test networks)
-        As of 0.9.42. See proposal 147.
-
-  ver :: 1 byte, protocol version (currently 2)
-
-  padLen :: 2 bytes, length of the padding, 0 or more
-            Min/max guidelines TBD. Random size from 0 to 31 bytes minimum?
-            (Distribution to be determined, see Appendix A.)
-
-  m3p2Len :: 2 bytes, length of the the second AEAD frame in SessionConfirmed
-             See notes below
-
-  Rsvd :: 2 bytes, set to 0 for compatibility with future options
-
-  tsA :: 4 bytes, Unix timestamp, unsigned seconds.
-         Wraps around in 2106
-
-  Reserved :: 4 bytes, set to 0 for compatibility with future options
-
-{% endhighlight %}
 
 Notes
 `````
@@ -2924,8 +2894,8 @@ Key Derivation Function (KDF) (for Session Created and Session Confirmed part 1)
 {% endhighlight %}
 
 
-2) SessionCreated
-------------------
+SessionCreated (Type 1)
+------------------------
 
 Bob sends to Alice.
 
@@ -3023,7 +2993,7 @@ Unencrypted data (Poly1305 auth tag not shown):
 +----+----+----+----+----+----+----+----+
   |      Destination Connection ID        |
   +----+----+----+----+----+----+----+----+
-  | id | ver|type|flag|  Packet Number    |
+  |type| ver| id |flag|  Packet Number    |
   +----+----+----+----+----+----+----+----+
   |        Source Connection ID           |
   +----+----+----+----+----+----+----+----+
@@ -3056,7 +3026,7 @@ Unencrypted data (Poly1305 auth tag not shown):
 
   Source Connection ID :: Randomly generated by Alice
 
-  Retry Token :: 0 if not previously received from Bob
+  Retry Token :: 0 (unused)
 
   Y :: 32 bytes, X25519 ephemeral key, little endian
 
@@ -3194,8 +3164,8 @@ This is the "se" message pattern:
 {% endhighlight %}
 
 
-3) SessionConfirmed
---------------------
+SessionConfirmed (Type 2)
+-----------------------------
 
 Alice sends to Bob.
 
@@ -3249,16 +3219,19 @@ Raw contents:
 
   {% highlight lang='dataspec' %}
 +----+----+----+----+----+----+----+----+
-  |                                       |
-  +   ChaChaPoly frame (48 bytes)         +
-  |   Encrypted and authenticated         |
+  |Short Header obfuscated with dest hash |
+  +encrypted, bytes 8-12   +----+----+----+
+  | header protected       |              |
+  +----+----+----+----+----+              +
+  |   ChaCha20 frame (32 bytes)           |
+  +   Encrypted and authenticated data    +
   +   Alice static key S                  +
-  |      (32 bytes)                       |
-  +                                       +
   | k defined in KDF for Session Created  |
   +     n = 1                             +
-  |     see KDF for associated data       |
-  +                                       +
+  |                                       |
+  +----+----+----+----+----+----+----+----+
+  |                                       |
+  +        Poly1305 MAC (16 bytes)        +
   |                                       |
   +----+----+----+----+----+----+----+----+
   |                                       |
@@ -3282,6 +3255,10 @@ Raw contents:
   ~               .   .   .               ~
   |                                       |
   +----+----+----+----+----+----+----+----+
+  |                                       |
+  +        Poly1305 MAC (16 bytes)        +
+  |                                       |
+  +----+----+----+----+----+----+----+----+
 
   S :: 32 bytes, ChaChaPoly encrypted Alice's X25519 static key, little endian
        inside 48 byte ChaChaPoly frame
@@ -3294,37 +3271,23 @@ Unencrypted data (Poly1305 auth tags not shown):
 
   {% highlight lang='dataspec' %}
 +----+----+----+----+----+----+----+----+
+  |      Destination Connection ID        |
+  +----+----+----+----+----+----+----+----+
+  |type|  Packet Number    |              |
+  +----+----+----+----+----+              +
   |                                       |
   +                                       +
   |              S                        |
   +       Alice static key                +
   |          (32 bytes)                   |
   +                                       +
+  |                        +----+----+----|
+  +                        |              +
+  +----+----+----+----+----+              +
   |                                       |
   +                                       +
-  +----+----+----+----+----+----+----+----+
-  |                                       |
-  +                                       +
-  |                                       |
-  +                                       +
-  |       Alice RouterInfo block          |
-  ~               .   .   .               ~
-  |                                       |
-  +----+----+----+----+----+----+----+----+
-  |                                       |
-  +       Optional Options block          +
-  |                                       |
-  ~               .   .   .               ~
-  |                                       |
-  +----+----+----+----+----+----+----+----+
-  |                                       |
-  +       Optional I2NP blocks            +
-  |                                       |
-  ~               .   .   .               ~
-  |                                       |
-  +----+----+----+----+----+----+----+----+
-  |                                       |
-  +       Optional Padding block          +
+  |        Noise Payload                  |
+  +        (length varies)                +
   |                                       |
   ~               .   .   .               ~
   |                                       |
@@ -3418,15 +3381,15 @@ ck = from handshake phase
 
 
 
-3-5) Relay Messages
---------------------
+Relay Messages (Types 3-5)
+------------------------------
 
 TBD, only required if these must be sent outside of an existing session.
 
 
 
-6) Data Message
-----------------
+Data Message (Type 6)
+---------------------------
 
 Noise payload: All block types are allowed
 
@@ -3490,7 +3453,7 @@ Notes
   +   Encrypted and authenticated data    +
   |  length varies                        |
   +k defined in KDF for Session Confirmed +
-  |  n = from heder                       |
+  |  n = packet number from header        |
   +                                       +
   |                                       |
   +----+----+----+----+----+----+----+----+
@@ -3528,19 +3491,19 @@ Notes
 `````
 
 
-7) Peer Test Message
+Peer Test (Type 7)
 ------------------------
 
 TBD, only required if these must be sent outside of an existing session.
 
 
-8) Session Destroyed Message
+Session Destroyed (Type 8)
 -------------------------------
 
 TBD, only required if these must be sent outside of an existing session.
 
 
-9) Retry Message
+Retry (Type 9)
 -------------------------------
 
 TODO encrypted? to what key?
@@ -3585,7 +3548,7 @@ Unencrypted data (Poly1305 authentication tag not shown):
 +----+----+----+----+----+----+----+----+
   |      Destination Connection ID        |
   +----+----+----+----+----+----+----+----+
-  | id | ver|type|flag|  Packet Number    |
+  |type| ver| id |flag|  Packet Number    |
   +----+----+----+----+----+----+----+----+
   |        Source Connection ID           |
   +----+----+----+----+----+----+----+----+
@@ -3623,6 +3586,10 @@ Hole Punch Message
 -------------------------------
 
 An empty datagram. No content. Same as SSU 1.
+A HolePunch is simply a UDP packet with no data.  It is unauthenticated and
+unencrypted.  It does not contain a SSU header, so it does not have a message
+type number.  It is sent from Charlie to Alice as a part of the Introduction
+sequence.
 
 
 
@@ -3696,14 +3663,17 @@ DateTime                                    0            7
 Options (TBD)                               1           21+     
 Router Info                                 2         varies 
 I2NP Message                                3         varies 
-Termination (TBD)                           4         9 typ.    
-Relay Request                               5           TBD
-Relay Response                              6           TBD
-Relay Intro                                 7           TBD
-Peer Test                                   8           TBD
-Next Nonce                                  9           TBD
-ACK                                        10         varies 
-ACK                                        11         varies 
+First Fragment                              4         varies 
+Follow-on Fragment                          5         varies 
+Termination (TBD)                           6         9 typ.    
+Relay Request                               7           TBD
+Relay Response                              8           TBD
+Relay Intro                                 9           TBD
+Peer Test                                  10           TBD
+Next Nonce                                 11           TBD
+ACK                                        12         varies 
+Partial ACK                                13         varies 
+NACK                                       14         varies 
 reserved for experimental features        255
 Padding                                   254         varies    
 reserved for future extension             255
@@ -3880,16 +3850,10 @@ Issues
 
 I2NP Message
 ````````````
+A complete I2NP message with a modified header.
 
-An single I2NP message with a modified header.
-I2NP messages may not be fragmented across blocks or
-across ChaChaPoly payloads.
-
-This uses the first 9 bytes from the standard NTCP I2NP header,
-and removes the last 7 bytes of the header, as follows:
-truncate the expiration from 8 to 4 bytes,
-remove the 2 byte length (use the block size - 9),
-and remove the one-byte SHA256 checksum.
+This uses the same 9 bytes for the I2NP header
+as in [NTCP2]_ (type, message id, short expiration).
 
 
 .. raw:: html
@@ -3916,11 +3880,71 @@ and remove the one-byte SHA256 checksum.
 
 {% endhighlight %}
 
-Notes
-`````
-- Implementers must ensure that when reading a block,
-  malformed or malicious data will not cause reads to
-  overrun into the next block.
+
+First Fragment
+```````````````
+The first fragment (fragment #0) of an I2NP message with a modified header.
+
+This uses the same 9 bytes for the I2NP header
+as in [NTCP2]_ (type, message id, short expiration).
+
+Total number of fragments is not specified.
+
+
+.. raw:: html
+
+  {% highlight lang='dataspec' %}
++----+----+----+----+----+----+----+----+
+  | 4  |  size   |type|    msg id         |
+  +----+----+----+----+----+----+----+----+
+  |   short exp       |                   |
+  +----+----+----+----+                   +
+  |          partial message              |
+  ~               .   .   .               ~
+  |                                       |
+  +----+----+----+----+----+----+----+----+
+
+  blk :: 4
+  size :: 2 bytes, big endian, size of type + msg id + exp + partial message to follow
+          Fragment size is (size - 9).
+  type :: 1 byte, I2NP msg type, see I2NP spec
+  msg id :: 4 bytes, big endian, I2NP message ID
+  short exp :: 4 bytes, big endian, I2NP message expiration, Unix timestamp, unsigned seconds.
+               Wraps around in 2106
+  message :: Partial I2NP message body, bytes 0 - (size -1)
+
+{% endhighlight %}
+
+
+Follow-on Fragment
+````````````````````````
+An additional fragment (fragment number greater than zero) of an I2NP message.
+
+
+.. raw:: html
+
+  {% highlight lang='dataspec' %}
++----+----+----+----+----+----+----+----+
+  | 5  |  size   |frag|    msg id         |
+  +----+----+----+----+----+----+----+----+
+  |                                       |
+  +                                       +
+  |          partial message              |
+  ~               .   .   .               ~
+  |                                       |
+  +----+----+----+----+----+----+----+----+
+
+  blk :: 5
+  size :: 2 bytes, big endian, size of frag + msg id + partial message to follow
+          Fragment size is (size - 5).
+  frag :: Fragment info:
+          Bit order: 76543210 (bit 7 is MSB)
+          bits 7-1: fragment # 1 - 127 (0 not allowed)
+          bit 0: isLast (1 = true)
+  msg id :: 4 bytes, big endian, I2NP message ID
+  message :: Partial I2NP message body
+
+{% endhighlight %}
 
 
 
@@ -3934,14 +3958,14 @@ This must be the last non-padding block in the payload.
 
   {% highlight lang='dataspec' %}
 +----+----+----+----+----+----+----+----+
-  | 4  |  size   |    valid data packets  |
+  | 6  |  size   |    valid data packets  |
   +----+----+----+----+----+----+----+----+
       received   | rsn|     addl data     |
   +----+----+----+----+                   +
   ~               .   .   .               ~
   +----+----+----+----+----+----+----+----+
 
-  blk :: 4
+  blk :: 6
   size :: 2 bytes, big endian, value = 9 or more
   valid data packets received :: The number of valid packets received
                                 (current receive nonce value)
@@ -3985,44 +4009,6 @@ RelayRequest
 
   {% highlight lang='dataspec' %}
 +----+----+----+----+----+----+----+----+
-  |  5 |  size   |      TBD               |
-  +----+----+----+                        +
-  |                                       |
-  ~               .   .   .               ~
-  |                                       |
-  +----+----+----+----+----+----+----+----+
-
-  blk :: 5
-  size :: 2 bytes, big endian, size of data to follow
-
-{% endhighlight %}
-
-
-RelayResponse
-``````````````
-.. raw:: html
-
-  {% highlight lang='dataspec' %}
-+----+----+----+----+----+----+----+----+
-  |  6 |  size   |      TBD               |
-  +----+----+----+                        +
-  |                                       |
-  ~               .   .   .               ~
-  |                                       |
-  +----+----+----+----+----+----+----+----+
-
-  blk :: 6
-  size :: 2 bytes, big endian, size of data to follow
-
-{% endhighlight %}
-
-
-RelayIntro
-``````````````
-.. raw:: html
-
-  {% highlight lang='dataspec' %}
-+----+----+----+----+----+----+----+----+
   |  7 |  size   |      TBD               |
   +----+----+----+                        +
   |                                       |
@@ -4036,7 +4022,7 @@ RelayIntro
 {% endhighlight %}
 
 
-PeerTest
+RelayResponse
 ``````````````
 .. raw:: html
 
@@ -4055,7 +4041,7 @@ PeerTest
 {% endhighlight %}
 
 
-NextNonce
+RelayIntro
 ``````````````
 .. raw:: html
 
@@ -4074,28 +4060,74 @@ NextNonce
 {% endhighlight %}
 
 
-Ack
+PeerTest
 ``````````````
 .. raw:: html
 
   {% highlight lang='dataspec' %}
 +----+----+----+----+----+----+----+----+
-  | 10 |  size   |      TBD               |
-  +----+----+----+                        +
-  |                                       |
-  ~               .   .   .               ~
-  |                                       |
+  | 10 |  size   |  test nonce       | asz|
   +----+----+----+----+----+----+----+----+
+  |  Alice IP address |AlicePort|         |
+  +----+----+----+----+----+----+         +
+  | Alice or Charlie's                    |
+  + introduction key (Alice's is sent to  +
+  | Bob and Charlie, while Charlie's is   |
+  + sent to Alice)   (32 bytes)           +
+  |                                       |
+  +                             +----+----+
+  |                             |
+  +----+----+----+----+----+----+
 
   blk :: 10
   size :: 2 bytes, big endian, size of data to follow
+  test nonce :: 4 byte nonce, big endian integer
+  asz :: 1 byte IP address size (may be 0, 4, or 16)
+  Alice IP :: asz byte representation of Alice's IP address,
+              network byte order, if size is greater than zero
+  AlicePort :: 2 byte Alice's port number, big endian
+  intro :: Alice's or Charlie's 32-byte introduction key, big endian
 
 {% endhighlight %}
 
 
-Nack
-``````````````
+Notes
+`````
+* When sent by Alice, IP address size is 0, IP address is not present, and port
+  is 0, as Bob and Charlie do not use the data; the point is to determine
+  Alice's true IP address/port and tell Alice; Bob and Charlie don't care what
+  Alice thinks her address is.
 
+* When sent by Bob or Charlie, IP and port are present, and IP address is
+  4 or 16 bytes. IPv6 testing is supported as of release 0.9.27.
+
+* IPv6 Notes: Through release 0.9.26, only testing of IPv4 addresses is supported. Therefore, all
+  Alice-Bob and Alice-Charlie communication must be via IPv4. Bob-Charlie
+  communication, however, may be via IPv4 or IPv6. Alice's address, when
+  specified in the PeerTest message, must be 4 bytes.
+  As of release 0.9.27, testing of IPv6 addresses is supported,
+  and Alice-Bob and Alice-Charlie communication may be via IPv6,
+  if Bob and Charlie indicate support with a 'B' capability in their published IPv6 address.
+  See Proposal 126 for details.
+
+  Alice sends the request to Bob using an existing session over the transport (IPv4 or IPv6) that she wishes to test.
+  When Bob receives a request from Alice via IPv4, Bob must select a Charlie that advertises an IPv4 address.
+  When Bob receives a request from Alice via IPv6, Bob must select a Charlie that advertises an IPv6 address.
+  The actual Bob-Charlie communication may be via IPv4 or IPv6 (i.e., independent of Alice's address type).
+
+* A peer must maintain a table of active test states (nonces). On reception of
+  a PeerTest message, look up the nonce in the table. If found, it's an
+  existing test and you know your role (Alice, Bob, or Charlie). Otherwise, if
+  the IP is not present and the port is 0, this is a new test and you are Bob.
+  Otherwise, this is a new test and you are Charlie.
+
+* Alice must have an established session with Bob and use
+  the session key.
+
+
+
+NextNonce
+``````````````
 .. raw:: html
 
   {% highlight lang='dataspec' %}
@@ -4108,6 +4140,64 @@ Nack
   +----+----+----+----+----+----+----+----+
 
   blk :: 11
+  size :: 2 bytes, big endian, size of data to follow
+
+{% endhighlight %}
+
+
+Ack
+``````````````
+.. raw:: html
+
+  {% highlight lang='dataspec' %}
++----+----+----+----+----+----+----+----+
+  | 12 |  size   |      TBD               |
+  +----+----+----+                        +
+  |                                       |
+  ~               .   .   .               ~
+  |                                       |
+  +----+----+----+----+----+----+----+----+
+
+  blk :: 12
+  size :: 2 bytes, big endian, size of data to follow
+
+{% endhighlight %}
+
+
+Partial Ack
+``````````````
+.. raw:: html
+
+  {% highlight lang='dataspec' %}
++----+----+----+----+----+----+----+----+
+  | 13 |  size   |      TBD               |
+  +----+----+----+                        +
+  |                                       |
+  ~               .   .   .               ~
+  |                                       |
+  +----+----+----+----+----+----+----+----+
+
+  blk :: 13
+  size :: 2 bytes, big endian, size of data to follow
+
+{% endhighlight %}
+
+
+Nack
+``````````````
+
+.. raw:: html
+
+  {% highlight lang='dataspec' %}
++----+----+----+----+----+----+----+----+
+  | 14 |  size   |      TBD               |
+  +----+----+----+                        +
+  |                                       |
+  ~               .   .   .               ~
+  |                                       |
+  +----+----+----+----+----+----+----+----+
+
+  blk :: 14
   size :: 2 bytes, big endian, size of data to follow
 
 {% endhighlight %}
