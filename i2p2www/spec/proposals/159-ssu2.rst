@@ -5,7 +5,7 @@ SSU2
     :author: orignal, zlatinb, zzz
     :created: 2021-09-12
     :thread: http://zzz.i2p/topics/2612
-    :lastupdated: 2021-10-11
+    :lastupdated: 2021-10-14
     :status: Open
     :target: 0.9.55
 
@@ -2119,8 +2119,48 @@ channels, such as the timing of packets.
 
 
 
+Design Overview
+====================
+
+Summary
+--------
+
+We rely on several existing protocols, both within I2P and outside standards,
+for inspiration, guidance, and code reuse:
+
+* Threat models: From NTCP2 [NTCP2]_, with significant additional threats
+  relevant to UDP transport as analyzed by QUIC [RFC9000]_ [RFC9001]_.
+
+* Cryptographic choices: From [NTCP2]_.
+
+* Handshake: Noise XK from [NTCP2]_ and [NOISE]_. Significant simplifications
+  to NTCP2 are possible due to the encapsulation (inherent message boundaries)
+  provided by UDP.
+
+* Handshake ephemeral key obfuscation: Adapted from [NTCP2]_
+
+* Packet headers: Adapted from WireGuard [WireGuard]_ and QUIC [RFC9000]_ [RFC9001]_.
+
+* Packet header obfuscation: Adapted from [NTCP2]_
+
+* Packet header protection: Adapted from QUIC [RFC9001]_ and [NAN]_
+
+* Headers used as AEAD associated data as in [ECIES]_.
+
+* Packet numbering: Adapted from WireGuard [WireGuard]_ and QUIC [RFC9000]_ [RFC9001]_.
+
+* Messages: Adapted from [SSU]_
+
+* Block format: From [NTCP2]_ and [ECIES]_.
+
+* Padding and options: From [NTCP2]_ and [ECIES]_.
+
+* Flow control, acks, nacks: TBD
+
+
+
 Noise Protocol Framework
-========================
+-------------------------
 
 This proposal provides the requirements based on the Noise Protocol Framework
 [NOISE]_ (Revision 33, 2017-10-04).
@@ -2150,7 +2190,7 @@ This Noise protocol uses the following primitives:
 
 
 Additions to the Framework
-==========================
+-------------------------------
 
 This proposal defines the following enhancements to
 Noise_XK_25519_ChaChaPoly_SHA256.  These generally follow the guidelines in
@@ -2162,7 +2202,7 @@ Noise_XK_25519_ChaChaPoly_SHA256.  These generally follow the guidelines in
 
 
 New Cryptographic Primitives for I2P
-====================================
+---------------------------------------
 
 None?
 Investigate other hash functions to replace SHA256.
@@ -2171,13 +2211,20 @@ Investigate other hash functions to replace SHA256.
 
 
 Processing overhead estimate
-============================
+-----------------------------------
 
 TBD
 
 
+
+
 Messages
 ========
+
+Each UDP datagram contains exactly one message.
+The length of the datagram (after the IP header) is the length of the message.
+Padding, if any, is contained in a padding block inside the message.
+
 
 All SSU2 messages are less than or equal to TBD bytes in length. The message
 format is based on Noise messages, with modifications for framing and indistinguishability.
@@ -2185,14 +2232,48 @@ Implementations using standard Noise libraries may need to pre-process received
 messages to/from the Noise message format. All encrypted fields are AEAD
 ciphertexts.
 
+The following messages are defined:
 
-The establishment sequence is as follows:
+====  ================  =====
+Type      Message       Notes
+====  ================  =====
+  0   SessionRequest
+  1   SessionCreated
+  2   SessionConfirmed
+  3   RelayRequest      TBD may be a block
+  4   RelayResponse     TBD may be a block
+  5   RelayIntro        TBD may be a block
+  6   Data
+  7   PeerTest          TBD may be a block
+  8   SessionDestroyed  TBD may be a block
+  9   Retry
+n/a   HolePunch
+====  ================  =====
+
+
+
+The standard establishment sequence is as follows:
 
 .. raw:: html
 
   {% highlight %}
 Alice                           Bob
 
+  SessionRequest ------------------->
+  <------------------- SessionCreated
+  SessionConfirmed ----------------->
+{% endhighlight %}
+
+
+When address verification is used, the establishment sequence is as follows:
+
+.. raw:: html
+
+  {% highlight %}
+Alice                           Bob
+
+  SessionRequest ------------------->
+  <---------------------------  Retry
   SessionRequest ------------------->
   <------------------- SessionCreated
   SessionConfirmed ----------------->
@@ -2229,10 +2310,95 @@ Packet Header
 ---------------
 
 All packets start with an obfuscated header.
+There are two header types, long and short.
 
-TBD
+Long Header
+`````````````
+The long header is 32 bytes. It is used before a session is created, for SessionRequest, SessionCreated, and Retry.
+
+Before header obfuscation and protection:
+
+.. raw:: html
+
+  {% highlight lang='dataspec' %}
+
++----+----+----+----+----+----+----+----+
+  |      Destination Connection ID        |
+  +----+----+----+----+----+----+----+----+
+  | id | ver|type|flag|  Packet Number    |
+  +----+----+----+----+----+----+----+----+
+  |        Source Connection ID           |
+  +----+----+----+----+----+----+----+----+
+  |             Retry Token               |
+  +----+----+----+----+----+----+----+----+
+
+  Destination Connection ID :: 8 bytes, unsigned big endian integer
+
+  id :: 1 byte, the network ID (currently 2, except for test networks)
+
+  ver :: The protocol version, equal to 2
+
+  type :: The message type, 0-10
+
+  flag :: 1 byte, unused, set to 0 for future compatibility
+
+  Packet Number :: 4 bytes, unsigned big endian integer
+
+  Source Connection ID :: 8 bytes, unsigned big endian integer
+
+  Retry Token :: 8 bytes, unsigned big endian integer
+
+{% endhighlight %}
 
 
+Short Header
+`````````````
+The short header is 13 bytes. It is used after a session is created, for Data messages.
+or (maybe?) for unauthenticated messages.
+
+Before header obfuscation and protection:
+
+.. raw:: html
+
+  {% highlight lang='dataspec' %}
+
++----+----+----+----+----+----+----+----+
+  |      Destination Connection ID        |
+  +----+----+----+----+----+----+----+----+
+  |type|  Packet Number    |
+  +----+----+----+----+----+
+
+  Destination Connection ID :: 8 bytes, unsigned big endian integer
+
+  type :: The message type, 0-10
+
+  Packet Number :: 4 bytes, unsigned big endian integer
+
+{% endhighlight %}
+
+
+Header Binding
+````````````````
+The header (before obfuscation and protection) is always the associated
+data for the AEAD function, to cryptographically bind the header to the data.
+
+
+Header Obfuscation
+```````````````````
+Both the long and short headers are always obfuscated with AES-CBC using
+(generally) the destination router hash and IV.
+
+For SessionCreated, where the destination router hash and IV are not yet known,
+the source router hash and IV are used.
+
+
+Header Protection
+```````````````````
+In addition to obfuscation, bytes 8-15 of the long header and bytes 8-12 of the short header
+are encrypted by XORing with a known key, as in QUIC [RFC9001]_ and [NAN]_.
+
+For SessionCreated, where the destination router hash and IV are not yet known,
+the source router hash and IV are used.
 
 
 
@@ -2438,9 +2604,9 @@ This is the "e" message pattern:
 
 Alice sends to Bob.
 
+Long header.
 Noise content: Alice's ephemeral key X
-Noise payload: 16 byte option block
-Non-noise payload: Random padding
+Noise payload: datetime and padding blocks
 
 (Payload Security Properties)
 
@@ -2485,10 +2651,6 @@ AES encryption is for DPI resistance only.
 Any party knowing Bob's router hash, and IV, which are published in the network database,
 may decrypt the X value in this message.
 
-The padding is not encrypted by Alice.
-It may be necessary for Bob to decrypt the padding,
-to inhibit timing attacks.
-
 
 Raw contents:
 
@@ -2496,6 +2658,14 @@ Raw contents:
 
   {% highlight lang='dataspec' %}
 +----+----+----+----+----+----+----+----+
+  |                                       |
+  +        obfuscated with RH_B           +
+  |       AES-CBC-256 encrypted           |
+  +       bytes 8-15 header protected     +
+  |            Long Header                |
+  +             (32 bytes)                +
+  |                                       |
+  +----+----+----+----+----+----+----+----+
   |                                       |
   +        obfuscated with RH_B           +
   |       AES-CBC-256 encrypted X         |
@@ -2506,29 +2676,20 @@ Raw contents:
   +----+----+----+----+----+----+----+----+
   |                                       |
   +                                       +
-  |   ChaChaPoly frame                    |
-  +             (32 bytes)                +
-  |   k defined in KDF for Session Request      |
-  +   n = 0                               +
-  |   see KDF for associated data         |
+  |   ChaCha20 encrypted data             |
+  +          (length varies)              +
+  |  k defined in KDF for Session Request |
+  +  n = 0                                +
+  |  see KDF for associated data          |
   +----+----+----+----+----+----+----+----+
-  |     unencrypted authenticated         |
-  ~         padding (optional)            ~
-  |     length defined in options block   |
+  |                                       |
+  +        Poly1305 MAC (16 bytes)        +
+  |                                       |
   +----+----+----+----+----+----+----+----+
 
   X :: 32 bytes, AES-256-CBC encrypted X25519 ephemeral key, little endian
           key: RH_B
           iv: As published in Bobs network database entry
-
-  padding :: Random data, 0 or more bytes.
-             Total message length must be 65535 bytes or less.
-             Total message length must be 287 bytes or less if
-             Bob is publishing his address as NTCP
-             (see Version Detection section below).
-             Alice and Bob will use the padding data in the KDF for Session Created.
-             It is authenticated so that any tampering will cause the
-             next message to fail.
 
 {% endhighlight %}
 
@@ -2538,6 +2699,14 @@ Unencrypted data (Poly1305 authentication tag not shown):
 
   {% highlight lang='dataspec' %}
 +----+----+----+----+----+----+----+----+
+  |      Destination Connection ID        |
+  +----+----+----+----+----+----+----+----+
+  | id | ver|type|flag|  Packet Number    |
+  +----+----+----+----+----+----+----+----+
+  |        Source Connection ID           |
+  +----+----+----+----+----+----+----+----+
+  |             Retry Token               |
+  +----+----+----+----+----+----+----+----+
   |                                       |
   +                                       +
   |                   X                   |
@@ -2546,29 +2715,31 @@ Unencrypted data (Poly1305 authentication tag not shown):
   +                                       +
   |                                       |
   +----+----+----+----+----+----+----+----+
-  |               options                 |
-  +              (16 bytes)               +
+  |     Noise payload (block data)        |
+  +          (length varies)              +
   |                                       |
   +----+----+----+----+----+----+----+----+
-  |     unencrypted authenticated         |
-  +         padding (optional)            +
-  |     length defined in options block   |
-  ~               .   .   .               ~
-  |                                       |
-  +----+----+----+----+----+----+----+----+
+
+
+  Destination Connection ID :: Randomly generated by Alice
+
+  id :: 1 byte, the network ID (currently 2, except for test networks)
+
+  ver :: 2
+
+  type :: 0
+
+  flag :: 1 byte, unused, set to 0 for future compatibility
+
+  Packet Number :: 0 unless retransmitted or resent after Retry
+
+  Source Connection ID :: Randomly generated by Alice
+
+  Retry Token :: 0 if not previously received from Bob
 
   X :: 32 bytes, X25519 ephemeral key, little endian
 
   options :: options block, 16 bytes, see below
-
-  padding :: Random data, 0 or more bytes.
-             Total message length must be 65535 bytes or less.
-             Total message length must be 287 bytes or less if
-             Bob is publishing his address as "NTCP"
-             (see Version Detection section below)
-             Alice and Bob will use the padding data in the KDF for Session Created.
-             It is authenticated so that any tampering will cause the
-             next message to fail.
 
 {% endhighlight %}
 
@@ -2667,7 +2838,7 @@ Notes
   This is also for efficiency and to ensure the effectiveness of the random
   padding.
 
-- "ver" field: The overall Noise protocol, extensions, and NTCP protocol
+- "ver" field: The overall Noise protocol, extensions, and SSU2 protocol
   including payload specifications, indicating SSU2.
   This field may be used to indicate support for future changes.
 
@@ -2678,7 +2849,6 @@ Notes
 - The network ID field is used to quickly identify cross-network connections.
   If this field is nonzero, and does not match Bob's network ID,
   Bob should disconnect and block future connections.
-  As of 0.9.42. See proposal 147 for more information.
 
 
 
@@ -2760,8 +2930,7 @@ Key Derivation Function (KDF) (for Session Created and Session Confirmed part 1)
 Bob sends to Alice.
 
 Noise content: Bob's ephemeral key Y
-Noise payload: 16 byte option block
-Non-noise payload: Random padding
+Noise payload: datetime, options, and padding blocks
 
 (Payload Security Properties)
 
@@ -2813,24 +2982,30 @@ Raw contents:
 +----+----+----+----+----+----+----+----+
   |                                       |
   +        obfuscated with RH_B           +
+  |       AES-CBC-256 encrypted           |
+  +       bytes 8-15 header protected     +
+  |            Long Header                |
+  +             (32 bytes)                +
+  |                                       |
+  +----+----+----+----+----+----+----+----+
+  |                                       |
+  +        obfuscated with RH_B           +
   |       AES-CBC-256 encrypted Y         |
   +              (32 bytes)               +
   |                                       |
   +                                       +
   |                                       |
   +----+----+----+----+----+----+----+----+
-  |   ChaChaPoly frame                    |
+  |   ChaCha20 data                       |
   +   Encrypted and authenticated data    +
-  |   32 bytes                            |
-  +   k defined in KDF for Session Created      +
-  |   n = 0; see KDF for associated data  |
+  |  length varies                        |
+  +  k defined in KDF for Session Created +
+  |  n = 0; see KDF for associated data   |
   +                                       +
   |                                       |
   +----+----+----+----+----+----+----+----+
-  |     unencrypted authenticated         |
-  +         padding (optional)            +
-  |     length defined in options block   |
-  ~               .   .   .               ~
+  |                                       |
+  +        Poly1305 MAC (16 bytes)        +
   |                                       |
   +----+----+----+----+----+----+----+----+
 
@@ -2846,6 +3021,14 @@ Unencrypted data (Poly1305 auth tag not shown):
 
   {% highlight lang='dataspec' %}
 +----+----+----+----+----+----+----+----+
+  |      Destination Connection ID        |
+  +----+----+----+----+----+----+----+----+
+  | id | ver|type|flag|  Packet Number    |
+  +----+----+----+----+----+----+----+----+
+  |        Source Connection ID           |
+  +----+----+----+----+----+----+----+----+
+  |             Retry Token               |
+  +----+----+----+----+----+----+----+----+
   |                                       |
   +                                       +
   |                  Y                    |
@@ -2854,26 +3037,28 @@ Unencrypted data (Poly1305 auth tag not shown):
   +                                       +
   |                                       |
   +----+----+----+----+----+----+----+----+
-  |               options                 |
-  +              (16 bytes)               +
+  |     Noise payload (block data)        |
+  +          (length varies)              +
   |                                       |
   +----+----+----+----+----+----+----+----+
-  |     unencrypted authenticated         |
-  +         padding (optional)            +
-  |     length defined in options block   |
-  ~               .   .   .               ~
-  |                                       |
-  +----+----+----+----+----+----+----+----+
+
+  Destination Connection ID :: As sent by Alice
+
+  id :: 1 byte, the network ID (currently 2, except for test networks)
+
+  ver :: 2
+
+  type :: 0
+
+  flag :: 1 byte, unused, set to 0 for future compatibility
+
+  Packet Number :: 0 unless retransmitted or resent after Retry
+
+  Source Connection ID :: Randomly generated by Alice
+
+  Retry Token :: 0 if not previously received from Bob
 
   Y :: 32 bytes, X25519 ephemeral key, little endian
-
-  options :: options block, 16 bytes, see below
-
-  padding :: Random data, 0 or more bytes.
-             Total message length must be 65535 bytes or less.
-             Alice and Bob will use the padding data in the KDF for Session Confirmed part 1.
-             It is authenticated so that any tampering will cause the
-             next message to fail.
 
 {% endhighlight %}
 
@@ -2891,46 +3076,12 @@ Notes
 
 - On any error, including AEAD, DH, timestamp, apparent replay, or key
   validation failure, Alice must halt further message processing and close the
-  connection without responding.  This should be an abnormal close (TCP RST).
-
-- To facilitate rapid handshaking, implementations must ensure that Bob buffers
-  and then flushes the entire contents of the first message at once, including
-  the padding.  This increases the likelihood that the data will be contained
-  in a single TCP packet (unless segmented by the OS or middleboxes), and
-  received all at once by Alice.  This is also for efficiency and to ensure the
-  effectiveness of the random padding.
+  connection without responding.
 
 - Alice must fail the connection if any incoming data remains after validating
   Session Created and reading in the padding. There should be no extra data from Bob,
   as Alice has not responded with Session Confirmed yet.
 
-
-Options block:
-Note: All fields are big-endian.
-
-.. raw:: html
-
-  {% highlight lang='dataspec' %}
-
-+----+----+----+----+----+----+----+----+
-  | Rsvd(0) | padLen  |   Reserved (0)    |
-  +----+----+----+----+----+----+----+----+
-  |        tsB        |   Reserved (0)    |
-  +----+----+----+----+----+----+----+----+
-
-  Reserved :: 10 bytes total, set to 0 for compatibility with future options
-
-  padLen :: 2 bytes, big endian, length of the padding, 0 or more
-            Min/max guidelines TBD. Random size from 0 to 31 bytes minimum?
-            (Distribution to be determined, see Appendix A.)
-
-  tsB :: 4 bytes, big endian, Unix timestamp, unsigned seconds.
-         Wraps around in 2106
-
-{% endhighlight %}
-
-Notes
-`````
 - Alice must reject connections where the timestamp value is too far off from
   the current time. Call the maximum delta time "D".  Alice must maintain a
   local cache of previously-used handshake values and reject duplicates, to
@@ -3049,8 +3200,7 @@ This is the "se" message pattern:
 Alice sends to Bob.
 
 Noise content: Alice's static key
-Noise payload: Alice's RouterInfo and random padding
-Non-noise payload: none
+Noise payload: Alice's RouterInfo, options, data, and padding blocks
 
 (Payload Security Properties)
 
@@ -3112,7 +3262,7 @@ Raw contents:
   |                                       |
   +----+----+----+----+----+----+----+----+
   |                                       |
-  + Length specified in Session Request   +
+  + Length varies (remainder of packet)   +
   |                                       |
   +   ChaChaPoly frame                    +
   |   Encrypted and authenticated         |
@@ -3168,6 +3318,12 @@ Unencrypted data (Poly1305 auth tags not shown):
   |                                       |
   +----+----+----+----+----+----+----+----+
   |                                       |
+  +       Optional I2NP blocks            +
+  |                                       |
+  ~               .   .   .               ~
+  |                                       |
+  +----+----+----+----+----+----+----+----+
+  |                                       |
   +       Optional Padding block          +
   |                                       |
   ~               .   .   .               ~
@@ -3201,32 +3357,20 @@ Notes
 
 - On any error, including AEAD, RI, DH, timestamp, or key validation failure,
   Bob must halt further message processing and close the connection without
-  responding.  This should be an abnormal close (TCP RST).
-
-- To facilitate rapid handshaking, implementations must ensure that Alice
-  buffers and then flushes the entire contents of the third message at once,
-  including both AEAD frames.
-  This increases the likelihood that the data will be contained in a single TCP
-  packet (unless segmented by the OS or middleboxes), and received all at once
-  by Bob.  This is also for efficiency and to ensure the effectiveness of the
-  random padding.
-
-- Message 3 part 2 frame length: The length of this frame (including MAC) is
-  sent by Alice in Session Request. See that message for important notes on allowing
-  enough room for padding.
+  responding.
 
 - Message 3 part 2 frame content: This format of this frame is the same as the
   format of data phase frames, except that the length of the frame is sent
   by Alice in Session Request. See below for the data phase frame format.
-  The frame must contain 1 to 3 blocks in the following order:
+  The frame must contain 1 to 4 blocks in the following order:
   1) Alice's Router Info block (required)
   2) Options block (optional)
-  3) Padding block (optional)
+  3) I2NP blocks (optional)
+  4) Padding block (optional)
   This frame must never contain any other block type.
 
-- Message 3 part 2 padding is not required if Alice appends a data phase frame
-  (optionally containing padding) to the end of Session Confirmed and sends both at once,
-  as it will appear as one big stream of bytes to an observer.
+- Message 3 part 2 padding may not be required if Alice includes one or more I2NP blocks
+  in the Session Confirmed.
   As Alice will generally, but not always, have an I2NP message to send to Bob
   (that's why she connected to him), this is the recommended implementation,
   for efficiency and to ensure the effectiveness of the random padding.
@@ -3274,17 +3418,23 @@ ck = from handshake phase
 
 
 
-4) Data Phase
--------------
+3-5) Relay Messages
+--------------------
 
-Noise payload: As defined below, including random padding
-Non-noise payload: none
+TBD, only required if these must be sent outside of an existing session.
+
+
+
+6) Data Message
+----------------
+
+Noise payload: All block types are allowed
 
 Starting with the 2nd part of Session Confirmed, all messages are inside
-an authenticated and encrypted ChaChaPoly "frame"
+an authenticated and encrypted ChaChaPoly payload.
 with a prepended two-byte obfuscated length.
 All padding is inside the frame.
-Inside the frame is a standard format with zero or more "blocks".
+Inside the payload is a standard format with zero or more "blocks".
 Each block has a one-byte type and a two-byte length.
 Types include date/time, I2NP message, options, termination, and padding.
 
@@ -3320,7 +3470,7 @@ Notes
 `````
 - For efficiency and to minimize identification of the length field,
   implementations must ensure that the sender buffers and then flushes the entire contents
-  of data messages at once, including the length field and the AEAD frame.
+  of data messages at once, including the length field and the AEAD payload.
   This increases the likelihood that the data will be contained in a single TCP packet
   (unless segmented by the OS or middleboxes), and received all at once the other party.
   This is also for efficiency and to ensure the effectiveness of the random padding.
@@ -3328,48 +3478,172 @@ Notes
 - The router may choose to terminate the session on AEAD error, or may continue to attempt communications.
   If continuing, the router should terminate after repeated errors.
 
+.. raw:: html
 
+  {% highlight lang='dataspec' %}
++----+----+----+----+----+----+----+----+
+  |Short Header obfuscated with dest hash |
+  +encrypted, bytes 8-12   +----+----+----+
+  | header protected       |              |
+  +----+----+----+----+----+              +
+  |   ChaCha20 data                       |
+  +   Encrypted and authenticated data    +
+  |  length varies                        |
+  +k defined in KDF for Session Confirmed +
+  |  n = from heder                       |
+  +                                       +
+  |                                       |
+  +----+----+----+----+----+----+----+----+
+  |                                       |
+  +        Poly1305 MAC (16 bytes)        +
+  |                                       |
+  +----+----+----+----+----+----+----+----+
 
+{% endhighlight %}
 
-
-Raw contents
-````````````
+Unencrypted data (Poly1305 auth tag not shown):
 
 .. raw:: html
 
   {% highlight lang='dataspec' %}
 +----+----+----+----+----+----+----+----+
-  |obf size |                             |
-  +----+----+                             +
-  |                                       |
-  +   ChaChaPoly frame                    +
-  |   Encrypted and authenticated         |
-  +   key is k_ab for Alice to Bob        +
-  |   key is k_ba for Bob to Alice        |
-  +   as defined in KDF for data phase    +
-  |   n starts at 0 and increments        |
-  +   for each frame in that direction    +
-  |   no associated data                  |
-  +   16 bytes minimum                    +
-  |                                       |
-  ~               .   .   .               ~
+  |      Destination Connection ID        |
+  +----+----+----+----+----+----+----+----+
+  |type|  Packet Number    |              |
+  +----+----+----+----+----+              +
+  |     Noise payload (block data)        |
+  +          (length varies)              +
   |                                       |
   +----+----+----+----+----+----+----+----+
 
-  obf size :: 2 bytes length obfuscated with SipHash
-              when de-obfuscated: 16 - 65535
+  Destination Connection ID :: As specified in session setup
 
-  Minimum size including length field is 18 bytes.
-  Maximum size including length field is 65537 bytes.
-  Obfuscated length is 2 bytes.
-  Maximum ChaChaPoly frame is 65535 bytes.
+  type :: 6
+
+  Packet Number :: 4 byte big endian integer
+
+{% endhighlight %}
+
+Notes
+`````
+
+
+7) Peer Test Message
+------------------------
+
+TBD, only required if these must be sent outside of an existing session.
+
+
+8) Session Destroyed Message
+-------------------------------
+
+TBD, only required if these must be sent outside of an existing session.
+
+
+9) Retry Message
+-------------------------------
+
+TODO encrypted? to what key?
+
+Noise payload: Only padding block
+
+Raw contents:
+
+.. raw:: html
+
+  {% highlight lang='dataspec' %}
++----+----+----+----+----+----+----+----+
+  |                                       |
+  +        obfuscated with RH_B           +
+  |       AES-CBC-256 encrypted           |
+  +       bytes 8-15 header protected     +
+  |            Long Header                |
+  +             (32 bytes)                +
+  |                                       |
+  +----+----+----+----+----+----+----+----+
+  |                                       |
+  +                                       +
+  |   ChaCha20 encrypted data             |
+  +          (length varies)              +
+  |  k defined in KDF for Session Request |
+  +  n = 0                                +
+  |  see KDF for associated data          |
+  +----+----+----+----+----+----+----+----+
+  |                                       |
+  +        Poly1305 MAC (16 bytes)        +
+  |                                       |
+  +----+----+----+----+----+----+----+----+
+
+
+{% endhighlight %}
+
+Unencrypted data (Poly1305 authentication tag not shown):
+
+.. raw:: html
+
+  {% highlight lang='dataspec' %}
++----+----+----+----+----+----+----+----+
+  |      Destination Connection ID        |
+  +----+----+----+----+----+----+----+----+
+  | id | ver|type|flag|  Packet Number    |
+  +----+----+----+----+----+----+----+----+
+  |        Source Connection ID           |
+  +----+----+----+----+----+----+----+----+
+  |             Retry Token               |
+  +----+----+----+----+----+----+----+----+
+  |     Noise payload (block data)        |
+  +          (length varies)              +
+  |                                       |
+  +----+----+----+----+----+----+----+----+
+
+
+  Destination Connection ID :: Randomly generated by Alice
+
+  id :: 1 byte, the network ID (currently 2, except for test networks)
+
+  ver :: 2
+
+  type :: 0
+
+  flag :: 1 byte, unused, set to 0 for future compatibility
+
+  Packet Number :: 0 unless retransmitted or resent after Retry
+
+  Source Connection ID :: Randomly generated by Alice
+
+  Retry Token :: 8 byte unsigned integer
+
+  options :: options block, 16 bytes, see below
 
 {% endhighlight %}
 
 
-Unencrypted data
-````````````````
-There are zero or more blocks in the encrypted frame.
+
+Hole Punch Message
+-------------------------------
+
+An empty datagram. No content. Same as SSU 1.
+
+
+
+Noise Payload
+===============
+
+All noise sections contain zero or more "blocks".
+
+This uses the same block format as defined in the [NTCP2]_ and [ECIES]_ specifications.
+Individual block types are defined differently.
+
+There are concerns that encouraging implementers to share code
+may lead to parsing issues. Implementers should carefully consider
+the benefits and risks of sharing code, and ensure that the
+ordering and valid block rules are different for the two contexts.
+
+
+Payload Format
+----------------
+
+There are zero or more blocks in the encrypted payload.
 Each block contains a one-byte identifier, a two-byte length,
 and zero or more bytes of data.
 
@@ -3399,31 +3673,46 @@ so the max unencrypted data is 65519 bytes.
   +----+----+----+----+----+----+----+----+
   ~               .   .   .               ~
 
-  blk :: 1 byte
-         0 for datetime
-         1 for options
-         2 for RouterInfo
-         3 for I2NP message
-         4 for termination
-         224-253 reserved for experimental features
-         254 for padding
-         255 reserved for future extension
-  size :: 2 bytes, big endian, size of data to follow, 0 - 65516
+  blk :: 1 byte, see below
+  size :: 2 bytes, big endian, size of data to follow, 0 - TBD
   data :: the data
 
-  Maximum ChaChaPoly frame is 65535 bytes.
+  Maximum ChaChaPoly payload is TBD bytes.
   Poly1305 tag is 16 bytes
-  Maximum total block size is 65519 bytes
-  Maximum single block size is 65519 bytes
+  Maximum total block size is TBD bytes
+  Maximum single block size is TBD bytes
   Block type is 1 byte
   Block length is 2 bytes
-  Maximum single block data size is 65516 bytes.
+  Maximum single block data size is TBD bytes.
 
 {% endhighlight %}
 
+Block types:
+
+====================================  ============= ============
+       Payload Block Type              Type Number  Block Length
+====================================  ============= ============
+DateTime                                    0            7      
+Options (TBD)                               1           21+     
+Router Info                                 2         varies 
+I2NP Message                                3         varies 
+Termination (TBD)                           4         9 typ.    
+Relay Request                               5           TBD
+Relay Response                              6           TBD
+Relay Intro                                 7           TBD
+Peer Test                                   8           TBD
+Next Nonce                                  9           TBD
+ACK                                        10         varies 
+ACK                                        11         varies 
+reserved for experimental features        255
+Padding                                   254         varies    
+reserved for future extension             255
+====================================  ============= ============
+
 
 Block Ordering Rules
-````````````````````
+----------------------
+
 In the Session Confirmed part 2, order must be:
 RouterInfo, followed by Options if present, followed by Padding if present.
 No other blocks are allowed.
@@ -3433,16 +3722,17 @@ following requirements:
 Padding, if present, must be the last block.
 Termination, if present, must be the last block except for Padding.
 
-There may be multiple I2NP blocks in a single frame.
-Multiple Padding blocks are not allowed in a single frame.
+There may be multiple I2NP blocks in a single payload.
+Multiple Padding blocks are not allowed in a single payload.
 Other block types probably won't have multiple blocks in
-a single frame, but it is not prohibited.
+a single payload, but it is not prohibited.
 
-
+Block Specifications
+----------------------
 
 DateTime
 ````````
-Special case for time synchronization:
+For time synchronization:
 
 .. raw:: html
 
@@ -3593,7 +3883,7 @@ I2NP Message
 
 An single I2NP message with a modified header.
 I2NP messages may not be fragmented across blocks or
-across ChaChaPoly frames.
+across ChaChaPoly payloads.
 
 This uses the first 9 bytes from the standard NTCP I2NP header,
 and removes the last 7 bytes of the header, as follows:
@@ -3637,14 +3927,14 @@ Notes
 Termination
 ```````````
 Drop the connection.
-This must be the last non-padding block in the frame.
+This must be the last non-padding block in the payload.
 
 
 .. raw:: html
 
   {% highlight lang='dataspec' %}
 +----+----+----+----+----+----+----+----+
-  | 4  |  size   |    valid data frames   |
+  | 4  |  size   |    valid data packets  |
   +----+----+----+----+----+----+----+----+
       received   | rsn|     addl data     |
   +----+----+----+----+                   +
@@ -3653,7 +3943,7 @@ This must be the last non-padding block in the frame.
 
   blk :: 4
   size :: 2 bytes, big endian, value = 9 or more
-  valid data frames received :: The number of valid AEAD data phase frames received
+  valid data packets received :: The number of valid packets received
                                 (current receive nonce value)
                                 0 if error occurs in handshake phase
                                 8 bytes, big endian
@@ -3672,7 +3962,7 @@ This must be the last non-padding block in the frame.
          11: Session Request error
          12: Session Created error
          13: Session Confirmed error
-         14: intra-frame read timeout
+         14: Timeout
          15: RI signature verification fail
          16: s parameter missing, invalid, or mismatched in RouterInfo
          17: banned
@@ -3689,22 +3979,152 @@ Handshake failures will generally result in a close with TCP RST instead.
 See notes in handshake message sections above.
 Additional reasons listed are for consistency, logging, debugging, or if policy changes.
 
+RelayRequest
+``````````````
+.. raw:: html
 
+  {% highlight lang='dataspec' %}
++----+----+----+----+----+----+----+----+
+  |  5 |  size   |      TBD               |
+  +----+----+----+                        +
+  |                                       |
+  ~               .   .   .               ~
+  |                                       |
+  +----+----+----+----+----+----+----+----+
+
+  blk :: 5
+  size :: 2 bytes, big endian, size of data to follow
+
+{% endhighlight %}
+
+
+RelayResponse
+``````````````
+.. raw:: html
+
+  {% highlight lang='dataspec' %}
++----+----+----+----+----+----+----+----+
+  |  6 |  size   |      TBD               |
+  +----+----+----+                        +
+  |                                       |
+  ~               .   .   .               ~
+  |                                       |
+  +----+----+----+----+----+----+----+----+
+
+  blk :: 6
+  size :: 2 bytes, big endian, size of data to follow
+
+{% endhighlight %}
+
+
+RelayIntro
+``````````````
+.. raw:: html
+
+  {% highlight lang='dataspec' %}
++----+----+----+----+----+----+----+----+
+  |  7 |  size   |      TBD               |
+  +----+----+----+                        +
+  |                                       |
+  ~               .   .   .               ~
+  |                                       |
+  +----+----+----+----+----+----+----+----+
+
+  blk :: 7
+  size :: 2 bytes, big endian, size of data to follow
+
+{% endhighlight %}
+
+
+PeerTest
+``````````````
+.. raw:: html
+
+  {% highlight lang='dataspec' %}
++----+----+----+----+----+----+----+----+
+  |  8 |  size   |      TBD               |
+  +----+----+----+                        +
+  |                                       |
+  ~               .   .   .               ~
+  |                                       |
+  +----+----+----+----+----+----+----+----+
+
+  blk :: 8
+  size :: 2 bytes, big endian, size of data to follow
+
+{% endhighlight %}
+
+
+NextNonce
+``````````````
+.. raw:: html
+
+  {% highlight lang='dataspec' %}
++----+----+----+----+----+----+----+----+
+  |  9 |  size   |      TBD               |
+  +----+----+----+                        +
+  |                                       |
+  ~               .   .   .               ~
+  |                                       |
+  +----+----+----+----+----+----+----+----+
+
+  blk :: 9
+  size :: 2 bytes, big endian, size of data to follow
+
+{% endhighlight %}
+
+
+Ack
+``````````````
+.. raw:: html
+
+  {% highlight lang='dataspec' %}
++----+----+----+----+----+----+----+----+
+  | 10 |  size   |      TBD               |
+  +----+----+----+                        +
+  |                                       |
+  ~               .   .   .               ~
+  |                                       |
+  +----+----+----+----+----+----+----+----+
+
+  blk :: 10
+  size :: 2 bytes, big endian, size of data to follow
+
+{% endhighlight %}
+
+
+Nack
+``````````````
+
+.. raw:: html
+
+  {% highlight lang='dataspec' %}
++----+----+----+----+----+----+----+----+
+  | 11 |  size   |      TBD               |
+  +----+----+----+                        +
+  |                                       |
+  ~               .   .   .               ~
+  |                                       |
+  +----+----+----+----+----+----+----+----+
+
+  blk :: 11
+  size :: 2 bytes, big endian, size of data to follow
+
+{% endhighlight %}
 
 
 Padding
 ```````
-This is for padding inside AEAD frames.
-Padding for messages 1 and 2 are outside AEAD frames.
-All padding for Session Confirmed and the data phase are inside AEAD frames.
+This is for padding inside AEAD payloads.
+Padding for all messages are inside AEAD payloads.
 
-Padding inside AEAD should roughly adhere to the negotiated parameters.
+Padding should roughly adhere to the negotiated parameters.
 Bob sent his requested tx/rx min/max parameters in Session Created.
 Alice sent her requested tx/rx min/max parameters in Session Confirmed.
 Updated options may be sent during the data phase.
 See options block information above.
 
-If present, this must be the last block in the frame.
+If present, this must be the last block in the payload.
 
 
 
@@ -3729,11 +4149,11 @@ Notes
 `````
 - Padding strategies TBD.
 - Minimum padding TBD.
-- Padding-only frames are allowed.
+- Padding-only blocks are allowed.
 - Padding defaults TBD.
 - See options block for padding parameter negotiation
 - See options block for min/max padding parameters
-- Noise limits messages to 64KB. If more padding is necessary, send multiple frames.
+- Noise limits messages to 64KB. If more padding is necessary, send multiple messages.
 - Router response on violation of negotiated padding is implementation-dependent.
 
 
@@ -3754,34 +4174,14 @@ Future work
   provides more information on the topic.
 
 
-5) Termination
---------------
+Session Termination
+=====================
 
-Connections may be terminated via normal or abnormal TCP socket close,
-or, as Noise recommends, an explicit termination message.
-The explicit termination message is defined in the data phase above.
+Message or block? TBD
 
 Upon any normal or abnormal termination, routers should
 zero-out any in-memory ephemeral data, including handshake ephemeral keys,
 symmetric crypto keys, and related information.
-
-
-Other Messages
-=================
-
-
-Peer Test
-----------
-
-TBD
-
-
-Relay
--------
-
-Relay Request, Response, Intro
-
-TBD
 
 
 
@@ -3951,19 +4351,68 @@ Alice: (8) Encrypted with forward secrecy to an authenticated party.
 Bob: (3) Not transmitted, but a passive attacker can check candidates for the
 responder's private key and determine whether the candidate is correct.
 
-Bob publishes his static public key in the netdb. Alice may or may not?
+Bob publishes his static public key in the netdb. Alice may not, but must include it in the RI
+sent to Bob.
 
+
+
+
+Inbound Packet Handling
+==========================
+
+In SSU 1, inbound packet classification is difficult, because there is no
+header to indicate session number. Routers must first match the source IP and port
+to an existing peer state, and if not found, attempt multiple decryptions with different
+keys to find the appropriate peer state or start a new one.
+In the event that the source IP or port for an existing session changes,
+possibly due to NAT behavior
+the router may use expensive heuristics to attempt to match the packet to an existing session
+and recover the contents.
+
+SSU 2 is designed to minimize the inbound packet classification effort while maintaining
+DPI resistance and other on-path threats. The session number is included in the header
+for all message types, and obfuscated using AES with a known key and IV.
+Additionally, the message type is also included in the header
+(encrypted with header protection to a known key and then obfuscated with AES)
+and may be used for additional classification.
+In no case should a trial DH operation be necessary to classify a packet.
+
+For almost all messages from all peers, the AES key and IV are the destination router's
+router hash and IV as published in the netdb.
+
+The only exceptions are the first messages sent from Bob to Alice (Session Created or Retry)
+where Alice's router hash is not yet known to Bob. In these cases, Bob's router hash
+and IV are used.
+
+Therefore, the recommended processing steps are:
+
+1) Remove the AES obfuscation to recover the session ID. If known, use that session
+   for further processing.
+2) Remove the header protection to recover the version, net ID, message type,
+   and packet number fields. If all are sensible, and the message type is 0 (Session Request),
+   create a new session and use that session for further processing.
+3) Look up a pending outbound session by the source IP/port of the packet;
+   if found, remove the session ID obfuscation using Bob's router hash and IV,
+   verify the session ID matches, and use that pending session for further processing.
 
 
 Issues
-``````
-- If Bob changes his static key, could fallback to a "XX" pattern?
+--------
+
+If Relay and Peer Test messages are allowed outside of a session, they may also require
+additional processing steps to classify them.
+
 
 
 Version Detection
-=================
+--------------------
 
-TBD
+It may not be possible to efficiently detect if incoming packets are version 1 or 2 on the same inbound port.
+The steps above may make sense to do before SSU 1 processing, to avoid attempting trial DH operations
+using both protocol versions.
+
+TBD if required.
+
 
 
 Variants, Fallbacks, and General Issues
@@ -3978,11 +4427,17 @@ TBD
 References
 ==========
 
+.. [ECIES]
+    {{ site_url('docs/spec/ecies', True) }}
+
 .. [NetDB]
     {{ site_url('docs/how/network-database', True) }}
 
 .. [NOISE]
     https://noiseprotocol.org/noise.html
+
+.. [Nonces]
+    https://eprint.iacr.org/2019/624.pdf
 
 .. [NTCP]
     {{ site_url('docs/transport/ntcp', True) }}
@@ -4017,6 +4472,9 @@ References
 .. [RFC-9000]
     https://datatracker.ietf.org/doc/html/rfc9000
 
+.. [RFC-9001]
+    https://datatracker.ietf.org/doc/html/rfc9001
+
 .. [RouterAddress]
     {{ ctags_url('RouterAddress') }}
 
@@ -4041,3 +4499,6 @@ References
 
 .. [Ticket1849]
     https://{{ i2pconv('trac.i2p2.i2p') }}/ticket/1849
+
+.. [WireGuard]
+    https://www.wireguard.com/protocol/
