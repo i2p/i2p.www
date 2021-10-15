@@ -288,12 +288,6 @@ is implemented by I2P routers, may also be implemented by the offline DPI.
 It is a goal to reject attempted connections using replay of previous messages.
 
 
-Future work
-```````````
-
-TBD
-
-
 
 
 Address Validation
@@ -2141,7 +2135,7 @@ for inspiration, guidance, and code reuse:
 
 * Packet header obfuscation: Adapted from [NTCP2]_
 
-* Packet header protection: Adapted from QUIC [RFC9001]_ and [NAN]_
+* Packet header protection: Adapted from QUIC [RFC9001]_ and [Nonces]_
 
 * Headers used as AEAD associated data as in [ECIES]_.
 
@@ -2216,6 +2210,88 @@ Processing overhead estimate
 -----------------------------------
 
 TBD
+
+
+Definitions
+===============
+
+We define the following functions corresponding to the cryptographic building blocks used.
+
+ZEROLEN
+    zero-length byte array
+
+CSRNG(n)
+    n-byte output from a cryptographically-secure random number generator.
+
+H(p, d)
+    SHA-256 hash function that takes a personalization string p and data d, and
+    produces an output of length 32 bytes.
+    As defined in [NOISE]_.
+    || below means append.
+
+    Use SHA-256 as follows::
+
+        H(p, d) := SHA-256(p || d)
+
+MixHash(d)
+    SHA-256 hash function that takes a previous hash h and new data d,
+    and produces an output of length 32 bytes.
+    || below means append.
+
+    Use SHA-256 as follows::
+
+        MixHash(d) := h = SHA-256(h || d)
+
+STREAM
+    The ChaCha20/Poly1305 AEAD as specified in [RFC-7539]_.
+    S_KEY_LEN = 32 and S_IV_LEN = 12.
+
+    ENCRYPT(k, n, plaintext, ad)
+        Encrypts plaintext using the cipher key k, and nonce n which MUST be unique for
+        the key k.
+        Associated data ad is optional.
+        Returns a ciphertext that is the size of the plaintext + 16 bytes for the HMAC.
+
+        The entire ciphertext must be indistinguishable from random if the key is secret.
+
+    DECRYPT(k, n, ciphertext, ad)
+        Decrypts ciphertext using the cipher key k, and nonce n.
+        Associated data ad is optional.
+        Returns the plaintext.
+
+DH
+    X25519 public key agreement system. Private keys of 32 bytes, public keys of 32
+    bytes, produces outputs of 32 bytes. It has the following
+    functions:
+
+    GENERATE_PRIVATE()
+        Generates a new private key.
+
+    DERIVE_PUBLIC(privkey)
+        Returns the public key corresponding to the given private key.
+
+    DH(privkey, pubkey)
+        Generates a shared secret from the given private and public keys.
+
+HKDF(salt, ikm, info, n)
+    A cryptographic key derivation function which takes some input key material ikm (which
+    should have good entropy but is not required to be a uniformly random string), a salt
+    of length 32 bytes, and a context-specific 'info' value, and produces an output
+    of n bytes suitable for use as key material.
+
+    Use HKDF as specified in [RFC-5869]_, using the HMAC hash function SHA-256
+    as specified in [RFC-2104]_. This means that SALT_LEN is 32 bytes max.
+
+MixKey(d)
+    Use HKDF() with a previous chainKey and new data d, and
+    sets the new chainKey and k.
+    As defined in [NOISE]_.
+
+    Use HKDF as follows::
+
+        MixKey(d) := output = HKDF(chainKey, d, "", 64)
+                     chainKey = output[0:31]
+                     k = output[32:63]
 
 
 
@@ -2398,7 +2474,7 @@ the source router hash and IV are used.
 Header Protection
 ```````````````````
 In addition to obfuscation, bytes 8-15 of the long header and bytes 8-12 of the short header
-are encrypted by XORing with a known key, as in QUIC [RFC9001]_ and [NAN]_.
+are encrypted by XORing with a known key, as in QUIC [RFC9001]_ and [Nonces]_.
 
 For SessionCreated, where the destination router hash and IV are not yet known,
 the source router hash and IV are used.
@@ -2507,21 +2583,22 @@ AEAD Error Handling
   repeated failures.
 
 
-Key Derivation Function (KDF) (for Session Request)
+KDF for Session Request
 -------------------------------------------------------
 
-The KDF generates a handshake phase cipher key k from the DH result,
+The Key Derivation Function (KDF) generates a handshake phase cipher key k from the DH result,
 using HMAC-SHA256(key, data) as defined in [RFC-2104]_.
 These are the InitializeSymmetric(), MixHash(), and MixKey() functions,
 exactly as defined in the Noise spec.
+
+KDF for Initial ChainKey
+````````````````````````
 
 .. raw:: html
 
   {% highlight lang='text' %}
 
-This is the "e" message pattern:
-
-  // Define protocol_name.
+// Define protocol_name.
   Set protocol_name = "Noise_XKaesobfse+hs1+hs2+hs3_25519_ChaChaPoly_SHA256"
    (52 bytes, US-ASCII encoded, no NULL termination).
 
@@ -2538,23 +2615,32 @@ This is the "e" message pattern:
 
   // up until here, can all be precalculated by Alice for all outgoing connections
 
-  // Alice must validate that Bob's static key is a valid point on the curve here.
+  // Bob's X25519 static keys
+  // bpk is published in routerinfo
+  bsk = GENERATE_PRIVATE()
+  bpk = DERIVE_PUBLIC(bsk)
 
   // Bob static key
-  // MixHash(rs)
+  // MixHash(bpk)
   // || below means append
-  h = SHA256(h || rs);
+  h = SHA256(h || bpk);
 
   // up until here, can all be precalculated by Bob for all incoming connections
 
+{% endhighlight %}
+
+
+KDF for Flags/Static Key Section Encrypted Contents
+```````````````````````````````````````````````````
   This is the "e" message pattern:
 
-  Alice generates her ephemeral DH key pair e.
+  // Alice's X25519 ephemeral keys
+  aesk = GENERATE_PRIVATE()
+  aepk = DERIVE_PUBLIC(aesk)
 
   // Alice ephemeral key X
-  // MixHash(e.pubkey)
-  // || below means append
-  h = SHA256(h || e.pubkey);
+  // MixHash(aepk)
+  h = SHA256(h || aepk);
 
   // h is used as the associated data for the AEAD in Session Request
   // Retain the Hash h for the Session Created KDF
@@ -2565,34 +2651,21 @@ This is the "e" message pattern:
   This is the "es" message pattern:
 
   // DH(e, rs) == DH(s, re)
-  Define input_key_material = 32 byte DH result of Alice's ephemeral key and Bob's static key
-  Set input_key_material = X25519 DH result
+  sharedSecret = DH(aesk, bpk) = DH(bsk, aepk)
 
   // MixKey(DH())
+  //[chainKey, k] = MixKey(sharedSecret)
+  // ChaChaPoly parameters to encrypt/decrypt
+  keydata = HKDF(chainKey, sharedSecret, "", 64)
+  chainKey = keydata[0:31]
 
-  Define temp_key = 32 bytes
-  Define HMAC-SHA256(key, data) as in [RFC-2104]_
-  // Generate a temp key from the chaining key and DH result
-  // ck is the chaining key, defined above
-  temp_key = HMAC-SHA256(ck, input_key_material)
-  // overwrite the DH result in memory, no longer needed
-  input_key_material = (all zeros)
+  // AEAD parameters
+  k = keydata[32:64]
+  n = 0
+  ad = h
+  ciphertext = ENCRYPT(k, n, payload, ad)
 
-  // Output 1
-  // Set a new chaining key from the temp key
-  // byte() below means a single byte
-  ck =       HMAC-SHA256(temp_key, byte(0x01)).
-
-  // Output 2
-  // Generate the cipher key k
-  Define k = 32 bytes
-  // || below means append
-  // byte() below means a single byte
-  k =        HMAC-SHA256(temp_key, ck || byte(0x02)).
-  // overwrite the temp_key in memory, no longer needed
-  temp_key = (all zeros)
-
-  // retain the chaining key ck for Session Created KDF
+  // retain the chainKey for Session Created KDF
 
 
   End of "es" message pattern.
@@ -2834,19 +2907,19 @@ Key Derivation Function (KDF) (for Session Created and Session Confirmed part 1)
   // MixHash(ciphertext)
   h = SHA256(h || 32 byte encrypted payload from Session Request)
 
-  // MixHash(padding)
-  // Only if padding length is nonzero
-  h = SHA256(h || random padding from Session Request)
+  // MixHash(header)
+  h = SHA256(h || header)
 
   This is the "e" message pattern:
 
-  Bob generates his ephemeral DH key pair e.
+  // Bob's X25519 ephemeral keys
+  besk = GENERATE_PRIVATE()
+  bepk = DERIVE_PUBLIC(besk)
 
   // h is from KDF for Session Request
   // Bob ephemeral key Y
-  // MixHash(e.pubkey)
-  // || below means append
-  h = SHA256(h || e.pubkey);
+  // MixHash(bepk)
+  h = SHA256(h || bepk);
 
   // h is used as the associated data for the AEAD in Session Created
   // Retain the Hash h for the Session Confirmed KDF
@@ -2855,38 +2928,17 @@ Key Derivation Function (KDF) (for Session Created and Session Confirmed part 1)
 
   This is the "ee" message pattern:
 
-  // DH(e, re)
-  Define input_key_material = 32 byte DH result of Alice's ephemeral key and Bob's ephemeral key
-  Set input_key_material = X25519 DH result
-  // overwrite Alice's ephemeral key in memory, no longer needed
-  // Alice:
-  e(public and private) = (all zeros)
-  // Bob:
-  re = (all zeros)
-
   // MixKey(DH())
+  //[chainKey, k] = MixKey(sharedSecret)
+  sharedSecret = DH(aesk, bepk) = DH(besk, aepk)
+  keydata = HKDF(chainKey, sharedSecret, "", 64)
+  chainKey = keydata[0:31]
 
-  Define temp_key = 32 bytes
-  Define HMAC-SHA256(key, data) as in [RFC-2104]_
-  // Generate a temp key from the chaining key and DH result
-  // ck is the chaining key, from the KDF for Session Request
-  temp_key = HMAC-SHA256(ck, input_key_material)
-  // overwrite the DH result in memory, no longer needed
-  input_key_material = (all zeros)
-
-  // Output 1
-  // Set a new chaining key from the temp key
-  // byte() below means a single byte
-  ck =       HMAC-SHA256(temp_key, byte(0x01)).
-
-  // Output 2
-  // Generate the cipher key k
-  Define k = 32 bytes
-  // || below means append
-  // byte() below means a single byte
-  k =        HMAC-SHA256(temp_key, ck || byte(0x02)).
-  // overwrite the temp_key in memory, no longer needed
-  temp_key = (all zeros)
+  // AEAD parameters
+  k = keydata[32:64]
+  n = 0
+  ad = h
+  ciphertext = ENCRYPT(k, n, payload, ad)
 
   // retain the chaining key ck for Session Confirmed KDF
 
@@ -3066,7 +3118,7 @@ Issues
 
 
 
-Encryption for for Session Confirmed part 1, using Session Created KDF)
+Encryption for for Session Confirmed part 1, using Session Created KDF
 ---------------------------------------------------------------------------
 
 .. raw:: html
@@ -3077,23 +3129,23 @@ Encryption for for Session Confirmed part 1, using Session Created KDF)
   // MixHash(ciphertext)
   h = SHA256(h || 24 byte encrypted payload from Session Created)
 
-  // MixHash(padding)
-  // Only if padding length is nonzero
-  h = SHA256(h || random padding from Session Created)
+  // MixHash(header)
+  h = SHA256(h || header)
   // h is used as the associated data for the AEAD in Session Confirmed part 1, below
 
   This is the "s" message pattern:
 
-  Define s = Alice's static public key, 32 bytes
+  // Alice's X25519 static keys
+  ask = GENERATE_PRIVATE()
+  apk = DERIVE_PUBLIC(ask)
 
-  // EncryptAndHash(s.publickey)
-  // EncryptWithAd(h, s.publickey)
-  // AEAD_ChaCha20_Poly1305(key, nonce, associatedData, data)
+  // AEAD parameters
   // k is from Session Request
-  // n is 1
-  ciphertext = AEAD_ChaCha20_Poly1305(k, n++, h, s.publickey)
+  n = 1
+  ad = h
+  ciphertext = ENCRYPT(k, n++, apk, ad)
+
   // MixHash(ciphertext)
-  // || below means append
   h = SHA256(h || ciphertext);
 
   // h is used as the associated data for the AEAD in Session Confirmed part 2
@@ -3112,55 +3164,28 @@ Key Derivation Function (KDF) (for Session Confirmed part 2)
 
 This is the "se" message pattern:
 
-  // DH(s, re) == DH(e, rs)
-  Define input_key_material = 32 byte DH result of Alice's static key and Bob's ephemeral key
-  Set input_key_material = X25519 DH result
-  // overwrite Bob's ephemeral key in memory, no longer needed
-  // Alice:
-  re = (all zeros)
-  // Bob:
-  e(public and private) = (all zeros)
+  // DH(ask, bepk) == DH(besk, apk)
+  sharedSecret = DH(ask, bepk) = DH(besk, apk)
 
   // MixKey(DH())
+  //[chainKey, k] = MixKey(sharedSecret)
+  keydata = HKDF(chainKey, sharedSecret, "", 64)
+  chainKey = keydata[0:31]
 
-  Define temp_key = 32 bytes
-  Define HMAC-SHA256(key, data) as in [RFC-2104]_
-  // Generate a temp key from the chaining key and DH result
-  // ck is the chaining key, from the KDF for Session Request
-  temp_key = HMAC-SHA256(ck, input_key_material)
-  // overwrite the DH result in memory, no longer needed
-  input_key_material = (all zeros)
-
-  // Output 1
-  // Set a new chaining key from the temp key
-  // byte() below means a single byte
-  ck =       HMAC-SHA256(temp_key, byte(0x01)).
-
-  // Output 2
-  // Generate the cipher key k
-  Define k = 32 bytes
-  // || below means append
-  // byte() below means a single byte
-  k =        HMAC-SHA256(temp_key, ck || byte(0x02)).
+  // AEAD parameters
+  k = keydata[32:64]
+  n = 0
+  ad = h
+  ciphertext = ENCRYPT(k, n, payload, ad)
 
   // h from Session Confirmed part 1 is used as the associated data for the AEAD in Session Confirmed part 2
-
-  // EncryptAndHash(payload)
-  // EncryptWithAd(h, payload)
-  // AEAD_ChaCha20_Poly1305(key, nonce, associatedData, data)
-  // n is 0
-  ciphertext = AEAD_ChaCha20_Poly1305(k, n++, h, payload)
   // MixHash(ciphertext)
-  // || below means append
   h = SHA256(h || ciphertext);
 
   // retain the chaining key ck for the data phase KDF
   // retain the hash h for the data phase Additional Symmetric Key (SipHash) KDF
 
   End of "se" message pattern.
-
-  // overwrite the temp_key in memory, no longer needed
-  temp_key = (all zeros)
 
 {% endhighlight %}
 
@@ -3347,35 +3372,29 @@ Notes
 Key Derivation Function (KDF) (for data phase)
 ----------------------------------------------
 
-The data phase uses a zero-length associated data input.
-
+The data phase uses the header for associated data.
 
 The KDF generates two cipher keys k_ab and k_ba from the chaining key ck,
 using HMAC-SHA256(key, data) as defined in [RFC-2104]_.
-This is the Split() function, exactly as defined in the Noise spec.
+This is the split() function, exactly as defined in the Noise spec.
 
 .. raw:: html
 
   {% highlight lang='text' %}
+// split()
+  // chainKey = from handshake phase
+  keydata = HKDF(chainKey, ZEROLEN, "", 64)
+  k_ab = keydata[0:31]
+  k_ba = keydata[32:63]
 
-ck = from handshake phase
+  // key is k_ab for Alice to Bob
+  // key is k_ba for Bob to Alice
 
-  // k_ab, k_ba = HKDF(ck, zerolen)
-  // ask_master = HKDF(ck, zerolen, info="ask")
-
-  // zerolen is a zero-length byte array
-  temp_key = HMAC-SHA256(ck, zerolen)
-  // overwrite the chaining key in memory, no longer needed
-  ck = (all zeros)
-
-  // Output 1
-  // cipher key, for Alice transmits to Bob (Noise doesn't make clear which is which, but Java code does)
-  k_ab =   HMAC-SHA256(temp_key, byte(0x01)).
-
-  // Output 2
-  // cipher key, for Bob transmits to Alice (Noise doesn't make clear which is which, but Java code does)
-  k_ba =   HMAC-SHA256(temp_key, k_ab || byte(0x02)).
-
+  // AEAD parameters
+  k = k_ab or k_ba
+  n = packet number from header
+  ad = header
+  ciphertext = ENCRYPT(k, n, payload, ad)
 
 {% endhighlight %}
 
@@ -4640,6 +4659,9 @@ References
 
 .. [RFC-3526]
     https://tools.ietf.org/html/rfc3526
+
+.. [RFC-5869]
+    https://tools.ietf.org/html/rfc5869
 
 .. [RFC-6151]
     https://tools.ietf.org/html/rfc6151
