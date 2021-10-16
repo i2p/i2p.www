@@ -5,7 +5,7 @@ SSU2
     :author: orignal, zlatinb, zzz
     :created: 2021-09-12
     :thread: http://zzz.i2p/topics/2612
-    :lastupdated: 2021-10-14
+    :lastupdated: 2021-10-16
     :status: Open
     :target: 0.9.55
 
@@ -2302,7 +2302,10 @@ Messages
 Each UDP datagram contains exactly one message.
 The length of the datagram (after the IP header) is the length of the message.
 Padding, if any, is contained in a padding block inside the message.
-
+In this document, we use the terms "datagram" and "packet" mostly interchangeably.
+Each datagram (or packet) contains a single message (unlike QUIC, where
+a datagram may contain multiple QUIC packets).
+The "packet header" is the part after the IP/UDP header.
 
 All SSU2 messages are less than or equal to TBD bytes in length. The message
 format is based on Noise messages, with modifications for framing and indistinguishability.
@@ -2329,6 +2332,9 @@ n/a   HolePunch
 ====  ================  =====
 
 
+
+Session Establishment
+-----------------------
 
 The standard establishment sequence is as follows:
 
@@ -2404,7 +2410,7 @@ Before header obfuscation and protection:
 +----+----+----+----+----+----+----+----+
   |      Destination Connection ID        |
   +----+----+----+----+----+----+----+----+
-  |type| ver| id |flag|  Packet Number    |
+  |   Packet Number   |type| ver| id |flag|
   +----+----+----+----+----+----+----+----+
   |        Source Connection ID           |
   +----+----+----+----+----+----+----+----+
@@ -2444,7 +2450,7 @@ Before header obfuscation and protection:
 +----+----+----+----+----+----+----+----+
   |      Destination Connection ID        |
   +----+----+----+----+----+----+----+----+
-  |type|  Packet Number    |
+  |   Packet Number   |type|
   +----+----+----+----+----+
 
   Destination Connection ID :: 8 bytes, unsigned big endian integer
@@ -2456,9 +2462,57 @@ Before header obfuscation and protection:
 {% endhighlight %}
 
 
+Connection ID Numbering
+```````````````````````````
+
+Random numbers
+
+TBD change during handshake like QUIC?
+
+
+
+Packet Numbering
+`````````````````
+Packets are numbered within a single session, for each direction, starting from 0, to a max of (2**32 -1).
+A session must be terminated, and a new session created, well before the max
+number of packets is sent.
+
+Packets are never retransmitted with the same packet number.
+Any retransmission of packet contents (whether or not the contents remain the same)
+must use the next unused packet number.
+
+Packet numbering starts with Session Request. Assuming no retransmissions
+in the handshake, and no Retry reply from Bob, the packet numbers
+in an example standard handshake will be:
+
+.. raw:: html
+
+  {% highlight %}
+Alice                           Bob
+
+  SessionRequest (0)    ------------>
+  <-------------   SessionCreated (0)
+  SessionConfirmed (1)  ------------>
+  Data (2)              ------------>
+  <-------------             Data (1)
+  Data (3)              ------------>
+  Data (4)              ------------>
+  Data (5)              ------------>
+  <-------------             Data (2)
+
+{% endhighlight %}
+
+
+Any retransmission of handshake messages
+(SessionRequest, SessionCreated, or SessionConfirmed)
+must be resent unchanged, except for incrementing the packet number.
+Do not use different ephemeral keys or change the payload
+when retransmitting these messages.
+
+
 Header Binding
 ````````````````
-The header (before obfuscation and protection) is always the associated
+The header (before obfuscation and protection) is always included in the associated
 data for the AEAD function, to cryptographically bind the header to the data.
 
 
@@ -2478,6 +2532,38 @@ are encrypted by XORing with a known key, as in QUIC [RFC9001]_ and [Nonces]_.
 
 For SessionCreated, where the destination router hash and IV are not yet known,
 the source router hash and IV are used.
+
+There are four header protection key phases:
+
+- Session Request
+- Session Created and Retry
+- Session Confirmed
+- Data Phase
+
+See the individual KDF sections below for the derivation of the header protection key for that phase.
+
+Header Protection KDF:
+
+.. raw:: html
+
+  {% highlight lang='dataspec' %}
+// incoming encrypted packet
+  len = packet.length
+  // take the last 16 bytes before the MAC
+  sample = packet[len-32:len-17]
+  n = sample[4:15]
+  key = header protection key
+  data = {0, 0, 0, 0, 0, 0, 0, 0}
+  mask = ChaCha20.encrypt(key, n, data)
+
+  // encrypt the header by XORing with the mask
+  // short header
+  header[8:12] ^= mask[0:4]
+  // long header
+  header[8:15] ^= mask[0:7]
+
+
+{% endhighlight %}
 
 
 
@@ -2529,7 +2615,7 @@ k :: 32 byte cipher key, as generated from KDF
         Associated data, 32 bytes.
         The SHA256 hash of all preceding data.
         In data phase:
-        Zero bytes
+        The packet header
 
   data :: Plaintext data, 0 or more bytes
 
@@ -2630,8 +2716,8 @@ KDF for Initial ChainKey
 {% endhighlight %}
 
 
-KDF for Flags/Static Key Section Encrypted Contents
-```````````````````````````````````````````````````
+KDF for Session Request
+`````````````````````````
   This is the "e" message pattern:
 
   // Alice's X25519 ephemeral keys
@@ -2669,6 +2755,10 @@ KDF for Flags/Static Key Section Encrypted Contents
 
 
   End of "es" message pattern.
+
+  // Header protection key
+  TBD
+
 
 {% endhighlight %}
 
@@ -2777,7 +2867,7 @@ Unencrypted data (Poly1305 authentication tag not shown):
 +----+----+----+----+----+----+----+----+
   |      Destination Connection ID        |
   +----+----+----+----+----+----+----+----+
-  |type  ver| id |flag|  Packet Number    |
+  |   Packet Number   |type| ver| id |flag|
   +----+----+----+----+----+----+----+----+
   |        Source Connection ID           |
   +----+----+----+----+----+----+----+----+
@@ -2944,6 +3034,9 @@ Key Derivation Function (KDF) (for Session Created and Session Confirmed part 1)
 
   End of "ee" message pattern.
 
+  // Header protection key
+  TBD
+
 {% endhighlight %}
 
 
@@ -3046,7 +3139,7 @@ Unencrypted data (Poly1305 auth tag not shown):
 +----+----+----+----+----+----+----+----+
   |      Destination Connection ID        |
   +----+----+----+----+----+----+----+----+
-  |type| ver| id |flag|  Packet Number    |
+  |   Packet Number   |type| ver| id |flag|
   +----+----+----+----+----+----+----+----+
   |        Source Connection ID           |
   +----+----+----+----+----+----+----+----+
@@ -3151,6 +3244,9 @@ Encryption for for Session Confirmed part 1, using Session Created KDF
   // h is used as the associated data for the AEAD in Session Confirmed part 2
 
   End of "s" message pattern.
+
+  // Header protection key
+  TBD
 
 {% endhighlight %}
 
@@ -3299,7 +3395,7 @@ Unencrypted data (Poly1305 auth tags not shown):
 +----+----+----+----+----+----+----+----+
   |      Destination Connection ID        |
   +----+----+----+----+----+----+----+----+
-  |type|  Packet Number    |              |
+  |  Packet Number    |type|              |
   +----+----+----+----+----+              +
   |                                       |
   +                                       +
@@ -3395,6 +3491,9 @@ This is the split() function, exactly as defined in the Noise spec.
   n = packet number from header
   ad = header
   ciphertext = ENCRYPT(k, n, payload, ad)
+
+  // Header protection keys
+  TBD
 
 {% endhighlight %}
 
@@ -3492,7 +3591,7 @@ Unencrypted data (Poly1305 auth tag not shown):
 +----+----+----+----+----+----+----+----+
   |      Destination Connection ID        |
   +----+----+----+----+----+----+----+----+
-  |type|  Packet Number    |              |
+  |  Packet Number    |type|              |
   +----+----+----+----+----+              +
   |     Noise payload (block data)        |
   +          (length varies)              +
@@ -3568,7 +3667,7 @@ Unencrypted data (Poly1305 authentication tag not shown):
 +----+----+----+----+----+----+----+----+
   |      Destination Connection ID        |
   +----+----+----+----+----+----+----+----+
-  |type| ver| id |flag|  Packet Number    |
+  |   Packet Number   |type| ver| id |flag|
   +----+----+----+----+----+----+----+----+
   |        Source Connection ID           |
   +----+----+----+----+----+----+----+----+
@@ -4260,6 +4359,10 @@ NextNonce
 
 Ack
 ``````````````
+- 4 byte ack through
+- one byte negative offset from ack through
+- bitfield of nacks from (ack through) - offset
+
 .. raw:: html
 
   {% highlight lang='dataspec' %}
@@ -4279,6 +4382,8 @@ Ack
 
 Partial Ack
 ``````````````
+TODO Not required if we're acking packets, not I2NP messages?
+
 .. raw:: html
 
   {% highlight lang='dataspec' %}
@@ -4298,6 +4403,7 @@ Partial Ack
 
 Nack
 ``````````````
+TODO Not required, put in ack block?
 
 .. raw:: html
 
@@ -4387,6 +4493,13 @@ zero-out any in-memory ephemeral data, including handshake ephemeral keys,
 symmetric crypto keys, and related information.
 
 
+I2NP Message Fragmentation
+===========================
+
+Differences from SSU 1
+
+
+
 
 
 Congestion Control
@@ -4410,8 +4523,8 @@ Published Addresses
 The published RouterAddress (part of the RouterInfo) will have a
 protocol identifier of either "SSU" or "SSU2".
 
-The RouterAddress must contain "host" and "port" options, as in
-the current SSU protocol.
+The RouterAddress will generally contain "host" and "port" options, as in
+the current SSU protocol, if the router expects inbound connections.
 
 The RouterAddress must contain three options
 to indicate SSU2 support:
@@ -4497,7 +4610,7 @@ must persistently store, or otherwise determine, last-shutdown time, so that
 the previous downtime may be calculated at startup.
 
 Subject to concerns about exposing restart times, routers may rotate this key or IV
-at startup if the router was previously down for some time (a couple hours at
+at startup if the router was previously down for some time (several days at
 least).
 
 If the router has any published SSU2 RouterAddresses (as SSU or SSU2), the
