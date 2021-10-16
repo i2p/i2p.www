@@ -81,7 +81,7 @@ Design Goals
   implementation-dependent and may or may not be specified in the protocol
   itself.
 
-- Obfuscate the contents of messages that aren't encrypted (Session Created and Confirmed),
+- Obfuscate the contents of messages that aren't fully encrypted (Session Created and Confirmed),
   sufficiently so that DPI boxes and AV signatures can't easily classify them.
   Also ensure that the messages going to a single peer or set of peers do not
   have a similar pattern of bits.
@@ -123,6 +123,9 @@ Design Goals
 
 - Maintain a max I2NP message size of approximately 32K, as in SSU.
   Increase to 64 KB? TBD
+
+- Remove IP and port fields from the handshake, so that routers that don't know
+  their external IP and port will be able to connect.
 
 - Include representatives of Java, C++, and Go router developers in the design.
 
@@ -294,6 +297,7 @@ Address Validation
 ---------------------------
 
 Following is copied from QUIC [RFC-9000]_.
+For each section, review and edit.
 
 Address validation ensures that an endpoint cannot be used for a
 traffic amplification attack.  In such an attack, a packet is sent to
@@ -774,6 +778,8 @@ Connection Migration
 ----------------------------
 
 Following is copied from QUIC [RFC-9000]_.
+For each section, review and edit.
+
 
 The use of a connection ID allows connections to survive changes to
 endpoint addresses (IP address and port), such as those caused by an
@@ -1213,27 +1219,18 @@ on any path.
 Use of IPv6 Flow Label and Migration
 ``````````````````````````````````````````
 
-Endpoints that send data using IPv6 SHOULD apply an IPv6 flow label
-in compliance with [RFC6437], unless the local API does not allow
+QUIC recommends endpoints that send data using IPv6 SHOULD apply an IPv6 flow label
+in compliance with [RFC6437]_, unless the local API does not allow
 setting IPv6 flow labels.
 
-The flow label generation MUST be designed to minimize the chances of
-linkability with a previously used flow label, as a stable flow label
-would enable correlating activity on multiple paths; see Section 9.5.
-
-[RFC6437] suggests deriving values using a pseudorandom function to
-generate flow labels.  Including the Destination Connection ID field
-in addition to source and destination addresses when generating flow
-labels ensures that changes are synchronized with changes in other
-observable identifiers.  A cryptographic hash function that combines
-these inputs with a local secret is one way this might be
-implemented.
+Unfortunately, the Java API does not allow setting IPv6 flow labels.
 
 
 Security Considerations
 ---------------------------
 
 Following is copied from QUIC [RFC-9000]_.
+For each section, review and edit.
 
 The goal of QUIC is to provide a secure transport connection.
 Section 21.1 provides an overview of those properties; subsequent
@@ -2108,6 +2105,24 @@ Endpoints might also reveal sensitive information through other side
 channels, such as the timing of packets.
 
 
+Relay Security
+----------------
+
+Analysis of Relay Request, Relay Response, Relay Intro, and Hole Punch
+
+SSU 1 and 2 TBD
+
+
+
+
+Peer Test Security
+---------------------
+
+Analysis of Relay Request, Relay Response, Relay Intro, and Hole Punch
+
+SSU 1 and 2 TBD
+
+
 
 
 
@@ -2143,11 +2158,37 @@ for inspiration, guidance, and code reuse:
 
 * Messages: Adapted from [SSU]_
 
+* I2NP Fragmentation: Adapted from [SSU]_
+
+* Relay and Peer Testing: Adapted from [SSU]_
+
 * Block format: From [NTCP2]_ and [ECIES]_.
 
 * Padding and options: From [NTCP2]_ and [ECIES]_.
 
 * Flow control, acks, nacks: TBD
+
+
+
+Delivery Guarantees
+----------------------
+
+As with other I2P transports NTCP, NTCP2, and SSU 1, this transport is not a general-purpose
+facility for delivery of an in-order stream of bytes. It is designed for
+transport of I2NP messages. There is no "stream" abstraction provided.
+
+In addition, as for SSU, it contains additional facilities for peer-facilitated NAT traversal
+and testing of reachability (inbound connections).
+
+As for SSU 1, it does NOT provide in-order delivery of I2NP messages.
+Nor does it provide guaranteed delivery of I2NP messages.
+For efficiency, or because of out-of order delivery of UDP datagrams
+or loss of those datagrams, I2NP messages may be delivered to the
+far-end out-of-order, or may not be delivered at all.
+An I2NP message may be retransmitted multiple times if necessary,
+but delivery may eventually fail without causing the full connection to be
+disconnected. Also, new I2NP messages may continue to be sent even
+while retransmission (loss recovery) is occurring for other I2NP messages.
 
 
 
@@ -2219,9 +2260,6 @@ We define the following functions corresponding to the cryptographic building bl
 
 ZEROLEN
     zero-length byte array
-
-CSRNG(n)
-    n-byte output from a cryptographically-secure random number generator.
 
 H(p, d)
     SHA-256 hash function that takes a personalization string p and data d, and
@@ -2414,7 +2452,7 @@ Before header obfuscation and protection:
   +----+----+----+----+----+----+----+----+
   |        Source Connection ID           |
   +----+----+----+----+----+----+----+----+
-  |             Retry Token               |
+  |                 Token                 |
   +----+----+----+----+----+----+----+----+
 
   Destination Connection ID :: 8 bytes, unsigned big endian integer
@@ -2431,7 +2469,7 @@ Before header obfuscation and protection:
 
   Source Connection ID :: 8 bytes, unsigned big endian integer
 
-  Retry Token :: 8 bytes, unsigned big endian integer
+  Token :: 8 bytes, unsigned big endian integer
 
 {% endhighlight %}
 
@@ -2476,6 +2514,17 @@ Packet Numbering
 Packets are numbered within a single session, for each direction, starting from 0, to a max of (2**32 -1).
 A session must be terminated, and a new session created, well before the max
 number of packets is sent.
+
+Packets that are determined to be lost are not retransmitted
+whole.  The same applies to the blocks that are contained within lost
+packets.  Instead, the information that might be carried in blocks is
+sent again in new packets as needed.
+
+New packets are used to carry information that is
+determined to have been lost.  In general, information is sent again
+when a packet containing that information is determined to be lost,
+and sending ceases when a packet containing that information is remain the same)
+acknowledged.
 
 Packets are never retransmitted with the same packet number.
 Any retransmission of packet contents (whether or not the contents remain the same)
@@ -2874,7 +2923,7 @@ Unencrypted data (Poly1305 authentication tag not shown):
   +----+----+----+----+----+----+----+----+
   |        Source Connection ID           |
   +----+----+----+----+----+----+----+----+
-  |             Retry Token               |
+  |                 Token                 |
   +----+----+----+----+----+----+----+----+
   |                                       |
   +                                       +
@@ -2904,7 +2953,7 @@ Unencrypted data (Poly1305 authentication tag not shown):
 
   Source Connection ID :: Randomly generated by Alice
 
-  Retry Token :: 0 if not previously received from Bob
+  Token :: 0 if not previously received from Bob
 
   X :: 32 bytes, X25519 ephemeral key, little endian
 
@@ -3147,7 +3196,7 @@ Unencrypted data (Poly1305 auth tag not shown):
   +----+----+----+----+----+----+----+----+
   |        Source Connection ID           |
   +----+----+----+----+----+----+----+----+
-  |             Retry Token               |
+  |                 Token                 |
   +----+----+----+----+----+----+----+----+
   |                                       |
   +                                       +
@@ -3176,7 +3225,7 @@ Unencrypted data (Poly1305 auth tag not shown):
 
   Source Connection ID :: Randomly generated by Alice
 
-  Retry Token :: 0 (unused)
+  Token :: 0 (unused)
 
   Y :: 32 bytes, X25519 ephemeral key, little endian
 
@@ -3681,7 +3730,7 @@ Unencrypted data (Poly1305 authentication tag not shown):
   +----+----+----+----+----+----+----+----+
   |        Source Connection ID           |
   +----+----+----+----+----+----+----+----+
-  |             Retry Token               |
+  |                 Token                 |
   +----+----+----+----+----+----+----+----+
   |    ChaCha20 payload (block data)      |
   +          (length varies)              +
@@ -3703,7 +3752,7 @@ Unencrypted data (Poly1305 authentication tag not shown):
 
   Source Connection ID :: As received from Alice in Session Request
 
-  Retry Token :: 8 byte unsigned integer, nonzero
+  Token :: 8 byte unsigned integer, nonzero
 
 {% endhighlight %}
 
@@ -3809,7 +3858,9 @@ Partial ACK                                13         varies
 NACK                                       14         varies 
 Relay Tag Request                          15            3      
 Relay Tag                                  16            7      
-Retry Token                                17           15      
+New Token                                  17           15
+Path Challenge                             18         varies
+Path Response                              19         varies
 reserved for experimental features        255
 Padding                                   254         varies    
 reserved for future extension             255
@@ -4485,7 +4536,7 @@ In the Session Created message.
 {% endhighlight %}
 
 
-Retry Token
+New Token
 ```````````````
 For a subsequent connection:
 
@@ -4495,16 +4546,66 @@ For a subsequent connection:
 +----+----+----+----+----+----+----+----+
   | 17 |    4    |     expires       |    |
   +----+----+----+----+----+----+----+    +
-            retry token              |
+                  token              |
   +----+----+----+----+----+----+----+
 
   blk :: 17
   size :: 2 bytes, big endian, value = 4
   expires :: Unix timestamp, unsigned seconds.
              Wraps around in 2106
-  retry token :: 8 bytes, big endian
+  token :: 8 bytes, big endian
 
 {% endhighlight %}
+
+
+Path Challenge
+``````````````
+A Ping with arbitrary data to be returned in a Path Response,
+used as a keep-alive or to validate an IP/Port change.
+
+.. raw:: html
+
+  {% highlight lang='dataspec' %}
++----+----+----+----+----+----+----+----+
+  | 18 |  size   |    Arbitrary Data      |
+  +----+----+----+                        +
+  |                                       |
+  ~               .   .   .               ~
+  |                                       |
+  +----+----+----+----+----+----+----+----+
+
+  blk :: 18
+  size :: 2 bytes, big endian, size of data to follow
+  data :: Arbitrary data to be returned in a Path Response
+          length as selected by sender
+
+{% endhighlight %}
+
+
+
+Path Response
+``````````````
+A Pong with arbitrary data, a reply to a Path Challenge,
+used as a keep-alive or to validate an IP/Port change.
+
+.. raw:: html
+
+  {% highlight lang='dataspec' %}
++----+----+----+----+----+----+----+----+
+  | 19 |  size   |    Arbitrary Data      |
+  +----+----+----+                        +
+  |                                       |
+  ~               .   .   .               ~
+  |                                       |
+  +----+----+----+----+----+----+----+----+
+
+  blk :: 19
+  size :: 2 bytes, big endian, size of data to follow
+  data :: As received in a Path Challenge
+
+{% endhighlight %}
+
+
 
 
 Padding
@@ -4632,10 +4733,10 @@ Total Timeout
 Recommended total timeout for the handshake is 20 seconds.
 
 
-Retry Token
+Token
 =============
 
-The Retry Token in the Session Request header is used for DoS mitigation.
+The Token in the Session Request header is used for DoS mitigation.
 
 If Bob does not accept the token in the Session Request message, Bob does NOT decrypt
 the message, as it requires an expensive DH operation.
@@ -4644,7 +4745,7 @@ Bob simply sends a Retry message with a new token.
 If a subsequent Session Request message then is received with that token,
 Bob proceeds to decrypt that message and proceed with the handshake.
 
-The retry token may be a randomly-generated 8 byte value, if the generator of the token
+The token may be a randomly-generated 8 byte value, if the generator of the token
 stores the values and associated IP and port (in-memory or persistently).
 Alternatively, the generator may generate an opaque value (for example,
 using the SipHash with a stored seed of the IP, port, and current hour or day)
@@ -4654,7 +4755,7 @@ Note that this method may make it difficult to reject reused tokens.
 Tokens may only be used once.
 A token sent from Bob to Alice in a Retry message must be used immediately, and expires
 in a few seconds.
-A token sent in a Retry Token block in an established session
+A token sent in a New Token block in an established session
 may be used in a subsequent connection, and it
 expires at the time specified in that block.
 Expiration is specified by the sender; recommended values are
@@ -4664,7 +4765,7 @@ Tokens may optionally be persisted across router restarts, implementation depend
 Acceptance of an unexpired token is not guaranteed; if Bob has forgotten or deleted
 his saved tokens, he will send a Retry to Alice.
 
-Retry Token blocks may be sent from Alice to Bob or Bob to Alice.
+New Token blocks may be sent from Alice to Bob or Bob to Alice.
 They would typically be sent once, soon after session establishment.
 The token may be resent before or after expiration with a new expiration time,
 or a new token may be sent.
@@ -4809,7 +4910,7 @@ to prevent amplification attacks. and ensure the PMTU supports it.
 
 We could require this for Session Request and Session Created,
 at substantial cost in bandwidth.
-Perhaps we could do this only if we don't have a retry token,
+Perhaps we could do this only if we don't have a token,
 or after a Retry message is received.
 
 
@@ -5182,6 +5283,9 @@ References
 
 .. [RFC-6151]
     https://tools.ietf.org/html/rfc6151
+
+.. [RFC-6437]
+    https://tools.ietf.org/html/rfc6437
 
 .. [RFC-7539]
     https://tools.ietf.org/html/rfc7539
