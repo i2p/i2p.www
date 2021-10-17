@@ -5,7 +5,7 @@ SSU2
     :author: orignal, zlatinb, zzz
     :created: 2021-09-12
     :thread: http://zzz.i2p/topics/2612
-    :lastupdated: 2021-10-16
+    :lastupdated: 2021-10-17
     :status: Open
     :target: 0.9.55
 
@@ -207,7 +207,7 @@ Additional DPI Discussion
 
 We assume two DPI components:
 
-1) Online DPI
+Online DPI
 `````````````
 
 Online DPI inspecting all flows in real-time. Connections may be blocked or
@@ -268,7 +268,7 @@ Appendix A are taken into account), but only limited protection against flow
 analysis.
 
 
-2) Offline DPI
+Offline DPI
 ``````````````
 
 Offline DPI inspecting data stored by the online DPI for later analysis.
@@ -2619,6 +2619,20 @@ Header Protection KDF:
 
 {% endhighlight %}
 
+Header Validation
+```````````````````
+After decrypting the first 16 bytes of the header,
+the receiver will know the Destination Session ID. From there,
+the receiver knows what header protection keys to use based on the key phase of the session.
+
+Removing the header protection will then reveal the message type and be able to determine
+if it is a short or long header.
+If it is a long header, the receiver must validate the version and netid fields.
+If the version is != 2, or the netid is != the expected value (generally 2, except in test networks),
+the receiver should drop the message.
+
+In limited situations (after sending a Session Request but before receiving a Session Created),
+the receiver should retry header protection with a different key, to check for a Retry message.
 
 
 Authenticated Encryption
@@ -2714,12 +2728,10 @@ Notes
 AEAD Error Handling
 ```````````````````
 - In all messages, the AEAD message size is known in advance.
-  On an AEAD authentication failure, recipient must halt further message processing and close the
-  connection without responding.  This should be an abnormal close (TCP RST).
+  On an AEAD authentication failure, recipient must halt further message processing and
+  discard the message.
 
-- For probing resistance, in Session Request, after an AEAD failure, Bob should
-  set a random timeout (range TBD) and then read a random number of bytes (range TBD)
-  before closing the socket. Bob should maintain a blacklist of IPs with
+- Bob should maintain a blacklist of IPs with
   repeated failures.
 
 
@@ -3045,7 +3057,7 @@ Notes
 
 
 
-Key Derivation Function (KDF) (for Session Created and Session Confirmed part 1)
+KDF for Session Created and Session Confirmed part 1
 ----------------------------------------------------------------------------------
 
 .. raw:: html
@@ -3273,7 +3285,7 @@ Issues
 
 
 
-Encryption for for Session Confirmed part 1, using Session Created KDF
+KDF for Session Confirmed part 1, using Session Created KDF
 ---------------------------------------------------------------------------
 
 .. raw:: html
@@ -3313,7 +3325,7 @@ Encryption for for Session Confirmed part 1, using Session Created KDF
 {% endhighlight %}
 
 
-Key Derivation Function (KDF) (for Session Confirmed part 2)
+KDF for Session Confirmed part 2
 --------------------------------------------------------------
 
 .. raw:: html
@@ -3531,7 +3543,7 @@ Notes
   subsequent Data messages.
 
 
-Key Derivation Function (KDF) (for data phase)
+KDF for data phase
 ----------------------------------------------
 
 The data phase uses the header for associated data.
@@ -3851,7 +3863,7 @@ Block types:
        Payload Block Type              Type Number  Block Length
 ====================================  ============= ============
 DateTime                                    0            7      
-Options (TBD)                               1           21+     
+Options (TBD)                               1           15+     
 Router Info                                 2         varies 
 I2NP Message                                3         varies 
 First Fragment                              4         varies 
@@ -5255,7 +5267,6 @@ Session Created      37            256       79      1       336    Incl. 64 byt
 Session Confirmed    37                     462     13       512    Incl. 391 byte ident and 64 byte sig
 Data (RI)            37                    1014             1051    Incl. 5 byte I2NP header, 1000 byte RI
 Data (1 full msg)    37                      14               51    Incl. 5 byte I2NP header
-==================   ===========   =====   ======  =======  ======  =====
 Total                                                       2254
 ==================   ===========   =====   ======  =======  ======  =====
 
@@ -5269,7 +5280,6 @@ Session Request      48             32        7               87    DateTime blo
 Session Created      48             32        7               87    DateTime block
 Session Confirmed    45             32     1003             1080    RI block
 Data (1 full msg)    13                      14               27     
-==================   ===========   =====   ======  =======  ======  =====
 Total                                                       1281
 ==================   ===========   =====   ======  =======  ======  =====
 
