@@ -2479,6 +2479,11 @@ Short Header
 The short header is 13 bytes. It is used after a session is created, for Data messages.
 or (maybe?) for unauthenticated messages.
 
+TODO 16 bytes would be a lot easier for both AES and ChaCha20.
+We have to decrypt the first part to get the packet type,
+and then must decrypt further if it's actually a long header.
+How can we save the state and continue decrypting the next 16 bytes?
+
 Before header obfuscation and protection:
 
 .. raw:: html
@@ -2767,7 +2772,11 @@ KDF for Initial ChainKey
 
 KDF for Session Request
 `````````````````````````
-  This is the "e" message pattern:
+
+.. raw:: html
+
+  {% highlight lang='text' %}
+This is the "e" message pattern:
 
   // Alice's X25519 ephemeral keys
   aesk = GENERATE_PRIVATE()
@@ -4747,8 +4756,8 @@ Bob proceeds to decrypt that message and proceed with the handshake.
 
 The token may be a randomly-generated 8 byte value, if the generator of the token
 stores the values and associated IP and port (in-memory or persistently).
-Alternatively, the generator may generate an opaque value (for example,
-using the SipHash with a stored seed of the IP, port, and current hour or day)
+Alternatively, the generator may generate an opaque value, for example,
+using the SipHash (with a secret seed K0, K1) of the IP, port, and current hour or day,
 to create tokens that do not need to be saved in-memory.
 Note that this method may make it difficult to reject reused tokens.
 
@@ -4824,8 +4833,20 @@ I2NP Message Fragmentation
 
 Differences from SSU 1
 
+Note: As in SSU 1, the initial fragment does not contain information
+on the total number of fragments or the total length.
+Follow-on fragments do not contain information on their offset.
+This provides the sender the flexibility of fragmenting "on the fly"
+based on available space in the packet.
+(Java I2P does not do this; it "pre-fragments" before the first fragment is sent)
+However, it does burden the receiver to store fragments
+received out-of-order and delay reassembly until all fragments are received.
 
+As in SSU 1, any retransmission of fragments must preserve the length (and implicit offset)
+of the fragment's previous tranmission.
 
+SSU 2 does separate the three cases (full message, initial fragment, and follow-on fragment)
+into three different block types, to improve processing efficiency.
 
 
 
@@ -4906,12 +4927,25 @@ Handshake Min Size
 -------------------------
 
 QUIC requires that Initial datagrams in both directions be at least 1200 bytes,
-to prevent amplification attacks. and ensure the PMTU supports it.
+to prevent amplification attacks. and ensure the PMTU supports it in both directions.
 
 We could require this for Session Request and Session Created,
 at substantial cost in bandwidth.
 Perhaps we could do this only if we don't have a token,
 or after a Retry message is received.
+TBD
+
+
+Path Message Min Size
+-------------------------
+
+QUIC requires that messages containing PATH_CHALLENGE or PATH_RESPONSE frames be at least 1200 bytes,
+to prevent amplification attacks. and ensure the PMTU supports it in both directions.
+
+We could require this as well, at substantial cost in bandwidth.
+However, these cases should be rare.
+TBD
+
 
 
 Max Message Size
@@ -5000,7 +5034,7 @@ to indicate SSU2 support:
   little-endian X25519 public key.
 
 - i=(Base64 IV)
-  The current IV for encrypting the X value in Session Request for this RouterAddress.
+  The current IV for encrypting the headers for this RouterAddress.
   Base 64 encoded using the standard I2P Base 64 alphabet.
   16 bytes in binary, 24 bytes as Base 64 encoded,
   big-endian.
@@ -5013,6 +5047,7 @@ to indicate SSU2 support:
   Implementation should verify compatibility, including multiple
   versions if a comma is present. Comma-separated versions must
   be in numerical order.
+
 
 Alice must verify that all three options are present and valid
 before connecting using the SSU2 protocol.
@@ -5235,7 +5270,6 @@ Data (1 full msg)    13                      14               27
 ==================   ===========   =====   ======  =======  ======  =====
 Total                                                       1281
 ==================   ===========   =====   ======  =======  ======  =====
-
 
 
 
