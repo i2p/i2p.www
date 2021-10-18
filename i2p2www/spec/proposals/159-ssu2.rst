@@ -5,7 +5,7 @@ SSU2
     :author: orignal, zlatinb, zzz
     :created: 2021-09-12
     :thread: http://zzz.i2p/topics/2612
-    :lastupdated: 2021-10-17
+    :lastupdated: 2021-10-18
     :status: Open
     :target: 0.9.55
 
@@ -2116,23 +2116,24 @@ Bandwidth and CPU are not as important.
 
 
 SSU 1:
-Alice first connects to introducer Bob, who relays the request to Charlie.
+Alice first connects to introducer Bob, who relays the request to Charlie (who is firewalled).
 After the hole punch, the session is established between Alice and Charlie as in a direct establishment.
 
 .. raw:: html
 
   {% highlight %}
 Alice                         Bob                  Charlie
-    RelayRequest ---------------------->
-         <-------------- RelayResponse    RelayIntro ----------->
-         <-------------------------------------------- HolePunch (data ignored)
-    SessionRequest -------------------------------------------->
-         <-------------------------------------------- SessionCreated
-    SessionConfirmed ------------------------------------------>
+  1. RelayRequest ---------------------->
+  2.      <-------------- RelayResponse    RelayIntro ----------->
+  3.      <-------------------------------------------- HolePunch
+  4. SessionRequest -------------------------------------------->
+  5.      <-------------------------------------------- SessionCreated
+  6. SessionConfirmed ------------------------------------------>
 {% endhighlight %}
 
-Authentication: Relay Request and Relay Response are generally unauthenticated,
-as Alice and Bob usually do not have an existing session.
+Authentication: Relay Request and Relay Response are not securely unauthenticated,
+as Alice and Bob usually do not have an existing session;
+these messages use published intro keys.
 In-session Relay Request/Response is allowed and preferred if a session does exist.
 
 Relay Intro from Bob to Charlie is required to be in an existing session,
@@ -2149,14 +2150,34 @@ or Alice would have to lookup Bob's Router Info in the network database,
 adding additional delay.
 Authentication would add a round-trip between Alice and Bob.
 
+By forwarding Alice's router hash to Charlie, Charlie could more easily
+determine if he wishes to receive a connection from Alice,
+by checking a local ban list.
+There is no mechanism for Charlie to reject the relay by sending
+a rejection through Bob to Alice.
+There is no mechanism for Charlie to accept the relay by sending
+an acceptance through Bob to Alice. Alice must wait for the HolePunch,
+or simply send the SessionRequest blindly. The HolePunch may come from
+a different port than Alice was expecting, due to NAT, which
+may make it harder to recognize what router the HolePunch came from.
+
+Alice could send her full Router Info in the Relay Request to Bob,
+and forwarded to Charlie in the Relay Intro.
+
 The Relay Request does not contain a timestamp, so it has no replay prevention.
 The source IP can be spoofed, to cause Charlie to send a Hole Punch to any IP/port.
+The Relay Request is not signed, and even if signed and timestamped,
+Charlie does not have the full Router Identity to be able to verify the signature.
 
 The protocol defines a challenge field of variable length 0-255 bytes.
 The challenge in the Relay Request is passed to Charlie in the Relay Intro.
 However, the protocol does not specify how to create, use, or verify the challenge,
 and it is unimplemented.
+If the HolePunch contained the challenge, Alice would be able to easily
+correlate the HolePunch with Charlie.
 
+Four byte nonce may need to be replaced or supplemented by
+8-byte connection ID.
 
 
 Peer Test Security
@@ -2176,13 +2197,13 @@ SSU 1:
 
   {% highlight %}
 Alice                     Bob                  Charlie
-    1. PeerTest ------------------->
-    2.                          PeerTest-------------------->
-    3.                             <-------------------PeerTest
-    4.      <-------------------PeerTest
-    5.      <------------------------------------------PeerTest
-    6. PeerTest------------------------------------------>
-    7.      <------------------------------------------PeerTest
+  1. PeerTest ------------------->
+  2.                          PeerTest-------------------->
+  3.                             <-------------------PeerTest
+  4.      <-------------------PeerTest
+  5.      <------------------------------------------PeerTest
+  6. PeerTest------------------------------------------>
+  7.      <------------------------------------------PeerTest
 {% endhighlight %}
 
 
@@ -2191,23 +2212,39 @@ As of 0.9.15, Alice will always choose a Bob with an existing session.
 The protocol also permits Bob's introKey if Alice and Bob do not have an established session,
 but in the current implementation Alice always selects a Bob that is established.
 As of release 0.9.15, Bob will reject PeerTests from peers without an established session.
-Message 1 is sent in-session. Therefore, message 1 is authenticated.
+Message 1 is sent in-session. Therefore, message 1 is secure and authenticated.
 
 Bob selects a Charlie with whom he has an existing session.
-Messages 2 and 3 are sent in-session. Therefore, messages 2 and 3 are authenticated.
+Messages 2 and 3 are sent in-session. Therefore, messages 2 and 3 are secure and authenticated.
 
-Message 4 should be sent in-session; however, the documents say that it is sent
-with Alice's intro key, which means not in-session.
-To be investigated.
+Message 4 should be sent in-session; however, the SSU 1 specification says that it is sent
+with Alice's published intro key, which means not in-session.
+Java I2P does send with the intro key, matching the specification.
+This is fixable and should be fixed in SSU 1.
 
 Alice must not have an existing session with Charlie for the test to proceed;
 Alice aborts the test if Bob picks a Charlie that has a sesssion with Alice.
-Therefore, messages 5-7 are unauthenticated.
+Therefore, messages 5-7 are not secure and authenticated.
 
 All Peer Test messages contain a 4-byte nonce that is chosen by Alice.
 This nonce is not used cryptographically.
 
 Attacks possible on messages 5-7: to be researched.
+
+Alice's router hash is not known to Charlie.
+Charlie's router hash is not known to Alice.
+Those must be added to the protocol if we want thoe Alice-Charlie messages to be authenticated.
+Additionally, other SSU2 parameters would have to be provided in the Peer Test messages,
+or Charlie would have to lookup Alice's Router Info in the network database,
+adding additional delay.
+Authentication would add a round-trip between Charlie and Alice.
+
+By forwarding Alice's router hash to Charlie, Charlie could more easily
+determine if he wishes to participate in a Peer Test with Alice,
+by checking a local ban list.
+
+Four byte nonce may need to be replaced or supplemented by
+8-byte connection ID.
 
 
 Design Overview
@@ -2445,10 +2482,10 @@ Type      Message       Notes
   2   SessionConfirmed
   3   RelayRequest      TBD may be a block
   4   RelayResponse     TBD may be a block
-  5   RelayIntro        TBD may be a block
+  5   RelayIntro        NO, block only
   6   Data
   7   PeerTest          TBD may be a block
-  8   SessionDestroyed  TBD may be a block
+  8   SessionDestroyed  NO, block only??
   9   Retry
 n/a   HolePunch
 ====  ================  =====
@@ -2502,9 +2539,6 @@ XK(s, rs):           Authentication   Confidentiality
 
 
 Once a session has been established, Alice and Bob can exchange Data messages.
-
-All message types (SessionRequest, SessionCreated, SessionConfirmed, Data and
-TimeSync) are specified in this section.
 
 Some notations::
 
@@ -2603,6 +2637,8 @@ Packet Numbering
 Packets are numbered within a single session, for each direction, starting from 0, to a max of (2**32 -1).
 A session must be terminated, and a new session created, well before the max
 number of packets is sent.
+
+TODO key rotation, reduce max packet number?
 
 Packets that are determined to be lost are not retransmitted
 whole.  The same applies to the blocks that are contained within lost
@@ -2931,7 +2967,7 @@ Max payload size: MTU - 108 (IPv4) or MTU - 128 (IPv6)
 For 1280 MTU: Max payload is 1172 (IPv4) or 1152 (IPv6)
 For 1500 MTU: Max payload is 1392 (IPv4) or 1372 (IPv6)
 
-(Payload Security Properties)
+Payload Security Properties:
 
 .. raw:: html
 
@@ -3192,7 +3228,7 @@ Max payload size: MTU - 108 (IPv4) or MTU - 128 (IPv6)
 For 1280 MTU: Max payload is 1172 (IPv4) or 1152 (IPv6)
 For 1500 MTU: Max payload is 1392 (IPv4) or 1372 (IPv6)
 
-(Payload Security Properties)
+Payload Security Properties:
 
 .. raw:: html
 
@@ -3436,12 +3472,13 @@ SessionConfirmed (Type 2)
 Alice sends to Bob.
 
 Noise content: Alice's static key
-Noise payload: Alice's RouterInfo, options, data, and padding blocks
+Noise payload part 1: None
+Noise payload part 2: Alice's RouterInfo, options, data, and padding blocks
 Max payload size: MTU - 105 (IPv4) or MTU - 125 (IPv6)
 For 1280 MTU: Max payload is 1175 (IPv4) or 1155 (IPv6)
 For 1500 MTU: Max payload is 1395 (IPv4) or 1375 (IPv6)
 
-(Payload Security Properties)
+Payload Security Properties:
 
 
 .. raw:: html
@@ -3602,6 +3639,7 @@ Notes
   3) I2NP blocks (optional)
   4) Padding block (optional)
   This frame must never contain any other block type.
+  TODO: what about relay and peer test?
 
 - Message 3 part 2 padding block is recommended.
 
@@ -3673,7 +3711,7 @@ Types include date/time, I2NP message, options, termination, and padding.
 Note: Bob may, but is not required, to send his RouterInfo to Alice as
 his first message to Alice in the data phase.
 
-(Payload Security Properties)
+Payload Security Properties:
 
 
 .. raw:: html
@@ -3909,15 +3947,21 @@ so the max unencrypted data is 65519 bytes.
   size :: 2 bytes, big endian, size of data to follow, 0 - TBD
   data :: the data
 
-  Maximum ChaChaPoly payload is TBD bytes.
-  Poly1305 tag is 16 bytes
-  Maximum total block size is TBD bytes
-  Maximum single block size is TBD bytes
-  Block type is 1 byte
-  Block length is 2 bytes
-  Maximum single block data size is TBD bytes.
-
 {% endhighlight %}
+
+Maximum ChaChaPoly payload varies based on message type, MTU,
+and IPv4 or IPv6 address type.
+Upper limit is about 1440 bytes for IPv4, 1500 MTU, Data message.
+Maximum total block size is the maximum payload size.
+Maximum single block size is the maximum total block size.
+Block type is 1 byte.
+Block length is 2 bytes.
+Maximum single block data size is the maximum single block size minus 3.
+
+Note: Implementers must ensure that when reading a block,
+malformed or malicious data will not cause reads to
+overrun into the next block or beyond the payload boundary.
+
 
 Block types:
 
@@ -4107,10 +4151,6 @@ Notes
   RouterAddresses in the RouterInfo. The receiving router
   must not flood the RouterInfo unless there are published
   RouterAddresses in it.
-
-- Implementers must ensure that when reading a block,
-  malformed or malicious data will not cause reads to
-  overrun into the next block.
 
 - This protocol does not provide an acknowledgement that the RouterInfo
   was received, stored, or flooded (either in the handshake or data phase).
