@@ -1,5 +1,5 @@
 ===========================================================
-{% trans -%}20 Years of Privacy: A brief History of I2P{%- endtrans %}
+{% trans -%}20 Years of Privacy: A Brief History of I2P{%- endtrans %}
 ===========================================================
 
 .. meta::
