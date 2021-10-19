@@ -1,0 +1,505 @@
+
+{% extends "global/layout.html" %}
+{% block title %}{% trans %}DNS over I2P{% endtrans %}{% endblock %}
+{% block lastupdated %}{% trans %}October 2021{% endtrans %}{% endblock %}
+{% block accuratefor %}1.5.0/0.9.51{% endblock %}
+{% block content %}
+
+<p>{% trans -%}
+This content was adapted from content written by i2pd contributor Acetone. It
+was translated by [TODO: an unknown third party], copied from <a
+href="https://rucore.net/en/dns-over-i2p-true-privacy-of-dns-queries-2/">RuCore.
+net</a>,
+and lightly edited by idk. The original appeared at:
+<a href="https://habr.com/ru/company/itsoft/blog/572140/">habr.com</a>.
+{%- endtrans %}</p>
+
+<p>{% trans -%}
+Today it is difficult to surprise someone with the terms DoH (DNS over HTTPS),
+DoT (DNS over TLS) and other crypto-gadgets for DNS. If someone just jumped on a
+train and doesn’t understand what this is about, DNS (Domain Name System) is a
+domain name system that each of us uses hundreds and thousands of times during
+the day. All human-readable names like habr.com, cia.gov and others lead to a
+specific IP address, which a computer can find out by contacting special
+servers.
+{%- endtrans %}</p>
+
+<p>{% trans -%}
+Large enterprises, home Internet providers, as well as anyone who wants to have
+their own DNS server, because the DNS server is very simple in its device. Among
+other considerations, their servers are deployed for reasons of additional
+privacy, because the administrator of a foreign server, to which we turn, will
+see our address and will know which web resource we decided to visit.
+{%- endtrans %}</p>
+
+<p>{% trans -%}
+The DNS protocol is old (~ 1987), so it does not provide any encryption. All DNS
+requests and responses go over the network in the clear, so in the initial
+variation, not only the administrator of the DNS server, but also the operators
+of all intermediate nodes through which traffic passes, can spy on the user.
+Modern solutions like DNSCrypt, DNS over HTTPS and the like solve the
+problem of
+intercepting information along the way, as they encrypt DNS requests from the
+user to the server and in the opposite direction. But! The protocols that
+encrypt traffic do not solve one important issue – the analysis of all requests
+on the side of the server itself, which still sees both the request itself and
+the IP address from which it came. The DNSCrypt project has an additional gadget
+for that, but I was not impressed by this layering on a three-story pie. Perhaps
+because I have my own pie … I will be glad to adequate criticism, but I hope
+there will be no stupid comments that every person on the planet needs to have
+his own personal DNS server to maintain privacy.
+{%- endtrans %}</p>
+
+<p>{% trans -%}
+DNS over the anonymous network I2P is a concept in which DNS requests are
+encrypted, but also: firstly, the server administrator has no idea about the
+real IP address of the user; secondly, the user does not know the location of
+the server he is accessing (also good, in order to avoid possible pressure on
+the administrator). DNS over I2P, or DoI2P (or DoI at all) is a very
+entertaining variation on the use of hidden networks, which we will now take a
+closer look at.
+{%- endtrans %}</p>
+
+<h2>{% trans %}Theory{% endtrans %}</h2>
+
+<p>{% trans -%}The standard calls for a DNS server to run on port 53 (websites,
+for example, run on standard ports 80 and 443), but what is more interesting in
+this case is what transport protocol does DNS use. This information is required
+to create suitable tunnels over the I2P network.
+{%- endtrans %}</p>
+
+<p>{% trans -%}
+An I2P router that provides access to the I2P network provides proxies of the
+SOCKS and HTTP types at the local address. In most cases, it is a proxy that is
+used to work with the network, but to fine-tune the connection through a hidden
+network, separate tunnels are created in a special configuration file. Tunnels
+can be server and client tunnels. Their essence lies in accepting connections
+from a hidden network to a designated local port of some service, for
+example, a
+web server, or in transferring client connections from a local tunnel
+address to
+a hidden network. Tunnels are divided into two main types: TCP and UDP.
+{%- endtrans %}</p>
+
+<p>{% trans -%}
+The main working protocol of DNS is UDP, but the standard provides for the
+transfer of some information over the TCP protocol. This means that you need to
+create two server and two client tunnels: the first for UDP connections, the
+second for TCP.
+{%- endtrans %}</p>
+
+<h2>{% trans %}Server Setup{% endtrans %}</h2>
+
+<p>{% trans -%}
+The example uses a dnsmasq server that is extremely easy to install and
+configure, but you can use any server you like. The simplest configuration
+option for this server looks like this:
+{%- endtrans %}</p>
+
+<pre><code>
+port=53
+listen-address=256.257.258.259
+domain-needed
+bogus-priv
+server=8.8.8.8
+</code></pre>
+
+
+<p>{% trans -%}
+This configuration means that absolutely all requests will be sent to the
+address 8.8.8.8. Such a server does not make much sense, but as a layer of
+anonymity and just an example for an article – that’s it. The server accepts
+requests to an IP address 256.257.258.259, port 53. The fictitious IP address
+serves only as an example, as if depicting a pre-existing DNS server accessible
+from the regular Internet. In fact, you can use a local address 127.0.0.1 and
+any port at your discretion, if you serve users exclusively through a hidden
+network.
+{%- endtrans %}</p>
+
+<p>{% trans -%}
+To make the DNS server accessible from I2P, you need to create server tunnels.
+I am using i2pd on Debian 10. The default tunnels config file is in the path
+/etc/i2pd/tunnels.conf. Below is the minimum configuration required to work.
+{%- endtrans %}</p>
+
+<pre><code>
+[DNS-TCP]
+type = server
+host = 256.257.258.259
+port = 53
+keys = hidden-dns.dat
+
+[DNS-UDP]
+type = udpserver
+host = 256.257.258.259
+address = 256.257.258.259
+port = 53
+keys = hidden-dns.dat
+</code></pre>
+
+<p>{% trans -%}
+Notice the line address in the UDP tunnel section. This is a necessary
+parameter
+for a non-local address, which tells i2pd from which address incoming requests
+from the hidden network will come from. This parameter is required for UDP
+tunnels. It can be omitted if an address is used 127.0.0.1.
+{%- endtrans %}</p>
+
+<p>{% trans -%}
+The parameter keys specifies the keys that form the intranet address. By
+default, they are in the directory /var/lib/i2pd. If the file is not found, a
+new one is created.
+{%- endtrans %}</p>
+
+<p>{% trans -%}
+Restart i2pd for the changes to take effect. You can see the I2P tunnel address
+in the web console, under the “I2P Tunnels” tab. In my case, it is
+dnsgzxkak4zlrrs5tfh42ob57iley4xrp7srrltn2j2yl2ynbiaq.b32.i2p.
+{%- endtrans %}</p>
+
+<h2>{% trans %}Client Setup{% endtrans %}</h2>
+
+<p>{% trans -%}
+In my case, the client machine also uses i2pd and the Debian operating system,
+the tunnels file is located in the same place as on the server –
+/etc/i2pd/tunnels.conf. The client configuration might look like this:
+{%- endtrans %}</p>
+
+<pre><code>
+[DNS-CLIENT-TCP]
+type = client
+address = 127.0.0.1
+port = 35353
+inbound.length = 2
+outbound.length = 2
+destination = dnsgzxkak4zlrrs5tfh42ob57iley4xrp7srrltn2j2yl2ynbiaq.b32.i2p
+keys = transient-dns
+
+[DNS-CLIENT-UDP]
+type = udpclient
+address = 127.0.0.1
+port = 35353
+destination = dnsgzxkak4zlrrs5tfh42ob57iley4xrp7srrltn2j2yl2ynbiaq.b32.i2p
+keys = transient-dns
+</code></pre>
+
+<p>{% trans -%}
+The parameters inbound.length and outbound.length are responsible for the
+length of the incoming and outgoing tunnels. By default, they are three hops,
+but I have reduced these values ​​to two to minimize latency a little.
+Similar parameters are applicable for server tunnels as well. Additional
+parameters are specified only in the first section, since the very first block
+defines the parameters that apply to all tunnels using the same key (in my
+case, this transient-dns). Keys starting with a word transient are temporary
+– after each restart of i2pd, the client will contact the server from a new
+intranet address.
+{%- endtrans %}</p>
+
+<p>{% trans -%}
+For new tunnels to be created, you need to restart i2pd. On this it may seem
+that the deed is done. But no, there is one more nuance left.
+{%- endtrans %}</p>
+
+<p>{% trans -%}
+The file responsible for configuring DNS on my operating system (Debian 10)
+does not support specifying a port. Only the IP address of the server can be
+specified. All requests will be sent to the port 53, but our tunnel is hanging
+on the port 35353. If you specify a port in the client tunnels 53, an error
+will occur and no tunnels will be created, because all ports below 1024 are
+privileged – reserved for special needs. Only the superuser (root) can start
+the service on this port, and i2pd, like other applications, works without
+superuser rights. Take a deep breath before running i2pd (or some other
+third-party software) as root, and then read on.
+{%- endtrans %}</p>
+
+<h2>{% trans %}Epilogue{% endtrans %}</h2>
+
+<p>{% trans -%}
+{%- endtrans %}</p>
+
+
+
+<h2>{% trans %}Additional Information{% endtrans %}</h2>
+<ul>
+<li></li>
+</ul>
+
+
+{% endblock %}
+idk@lib14:~/Workspace/GIT_WORK/i2p.www$ find . -name dns.html -exec bash -c
+"cat {} | fold -w 80 -s - | tee {} " \;
+{% extends "global/layout.html" %}
+{% block title %}{% trans %}DNS over I2P{% endtrans %}{% endblock %}
+{% block lastupdated %}{% trans %}October 2021{% endtrans %}{% endblock %}
+{% block accuratefor %}1.5.0/0.9.51{% endblock %}
+{% block content %}
+
+<p>{% trans -%}
+This content was adapted from content written by i2pd contributor Acetone. It
+was machine translated, copied from <a
+href="https://rucore.net/en/dns-over-i2p-true-privacy-of-dns-queries-2/">RuCore.
+net</a>,
+and lightly edited by idk.
+{%- endtrans %}</p>
+
+<p>{% trans -%}
+Today it is difficult to surprise someone with the terms DoH (DNS over HTTPS),
+DoT (DNS over TLS) and other crypto-gadgets for DNS. If someone just jumped on a
+train and doesn’t understand what this is about, DNS (Domain Name System) is a
+domain name system that each of us uses hundreds and thousands of times during
+the day. All human-readable names like habr.com, cia.gov and others lead to a
+specific IP address, which a computer can find out by contacting special
+servers.
+{%- endtrans %}</p>
+
+<p>{% trans -%}
+Large enterprises, home Internet providers, as well as anyone who wants to have
+their own DNS server, because the DNS server is very simple in its device. Among
+other considerations, their servers are deployed for reasons of additional
+privacy, because the administrator of a foreign server, to which we turn, will
+see our address and will know which web resource we decided to visit.
+{%- endtrans %}</p>
+
+<p>{% trans -%}
+The DNS protocol is old (~ 1987), so it does not provide any encryption. All DNS
+requests and responses go over the network in the clear, so in the initial
+variation, not only the administrator of the DNS server, but also the operators
+of all intermediate nodes through which traffic passes, can spy on the user.
+Modern solutions like DNSCrypt, DNS over HTTPS and the like solve the problem of
+intercepting information along the way, as they encrypt DNS requests from the
+user to the server and in the opposite direction. But! The protocols that
+encrypt traffic do not solve one important issue – the analysis of all requests
+on the side of the server itself, which still sees both the request itself and
+the IP address from which it came. The DNSCrypt project has an additional gadget
+for that, but I was not impressed by this layering on a three-story pie. Perhaps
+because I have my own pie … I will be glad to adequate criticism, but I hope
+there will be no stupid comments that every person on the planet needs to have
+his own personal DNS server to maintain privacy.
+{%- endtrans %}</p>
+
+<p>{% trans -%}
+DNS over the anonymous network I2P is a concept in which DNS requests are
+encrypted, but also: firstly, the server administrator has no idea about the
+real IP address of the user; secondly, the user does not know the location of
+the server he is accessing (also good, in order to avoid possible pressure on
+the administrator). DNS over I2P, or DoI2P (or DoI at all) is a very
+entertaining variation on the use of hidden networks, which we will now take a
+closer look at.
+{%- endtrans %}</p>
+
+<h2>{% trans %}Theory{% endtrans %}</h2>
+
+<p>{% trans -%}The standard calls for a DNS server to run on port 53 (websites,
+for example, run on standard ports 80 and 443), but what is more interesting in
+this case is what transport protocol does DNS use. This information is required
+to create suitable tunnels over the I2P network.
+{%- endtrans %}</p>
+
+<p>{% trans -%}
+An I2P router that provides access to the I2P network provides proxies of the
+SOCKS and HTTP types at the local address. In most cases, it is a proxy that is
+used to work with the network, but to fine-tune the connection through a hidden
+network, separate tunnels are created in a special configuration file. Tunnels
+can be server and client tunnels. Their essence lies in accepting connections
+from a hidden network to a designated local port of some service, for example, a
+web server, or in transferring client connections from a local tunnel address to
+a hidden network. Tunnels are divided into two main types: TCP and UDP.
+{%- endtrans %}</p>
+
+<p>{% trans -%}
+The main working protocol of DNS is UDP, but the standard provides for the
+transfer of some information over the TCP protocol. This means that you need to
+create two server and two client tunnels: the first for UDP connections, the
+second for TCP.
+{%- endtrans %}</p>
+
+<h2>{% trans %}Server Setup{% endtrans %}</h2>
+
+<p>{% trans -%}
+The example uses a dnsmasq server that is extremely easy to install and
+configure, but you can use any server you like. The simplest configuration
+option for this server looks like this:
+{%- endtrans %}</p>
+
+<pre><code>
+port=53
+listen-address=256.257.258.259
+domain-needed
+bogus-priv
+server=8.8.8.8
+</code></pre>
+
+
+<p>{% trans -%}
+This configuration means that absolutely all requests will be sent to the
+address 8.8.8.8. Such a server does not make much sense, but as a layer of
+anonymity and just an example for an article – that’s it. The server accepts
+requests to an IP address 256.257.258.259, port 53. The fictitious IP address
+serves only as an example, as if depicting a pre-existing DNS server accessible
+from the regular Internet. In fact, you can use a local address 127.0.0.1 and
+any port at your discretion, if you serve users exclusively through a hidden
+network.
+{%- endtrans %}</p>
+
+<p>{% trans -%}
+To make the DNS server accessible from I2P, you need to create server tunnels.
+I am using i2pd on Debian 10. The default tunnels config file is in the path
+/etc/i2pd/tunnels.conf. Below is the minimum configuration required to work.
+{%- endtrans %}</p>
+
+<pre><code>
+[DNS-TCP]
+type = server
+host = 256.257.258.259
+port = 53
+keys = hidden-dns.dat
+
+[DNS-UDP]
+type = udpserver
+host = 256.257.258.259
+address = 256.257.258.259
+port = 53
+keys = hidden-dns.dat
+</code></pre>
+
+<p>{% trans -%}
+Notice the line address in the UDP tunnel section. This is a necessary
+parameter
+for a non-local address, which tells i2pd from which address incoming requests
+from the hidden network will come from. This parameter is required for UDP
+tunnels. It can be omitted if an address is used 127.0.0.1.
+{%- endtrans %}</p>
+
+<p>{% trans -%}
+The parameter keys specifies the keys that form the intranet address. By
+default, they are in the directory /var/lib/i2pd. If the file is not found, a
+new one is created.
+{%- endtrans %}</p>
+
+<p>{% trans -%}
+Restart i2pd for the changes to take effect. You can see the I2P tunnel address
+in the web console, under the “I2P Tunnels” tab. In my case, it is
+dnsgzxkak4zlrrs5tfh42ob57iley4xrp7srrltn2j2yl2ynbiaq.b32.i2p.
+{%- endtrans %}</p>
+
+<h2>{% trans %}Client Setup{% endtrans %}</h2>
+
+<p>{% trans -%}
+In my case, the client machine also uses i2pd and the Debian operating system,
+the tunnels file is located in the same place as on the server –
+/etc/i2pd/tunnels.conf. The client configuration might look like this:
+{%- endtrans %}</p>
+
+<pre><code>
+[DNS-CLIENT-TCP]
+type = client
+address = 127.0.0.1
+port = 35353
+inbound.length = 2
+outbound.length = 2
+destination = dnsgzxkak4zlrrs5tfh42ob57iley4xrp7srrltn2j2yl2ynbiaq.b32.i2p
+keys = transient-dns
+
+[DNS-CLIENT-UDP]
+type = udpclient
+address = 127.0.0.1
+port = 35353
+destination = dnsgzxkak4zlrrs5tfh42ob57iley4xrp7srrltn2j2yl2ynbiaq.b32.i2p
+keys = transient-dns
+</code></pre>
+
+<p>{% trans -%}
+The parameters inbound.length and outbound.length are responsible for the
+length of the incoming and outgoing tunnels. By default, they are three hops,
+but I have reduced these values ​​to two to minimize latency a little.
+Similar parameters are applicable for server tunnels as well. Additional
+parameters are specified only in the first section, since the very first block
+defines the parameters that apply to all tunnels using the same key (in my
+case, this transient-dns). Keys starting with a word transient are temporary
+– after each restart of i2pd, the client will contact the server from a new
+intranet address.
+{%- endtrans %}</p>
+
+<p>{% trans -%}
+For new tunnels to be created, you need to restart i2pd. On this it may seem
+that the deed is done. But no, there is one more nuance left.
+{%- endtrans %}</p>
+
+<p>{% trans -%}
+The file responsible for configuring DNS on my operating system (Debian 10)
+does not support specifying a port. Only the IP address of the server can be
+specified. All requests will be sent to the port 53, but our tunnel is hanging
+on the port 35353. If you specify a port in the client tunnels 53, an error
+will occur and no tunnels will be created, because all ports below 1024 are
+privileged – reserved for special needs. Only the superuser (root) can start
+the service on this port, and i2pd, like other applications, works without
+superuser rights. Take a deep breath before running i2pd (or some other
+third-party software) as root, and then read on.
+{%- endtrans %}</p>
+
+<p>{% trans -%}
+Remove from /etc/resolv.conf the previous DNS, so that all queries were
+exclusively through I2P, and add a single server – local: nameserver
+127.0.0.1.
+This will tell the operating system to go to the address for name-to-address
+resolution 127.0.0.1:53. It remains to ask the kernel of the system to redirect
+requests from the port 53 to 35353where our TCP / UDP tunnels hang, and then
+send responses in the opposite direction. It’s time for the iptables magic
+(sorry not the newfangled netfilter, I’m an old school magician).
+{%- endtrans %}</p>
+
+<pre><code>
+iptables -t nat -A PREROUTING -i lo -p udp – dport 53 -j REDIRECT –
+to-port 35353
+iptables -t nat -I OUTPUT -p udp -d 127.0.0.1 – dport 53 -j REDIRECT –
+to-port 35353
+iptables -t nat -A PREROUTING -i lo -p tcp – dport 53 -j REDIRECT –
+to-port 35353
+iptables -t nat -I OUTPUT -p tcp -d 127.0.0.1 – dport 53 -j REDIRECT –
+to-port 35353
+</code></pre>
+
+<p>{% trans -%}
+Do you hear? Listen, this is fanfare! Check the resolving in any convenient
+way,
+I will use the utility nslookup:
+{%- endtrans %}</p>
+
+<pre><code>
+acetone@adeb:~$ nslookup habr.com
+Server: 127.0.0.1
+Address: 127.0.0.1#53
+
+Non-authoritative answer:
+Name: habr.com
+Address: 178.248.237.68
+</code></pre>
+
+<h2>{% trans %}Epilogue{% endtrans %}</h2>
+
+<p>{% trans -%}
+During the configuration, I noticed that dnsmasq only occupies a UDP socket in
+standby mode, but I decided to leave the TCP tunnel according to the DNS
+standard, which provides for the transfer of some information over TCP. Be
+that as it may, the functionality described is perfectly observed even in
+the absence of TCP tunnels.
+{%- endtrans %}</p>
+
+<p>{% trans -%}
+The above configuration takes on average 1-2 seconds to request and respond
+to the DNS server. If your result seems too slow for you, you can reduce the
+length of the server and client tunnels to 2. There are options with tunnels
+in one transit node, but this is applicable only for devices that you do
+not worry about being compromised: for example, if your DNS is not secret ,
+the length of the tunnels can be equal to one or even zero! In this case,
+you enable the user to build a longer anonymizing tunnel from his side. The
+main thing is to do everything wisely and not be lazy to get acquainted with
+the documentation , as well as consult with knowledgeable people.
+{%- endtrans %}</p>
+
+<p>{% trans -%}
+As a demonstration (and maybe for permanent use), you can use the DNS server,
+the user configs for which are given above.
+{%- endtrans %}</p>
+
+{% endblock %}
