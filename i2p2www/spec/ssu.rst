@@ -3,8 +3,8 @@ SSU Protocol Specification
 ==========================
 .. meta::
     :category: Transports
-    :lastupdated: 2021-06
-    :accuratefor: 0.9.50
+    :lastupdated: 2021-10
+    :accuratefor: 0.9.52
 
 .. contents::
 
@@ -1016,8 +1016,10 @@ Note: IPv6 peer testing is supported as of release 0.9.27.
 
                       3. When sent from Charlie to Bob: Bob/Charlie sessionKey
 
-                      4. When sent from Bob to Alice: Alice's introKey, as
-                         received in the PeerTest message from Alice
+                      4. When sent from Bob to Alice: Alice/Bob sessionKey
+                         (or for Bob prior to 0.9.52, Alice's introKey, as
+                         received in the PeerTest message from Alice,
+                         see note below)
 
                       5. When sent from Charlie to Alice: Alice's introKey, as
                          received in the PeerTest message from Bob
@@ -1106,6 +1108,13 @@ Notes
 
 * As of release 0.9.15, Alice must have an established session with Bob and use
   the session key.
+
+* Prior to API version 0.9.52, in some implementations, Bob replied to Alice using
+  Alice's intro key rather than the Alice/Bob session key, even though
+  Alice and Bob have an established session (since 0.9.15).
+  As of API version 0.9.52, Bob will correctly use the session key in all
+  implementations, and Alice should reject a message received from Bob
+  with Alice's intro key if Bob is API version 0.9.52 or higher.
 
 * Extended options in the header: Not expected, undefined.
 
