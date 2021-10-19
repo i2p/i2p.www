@@ -5,7 +5,7 @@ SSU2
     :author: orignal, zlatinb, zzz
     :created: 2021-09-12
     :thread: http://zzz.i2p/topics/2612
-    :lastupdated: 2021-10-18
+    :lastupdated: 2021-10-19
     :status: Open
     :target: 0.9.55
 
@@ -4857,9 +4857,23 @@ Recommended timeout: 15 seconds total
 
 Session Confirmed
 ------------------
-TODO there is no current mechanism for detecting or recovering from loss of Session Confirmed.
-We could use IK instead of XK, as it has only two messages in the handshake, but
-it uses an extra DH (4 instead of 3). SSU 1 has the same problem.
+In SSU 1, Alice does not shift to the data phase until the first data packet is
+received from Bob. This makes SSU 1 a two-round-trip setup.
+Session Confirmed messages will be retransmitted
+at 3 and 6 seconds (3 and 9 seconds after first sent).
+
+There are several alternatives. All are 1 RTT:
+
+1) Alice assumes Session Confirmed was received, sends data packets immediately,
+   never retransmit Session Confirmed. Data packets received out-of-order
+   (before Session Confirmed) will be undecryptable, but will get retransmitted.
+   If Session Confirmed is lost, all sent data packets will be dropped.
+
+2) As in 1), send data packets immediately, but also retransmit Session Confirmed
+   until a data packet is received.
+
+3) We could use IK instead of XK, as it has only two messages in the handshake, but
+   it uses an extra DH (4 instead of 3).
 
 
 Retry
