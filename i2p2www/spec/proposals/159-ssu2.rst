@@ -5,7 +5,7 @@ SSU2
     :author: orignal, zlatinb, zzz
     :created: 2021-09-12
     :thread: http://zzz.i2p/topics/2612
-    :lastupdated: 2021-10-19
+    :lastupdated: 2021-10-21
     :status: Open
     :target: 0.9.55
 
@@ -22,13 +22,13 @@ resistance of [SSU]_ to various forms of automated identification and attacks.
 The proposal is organized as follows: the security goals are presented,
 followed by a discussion of the basic protocol. Next, a complete specification
 of all protocol messages is given. Finally, router addresses and version
-identification are discussed. An appendix discussing a generic attack on common
-padding schemes is also included, as well as an appendix containing a number of
-candidates for the authenticated cipher.
+identification are discussed.
 
-As with other I2P transports, SSU2 is defined solely
+As with other I2P transports, SSU2 is defined
 for point-to-point (router-to-router) transport of I2NP messages.
 It is not a general-purpose data pipe.
+Like [SSU]_, it also provides two additional services:
+Relaying for NAT traversal, and Peer Testing for determination of inbound reachability.
 
 
 Motivation
@@ -109,7 +109,9 @@ Design Goals
 
 - Add message authentication (MAC) using ChaCha/Poly1305.
 
-- Use a 3-message,  one-round-trip handshake, as in [NTCP2]_ and [SSU]_.
+- Use a 3-message, one-round-trip handshake, as in [NTCP2]_.
+  Remove the delay waiting for data messages that makes
+  [SSU]_ effectively a two-round-trip handshake.
 
 - Minimize protocol overhead before padding. While padding will be added,
   overhead before padding is still overhead.
@@ -2245,6 +2247,73 @@ by checking a local ban list.
 
 Four byte nonce may need to be replaced or supplemented by
 8-byte connection ID.
+
+
+Relay and Peer Test Design Goals
+---------------------------------
+
+Relay and Peer Test have similar constructions.
+In both cases, Alice requests Bob to forward a service request to Charlie,
+and Charlie then acts on that request.
+
+We have the following goals in improving the security of Relay and Peer Test:
+
+- Protect against address spoofing or on-path threats that may
+  spoof, alter, forge, or replay requests from Alice to Bob.
+  Bob must ensure that Alice is an actual I2P router and that the
+  request and test address presented are valid.
+
+- Protect against malicious Bobs that may spoof, alter, forge, or replay
+  requests forwarded to Charlie.
+  Charlie must ensure that both Alice and Bob are actual I2P routers and that the
+  request and test address presented are valid.
+
+- Bob must receive enough information from Alice to be able to validate
+  the request and then accept or decline it.
+  Bob must have a mechanism to send the acception or rejection back
+  to Alice.
+  Bob must never be required to perform the requested action.
+
+- Charlie must receive enough information from Bob to be able to validate
+  the request and then accept or decline it.
+  Charlie must have a mechanism to send the acception or rejection back
+  to Bob, to be forwarded to Alice.
+  Charlie must never be required to perform the requested action.
+
+- Alice must be able to validate that the response forwarded via Bob
+  actually originated from Charlie.
+
+- Alice and Charlie must be able to validate that their subsequent direct
+  messages (not relayed via Bob) are from the expected source
+  and are actual I2P routers.
+
+
+The following mechanisms may assist in achieving these goals:
+
+- Timestamps
+
+- Signatures using the router signing key
+
+- Using challenge data included in the request
+
+- Encryption using the router encryption key
+
+- Sending router hashes, Router Identities, or Router Infos,
+  not just IPs and ports.
+
+- Validation of router information by querying the network database
+
+- Checking router information, IPs, and ports against banlists
+
+- Rate limiting
+
+- Requiring session establishment
+
+
+These possible mechanisms may increase the processing time and latency of
+the Relay or Peer Test functions. All effects must be evaluated.
+
+
 
 
 Design Overview
