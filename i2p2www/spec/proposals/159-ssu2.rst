@@ -5,7 +5,7 @@ SSU2
     :author: orignal, zlatinb, zzz
     :created: 2021-09-12
     :thread: http://zzz.i2p/topics/2612
-    :lastupdated: 2021-10-21
+    :lastupdated: 2021-10-22
     :status: Open
     :target: 0.9.55
 
@@ -2257,6 +2257,11 @@ In both cases, Alice requests Bob to forward a service request to Charlie,
 and Charlie then acts on that request.
 
 We have the following goals in improving the security of Relay and Peer Test:
+
+- Charlie should publish enough information about his introducers (Bobs)
+  in the netdb for Alice to be able to validate the information if necessary.
+  For example, publishing a router hash for each introducer would
+  enable Alice, time permitting, to fetch the router info from the netdb.
 
 - Protect against address spoofing or on-path threats that may
   spoof, alter, forge, or replay requests from Alice to Bob.
@@ -4917,7 +4922,7 @@ Handshake Retransmission
 
 Session Request
 ----------------
-If no Session Created is received:
+If no Session Created is received by Alice:
 
 Maintain same source and connection IDs and ephemeral key. Increment packet number.
 Re-encrypt Noise payload as AEAD (packet number) changed.
@@ -4929,7 +4934,7 @@ Recommended timeout: 15 seconds total
 
 Session Created
 ----------------
-If no Session Confirmed is received:
+If no Session Confirmed is received by Bob:
 
 Maintain same source and connection IDs and ephemeral key. Increment packet number.
 Re-encrypt Noise payload as AEAD (packet number) changed.
@@ -4948,16 +4953,30 @@ at 3 and 6 seconds (3 and 9 seconds after first sent).
 
 There are several alternatives. All are 1 RTT:
 
-1) Alice assumes Session Confirmed was received, sends data packets immediately,
+1) Alice assumes Session Confirmed was received, sends data messages immediately,
    never retransmit Session Confirmed. Data packets received out-of-order
    (before Session Confirmed) will be undecryptable, but will get retransmitted.
-   If Session Confirmed is lost, all sent data packets will be dropped.
+   If Session Confirmed is lost, all sent data messages will be dropped.
 
-2) As in 1), send data packets immediately, but also retransmit Session Confirmed
-   until a data packet is received.
+2) As in 1), send data messages immediately, but also retransmit Session Confirmed
+   until a data message is received.
 
 3) We could use IK instead of XK, as it has only two messages in the handshake, but
    it uses an extra DH (4 instead of 3).
+
+The preferred alternative is option 2).
+Alice must retain the information required to retransmit the Session Confirmed message.
+Alice should also retransmit all Data messages after the Sesession Confirmed
+message is retransmitted.
+Bob may retain (queue) the data messages received before the Session Confirmed message.
+Neither the header protection keys nor the decryption keys are available
+before the Session Confirmed message is received, so Bob does not know
+that they are data messages, but that can be presumed.
+After the Session Confirmed message is received, Bob is able to
+decrypt and process the queued Data messages.
+If this is too complex, Bob may just drop the undecryptable Data messages,
+as Alice will retransmit them.
+
 
 
 Retry
@@ -5087,7 +5106,199 @@ into three different block types, to improve processing efficiency.
 Congestion Control
 ====================
 
-Sequence numbers, acks, backoff, retransmission
+Packet numbers, acks, backoff, retransmission, implementation guidance
+
+General guidance may be found in [RFC-9002]_.
+
+
+
+Packet Numbers
+--------------
+
+In SSU 1, ACKs and NACKs contained I2NP message numbers and fragment bitmasks.
+Transmitters tracked the ACK status of outbound messages (and their fragments)
+and retransmitted fragments as required.
+
+In SSU 2, ACKs and NACKs contain packet numbers.
+Transmitters must maintain a data structure with a mapping of packet numbers to their contents.
+When a packet is ACKed or NACKed, the transmitter must determine what
+I2NP messages and fragments were in that packet, to decide what to retransmit.
+
+
+Session Confirmed ACK
+------------------------
+
+Bob should send an ACK as soon as possible after receiving the Session Confirmed message.
+A small delay (no more than 100 ms) is acceptable, since at least one Data message should arrive almost
+immediately after the Session Confirmed message, so that the ACK may acknowledge both
+the Session Confirmed and the Data message.
+This will prevent Bob from having to retransmit the Session Confirmed message.
+
+
+Generating ACKs
+--------------------
+
+Routers acknowledge all packets they receive and process.  However,
+only ack-eliciting packets cause an ACK block to be sent within the
+maximum ack delay.  Packets that are not ack-eliciting are only
+acknowledged when an ACK block is sent for other reasons.
+
+When sending a packet for any reason, an endpoint should attempt to
+include an ACK block if one has not been sent recently.  Doing so
+helps with timely loss detection at the peer.
+
+In general, frequent feedback from a receiver improves loss and
+congestion response, but this has to be balanced against excessive
+load generated by a receiver that sends an ACK block in response to
+every ack-eliciting packet.  The guidance offered below seeks to
+strike this balance.
+
+The following frames are ack-eliciting:
+
+- I2NP message
+- First fragment
+- Follow-on fragment
+- Session Confirmed message
+- Relay?
+- Peer Test?
+- Others?
+
+Also:
+
+- Session Request is implicitly acked by Session Created
+- Session Created is implicitly acked by Session Confirmed
+
+
+
+Sending ACK Blocks
+---------------------
+
+Every packet should be acknowledged at least once, and ack-eliciting
+packets must be acknowledged at least once within the maximum delay
+an endpoint communicated using the max_ack_delay transport parameter.
+ max_ack_delay declares an explicit contract: an
+endpoint promises to never intentionally delay acknowledgments of an
+ack-eliciting packet by more than the indicated value.  If it does,
+any excess accrues to the RTT estimate and could result in spurious
+or delayed retransmissions from the peer.  A sender uses the
+receiver's max_ack_delay value in determining timeouts for timer-
+based retransmission.
+
+An endpoint MUST acknowledge all ack-eliciting handshake
+packets immediately
+within its advertised max_ack_delay, with the following exception.
+Prior to handshake confirmation, an endpoint might not have packet
+protection keys for decrypting Handshake, 0-RTT, or 1-RTT packets
+when they are received.  It might therefore buffer them and
+acknowledge them when the requisite keys become available.
+
+Since packets containing only ACK blocks are not congestion
+controlled, an endpoint must not send more than one such packet in
+response to receiving an ack-eliciting packet.
+
+An endpoint must not send a non-ack-eliciting packet in response to a
+non-ack-eliciting packet, even if there are packet gaps that precede
+the received packet.  This avoids an infinite feedback loop of
+acknowledgments, which could prevent the connection from ever
+becoming idle.  Non-ack-eliciting packets are eventually acknowledged
+when the endpoint sends an ACK block in response to other events.
+
+An endpoint that is only sending ACK blocks will not receive
+acknowledgments from its peer unless those acknowledgments are
+included in packets with ack-eliciting blocks.  An endpoint should
+send an ACK block with other frames when there are new ack-eliciting
+packets to acknowledge.  When only non-ack-eliciting packets need to
+be acknowledged, an endpoint MAY choose not to send an ACK block with
+outgoing blocks until an ack-eliciting packet has been received.
+
+An endpoint that is only sending non-ack-eliciting packets might
+choose to occasionally add an ack-eliciting block to those packets to
+ensure that it receives an acknowledgment.  In
+that case, an endpoint MUST NOT send an ack-eliciting block in all
+packets that would otherwise be non-ack-eliciting, to avoid an
+infinite feedback loop of acknowledgments.
+
+In order to assist loss detection at the sender, an endpoint should
+generate and send an ACK frame without delay when it receives an ack-
+eliciting packet either:
+
+*  when the received packet has a packet number less than another
+   ack-eliciting packet that has been received, or
+
+*  when the packet has a packet number larger than the highest-
+   numbered ack-eliciting packet that has been received and there are
+   missing packets between that packet and this packet.
+
+Similarly, packets marked with the ECN Congestion Experienced (CE)
+codepoint in the IP header SHOULD be acknowledged immediately, to
+reduce the peer's response time to congestion events.
+
+The algorithms are expected to be resilient to
+receivers that do not follow the guidance offered above.  However, an
+implementation should only deviate from these requirements after
+careful consideration of the performance implications of a change,
+for connections made by the endpoint and for other users of the
+network.
+
+
+ACK Frequency
+-----------------
+
+A receiver determines how frequently to send acknowledgments in
+response to ack-eliciting packets.  This determination involves a
+trade-off.
+
+Endpoints rely on timely acknowledgment to detect loss.
+Window-based congestion controllers rely on
+acknowledgments to manage their congestion window.  In both cases,
+delaying acknowledgments can adversely affect performance.
+
+On the other hand, reducing the frequency of packets that carry only
+acknowledgments reduces packet transmission and processing cost at
+both endpoints.  It can improve connection throughput on severely
+asymmetric links and reduce the volume of acknowledgment traffic
+using return path capacity; see Section 3 of [RFC-3449]_.
+
+A receiver should send an ACK block after receiving at least two ack-eliciting packets.
+This recommendation is general in nature and
+consistent with recommendations for TCP endpoint behavior [RFC-5681]_.
+Knowledge of network conditions, knowledge of the peer's congestion
+controller, or further research and experimentation might suggest
+alternative acknowledgment strategies with better performance
+characteristics.
+
+A receiver may process multiple available packets before determining
+whether to send an ACK block in response.
+
+
+Congestion
+----------
+
+I2P transports do not guarantee in-order delivery of I2NP messages.
+Therefore, loss of a Data message containing one or more I2NP messages or fragments
+does NOT prevent other I2NP messages from being delivered;
+there is no head-of-line blocking.
+Implementations should continue to send new messages during the loss recovery
+phase if the send window allows it.
+
+
+Retransmission
+---------------
+
+A sender does not need to retain the full contents of a message, to be retransmitted
+identically, although that is allowed.
+A sender is encouraged to assemble messages containing up-to-date information
+(ACKs, NACKs, and unacknowledged data) every time it sends a message.
+A sender should avoid retransmitting information from messages once they are acknowledged.
+This includes messages that are acknowledged after being declared lost,
+which can happen in the presence of network reordering.
+
+Window
+-------
+
+TBD.
+General guidance may be found in [RFC-9002]_.
+
 
 
 
@@ -5545,8 +5756,14 @@ References
 .. [RFC-2104]
     https://tools.ietf.org/html/rfc2104
 
+.. [RFC-3449]
+    https://tools.ietf.org/html/rfc3449
+
 .. [RFC-3526]
     https://tools.ietf.org/html/rfc3526
+
+.. [RFC-5681]
+    https://tools.ietf.org/html/rfc3681
 
 .. [RFC-5869]
     https://tools.ietf.org/html/rfc5869
@@ -5571,6 +5788,9 @@ References
 
 .. [RFC-9001]
     https://datatracker.ietf.org/doc/html/rfc9001
+
+.. [RFC-9002]
+    https://datatracker.ietf.org/doc/html/rfc9002
 
 .. [RouterAddress]
     {{ ctags_url('RouterAddress') }}
