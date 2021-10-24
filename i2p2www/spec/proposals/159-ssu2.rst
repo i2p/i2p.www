@@ -5,7 +5,7 @@ SSU2
     :author: orignal, zlatinb, zzz
     :created: 2021-09-12
     :thread: http://zzz.i2p/topics/2612
-    :lastupdated: 2021-10-22
+    :lastupdated: 2021-10-24
     :status: Open
     :target: 0.9.55
 
@@ -112,6 +112,11 @@ Design Goals
 - Use a 3-message, one-round-trip handshake, as in [NTCP2]_.
   Remove the delay waiting for data messages that makes
   [SSU]_ effectively a two-round-trip handshake.
+
+- Improve efficiency of ACKs and NACKs. Reduce bandwidth required
+  for ACKs and NACKs, and increase packet size available for data.
+
+- Reduce the complexity required to implement I2NP message fragmentation.
 
 - Minimize protocol overhead before padding. While padding will be added,
   overhead before padding is still overhead.
@@ -3061,7 +3066,7 @@ Alice sends to Bob.
 
 Long header.
 Noise content: Alice's ephemeral key X
-Noise payload: datetime and padding blocks
+Noise payload: datetime, optional relay tag request, and padding blocks
 Max payload size: MTU - 108 (IPv4) or MTU - 128 (IPv6)
 For 1280 MTU: Max payload is 1172 (IPv4) or 1152 (IPv6)
 For 1500 MTU: Max payload is 1392 (IPv4) or 1372 (IPv6)
@@ -3323,7 +3328,7 @@ SessionCreated (Type 1)
 Bob sends to Alice.
 
 Noise content: Bob's ephemeral key Y
-Noise payload: datetime, options, and padding blocks
+Noise payload: datetime, options, relay tag, and padding blocks
 Max payload size: MTU - 108 (IPv4) or MTU - 128 (IPv6)
 For 1280 MTU: Max payload is 1172 (IPv4) or 1152 (IPv6)
 For 1500 MTU: Max payload is 1392 (IPv4) or 1372 (IPv6)
@@ -3485,6 +3490,9 @@ Notes
   prevent replay attacks. Values in the cache must have a lifetime of at least
   2*D.  The cache values are implementation-dependent, however the 32-byte Y
   value (or its encrypted equivalent) may be used.
+
+- Bob sends a relay tag block if requested by Alice in the Session Request.
+
 
 Issues
 ``````
@@ -4030,9 +4038,6 @@ and zero or more bytes of data.
 For extensibility, receivers must ignore blocks with unknown identifiers,
 and treat them as padding.
 
-Encrypted data is 65535 bytes max, including a 16-byte authentication header,
-so the max unencrypted data is 65519 bytes.
-
 (Poly1305 auth tag not shown):
 
 .. raw:: html
@@ -4068,9 +4073,16 @@ Block type is 1 byte.
 Block length is 2 bytes.
 Maximum single block data size is the maximum single block size minus 3.
 
-Note: Implementers must ensure that when reading a block,
-malformed or malicious data will not cause reads to
-overrun into the next block or beyond the payload boundary.
+Notes:
+
+- Implementers must ensure that when reading a block,
+  malformed or malicious data will not cause reads to
+  overrun into the next block or beyond the payload boundary.
+
+- Implementations should ignore unknown block types for
+  forward compatibility, except in Session Confirmed part 2, where
+  unknown blocks are not allowed.
+
 
 
 Block types:
@@ -4098,7 +4110,7 @@ Relay Tag                                  16            7
 New Token                                  17           15
 Path Challenge                             18         varies
 Path Response                              19         varies
-reserved for experimental features        255
+reserved for experimental features      224-253
 Padding                                   254         varies    
 reserved for future extension             255
 ====================================  ============= ============
@@ -4197,8 +4209,8 @@ Options block will be variable length.
 {% endhighlight %}
 
 
-Options Issues
-``````````````
+Options Issues:
+
 - Options negotiation is TBD.
 
 
@@ -4244,8 +4256,8 @@ Session setup is not complete until all fragments are received.
 
 {% endhighlight %}
 
-Notes
-`````
+Notes:
+
 - When used in the data phase, receiver (Alice or Bob) shall validate that
   it's the same Router Hash as originally sent (for Alice) or sent to (for Bob).
   Then, treat it as a local I2NP DatabaseStore Message. Validate signature,
@@ -4269,8 +4281,8 @@ Notes
   with a reply token.
 
 
-Issues
-``````
+Issues:
+
 - Could also be used in data phase, instead of a I2NP DatabaseStoreMessage.
   For example, Bob could use it to start off the data phase.
 
@@ -4320,6 +4332,7 @@ This uses the same 9 bytes for the I2NP header
 as in [NTCP2]_ (type, message id, short expiration).
 
 Total number of fragments is not specified.
+TODO include total length so that receiver can allocate a buffer?
 
 
 .. raw:: html
@@ -4350,6 +4363,8 @@ Total number of fragments is not specified.
 Follow-on Fragment
 ````````````````````````
 An additional fragment (fragment number greater than zero) of an I2NP message.
+TODO just send offset instead of fragment number so we don't have to pre-fragment,
+and can send as much data as will fit in each packet?
 
 
 .. raw:: html
@@ -4427,8 +4442,8 @@ This must be the last non-padding block in the payload.
 
 {% endhighlight %}
 
-Notes
-`````
+Notes:
+
 Not all reasons may actually be used, implementation dependent.
 Most failures will generally result in the message being dropped, not a termination.
 See notes in handshake message sections above.
@@ -4436,6 +4451,9 @@ Additional reasons listed are for consistency, logging, debugging, or if policy 
 
 RelayRequest
 ``````````````
+
+TODO this is the SSU 1 flavor, to be updated
+
 .. raw:: html
 
   {% highlight lang='dataspec' %}
@@ -4474,8 +4492,8 @@ RelayRequest
 
 {% endhighlight %}
 
-Notes
-`````
+Notes:
+
 * The IP address is only included if it is be different than the packet's
   source address and port.
 
@@ -4501,6 +4519,9 @@ Notes
 
 RelayResponse
 ``````````````
+
+TODO this is the SSU 1 flavor, to be updated
+
 .. raw:: html
 
   {% highlight lang='dataspec' %}
@@ -4524,8 +4545,8 @@ RelayResponse
 
 {% endhighlight %}
 
-Notes
-`````
+Notes:
+
 * This message may be sent via IPv4 or IPv6.
 
 * Alice's IP address/port are the apparent IP/port that Bob received the
@@ -4546,6 +4567,9 @@ Notes
 
 RelayIntro
 ``````````````
+
+TODO this is the SSU 1 flavor, to be updated
+
 .. raw:: html
 
   {% highlight lang='dataspec' %}
@@ -4566,8 +4590,8 @@ RelayIntro
 
 {% endhighlight %}
 
-Notes
-`````
+Notes:
+
 * For IPv4, Alice's IP address is always 4 bytes, because Alice is trying to connect to Charlie via IPv4.
   As of release 0.9.xx, IPv6 is supported, and Alice's IP address may be 16 bytes.
 
@@ -4586,6 +4610,9 @@ Notes
 
 PeerTest
 ``````````````
+
+TODO this is the SSU 1 flavor, to be updated
+
 .. raw:: html
 
   {% highlight lang='dataspec' %}
@@ -4615,8 +4642,8 @@ PeerTest
 {% endhighlight %}
 
 
-Notes
-`````
+Notes:
+
 * When sent by Alice, IP address size is 0, IP address is not present, and port
   is 0, as Bob and Charlie do not use the data; the point is to determine
   Alice's true IP address/port and tell Alice; Bob and Charlie don't care what
@@ -4652,6 +4679,10 @@ Notes
 
 NextNonce
 ``````````````
+
+TODO only if we rotate keys
+
+
 .. raw:: html
 
   {% highlight lang='dataspec' %}
@@ -4854,33 +4885,26 @@ If present, this must be the last block in the payload.
 
 {% endhighlight %}
 
-Notes
-`````
+Notes:
+
 - Padding strategies TBD.
 - Minimum padding TBD.
-- Padding-only blocks are allowed.
+- Padding-only payloads are allowed.
 - Padding defaults TBD.
 - See options block for padding parameter negotiation
 - See options block for min/max padding parameters
-- Noise limits messages to 64KB. If more padding is necessary, send multiple messages.
+- Do not exceed the MTU. If more padding is necessary, send multiple messages.
 - Router response on violation of negotiated padding is implementation-dependent.
 
-
-Other block types
-`````````````````
-Implementations should ignore unknown block types for
-forward compatibility, except in Session Confirmed part 2, where
-unknown blocks are not allowed.
-
-
-Future work
-```````````
 - The padding length is either to be decided on a per-message basis and
   estimates of the length distribution, or random delays should be added.
   These countermeasures are to be included to resist DPI, as message sizes
   would otherwise reveal that I2P traffic is being carried by the transport
   protocol. The exact padding scheme is an area of future work, Appendix A
-  provides more information on the topic.
+  of [NTCP2]_ provides more information on the topic.
+
+
+
 
 
 Replay Prevention
@@ -5086,10 +5110,12 @@ into three different block types, to improve processing efficiency.
 Congestion Control
 ====================
 
-Packet numbers, acks, backoff, retransmission, implementation guidance
-
+This proposal specifies the protocol for packet numbering and
+ACK blocks. This provides sufficient real-time information for a
+transmitter to implement an efficient and responsive congestion control algorithm,
+while allowing flexibility and innovation in that implementation.
+This section discusses implementation goals and provides suggestions.
 General guidance may be found in [RFC-9002]_.
-
 
 
 Packet Numbers
