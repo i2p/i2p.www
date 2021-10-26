@@ -2230,7 +2230,7 @@ Java I2P does send with the intro key, matching the specification.
 This is fixable and should be fixed in SSU 1.
 
 Alice must not have an existing session with Charlie for the test to proceed;
-Alice aborts the test if Bob picks a Charlie that has a sesssion with Alice.
+Alice aborts the test if Bob picks a Charlie that has a session with Alice.
 Therefore, messages 5-7 are not secure and authenticated.
 
 All Peer Test messages contain a 4-byte nonce that is chosen by Alice.
@@ -2240,7 +2240,7 @@ Attacks possible on messages 5-7: to be researched.
 
 Alice's router hash is not known to Charlie.
 Charlie's router hash is not known to Alice.
-Those must be added to the protocol if we want thoe Alice-Charlie messages to be authenticated.
+Those must be added to the protocol if we want the Alice-Charlie messages to be authenticated.
 Additionally, other SSU2 parameters would have to be provided in the Peer Test messages,
 or Charlie would have to lookup Alice's Router Info in the network database,
 adding additional delay.
@@ -2280,13 +2280,13 @@ We have the following goals in improving the security of Relay and Peer Test:
 
 - Bob must receive enough information from Alice to be able to validate
   the request and then accept or decline it.
-  Bob must have a mechanism to send the acception or rejection back
+  Bob must have a mechanism to send the acceptance or rejection back
   to Alice.
   Bob must never be required to perform the requested action.
 
 - Charlie must receive enough information from Bob to be able to validate
   the request and then accept or decline it.
-  Charlie must have a mechanism to send the acception or rejection back
+  Charlie must have a mechanism to send the acceptance or rejection back
   to Bob, to be forwarded to Alice.
   Charlie must never be required to perform the requested action.
 
@@ -4303,9 +4303,9 @@ Notes:
   must not flood the RouterInfo unless there are published
   RouterAddresses in it.
 
-- This protocol does not provide an acknowledgement that the RouterInfo
+- This protocol does not provide an acknowledgment that the RouterInfo
   was received, stored, or flooded (either in the handshake or data phase).
-  If acknowledgement is desired, and the receiver is floodfill,
+  If acknowledgment is desired, and the receiver is floodfill,
   the sender should instead send a standard I2NP DatabaseStoreMessage
   with a reply token.
 
@@ -5001,7 +5001,7 @@ There are several alternatives. All are 1 RTT:
 
 The preferred alternative is option 2).
 Alice must retain the information required to retransmit the Session Confirmed message.
-Alice should also retransmit all Data messages after the Sesession Confirmed
+Alice should also retransmit all Data messages after the Session Confirmed
 message is retransmitted.
 
 When retransmitting Session Confirmed,
@@ -5146,7 +5146,7 @@ However, it does burden the receiver to store fragments
 received out-of-order and delay reassembly until all fragments are received.
 
 As in SSU 1, any retransmission of fragments must preserve the length (and implicit offset)
-of the fragment's previous tranmission.
+of the fragment's previous transmission.
 
 SSU 2 does separate the three cases (full message, initial fragment, and follow-on fragment)
 into three different block types, to improve processing efficiency.
@@ -5532,7 +5532,7 @@ No IP fragmentation is assumed.
 IP + datagram header is 28 bytes.
 This assumes no IPv4 options.
 Max message size is MTU - 28.
-Data phase header is 16 bytes and MAC is 16 bytes, totalling 32 bytes.
+Data phase header is 16 bytes and MAC is 16 bytes, totaling 32 bytes.
 Payload size is MTU - 60.
 Max data phase payload is 1440 for a max 1500 MTU.
 Max data phase payload is 1220 for a min 1280 MTU.
@@ -5543,7 +5543,7 @@ No IP fragmentation is allowed.
 IP + datagram header is 48 bytes.
 This assumes no IPv6 extension headers.
 Max message size is MTU - 48.
-Data phase header is 16 bytes and MAC is 16 bytes, totalling 32 bytes.
+Data phase header is 16 bytes and MAC is 16 bytes, totaling 32 bytes.
 Payload size is MTU - 80.
 Max data phase payload is 1420 for a max 1500 MTU.
 Max data phase payload is 1200 for a min 1280 MTU.
@@ -5556,7 +5556,7 @@ Published Router Info
 Address Properties
 -------------------
 
-The following address properties may be publiished, unchanged from SSU 1:
+The following address properties may be published, unchanged from SSU 1:
 
 - caps: [B,C,4,6] capabilities
 
@@ -5761,7 +5761,7 @@ and recover the contents.
 
 SSU 2 is designed to minimize the inbound packet classification effort while maintaining
 DPI resistance and other on-path threats. The session number is included in the header
-for all message types, and encyrpted (obfuscated) using ChaCha20 with a known key and nonce.
+for all message types, and encrypted (obfuscated) using ChaCha20 with a known key and nonce.
 Additionally, the message type is also included in the header
 (encrypted with header protection to a known key and then obfuscated with ChaCha20)
 and may be used for additional classification.
@@ -5825,13 +5825,14 @@ Therefore, the recommended processing steps in the receiver loop logic are:
 
 2) If the session ID does not match a current session:
    Check the plaintext header at bytes 8-15 are valid
-   (without doing any header protection operaion).
+   (without doing any header protection operation).
    Verify the net ID and protocol version are valid, and
    the message type is Session Request, or other message type
    allowed out-of-session (TBD).
    a) If all is valid and the message type is Session Request,
       decrypt the next 16 bytes of the header and the 32-byte X value
       with ChaCha20 using the local intro key with n=1.
+
          - If the token at header bytes 24-31 is accepted,
            then MixHash() the decrypted 32 byte header and
            decrypt the message with Noise.
@@ -5839,6 +5840,7 @@ Therefore, the recommended processing steps in the receiver loop logic are:
          - If the token is not accepted, send a Retry message to the
            source IP/port with a token. Do not attempt to
            decrypt the message with Noise to avoid DDoS attacks.
+
    b) If the message type is some other message that is valid
       out-of-session, presumably with a short header,
       decrypt the rest of the message with ChaCha20/Poly1305
@@ -5856,6 +5858,7 @@ Therefore, the recommended processing steps in the receiver loop logic are:
       Verify the net ID and protocol version are valid, and
       the message type is Session Response or Retry, or other message type
       allowed out-of-session (TBD).
+
          - If all is valid and the message type is Session Response,
            decrypt the next 16 bytes of the header and the 32-byte Y value
            with ChaCha20 using Bob's router hash as the key with n=1.
@@ -5873,6 +5876,7 @@ Therefore, the recommended processing steps in the receiver loop logic are:
            decrypt the rest of the message with ChaCha20/Poly1305
            using the intro key (TBD), using the decrypted 16-byte header
            as the AD. Process the message.
+
     c) If a pending outbound session is not found,
        or the session ID does not match the pending session, drop the message,
        unless the port is shared with SSU 1.
