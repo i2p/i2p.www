@@ -5800,6 +5800,7 @@ Therefore, the recommended processing steps in the receiver loop logic are:
 1) Decrypt the first 16 bytes with ChaCha20 using the local router hash
    as the key with n=0, to recover the session ID.
    If the session ID matches a current or pending inbound session:
+
    a) Using the session's header protection key, remove the header protection
       to recover the version, net ID, and message type at bytes 8-15.
    b) If the message type is Session Confirmed, it is a long header.
@@ -5829,17 +5830,18 @@ Therefore, the recommended processing steps in the receiver loop logic are:
    Verify the net ID and protocol version are valid, and
    the message type is Session Request, or other message type
    allowed out-of-session (TBD).
+
    a) If all is valid and the message type is Session Request,
       decrypt the next 16 bytes of the header and the 32-byte X value
       with ChaCha20 using the local intro key with n=1.
 
-         - If the token at header bytes 24-31 is accepted,
-           then MixHash() the decrypted 32 byte header and
-           decrypt the message with Noise.
-           Send a Session Created in response.
-         - If the token is not accepted, send a Retry message to the
-           source IP/port with a token. Do not attempt to
-           decrypt the message with Noise to avoid DDoS attacks.
+   - If the token at header bytes 24-31 is accepted,
+     then MixHash() the decrypted 32 byte header and
+     decrypt the message with Noise.
+     Send a Session Created in response.
+   - If the token is not accepted, send a Retry message to the
+     source IP/port with a token. Do not attempt to
+     decrypt the message with Noise to avoid DDoS attacks.
 
    b) If the message type is some other message that is valid
       out-of-session, presumably with a short header,
@@ -5850,6 +5852,7 @@ Therefore, the recommended processing steps in the receiver loop logic are:
 
 
 3) Look up a pending outbound session by the source IP/port of the packet.
+
    a) If found, decrypt the first 16 bytes with ChaCha20 using Bob's router hash
       as the key with n=0, to recover the session ID.
    b) If the session ID matches the pending session:
@@ -5859,23 +5862,23 @@ Therefore, the recommended processing steps in the receiver loop logic are:
       the message type is Session Response or Retry, or other message type
       allowed out-of-session (TBD).
 
-         - If all is valid and the message type is Session Response,
-           decrypt the next 16 bytes of the header and the 32-byte Y value
-           with ChaCha20 using Bob's router hash as the key with n=1.
-           Then MixHash() the decrypted 32 byte header and
-           decrypt the message with Noise.
-           Send a Session Confirmed in response.
-         - If all is valid and the message type is Retry,
-           decrypt the next 16 bytes of the header
-           with ChaCha20 using Bob's router hash as the key with n=1.
-           Validate the remaining data (padding) and MAC using ChaCha20/Poly1305 using
-           TBD as the key and TBD as the nonce and the decrypted 32-byte header as the AD.
-           Resend a Session Request with the received token in response.
-         - If the message type is some other message that is valid
-           out-of-session, presumably with a short header,
-           decrypt the rest of the message with ChaCha20/Poly1305
-           using the intro key (TBD), using the decrypted 16-byte header
-           as the AD. Process the message.
+   - If all is valid and the message type is Session Response,
+     decrypt the next 16 bytes of the header and the 32-byte Y value
+     with ChaCha20 using Bob's router hash as the key with n=1.
+     Then MixHash() the decrypted 32 byte header and
+     decrypt the message with Noise.
+     Send a Session Confirmed in response.
+   - If all is valid and the message type is Retry,
+     decrypt the next 16 bytes of the header
+     with ChaCha20 using Bob's router hash as the key with n=1.
+     Validate the remaining data (padding) and MAC using ChaCha20/Poly1305 using
+     TBD as the key and TBD as the nonce and the decrypted 32-byte header as the AD.
+     Resend a Session Request with the received token in response.
+   - If the message type is some other message that is valid
+     out-of-session, presumably with a short header,
+     decrypt the rest of the message with ChaCha20/Poly1305
+     using the intro key (TBD), using the decrypted 16-byte header
+     as the AD. Process the message.
 
     c) If a pending outbound session is not found,
        or the session ID does not match the pending session, drop the message,
