@@ -3,20 +3,12 @@
 {% block content %}
 <h1>{{ _('Debian I2P Packages') }}</h1>
 
-<h2 id="bionic">{{ _('Debian Buster, Ubuntu Bionic, and later') }}</h2>
-{% trans -%}
-I2P is available in the official repositories for Ubuntu Bionic and later, and Debian Buster and Sid.
-However, Debian Buster and Ubuntu Bionic (LTS) distributions will have older I2P versions.
-If you are not running Debian Sid or the latest Ubuntu release,
-use our Debian repo or Launchpad PPA to ensure you're running the latest I2P version.
-{%- endtrans %}
-
 <h2 id="others">{{ _('Debian or Ubuntu, All Versions') }}</h2>
 {% trans -%}The Debian packages should work on most platforms running:{%- endtrans %}
 <ul>
-  <li>{% trans %}<a href="#ubuntu">Ubuntu</a> (Precise <em>12.04</em> and newer){% endtrans %}</li>
-  <li><a href="#ubuntu">Mint</a></li>
-  <li>{% trans %}<a href="#debian">Debian Linux</a> (Wheezy and newer){% endtrans %}</li>
+  <li>{% trans %}<a href="#ubuntu">Ubuntu</a> (Bionic <em>18.04</em> and newer){% endtrans %}</li>
+  <li>{% trans %}<a href="#ubuntu">Mint</a>(Tara<em>19<em>) or newer{% endtrans %}</li>
+  <li>{% trans %}<a href="#debian">Debian Linux</a> (Buster and newer){% endtrans %}</li>
   <li><a href="#debian">Knoppix</a></li>
 </ul>
 
@@ -103,10 +95,19 @@ user to root with <code>su</code> or by prefixing each command with <code>sudo</
   <li>{% trans file='/etc/apt/sources.list.d/i2p.list',file2='/etc/debian_version' %}
     Check which version of Debian you are using on this page at the <a href="https://wiki.debian.org/LTS/" target="_blank">Debian wiki</a>
     and verify with <code>{{ file2 }}</code> on your system.
-    Then, for all Current Debian distributions run the following command to create <code>{{ file }}</code>.{% endtrans %}<br>
+    Then, for Debian Bullseye or newer distributions run the following command to create <code>{{ file }}</code>.{% endtrans %}<br>
     <pre>
     <code>
+    # Use this command on Debian Bullseye or newer only.
   echo "deb [signed-by=/usr/share/keyrings/i2p-archive-keyring.gpg] https://deb.i2p2.de/ $(lsb_release -sc) main" \
+  | sudo tee /etc/apt/sources.list.d/i2p.list
+    </code>
+    </pre>
+    if you are using Debian Buster or older distributons, use the following command instead:
+    <pre>
+    <code>
+    # Use this command on Debian Buster or older only.
+  echo "deb https://deb.i2p2.de/ $(lsb_release -sc) main" \
   | sudo tee /etc/apt/sources.list.d/i2p.list
     </code>
     </pre>
@@ -142,6 +143,12 @@ user to root with <code>su</code> or by prefixing each command with <code>sudo</
     <pre>
     <code>
   sudo cp ~/i2p-archive-keyring.gpg /usr/share/keyrings</code>
+    </pre>
+    If you are using a distribution older than Debian Buster, you will also need
+    to symlink that key to <code>/etc/apt/trusted.gpg.d</code>.
+    <pre>
+    <code>
+  sudo ln -sf /usr/share/keyrings/i2p-archive-keyring.gpg /etc/apt/trusted.gpg.d/i2p-archive-keyring.gpg</code>
     </pre>
   </li>
   
