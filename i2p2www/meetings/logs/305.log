@@ -1,0 +1,74 @@
+(04:00:16 PM) eyedeekay: Hi everybody, welcome to the November 2 Community Meeting
+(04:00:16 PM) eyedeekay: 1) Hi
+(04:00:16 PM) eyedeekay: 2) 1.6.0 Development Status / Upcoming Release
+(04:00:16 PM) eyedeekay: 3) mac/win jpackage beta status, user test reports, in-net 17.0.2 update status, plans for 1.6.0 update ?
+(04:00:35 PM) zzz: hi
+(04:00:38 PM) zlatinb: hi
+(04:00:55 PM) eyedeekay: Hi zzz, zlatinb
+(04:01:25 PM) eyedeekay: 2) 1.6.0 Development Status / Upcoming Release
+(04:02:25 PM) eyedeekay: Release thread is here: http://zzz.i2p/topics/3170-1-6-0-release-summary and we still haven't picked a date, I should have replied on that thread, do we want to do that here?
+(04:02:43 PM) zzz: yes please
+(04:03:18 PM) zzz: 3 weeks from now would be 13 weeks. +/- 1 week ok with me also
+(04:03:19 PM) eyedeekay: OK then in my case I am in favor of the week of the 29th, after US Thanksgiving
+(04:04:12 PM) zlatinb: I'm afk from my main workstation until early Dec, so can't build or sign jpackage installers.  But I can still give an OTP for the signtool as that's on my phone.
+(04:05:34 PM) zzz: ok, so tentatively the week of the 28th then? eche|off eche|on any objections?
+(04:07:30 PM) eyedeekay: Week of the 28th sounds good to me for now. 
+(04:08:34 PM) eyedeekay: Anything else for topic 2)?
+(04:08:45 PM) zzz: yeah, quick status
+(04:09:02 PM) zzz: looking like a fairly modest release as measured by amount of changes
+(04:09:27 PM) zzz: some SSU speedups are perhaps the headline
+(04:09:48 PM) zzz: zlatinb, if you have time to squeeze in the unit test deprecation fixes that would be good
+(04:09:52 PM) zzz: EOT
+(04:10:02 PM) eyedeekay: Thanks zzz
+(04:10:28 PM) zlatinb: yeah, no promises on the unit test :)
+(04:10:42 PM) eyedeekay: 3) mac/win jpackage beta status, user test reports, in-net 17.0.2 update status, plans for 1.6.0 update?
+(04:12:18 PM) zlatinb: I assume that is jdk 17.0.1, there's no 17.0.2 out yet afaik
+(04:12:21 PM) zzz: yeah I added that item just to give you two a chance to give the community an update
+(04:12:32 PM) eyedeekay: zlatinb and I discussed it a few days ago and evaluated the prospect of doing an OpenJDK 17 update for the jpackage installs
+(04:12:43 PM) zzz: ignore any typos :)
+(04:13:36 PM) Ryemantis__ is now known as Ryemantis_
+(04:14:08 PM) eyedeekay: Right now we're prepared to do in-network updates of the jpackage installs but we are going to wait for the main release to do our jpackage releases which will update to either 17.0.1 or 17.0.2
+(04:14:55 PM) zlatinb: 17.0.2 isn't due until mid-january, so we should definitely have a 1.6.0 jpackage release
+(04:15:32 PM) zlatinb: my view is that I would really like to do a dry-run of the in-network update process to shake out any insects, but that needs to happen in the next 7 days cause I'm afk afterwards
+(04:16:03 PM) zlatinb: to summarize, the following needs to happen:
+(04:16:12 PM) zzz: eyedeekay, that wasn't very clear... you're 'prepared' but you're not going to do it, you're going to wait?
+(04:16:28 PM) zlatinb: 1. update of the i2p.newsxml repo to produce entries.html per platform
+(04:16:50 PM) zlatinb: 2. Make sure idk and ech's news http servers can serve the new news.su3 files
+(04:17:17 PM) zlatinb: 3. branch i2p.i2p from the i2p-1.5.0 tag, bump CoreVersion/RouterVersion, tag i2p-1.5.1
+(04:17:27 PM) zlatinb: 4. build jpackage installers, sign/notarize as necessary
+(04:17:47 PM) zlatinb: 5. build new entries.html with new release.json
+(04:17:50 PM) zlatinb: 6. deploy
+(04:17:51 PM) zlatinb: eot
+(04:18:03 PM) zlatinb: so I don't know if that can happen in 7 days, but it would be very nice if it could
+(04:19:10 PM) eyedeekay: By prepared I mean the i2p.newsxml changes produce valid feeds that can be used to distribute in network updates and they work on my lighttpd news setup
+(04:20:00 PM) eyedeekay: I need to add platform-specific entries.html support, right now everybody gets all the news but a different torrent
+(04:20:38 PM) zzz: even bigger picture, since it's beta, is it going well, are you getting downloads and/or complaints?
+(04:21:16 PM) zlatinb: downloads - ~25/day for mac, ~100/day for windows according to matomo
+(04:21:44 PM) eyedeekay: No major complaints, there was an issue with detecting the path to the installed package depending on architecture and whether windows was installed which affects some fraction of the Windows users but *only* when the launcher is run from the installer
+(04:22:03 PM) eyedeekay: So after the installer is run the bug goes away, and it's fixed in the new version
+(04:22:11 PM) eyedeekay: Well, will be
+(04:22:15 PM) zzz: great
+(04:22:21 PM) eyedeekay: That's the thing zab reported last month
+(04:22:40 PM) eyedeekay: *installed or updated from an earlier edition
+(04:24:34 PM) Ryemantis_: Hi everyone. Just wanted to also quickly check in and apologize for being quite the last few weeks. October was a very busy month for me and also had a hardware failure mixed in. After this week I should have some time to get my workstation back together and continue work on Android I2P. Currently working on LiveData, Remote-starting I2P, and UPnP fix. Will also update on the forums once I am back at 
+(04:24:35 PM) Ryemantis_: it. Please let me know too if anything else needs more immediate attention.
+(04:25:04 PM) eyedeekay: Excellent to hear from you Ryemantis_ and welcome to the meeting
+(04:25:28 PM) eyedeekay: Thanks for the update on what you're working on, hardware failures and life happen to all of us
+(04:27:01 PM) eyedeekay: So back to 3) for a moment, for right now it's incumbent on me to add support for entries.html in data/platform/branch/entries.html instead of only in data/entries.html so we can have platform-specific newsfeeds
+(04:27:13 PM) Ryemantis_: Definitely appreciate the understanding and thank you all for you hard work
+(04:28:23 PM) eyedeekay: As opposed to one feed where everybody gets everybody's news
+(04:29:00 PM) eyedeekay: After that, we can start at step 3. in zlatinb's description
+(04:29:37 PM) eyedeekay: Anything for 3)?
+(04:30:20 PM) zlatinb: no I think that captures everything
+(04:30:46 PM) eyedeekay: Cool anything else for the meeting zzz zlatinb Ryemantis_ ?
+(04:31:04 PM) zzz: nope
+(04:31:30 PM) Ryemantis_: nope
+(04:31:49 PM) zlatinb: yeah quick one - next meeting is it on the 1st?
+(04:31:54 PM) ***zlatinb checks calendar
+(04:32:12 PM) eyedeekay: I think the 7th zlatinb
+(04:32:20 PM) zlatinb: ok nvm then
+(04:32:33 PM) eyedeekay: The first is a Wednesday by my calendar
+(04:33:28 PM) eyedeekay: Oh right that reminds me, DST. I've always scheduled the meetings on UTC, but does anyone want to adjust the time of the meeting for DST?
+(04:33:36 PM) zzz has changed the topic to: 1.5.0-4 | Tag freeze Wed. Nov. 17
+(04:35:30 PM) eyedeekay: I'll take that as a no then. Unless someone brings it up in a forum thread, meetings will continue to be scheduled at the same time UTC
+(04:36:05 PM) eyedeekay: Thanks everybody for coming to the meeting, I'll post the logs in a few minutes.
