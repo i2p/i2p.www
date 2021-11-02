@@ -2,10 +2,10 @@
 SSU2
 ======
 .. meta::
-    :author: orignal, zlatinb, zzz
+    :author: eyedeekay, orignal, zlatinb, zzz
     :created: 2021-09-12
     :thread: http://zzz.i2p/topics/2612
-    :lastupdated: 2021-10-24
+    :lastupdated: 2021-10-26
     :status: Open
     :target: 0.9.55
 
@@ -223,7 +223,7 @@ stored for offline analysis.  The online DPI does not have access to the I2P
 network database.  The online DPI has only limited real-time computational
 capability, including length calculation, field inspection, and simple
 calculations such as XOR.  The online DPI does have the capability of fast
-real-time cryptographic functions such as AES, AEAD, and hashing, but these
+real-time cryptographic functions such as ChaCha20, AEAD, and hashing, but these
 would be too expensive to apply to most or all flows. Any application of these
 cryptographic operations would apply only to flows on IP/Port combinations
 previously identified by offline analysis.  The online DPI does not have the
@@ -2230,7 +2230,7 @@ Java I2P does send with the intro key, matching the specification.
 This is fixable and should be fixed in SSU 1.
 
 Alice must not have an existing session with Charlie for the test to proceed;
-Alice aborts the test if Bob picks a Charlie that has a sesssion with Alice.
+Alice aborts the test if Bob picks a Charlie that has a session with Alice.
 Therefore, messages 5-7 are not secure and authenticated.
 
 All Peer Test messages contain a 4-byte nonce that is chosen by Alice.
@@ -2240,7 +2240,7 @@ Attacks possible on messages 5-7: to be researched.
 
 Alice's router hash is not known to Charlie.
 Charlie's router hash is not known to Alice.
-Those must be added to the protocol if we want thoe Alice-Charlie messages to be authenticated.
+Those must be added to the protocol if we want the Alice-Charlie messages to be authenticated.
 Additionally, other SSU2 parameters would have to be provided in the Peer Test messages,
 or Charlie would have to lookup Alice's Router Info in the network database,
 adding additional delay.
@@ -2280,13 +2280,13 @@ We have the following goals in improving the security of Relay and Peer Test:
 
 - Bob must receive enough information from Alice to be able to validate
   the request and then accept or decline it.
-  Bob must have a mechanism to send the acception or rejection back
+  Bob must have a mechanism to send the acceptance or rejection back
   to Alice.
   Bob must never be required to perform the requested action.
 
 - Charlie must receive enough information from Bob to be able to validate
   the request and then accept or decline it.
-  Charlie must have a mechanism to send the acception or rejection back
+  Charlie must have a mechanism to send the acceptance or rejection back
   to Bob, to be forwarded to Alice.
   Charlie must never be required to perform the requested action.
 
@@ -2418,7 +2418,7 @@ is the initiator, and Bob is the responder.
 
 SSU2 is based on the Noise protocol Noise_XK_25519_ChaChaPoly_SHA256.
 (The actual identifier for the initial key derivation function
-is "Noise_XKaesobfse+hs1+hs2+hs3_25519_ChaChaPoly_SHA256"
+is "Noise_XKchaobfse+hs1+hs2+hs3_25519_ChaChaPoly_SHA256"
 to indicate I2P extensions - see KDF 1 section below)
 
 NOTE: This identifier is different than that used for NTCP2, because 
@@ -2448,7 +2448,7 @@ This proposal defines the following enhancements to
 Noise_XK_25519_ChaChaPoly_SHA256.  These generally follow the guidelines in
 [NOISE]_ section 13.
 
-1) Cleartext ephemeral keys are obfuscated with AES encryption using a known
+1) Cleartext ephemeral keys are obfuscated with ChaCha20 encryption using a known
    key and IV.  This is quicker than elligator2.
 
 
@@ -2634,11 +2634,6 @@ XK(s, rs):           Authentication   Confidentiality
 
 Once a session has been established, Alice and Bob can exchange Data messages.
 
-Some notations::
-
-  - RH_A = Router Hash for Alice (32 bytes)
-  - RH_B = Router Hash for Bob (32 bytes)
-
 
 Packet Header
 ---------------
@@ -2752,9 +2747,13 @@ when a packet containing that information is determined to be lost,
 and sending ceases when a packet containing that information is remain the same)
 acknowledged.
 
-Packets are never retransmitted with the same packet number.
+Data Packets are never retransmitted with the same packet number.
 Any retransmission of packet contents (whether or not the contents remain the same)
 must use the next unused packet number.
+
+The handshake messages Session Request, Session Created, and Session Confirmed
+MUST be retransmitted with the same packet number and identical encrypted contents,
+so that the same chained hash will be used to encrypt the response.
 
 Packet numbering starts with Session Request. Assuming no retransmissions
 in the handshake, and no Retry reply from Bob, the packet numbers
@@ -2780,7 +2779,7 @@ Alice                           Bob
 
 Any retransmission of handshake messages
 (SessionRequest, SessionCreated, or SessionConfirmed)
-must be resent unchanged, except for incrementing the packet number.
+must be resent unchanged, with the same packet number.
 Do not use different ephemeral keys or change the payload
 when retransmitting these messages.
 
@@ -2791,25 +2790,39 @@ The header (before obfuscation and protection) is always included in the associa
 data for the AEAD function, to cryptographically bind the header to the data.
 
 
-Header Obfuscation
+Header Decryption
 ```````````````````
-Both the long and short headers are always obfuscated with AES-CBC using
-(generally) the destination router hash and IV.
 
-For SessionCreated, where the destination router hash and IV are not yet known,
-the source router hash and IV are used.
+Headers are encrypted with a known key published in the network database.
+This is for DPI resistance only, as the key is public and the
+key and nonces are reused, so it is effectively just obfuscation.
+Note that the header encryption is also used to obfuscate
+the ephemeral keys X (in Session Request) and Y (in Session Created).
 
-TODO ChaCha20 instead?
+The short header is always encrypted (obfuscated) with ChaCha20 using
+the destination's intro key and n=0.
 
+The first 16 bytes of the long header is usually encrypted (obfuscated) with ChaCha20 using
+the destination's intro key and n=0.
+For Session Request, the same key is used with n=1 for the next 48 bytes (covering X as well).
+For other messages, the same key is used with n=1 for the next 16 bytes.
+
+For Session Created and Retry, where the destination router hash and IV are not yet known,
+the source intro key is used to decrypt the long header,
+with n=0 for the first 16 bytes.
+For Session Created, n=1 is used for the next 48 bytes (covering Y as well).
+For Retry, n=1 is used for the next 16 bytes.
+
+See the Inbound Packet Handling section below for additional guidance.
 
 
 Header Protection
 ```````````````````
-In addition to obfuscation, bytes 8-15 of the long header and bytes 8-12 of the short header
+In addition to obfuscation, bytes 8-15 of the header
 are encrypted by XORing with a known key, as in QUIC [RFC-9001]_ and [Nonces]_.
 
-For SessionCreated, where the destination router hash and IV are not yet known,
-the source router hash and IV are used.
+For SessionCreated, where the destination (Alice's) intro key is not yet known,
+the source (Bob's) intro key is used.
 
 There are four header protection key phases:
 
@@ -2827,7 +2840,7 @@ Header Protection KDF:
   {% highlight lang='dataspec' %}
 // incoming encrypted packet
   len = packet.length
-  // take the last 16 bytes before the MAC
+  // take the last 12 bytes before the MAC
   sample = packet[len-32:len-17]
   n = sample[4:15]
   key = header protection key
@@ -2835,9 +2848,6 @@ Header Protection KDF:
   mask = ChaCha20.encrypt(key, n, data)
 
   // encrypt the header by XORing with the mask
-  // short header
-  header[8:12] ^= mask[0:4]
-  // long header
   header[8:15] ^= mask[0:7]
 
 
@@ -2975,7 +2985,7 @@ KDF for Initial ChainKey
   {% highlight lang='text' %}
 
 // Define protocol_name.
-  Set protocol_name = "Noise_XKaesobfse+hs1+hs2+hs3_25519_ChaChaPoly_SHA256"
+  Set protocol_name = "Noise_XKchaobfse+hs1+hs2+hs3_25519_ChaChaPoly_SHA256"
    (52 bytes, US-ASCII encoded, no NULL termination).
 
   // Define Hash h = 32 bytes
@@ -3104,13 +3114,13 @@ XK(s, rs):           Authentication   Confidentiality
 
 The X value is encrypted to ensure payload indistinguishably
 and uniqueness, which are necessary DPI countermeasures.
-We use AES encryption to achieve this,
+We use ChaCha20 encryption to achieve this,
 rather than more complex and slower alternatives such as elligator2.
 Asymmetric encryption to Bob's router public key would be far too slow.
-AES encryption uses Bob's router hash as the key and Bob's IV as published
+ChaCha20 encryption uses Bob's intro key as published
 in the network database.
 
-AES encryption is for DPI resistance only.
+ChaCha20 encryption is for DPI resistance only.
 Any party knowing Bob's router hash, and IV, which are published in the network database,
 may decrypt the X value in this message.
 
@@ -3121,18 +3131,18 @@ Raw contents:
 
   {% highlight lang='dataspec' %}
 +----+----+----+----+----+----+----+----+
-  |                                       |
-  +        obfuscated with RH_B           +
-  |       AES-CBC-256 encrypted           |
-  +       bytes 8-15 header protected     +
-  |            Long Header                |
-  +             (32 bytes)                +
+  |  Long Header bytes 0-15, ChaCha20     |
+  +  encrypted with Bob intro key n=0     +
+  |    bytes 8-15 header protected        |
+  +----+----+----+----+----+----+----+----+
+  |  Long Header bytes 16-31, ChaCha20    |
+  +  encrypted with Bob intro key n=1     +
   |                                       |
   +----+----+----+----+----+----+----+----+
   |                                       |
-  +        obfuscated with RH_B           +
-  |       AES-CBC-256 encrypted X         |
-  +             (32 bytes)                +
+  +       X, ChaCha20 encrypted           +
+  |       with Bob intro key n=1          |
+  +              (32 bytes)               +
   |                                       |
   +                                       +
   |                                       |
@@ -3150,9 +3160,10 @@ Raw contents:
   |                                       |
   +----+----+----+----+----+----+----+----+
 
-  X :: 32 bytes, AES-256-CBC encrypted X25519 ephemeral key, little endian
-          key: RH_B
-          iv: As published in Bobs network database entry
+  X :: 32 bytes, ChaCha20 encrypted X25519 ephemeral key, little endian
+          key: Bob's intro key
+          n: 1
+          data: 48 bytes (bytes 16-31 of the header, followed by encrypted X)
 
 {% endhighlight %}
 
@@ -3194,7 +3205,7 @@ Unencrypted data (Poly1305 authentication tag not shown):
 
   flag :: 1 byte, unused, set to 0 for future compatibility
 
-  Packet Number :: 0 unless retransmitted or resent after Retry
+  Packet Number :: 0 unless resent after Retry
 
   Source Connection ID :: Randomly generated by Alice
 
@@ -3215,7 +3226,7 @@ Notes
   restriction.  See the Published Addresses and Version Detection sections
   below.
 
-- The unique X value in the initial AES block ensure that the ciphertext is
+- The unique X value in the initial ChaCha20 block ensure that the ciphertext is
   different for every session.
 
 - Bob must reject connections where the timestamp value is too far off from the
@@ -3364,14 +3375,14 @@ XK(s, rs):           Authentication   Confidentiality
 {% endhighlight %}
 
 The Y value is encrypted to ensure payload indistinguishably and uniqueness,
-which are necessary DPI countermeasures.  We use AES encryption to achieve
+which are necessary DPI countermeasures.  We use ChaCha20 encryption to achieve
 this, rather than more complex and slower alternatives such as elligator2.
-Asymmetric encryption to Alice's router public key would be far too slow.  AES
-encryption uses Bob's router hash as the key and the AES state from Session Request
-(which was initialized with Bob's IV as published in the network database).
+Asymmetric encryption to Alice's router public key would be far too slow.  ChaCha20
+encryption uses Bob's intro key,
+as published in the network database.
 
-AES encryption is for DPI resistance only.  Any party knowing Bob's router hash
-and IV, which are published in the network database, and captured the first 32
+ChaCha20 encryption is for DPI resistance only.  Any party knowing Bob's intro key,
+which is published in the network database, and captured the first 32
 bytes of Session Request, may decrypt the Y value in this message.
 
 
@@ -3381,17 +3392,17 @@ Raw contents:
 
   {% highlight lang='dataspec' %}
 +----+----+----+----+----+----+----+----+
-  |                                       |
-  +        obfuscated with RH_B           +
-  |       AES-CBC-256 encrypted           |
-  +       bytes 8-15 header protected     +
-  |            Long Header                |
-  +             (32 bytes)                +
+  |  Long Header bytes 0-15, ChaCha20     |
+  +  encrypted with Bob intro key n=0     +
+  |    bytes 8-15 header protected        |
+  +----+----+----+----+----+----+----+----+
+  |  Long Header bytes 16-31, ChaCha20    |
+  +  encrypted with Bob intro key n=1     +
   |                                       |
   +----+----+----+----+----+----+----+----+
   |                                       |
-  +        obfuscated with RH_B           +
-  |       AES-CBC-256 encrypted Y         |
+  +       Y, ChaCha20 encrypted           +
+  |       with Bob intro key n=1          |
   +              (32 bytes)               +
   |                                       |
   +                                       +
@@ -3410,9 +3421,10 @@ Raw contents:
   |                                       |
   +----+----+----+----+----+----+----+----+
 
-  Y :: 32 bytes, AES-256-CBC encrypted X25519 ephemeral key, little endian
-          key: RH_B
-          iv: Using AES state from Session Request
+  Y :: 32 bytes, ChaCha20 encrypted X25519 ephemeral key, little endian
+          key: Bob's intro key
+          n: 1
+          data: 48 bytes (bytes 16-31 of the header, followed by encrypted Y)
 
 {% endhighlight %}
 
@@ -3453,7 +3465,7 @@ Unencrypted data (Poly1305 auth tag not shown):
 
   flag :: 1 byte, unused, set to 0 for future compatibility
 
-  Packet Number :: 0 unless retransmitted or resent after Retry
+  Packet Number :: 0 unless resent after Retry
 
   Source Connection ID :: Randomly generated by Alice
 
@@ -3711,7 +3723,8 @@ Unencrypted data (Poly1305 auth tags not shown):
   Destination Connection ID :: As sent in Session Request,
                                or one received in Session Confirmed?
 
-  Packet Number :: 1 unless retransmitted or resent after Retry
+  Packet Number :: 1 unless the Session Request message was
+                   retransmitted or resent after Retry
 
   type :: 2
 
@@ -3933,12 +3946,12 @@ Raw contents:
 
   {% highlight lang='dataspec' %}
 +----+----+----+----+----+----+----+----+
-  |                                       |
-  +        obfuscated with RH_B           +
-  |       AES-CBC-256 encrypted           |
-  +       bytes 8-15 header protected     +
-  |            Long Header                |
-  +             (32 bytes)                +
+  |  Long Header bytes 0-15, ChaCha20     |
+  +  encrypted with Bob intro key n=0     +
+  |    bytes 8-15 header protected        |
+  +----+----+----+----+----+----+----+----+
+  |  Long Header bytes 16-31, ChaCha20    |
+  +  encrypted with Bob intro key n=1     +
   |                                       |
   +----+----+----+----+----+----+----+----+
   |                                       |
@@ -4001,6 +4014,9 @@ This is NOT a standard Noise message and is not part of the handshake.
 It is not bound to the Session Request message other than by connection IDs.
 It is not required to decrypt the Session Request Noise message to create this
 message in response.
+
+Minimum size: TBD, same rules as for Session Created?
+
 
 
 Hole Punch Message
@@ -4233,7 +4249,7 @@ Session setup is not complete until all fragments are received.
   +----+----+----+----+----+              +
   |                                       |
   +       Router Info fragment            +
-  | (Alice RI in Sessopm Confirmed)       |
+  | (Alice RI in Session Confirmed)       |
   ~ (Alice, Bob, or third-party           ~
   |  RI in data phase)                    |
   ~               .   .   .               ~
@@ -4245,7 +4261,8 @@ Session setup is not complete until all fragments are received.
   flag :: 1 byte flags
          bit order: 76543210 (bit 7 is MSB)
          bit 0: 0 for local store, 1 for flood request
-         bits 7-1: Unused, set to 0 for future compatibility
+         bit 1: 0 for uncompressed, 1 for gzip compressed
+         bits 7-2: Unused, set to 0 for future compatibility
   frag :: 1 byte fragment info:
          bit order: 76543210 (bit 7 is MSB)
          bits 7-4: fragment number 0-14, big endian
@@ -4266,17 +4283,29 @@ Notes:
   treat it as a DatabaseStore Message with a nonzero reply token,
   and flood it to the nearest floodfills.
 
-- The Router Info is NOT compressed with gzip
-  (unlike in a DatabaseStore Message, where it is)
+- The Router Info is optionally compressed with gzip,
+  as indicated by flag bit 1.
+  This is different from NTCP2, where it is never compressed,
+  and from a DatabaseStore Message, where it always is compressed.
+  Compression is optional because it usually is of little benefit
+  for small Router Infos, where there is little compressible content,
+  but is very beneficial for large Router Infos with several
+  compressible Router Addresses.
+  Compression is recommended if it allows a Router Info to fit
+  in a single message without fragmentation.
+
+- If the Router Info is compressed AND fragmented,
+  the data is compressed first and then fragmented.
+  The fragments are not individually compressed.
 
 - Flooding must not be requested unless there are published
   RouterAddresses in the RouterInfo. The receiving router
   must not flood the RouterInfo unless there are published
   RouterAddresses in it.
 
-- This protocol does not provide an acknowledgement that the RouterInfo
+- This protocol does not provide an acknowledgment that the RouterInfo
   was received, stored, or flooded (either in the handshake or data phase).
-  If acknowledgement is desired, and the receiver is floodfill,
+  If acknowledgment is desired, and the receiver is floodfill,
   the sender should instead send a standard I2NP DatabaseStoreMessage
   with a reply token.
 
@@ -4928,9 +4957,10 @@ Session Request
 ----------------
 If no Session Created is received by Alice:
 
-Maintain same source and connection IDs and ephemeral key. Increment packet number.
-Re-encrypt Noise payload as AEAD (packet number) changed.
-Re-protect header, re-obfuscate header, as packet number changed.
+Maintain same source and connection IDs, ephemeral key, and packet number 0.
+Or, just retain the encrypted packet.
+Packet number must not be incremented, because that would change
+the chained hash value used to encrypt the Session Created message.
 
 Recommended retransmission intervals: 3 and 6 seconds (3 and 9 seconds after first sent).
 Recommended timeout: 15 seconds total
@@ -4940,9 +4970,10 @@ Session Created
 ----------------
 If no Session Confirmed is received by Bob:
 
-Maintain same source and connection IDs and ephemeral key. Increment packet number.
-Re-encrypt Noise payload as AEAD (packet number) changed.
-Re-protect header, re-obfuscate header, as packet number changed.
+Maintain same source and connection IDs, ephemeral key, and packet number 0.
+Or, just retain the encrypted packet.
+Packet number must not be incremented, because that would change
+the chained hash value used to encrypt the Session Confirmed message.
 
 Recommended retransmission intervals: 3 and 6 seconds (3 and 9 seconds after first sent).
 Recommended timeout: 15 seconds total
@@ -4970,8 +5001,15 @@ There are several alternatives. All are 1 RTT:
 
 The preferred alternative is option 2).
 Alice must retain the information required to retransmit the Session Confirmed message.
-Alice should also retransmit all Data messages after the Sesession Confirmed
+Alice should also retransmit all Data messages after the Session Confirmed
 message is retransmitted.
+
+When retransmitting Session Confirmed,
+maintain same source and connection IDs, ephemeral key, and packet number 1.
+Or, just retain the encrypted packet.
+Packet number must not be incremented, because that would change
+the chained hash value which is an input for the split() function.
+
 Bob may retain (queue) the data messages received before the Session Confirmed message.
 Neither the header protection keys nor the decryption keys are available
 before the Session Confirmed message is received, so Bob does not know
@@ -4985,13 +5023,13 @@ as Alice will retransmit them.
 
 Retry
 ---------
-If no Session Request is received:
+A Retry message is never retransmitted, except in response to a repeated
+Session Request message being received.
 
+If resending the Retry message:
 Maintain same source and connection IDs. Increment packet number.
-Re-protect header, re-obfuscate header, as packet number changed.
+Re-protect header, re-obfuscate header, as the packet number changed.
 
-Recommended retransmission intervals: 3 and 6 seconds (3 and 9 seconds after first sent).
-Recommended timeout: 15 seconds total
 
 
 Total Timeout
@@ -5066,6 +5104,14 @@ If both SSU and SSU2 addresses are supported, or if multiple addresses for
 different IPv4 or IPv6 IPs are supported (currently supported by i2pd but not Java i2p)
 the sizes could increase significantly.
 
+The Router Info block supports optional gzip compression.
+Compression is optional because it usually is of little benefit
+for small Router Infos, where there is little compressible content,
+but is very beneficial for large Router Infos with several
+compressible Router Addresses.
+Compression is recommended if it allows a Router Info to fit
+in a single message without fragmentation.
+
 While a typical MTU and Router Info size would allow the Router Info to be sent
 unfragmented, fragmentation will be necessary and this protocol must support it.
 The Router Info block contains a fragmentation field (unlike in NTCP2 where it is not required).
@@ -5100,7 +5146,7 @@ However, it does burden the receiver to store fragments
 received out-of-order and delay reassembly until all fragments are received.
 
 As in SSU 1, any retransmission of fragments must preserve the length (and implicit offset)
-of the fragment's previous tranmission.
+of the fragment's previous transmission.
 
 SSU 2 does separate the three cases (full message, initial fragment, and follow-on fragment)
 into three different block types, to improve processing efficiency.
@@ -5486,7 +5532,7 @@ No IP fragmentation is assumed.
 IP + datagram header is 28 bytes.
 This assumes no IPv4 options.
 Max message size is MTU - 28.
-Data phase header is 16 bytes and MAC is 16 bytes, totalling 32 bytes.
+Data phase header is 16 bytes and MAC is 16 bytes, totaling 32 bytes.
 Payload size is MTU - 60.
 Max data phase payload is 1440 for a max 1500 MTU.
 Max data phase payload is 1220 for a min 1280 MTU.
@@ -5497,7 +5543,7 @@ No IP fragmentation is allowed.
 IP + datagram header is 48 bytes.
 This assumes no IPv6 extension headers.
 Max message size is MTU - 48.
-Data phase header is 16 bytes and MAC is 16 bytes, totalling 32 bytes.
+Data phase header is 16 bytes and MAC is 16 bytes, totaling 32 bytes.
 Payload size is MTU - 80.
 Max data phase payload is 1420 for a max 1500 MTU.
 Max data phase payload is 1200 for a min 1280 MTU.
@@ -5510,7 +5556,7 @@ Published Router Info
 Address Properties
 -------------------
 
-The following address properties may be publiished, unchanged from SSU 1:
+The following address properties may be published, unchanged from SSU 1:
 
 - caps: [B,C,4,6] capabilities
 
@@ -5563,11 +5609,11 @@ to indicate SSU2 support:
   32 bytes in binary, 44 bytes as Base 64 encoded,
   little-endian X25519 public key.
 
-- i=(Base64 IV)
-  The current IV for encrypting the headers for this RouterAddress.
+- i=(Base64 key)
+  The current introduction key for encrypting the headers for this RouterAddress.
   Base 64 encoded using the standard I2P Base 64 alphabet.
-  16 bytes in binary, 24 bytes as Base 64 encoded,
-  big-endian.
+  32 bytes in binary, 44 bytes as Base 64 encoded,
+  big-endian ChaCha20 key.
 
 - v=2
   The current version (2).
@@ -5658,7 +5704,7 @@ SSU), the minimum downtime before rotation may be as short as two hours, even
 if the IP address changes, unless the router "rekeys".
 
 If the router "rekeys" to a different Router Hash, it should generate a new
-noise key and IV as well.
+noise key and intro key as well.
 
 Implementations must be aware that changing the static public key or IV will prohibit
 incoming SSU2 connections from routers that have cached an older RouterInfo.
@@ -5666,10 +5712,7 @@ RouterInfo publishing, tunnel peer selection (including both OBGW and IB
 closest hop), zero-hop tunnel selection, transport selection, and other
 implementation strategies must take this into account.
 
-IV rotation is subject to identical rules as key rotation, except that IVs are not present
-except in published RouterAddresses, so there is no IV for hidden or firewalled
-routers. If anything changes (version, key, options?) it is recommended that
-the IV change as well.
+Intro key rotation is subject to identical rules as key rotation.
 
 Note: The minimum downtime before rekeying may be modified to ensure network
 health, and to prevent reseeding by a router down for a moderate amount of
@@ -5718,29 +5761,131 @@ and recover the contents.
 
 SSU 2 is designed to minimize the inbound packet classification effort while maintaining
 DPI resistance and other on-path threats. The session number is included in the header
-for all message types, and obfuscated using AES with a known key and IV.
+for all message types, and encrypted (obfuscated) using ChaCha20 with a known key and nonce.
 Additionally, the message type is also included in the header
-(encrypted with header protection to a known key and then obfuscated with AES)
+(encrypted with header protection to a known key and then obfuscated with ChaCha20)
 and may be used for additional classification.
-In no case should a trial DH operation be necessary to classify a packet.
+In no case is a trial DH or other asymmetric crypto operation necessary to classify a packet.
 
-For almost all messages from all peers, the AES key and IV are the destination router's
-router hash and IV as published in the netdb.
+For almost all messages from all peers, the ChaCha20 key is the destination router's
+router hash as published in the netdb, with a nonce of 0 for the short header
+(and for the first 16 bytes of the long header).
+The next 16 bytes of the long header, and the ephemeral key, are decrypted with
+the same key and a nonce of 1.
 
 The only exceptions are the first messages sent from Bob to Alice (Session Created or Retry)
 where Alice's router hash is not yet known to Bob. In these cases, Bob's router hash
-and IV are used.
+is used as the key, with a nonce of 0 for the short header
+(and for the first 16 bytes of the long header).
+The next 16 bytes of the long header, and the ephemeral key, are decrypted with
+the same key and a nonce of 1.
 
-Therefore, the recommended processing steps are:
+The protocol is designed to minimize packet classification processing that
+might require additional crypto operations in multiple
+fallback steps or complex heuristics.
+Additionally, the vast majority of received packets will not require
+a (possibly expensive) fallback lookup by source IP/port
+and a second header decryption.
+Only Session Created and Retry (and possibly others TBD) will require
+the fallback processing.
+If an endpoint changes IP or port after session creation,
+the session ID is still used to lookup the session.
+It is never necessary to use heuristics to find the session,
+for example by looking for a different session with the same
+IP but a different port.
 
-1) Remove the AES obfuscation to recover the session ID. If known, use that session
-   for further processing.
-2) Remove the header protection to recover the version, net ID, message type,
-   and packet number fields. If all are sensible, and the message type is 0 (Session Request),
-   create a new session and use that session for further processing.
-3) Look up a pending outbound session by the source IP/port of the packet;
-   if found, remove the session ID obfuscation using Bob's router hash and IV,
-   verify the session ID matches, and use that pending session for further processing.
+
+Therefore, the recommended processing steps in the receiver loop logic are:
+
+1) Decrypt the first 16 bytes with ChaCha20 using the local router hash
+   as the key with n=0, to recover the session ID.
+   If the session ID matches a current or pending inbound session:
+
+   a) Using the session's header protection key, remove the header protection
+      to recover the version, net ID, and message type at bytes 8-15.
+   b) If the message type is Session Confirmed, it is a long header.
+      Verify the net ID and protocol version are valid.
+      Decrypt the next 16 bytes of the header with ChaCha20
+      using the local intro key with n=1. Then MixHash() the
+      decrypted 32 byte header and decrypt the message with Noise.
+   c) If the message type is valid but not Session Confirmed,
+      it is a short header.
+      Verify the net ID and protocol version are valid.
+      decrypt the rest of the message with ChaCha20/Poly1305
+      using the session key, using the decrypted 16-byte header
+      as the AD.
+   d) (optional) If session ID is a pending inbound session
+      awaiting a Session Confirmed message,
+      but the net ID, protocol, or message type is not valid,
+      it could be a Data message received out-of-order before the
+      Session Confirmed, so the data phase header protection keys are not yet known,
+      and the header bytes 8-15 were incorrectly decrypted.
+      Queue the message, and attempt to decrypt it once the
+      Session Confirmed message is received.
+   e) If b) or c) fails, drop the message.
+
+2) If the session ID does not match a current session:
+   Check the plaintext header at bytes 8-15 are valid
+   (without doing any header protection operation).
+   Verify the net ID and protocol version are valid, and
+   the message type is Session Request, or other message type
+   allowed out-of-session (TBD).
+
+   a) If all is valid and the message type is Session Request,
+      decrypt the next 16 bytes of the header and the 32-byte X value
+      with ChaCha20 using the local intro key with n=1.
+
+   - If the token at header bytes 24-31 is accepted,
+     then MixHash() the decrypted 32 byte header and
+     decrypt the message with Noise.
+     Send a Session Created in response.
+   - If the token is not accepted, send a Retry message to the
+     source IP/port with a token. Do not attempt to
+     decrypt the message with Noise to avoid DDoS attacks.
+
+   b) If the message type is some other message that is valid
+      out-of-session, presumably with a short header,
+      decrypt the rest of the message with ChaCha20/Poly1305
+      using the intro key (TBD), using the decrypted 16-byte header
+      as the AD. Process the message.
+   c) If a) or b) fails, go to step 3)
+
+
+3) Look up a pending outbound session by the source IP/port of the packet.
+
+   a) If found, decrypt the first 16 bytes with ChaCha20 using Bob's router hash
+      as the key with n=0, to recover the session ID.
+   b) If the session ID matches the pending session:
+      Using the TBD key, remove the header protection
+      to recover the version, net ID, and message type at bytes 8-15.
+      Verify the net ID and protocol version are valid, and
+      the message type is Session Response or Retry, or other message type
+      allowed out-of-session (TBD).
+
+   - If all is valid and the message type is Session Response,
+     decrypt the next 16 bytes of the header and the 32-byte Y value
+     with ChaCha20 using Bob's router hash as the key with n=1.
+     Then MixHash() the decrypted 32 byte header and
+     decrypt the message with Noise.
+     Send a Session Confirmed in response.
+   - If all is valid and the message type is Retry,
+     decrypt the next 16 bytes of the header
+     with ChaCha20 using Bob's router hash as the key with n=1.
+     Validate the remaining data (padding) and MAC using ChaCha20/Poly1305 using
+     TBD as the key and TBD as the nonce and the decrypted 32-byte header as the AD.
+     Resend a Session Request with the received token in response.
+   - If the message type is some other message that is valid
+     out-of-session, presumably with a short header,
+     decrypt the rest of the message with ChaCha20/Poly1305
+     using the intro key (TBD), using the decrypted 16-byte header
+     as the AD. Process the message.
+
+    c) If a pending outbound session is not found,
+       or the session ID does not match the pending session, drop the message,
+       unless the port is shared with SSU 1.
+
+4) If running SSU 1 on the same port, attempt to process the message as an SSU 1 packet.
+
 
 
 Issues
