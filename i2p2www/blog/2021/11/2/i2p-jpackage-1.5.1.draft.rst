@@ -56,7 +56,7 @@ I2P Mac OS Jpackage Updates
 {% trans -%}
 Mac OS only packages recieve the following updates:
 
-* No Mac-Specific changes?
+* No Mac-Specific changes. Mac OS is updated to build with JDK 17.
 
 For a summary of development see: https://i2pgit.org/i2p-hackers/i2p-jpackage-mac
 {%- endtrans %}
