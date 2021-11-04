@@ -25,7 +25,11 @@ Updates common to Mac OS and Windows
 ------------------------------------
 
 {% trans -%}
-  Update the jpackaged I2P router to 17.0.1
+All jpackaged I2P installers recieve the following updates:
+
+* Update the jpackaged I2P router to 17.0.1
+
+Please update as soon as possible.
 {%- endtrans %}
 
 {% trans -%}
@@ -34,17 +38,25 @@ I2P Windows Jpackage Updates
 ----------------------------
 
 {% trans -%}
-  Updates I2P in Private Browsing, NoScript browser extensions
-  Begins to phase out HTTPS everywhere on new Firefox releases
-  Updates launcher script to fix post NSIS launch issue on some architectures
-    (https://i2pgit.org/i2p-hackers/i2p.firefox/-/issues/9)
+Windows only packages recieve the following updates:
+
+* Updates I2P in Private Browsing, NoScript browser extensions
+* Begins to phase out HTTPS everywhere on new Firefox releases
+* Updates launcher script to fix post NSIS launch issue on some architectures
+  (https://i2pgit.org/i2p-hackers/i2p.firefox/-/issues/9)
+
+For a full list of changes see the changelog.txt in https://i2pgit.org/i2p-hackers/i2p.firefox/
 {%- endtrans %}
 
 {% trans -%}
 I2P Mac OS Jpackage Updates
 {%- endtrans %}
-------------------------
+---------------------------
 
 {% trans -%}
+Mac OS only packages recieve the following updates:
 
+* No Mac-Specific changes?
+
+For a summary of development see: https://i2pgit.org/i2p-hackers/i2p-jpackage-mac
 {%- endtrans %}
