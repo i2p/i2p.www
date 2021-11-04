@@ -27,7 +27,7 @@ Updates common to Mac OS and Windows
 {% trans -%}
 All jpackaged I2P installers recieve the following updates:
 
-* Update the jpackaged I2P router to 17.0.1
+* Update the jpackaged I2P router to 1.5.1 which is built with JDK 17
 
 Please update as soon as possible.
 {%- endtrans %}
