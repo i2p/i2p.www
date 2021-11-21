@@ -3,20 +3,12 @@
 {% block content %}
 <h1>{{ _('Debian I2P Packages') }}</h1>
 
-<h2 id="bionic">{{ _('Debian Buster, Ubuntu Bionic, and later') }}</h2>
-{% trans -%}
-I2P is available in the official repositories for Ubuntu Bionic and later, and Debian Buster and Sid.
-However, Debian Buster and Ubuntu Bionic (LTS) distributions will have older I2P versions.
-If you are not running Debian Sid or the latest Ubuntu release,
-use our Debian repo or Launchpad PPA to ensure you're running the latest I2P version.
-{%- endtrans %}
-
 <h2 id="others">{{ _('Debian or Ubuntu, All Versions') }}</h2>
 {% trans -%}The Debian packages should work on most platforms running:{%- endtrans %}
 <ul>
-  <li>{% trans %}<a href="#ubuntu">Ubuntu</a> (Precise <em>12.04</em> and newer){% endtrans %}</li>
-  <li><a href="#ubuntu">Mint</a></li>
-  <li>{% trans %}<a href="#debian">Debian Linux</a> (Wheezy and newer){% endtrans %}</li>
+  <li>{% trans %}<a href="#ubuntu">Ubuntu</a> (Bionic <em>18.04</em> and newer){% endtrans %}</li>
+  <li>{% trans %}<a href="#ubuntu">Mint</a>(Tara<em>19</em>) or newer{% endtrans %}</li>
+  <li>{% trans %}<a href="#debian">Debian Linux</a> (Buster and newer){% endtrans %}</li>
   <li><a href="#debian">Knoppix</a></li>
 </ul>
 
@@ -37,8 +29,8 @@ with these packages on <a href="{{ trac }}">Trac</a> at
     {% trans %}Open a terminal and enter:{% endtrans %}<br />
     <code>&nbsp;&nbsp;&nbsp; sudo apt-add-repository ppa:i2p-maintainers/i2p</code><br />
 {% trans -%}
-This command will add the PPA to /etc/apt/sources.list.d and fetch the
-gpg key that the repository has been signed with. The GPG key ensures
+This command will add the PPA to <code>/etc/apt/sources.list.d</code> and fetch
+the gpg key that the repository has been signed with. The GPG key ensures
 that the packages have not been tampered with since being built.
 {%- endtrans %}
   </li>
@@ -55,27 +47,35 @@ was added with the earlier command.
     <code>&nbsp;&nbsp;&nbsp;&nbsp;sudo apt-get install i2p</code></li>
 </ol>
 
-<h5>{{ _('Adding the PPA Using Synaptic') }}</h5>
+<h5>{{ _('Adding the PPA Using the Software Center') }}</h5>
 <ol>
   <li>
-    {% trans -%}
-    Open Synaptic (System -&gt; Administration -&gt; Synaptic Package Manager).
+    {% trans -%}Open "Software and Updates" via the applications menu.
     {%- endtrans %}
+    <img src="/_static/images/download/ubuntu/software-center-menu.png"></img>
   </li>
   <li>
-    {% trans -%}
-    Once Synaptic opens, select <em>Repositories</em> from the <em>Settings</em> menu.
+    {% trans -%}Select the "Other Software" tab and click the "Add" button at the
+    bottom to configure the PPA.
     {%- endtrans %}
+    <img src="/_static/images/download/ubuntu/software-center-addother.png"></img>
   </li>
   <li>
-    {% trans -%}
-    Click the <em>Other Sources</em> tab and click <em>Add</em>. Paste <code>ppa:i2p-maintainers/i2p</code> into the APT-line field and click <em>Add Source</em>. Click the <em>Close</em> button then <em>Reload</em>.
+    {% trans -%}Add the PPA by pasting the URL: <code>ppa:i2p-maintainers/i2p</code>
+    into the PPA dialog.
     {%- endtrans %}
+    <img src="/_static/images/download/ubuntu/software-center-ppatool.png"></img>
   </li>
   <li>
-    {% trans -%}
-    In the Quick Filter box, type in <code>i2p</code> and press enter. When <code>i2p</code> is returned in the results list, right click <code>i2p</code> and select <em>Mark for Installation</em>. After doing so you may see a <em>Mark additional required changes?</em> popup. If so, click <em>Mark</em> then <em>Apply</em>.
+    {% trans -%}Download the repository information with the "Reload" button.
     {%- endtrans %}
+    <img src="/_static/images/download/ubuntu/software-center-reload.png"></img>
+  </li>
+  <li>
+    {% trans -%}Install the I2P software using the "Software" tool from the
+    applications menu.
+    {%- endtrans %}
+    <img src="/_static/images/download/ubuntu/software-center-software.png"></img>
   </li>
 </ol>
 
@@ -92,100 +92,94 @@ part of <a href="#Post-install_work">starting I2P</a> and configuring it for you
 Note: The steps below should be performed with root access (i.e., switching
 user to root with <code>su</code> or by prefixing each command with <code>sudo</code>).
 {%- endtrans %}</p>
-<ol>
-  <li>{% trans -%}Ensure that <code>apt-transport-https</code> and <code>curl</code> are installed.{%- endtrans %}
+<ol>,
+  <li>{% trans -%}Ensure that <code>apt-transport-https</code>, <code>curl</code>, <code>lsb-release</code> are installed.{%- endtrans %}
     <pre>
     <code>
     sudo apt-get update
-    sudo apt-get install apt-transport-https curl</code>
+    sudo apt-get install apt-transport-https lsb-release curl</code>
     </pre>
   </li>
   <li>{% trans file='/etc/apt/sources.list.d/i2p.list',file2='/etc/debian_version' %}
     Check which version of Debian you are using on this page at the <a href="https://wiki.debian.org/LTS/" target="_blank">Debian wiki</a>
     and verify with <code>{{ file2 }}</code> on your system.
-    Then, add lines like the following to <code>{{ file }}</code>.{% endtrans %}<br>
-<br />
-For Buster (stable):<br />
-<pre>
-    <code>deb https://deb.i2p2.de/ buster main
-    deb-src https://deb.i2p2.de/ buster main</code>
-</pre>
-
-<br />
-For Stretch (oldstable):<br />
-<pre>
-    <code>deb https://deb.i2p2.de/ stretch main
-    deb-src https://deb.i2p2.de/ stretch main</code>
-</pre>
-
-<br />
-For Jessie (oldoldstable):<br />
-<pre>
-    <code>deb https://deb.i2p2.de/ jessie main
-    deb-src https://deb.i2p2.de/ jessie main</code>
-</pre>
-
-<br />
-For Wheezy (obsolete):<br>
-<pre>
-    <code>deb https://deb.i2p2.de/ wheezy main
-    deb-src https://deb.i2p2.de/ wheezy main</code>
-</pre>
-<br />
-
-{% trans -%}Note: If you are running Debian Sid (testing), then you can install I2P directly from Debian's main repository{%- endtrans %}:
-  <pre>
-  <code>sudo apt-get install i2p</code>
-  </pre>
+    Then, for Debian Bullseye or newer distributions run the following command to create <code>{{ file }}</code>.{% endtrans %}<br>
+    <pre>
+    <code>
+    # Use this command on Debian Bullseye or newer only.
+  echo "deb [signed-by=/usr/share/keyrings/i2p-archive-keyring.gpg] https://deb.i2p2.de/ $(lsb_release -sc) main" \
+  | sudo tee /etc/apt/sources.list.d/i2p.list
+    </code>
+    </pre>
+    if you are using Debian Buster or older distributons, use the following command instead:
+    <pre>
+    <code>
+    # Use this command on Debian Buster or older only.
+  echo "deb https://deb.i2p2.de/ $(lsb_release -sc) main" \
+  | sudo tee /etc/apt/sources.list.d/i2p.list
+    </code>
+    </pre>
 
   </li>
 
-  <li>{% trans repokey=url_for('static', filename='i2p-debian-repo.key.asc') -%}
-Download <a href="{{ repokey }}">the  key used to sign the repository</a>:{%- endtrans %}
-<pre>
-<code>
-  curl -o i2p-debian-repo.key.asc https://geti2p.net/_static/i2p-debian-repo.key.asc</code>
-</pre>
+  <li>{% trans repokey=url_for('static', filename='i2p-debian-repo.key.gpg') -%}
+  Download <a href="{{ repokey }}">the  key used to sign the repository</a>:{%- endtrans %}
+    <pre>
+    <code>
+  curl -o i2p-archive-keyring.gpg https://geti2p.net/_static/i2p-archive-keyring.gpg</code>
+    </pre>
   </li>
 
   <br />
 
-  <li>
-    {% trans -%}Check the fingerprint and owner of the key without importing anything{%- endtrans %}:<br />
+  <li>{% trans -%}Display the key fingerprint.{%- endtrans %}
     <pre>
     <code>
-  gpg -n --import --import-options import-show i2p-debian-repo.key.asc</code>
+  gpg --keyid-format long --import --import-options show-only --with-fingerprint i2p-archive-keyring.gpg
+    </code>
+    </pre>
+    {% trans -%}Verify that this key fingerprint matches the output:{%- endtrans %}
+    <pre>
+    <code>
+  7840 E761 0F28 B904 7535  49D7 67EC E560 5BCF 1346</code>
     </pre>
   </li>
 
-  <li>
-    {% trans -%} Add the key to APT's keyring{%- endtrans %}:<br />
+  <br />
+
+  <li>{% trans -%}Copy the keyring to the keyrings directory:{%- endtrans %}
     <pre>
     <code>
-  sudo apt-key add i2p-debian-repo.key.asc</code>
+  sudo cp ~/i2p-archive-keyring.gpg /usr/share/keyrings</code>
+    </pre>
+    If you are using a distribution older than Debian Buster, you will also need
+    to symlink that key to <code>/etc/apt/trusted.gpg.d</code>.
+    <pre>
+    <code>
+  sudo ln -sf /usr/share/keyrings/i2p-archive-keyring.gpg /etc/apt/trusted.gpg.d/i2p-archive-keyring.gpg</code>
     </pre>
   </li>
-
+  
   <li>
-    {% trans %}Notify your package manager of the new repository by entering{% endtrans %}<br />
+    {% trans %}Notify your package manager of the new repository by entering:{% endtrans %}<br />
     <pre>
     <code>
   sudo apt-get update</code>
-    </pre>
-{% trans -%}
-This command will retrieve the latest list of software from every
-repository enabled on your system, including the I2P repository added in step
-1.
-{%- endtrans %}
-  </li><br />
-  <li>{% trans -%}
-You are now ready to install I2P! Installing the <code>i2p-keyring</code>
-package will ensure that you receive updates to the repository's GPG key.
-{%- endtrans %}<br />
-<pre>
+    </pre>{% trans -%}This command will retrieve the latest list of software
+    from every repository enabled on your system, including the I2P repository
+    added in step 1.{%- endtrans %}
+  </li>
+  
+  <br />
+
+  <li>{% trans -%}You are now ready to install I2P! Installing the <code>i2p-keyring</code>
+  package will ensure that you receive updates to the repository's GPG key.
+  {%- endtrans %}<br />
+    <pre>
     <code>
   sudo apt-get install i2p i2p-keyring</code>
-  </pre></li>
+    </pre>
+  </li>
 </ol>
 <p>
 {% trans -%}
