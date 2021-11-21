@@ -46,11 +46,20 @@ If you want to mirror the I2P website, thanks! Here is a checklist:
 
 It's possible to set up a mirror using apache2 inside of a Docker container.
 It is intended to provide a HTTP server, to use HTTPS, using a reverse proxy
-is the easiest way. You should not need to make any modifications to the
-service running inside the container, but you may make the same modifications
-to the containerized mirror that you would to a normal mirror by changing your
-local copy of the site according to the recommendations in the previous 
-settings.
+is the easiest way.
+
+- The `site-updater-docker.sh` is configured to pull from the `git remote` which
+you are tracking, usually `origin`. If you cloned from a client tunnel, such
+as `git@127.0.0.1:i2p-hackers/i2p.www` using the `git-ssh` tunnel on 7670, then
+that is where you will `pull` new updates in from, as well. Therefore,
+`etc/update.vars` is unnecessary/unused.
+
+- Caching using `i2pwww/settings.py` works normally by copying `i2p2www/settings.py.sample`
+to `i2p2www/settings.py` and editing *before* building the image.
+
+- It is possible to set the variables: `i2p_www_docker_build_args`,
+`i2p_www_branch`, `suffix`, `port` to configure how the image and container
+are built. See the top of `site-updater-docker.sh` for details.
 
 - To automatically start an HTTP mirror on port 8090, run: `site-updater-docker.sh`
 
