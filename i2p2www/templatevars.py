@@ -27,6 +27,7 @@ I2P_TO_CLEAR = {
     'echelon.i2p/javadoc': 'docs.i2p-projekt.de/javadoc', # Hacky to include the path, but it works!
     'stats.i2p': 'stats.i2p', # Inproxy disabled at request of site owner
     'zzz.i2p': 'zzz.i2p',     # Inproxy disabled at request of site owner
+    'git.idk.i2p': 'i2pgit.org', # Git mirror
     }
 
 CLEAR_HTTP = [
