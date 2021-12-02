@@ -7,6 +7,7 @@ from i2p2www import (
     CANONICAL_DOMAIN,
     CURRENT_I2P_VERSION,
     CURRENT_I2P_FIREFOX_PROFILE_VERSION,
+    CURRENT_I2P_OSX_VERSION,
     PROPOSAL_DIR,
     RTL_LANGS,
     SUPPORTED_LANGS,
@@ -210,6 +211,13 @@ def utility_processor():
             return string % CURRENT_I2P_FIREFOX_PROFILE_VERSION
         return CURRENT_I2P_FIREFOX_PROFILE_VERSION
 
+    def get_current_osx_bundle_version(string=None, ver=None):
+        if string:
+            if ver:
+                return string % ver
+            return string % CURRENT_I2P_OSX_VERSION
+        return CURRENT_I2P_OSX_VERSION
+
     def browser_current_version():
         return BROWSER_VERSION
 
@@ -236,6 +244,7 @@ def utility_processor():
                 get_flag=get_flag,
                 ver=get_current_version,
                 pver=get_current_firefox_profile_version,
+                mver=get_current_osx_bundle_version,
                 canonical=get_canonical_link,
                 browser_version=browser_current_version,
                 browser_name=browser_short_name,
