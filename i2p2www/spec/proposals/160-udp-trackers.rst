@@ -103,7 +103,7 @@ I2P Fast Mode
 -------------------------
 
 In fast mode, we omit the connect phase, as it is not required to prevent address spoofing.
-for ease of adoption in existing UDP-capable client code bases:
+This significantly simplifies the client-side implementation.
 
 .. raw:: html
 
