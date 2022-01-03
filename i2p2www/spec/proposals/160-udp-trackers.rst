@@ -59,12 +59,12 @@ The message flow in [BEP15]_ is as follows:
 
   {% highlight %}
 Client                        Tracker
-          Connect Req. ------------->
-            <-------------- Connect Resp.
-          Announce Req. ------------->
-            <-------------- Announce Resp.
-          Announce Req. ------------->
-            <-------------- Announce Resp.
+    Connect Req. ------------->
+      <-------------- Connect Resp.
+    Announce Req. ------------->
+      <-------------- Announce Resp.
+    Announce Req. ------------->
+      <-------------- Announce Resp.
 {% endhighlight %}
 
 The connect phase is required to prevent IP address spoofing.
@@ -85,13 +85,13 @@ for ease of adoption in existing UDP-capable client code bases:
 
   {% highlight %}
 Client                        Tracker
-          Connect Req. ------------->       (Repliable)
-            <-------------- Connect Resp.   (Raw)
-          Announce Req. ------------->      (Raw)
-            <-------------- Announce Resp.  (Raw)
-          Announce Req. ------------->      (Raw)
-            <-------------- Announce Resp.  (Raw)
-                   ...
+    Connect Req. ------------->       (Repliable)
+      <-------------- Connect Resp.   (Raw)
+    Announce Req. ------------->      (Raw)
+      <-------------- Announce Resp.  (Raw)
+    Announce Req. ------------->      (Raw)
+      <-------------- Announce Resp.  (Raw)
+             ...
 {% endhighlight %}
 
 This mode is also useful if the client plans to send multiple announces
@@ -109,8 +109,8 @@ for ease of adoption in existing UDP-capable client code bases:
 
   {% highlight %}
 Client                        Tracker
-          Announce Req. ------------->      (Repliable)
-            <-------------- Announce Resp.  (Raw)
+    Announce Req. ------------->      (Repliable)
+      <-------------- Announce Resp.  (Raw)
 {% endhighlight %}
 
 This mode omits a round-trip, but requires every announce request to be repliable.
