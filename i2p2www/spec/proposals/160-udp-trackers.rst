@@ -372,7 +372,7 @@ References
     http://www.bittorrent.org/beps/bep_0015.html
 
 .. [DATAGRAMS]
-    {{ spec_url('datagrams', True) }}
+    {{ spec_url('datagrams') }}
 
 .. [SPEC]
     {{ site_url('docs/applications/bittorrent', True) }}
