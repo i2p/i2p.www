@@ -194,6 +194,7 @@ Offset  Size            Name            Value
   88      32-bit integer  key
   92      32-bit integer  num_want        -1 // default
   96      16-bit integer  port
+  98      TBD             additional data TBD
 {% endhighlight %}
 
 Changes from [BEP15]_:
@@ -202,6 +203,8 @@ Changes from [BEP15]_:
 - IP address is ignored
 - key is ignored
 - port is probably ignored
+- Explicitly indidate that the protocol is extensible,
+  with possible additional data starting at port 98.
 
 The response MUST be sent to the I2CP "to port" that was received as the request "from port".
 Do not use the port from the announce request.
@@ -227,13 +230,22 @@ Offset  Size            Name            Value
   8           32-bit integer  interval
   12          32-bit integer  leechers
   16          32-bit integer  seeders
-  20 + 32 * n 32-bit integer  binary hash
+  20          16-bit integer  count of hashes to follow
+  22 + 32 * n 32-byte hash    binary hashes
+  ...
+  22 + 32 * c TBD             additional data TBD
+
 {% endhighlight %}
 
 Changes from [BEP15]_:
 
+- Add a hash count before the hashes, so that the response format
+  is extensible with additional data after the hashes.
 - Instead of 6-byte IPv4+port or 18-byte IPv6+port, we return
-  a multiple of 32-byte "compact responses" with the binary peer hashes.
+  a multiple of 32-byte "compact responses" with the SHA-256 binary peer hashes.
+  As with TCP compact responses, we do not include a port.
+- Explicitly indidate that the protocol is extensible,
+  with possible additional data starting after the hashes
 
 The response MUST be sent to the I2CP "to port" that was received as the request "from port".
 Do not use the port from the announce request.
@@ -275,7 +287,8 @@ Issues
 
 - Repliable datagrams do not support offline signatures.
   That requires a separate proposal.
-- This proposal does not support blinded destinations.
+- This proposal does not support blinded destinations,
+  but may be extended to do so. See below.
 - This proposal offers two modes at the client's option.
   An existing clearnet tracker such as "opentracker" would require more modifications
   to support the fast mode. There is no way in the announce URL to indicate
@@ -292,6 +305,13 @@ Extensions
 Extension bits or a version field are not included.
 Clients and trackers should not assume packets to be of a certain size.
 This way, additional fields can be added without breaking compatibility.
+
+The announce response is modified to include a count of peer hashes,
+so that the response may be easily extended with additional information.
+
+If blinded destination support is required, we can either add the
+blinded 35-byte address to the end of the announce request, or define a new blinded announce request message.
+The set of blinded 35-byte peer addresses could be added to the end of the announce reply.
 
 
 
@@ -313,6 +333,8 @@ whatever is best for the existing code base.
 If a client support DHT or other datagram protocols, it should probably
 select a different port as the request "from port" so that the replies
 come back to that port and are not mixed up with DHT messages.
+The client only receives raw datagrams as replies.
+Trackers will never send a repliable datagram to the client.
 
 Clients with a default list of opentrackers should update the list to
 add UDP URLs after the known opentrackers are known to support UDP.
@@ -328,6 +350,8 @@ Trackers
 
 Trackers must implement both compatibility mode and fast mode.
 Trackers with existing BEP 15 support should require only small modifications.
+This proposal differs from the 2014 proposal, in that the tracker
+must support reception of repliable and raw datagrams on the same port.
 
 For an integrated application (router and client in one process, for example the ZzzOT Java plugin),
 it should be straightforward to implement and route the streaming and datagram traffic separately.
