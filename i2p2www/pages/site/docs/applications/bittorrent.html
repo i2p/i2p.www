@@ -1,7 +1,7 @@
 {% extends "global/layout.html" %}
 {% block title %}{% trans %}Bittorrent over I2P{% endtrans %}{% endblock %}
-{% block lastupdated %}{% trans %}January 2017{% endtrans %}{% endblock %}
-{% block accuratefor %}0.9.28{% endblock %}
+{% block lastupdated %}2022-01{% endblock %}
+{% block accuratefor %}0.9.52{% endblock %}
 {% block content %}
 
 <p>{% trans -%}
@@ -71,7 +71,9 @@ There are no known I2P clients or trackers that currently support UDP announce/r
 <h2>{% trans %}Non-Compact Tracker Responses{% endtrans %}</h2>
 <p>{% trans -%}
 The non-compact response is just as in standard bittorrent, with an I2P "ip".
-{%- endtrans %}</p>
+{%- endtrans %}
+This is a long base64-encoded "DNS string", probably with a ".i2p" suffix.
+</p>
 
 <p>{% trans -%}
 Trackers generally include a fake port key, or use the port from the announce, for compatibility with older clients.
@@ -296,32 +298,8 @@ are described below, and are subject to change.
 Contact the I2P developers if you wish to develop a client or tracker supporting datagram announces.
 {%- endtrans %}</p>
 
-<p>{% trans -%}
-A UDP tracker listens on two ports.
-The "query port" is the advertised port, and is used to receive repliable (signed) datagrams, for the connect request only.
-The "response port" is used to receive unsigned (raw) datagrams, and is the source port for all replies.
-The response port is arbitrary.
-A client sends and receives on a single port only.
-It receives only unsigned (raw) datagrams.
-Raw datagrams provides increased efficiency for replies since they contain tokens sent in the query, and need not be signed.
-{%- endtrans %}</p>
-
-<p>{% trans -%}
-In the announce request, the 4-byte IP is replaced by a 32-byte hash, and the port is still present,
-although it may be ignored by the tracker.
-In the announce response, each 4-byte IP and 2-byte port is replaced by a 32-byte hash (compact peer info), and no port is present.
-The client sends the announce request and scrape request to the source port in the announce response packet.
-The connect request, connect response, scrape request, scrape response, and error response are the same as in BEP 15.
-{%- endtrans %}</p>
-
-<p>{% trans -%}
-Source addresses in I2P cannot be spoofed, so it is possible to use a simplified protocol
-with 2 packets instead of 4, omitting the connect request and response.
-In this case, the announce request would be a repliable datagram sent to the tracker's query port,
-and the tracker would not require a response port.
-While this is more efficient, it would be more difficult to modify an existing tracker to support this mode.
-The URL for the 4-packet-mode tracker would use standard "udp://" prefix.
-The URL for a modified 2-packet-mode tracker would require a different prefix if both modes are supported in I2P.
+<p>{% trans prop160=site_url('docs/spec/proposals/160) -%}
+See <a href="{{ prop160 }}">Proposal 160</a>.
 {%- endtrans %}</p>
 
 
