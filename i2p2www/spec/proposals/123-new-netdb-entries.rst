@@ -2014,7 +2014,7 @@ Private Key File Changes Required
 
 The private key file (eepPriv.dat) format is not an official part of our specifications
 but it is documented in the Java I2P javadocs
-http://echelon.i2p/javadoc/net/i2p/data/PrivateKeyFile.html
+http://idk.i2p/javadoc-i2p/net/i2p/data/PrivateKeyFile.html
 and other implementations do support it.
 This enables portability of private keys to different implementations.
 
