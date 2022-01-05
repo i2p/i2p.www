@@ -2,8 +2,8 @@
 Plugin Specification
 ====================
 .. meta::
-    :lastupdated: November 2019
-    :accuratefor: 0.9.43
+    :lastupdated: 2022-01
+    :accuratefor: 0.9.53
 
 .. contents::
 
@@ -171,7 +171,10 @@ console:
 
         Only for webapps.
 
-        A path within the webapp to a 32x32 image, e.g. /icon.png
+        A path to a 32x32 image, e.g. /icon.png
+        As of 1.7.0 (API 0.9.53), if consoleLinkURL is specified,
+        the path is relative to that URL. Otherwise it is relative
+        to the webapp name.
         Applies to all webapps in the plugin.
 
     icon-code
@@ -283,8 +286,9 @@ console/
         jars in $PLUGIN/lib/ or $I2P/lib for the webapp classpath, with
         ``webapps.warname.classpath=$PLUGIN/lib/foo.jar,$I2P/lib/bar.jar``
 
-        NOTE: Currently, the classpath line is only loaded if the warname is the
-        same as the plugin name.
+        NOTE: Prior to release 1.7.0 (API 0.9.53), the classpath line was only
+        loaded if the warname was the same as the plugin name.
+        As of API 0.9.53, classpath setting will work for any warname.
 
         NOTE: Prior to router version 0.7.12-9, the router looked for
         ``plugin.warname.startOnLoad`` instead of
