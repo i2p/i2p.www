@@ -26,6 +26,7 @@ I2P_TO_CLEAR = {
     'lists.i2p': 'lists.i2p.email',
     'i2p-javadocs.i2p': 'docs.i2p-projekt.de/javadoc', # Hacky to include the path, but it works!
     'idk.i2p/javadoc': 'docs.i2p-projekt.de/javadoc', # Hacky to include the path, but it works!
+    "idk.i2p": "eyedeekay.github.io",
     'stats.i2p': 'stats.i2p', # Inproxy disabled at request of site owner
     'zzz.i2p': 'zzz.i2p',     # Inproxy disabled at request of site owner
     'git.idk.i2p': 'i2pgit.org', # Git mirror
