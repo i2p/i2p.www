@@ -1,6 +1,6 @@
 {% extends "global/layout.html" %}
 {% block title %}{{ _('Developer Guidelines and Coding Style') }}{% endblock %}
-{% block lastupdated %}2021-01{% endblock %}
+{% block lastupdated %}2022-01{% endblock %}
 {% block content %}
 <p>{% trans newdevs=site_url('get-involved/guides/new-developers') -%}
 Read the <a href="{{ newdevs }}">new developers guide</a> first.
@@ -138,7 +138,7 @@ Javadocs for API methods should be clear and complete.
 If you add or change the API, also update the documentation on the website (i2p.www branch).
 {%- endtrans %}</li>
 <li>{% trans -%}
-Tag strings for translation where appropriate.
+Tag strings for translation where appropriate, which is true for all UI strings.
 Don't change existing tagged strings unless really necessary, as it will break existing translations.
 Do not add or change tagged strings after the "tag freeze" in the release cycle so that
 translators have a chance to update before the release.
@@ -218,6 +218,38 @@ Don't store I2PAppContext, RouterContext, Log, or any other references to router
 Don't start threads in constructors. Use I2PAppThread instead of Thread.
 {%- endtrans %}</li>
 </ul>
+
+
+<h3>{{ _('Logging') }}</h3>
+The following guidelines apply to the router, webapps, and all plugins.
+<ul>
+<li>
+For any messages not displayed at the default log level (WARN, INFO, and DEBUG),
+unless the message is a static string (no concatenation),
+always use log.shouldWarn(), log.shouldInfo(), or log.shouldDebug()
+before the log call to avoid unnecessary Object churn.
+</li><li>
+Log messages that may be displayed at the default log level (ERROR, CRIT, and logAlways())
+should be brief, clear, and understandable to a non-technical user.
+This includes exception reason text that may also be displayed.
+Consider translating if the error is likely to happen (for example, on form submission errors).
+Otherwise, translation is not necessary, but it may be helpful to search for and reuse
+a string that is already tagged for translation elsewhere.
+</li><li>
+Log messages not displayed at the default log level (WARN, INFO, and DEBUG)
+are intended for developer use, and do not have the above requirements.
+However, WARN messages are available in the Android log tab, and may be of assistance
+to users debugging issues, so use some care with WARN messages as well.
+</li><li>
+INFO and DEBUG log messages should be used sparingly, especially in hot code paths.
+While useful during development, consider removing them or commenting them out
+after testing is complete.
+</li><li>
+Do not log to stdout or stderr (wrapper log).
+</li>
+</ul>
+
+
 
 <h3>{{ _('Licenses') }}</h3>
 <ul>
