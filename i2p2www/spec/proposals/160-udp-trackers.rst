@@ -5,7 +5,7 @@ UDP Trackers
     :author: zzz
     :created: 2022-01-03
     :thread: http://zzz.i2p/topics/1634
-    :lastupdated: 2022-01-03
+    :lastupdated: 2022-01-17
     :status: Open
     :target: 0.9.54
 
@@ -25,7 +25,7 @@ As the user base in general and the number of bittorrent users specifically cont
 we need to make trackers and announces more efficient so that trackers are not overwhelemed.
 
 Bittorrent proposed UDP trackers in BEP 15 [BEP15]_ in 2008, and the vast majority
-of trackers on clearnet are UDP-only.
+of trackers on clearnet are now UDP-only.
 
 A preliminary proposal for UDP trackers in I2P was posted on our bittorrent spec page [SPEC]_
 in May 2014; this predated our formal proposal process, and it was never implemented.
