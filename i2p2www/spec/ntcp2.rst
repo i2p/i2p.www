@@ -3,8 +3,8 @@ NTCP 2
 ======
 .. meta::
     :category: Transports
-    :lastupdated: 2021-03
-    :accuratefor: 0.9.50
+    :lastupdated: 2022-01
+    :accuratefor: 0.9.53
 
 .. contents::
 
@@ -1990,6 +1990,36 @@ Variants, Fallbacks, and General Issues
 - If Alice fails to connect to Bob using NTCP2 for any reason, the connection fails.
   Alice may not retry using NTCP 1.
 
+
+Clock Skew Guidelines
+======================
+
+Peer timestamps are included in the first two handshake messages, Session Request and Session Created.
+A clock skew between two peers of greater than +/- 60 seconds is generally fatal.
+If Bob thinks that his local clock is bad, he may adjust her clock using the
+calculated skew, or some external source.
+Otherwise, Bob should reply with a Session Created even if the maximum skew is exceeded,
+rather than simply closing the connection. This allows Alice to get Bob's timestamp and
+calculate the skew, and take action if necessary.
+Bob does not have Alice's router identity at this point, but
+to conserve resources,
+it may be desirable for Bob to ban incoming connections from Alice's IP for some period of time,
+or after repeated connection attempts with an excessive skew.
+
+Alice should adjust the calculated clock skew by subtracting half the RTT.
+If Alice thinks that her local clock is bad, she may adjust her clock using the
+calculated skew, or some external source.
+If Alice thinks that Bob's clock is bad, she may ban Bob for some period of time.
+In either case, Alice should close the connection.
+
+If Alice does reply with Session Confirmed
+(probably because the skew is very close to the 60s limit,
+and the Alice and Bob calculations are not exactly the same due to RTT),
+Bob should adjust the calculated clock skew by subtracting half the RTT.
+If the adjusted clock skew exceeds the maximum, Bob should then reply with
+a Disconnect message containing a clock skew reason code, and close
+the connection. At this point, Bob has Alice's router identity,
+and may ban Alice for some period of time.
 
 
 References
