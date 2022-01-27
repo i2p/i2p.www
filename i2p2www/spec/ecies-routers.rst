@@ -1,7 +1,6 @@
 =============================
 ECIES-X25519 Router Messages
 =============================
-
 .. meta::
     :category: Protocols
     :lastupdated: 2021-01

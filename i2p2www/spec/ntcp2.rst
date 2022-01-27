@@ -1996,7 +1996,7 @@ Clock Skew Guidelines
 
 Peer timestamps are included in the first two handshake messages, Session Request and Session Created.
 A clock skew between two peers of greater than +/- 60 seconds is generally fatal.
-If Bob thinks that his local clock is bad, he may adjust her clock using the
+If Bob thinks that his local clock is bad, he may adjust his clock using the
 calculated skew, or some external source.
 Otherwise, Bob should reply with a Session Created even if the maximum skew is exceeded,
 rather than simply closing the connection. This allows Alice to get Bob's timestamp and
