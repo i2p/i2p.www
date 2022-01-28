@@ -2,6 +2,7 @@
 Configuration File Specification
 ================================
 .. meta::
+    :category: Formats
     :lastupdated: March 2020
     :accuratefor: 0.9.45
 

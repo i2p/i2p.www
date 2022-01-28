@@ -2,6 +2,7 @@
 Blockfile and Hosts Database Specification
 ==========================================
 .. meta::
+    :category: Formats
     :lastupdated: 2020-09
     :accuratefor: 0.9.47
 

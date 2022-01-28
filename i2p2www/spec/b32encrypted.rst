@@ -2,6 +2,7 @@
 B32 for Encrypted Leasesets
 ===========================
 .. meta::
+    :category: Design
     :lastupdated: 2020-08
     :accuratefor: 0.9.47
 

@@ -2,6 +2,7 @@
 Addressbook Subscription Feed Commands
 ======================================
 .. meta::
+    :category: Formats
     :lastupdated: 2021-01
     :accuratefor: 0.9.49
 

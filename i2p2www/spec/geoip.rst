@@ -2,6 +2,7 @@
 GeoIP File Specification
 ========================
 .. meta::
+    :category: Formats
     :lastupdated: December 2013
     :accuratefor: 0.9.9
 

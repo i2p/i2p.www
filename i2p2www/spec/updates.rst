@@ -2,6 +2,7 @@
 Software Update Specification
 =============================
 .. meta::
+    :category: Design
     :lastupdated: June 2021
     :accuratefor: 0.9.51
 

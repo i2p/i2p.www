@@ -2,6 +2,7 @@
 Access Filter Format Specification
 ==================================
 .. meta::
+    :category: Formats
     :lastupdated: April 2019
     :accuratefor: 0.9.40
 

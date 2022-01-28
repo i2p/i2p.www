@@ -36,6 +36,7 @@ SPEC_CATEGORY_SORT = defaultdict(lambda: 999, {
     'Design': 1,
     'Transports': 2,
     'Protocols': 3,
+    'Formats': 4,
     })
 
 PROPOSAL_METATAGS = {

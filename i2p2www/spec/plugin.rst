@@ -2,6 +2,7 @@
 Plugin Specification
 ====================
 .. meta::
+    :category: Design
     :lastupdated: 2022-01
     :accuratefor: 0.9.53
 
