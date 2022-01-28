@@ -6,7 +6,7 @@ ECIES Routers
     :created: 2020-09-01
     :thread: http://zzz.i2p/topics/2950
     :lastupdated: 2021-07-31
-    :status: Open
+    :status: Closed
     :target: 0.9.51
 
 .. contents::

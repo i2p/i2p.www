@@ -5,10 +5,18 @@ Tunnel Build Message Options
     :author: zzz
     :created: 2018-01-14
     :thread: http://zzz.i2p/topics/2500
-    :lastupdated: 2018-01-20
-    :status: Open
+    :lastupdated: 2022-01-28
+    :status: Rejected
 
 .. contents::
+
+
+Note
+====
+This proposal was not implemented as specified,
+however, the ECIES long and short build messages (proposals 152 and 157)
+were designed with extensible options fields.
+See [SPEC]_ for the official specification.
 
 
 Overview
@@ -95,3 +103,11 @@ The unused space in the Tunnel Build Records are filled with random data and cur
 The space can be converted to contain options without migration issues.
 In the build message, the presence of options is indicated in the flags byte.
 In the build reply message, the presence of options is indicated by a multi-byte magic number.
+
+
+
+References
+==========
+
+.. [SPEC]
+   {{ spec_url('tunnel-creation-ecies') }}
