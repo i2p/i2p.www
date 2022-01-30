@@ -5,7 +5,7 @@ SSU2
     :author: eyedeekay, orignal, zlatinb, zzz
     :created: 2021-09-12
     :thread: http://zzz.i2p/topics/2612
-    :lastupdated: 2022-01-17
+    :lastupdated: 2022-01-30
     :status: Open
     :target: 0.9.55
 
@@ -2807,7 +2807,7 @@ the destination's intro key and n=0.
 For Session Request, the same key is used with n=1 for the next 48 bytes (covering X as well).
 For other messages, the same key is used with n=1 for the next 16 bytes.
 
-For Session Created and Retry, where the destination router hash and IV are not yet known,
+For Session Created and Retry, where the destination router hash and introduction key are not yet known,
 the source intro key is used to decrypt the long header,
 with n=0 for the first 16 bytes.
 For Session Created, n=1 is used for the next 48 bytes (covering Y as well).
@@ -2843,9 +2843,9 @@ Header Protection KDF:
   // take the last 12 bytes before the MAC
   sample = packet[len-32:len-17]
   n = sample[4:15]
-  key = header protection key
+  k_header = header protection key
   data = {0, 0, 0, 0, 0, 0, 0, 0}
-  mask = ChaCha20.encrypt(key, n, data)
+  mask = ChaCha20.encrypt(k_header, n, data)
 
   // encrypt the header by XORing with the mask
   header[8:15] ^= mask[0:7]
@@ -3011,6 +3011,10 @@ KDF for Initial ChainKey
   // || below means append
   h = SHA256(h || bpk);
 
+  // Bob introduction key
+  // bik is published in routerinfo
+  bik = RANDOM(32)
+
   // up until here, can all be precalculated by Bob for all incoming connections
 
 {% endhighlight %}
@@ -3060,8 +3064,14 @@ This is the "e" message pattern:
 
   End of "es" message pattern.
 
-  // Header protection key
-  TBD
+  // Header protection key for this message
+  k_header = HKDF(bik, ZEROLEN, "SessionReqHeader", 32)
+
+  // Header protection key for next message (Session Created)
+  k_header = HKDF(chainKey, ZEROLEN, "SessCreateHeader", 32)
+
+  // Header protection key for next message (Retry)
+  See Retry message KDF below
 
 
 {% endhighlight %}
@@ -3327,8 +3337,11 @@ KDF for Session Created and Session Confirmed part 1
 
   End of "ee" message pattern.
 
-  // Header protection key
-  TBD
+  // Header protection key for this message
+  See Session Request KDF above
+
+  // Header protection key for next message (Session Confirmed)
+  k_header = HKDF(chainKey, ZEROLEN, "SessionConfirmed", 32)
 
 {% endhighlight %}
 
@@ -3546,8 +3559,8 @@ KDF for Session Confirmed part 1, using Session Created KDF
 
   End of "s" message pattern.
 
-  // Header protection key
-  TBD
+  // Header protection key for this message
+  See Session Confirmed part 2 below
 
 {% endhighlight %}
 
@@ -3583,6 +3596,12 @@ This is the "se" message pattern:
   // retain the hash h for the data phase Additional Symmetric Key (SipHash) KDF
 
   End of "se" message pattern.
+
+  // Header protection key for this message
+  See Session Created KDF above
+
+  // Header protection key data phase
+  See data phase KDF below
 
 {% endhighlight %}
 
@@ -3802,14 +3821,19 @@ This is the split() function, exactly as defined in the Noise spec.
   // key is k_ab for Alice to Bob
   // key is k_ba for Bob to Alice
 
+  keydata = HKDF(key, ZEROLEN, "HKDFSSU2DataKeys", 64)
+  k_data = keydata[0:31]
+  k_header = keydata[32:63]
+
+
   // AEAD parameters
-  k = k_ab or k_ba
+  k = k_data
   n = packet number from header
   ad = header
   ciphertext = ENCRYPT(k, n, payload, ad)
 
-  // Header protection keys
-  TBD
+  // Header protection key for data phase
+  k_header from above
 
 {% endhighlight %}
 
@@ -3933,6 +3957,26 @@ Session Destroyed (Type 8)
 TBD, only required if these must be sent outside of an existing session.
 
 
+
+KDF for Retry
+----------------
+
+The requirement for the Retry message is that Bob is not required to
+decrypt the Session Request message to generate a Retry message in response.
+
+.. raw:: html
+
+  {% highlight lang='text' %}
+
+// TODO
+
+  // Header protection key for this message
+  // bpk = Bob's public key
+  k_header = HKDF(bpk, ZEROLEN, "RetryMessage1234", 32)
+
+{% endhighlight %}
+
+
 Retry (Type 9)
 -------------------------------
 
@@ -4007,6 +4051,12 @@ Unencrypted data (Poly1305 authentication tag not shown):
   Token :: 8 byte unsigned integer, nonzero
 
 {% endhighlight %}
+
+
+Payload Contents
+``````````````````
+Padding block only
+
 
 Notes
 `````
