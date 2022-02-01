@@ -2448,8 +2448,23 @@ This proposal defines the following enhancements to
 Noise_XK_25519_ChaChaPoly_SHA256.  These generally follow the guidelines in
 [NOISE]_ section 13.
 
-1) Cleartext ephemeral keys are obfuscated with ChaCha20 encryption using a known
+1) Handshake messages (Session Request, Created, Confirmed) include
+   a 16 or 32 byte header.
+
+2) The headers for the handshake messages (Session Request, Created, Confirmed)
+   are used as input to mixHash() before encryption/decryption
+   to bind the headers to the message.
+
+3) Headers are encrypted and protected.
+
+4) Cleartext ephemeral keys are obfuscated with ChaCha20 encryption using a known
    key and IV.  This is quicker than elligator2.
+
+5) The payload format is defined for messages 1, 2, and the data phase.
+   Of course, this is not defined in Noise.
+
+All messages include an [I2NP]_ Garlic Message header.
+The data phase uses encryption similar to, but not compatible with, the Noise data phase.
 
 
 
@@ -3026,7 +3041,11 @@ KDF for Session Request
 .. raw:: html
 
   {% highlight lang='text' %}
-This is the "e" message pattern:
+
+// MixHash(header)
+  h = SHA256(h || header)
+
+  This is the "e" message pattern:
 
   // Alice's X25519 ephemeral keys
   aesk = GENERATE_PRIVATE()
@@ -3201,7 +3220,7 @@ Unencrypted data (Poly1305 authentication tag not shown):
   +----+----+----+----+----+----+----+----+
   |     Noise payload (block data)        |
   +          (length varies)              +
-  |                                       |
+  |     see below for allowed blocks      |
   +----+----+----+----+----+----+----+----+
 
 
@@ -3224,6 +3243,14 @@ Unencrypted data (Poly1305 authentication tag not shown):
   X :: 32 bytes, X25519 ephemeral key, little endian
 
 {% endhighlight %}
+
+
+Payload
+```````
+
+- DateTime block
+- Relay Tag Request block (optional)
+- Padding block (optional)
 
 
 Notes
@@ -3465,7 +3492,7 @@ Unencrypted data (Poly1305 auth tag not shown):
   +----+----+----+----+----+----+----+----+
   |     Noise payload (block data)        |
   +          (length varies)              +
-  |                                       |
+  |      see below for allowed blocks     |
   +----+----+----+----+----+----+----+----+
 
   Destination Connection ID :: As sent by Alice
@@ -3487,6 +3514,15 @@ Unencrypted data (Poly1305 auth tag not shown):
   Y :: 32 bytes, X25519 ephemeral key, little endian
 
 {% endhighlight %}
+
+
+Payload
+```````
+- DateTime block
+- Relay Tag block (optional)
+- Options block (optional)
+- Padding block (optional)
+
 
 Notes
 `````
@@ -3685,19 +3721,12 @@ Raw contents:
   |                                       |
   +   ChaChaPoly frame                    +
   |   Encrypted and authenticated         |
-  +                                       +
-  |       Alice RouterInfo                |
-  +       using block format 2            +
-  |       Alice Options (optional)        |
-  +       using block format 1            +
-  |       Arbitrary padding               |
-  +       using block format 254          +
+  +   see below for allowed blocks        +
   |                                       |
-  +                                       +
-  |     k defined in KDF for              |
-  +     Session Confirmed part 2          +
-  |     n = 0                             |
-  +     see KDF for associated data       +
+  +     k defined in KDF for              +
+  |     Session Confirmed part 2          |
+  +     n = 0                             +
+  |     see KDF for associated data       |
   ~               .   .   .               ~
   |                                       |
   +----+----+----+----+----+----+----+----+
@@ -3734,7 +3763,7 @@ Unencrypted data (Poly1305 auth tags not shown):
   +                                       +
   |        Noise Payload                  |
   +        (length varies)                +
-  |                                       |
+  |        see below for allowed blocks   |
   ~               .   .   .               ~
   |                                       |
   +----+----+----+----+----+----+----+----+
@@ -3752,6 +3781,15 @@ Unencrypted data (Poly1305 auth tags not shown):
   S :: 32 bytes, Alice's X25519 static key, little endian
 
 {% endhighlight %}
+
+
+Payload
+```````
+- RouterInfo block
+- Options block (optional)
+- I2NP, First Fragment, of Follow-on Fragment blocks (optional, but probably no room)
+- Padding block (optional)
+
 
 
 Notes
@@ -4030,7 +4068,7 @@ Unencrypted data (Poly1305 authentication tag not shown):
   +----+----+----+----+----+----+----+----+
   |    ChaCha20 payload (block data)      |
   +          (length varies)              +
-  |                                       |
+  |    see below for allowed blocks       |
   +----+----+----+----+----+----+----+----+
 
 
@@ -4053,9 +4091,11 @@ Unencrypted data (Poly1305 authentication tag not shown):
 {% endhighlight %}
 
 
-Payload Contents
-``````````````````
-Padding block only
+Payload
+```````
+- DateTime block
+- Termination block
+- Padding block (optional)
 
 
 Notes
@@ -4515,6 +4555,7 @@ This must be the last non-padding block in the payload.
          15: RI signature verification fail
          16: s parameter missing, invalid, or mismatched in RouterInfo
          17: banned
+         18: bad token
   addl data :: optional, 0 or more bytes, for future expansion, debugging,
                or reason text.
                Format unspecified and may vary based on reason code.
@@ -4828,6 +4869,7 @@ See ack sections below for discussion.
 Relay Tag Request
 ```````````````````````
 In the Session Request message.
+Bob may respond with a Relay Tag in the Session Created message.
 
 .. raw:: html
 
@@ -4845,6 +4887,7 @@ In the Session Request message.
 Relay Tag
 ```````````
 In the Session Created message.
+In response to a Relay Tag Request in the Session Request message.
 
 .. raw:: html
 
@@ -4855,7 +4898,7 @@ In the Session Created message.
 
   blk :: 16
   size :: 2 bytes, big endian, value = 4
-  relay tag :: 4 bytes, big endian
+  relay tag :: 4 bytes, big endian, nonzero
 
 {% endhighlight %}
 
@@ -5795,10 +5838,52 @@ Bob publishes his static public key in the netdb. Alice may not, but must includ
 sent to Bob.
 
 
+Packet Guidelines
+==========================
+
+
+Outbound Packet Creation
+-----------------------------
+
+Handshake messages (Session Request/Created/Confirmed) basic steps, in order:
+
+- Create 16 or 32 byte header
+- Create body
+- mixHash() the header
+- Encrypt the body using Noise
+- Encrypt the header
+- Packet protect the header
+
+
+Data phase messages basic steps, in order:
+
+- Create 16-byte header
+- Create body
+- Encrypt the body using ChaChaPoly using the header as AD
+- Encrypt the header
+- Packet protect the header
+
 
 
 Inbound Packet Handling
-==========================
+-----------------------------
+
+Handshake messages (Session Request/Created/Confirmed) basic steps, in order:
+
+- Remove header protection
+- Decrypt the 16 or 32 byte header
+- mixHash() the header
+- Decrypt the body using Noise
+- Process the header and payload
+
+
+Data phase messages basic steps, in order:
+
+- Remove header protection
+- Decrypt the 16 byte header
+- Decrypt the body using ChaChaPoly using the header as AD
+- Process the header and payload
+
 
 In SSU 1, inbound packet classification is difficult, because there is no
 header to indicate session number. Routers must first match the source IP and port
