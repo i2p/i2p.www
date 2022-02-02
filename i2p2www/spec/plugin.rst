@@ -120,6 +120,11 @@ router console if present:
         The update checker will check bytes 41-56 at this URL
         to determine whether a newer version is available
 
+        As of 1.7.0(0.9.53), it is possible to use the $OS and $ARCH
+        variables in the URL.  For example, on Windows/amd64, the URL
+        http://foo.i2p/foo-$OS-$ARCH.xpi2p would be transformed into:
+        http://foo.i2p/foo-windows-amd64.xpi2p.
+
         Not recommended. Do not use unless you previously distributed
         plugins in the xpi2p format, and even then, routers know how
         to update with the su3 URL, as of 0.9.15.
@@ -132,6 +137,11 @@ router console if present:
         http://foo.i2p/foo.su3
 
         The location of the su3-format update file, as of 0.9.15
+
+        As of 1.7.0(0.9.53), it is possible to use the $OS and $ARCH
+        variables in the URL.  For example, on Windows/amd64, the URL
+        http://foo.i2p/foo-$OS-$ARCH.xpi2p would be transformed into:
+        http://foo.i2p/foo-windows-amd64.xpi2p.
 
     description
         in English

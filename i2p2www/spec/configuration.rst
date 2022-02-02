@@ -125,6 +125,12 @@ uninstallargs, and classpath lines, for plugins only:
     $PLUGIN
         This plugin's directory (e.g. ~/.i2p/plugins/foo)
 
+    $OS
+        The operating system name (e.g. "linux")
+    
+    $ARCH
+        The architecture name (e.g. "amd64")
+
 All properties except "main" are optional.  Lines starting with "#" are
 comments.
 
