@@ -5,7 +5,7 @@ SSU2
     :author: eyedeekay, orignal, zlatinb, zzz
     :created: 2021-09-12
     :thread: http://zzz.i2p/topics/2612
-    :lastupdated: 2022-02-05
+    :lastupdated: 2022-02-06
     :status: Open
     :target: 0.9.55
 
@@ -2471,8 +2471,7 @@ The data phase uses encryption similar to, but not compatible with, the Noise da
 New Cryptographic Primitives for I2P
 ---------------------------------------
 
-None?
-Investigate other hash functions to replace SHA256.
+None
 
 
 
@@ -3518,6 +3517,7 @@ Unencrypted data (Poly1305 auth tag not shown):
 Payload
 ```````
 - DateTime block
+- Address block
 - Relay Tag block (optional)
 - Options block (optional)
 - Padding block (optional)
@@ -3785,6 +3785,7 @@ Unencrypted data (Poly1305 auth tags not shown):
 Payload
 ```````
 - RouterInfo block
+- Options block (optional)
 - I2NP, First Fragment, of Follow-on Fragment blocks (optional, but probably no room)
 - Padding block (optional)
 
@@ -4207,7 +4208,7 @@ Relay Intro                                 9           TBD
 Peer Test                                  10           TBD
 Next Nonce                                 11           TBD
 ACK                                        12         varies 
-xxxxxxxxxxxxx                              13         varies 
+Address                                    13         6 or 18
 xxxxxxxxxxxxx                              14         varies 
 Relay Tag Request                          15            3      
 Relay Tag                                  16            7      
@@ -4861,6 +4862,30 @@ After the last range, packets are neither acked nor nacked.
 Length of the ack block and how old acks/nacks are handled
 is up to the sender of the ack block.
 See ack sections below for discussion.
+
+
+
+Address
+``````````````
+2 byte port and 4 or 16 byte IP address.
+Alice's address, sent to Alice by Bob
+
+.. raw:: html
+
+  {% highlight lang='dataspec' %}
++----+----+----+----+----+----+----+----+
+  | 13 | 6 or 18 |   Port  | IP Address    
+  +----+----+----+----+----+----+----+----+
+       |
+  +----+
+
+  blk :: 13
+  size :: 2 bytes, big endian, 6 or 18
+  port :: 2 bytes, big endian
+  ip :: 4 byte IPv4 or 16 byte IPv6 address,
+        big endian (network byte order)
+
+{% endhighlight %}
 
 
 
