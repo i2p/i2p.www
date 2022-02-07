@@ -5,7 +5,7 @@ SSU2
     :author: eyedeekay, orignal, zlatinb, zzz
     :created: 2021-09-12
     :thread: http://zzz.i2p/topics/2612
-    :lastupdated: 2022-02-06
+    :lastupdated: 2022-02-07
     :status: Open
     :target: 0.9.55
 
@@ -107,7 +107,14 @@ Design Goals
 - Don't add significantly to CPU required for connection setup; if possible,
   reduce it significantly.
 
-- Add message authentication (MAC) using ChaCha/Poly1305.
+- Remove requirement for padding to a multiple of 16 bytes
+  imposed by AES encryption in SSU 1.
+
+- Use standard ChaCha/Poly1305 for encryption and MAC,
+  replacing AES encryption and the nonstandard HMAC-MD5-128 MAC used in SSU 1.
+
+- Use separate encryption keys for send and receive, instead
+  of the common keys for both directions used in SSU 1.
 
 - Use a 3-message, one-round-trip handshake, as in [NTCP2]_.
   Remove the delay waiting for data messages that makes
@@ -128,10 +135,14 @@ Design Goals
 
 - Avoid any year 2038 issues in timestamps, must work until at least 2106.
 
-- Increase minimum MTU from 620 to 1280 for efficiency and ease of implementation.
+- Increase minimum MTU from 620 to 1280 for efficiency, ease of implementation,
+  and increasing the maximum I2NP message size.
 
-- Maintain a max I2NP message size of approximately 32K, as in SSU.
-  Increase to 64 KB? TBD
+- Increase maximum MTU from 1488 (1484 for IPv6) to 1500 for efficiency.
+  Remove requirement that the MTU be a multiple of 16.
+
+- Increase the maximum I2NP message size from approximately 32K in SSU 1
+  to approximately 64 KB as in NTCP2.
 
 - Remove IP and port fields from the handshake, so that routers that don't know
   their external IP and port will be able to connect.
@@ -3864,8 +3875,8 @@ This is the split() function, exactly as defined in the Noise spec.
 
   // AEAD parameters
   k = k_data
-  n = packet number from header
-  ad = header
+  n = 4 byte packet number from header
+  ad = 16 byte header, after removal of packet protection and decryption
   ciphertext = ENCRYPT(k, n, payload, ad)
 
   // Header protection key for data phase
@@ -4538,6 +4549,14 @@ and can send as much data as will fit in each packet?
   message :: Partial I2NP message body
 
 {% endhighlight %}
+
+Notes:
+
+- As in SSU 1, the maximum fragment number is 127, but the practical
+  limit is 63 or less. Implementations may limit the maximum to
+  what is practical for a maximum I2NP message size of about 64 KB,
+  which is about 55 fragments with a 1280 minimum MTU.
+  See the Max I2NP Message Size section below.
 
 
 
@@ -5597,6 +5616,11 @@ Current SSU 1 IPv4 minimum is 620, which is definitely too small.
 The minimum SSU2 MTU is 1280 for both IPv4 and IPv6,
 which is the same as specified in [RFC-9000]_.
 See below.
+By increasing the minimum MTU, 1 KB tunnel messages
+and short tunnel build messages will fit in one datagram, greatly reducing the
+typical amount of fragmentation. This also allows
+an increase in the maximum I2NP message size.
+1820-byte streaming messages should fit in two datagrams.
 
 
 SSU Address
@@ -5673,8 +5697,8 @@ TBD
 
 
 
-Max Message Size
-------------------
+Max I2NP Message Size
+-----------------------
 
 IPv4:
 No IP fragmentation is assumed.
@@ -5696,6 +5720,22 @@ Data phase header is 16 bytes and MAC is 16 bytes, totaling 32 bytes.
 Payload size is MTU - 80.
 Max data phase payload is 1420 for a max 1500 MTU.
 Max data phase payload is 1200 for a min 1280 MTU.
+
+In SSU 1, the guidelines were a strict maximum of about 32 KB for
+a I2NP message based on 64 maximum fragments and a 620 minimum MTU.
+Due to overhead for bundled LeaseSets and session keys, the practical limit
+at the application level was about 6KB lower, or about 26KB.
+The SSU 1 protocol allows for 128 fragments but current implementations
+limit it to 64 fragments.
+
+By raising the minimum MTU to 1280, with a data phase payload of
+approximately 1200, an SSU 2 message of about 76 KB is possible in 64 fragments
+and 152 KB in 128 fragments. This easily allows a maximum of 64 KB.
+
+Due to fragmentation in tunnels, and fragmentation in SSU 2,
+the chance of message loss increases exponentially with message size.
+We continue to recommend a practical limit of about 10 KB at the
+application layer for I2NP datagrams.
 
 
 
@@ -6128,13 +6168,13 @@ Total                                                       2254
 SSU 2
 
 ==================   ===========   =====   ======  =======  ======  =====
-Message              Header+MAC    Keys    Data    Padding  Total   Notes
+Message              Header+MACs   Keys    Data    Padding  Total   Notes
 ==================   ===========   =====   ======  =======  ======  =====
 Session Request      48             32        7               87    DateTime block
-Session Created      48             32        7               87    DateTime block
-Session Confirmed    48             32     1003             1083    (2 macs) 1000 byte RI block
+Session Created      48             32       16               96    DateTime, Address blocks
+Session Confirmed    48             32     1005             1085    1000 byte RI block
 Data (1 full msg)    32                      14               46
-Total                                                       1303
+Total                                                       1314
 ==================   ===========   =====   ======  =======  ======  =====
 
 
