@@ -1,0 +1,72 @@
+(03:01:32 PM) eyedeekay: Hi everyone welcome to the Feburary 8th dev meeting
+(03:01:38 PM) eyedeekay: Sorry about last week, hopefully the message dropping issues will not recur
+(03:01:45 PM) eyedeekay: Topics:
+(03:01:45 PM) eyedeekay: 1. Hi
+(03:01:45 PM) eyedeekay: 2. Outproxy Requirements(ongoing)
+(03:01:45 PM) eyedeekay: 3. 1.7.0/0.9.53 status / release schedule
+(03:02:13 PM) zzz: hi
+(03:02:15 PM) mode (-m ) by zzz
+(03:02:16 PM) zlatinb: hi
+(03:02:30 PM) eyedeekay: hi everybody
+(03:02:54 PM) eyedeekay: Let's start right in 2) Outproxy requirements
+(03:04:08 PM) eyedeekay: zzz found us a bunch of old lists of requirements, which we should either A) choose one or B) collate into a new list
+(03:04:51 PM) eyedeekay: I've been trying to do some research into which requirements are feasible and get some guidance from what Tor does
+(03:06:18 PM) eyedeekay: At the same time, some groups and some individuals have emerged to volunteer to help with outproxies, one of which is also a multiple Tor exit node operator operating a non-profit, so hopefully we can benefit from their experience
+(03:08:04 PM) eyedeekay: In some cases I find the rules a little murky:  - Optional allowlist/blocklist of hosts/IPs? for instance, seems straightforward at once but what we suggest blocking/allowing on a host/IP basis might open operators up to request to block things they don't want to block?
+(03:08:45 PM) eyedeekay: Seems like the advice may have been that it's safe to block "ports" but maybe not hostnames?
+(03:09:05 PM) zzz: I think there's two categories of requirements
+(03:09:57 PM) zzz: 1) Things that we as a project would want to see (header requirements, small error page, link to additional info)
+(03:10:48 PM) zzz: 2) Things that any rational outproxy operator would want, especially admin tools, but we don't have the expertise to offer much guidance
+(03:11:40 PM) zzz: we should focus on 1)
+(03:12:14 PM) eyedeekay: OK that's easier, approaching it from the other direction was like cramming for a test
+(03:12:40 PM) zzz: and we should not attempt to offer a turnkey packaged solution for 2), only perhaps suggest some best practices
+(03:13:00 PM) eyedeekay: But I think it implies we'll need to be flexible, i.e. things we want will need to be subordinate to the things they'll be able to offer
+(03:13:09 PM) eyedeekay: That's probably a given though
+(03:13:43 PM) zzz: I'm thinking everything in 1) is pretty basic
+(03:14:38 PM) zzz: 1a) filter out any X-I2P headers outbound. Do or don't add an X-forwarded headers in either direction?
+(03:14:54 PM) zzz: 1b) have a small error page with a link to more info
+(03:15:07 PM) zzz: 1c) have a privacy policy on the more info page
+(03:15:13 PM) zzz: stuff like that
+(03:16:24 PM) eyedeekay: Yeah I agree, that shouldn't be difficult
+(03:17:14 PM) eyedeekay: So I'll avoid trying to figure out what people "should" do re: category 2) for the time being and focus on 1)
+(03:18:19 PM) eyedeekay: Anything else for topic 2)?
+(03:18:36 PM) zzz: The other thing in 1) is http vs. standard tunnel. I _think_ http is the right choice, and the choice affects the header issues
+(03:19:04 PM) zzz: eot for 2)
+(03:19:37 PM) eyedeekay: The standard tunnel doesn't add the X-I2P-* headers at all does it?
+(03:19:55 PM) zzz: no, it doesn't know about header
+(03:20:09 PM) zzz: *headers
+(03:20:39 PM) zzz: so the choice affects what the external proxy software "sees"
+(03:21:47 PM) eyedeekay: So why http? Wouldn't it be better if the server software didn't have to strip/re-add/keep track of the X-I2P headers to keep them from leaking?
+(03:22:23 PM) zzz: any proxy needs to deal with headers
+(03:22:49 PM) zzz: the proxy standard specifies that some headers are "hop-by-hop" and need to be stripped/added
+(03:23:56 PM) zzz: and of course there's both the HTTP and HTTPS (CONNECT) cases to deal with
+(03:27:13 PM) eyedeekay: So in the HTTP tunnel case we would be actually using the X-I2P headers
+(03:28:39 PM) zzz: they could be used e.g. for rate limiting by a competent outproxy admin
+(03:29:09 PM) eyedeekay: Makes sense
+(03:29:57 PM) eyedeekay: Anything else on 2)?
+(03:30:05 PM) zzz: no
+(03:30:12 PM) eyedeekay: 3. 1.7.0/0.9.53 status / release schedule
+(03:30:59 PM) eyedeekay: We're exactly 13 days from release on the 21st
+(03:31:10 PM) eyedeekay: Tags are freezing tomorrow
+(03:31:39 PM) zzz: yup, checkin deadline Fri. Feb. 18
+(03:32:26 PM) zzz: i2pd will be releasing on the 19th or 20th with a fix for the nasty SSU bug that's been causing network reliability issues the last couple of months
+(03:32:55 PM) zzz: our release will also have some related workarounds and improvements
+(03:33:09 PM) eyedeekay: Good to hear, that's been a rough ride for a lot of folks especially on mobile
+(03:33:20 PM) zzz: I'm hopeful that conditions will improve pretty rapidly once people start upgrading
+(03:34:10 PM) zzz: other than that, the cycle has been pretty smooth, things are quieting down
+(03:35:26 PM) zzz: we're at 14,000 lines of diff, pretty good size
+(03:36:00 PM) zzz: eot for 3)
+(03:37:45 PM) eyedeekay: I don't have much to add, I'll still be making tiny CSS changes for the next week or so to deal with some quirks on extra-small or extra-wide screens and some contrast issues in the dark theme, but other than that my time will be spent trying to review and test
+(03:37:55 PM) zlatinb: I would like to run some tests in the testnet after both i2p and i2pd freeze the code for the release.  I've documented them on the gitlab wiki.
+(03:38:05 PM) zlatinb: eyedeekay: what about end-to-end test for the windows aio?
+(03:38:58 PM) eyedeekay: I got one working yesterday, I had a couple issues to deal, one on the build-config side and one on the router.config side but they should both be gone now as long as I'm extra-careful with my release build
+(03:41:18 PM) eyedeekay: Turns out I had built the package without incrementing the router version number so even if a download happened(which would not have happened because the URL in router.config was wrong) it would not trigger an update
+(03:42:16 PM) eyedeekay: Both those issues are fixed now and I've set up to test the package after I get it built
+(03:42:49 PM) eyedeekay: So my updates were badly broken, but now they should be fixed, EOT
+(03:44:07 PM) eyedeekay: Anything else for the meeting? Questions, comments, concerns?
+(03:46:02 PM) zzz: aio == "bundle" or "easy install bundle". Let's not use "aio" as the name for it anywhere
+(03:46:27 PM) zzz: I always think async i/o
+(03:46:36 PM) zzz: nothing else for me
+(03:47:06 PM) eyedeekay: OK yeah AIO is ambiguous means different things to different people
+(03:47:28 PM) eyedeekay: I'll stick to Bundle or Easy-Install Bundle
+(03:48:01 PM) eyedeekay: All right thanks everybody for coming to the meeting, see you next month on the 5th, looks like
