@@ -5,7 +5,7 @@ SSU2
     :author: eyedeekay, orignal, zlatinb, zzz
     :created: 2021-09-12
     :thread: http://zzz.i2p/topics/2612
-    :lastupdated: 2022-02-07
+    :lastupdated: 2022-02-09
     :status: Open
     :target: 0.9.55
 
@@ -2580,17 +2580,18 @@ Messages
 ========
 
 Each UDP datagram contains exactly one message.
-The length of the datagram (after the IP header) is the length of the message.
+The length of the datagram (after the IP and UDP headers) is the length of the message.
 Padding, if any, is contained in a padding block inside the message.
 In this document, we use the terms "datagram" and "packet" mostly interchangeably.
 Each datagram (or packet) contains a single message (unlike QUIC, where
 a datagram may contain multiple QUIC packets).
 The "packet header" is the part after the IP/UDP header.
 
-All SSU2 messages are less than or equal to TBD bytes in length. The message
+All SSU2 messages are at least 32 bytes in length, except for Hole Punch which is empty.
+All SSU2 messages are less than or equal to 1472 (IPv4) or 1452 (IPv6) bytes in length. The message
 format is based on Noise messages, with modifications for framing and indistinguishability.
-Implementations using standard Noise libraries may need to pre-process received
-messages to/from the Noise message format. All encrypted fields are AEAD
+Implementations using standard Noise libraries must pre-process received
+messages to the standard Noise message format. All encrypted fields are AEAD
 ciphertexts.
 
 The following messages are defined:
@@ -2749,7 +2750,9 @@ and used, we must also have the ver and id fields present.
 Connection ID Numbering
 ```````````````````````````
 
-Random numbers
+Connection IDs must be randomly generated.
+Source and Destination IDs must NOT be identical.
+Do NOT use a counter to generate connection IDs.
 
 TBD change during handshake like QUIC?
 
@@ -2817,48 +2820,75 @@ The header (before obfuscation and protection) is always included in the associa
 data for the AEAD function, to cryptographically bind the header to the data.
 
 
-Header Decryption
+Header Encryption
 ```````````````````
 
-Headers are encrypted with a known key published in the network database.
-This is for DPI resistance only, as the key is public and the
+Header encryption has several goals:
+
+- Prevent online DPI from identifying the protocol
+- Prevent patterns in a series of messages in the same connection,
+  except for handshake retransmissions
+- Prevent patterns in messages of the same type in different connections
+- Prevent decryption of handshake headers
+  without knowledge of the introduction key found in the netdb
+- Prevent identification of X25519 ephemeral keys
+  without knowledge of the introduction key found in the netdb
+- Prevent decryption of data phase packet number and type
+  by any online or offline attacker
+- Prevent injection of valid handshake packets by an on-path or off-path observer
+  without knowledge of the introduction key found in the netdb
+- Prevent injection of valid data packets by an on-path or off-path observer
+- Allow rapid and efficient classification of incoming packets
+- Provide "probing" resistance so that there is no response to a bad
+  Session Request, or if there is a Retry response,
+  the response is not identifiable as I2P
+  without knowledge of the introduction key found in the netdb
+
+Headers are encrypted with known keys published in the network database
+or calculated later.
+In the handshake phase, this is for DPI resistance only, as the key is public and the
 key and nonces are reused, so it is effectively just obfuscation.
 Note that the header encryption is also used to obfuscate
 the ephemeral keys X (in Session Request) and Y (in Session Created).
 
-The short header is always encrypted (obfuscated) with ChaCha20 using
-the destination's intro key and n=0.
-
-The first 16 bytes of the long header is usually encrypted (obfuscated) with ChaCha20 using
-the destination's intro key and n=0.
-For Session Request, the same key is used with n=1 for the next 48 bytes (covering X as well).
-For other messages, the same key is used with n=1 for the next 16 bytes.
-
-For Session Created and Retry, where the destination router hash and introduction key are not yet known,
-the source intro key is used to decrypt the long header,
-with n=0 for the first 16 bytes.
-For Session Created, n=1 is used for the next 48 bytes (covering Y as well).
-For Retry, n=1 is used for the next 16 bytes.
-
 See the Inbound Packet Handling section below for additional guidance.
 
+Bytes 0-15 of all headers
+are encrypted using a header protection scheme by XORing with data calculated from known keys,
+using ChaCha20, similar to QUIC [RFC-9001]_ and [Nonces]_.
+This ensures that the encrypted short header and the first part of the long header
+will appear to be random.
 
-Header Protection
-```````````````````
-In addition to obfuscation, bytes 8-15 of the header
-are encrypted by XORing with a known key, as in QUIC [RFC-9001]_ and [Nonces]_.
+For Session Request and Session Created, bytes 16-31 of the header and the 32-byte Noise ephemeral key
+are encrypted using ChaCha20.
+The unencrypted data is random, so the encrypted data will appear to be random.
 
-For SessionCreated, where the destination (Alice's) intro key is not yet known,
-the source (Bob's) intro key is used.
+For Retry, bytes 16-31 of the header
+are encrypted using ChaCha20.
+The unencrypted data is random, so the encrypted data will appear to be random.
 
-There are four header protection key phases:
+There are five header protection key phases:
 
 - Session Request
-- Session Created and Retry
+- Session Created
+- Retry
 - Session Confirmed
 - Data Phase
 
-See the individual KDF sections below for the derivation of the header protection key for that phase.
+
+=================  ===================  ====================
+    Message          Key k_header_1       Key k_header_2
+=================  ===================  ====================
+Session Request    Bob Intro Key        Bob Intro Key
+Session Created    Bob Intro Key        See Session Request KDF
+Session Confirmed  Bob Intro Key        See Session Created KDF
+Retry              Bob Intro Key        See Retry KDF
+Data               Alice/Bob Intro Key  See data phase KDF
+=================  ===================  ====================
+
+
+
+See the individual KDF sections below for the derivation of the header protection keys for that phase.
 
 Header Protection KDF:
 
@@ -2866,24 +2896,49 @@ Header Protection KDF:
 
   {% highlight lang='dataspec' %}
 // incoming encrypted packet
+  packet = incoming encrypted packet
   len = packet.length
-  // take the last 12 bytes before the MAC
-  sample = packet[len-32:len-17]
-  n = sample[4:15]
-  k_header = header protection key
-  data = {0, 0, 0, 0, 0, 0, 0, 0}
-  mask = ChaCha20.encrypt(k_header, n, data)
 
-  // encrypt the header by XORing with the mask
-  header[8:15] ^= mask[0:7]
+  // take the next-to-last 12 bytes of the packet
+  iv = packet[len-24:len-13]
+  k_header_1 = header protection key 1
+  data = {0, 0, 0, 0, 0, 0, 0, 0}
+  mask = ChaCha20.encrypt(k_header_1, iv, data)
+
+  // encrypt the first part of the header by XORing with the mask
+  packet[0:7] ^= mask[0:7]
+
+  // take the last 12 bytes of the packet
+  iv = packet[len-12:len-1]
+  k_header_2 = header protection key 2
+  data = {0, 0, 0, 0, 0, 0, 0, 0}
+  mask = ChaCha20.encrypt(k_header_2, iv, data)
+
+  // encrypt the second part of the header by XORing with the mask
+  packet[8:15] ^= mask[0:7]
+
+
+  // For Session Request and Session Created only:
+  iv = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}
+
+  // encrypt the third part of the header and the ephemeral key
+  packet[16:63] = ChaCha20.encrypt(k_header_2, iv, packet[16:63])
+
+
+  // For Retry only:
+  iv = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}
+
+  // encrypt the third part of the header
+  packet[16:31] = ChaCha20.encrypt(k_header_2, iv, packet[16:31])
 
 
 {% endhighlight %}
 
+
 Header Validation
 ```````````````````
 After decrypting the first 16 bytes of the header,
-the receiver will know the Destination Session ID. From there,
+the receiver will know the Destination connection ID. From there,
 the receiver knows what header protection keys to use based on the key phase of the session.
 
 Removing the header protection will then reveal the message type and be able to determine
@@ -2944,7 +2999,7 @@ k :: 32 byte cipher key, as generated from KDF
         Associated data, 32 bytes.
         The SHA256 hash of all preceding data.
         In data phase:
-        The packet header
+        The packet header, 16 bytes.
 
   data :: Plaintext data, 0 or more bytes
 
@@ -3093,14 +3148,18 @@ KDF for Session Request
 
   End of "es" message pattern.
 
-  // Header protection key for this message
-  k_header = HKDF(bik, ZEROLEN, "SessionReqHeader", 32)
+  // Header encryption keys for this message
+  // bik = Bob's intro key
+  k_header_1 = bik
+  k_header_2 = HKDF(bik, ZEROLEN, "SessionReqHeader", 32)
 
-  // Header protection key for next message (Session Created)
-  k_header = HKDF(chainKey, ZEROLEN, "SessCreateHeader", 32)
+  // Header encryption keys for next message (Session Created)
+  k_header_1 = bik
+  k_header_2 = HKDF(chainKey, ZEROLEN, "SessCreateHeader", 32)
 
-  // Header protection key for next message (Retry)
-  See Retry message KDF below
+  // Header encryption keys for next message (Retry)
+  k_header_1 = bik
+  k_header_2: See Retry message KDF below
 
 
 {% endhighlight %}
@@ -3161,8 +3220,8 @@ ChaCha20 encryption uses Bob's intro key as published
 in the network database.
 
 ChaCha20 encryption is for DPI resistance only.
-Any party knowing Bob's router hash, and IV, which are published in the network database,
-may decrypt the X value in this message.
+Any party knowing Bob's introduction key, which is published in the network database,
+may decrypt the header and X value in this message.
 
 
 Raw contents:
@@ -3247,7 +3306,8 @@ Unencrypted data (Poly1305 authentication tag not shown):
 
   Packet Number :: 0 unless resent after Retry
 
-  Source Connection ID :: Randomly generated by Alice
+  Source Connection ID :: Randomly generated by Alice,
+                          must not be equal to Destination Connection ID
 
   Token :: 0 if not previously received from Bob
 
@@ -3310,13 +3370,12 @@ Notes
   including payload specifications, indicating SSU2.
   This field may be used to indicate support for future changes.
 
-- Bob must fail the connection if any incoming data remains after validating
-  Session Request and reading in the padding. There should be no extra data from Alice,
-  as Bob has not responded with Session Created yet.
-
 - The network ID field is used to quickly identify cross-network connections.
   If this field is nonzero, and does not match Bob's network ID,
   Bob should disconnect and block future connections.
+
+- Bob must drop the message if the Source Connection ID equals
+  the Destination Connection ID.
 
 
 
@@ -3368,10 +3427,13 @@ KDF for Session Created and Session Confirmed part 1
 
   End of "ee" message pattern.
 
-  // Header protection key for this message
-  See Session Request KDF above
+  // Header encryption keys for this message
+  // bik = Bob's intro key
+  k_header_1 = bik
+  k_header_2: See Session Request KDF above
 
-  // Header protection key for next message (Session Confirmed)
+  // Header protection keys for next message (Session Confirmed)
+  k_header_1 = bik
   k_header = HKDF(chainKey, ZEROLEN, "SessionConfirmed", 32)
 
 {% endhighlight %}
@@ -3500,7 +3562,8 @@ Unencrypted data (Poly1305 auth tag not shown):
   |      see below for allowed blocks     |
   +----+----+----+----+----+----+----+----+
 
-  Destination Connection ID :: As sent by Alice
+  Destination Connection ID :: The Source Connection ID
+                               received from Alice in Session Request
 
   id :: 1 byte, the network ID (currently 2, except for test networks)
 
@@ -3512,7 +3575,8 @@ Unencrypted data (Poly1305 auth tag not shown):
 
   Packet Number :: 0 unless resent after Retry
 
-  Source Connection ID :: Randomly generated by Alice
+  Source Connection ID :: The Destination Connection ID
+                          received from Alice in Session Request
 
   Token :: 0 (unused)
 
@@ -3526,6 +3590,7 @@ Payload
 - DateTime block
 - Address block
 - Relay Tag block (optional)
+- New Token block (optional)
 - Options block (optional)
 - Termination block (optional, if session is rejected)
 - Padding block (optional)
@@ -3548,16 +3613,18 @@ Notes
   validation failure, Alice must halt further message processing and close the
   connection without responding.
 
-- Alice must fail the connection if any incoming data remains after validating
-  Session Created and reading in the padding. There should be no extra data from Bob,
-  as Alice has not responded with Session Confirmed yet.
-
 - Alice must reject connections where the timestamp value is too far off from
   the current time. Call the maximum delta time "D".  Alice must maintain a
   local cache of previously-used handshake values and reject duplicates, to
   prevent replay attacks. Values in the cache must have a lifetime of at least
   2*D.  The cache values are implementation-dependent, however the 32-byte Y
   value (or its encrypted equivalent) may be used.
+
+- Alice must drop the message if the source IP and port do not match
+  the destination IP and port of the Session Request.
+
+- Alice must drop the message if the Destination and Source Connection IDs
+  do not match the Source and Destination Connection IDs of the Session Request.
 
 - Bob sends a relay tag block if requested by Alice in the Session Request.
 
@@ -3602,7 +3669,7 @@ KDF for Session Confirmed part 1, using Session Created KDF
 
   End of "s" message pattern.
 
-  // Header protection key for this message
+  // Header encryption keys for this message
   See Session Confirmed part 2 below
 
 {% endhighlight %}
@@ -3636,14 +3703,16 @@ This is the "se" message pattern:
   h = SHA256(h || ciphertext);
 
   // retain the chaining key ck for the data phase KDF
-  // retain the hash h for the data phase Additional Symmetric Key (SipHash) KDF
+  // retain the hash h for the data phase KDF
 
   End of "se" message pattern.
 
-  // Header protection key for this message
-  See Session Created KDF above
+  // Header encryption keys for this message
+  // bik = Bob's intro key
+  k_header_1 = bik
+  k_header_2: See Session Created KDF above
 
-  // Header protection key data phase
+  // Header protection keys for data phase
   See data phase KDF below
 
 {% endhighlight %}
@@ -3795,7 +3864,8 @@ Payload
 ```````
 - RouterInfo block
 - Options block (optional)
-- I2NP, First Fragment, of Follow-on Fragment blocks (optional, but probably no room)
+- New Token block (optional)
+- I2NP, First Fragment, or Follow-on Fragment blocks (optional, but probably no room)
 - Padding block (optional)
 
 
@@ -3870,7 +3940,7 @@ This is the split() function, exactly as defined in the Noise spec.
 
   keydata = HKDF(key, ZEROLEN, "HKDFSSU2DataKeys", 64)
   k_data = keydata[0:31]
-  k_header = keydata[32:63]
+  k_header_2 = keydata[32:63]
 
 
   // AEAD parameters
@@ -3879,8 +3949,11 @@ This is the split() function, exactly as defined in the Noise spec.
   ad = 16 byte header, after removal of packet protection and decryption
   ciphertext = ENCRYPT(k, n, payload, ad)
 
-  // Header protection key for data phase
-  k_header from above
+  // Header encryption keys for data phase
+  // aik = Alice's intro key
+  // bik = Bob's intro key
+  k_header_1 = Receiver's intro key (aik or bik)
+  k_header_2: from above
 
 {% endhighlight %}
 
@@ -3938,7 +4011,7 @@ XK(s, rs):           Authentication   Confidentiality
 
 Notes
 `````
-- The router must drop a message AEAD error.
+- The router must drop a message with an AEAD error.
 
 .. raw:: html
 
@@ -4017,9 +4090,10 @@ decrypt the Session Request message to generate a Retry message in response.
 
 // TODO
 
-  // Header protection key for this message
-  // bpk = Bob's public key
-  k_header = HKDF(bpk, ZEROLEN, "RetryMessage1234", 32)
+  // Header encryption keys for this message
+  // bik = Bob's intro key
+  k_header_1 = bik
+  k_header_2 = HKDF(bpk, ZEROLEN, "RetryMessage1234", 32)
 
 {% endhighlight %}
 
@@ -4084,7 +4158,8 @@ Unencrypted data (Poly1305 authentication tag not shown):
   +----+----+----+----+----+----+----+----+
 
 
-  Destination Connection ID :: As received from Alice in Session Request
+  Destination Connection ID :: The Source Connection ID
+                               received from Alice in Session Request
 
   type :: 9
 
@@ -4096,7 +4171,8 @@ Unencrypted data (Poly1305 authentication tag not shown):
 
   Packet Number :: 0 unless retransmitted or resent after Retry
 
-  Source Connection ID :: As received from Alice in Session Request
+  Source Connection ID :: The Destination Connection ID
+                          received from Alice in Session Request
 
   Token :: 8 byte unsigned integer, randomly generated by Bob, nonzero,
            or zero if session is rejected and a termination block is included
@@ -4116,12 +4192,20 @@ Payload
 
 Notes
 `````
-This is NOT a standard Noise message and is not part of the handshake.
-It is not bound to the Session Request message other than by connection IDs.
-It is not required to decrypt the Session Request Noise message to create this
-message in response.
+- This is NOT a standard Noise message and is not part of the handshake.
+  It is not bound to the Session Request message other than by connection IDs.
+  It is not required to decrypt the Session Request Noise message to create this
+  message in response.
 
-Minimum size: TBD, same rules as for Session Created?
+- Alice must drop the message if the source IP and port do not match
+  the destination IP and port of the Session Request.
+
+- Alice must drop the message if the Destination and Source Connection IDs
+  do not match the Source and Destination Connection IDs of the Session Request.
+
+- Alice must drop the message if the payload is not successfully decrypted.
+
+- Minimum size: TBD, same rules as for Session Created?
 
 
 
@@ -4225,8 +4309,8 @@ Relay Intro                                 9           TBD
 Peer Test                                  10           TBD
 Next Nonce                                 11           TBD
 ACK                                        12         varies 
-Address                                    13         6 or 18
-xxxxxxxxxxxxx                              14         varies 
+Address                                    13         9 or 21
+Intro Key                                  14           35
 Relay Tag Request                          15            3      
 Relay Tag                                  16            7      
 New Token                                  17           15
@@ -4934,6 +5018,35 @@ Alice's address, sent to Alice by Bob
         big endian (network byte order)
 
 {% endhighlight %}
+
+
+
+Intro Key
+``````````````
+Sent by Alice in the Session Request, to be used
+by Bob to protect the Session Created header.
+
+.. raw:: html
+
+  {% highlight lang='dataspec' %}
++----+----+----+----+----+----+----+----+
+  | 14 |   32    |    Intro Key           |
+  +----+----+----+                        +
+  |                                       |
+  +                                       +
+  |                                       |
+  +                                       +
+  |                                       |
+  +              +----+----+----+----+----+
+  |              |
+  +----+----+----+
+
+  blk :: 18
+  size :: 32
+  key :: 32-byte introduction key
+
+{% endhighlight %}
+
 
 
 
@@ -5941,14 +6054,13 @@ Packet Guidelines
 Outbound Packet Creation
 -----------------------------
 
-Handshake messages (Session Request/Created/Confirmed) basic steps, in order:
+Handshake messages (Session Request/Created/Confirmed, Retry) basic steps, in order:
 
 - Create 16 or 32 byte header
 - Create body
-- mixHash() the header
-- Encrypt the body using Noise
-- Encrypt the header
-- Packet protect the header
+- mixHash() the header (except for Retry)
+- Encrypt the body using Noise (except for Retry, use ChaChaPoly)
+- Encrypt the header, and for Session Request/Created, the ephemeral key
 
 
 Data phase messages basic steps, in order:
@@ -5957,59 +6069,79 @@ Data phase messages basic steps, in order:
 - Create body
 - Encrypt the body using ChaChaPoly using the header as AD
 - Encrypt the header
-- Packet protect the header
 
 
 
 Inbound Packet Handling
 -----------------------------
 
-Handshake messages (Session Request/Created/Confirmed) basic steps, in order:
+Summary
+```````````
 
-- Remove header protection
-- Decrypt the 16 or 32 byte header
+Initial processing of all inbound messages:
+
+- Decrypt the first 8 bytes of the header (the Destination Connection ID)
+  with the intro key
+- Lookup the connection by the Destination Connection ID
+- If the connection is found and is in the data phase, go to the
+  data phase section
+- If the connection is not found, go to the handshake section
+
+
+Handshake messages (Session Request/Created/Confirmed, Retry) processing:
+
+- Decrypt bytes 8-15 of the header
+  (the packet type, version, and net ID) with the intro key. If it is a
+  valid Session Request, continue
+- If not a Session Request, lookup a pending outbound connection by the packet
+  source IP/port, treat the packet as a Session Created or Retry.
+  Re-decrypt the first 8 bytes of the header with the correct key,
+  and the bytes 8-15 of the header
+  (the packet type, version, and net ID). If it is a
+  valid Session Created or Retry, continue
+- If not a Session Created or Retry, fail, or queue as a possible out-of-order data phase packet
+- For Session Request/Created and Retry, decrypt bytes 16-31 of the header
+- For Session Request/Created, decrypt the ephemeral key
 - mixHash() the header
-- Decrypt the body using Noise
+- For Session Request/Created/Confirmed, decrypt the body using Noise
+- For Retry and data phase, decrypt the body using ChaChaPoly
 - Process the header and payload
 
 
-Data phase messages basic steps, in order:
+Data phase messages processing:
 
-- Remove header protection
-- Decrypt the 16 byte header
+- Decrypt bytes 8-15 of the header
+  (the packet type, version, and net ID) with the correct key
 - Decrypt the body using ChaChaPoly using the header as AD
 - Process the header and payload
 
+
+Details
+`````````
 
 In SSU 1, inbound packet classification is difficult, because there is no
 header to indicate session number. Routers must first match the source IP and port
 to an existing peer state, and if not found, attempt multiple decryptions with different
 keys to find the appropriate peer state or start a new one.
 In the event that the source IP or port for an existing session changes,
-possibly due to NAT behavior
+possibly due to NAT behavior,
 the router may use expensive heuristics to attempt to match the packet to an existing session
 and recover the contents.
 
 SSU 2 is designed to minimize the inbound packet classification effort while maintaining
-DPI resistance and other on-path threats. The session number is included in the header
+DPI resistance and other on-path threats. The Connection ID number is included in the header
 for all message types, and encrypted (obfuscated) using ChaCha20 with a known key and nonce.
 Additionally, the message type is also included in the header
 (encrypted with header protection to a known key and then obfuscated with ChaCha20)
 and may be used for additional classification.
 In no case is a trial DH or other asymmetric crypto operation necessary to classify a packet.
 
-For almost all messages from all peers, the ChaCha20 key is the destination router's
-router hash as published in the netdb, with a nonce of 0 for the short header
-(and for the first 16 bytes of the long header).
-The next 16 bytes of the long header, and the ephemeral key, are decrypted with
-the same key and a nonce of 1.
+For almost all messages from all peers, the ChaCha20 key for the Connection ID encryption is the destination router's
+introduction key as published in the netdb.
 
 The only exceptions are the first messages sent from Bob to Alice (Session Created or Retry)
-where Alice's router hash is not yet known to Bob. In these cases, Bob's router hash
-is used as the key, with a nonce of 0 for the short header
-(and for the first 16 bytes of the long header).
-The next 16 bytes of the long header, and the ephemeral key, are decrypted with
-the same key and a nonce of 1.
+where Alice's introduction key is not yet known to Bob. In these cases, Bob's introduction key
+is used as the key.
 
 The protocol is designed to minimize packet classification processing that
 might require additional crypto operations in multiple
@@ -6020,7 +6152,7 @@ and a second header decryption.
 Only Session Created and Retry (and possibly others TBD) will require
 the fallback processing.
 If an endpoint changes IP or port after session creation,
-the session ID is still used to lookup the session.
+the connection ID is still used to lookup the session.
 It is never necessary to use heuristics to find the session,
 for example by looking for a different session with the same
 IP but a different port.
@@ -6028,16 +6160,16 @@ IP but a different port.
 
 Therefore, the recommended processing steps in the receiver loop logic are:
 
-1) Decrypt the first 16 bytes with ChaCha20 using the local router hash
-   as the key with n=0, to recover the session ID.
-   If the session ID matches a current or pending inbound session:
+1) Decrypt the first 8 bytes with ChaCha20 using the local introduction key,
+   to recover the Destination Connection ID.
+   If the Connection ID matches a current or pending inbound session:
 
-   a) Using the session's header protection key, remove the header protection
-      to recover the version, net ID, and message type at bytes 8-15.
+   a) Using the appropriate key, decrypt the header bytes 8-15
+      to recover the version, net ID, and message type.
    b) If the message type is Session Confirmed, it is a long header.
       Verify the net ID and protocol version are valid.
-      Decrypt the next 16 bytes of the header with ChaCha20
-      using the local intro key with n=1. Then MixHash() the
+      Decrypt the bytes 15-31 of the header with ChaCha20
+      using the local intro key. Then MixHash() the
       decrypted 32 byte header and decrypt the message with Noise.
    c) If the message type is valid but not Session Confirmed,
       it is a short header.
@@ -6045,7 +6177,7 @@ Therefore, the recommended processing steps in the receiver loop logic are:
       decrypt the rest of the message with ChaCha20/Poly1305
       using the session key, using the decrypted 16-byte header
       as the AD.
-   d) (optional) If session ID is a pending inbound session
+   d) (optional) If connection ID is a pending inbound session
       awaiting a Session Confirmed message,
       but the net ID, protocol, or message type is not valid,
       it could be a Data message received out-of-order before the
@@ -6055,7 +6187,7 @@ Therefore, the recommended processing steps in the receiver loop logic are:
       Session Confirmed message is received.
    e) If b) or c) fails, drop the message.
 
-2) If the session ID does not match a current session:
+2) If the connection ID does not match a current session:
    Check the plaintext header at bytes 8-15 are valid
    (without doing any header protection operation).
    Verify the net ID and protocol version are valid, and
@@ -6063,8 +6195,8 @@ Therefore, the recommended processing steps in the receiver loop logic are:
    allowed out-of-session (TBD).
 
    a) If all is valid and the message type is Session Request,
-      decrypt the next 16 bytes of the header and the 32-byte X value
-      with ChaCha20 using the local intro key with n=1.
+      decrypt bytes 16-31 of the header and the 32-byte X value
+      with ChaCha20 using the local intro key.
 
    - If the token at header bytes 24-31 is accepted,
      then MixHash() the decrypted 32 byte header and
@@ -6077,42 +6209,42 @@ Therefore, the recommended processing steps in the receiver loop logic are:
    b) If the message type is some other message that is valid
       out-of-session, presumably with a short header,
       decrypt the rest of the message with ChaCha20/Poly1305
-      using the intro key (TBD), using the decrypted 16-byte header
+      using the intro key, and using the decrypted 16-byte header
       as the AD. Process the message.
    c) If a) or b) fails, go to step 3)
 
 
 3) Look up a pending outbound session by the source IP/port of the packet.
 
-   a) If found, decrypt the first 16 bytes with ChaCha20 using Bob's router hash
-      as the key with n=0, to recover the session ID.
-   b) If the session ID matches the pending session:
-      Using the TBD key, remove the header protection
-      to recover the version, net ID, and message type at bytes 8-15.
+   a) If found, re-decrypt the first 8 bytes with ChaCha20 using Bob's introduction key
+      to recover the Destination Connection ID.
+   b) If the connection ID matches the pending session:
+      Using the correct key, decrypt bytes 8-15 of the header
+      to recover the version, net ID, and message type.
       Verify the net ID and protocol version are valid, and
-      the message type is Session Response or Retry, or other message type
+      the message type is Session Created or Retry, or other message type
       allowed out-of-session (TBD).
 
-   - If all is valid and the message type is Session Response,
+   - If all is valid and the message type is Session Created,
      decrypt the next 16 bytes of the header and the 32-byte Y value
-     with ChaCha20 using Bob's router hash as the key with n=1.
+     with ChaCha20 using Bob's intro key.
      Then MixHash() the decrypted 32 byte header and
      decrypt the message with Noise.
      Send a Session Confirmed in response.
    - If all is valid and the message type is Retry,
-     decrypt the next 16 bytes of the header
-     with ChaCha20 using Bob's router hash as the key with n=1.
-     Validate the remaining data (padding) and MAC using ChaCha20/Poly1305 using
+     decrypt bytes 16-31 of the header
+     with ChaCha20 using Bob's intro key.
+     Decrypt and validate the message using ChaCha20/Poly1305 using
      TBD as the key and TBD as the nonce and the decrypted 32-byte header as the AD.
      Resend a Session Request with the received token in response.
    - If the message type is some other message that is valid
      out-of-session, presumably with a short header,
      decrypt the rest of the message with ChaCha20/Poly1305
-     using the intro key (TBD), using the decrypted 16-byte header
+     using the intro key, and using the decrypted 16-byte header
      as the AD. Process the message.
 
     c) If a pending outbound session is not found,
-       or the session ID does not match the pending session, drop the message,
+       or the connection ID does not match the pending session, drop the message,
        unless the port is shared with SSU 1.
 
 4) If running SSU 1 on the same port, attempt to process the message as an SSU 1 packet.
@@ -6261,9 +6393,6 @@ References
 
 .. [SigningPublicKey]
     {{ ctags_url('SigningPublicKey') }}
-
-.. [SipHash]
-    https://www.131002.net/siphash/
 
 .. [SSU]
     {{ site_url('docs/transport/ssu', True) }}
