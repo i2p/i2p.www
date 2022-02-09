@@ -2859,11 +2859,11 @@ using ChaCha20, similar to QUIC [RFC-9001]_ and [Nonces]_.
 This ensures that the encrypted short header and the first part of the long header
 will appear to be random.
 
-For Session Request and Session Created, bytes 16-31 of the header and the 32-byte Noise ephemeral key
+For Session Request and Session Created, bytes 16-31 of the long header and the 32-byte Noise ephemeral key
 are encrypted using ChaCha20.
 The unencrypted data is random, so the encrypted data will appear to be random.
 
-For Retry, bytes 16-31 of the header
+For Retry, bytes 16-31 of the long header
 are encrypted using ChaCha20.
 The unencrypted data is random, so the encrypted data will appear to be random.
 
@@ -2888,9 +2888,9 @@ Data               Alice/Bob Intro Key  See data phase KDF
 
 
 
-See the individual KDF sections below for the derivation of the header protection keys for that phase.
+See the individual KDF sections below for the derivation of the header encryption keys for that phase.
 
-Header Protection KDF:
+Header Encryption KDF:
 
 .. raw:: html
 
@@ -2937,18 +2937,19 @@ Header Protection KDF:
 
 Header Validation
 ```````````````````
-After decrypting the first 16 bytes of the header,
-the receiver will know the Destination connection ID. From there,
-the receiver knows what header protection keys to use based on the key phase of the session.
+After decrypting the first 8 bytes of the header,
+the receiver will know the Destination Connection ID. From there,
+the receiver knows what header encryption key to use for
+the remainder of the header, based on the key phase of the session.
 
-Removing the header protection will then reveal the message type and be able to determine
+Decrypting the next 8 bytes of the header will then reveal the message type and be able to determine
 if it is a short or long header.
 If it is a long header, the receiver must validate the version and netid fields.
 If the version is != 2, or the netid is != the expected value (generally 2, except in test networks),
 the receiver should drop the message.
 
 In limited situations (after sending a Session Request but before receiving a Session Created),
-the receiver should retry header protection with a different key, to check for a Retry message.
+the receiver should retry header decryption with the retry key, to check for a Retry message.
 
 
 Authenticated Encryption
@@ -3176,9 +3177,9 @@ Size: 80 + payload size.
 Long header.
 Noise content: Alice's ephemeral key X
 Noise payload: datetime, optional relay tag request, and padding blocks
-Max payload size: MTU - 108 (IPv4) or MTU - 128 (IPv6)
-For 1280 MTU: Max payload is 1172 (IPv4) or 1152 (IPv6)
-For 1500 MTU: Max payload is 1392 (IPv4) or 1372 (IPv6)
+Max payload size: MTU - 108 (IPv4) or MTU - 128 (IPv6).
+For 1280 MTU: Max payload is 1172 (IPv4) or 1152 (IPv6).
+For 1500 MTU: Max payload is 1392 (IPv4) or 1372 (IPv6).
 
 Payload Security Properties:
 
@@ -3434,7 +3435,7 @@ KDF for Session Created and Session Confirmed part 1
 
   // Header protection keys for next message (Session Confirmed)
   k_header_1 = bik
-  k_header = HKDF(chainKey, ZEROLEN, "SessionConfirmed", 32)
+  k_header_2 = HKDF(chainKey, ZEROLEN, "SessionConfirmed", 32)
 
 {% endhighlight %}
 
@@ -3447,9 +3448,9 @@ Size: 80 + payload size.
 
 Noise content: Bob's ephemeral key Y
 Noise payload: datetime, options, relay tag, and padding blocks
-Max payload size: MTU - 108 (IPv4) or MTU - 128 (IPv6)
-For 1280 MTU: Max payload is 1172 (IPv4) or 1152 (IPv6)
-For 1500 MTU: Max payload is 1392 (IPv4) or 1372 (IPv6)
+Max payload size: MTU - 108 (IPv4) or MTU - 128 (IPv6).
+For 1280 MTU: Max payload is 1172 (IPv4) or 1152 (IPv6).
+For 1500 MTU: Max payload is 1392 (IPv4) or 1372 (IPv6).
 
 Payload Security Properties:
 
@@ -3727,9 +3728,9 @@ Size: 80 + payload size.
 Noise content: Alice's static key
 Noise payload part 1: None
 Noise payload part 2: Alice's RouterInfo, options, data, and padding blocks
-Max payload size: MTU - 108 (IPv4) or MTU - 128 (IPv6)
-For 1280 MTU: Max payload is 1172 (IPv4) or 1152 (IPv6)
-For 1500 MTU: Max payload is 1392 (IPv4) or 1372 (IPv6)
+Max payload size: MTU - 108 (IPv4) or MTU - 128 (IPv6).
+For 1280 MTU: Max payload is 1172 (IPv4) or 1152 (IPv6).
+For 1500 MTU: Max payload is 1392 (IPv4) or 1372 (IPv6).
 
 Payload Security Properties:
 
@@ -3971,8 +3972,8 @@ Data Message (Type 6)
 ---------------------------
 
 Noise payload: All block types are allowed
-Max payload size: MTU - 60 (IPv4) or MTU - 80 (IPv6)
-For 1500 MTU: Max payload is 1440 (IPv4) or 1420 (IPv6)
+Max payload size: MTU - 60 (IPv4) or MTU - 80 (IPv6).
+For 1500 MTU: Max payload is 1440 (IPv4) or 1420 (IPv6).
 
 Starting with the 2nd part of Session Confirmed, all messages are inside
 an authenticated and encrypted ChaChaPoly payload.
@@ -4093,7 +4094,7 @@ decrypt the Session Request message to generate a Retry message in response.
   // Header encryption keys for this message
   // bik = Bob's intro key
   k_header_1 = bik
-  k_header_2 = HKDF(bpk, ZEROLEN, "RetryMessage1234", 32)
+  k_header_2 = HKDF(bik, ZEROLEN, "RetryMessage1234", 32)
 
 {% endhighlight %}
 
