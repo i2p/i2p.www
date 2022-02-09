@@ -3232,16 +3232,16 @@ Raw contents:
   {% highlight lang='dataspec' %}
 +----+----+----+----+----+----+----+----+
   |  Long Header bytes 0-15, ChaCha20     |
-  +  encrypted with Bob intro key n=0     +
-  |    bytes 8-15 header protected        |
+  +  encrypted with Bob intro key         +
+  |    See Header Encryption KDF          |
   +----+----+----+----+----+----+----+----+
   |  Long Header bytes 16-31, ChaCha20    |
-  +  encrypted with Bob intro key n=1     +
+  +  encrypted with Bob intro key n=0     +
   |                                       |
   +----+----+----+----+----+----+----+----+
   |                                       |
   +       X, ChaCha20 encrypted           +
-  |       with Bob intro key n=1          |
+  |       with Bob intro key n=0          |
   +              (32 bytes)               +
   |                                       |
   +                                       +
@@ -3501,18 +3501,18 @@ Raw contents:
   {% highlight lang='dataspec' %}
 +----+----+----+----+----+----+----+----+
   |  Long Header bytes 0-15, ChaCha20     |
-  +  encrypted with Bob intro key n=0     +
-  |    bytes 8-15 header protected        |
+  +  encrypted with Bob intro key and     +
+  | derived key, see Header Encryption KDF|
   +----+----+----+----+----+----+----+----+
   |  Long Header bytes 16-31, ChaCha20    |
-  +  encrypted with Bob intro key n=1     +
-  |                                       |
+  +  encrypted with derived key n=0       +
+  |  See Header Encryption KDF            |
   +----+----+----+----+----+----+----+----+
   |                                       |
   +       Y, ChaCha20 encrypted           +
-  |       with Bob intro key n=1          |
+  |       with derived key n=0            |
   +              (32 bytes)               +
-  |                                       |
+  |       See Header Encryption KDF       |
   +                                       +
   |                                       |
   +----+----+----+----+----+----+----+----+
@@ -3779,9 +3779,9 @@ Raw contents:
 
   {% highlight lang='dataspec' %}
 +----+----+----+----+----+----+----+----+
-  |Short Header obfuscated with dest hash |
-  +       encrypted, bytes 8-15           +
-  |       header protected                |
+  |  Short Header 16 bytes, ChaCha20      |
+  +  encrypted with Bob intro key and     +
+  | derived key, see Header Encryption KDF|
   +----+----+----+----+----+----+----+----+
   |   ChaCha20 frame (32 bytes)           |
   +   Encrypted and authenticated data    +
@@ -3947,7 +3947,7 @@ This is the split() function, exactly as defined in the Noise spec.
   // AEAD parameters
   k = k_data
   n = 4 byte packet number from header
-  ad = 16 byte header, after removal of packet protection and decryption
+  ad = 16 byte header, before header encryption
   ciphertext = ENCRYPT(k, n, payload, ad)
 
   // Header encryption keys for data phase
@@ -4018,14 +4018,14 @@ Notes
 
   {% highlight lang='dataspec' %}
 +----+----+----+----+----+----+----+----+
-  |Short Header obfuscated with dest hash |
-  +       encrypted, bytes 8-15           +
-  |       header protected                |
+  |  Short Header 16 bytes, ChaCha20      |
+  +  encrypted with intro key and         +
+  |  derived key, see Data Phase KDF      |
   +----+----+----+----+----+----+----+----+
   |   ChaCha20 data                       |
   +   Encrypted and authenticated data    +
   |  length varies                        |
-  +k defined in KDF for Session Confirmed +
+  +  k defined in Data Phase KDF          +
   |  n = packet number from header        |
   +                                       +
   |                                       |
@@ -4084,15 +4084,20 @@ KDF for Retry
 
 The requirement for the Retry message is that Bob is not required to
 decrypt the Session Request message to generate a Retry message in response.
+Also, this message must be fast to generate, using symmetric encryption only.
 
 .. raw:: html
 
   {% highlight lang='text' %}
 
-// TODO
+// AEAD parameters
+  // bik = Bob's intro key
+  k = bik
+  n = 4 byte packet number from header
+  ad = 32 byte header, before header encryption
+  ciphertext = ENCRYPT(k, n, payload, ad)
 
   // Header encryption keys for this message
-  // bik = Bob's intro key
   k_header_1 = bik
   k_header_2 = HKDF(bik, ZEROLEN, "RetryMessage1234", 32)
 
@@ -4104,8 +4109,6 @@ Retry (Type 9)
 
 Bob sends to Alice.
 Size: 48 + payload size.
-
-TODO encrypted? to what key?
 
 Noise payload: See below.
 
@@ -4127,8 +4130,8 @@ Raw contents:
   +                                       +
   |   ChaCha20 encrypted data             |
   +          (length varies)              +
-  |  k defined in KDF for Session Request |
-  +  n = 0                                +
+  |                                       |
+  +  see KDF for key and n                +
   |  see KDF for associated data          |
   +----+----+----+----+----+----+----+----+
   |                                       |
@@ -4170,7 +4173,7 @@ Unencrypted data (Poly1305 authentication tag not shown):
 
   flag :: 1 byte, unused, set to 0 for future compatibility
 
-  Packet Number :: 0 unless retransmitted or resent after Retry
+  Packet Number :: Random number generated by Bob
 
   Source Connection ID :: The Destination Connection ID
                           received from Alice in Session Request
