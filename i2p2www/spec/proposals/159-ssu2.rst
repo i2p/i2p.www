@@ -81,8 +81,8 @@ Design Goals
   implementation-dependent and may or may not be specified in the protocol
   itself.
 
-- Obfuscate the contents of messages that aren't fully encrypted (Session Created and Confirmed),
-  sufficiently so that DPI boxes and AV signatures can't easily classify them.
+- Obfuscate the headers and contents of messages that aren't fully encrypted
+  sufficiently that DPI boxes and AV signatures can't easily classify them.
   Also ensure that the messages going to a single peer or set of peers do not
   have a similar pattern of bits.
 
@@ -97,9 +97,7 @@ Design Goals
 - Maintain 2-way authenticated key exchange (2W-AKE). 1W-AKE is not sufficient
   for our application.
 
-- Continue to use the variable-type, variable-length signatures (from the
-  published [RouterIdentity]_ signing key) as a part of authentication.  Rely
-  on a static public key published in the RouterInfo as another part of
+- Rely on the static public key published in the RouterInfo as another part of
   authentication.
 
 - Add options/version in handshake for future extensibility.
@@ -158,8 +156,6 @@ Non-Goals
   [Prop109]_.
 
 - A TLS-based (or HTTPS-lookalike) transport... that would be [Prop104]_.
-
-- It's OK to change the symmetric stream cryptography.
 
 - Timing-based DPI resistance (inter-message timing/delays can be
   implementation-dependent; intra-message delays can be introduced at any
@@ -2823,7 +2819,8 @@ data for the AEAD function, to cryptographically bind the header to the data.
 Header Encryption
 ```````````````````
 
-Header encryption has several goals:
+Header encryption has several goals.
+See the "Additional DPI Discussion" section above for background and assumptions.
 
 - Prevent online DPI from identifying the protocol
 - Prevent patterns in a series of messages in the same connection,
@@ -2843,6 +2840,13 @@ Header encryption has several goals:
   Session Request, or if there is a Retry response,
   the response is not identifiable as I2P
   without knowledge of the introduction key found in the netdb
+- The Destination Connection ID is not critical data,
+  and it's ok if it can be decrypted by an observer
+  with knowledge of the introduction key found in the netdb
+- The packet number of a data phase packet is an AEAD nonce and is critical data.
+  It must not be decryptable by an observer even
+  with knowledge of the introduction key found in the netdb.
+  See [Nonces]_.
 
 Headers are encrypted with known keys published in the network database
 or calculated later.
