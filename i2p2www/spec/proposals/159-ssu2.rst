@@ -2940,6 +2940,12 @@ Header Encryption KDF:
 
 {% endhighlight %}
 
+This KDF uses the last 24 bytes of the packet as the IV for the two
+ChaCha20 operations. As all packets end with a 16 byte MAC,
+this requires that all packet payloads are a minimum of 8 bytes.
+This requirement is additionally documented in the message sections below.
+
+
 
 Header Validation
 ```````````````````
@@ -3332,6 +3338,9 @@ Payload
 - Relay Tag Request block (optional)
 - Padding block (optional)
 
+The minimum payload size is 8 bytes. Since the DateTime block is
+only 7 bytes, at least one other block must be present.
+
 
 Notes
 `````
@@ -3603,6 +3612,8 @@ Payload
 - Termination block (optional, if session is rejected)
 - Padding block (optional)
 
+The minimum payload size is 8 bytes. Since the DateTime and Address blocks
+total more than that, the requirement is met with only those two blocks.
 
 Notes
 `````
@@ -3876,6 +3887,8 @@ Payload
 - I2NP, First Fragment, or Follow-on Fragment blocks (optional, but probably no room)
 - Padding block (optional)
 
+The minimum payload size is 8 bytes. Since the RouterInfo block
+will be well more than that, the requirement is met with only that block.
 
 
 Notes
@@ -4069,8 +4082,12 @@ Unencrypted data (Poly1305 auth tag not shown):
 
 {% endhighlight %}
 
+
 Notes
 `````
+- The minimum payload size is 8 bytes. This requirement will be met
+  by any ACK, I2NP, First Fragment, or Follow-on Fragment block.
+  If the requirement is not met, a Padding block must be included.
 
 
 Peer Test (Type 7)
@@ -4199,6 +4216,8 @@ Payload
 - Termination block (optional, if session is rejected)
 - Padding block (optional)
 
+The minimum payload size is 8 bytes. Since the DateTime and Address blocks
+total more than that, the requirement is met with only those two blocks.
 
 
 Notes
@@ -4248,12 +4267,13 @@ ordering and valid block rules are different for the two contexts.
 Payload Format
 ----------------
 
-There are zero or more blocks in the encrypted payload.
+There are one or more blocks in the encrypted payload.
 Each block contains a one-byte identifier, a two-byte length,
 and zero or more bytes of data.
 
 For extensibility, receivers must ignore blocks with unknown identifiers,
 and treat them as padding.
+
 
 (Poly1305 auth tag not shown):
 
@@ -4280,6 +4300,12 @@ and treat them as padding.
   data :: the data
 
 {% endhighlight %}
+
+Header encryption uses the last 24 bytes of the packet as the IV for the two
+ChaCha20 operations. As all packets end with a 16 byte MAC,
+this requires that all packet payloads are a minimum of 8 bytes.
+If a payload would not otherwise meet this requirement,
+a Padding block must be included.
 
 Maximum ChaChaPoly payload varies based on message type, MTU,
 and IPv4 or IPv6 address type.
@@ -5311,6 +5337,8 @@ as Alice will retransmit them.
 
 Retry
 ---------
+TODO: Resend or not? If so, same packet number or not?
+
 A Retry message is never retransmitted, except (optionally) in response to a repeated
 Session Request message being received.
 
