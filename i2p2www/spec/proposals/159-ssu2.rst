@@ -5,7 +5,7 @@ SSU2
     :author: eyedeekay, orignal, zlatinb, zzz
     :created: 2021-09-12
     :thread: http://zzz.i2p/topics/2612
-    :lastupdated: 2022-02-10
+    :lastupdated: 2022-02-12
     :status: Open
     :target: 0.9.55
 
@@ -2605,6 +2605,7 @@ Type      Message       Notes
   7   PeerTest          TBD may be a block
   8   SessionDestroyed  NO, block only??
   9   Retry
+ 10   Token Request
 n/a   HolePunch
 ====  ================  =====
 
@@ -2626,7 +2627,24 @@ Alice                           Bob
 {% endhighlight %}
 
 
-When address verification is used, the establishment sequence is as follows:
+When address verification is used, and Alice does not have a valid token, the establishment sequence is as follows:
+
+.. raw:: html
+
+  {% highlight %}
+Alice                           Bob
+
+  TokenRequest --------------------->
+  <---------------------------  Retry
+  SessionRequest ------------------->
+  <------------------- SessionCreated
+  SessionConfirmed ----------------->
+{% endhighlight %}
+
+
+When address verification is used, Alice thinks she has a valid token,
+but Bob rejects it (perhaps because Bob restarted),
+the establishment sequence is as follows:
 
 .. raw:: html
 
@@ -2756,11 +2774,22 @@ TBD change during handshake like QUIC?
 
 Packet Numbering
 `````````````````
-Packets are numbered within a single session, for each direction, starting from 0, to a max of (2**32 -1).
+If no First Packet Number block is sent in the handshake,
+packets are numbered within a single session, for each direction, starting from 0, to a max of (2**32 -1).
 A session must be terminated, and a new session created, well before the max
 number of packets is sent.
 
+If a First Packet Number block is sent in the handshake,
+packets are numbered within a single session, for that direction, starting from that packet number.
+The packet number may wrap around during the session.
+When a max of 2**32 packets have been sent, wrapping the packet number back
+to the first packet number, that session is no longer valid.
+A session must be terminated, and a new session created, well before the max
+number of packets is sent.
+
+
 TODO key rotation, reduce max packet number?
+
 
 Handshake packets that are determined to be lost are retransmitted
 whole, with the identical header including packet number.
@@ -2875,7 +2904,7 @@ The unencrypted data is random, so the encrypted data will appear to be random.
 
 There are five header protection key phases:
 
-- Session Request
+- Session Request and Token Request
 - Session Created
 - Retry
 - Session Confirmed
@@ -2885,6 +2914,7 @@ There are five header protection key phases:
 =================  ===================  ====================
     Message          Key k_header_1       Key k_header_2
 =================  ===================  ====================
+Token Request      Bob Intro Key        Bob Intro Key
 Session Request    Bob Intro Key        Bob Intro Key
 Session Created    Bob Intro Key        See Session Request KDF
 Session Confirmed  Bob Intro Key        See Session Created KDF
@@ -3183,8 +3213,14 @@ KDF for Session Request
 SessionRequest (Type 0)
 ------------------------
 
-Alice sends to Bob.
+Alice sends to Bob, either as the first message in the handshake,
+or in response to a Retry message.
+Bob responds with a Session Created message.
 Size: 80 + payload size.
+
+If Alice does not have a valid token, Alice should send a Token Request  message
+instead of a Session Request, to avoid the asymmetric encryption
+overhead in generating a Session Request.
 
 Long header.
 Noise content: Alice's ephemeral key X
@@ -3459,7 +3495,8 @@ KDF for Session Created and Session Confirmed part 1
 SessionCreated (Type 1)
 ------------------------
 
-Bob sends to Alice.
+Bob sends to Alice, in response to a Session Request message.
+Alice responds with a Session Confirmed message.
 Size: 80 + payload size.
 
 Noise content: Bob's ephemeral key Y
@@ -3608,6 +3645,7 @@ Payload
 - Address block
 - Relay Tag block (optional)
 - New Token block (optional)
+- First Packet Number block (optional)
 - Options block (optional)
 - Termination block (optional, if session is rejected)
 - Padding block (optional)
@@ -3740,7 +3778,7 @@ This is the "se" message pattern:
 SessionConfirmed (Type 2)
 -----------------------------
 
-Alice sends to Bob.
+Alice sends to Bob, in response to a Session Created message.
 Size: 80 + payload size.
 
 Noise content: Alice's static key
@@ -3884,6 +3922,7 @@ Payload
 - RouterInfo block
 - Options block (optional)
 - New Token block (optional)
+- First Packet Number block (optional)
 - I2NP, First Fragment, or Follow-on Fragment blocks (optional, but probably no room)
 - Padding block (optional)
 
@@ -4131,7 +4170,8 @@ Also, this message must be fast to generate, using symmetric encryption only.
 Retry (Type 9)
 -------------------------------
 
-Bob sends to Alice.
+Bob sends to Alice, in response to a Session Request or Token Request message.
+Alice responds with a new Session Request.
 Size: 48 + payload size.
 
 Noise payload: See below.
@@ -4143,11 +4183,11 @@ Raw contents:
   {% highlight lang='dataspec' %}
 +----+----+----+----+----+----+----+----+
   |  Long Header bytes 0-15, ChaCha20     |
-  +  encrypted with Bob intro key n=0     +
-  |    bytes 8-15 header protected        |
+  +  encrypted with Bob intro key         +
+  |                                       |
   +----+----+----+----+----+----+----+----+
   |  Long Header bytes 16-31, ChaCha20    |
-  +  encrypted with Bob intro key n=1     +
+  +  encrypted with Bob intro key         +
   |                                       |
   +----+----+----+----+----+----+----+----+
   |                                       |
@@ -4207,7 +4247,6 @@ Unencrypted data (Poly1305 authentication tag not shown):
 
 {% endhighlight %}
 
-
 Payload
 ```````
 - DateTime block
@@ -4220,18 +4259,125 @@ The minimum payload size is 8 bytes. Since the DateTime and Address blocks
 total more than that, the requirement is met with only those two blocks.
 
 
+KDF for Token Request
+--------------------------
+
+This message must be fast to generate, using symmetric encryption only.
+
+.. raw:: html
+
+  {% highlight lang='text' %}
+
+// AEAD parameters
+  // bik = Bob's intro key
+  k = bik
+  n = 4 byte packet number from header
+  ad = 32 byte header, before header encryption
+  ciphertext = ENCRYPT(k, n, payload, ad)
+
+  // Header encryption keys for this message
+  k_header_1 = bik
+  k_header_2 = bik
+
+{% endhighlight %}
+
+
+Token Request (Type 10)
+-------------------------------
+
+Alice sends to Bob. Bob response with a Retry message.
+Size: 48 + payload size.
+
+If Alice does not have a valid token, Alice may send this message
+instead of a Session Request, to avoid the asymmetric encryption
+overhead in generating a Session Request.
+
+
+Noise payload: See below.
+
+Raw contents:
+
+.. raw:: html
+
+  {% highlight lang='dataspec' %}
++----+----+----+----+----+----+----+----+
+  |  Long Header bytes 0-15, ChaCha20     |
+  +  encrypted with Bob intro key         +
+  |                                       |
+  +----+----+----+----+----+----+----+----+
+  |  Long Header bytes 16-31, ChaCha20    |
+  +  encrypted with Bob intro key         +
+  |                                       |
+  +----+----+----+----+----+----+----+----+
+  |                                       |
+  +                                       +
+  |   ChaCha20 encrypted data             |
+  +          (length varies)              +
+  |                                       |
+  +  see KDF for key and n                +
+  |  see KDF for associated data          |
+  +----+----+----+----+----+----+----+----+
+  |                                       |
+  +        Poly1305 MAC (16 bytes)        +
+  |                                       |
+  +----+----+----+----+----+----+----+----+
+
+
+{% endhighlight %}
+
+Unencrypted data (Poly1305 authentication tag not shown):
+
+.. raw:: html
+
+  {% highlight lang='dataspec' %}
++----+----+----+----+----+----+----+----+
+  |      Destination Connection ID        |
+  +----+----+----+----+----+----+----+----+
+  |   Packet Number   |type| ver| id |flag|
+  +----+----+----+----+----+----+----+----+
+  |        Source Connection ID           |
+  +----+----+----+----+----+----+----+----+
+  |                 Token                 |
+  +----+----+----+----+----+----+----+----+
+  |    ChaCha20 payload (block data)      |
+  +          (length varies)              +
+  |    see below for allowed blocks       |
+  +----+----+----+----+----+----+----+----+
+
+
+  Destination Connection ID :: The Source Connection ID
+                               received from Alice in Session Request
+
+  type :: 10
+
+  ver :: 2
+
+  id :: 1 byte, the network ID (currently 2, except for test networks)
+
+  flag :: 1 byte, unused, set to 0 for future compatibility
+
+  Packet Number :: Random number generated by Bob
+
+  Source Connection ID :: The Destination Connection ID
+                          received from Alice in Session Request
+
+  Token :: zero
+
+{% endhighlight %}
+
+
+Payload
+```````
+- DateTime block
+- Padding block
+
+The minimum payload size is 8 bytes.
+
+
 Notes
 `````
 - This is NOT a standard Noise message and is not part of the handshake.
   It is not bound to the Session Request message other than by connection IDs.
-  It is not required to decrypt the Session Request Noise message to create this
-  message in response.
-
-- Alice must drop the message if the source IP and port do not match
-  the destination IP and port of the Session Request.
-
-- Alice must drop the message if the Destination and Source Connection IDs
-  do not match the Source and Destination Connection IDs of the Session Request.
 
 - Alice must drop the message if the payload is not successfully decrypted.
 
@@ -4353,6 +4499,7 @@ Relay Tag                                  16            7
 New Token                                  17           15
 Path Challenge                             18         varies
 Path Response                              19         varies
+First Packet Number                        20            7  
 reserved for experimental features      224-253
 Padding                                   254         varies    
 reserved for future extension             255
@@ -5190,6 +5337,29 @@ used as a keep-alive or to validate an IP/Port change.
   blk :: 19
   size :: 2 bytes, big endian, size of data to follow
   data :: As received in a Path Challenge
+
+{% endhighlight %}
+
+
+
+
+First Packet Number
+``````````````````````
+Optionally included in the handshake in each direction,
+to specify the first packet number that will be sent.
+This provides more security for header encryption,
+similar to TCP.
+
+.. raw:: html
+
+  {% highlight lang='dataspec' %}
++----+----+----+----+----+----+----+
+  | 20 |  size   |  First pkt number |
+  +----+----+----+----+----+----+----+
+
+  blk :: 20
+  size :: 4
+  pkt num :: The first packet number to be sent in the data phase
 
 {% endhighlight %}
 
@@ -6096,17 +6266,17 @@ Outbound Packet Creation
 Handshake messages (Session Request/Created/Confirmed, Retry) basic steps, in order:
 
 - Create 16 or 32 byte header
-- Create body
+- Create payload
 - mixHash() the header (except for Retry)
-- Encrypt the body using Noise (except for Retry, use ChaChaPoly)
+- Encrypt the payload using Noise (except for Retry, use ChaChaPoly with the header as AD)
 - Encrypt the header, and for Session Request/Created, the ephemeral key
 
 
 Data phase messages basic steps, in order:
 
 - Create 16-byte header
-- Create body
-- Encrypt the body using ChaChaPoly using the header as AD
+- Create payload
+- Encrypt the payload using ChaChaPoly using the header as AD
 - Encrypt the header
 
 
@@ -6142,8 +6312,8 @@ Handshake messages (Session Request/Created/Confirmed, Retry) processing:
 - For Session Request/Created and Retry, decrypt bytes 16-31 of the header
 - For Session Request/Created, decrypt the ephemeral key
 - mixHash() the header
-- For Session Request/Created/Confirmed, decrypt the body using Noise
-- For Retry and data phase, decrypt the body using ChaChaPoly
+- For Session Request/Created/Confirmed, decrypt the payload using Noise
+- For Retry and data phase, decrypt the payload using ChaChaPoly
 - Process the header and payload
 
 
@@ -6151,7 +6321,7 @@ Data phase messages processing:
 
 - Decrypt bytes 8-15 of the header
   (the packet type, version, and net ID) with the correct key
-- Decrypt the body using ChaChaPoly using the header as AD
+- Decrypt the payload using ChaChaPoly using the header as AD
 - Process the header and payload
 
 
