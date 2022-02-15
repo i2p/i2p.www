@@ -5,7 +5,7 @@ SSU2
     :author: eyedeekay, orignal, zlatinb, zzz
     :created: 2021-09-12
     :thread: http://zzz.i2p/topics/2612
-    :lastupdated: 2022-02-14
+    :lastupdated: 2022-02-15
     :status: Open
     :target: 0.9.55
 
@@ -2233,10 +2233,11 @@ Message 1 is sent in-session. Therefore, message 1 is secure and authenticated.
 Bob selects a Charlie with whom he has an existing session.
 Messages 2 and 3 are sent in-session. Therefore, messages 2 and 3 are secure and authenticated.
 
-Message 4 should be sent in-session; however, the SSU 1 specification says that it is sent
+Message 4 should be sent in-session; however, the SSU 1 specification previously said that it is sent
 with Alice's published intro key, which means not in-session.
-Java I2P does send with the intro key, matching the specification.
-This is fixable and should be fixed in SSU 1.
+Prior to 0.9.52, Java I2P did send with the intro key.
+As of 0.9.52, the specification states that the session key should be used,
+and Java I2P sends the message in-session as of 0.9.52.
 
 Alice must not have an existing session with Charlie for the test to proceed;
 Alice aborts the test if Bob picks a Charlie that has a session with Alice.
@@ -2824,12 +2825,13 @@ Alice                           Bob
   SessionRequest (0)    ------------>
   <-------------   SessionCreated (0)
   SessionConfirmed (1)  ------------>
-  Data (2)              ------------>
-  <-------------             Data (1)
+  <-------------             Data (1) (Ack-only)
+  Data (2)              ------------> (May be sent before Ack is received)
+  <-------------             Data (2)
   Data (3)              ------------>
   Data (4)              ------------>
   Data (5)              ------------>
-  <-------------             Data (2)
+  <-------------             Data (3)
 
 {% endhighlight %}
 
@@ -3217,6 +3219,7 @@ Alice sends to Bob, either as the first message in the handshake,
 or in response to a Retry message.
 Bob responds with a Session Created message.
 Size: 80 + payload size.
+Minimum Size: 88
 
 If Alice does not have a valid token, Alice should send a Token Request  message
 instead of a Session Request, to avoid the asymmetric encryption
@@ -3224,7 +3227,7 @@ overhead in generating a Session Request.
 
 Long header.
 Noise content: Alice's ephemeral key X
-Noise payload: datetime, optional relay tag request, and padding blocks
+Noise payload: DateTime and other blocks
 Max payload size: MTU - 108 (IPv4) or MTU - 128 (IPv6).
 For 1280 MTU: Max payload is 1172 (IPv4) or 1152 (IPv6).
 For 1500 MTU: Max payload is 1392 (IPv4) or 1372 (IPv6).
@@ -3498,9 +3501,10 @@ SessionCreated (Type 1)
 Bob sends to Alice, in response to a Session Request message.
 Alice responds with a Session Confirmed message.
 Size: 80 + payload size.
+Minimum Size: 88
 
 Noise content: Bob's ephemeral key Y
-Noise payload: datetime, options, relay tag, and padding blocks
+Noise payload: DateTime, Address, and other blocks
 Max payload size: MTU - 108 (IPv4) or MTU - 128 (IPv6).
 For 1280 MTU: Max payload is 1172 (IPv4) or 1152 (IPv6).
 For 1500 MTU: Max payload is 1392 (IPv4) or 1372 (IPv6).
@@ -3779,11 +3783,13 @@ SessionConfirmed (Type 2)
 -----------------------------
 
 Alice sends to Bob, in response to a Session Created message.
+Bob responds immediately with a Data message containing an ACK block.
 Size: 80 + payload size.
+Minimum Size: About 500 (minimum router info block size is about 420 bytes)
 
 Noise content: Alice's static key
 Noise payload part 1: None
-Noise payload part 2: Alice's RouterInfo, options, data, and padding blocks
+Noise payload part 2: Alice's RouterInfo, and other blocks
 Max payload size: MTU - 108 (IPv4) or MTU - 128 (IPv6).
 For 1280 MTU: Max payload is 1172 (IPv4) or 1152 (IPv6).
 For 1500 MTU: Max payload is 1392 (IPv4) or 1372 (IPv6).
@@ -3919,7 +3925,7 @@ Unencrypted data (Poly1305 auth tags not shown):
 
 Payload
 ```````
-- RouterInfo block
+- RouterInfo block (must be the first block)
 - Options block (optional)
 - New Token block (optional)
 - First Packet Number block (optional)
@@ -4510,16 +4516,13 @@ reserved for future extension             255
 Block Ordering Rules
 ----------------------
 
-In the Session Confirmed part 2, order must be:
-RouterInfo, followed by Options if present, followed by Padding if present.
-No other blocks are allowed.
+In the Session Confirmed, Router Info must be the first block.
 
-In the data phase, order is unspecified, except for the
+In all other messages, order is unspecified, except for the
 following requirements:
 Padding, if present, must be the last block.
 Termination, if present, must be the last block except for Padding.
 
-There may be multiple I2NP blocks in a single payload.
 Multiple Padding blocks are not allowed in a single payload.
 Other block types probably won't have multiple blocks in
 a single payload, but it is not prohibited.
@@ -4612,6 +4615,9 @@ Used in Session Confirmed part 2.
 Pass Alice's RouterInfo to Bob, or Bob's to Alice.
 Used optionally in the data phase.
 
+Minimum Size: About 420 bytes, unless the router identity and
+signature in the router info are compressible, which is unlikely.
+
 NOTE: Unlike in NTCP2, the Router Info may be fragmented.
 Session setup is not complete until all fragments are received.
 
@@ -4702,7 +4708,7 @@ Notes:
   RouterAddresses in it.
 
 - This protocol does not provide an acknowledgment that the RouterInfo
-  was received, stored, or flooded (either in the handshake or data phase).
+  was stored or flooded (either in the handshake or data phase).
   If acknowledgment is desired, and the receiver is floodfill,
   the sender should instead send a standard I2NP DatabaseStoreMessage
   with a reply token.
@@ -4710,8 +4716,10 @@ Notes:
 
 Issues:
 
-- Could also be used in data phase, instead of a I2NP DatabaseStoreMessage.
+- May also be used in data phase, instead of a I2NP DatabaseStoreMessage.
   For example, Bob could use it to start off the data phase.
+  However, may NOT be fragmented in the data phase; use
+  a I2NP DatabaseStoreMessage instead.
 
 - Is it allowed for this to contain the RI for routers other than the
   originator, as a general replacement for DatabaseStoreMessages,
