@@ -5,7 +5,7 @@ SSU2
     :author: eyedeekay, orignal, zlatinb, zzz
     :created: 2021-09-12
     :thread: http://zzz.i2p/topics/2612
-    :lastupdated: 2022-02-15
+    :lastupdated: 2022-02-16
     :status: Open
     :target: 0.9.55
 
@@ -2124,7 +2124,7 @@ channels, such as the timing of packets.
 Relay Security
 ----------------
 
-Following is an analysis of Relay Request, Relay Response, Relay Intro, and Hole Punch.
+Following is an analysis of Relay Request, Relay Response, Relay Intro, and Hole Punch in SSU1.
 
 Constraints: It is important that Relays be fast.
 Round trips should be minimized.
@@ -2199,7 +2199,7 @@ Four byte nonce may need to be replaced or supplemented by
 Peer Test Security
 ---------------------
 
-Following is an analysis of Peer Test.
+Following is an analysis of Peer Test in SSU1.
 
 Constraints: It is not particularly important that Peer Tests be fast,
 or low-bandwidth, or low-CPU, except perhaps at router startup,
@@ -2217,10 +2217,28 @@ Alice                     Bob                  Charlie
   2.                          PeerTest-------------------->
   3.                             <-------------------PeerTest
   4.      <-------------------PeerTest
+
   5.      <------------------------------------------PeerTest
   6. PeerTest------------------------------------------>
   7.      <------------------------------------------PeerTest
 {% endhighlight %}
+
+
+Because the SSU1 specification is difficult to follow, we
+document the message contents below.
+
+
+=========   ============   =============   =============
+Message     Path           Alice IP incl?  Intro Key    
+=========   ============   =============   =============
+1           A->B session   no              Alice        
+2           B->C session   yes             Alice        
+3           C->B session   yes             Charlie      
+4           B->A session   yes             Charlie      
+5           C->A           yes             Charlie      
+6           A->C           no              Alice        
+7           C->A           yes             Charlie      
+=========   ===========    =============   =============
 
 
 Authentication:
@@ -2270,6 +2288,19 @@ Relay and Peer Test Design Goals
 Relay and Peer Test have similar constructions.
 In both cases, Alice requests Bob to forward a service request to Charlie,
 and Charlie then acts on that request.
+
+Current SSU1 Peer Test issues:
+
+- Peer Test has no protections against a malicious Bob
+- Peer Test has no way for Bob or Charlie to reject a request
+- Peer Test has no way for Alice to know Charlie's identity
+  or for Alice to reject a Charlie
+- Peer Test has no way for Charlie to know Alice's identity
+  or for Charlie to reject an Alice
+- Peer Test has its own ad-hoc retransmission scheme
+- Peer Test requires a complex state machine to know
+  what message is for what state
+
 
 We have the following goals in improving the security of Relay and Peer Test:
 
@@ -2391,7 +2422,9 @@ for inspiration, guidance, and code reuse:
 
 * Padding and options: From [NTCP2]_ and [ECIES]_.
 
-* Flow control, acks, nacks: TBD
+* Acks, nacks: Adapted from QUIC [RFC-9000]_.
+
+* Flow control: TBD
 
 
 
@@ -2473,7 +2506,6 @@ Noise_XK_25519_ChaChaPoly_SHA256.  These generally follow the guidelines in
 5) The payload format is defined for messages 1, 2, and the data phase.
    Of course, this is not defined in Noise.
 
-All messages include an [I2NP]_ Garlic Message header.
 The data phase uses encryption similar to, but not compatible with, the Noise data phase.
 
 
@@ -2603,7 +2635,7 @@ Type      Message       Notes
   4   RelayResponse     TBD may be a block
   5   RelayIntro        NO, block only
   6   Data
-  7   PeerTest          TBD may be a block
+  7   PeerTest
   8   SessionDestroyed  NO, block only??
   9   Retry
  10   Token Request
@@ -2904,7 +2936,7 @@ For Retry, bytes 16-31 of the long header
 are encrypted using ChaCha20.
 The unencrypted data is random, so the encrypted data will appear to be random.
 
-There are five header protection key phases:
+There are six header protection key phases:
 
 - Session Request and Token Request
 - Session Created
@@ -2922,6 +2954,8 @@ Session Created    Bob Intro Key        See Session Request KDF
 Session Confirmed  Bob Intro Key        See Session Created KDF
 Retry              Bob Intro Key        See Retry KDF
 Data               Alice/Bob Intro Key  See data phase KDF
+Peer Test 5,7      Alice Intro Key      Alice Intro Key
+Peer Test 6        Charlie Intro Key    Charlie Intro Key
 =================  ===================  ====================
 
 
@@ -4135,10 +4169,114 @@ Notes
   If the requirement is not met, a Padding block must be included.
 
 
+KDF for Peer Test
+--------------------
+
+.. raw:: html
+
+  {% highlight lang='text' %}
+
+// AEAD parameters
+  // bik = Bob's intro key
+  k = bik
+  n = 4 byte packet number from header
+  ad = 32 byte header, before header encryption
+  ciphertext = ENCRYPT(k, n, payload, ad)
+
+  // Header encryption keys for this message
+  k_header_1 = bik
+  k_header_2 = bik
+
+{% endhighlight %}
+
+
 Peer Test (Type 7)
 ------------------------
 
-TBD, only required if these must be sent outside of an existing session.
+Charlie sends to Alice, and Alice Sends to Charlie,
+for Peer Test phases 5-7 only.
+Peer Test phases 1-4 must be sent in-session.
+
+Size: 48 + payload size.
+
+Noise payload: See below.
+
+Raw contents:
+
+.. raw:: html
+
+  {% highlight lang='dataspec' %}
++----+----+----+----+----+----+----+----+
+  |  Long Header bytes 0-15, ChaCha20     |
+  +  encrypted with Alice or Charlie      +
+  |  intro key                            |
+  +----+----+----+----+----+----+----+----+
+  |  Long Header bytes 16-31, ChaCha20    |
+  +  encrypted with Alice or Charlie      +
+  |  intro key                            |
+  +----+----+----+----+----+----+----+----+
+  |                                       |
+  +                                       +
+  |   ChaCha20 encrypted data             |
+  +          (length varies)              +
+  |                                       |
+  +  see KDF for key and n                +
+  |  see KDF for associated data          |
+  +----+----+----+----+----+----+----+----+
+  |                                       |
+  +        Poly1305 MAC (16 bytes)        +
+  |                                       |
+  +----+----+----+----+----+----+----+----+
+
+
+{% endhighlight %}
+
+Unencrypted data (Poly1305 authentication tag not shown):
+
+.. raw:: html
+
+  {% highlight lang='dataspec' %}
++----+----+----+----+----+----+----+----+
+  |      Destination Connection ID        |
+  +----+----+----+----+----+----+----+----+
+  |   Packet Number   |type| ver| id |flag|
+  +----+----+----+----+----+----+----+----+
+  |        Source Connection ID           |
+  +----+----+----+----+----+----+----+----+
+  |                 Token                 |
+  +----+----+----+----+----+----+----+----+
+  |    ChaCha20 payload (block data)      |
+  +          (length varies)              +
+  |    see below for allowed blocks       |
+  +----+----+----+----+----+----+----+----+
+
+
+  Destination Connection ID :: Randomly generated by Charlie
+
+  type :: 7
+
+  ver :: 2
+
+  id :: 1 byte, the network ID (currently 2, except for test networks)
+
+  flag :: 1 byte, unused, set to 0 for future compatibility
+
+  Packet Number :: Random number generated by Alice or Charlie
+
+  Source Connection ID :: Randomly generated by Charlie
+
+  Token :: Randomly generated by Charlie, ignored
+
+{% endhighlight %}
+
+Payload
+```````
+- Peer Test block
+- Padding block (optional)
+
+The minimum payload size is 8 bytes. Since the Peer Test block
+totals more than that, the requirement is met with only this block.
+
 
 
 Session Destroyed (Type 8)
@@ -5061,46 +5199,70 @@ TODO this is the SSU 1 flavor, to be updated
 
   {% highlight lang='dataspec' %}
 +----+----+----+----+----+----+----+----+
-  | 10 |  size   |  test nonce       | asz|
-  +----+----+----+----+----+----+----+----+
-  |  Alice IP address |AlicePort|         |
+  | 10 |  size   | msg|code|flag|         |
   +----+----+----+----+----+----+         +
   | Alice or Charlie's                    |
-  + introduction key (Alice's is sent to  +
-  | Bob and Charlie, while Charlie's is   |
+  + router hash (Alice's is sent to       +
+  | Charlie, while Charlie's is           |
   + sent to Alice)   (32 bytes)           +
   |                                       |
   +                             +----+----+
-  |                             |
-  +----+----+----+----+----+----+
+  |                             |role| ver|
+  +----+----+----+----+----+----+----+----+
+  |       nonce       |     timestamp     |
+  +----+----+----+----+----+----+----+----+
+  | asz|  Alice IP address |AlicePort|    |
+  +----+----+----+----+----+----+----+    +
+  |                                       |
+  ~              signature                ~
+  |                                       |
+  +----+----+----+----+----+----+----+----+
 
   blk :: 10
   size :: 2 bytes, big endian, size of data to follow
-  test nonce :: 4 byte nonce, big endian integer
-  asz :: 1 byte IP address size (may be 0, 4, or 16)
+  msg :: 1 byte message number 1-7
+  code:: 1 byte status code:
+         0: accept
+         1: reject, reason unspecified
+         2: rejected by Bob, reason unspecified
+         3: rejected by Charlie, reason unspecified
+         4-255: other reject codes TBD
+         reject codes only allowed in messages 3 and 4
+  flag :: 1 byte flags, Unused, set to 0 for future compatibility
+  hash :: Alice's or Charlie's 32-byte router hash,
+          only present in messages 2-4
+
+  For messages 1-4, the data below here is covered
+  by the signature, if present, and Bob forwards it unmodified.
+
+  role:: 1 byte role of the signer:
+         1: Alice
+         3: Charlie
+  ver::  1 byte SSU version to be used for messages 5-7:
+         1: SSU 1
+         2: SSU 2
+  nonce :: 4 byte test nonce, big endian
+  timestamp :: Unix timestamp, unsigned seconds.
+               Wraps around in 2106
+  asz :: 1 byte IP address size (4 or 16)
   Alice IP :: asz byte representation of Alice's IP address,
               network byte order, if size is greater than zero
   AlicePort :: 2 byte Alice's port number, big endian
-  intro :: Alice's or Charlie's 32-byte introduction key, big endian
+  signature :: length varies, signature of Bob's hash
+               and signed data above, as signed by
+               Alice or Charlie
+               Only present for messages 1-4.
+               Not required in message 3 or 4 if
+               Bob or Charlie rejects the request.
 
 {% endhighlight %}
 
 
 Notes:
 
-* When sent by Alice, IP address size is 0, IP address is not present, and port
-  is 0, as Bob and Charlie do not use the data; the point is to determine
-  Alice's true IP address/port and tell Alice; Bob and Charlie don't care what
-  Alice thinks her address is.
+* Unlike in SSU 1, message 1 must include Alice's IP address and port.
 
-* When sent by Bob or Charlie, IP and port are present, and IP address is
-  4 or 16 bytes. IPv6 testing is supported as of release 0.9.27.
-
-* IPv6 Notes: Through release 0.9.26, only testing of IPv4 addresses is supported. Therefore, all
-  Alice-Bob and Alice-Charlie communication must be via IPv4. Bob-Charlie
-  communication, however, may be via IPv4 or IPv6. Alice's address, when
-  specified in the PeerTest message, must be 4 bytes.
-  As of release 0.9.27, testing of IPv6 addresses is supported,
+* Testing of IPv6 addresses is supported,
   and Alice-Bob and Alice-Charlie communication may be via IPv6,
   if Bob and Charlie indicate support with a 'B' capability in their published IPv6 address.
   See Proposal 126 for details.
@@ -5110,14 +5272,29 @@ Notes:
   When Bob receives a request from Alice via IPv6, Bob must select a Charlie that advertises an IPv6 address.
   The actual Bob-Charlie communication may be via IPv4 or IPv6 (i.e., independent of Alice's address type).
 
-* A peer must maintain a table of active test states (nonces). On reception of
-  a PeerTest message, look up the nonce in the table. If found, it's an
-  existing test and you know your role (Alice, Bob, or Charlie). Otherwise, if
-  the IP is not present and the port is 0, this is a new test and you are Bob.
-  Otherwise, this is a new test and you are Charlie.
+* Messages 1-4 must be contained in a Data message in an existing session.
 
-* Alice must have an established session with Bob and use
-  the session key.
+* Bob must send Alice's RI to Charlie prior to sending message 2.
+
+* Bob must send Charlie's RI to Alice prior to sending message 4.
+
+* Messages 5-7 must be contained in a Peer Test message out-of-session.
+
+
+Signatures:
+
+Alice signs the request and includes it in message 1; Bob forwards it in message 2 to Charlie.
+Charlie signs the response and includes it in message 3; Bob forwards it in message 4 to Alice.
+Signature algorithm: Sign the following data with the router's signing key:
+
+- bhash: Bob's 32-byte router hash (not included in the message)
+- role: 1 byte role of the signer
+- ver: 1 byte SSU version
+- nonce: 4 byte test nonce
+- timestamp: Unix timestamp
+- asz: 1 byte IP address size (4, or 16)
+- Alice IP: asz byte Alice IP address
+- AlicePort: 2 byte Alice's port number
 
 
 
@@ -6077,6 +6254,94 @@ the chance of message loss increases exponentially with message size.
 We continue to recommend a practical limit of about 10 KB at the
 application layer for I2NP datagrams.
 
+
+Peer Test Process
+========================
+
+See Peer Test Security above for an analysis of SSU1 Peer Test and
+the goals for SSU2 Peer Test.
+
+.. raw:: html
+
+  {% highlight %}
+Alice                     Bob                  Charlie
+  1. PeerTest ------------------->
+                              Alice RI ------------------->
+  2.                          PeerTest ------------------->
+  3.                             <------------------ PeerTest
+          <---------------- Charlie RI
+  4.      <------------------ PeerTest
+
+  5.      <----------------------------------------- PeerTest
+  6. PeerTest ----------------------------------------->
+  7.      <----------------------------------------- PeerTest
+{% endhighlight %}
+
+
+
+When rejected by Bob:
+
+.. raw:: html
+
+  {% highlight %}
+Alice                     Bob                  Charlie
+  1. PeerTest ------------------->
+  4.      <------------------ PeerTest (reject)
+{% endhighlight %}
+
+
+
+When rejected by Charlie:
+
+.. raw:: html
+
+  {% highlight %}
+Alice                     Bob                  Charlie
+  1. PeerTest ------------------->
+                              Alice RI ------------------->
+  2.                          PeerTest ------------------->
+  3.                             <------------------ PeerTest (reject)
+  4.      <------------------ PeerTest (reject)
+{% endhighlight %}
+
+
+
+
+=========   ============    =============
+Message     Path            Intro Key    
+=========   ============    =============
+1           A->B session    in-session   
+2           B->C session    in-session   
+3           C->B session    in-session   
+4           B->A session    in-session   
+5           C->A            Alice
+6           A->C            Charlie      
+7           C->A            Alice     
+=========   ===========     =============
+
+
+
+Cross-version relaying and peer testing should also be supported if possible.
+This will facilitate a gradual transition from SSU 1 to SSU 2.
+The allowed version combinations are (TODO):
+
+=========   ===========   =============   =============
+Alice/Bob   Bob/Charlie   Alice/Charlie   Supported
+=========   ===========   =============   =============
+1           1             2               no, use 1/1/1
+1           2             1               yes?
+1           2             2               no, use 1/2/1
+2           1             2               yes?
+2           2             1               no, use 2/2/2
+2           2             2               yes
+=========   ===========   =============   =============
+
+
+Retransmissions: Messages 1-4 are in-session and are covered by the
+data phase ACK and retransmission processes.
+Peer Test blocks are ack-eliciting.
+
+Messages 5-7 may be retransmitted, unchanged.
 
 
 Published Router Info
