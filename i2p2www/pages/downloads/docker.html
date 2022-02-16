@@ -4,7 +4,7 @@
 {% block content %}
 <h1 id="i2p-in-docker">{% trans -%}Installing I2P in Docker{%- endtrans %}</h1>
 <h3 id="quick-start">{% trans -%}Very quick start{%- endtrans %}</h3>
-<p>{% trans -%}If you just want to give I2P a quick try, follow these steps{%- endtrans %}:</p>
+<p>{% trans -%}If you just want to give I2P a quick try or are using it in a home network, follow these steps{%- endtrans %}:</p>
 <ol>
 <li>{% trans -%}Create two directories "i2pconfig" and "i2ptorrents"{%- endtrans %}</li>
 <li>{% trans -%}Copy the following text and save it in a file "docker-compose.yml".{%- endtrans %}</li>
@@ -21,7 +21,7 @@ services:
 <li>{% trans -%}Execute "docker-compose up"{%- endtrans %}</li>
 <li>{% trans -%}Start a browser and go to http://127.0.0.1:7657 to complete the setup wizard.{%- endtrans %}</li>
 </ol>
-<p>{% trans -%}<p>Note that this quick-start approach is not suitable for production use.  If you want to use I2P in production please read all the instructions on this page.{%- endtrans %}</p>
+<p>{% trans -%}Note that this quick-start approach is not recommended for production deployments on remote servers.  Please read the rest of this document for more information.{%- endtrans %}</p>
 <h3 id="building-an-image">{% trans -%}Building an image{%- endtrans %}</h3>
 <p>{% trans -%}There is an i2P image available over at <a href="https://hub.docker.com">DockerHub</a>. If you do not want to use that one, you can build one yourself:{%- endtrans %}</p>
 <pre><code>docker build -t i2p .</code></pre>
@@ -36,6 +36,7 @@ services:
 <thead>
 <tr class="header">
 <th>{% trans -%}Port{%- endtrans %}</th>
+<th>{% trans -%}Interface{%- endtrans %}</th>
 <th>{% trans -%}Description{%- endtrans %}</th>
 <th>{% trans -%}TCP/UDP{%- endtrans %}</th>
 </tr>
@@ -43,57 +44,81 @@ services:
 <tbody>
 <tr class="odd">
 <td>4444</td>
+<td>127.0.0.1</td>
 <td>{% trans -%}HTTP Proxy{%- endtrans %}</td>
 <td>{% trans -%}TCP{%- endtrans %}</td>
 </tr>
 <tr class="even">
 <td>4445</td>
+<td>127.0.0.1</td>
 <td>{% trans -%}HTTPS Proxy{%- endtrans %}</td>
 <td>{% trans -%}TCP{%- endtrans %}</td>
 </tr>
 <tr class="odd">
 <td>6668</td>
+<td>127.0.0.1</td>
 <td>{% trans -%}IRC Proxy{%- endtrans %}</td>
 <td>{% trans -%}TCP{%- endtrans %}</td>
 </tr>
 <tr class="even">
 <td>7654</td>
+<td>127.0.0.1</td>
 <td>{% trans -%}I2CP Protocol{%- endtrans %}</td>
 <td>{% trans -%}TCP{%- endtrans %}</td>
 </tr>
 <tr class="odd">
 <td>7656</td>
+<td>127.0.0.1</td>
 <td>{% trans -%}SAM Bridge TCP{%- endtrans %}</td>
 <td>{% trans -%}TCP{%- endtrans %}</td>
 </tr>
 <tr class="even">
 <td>7657</td>
+<td>127.0.0.1</td>
 <td>{% trans -%}Router console{%- endtrans %}</td>
 <td>{% trans -%}TCP{%- endtrans %}</td>
 </tr>
 <tr class="odd">
 <td>7658</td>
+<td>127.0.0.1</td>
 <td>{% trans -%}I2P Site{%- endtrans %}</td>
 <td>{% trans -%}TCP{%- endtrans %}</td>
 </tr>
 <tr class="even">
 <td>7659</td>
+<td>127.0.0.1</td>
 <td>{% trans -%}SMTP Proxy{%- endtrans %}</td>
 <td>{% trans -%}TCP{%- endtrans %}</td>
 </tr>
 <tr class="odd">
 <td>7660</td>
-<td>{% trans -%}POP Proxy{%- endtrans %}</td>
+<td>127.0.0.1</td>
+<td>{% trans -%}POP3 Proxy{%- endtrans %}</td>
 <td>{% trans -%}TCP{%- endtrans %}</td>
 </tr>
 <tr class="even">
+<td>7652</td>
+<td>{% trans -%}LAN interface{%- endtrans %}</td>
+<td>{% trans -%}UPnP{%- endtrans %}</td>
+<td>{% trans -%}TCP{%- endtrans %}</td>
+</tr>
+<tr class="odd">
+<td>7653</td>
+<td>{% trans -%}LAN interface{%- endtrans %}</td>
+<td>{% trans -%}UPnP{%- endtrans %}</td>
+<td>{% trans -%}UDP{%- endtrans %}</td>
+</tr>
+<tr class="even">
 <td>12345</td>
+<td>0.0.0.0</td>
 <td>{% trans -%}I2NP Protocol{%- endtrans %}</td>
 <td>{% trans -%}TCP and UDP{%- endtrans %}</td>
 </tr>
 </tbody>
 </table>
 <p>{% trans -%}You probably want at least the Router Console (7657) and the HTTP Proxy (4444). If you want I2P to be able to receive incoming connections from the internet, and hence not think it’s firewalled, publish the I2NP Protocol port (12345) - but make sure you publish to a different random port, otherwise others may be able to guess you’re running I2P in a Docker image.{%- endtrans %}</p>
+<h4 id="example">{% trans -%}Networking{%- endtrans %}</h4>
+<p>{% trans -%}A best-practices guide for cloud deployments is beyond the scope of this document, but in general you should try to minimize the number of published ports, while exposing only the I2NP ports to the internet.  That means that the services in the list above which are bound to 127.0.0.1 (which include the router console) will need to be accessed via other methods like ssh tunneling or be manually configured to bind to a different interface.{%- endtrans %}</p>
 <h4 id="example">{% trans -%}Example{%- endtrans %}</h4>
 <p>{% trans -%}Here is an example container that mounts <code>i2phome</code> as home directory, <code>i2ptorrents</code> for torrents, and opens HTTP Proxy, IRC, Router Console and I2NP Protocols. It also limits the memory available to the JVM to 256MB.{%- endtrans %}</p>
 <pre><code>docker run \
