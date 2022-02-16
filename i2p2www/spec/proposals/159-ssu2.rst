@@ -5213,9 +5213,9 @@ TODO this is the SSU 1 flavor, to be updated
   +----+----+----+----+----+----+----+----+
   | asz|  Alice IP address |AlicePort|    |
   +----+----+----+----+----+----+----+    +
-  |                                       |
-  ~              signature                ~
-  |                                       |
+  |              signature                |
+  ~            length varies              ~
+  |         64 bytes for Ed25519          |
   +----+----+----+----+----+----+----+----+
 
   blk :: 10
@@ -5248,9 +5248,10 @@ TODO this is the SSU 1 flavor, to be updated
   Alice IP :: asz byte representation of Alice's IP address,
               network byte order, if size is greater than zero
   AlicePort :: 2 byte Alice's port number, big endian
-  signature :: length varies, signature of Bob's hash
+  signature :: length varies, 64 bytes for Ed25519.
+               Signature of prologue, Bob's hash,
                and signed data above, as signed by
-               Alice or Charlie
+               Alice or Charlie.
                Only present for messages 1-4.
                Not required in message 3 or 4 if
                Bob or Charlie rejects the request.
@@ -5287,6 +5288,7 @@ Alice signs the request and includes it in message 1; Bob forwards it in message
 Charlie signs the response and includes it in message 3; Bob forwards it in message 4 to Alice.
 Signature algorithm: Sign the following data with the router's signing key:
 
+- prologue: 16 bytes "PeerTestValidate", not null-terminated (not included in the message)
 - bhash: Bob's 32-byte router hash (not included in the message)
 - role: 1 byte role of the signer
 - ver: 1 byte SSU version
