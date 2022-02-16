@@ -3,8 +3,8 @@ Software Update Specification
 =============================
 .. meta::
     :category: Design
-    :lastupdated: June 2021
-    :accuratefor: 0.9.51
+    :lastupdated: 2022-02
+    :accuratefor: 0.9.53
 
 .. contents::
 
@@ -299,6 +299,10 @@ The certificate is looked up by the ID of the signer.  Clients must verify that
 the content type is that expected for the application.
 
 All values are in network byte order (big endian).
+
+For a python implementation of Raw RSA signatures compatible with Java "NONEwithRSA",
+see this Stack Overflow article: [Python]_
+
 
 SU3 Router Update File Specification
 ------------------------------------
@@ -656,6 +660,9 @@ References
 
 .. [PLUGIN]
     {{ spec_url('plugin') }}
+
+.. [Python]
+    https://stackoverflow.com/questions/59573121/python-rsa-sign-a-string-with-nonewithrsa/68301530#68301530
 
 .. [RFC-3339]
     https://tools.ietf.org/html/rfc3339
