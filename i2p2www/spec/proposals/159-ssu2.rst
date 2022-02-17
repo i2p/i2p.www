@@ -19,20 +19,26 @@ Status
 Preliminary rollout plan:
 
 
-=================  =====================  ====================
-    Feature        Testing (not default)  Enabled by default
-=================  =====================  ====================
-Local test code            2022-02
-Joint test code            2022-03
-Joint test in-net  0.9.54  2022-05
-Basic Session      0.9.55  2022-08        0.9.56  2022-11
-Retry              0.9.55  2022-08        0.9.56  2022-11
-Relay              0.9.56  2022-11        0.9.57  2023-02
-Peer Test          0.9.56  2022-11        0.9.57  2023-02
-Path Validation    0.9.57  2023-02        0.9.58  2023-05
-Key Rotation       0.9.57  2023-02        0.9.58  2023-05
-Disable SSU 1      0.9.57  2023-02        0.9.58  2023-05
-=================  =====================  ====================
+==========================      =====================  ====================
+    Feature                     Testing (not default)  Enabled by default
+==========================      =====================  ====================
+Local test code                         2022-02
+Joint test code                         2022-03
+Joint test in-net               0.9.54  2022-05
+Basic Session                   0.9.55  2022-08        0.9.56  2022-11
+Address Validation (Retry)      0.9.55  2022-08        0.9.56  2022-11
+Relay                           0.9.56  2022-11        0.9.57  2023-02
+Peer Test                       0.9.56  2022-11        0.9.57  2023-02
+New Token                       0.9.56  2022-11        0.9.57  2023-02
+Fragmented RI in handshake      0.9.57  2023-02        0.9.58  2023-05
+Path Validation                 0.9.57  2023-02        0.9.58  2023-05
+Connection Migration            0.9.57  2023-02        0.9.58  2023-05
+Key Rotation                    0.9.57  2023-02        0.9.58  2023-05
+Disable SSU 1                   0.9.57  2023-02        0.9.58  2023-05
+==========================      =====================  ====================
+
+Basic Session includes the handshake and data phase.
+
 
 
 
@@ -2265,10 +2271,8 @@ Message     Path           Alice IP incl?   Intro Key
 
 
 Authentication:
-As of 0.9.15, Alice will always choose a Bob with an existing session.
-The protocol also permits Bob's introKey if Alice and Bob do not have an established session,
-but in the current implementation Alice always selects a Bob that is established.
-As of release 0.9.15, Bob will reject PeerTests from peers without an established session.
+Alice will always choose a Bob with an existing session.
+Bob will reject PeerTests from peers without an established session.
 Message 1 is sent in-session. Therefore, message 1 is secure and authenticated.
 
 Bob selects a Charlie with whom he has an existing session.
@@ -2424,10 +2428,12 @@ for inspiration, guidance, and code reuse:
   provided by UDP.
 
 * Handshake ephemeral key obfuscation: Adapted from [NTCP2]_
+  but using ChaCha20 from [ECIES]_ instead of AES.
 
 * Packet headers: Adapted from WireGuard [WireGuard]_ and QUIC [RFC-9000]_ [RFC-9001]_.
 
 * Packet header obfuscation: Adapted from [NTCP2]_
+  but using ChaCha20 from [ECIES]_ instead of AES.
 
 * Packet header protection: Adapted from QUIC [RFC-9001]_ and [Nonces]_
 
@@ -2441,6 +2447,8 @@ for inspiration, guidance, and code reuse:
 
 * Relay and Peer Testing: Adapted from [SSU]_
 
+* Signatures of Relay and Peer Test data: From the common structures spec [Common]_
+
 * Block format: From [NTCP2]_ and [ECIES]_.
 
 * Padding and options: From [NTCP2]_ and [ECIES]_.
@@ -2448,6 +2456,9 @@ for inspiration, guidance, and code reuse:
 * Acks, nacks: Adapted from QUIC [RFC-9000]_.
 
 * Flow control: TBD
+
+
+There are no new cryptographic primitives that have not been used in I2P before.
 
 
 
@@ -2531,12 +2542,6 @@ Noise_XK_25519_ChaChaPoly_SHA256.  These generally follow the guidelines in
 
 The data phase uses encryption similar to, but not compatible with, the Noise data phase.
 
-
-
-New Cryptographic Primitives for I2P
----------------------------------------
-
-None
 
 
 
@@ -4327,6 +4332,10 @@ Bob sends to Alice, in response to a Session Request or Token Request message.
 Alice responds with a new Session Request.
 Size: 48 + payload size.
 
+Also serves as a Termination message (i.e., "Don't Retry")
+if a Termination block is included.
+
+
 Noise payload: See below.
 
 Raw contents:
@@ -5026,6 +5035,9 @@ This must be the last non-padding block in the payload.
          16: s parameter missing, invalid, or mismatched in RouterInfo
          17: banned
          18: bad token
+         19: connection limits
+         20: incompatible version
+         21: wrong net ID
   addl data :: optional, 0 or more bytes, for future expansion, debugging,
                or reason text.
                Format unspecified and may vary based on reason code.
@@ -5093,12 +5105,6 @@ Notes:
 * The IP address is always included (unlike in SSU 1)
   and may be different than the IP used for the session.
 
-* This message may be sent via IPv4 or IPv6.
-  If the message is over IPv6 for an IPv4 introduction,
-  or (as of release 0.9.50) over IPv4 for an IPv6 introduction,
-  Alice must include her introduction address and port.
-  This is supported as of release 0.9.50.
-
 
 Signature:
 
@@ -5110,7 +5116,7 @@ Signature algorithm: Sign the following data with the Alice's router signing key
 - chash: Charlie's 32-byte router hash (not included in the message)
 - nonce: 4 byte nonce
 - relay tag: 4 byte relay tag
-- timestamp: Unix timestamp
+- timestamp: 4 byte timestamp (seconds)
 - ver: 1 byte SSU version
 - asz: 1 byte IP address size (4 or 16)
 - Alice IP: asz byte Alice IP address
@@ -5190,7 +5196,7 @@ Signature algorithm: Sign the following data with the Charlie's router signing k
 - prologue: 16 bytes "RelayAgreementOK", not null-terminated (not included in the message)
 - bhash: Bob's 32-byte router hash (not included in the message)
 - relay tag: 4 byte relay tag
-- timestamp: Unix timestamp
+- timestamp: 4 byte timestamp (seconds)
 - ver: 1 byte SSU version
 - csz: 1 byte IP address size (4 or 16)
 - Charlie IP: csz byte Charlie IP address
@@ -5203,6 +5209,10 @@ RelayIntro
 
 Sent in a Data message in-session, from Bob to Charlie.
 See Relay Process section below.
+
+Must be preceded by a RouterInfo block, or I2NP DatabaseStore message block (or fragment),
+containing Alice's Router Info,
+either in the same payload (if there's room), or in a previous message.
 
 
 .. raw:: html
@@ -5262,17 +5272,13 @@ See Relay Process section below.
 Notes:
 
 * For IPv4, Alice's IP address is always 4 bytes, because Alice is trying to connect to Charlie via IPv4.
-  As of release 0.9.xx, IPv6 is supported, and Alice's IP address may be 16 bytes.
-
-* This message must be sent via an established IPv4 connection, as that's the
-  only way that Bob knows Charlie's IPv4 address to return to Alice in the
-  RelayResponse_.
+  IPv6 is supported, and Alice's IP address may be 16 bytes.
 
 * For IPv4, this message must be sent via an established IPv4 connection,
   as that's the only way that Bob knows Charlie's IPv4 address to return to Alice in the RelayResponse_.
-  As of release 0.9.50, IPv6 is supported, and this message may be sent via an established IPv6 connection.
+  IPv6 is supported, and this message may be sent via an established IPv6 connection.
 
-* As of release 0.9.50, any SSU address published with introducers must contain "4" or "6" in the "caps" option.
+* Any SSU address published with introducers must contain "4" or "6" in the "caps" option.
 
 
 Signature:
@@ -5284,7 +5290,7 @@ Verification algorithm: Verify the following data with the Alice's router signin
 - bhash: Bob's 32-byte router hash (not included in the message)
 - nonce: 4 byte nonce
 - relay tag: 4 byte relay tag
-- timestamp: Unix timestamp
+- timestamp: 4 byte timestamp (seconds)
 - ver: 1 byte SSU version
 - asz: 1 byte IP address size (4 or 16)
 - Alice IP: asz byte Alice IP address
@@ -5297,6 +5303,16 @@ PeerTest
 Sent either in a Data message in-session,
 or a Peer Test message out-of-session.
 See Peer Test Process section below.
+
+For message 2,
+must be preceded by a RouterInfo block, or I2NP DatabaseStore message block (or fragment),
+containing Alice's Router Info,
+either in the same payload (if there's room), or in a previous message.
+
+For message 4, if the relay is accepted (reason code 0),
+must be preceded by a RouterInfo block, or I2NP DatabaseStore message block (or fragment),
+containing Charlie's Router Info,
+either in the same payload (if there's room), or in a previous message.
 
 
 .. raw:: html
@@ -5336,7 +5352,8 @@ See Peer Test Process section below.
          reject codes only allowed in messages 3 and 4
   flag :: 1 byte flags, Unused, set to 0 for future compatibility
   hash :: Alice's or Charlie's 32-byte router hash,
-          only present in messages 2-4
+          only present in messages 2-4.
+          Not present in message 4 if rejected by Bob.
 
   For messages 1-4, the data below here is covered
   by the signature, if present, and Bob forwards it unmodified.
@@ -5383,7 +5400,7 @@ Notes:
 
 * Bob must send Alice's RI to Charlie prior to sending message 2.
 
-* Bob must send Charlie's RI to Alice prior to sending message 4.
+* Bob must send Charlie's RI to Alice prior to sending message 4, if accepted (reason code 0).
 
 * Messages 5-7 must be contained in a Peer Test message out-of-session.
 
@@ -5399,7 +5416,7 @@ Signature algorithm: Sign or verify the following data with the Alice's or Charl
 - role: 1 byte role of the signer
 - ver: 1 byte SSU version
 - nonce: 4 byte test nonce
-- timestamp: Unix timestamp
+- timestamp: 4 byte timestamp (seconds)
 - asz: 1 byte IP address size (4 or 16)
 - Alice IP: asz byte Alice IP address
 - AlicePort: 2 byte Alice's port number
@@ -7020,6 +7037,9 @@ TODO UNLESS minimum packet size in Session Request and Created is enforced for P
 
 References
 ==========
+
+.. [Common]
+    {{ spec_url('common-structures') }}
 
 .. [ECIES]
     {{ site_url('docs/spec/ecies', True) }}
