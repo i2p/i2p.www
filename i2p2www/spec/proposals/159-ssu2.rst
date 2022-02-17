@@ -2238,7 +2238,7 @@ Message     Path           Alice IP incl?   Intro Key
 5           C->A           yes              Charlie      
 6           A->C           no               Alice        
 7           C->A           yes              Charlie      
-=========   ===========    ==============   =============
+=========   ============   ==============   =============
 
 
 Authentication:
@@ -5075,6 +5075,21 @@ Notes:
   This is supported as of release 0.9.50.
 
 
+Signature:
+
+Alice signs the request and includes it in this block; Bob forwards it in the Relay Intro block to Charlie.
+Signature algorithm: Sign the following data with the Alice's router signing key:
+
+- prologue: 16 bytes "RelayRequestData", not null-terminated (not included in the message)
+- bhash: Bob's 32-byte router hash (not included in the message)
+- relay tag: 4 byte relay tag
+- timestamp: Unix timestamp
+- ver: 1 byte SSU version
+- asz: 1 byte IP address size (4, or 16)
+- Alice IP: asz byte Alice IP address
+- AlicePort: 2 byte Alice's port number
+
+
 RelayResponse
 ``````````````
 
@@ -5189,6 +5204,21 @@ Notes:
 * As of release 0.9.50, any SSU address published with introducers must contain "4" or "6" in the "caps" option.
 
 
+Signature:
+
+Alice signs the request and Bob forwards it in this block to Charlie.
+Verification algorithm: Verify the following data with the Alice's router signing key:
+
+- prologue: 16 bytes "RelayRequestData", not null-terminated (not included in the message)
+- bhash: Bob's 32-byte router hash (not included in the message)
+- relay tag: 4 byte relay tag
+- timestamp: Unix timestamp
+- ver: 1 byte SSU version
+- asz: 1 byte IP address size (4, or 16)
+- Alice IP: asz byte Alice IP address
+- AlicePort: 2 byte Alice's port number
+
+
 PeerTest
 ``````````````
 
@@ -5290,7 +5320,7 @@ Signatures:
 
 Alice signs the request and includes it in message 1; Bob forwards it in message 2 to Charlie.
 Charlie signs the response and includes it in message 3; Bob forwards it in message 4 to Alice.
-Signature algorithm: Sign the following data with the router's signing key:
+Signature algorithm: Sign or verify the following data with the Alice's or Charlie's signing key:
 
 - prologue: 16 bytes "PeerTestValidate", not null-terminated (not included in the message)
 - bhash: Bob's 32-byte router hash (not included in the message)
