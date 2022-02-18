@@ -2644,7 +2644,8 @@ Each datagram (or packet) contains a single message (unlike QUIC, where
 a datagram may contain multiple QUIC packets).
 The "packet header" is the part after the IP/UDP header.
 
-All SSU2 messages are at least 32 bytes in length, except for Hole Punch which is empty.
+All SSU2 messages are at least 40 bytes in length, except for Hole Punch which is empty.
+Any message of length 1-39 bytes is invalid.
 All SSU2 messages are less than or equal to 1472 (IPv4) or 1452 (IPv6) bytes in length. The message
 format is based on Noise messages, with modifications for framing and indistinguishability.
 Implementations using standard Noise libraries must pre-process received
@@ -2714,6 +2715,28 @@ Alice                           Bob
   <------------------- SessionCreated
   SessionConfirmed ----------------->
 {% endhighlight %}
+
+
+Bob may reject a Session or Token Request by replying with a Retry message
+containing a Termination block with a reason code.
+Based on the reason code, Alice should not attempt another
+request for some period of time:
+
+
+.. raw:: html
+
+  {% highlight %}
+Alice                           Bob
+
+  SessionRequest ------------------->
+  <---------------------------  Retry containing a Termination block
+
+  or
+
+  TokenRequest --------------------->
+  <---------------------------  Retry containing a Termination block
+{% endhighlight %}
+
 
 Using Noise terminology, the establishment and data sequence is as follows:
 (Payload Security Properties)
@@ -2967,6 +2990,7 @@ There are six header protection key phases:
 - Retry
 - Session Confirmed
 - Data Phase
+- Peer Test
 
 
 =================  ===================  ====================
@@ -2984,9 +3008,44 @@ Peer Test 6        Charlie Intro Key    Charlie Intro Key
 
 
 
+Header encryption is designed to allow rapid classification of
+inbound packets, without complex heuristics or fallbacks.
+This is accomplished by using the same k_header_1 key
+for almost all inbound messages.
+Even when the source IP or port of a connection changes
+due to an actual IP change or NAT behavior, the packet may be
+rapidly mapped to a session with a single lookup of the connection ID.
+
+Note that Session Created and Retry are the ONLY messages that require fallback processing
+for k_header_1 to decrypt the Connection ID, because they use the sender's (Bob's) intro key.
+ALL other messages use the receiver's intro key for k_header_1.
+The fallback processing need only look up pending outbound connections by
+source IP/port.
+
+If the fallback processing by source IP/port fails to find a pending
+outbound connection, there could be several causes:
+
+- Not an SSU2 message
+- A corrupted SSU2 message
+- The reply is spoofed or modified by an attacker
+- Bob has a symmetric NAT
+- Bob changed IP or port during processing of the message
+- Bob sent the reply out a different interface
+
+While additional fallback processing is possible to attempt to find
+the pending outbound connection and decrypt the connection ID
+using the k_header_1 for that connection, it is probably not necessary.
+If Bob has issues with his NAT or packet routing, it is probably
+better to let the connection fail.
+
+See the Inbound Packet Handling sesion below for additional guidelines.
+
 See the individual KDF sections below for the derivation of the header encryption keys for that phase.
 
-Header Encryption KDF:
+
+
+Header Encryption KDF
+````````````````````````
 
 .. raw:: html
 
@@ -3050,8 +3109,34 @@ If it is a long header, the receiver must validate the version and netid fields.
 If the version is != 2, or the netid is != the expected value (generally 2, except in test networks),
 the receiver should drop the message.
 
-In limited situations (after sending a Session Request but before receiving a Session Created),
-the receiver should retry header decryption with the retry key, to check for a Retry message.
+
+Packet Integrity
+------------------------
+
+All message contain either three or four parts:
+
+- The message header
+- For Session Request and Session Created only, an ephemeral key
+- A ChaCha20-encrypted payload
+- A Poly1305 MAC
+
+In all cases, the header (and if present, the ephemeral key) is bound
+to the authentication MAC to ensure that the entire message is intact.
+
+- For handshake messages Session Request, Session Created, and Session Confirmed,
+  the message header is mixHash()ed before the Noise processing phase
+- The ephemeral key, if present, is covered by a standard Noise misHash()
+- For messages outside the Noise handshake, the header is used
+  as Associated Data for the ChaCha20/Poly1305 encryption.
+
+Inbound packet handlers must always decrypt the ChaCha20 payload and validate
+the MAC before processing the message, with one exception:
+To mitigate DoS attacks from address-spoofed packets containing
+apparent Session Request messages with an invalid token, a handler need NOT
+attempt to decrypt and validate the full message
+(requiring an expensive DH operation in addition to the ChaCha2o/Poly1305 decryption).
+The handler may respond with a Retry message using the values found in the header
+of the Session Request message.
 
 
 Authenticated Encryption
@@ -4419,6 +4504,16 @@ Payload
 
 The minimum payload size is 8 bytes. Since the DateTime and Address blocks
 total more than that, the requirement is met with only those two blocks.
+
+
+Notes
+`````
+-  To limit the magnitude of any amplification attack that can be mounted using spoofed source addresses,
+   the Retry message must not contain large amounts of padding.
+   It is recommended that the Retry message be no larger than three times the size
+   of the message it is responding to.
+   Alternatively, use a simple method such as adding a random amount of padding
+   in the range 1-64 bytes.
 
 
 KDF for Token Request
