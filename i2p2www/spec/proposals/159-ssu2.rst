@@ -5,7 +5,7 @@ SSU2
     :author: eyedeekay, orignal, zlatinb, zzz
     :created: 2021-09-12
     :thread: http://zzz.i2p/topics/2612
-    :lastupdated: 2022-02-18
+    :lastupdated: 2022-02-19
     :status: Open
     :target: 0.9.55
 
@@ -2654,18 +2654,18 @@ ciphertexts.
 
 The following messages are defined:
 
-====  ================  =====
-Type      Message       Notes
-====  ================  =====
-  0   SessionRequest
-  1   SessionCreated
-  2   SessionConfirmed
-  6   Data
-  7   PeerTest
-  9   Retry
- 10   Token Request
-n/a   HolePunch
-====  ================  =====
+====  ================  =============  =============
+Type      Message       Header Length  Header Encr. Length
+====  ================  =============  =============
+  0   SessionRequest    32             64
+  1   SessionCreated    32             64
+  2   SessionConfirmed  16             16
+  6   Data              16             16
+  7   PeerTest          32             32
+  9   Retry             32             32
+ 10   Token Request     32             32
+n/a   HolePunch          0              0
+====  ================  =============  =============
 
 
 
@@ -3037,6 +3037,7 @@ the pending outbound connection and decrypt the connection ID
 using the k_header_1 for that connection, it is probably not necessary.
 If Bob has issues with his NAT or packet routing, it is probably
 better to let the connection fail.
+This design relies on endpoints retaining a stable address for the duration of the handshake.
 
 See the Inbound Packet Handling sesion below for additional guidelines.
 
@@ -3056,7 +3057,7 @@ Header Encryption KDF
 
   // take the next-to-last 12 bytes of the packet
   iv = packet[len-24:len-13]
-  k_header_1 = header protection key 1
+  k_header_1 = header encryption key 1
   data = {0, 0, 0, 0, 0, 0, 0, 0}
   mask = ChaCha20.encrypt(k_header_1, iv, data)
 
@@ -3065,7 +3066,7 @@ Header Encryption KDF
 
   // take the last 12 bytes of the packet
   iv = packet[len-12:len-1]
-  k_header_2 = header protection key 2
+  k_header_2 = header encryption key 2
   data = {0, 0, 0, 0, 0, 0, 0, 0}
   mask = ChaCha20.encrypt(k_header_2, iv, data)
 
@@ -3080,7 +3081,7 @@ Header Encryption KDF
   packet[16:63] = ChaCha20.encrypt(k_header_2, iv, packet[16:63])
 
 
-  // For Retry only:
+  // For Retry, Token Request, and Peer Test only:
   iv = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}
 
   // encrypt the third part of the header
@@ -3529,6 +3530,11 @@ Notes
 - The unique X value in the initial ChaCha20 block ensure that the ciphertext is
   different for every session.
 
+- To provide probing resistance, Bob should not send a Retry message
+  in response to a Session Request message unless the
+  message type, protocol version, and network ID fields in the Session Request message
+  are valid.
+
 - Bob must reject connections where the timestamp value is too far off from the
   current time. Call the maximum delta time "D".  Bob must maintain a local
   cache of previously-used handshake values and reject duplicates, to prevent
@@ -3553,9 +3559,13 @@ Notes
   (Distribution to be determined, see Appendix A.)
   TODO UNLESS minimum packet size is enforced for PMTU.
 
-- On any error, including AEAD, DH, timestamp, apparent replay, or key
+- On any error, including AEAD, DH, apparent replay, or key
   validation failure, Bob must halt further message processing and
   drop the message without responding.
+
+- Bob MAY send a Retry message containing a Termination block with a
+  clock skew reason code if the timestamp in the DateTime block is too
+  far skewed.
 
 - DoS Mitigation: DH is a relatively expensive operation. As with the previous NTCP protocol,
   routers should take all necessary measures to prevent CPU or connection exhaustion.
@@ -3563,14 +3573,15 @@ Notes
   Enforce read timeouts (both per-read and total for "slowloris").
   Limit repeated or simultaneous connections from the same source.
   Maintain blacklists for sources that repeatedly fail.
-  Do not respond to AEAD failure.
+  Do not respond to AEAD failure. Alternatively, respond with a Retry message
+  before the DH operation and AEAD validation.
 
 - "ver" field: The overall Noise protocol, extensions, and SSU2 protocol
   including payload specifications, indicating SSU2.
   This field may be used to indicate support for future changes.
 
 - The network ID field is used to quickly identify cross-network connections.
-  If this field is nonzero, and does not match Bob's network ID,
+  If this field is does not match Bob's network ID,
   Bob should disconnect and block future connections.
 
 - Bob must drop the message if the Source Connection ID equals
@@ -4508,12 +4519,17 @@ total more than that, the requirement is met with only those two blocks.
 
 Notes
 `````
--  To limit the magnitude of any amplification attack that can be mounted using spoofed source addresses,
-   the Retry message must not contain large amounts of padding.
-   It is recommended that the Retry message be no larger than three times the size
-   of the message it is responding to.
-   Alternatively, use a simple method such as adding a random amount of padding
-   in the range 1-64 bytes.
+- To provide probing resistance, a router should not send a Retry message
+  in response to a Session Request or Token Request message unless the
+  message type, protocol version, and network ID fields in the Request message
+  are valid.
+
+- To limit the magnitude of any amplification attack that can be mounted using spoofed source addresses,
+  the Retry message must not contain large amounts of padding.
+  It is recommended that the Retry message be no larger than three times the size
+  of the message it is responding to.
+  Alternatively, use a simple method such as adding a random amount of padding
+  in the range 1-64 bytes.
 
 
 KDF for Token Request
@@ -4634,6 +4650,11 @@ The minimum payload size is 8 bytes.
 
 Notes
 `````
+- To provide probing resistance, a router should not send a Retry message
+  in response to a Token Request message unless the
+  message type, protocol version, and network ID fields in the Token Request message
+  are valid.
+
 - This is NOT a standard Noise message and is not part of the handshake.
   It is not bound to the Session Request message other than by connection IDs.
 
