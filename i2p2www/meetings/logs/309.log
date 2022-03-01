@@ -1,0 +1,83 @@
+(03:01:40 PM) eyedeekay: Hi everyone, welcome to the dev meeting
+(03:01:40 PM) eyedeekay: 1. Hi 
+(03:01:40 PM) eyedeekay: 2. Release Status (1.7.0 / 0.9.53)
+(03:02:10 PM) zlatinb: hi
+(03:02:12 PM) zzz: hello
+(03:02:39 PM) eyedeekay: Anything else to add to the agenda today before we start the release status?
+(03:03:01 PM) zlatinb: I have two small items that could fall into a "wishlist for 1.8.0" item
+(03:03:25 PM) eyedeekay: 3) 1.8.0 wishlist
+(03:04:24 PM) eyedeekay: 2. Release Status(1.7.0/0.9.53)
+(03:05:37 PM) eyedeekay: On my end I do have one remaining item, there is an issue with the .aab bundle build process where static resources that are included from the `i2p.i2p` build are deleted and from the final .aab
+(03:06:06 PM) eyedeekay: For the time being, GPlay is delayed, I'm working on it today and should be done soon.
+(03:07:53 PM) eyedeekay: F-Droid and Freestanding are both .apk's that use the old build process that isn't broken, so it still works.
+(03:07:53 PM) eyedeekay: Are there any other outstanding release processes to finish?
+(03:10:03 PM) eyedeekay: zzz anything to add to the release status topic from your end? I understand BiglyBT released their plugin today, is that correct?
+(03:10:22 PM) zzz: yes
+(03:10:48 PM) zzz: based on expl. build success stats, we've rapidly recovered from i2pd's regression in the last release
+(03:10:52 PM) zzz: http://stats.i2p/docs/buildsuccess.png
+(03:11:11 PM) zzz: and are now at a higher point than any time in the last few years iirc
+(03:12:11 PM) zzz: things should settle out in another week and we'll see where we are
+(03:12:13 PM) zzz: eot
+(03:12:21 PM) eyedeekay: That's really excellent news. Glad things are looking good so far.
+(03:12:32 PM) eyedeekay: Thanks zzz
+(03:12:50 PM) eyedeekay: 3. 1.8.0 wishlist
+(03:13:17 PM) eyedeekay: zlatinb take it away
+(03:13:44 PM) zlatinb: hi, 1) is speeding up initial exploratory build time and 2) JNA
+(03:14:05 PM) zlatinb: 1: I've been doing some analysis, 75% of the exploratory tunnels that do build do so in less than 500ms
+(03:14:29 PM) zlatinb: out of ~30 samples the slowest successful build was less than 2500ms
+(03:14:46 PM) zlatinb: whereas the timeout we have now is 13000 ms, I think reducing that will get the router to RUNNING state faster
+(03:15:07 PM) zlatinb: we don't have to decide now, just floating the idea out there
+(03:15:12 PM) zlatinb: eot on 1
+(03:15:33 PM) zzz: no objections on 1
+(03:15:56 PM) eyedeekay: Sounds like an interesting experiment to try at least, it doesn't seem like it could do any harm
+(03:16:12 PM) eyedeekay: If all the successful builds are so short
+(03:16:13 PM) zlatinb: 2: JNA - we'll definitely need to add JNA to the windows easy install bundle in order to elevate priviledge during auto-update.  ProcessBuilder fails if the process requires elevation.
+(03:16:20 PM) zzz: although I'd like to see data over a longer time period before we pick the new number
+(03:16:25 PM) zlatinb: sure
+(03:16:42 PM) zzz: please back up and define JNA
+(03:16:43 PM) zlatinb: (back to 1) I'll leave a router running with logging enabled
+(03:17:12 PM) zlatinb: (back to 2): JNA is Java Native A-something but it's basically a Java wrapper of native windows linux and mac libraries
+(03:17:27 PM) zlatinb: so instead of writing native code you write java code
+(03:17:52 PM) zlatinb: two jars combined size 3MB, compressed with LZMA down to 2MB
+(03:18:11 PM) zzz: please back up and elaborate on the problem and how prevalent it is
+(03:18:38 PM) zlatinb: while testing silent updates in muwire I saw that ProcessBuilder fails to launch an installer with an "priviledge elevation required" or some such
+(03:19:07 PM) zzz: windows-only problem?
+(03:19:12 PM) zlatinb: googling revealed that it is not possible to do so with ProcessBuilder
+(03:19:36 PM) zlatinb: yes windows-only for now
+(03:19:40 PM) eyedeekay: It doesn't seem to be happening on the Windows Easy-Install to me, is that because NSIS is asking for the elevated privileges and not Java?
+(03:20:02 PM) zlatinb: NSIS is asking
+(03:20:16 PM) zlatinb: if you already run the java with priviledge then it won't ask
+(03:20:22 PM) zlatinb: privilege*
+(03:20:28 PM) zzz: yeah that's my question, windows easy-install has been in beta for months and months, is this a muwire-only problem?
+(03:20:48 PM) eyedeekay: Oh OK, then it will start happening before the next update with ShellExecAsUser
+(03:21:15 PM) zlatinb: do you elevate if launched not from installer eyedeekay?
+(03:21:48 PM) zlatinb: I don't remember seeing an elevation prompt
+(03:22:12 PM) zlatinb: so it should be happening with windows easy-install if launched from desktop shortcut, not as a last step of an installer
+(03:22:14 PM) eyedeekay: No I don't, it runs as the user running the batch script, but only if I2P isn't already running, presumably as an admin
+(03:22:52 PM) zzz: so, before we can start talking about a solution for our easy-install windows bundle, let's verify there is a problem
+(03:22:57 PM) eyedeekay: It does not shut down the router with the browser
+(03:23:35 PM) eyedeekay: I'm inclined to believe that there will be, but will confirm later this week
+(03:23:36 PM) zlatinb: so if the user doesn't uncheck the "launch i2p now" checkbox and leave the router running, it will run as privileged and not prompt on update
+(03:23:43 PM) zlatinb: ok
+(03:24:22 PM) zlatinb: either way, with 1.7.0 the router is launched as non-privileged even if launched from the installer
+(03:24:39 PM) zzz: and while you can follow your own rules in muwire, any solution in our official products will have to be vetted for suitability, maintenance, license compatibility, etc
+(03:24:57 PM) zlatinb: Apache 2.0
+(03:25:45 PM) zlatinb: looking forward JNA allows us to do anything we like with windows APIs really.. register shell extensions, URI handlers, all that good stuff
+(03:25:57 PM) zlatinb: eot on 2
+(03:26:35 PM) zzz: let's get a couple cycles in on the easy-install auto-updater, which apparently has never worked?
+(03:27:13 PM) zzz: you don't have to wait for a i2p release, just put in a new java, or change something else. let's work out the bugs a little faster
+(03:27:14 PM) eyedeekay: It was broken, then fixed, now apparently it will break again on the next update
+(03:27:55 PM) eyedeekay: But the other solution from my side would be to change the installer so it no longer uses %ProgramFiles% and installs somewhere unprivileged
+(03:28:09 PM) zzz: do a release every week until it's working smoothly. obviously the 3-month pace isn't fast enough to converge on something that works
+(03:28:32 PM) eyedeekay: Can do
+(03:29:53 PM) eyedeekay: Thanks for bringing these up for us zlatinb, anything else on 3?
+(03:29:58 PM) zzz: and that will give us data on the extent of the privileges problem, if any
+(03:30:00 PM) zzz: eot
+(03:30:21 PM) zlatinb: no, eot from me
+(03:30:57 PM) eyedeekay: All right anything else for the meeting? timeout 1m
+(03:31:16 PM) zzz: also, use the news to tell your beta testers if the update is broken and they need to re-download
+(03:31:35 PM) eyedeekay: will do
+(03:32:05 PM) zzz: you both have your own news feeds, but aren't using it to talk to your users, you're just relying on my news entries? you should start testing/using that feature
+(03:32:11 PM) zzz: eot
+(03:34:07 PM) eyedeekay: Can do, in the past I added the i2p.firefox changelog
+(03:34:54 PM) eyedeekay: Thanks for coming to the meeting everybody, looks like I've got a lot of work to do, see you all around IRC
