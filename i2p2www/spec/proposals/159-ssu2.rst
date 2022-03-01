@@ -5,7 +5,7 @@ SSU2
     :author: eyedeekay, orignal, zlatinb, zzz
     :created: 2021-09-12
     :thread: http://zzz.i2p/topics/2612
-    :lastupdated: 2022-02-19
+    :lastupdated: 2022-02-27
     :status: Open
     :target: 0.9.55
 
@@ -2892,8 +2892,18 @@ when a packet containing that information is determined to be lost,
 and sending ceases when a packet containing that information is remain the same)
 acknowledged.
 
-Packet numbering starts with Session Request. Assuming
-no Retry reply from Bob, the packet numbers
+The following packets contain a random packet number that is ignored:
+
+- Session Request
+- Session Created
+- Token Request
+- Retry
+- Peer Test
+
+For Alice, outbound packet numbering starts at 0 with Session Confirmed.
+For Bob, outbound packet numbering starts at 0 with first Data packet,
+which should be an ACK of the Session Confirmed.
+The packet numbers
 in an example standard handshake will be:
 
 .. raw:: html
@@ -2901,17 +2911,20 @@ in an example standard handshake will be:
   {% highlight %}
 Alice                           Bob
 
-  SessionRequest (0)    ------------>
-  <-------------   SessionCreated (0)
-  SessionConfirmed (1)  ------------>
-  <-------------             Data (1) (Ack-only)
-  Data (2)              ------------> (May be sent before Ack is received)
-  <-------------             Data (2)
+  SessionRequest (r)    ------------>
+  <-------------   SessionCreated (r)
+  SessionConfirmed (0)  ------------>
+  <-------------             Data (0) (Ack-only)
+  Data (1)              ------------> (May be sent before Ack is received)
+  <-------------             Data (1)
+  Data (2)              ------------>
   Data (3)              ------------>
   Data (4)              ------------>
-  Data (5)              ------------>
-  <-------------             Data (3)
+  <-------------             Data (2)
 
+  r = random packet number (ignored)
+  Token Request, Retry, and Peer Test
+  also have random packet numbers.
 {% endhighlight %}
 
 
@@ -4673,6 +4686,8 @@ unencrypted.  It does not contain a SSU header, so it does not have a message
 type number.  It is sent from Charlie to Alice as a part of the Introduction
 sequence.
 
+TODO should it be a real peer test message instead?
+
 
 
 Noise Payload
@@ -5065,6 +5080,10 @@ TODO include total length so that receiver can allocate a buffer?
 
 {% endhighlight %}
 
+Notes:
+
+- Partial message length must be greater than zero.
+
 
 Follow-on Fragment
 ````````````````````````
@@ -5099,6 +5118,8 @@ and can send as much data as will fit in each packet?
 {% endhighlight %}
 
 Notes:
+
+- Partial message length must be greater than zero.
 
 - As in SSU 1, the maximum fragment number is 127, but the practical
   limit is 63 or less. Implementations may limit the maximum to
