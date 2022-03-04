@@ -359,6 +359,12 @@ stopped.
         $PLUGIN
             this plugin's installation dir (typically ~/.i2p/plugins/appname)
 
+        $OS
+            the host operating system in the form `windows`, `linux`, `mac`
+
+        $ARCH
+            the host architecture in the form `386`, `amd64`, `arm64`
+
         (See important notes below about running shell scripts or external
         programs)
 
@@ -498,12 +504,16 @@ Shell script and external program notes
 To run shell scripts or other external programs, see [ZZZ-141]_.
 
 To work on both Windows and Linux, write a small Java class that checks the OS
-type, then runs ShellCommand on either the .bat or a .sh file you provide.
+type, then runs ShellCommand on either the .bat or a .sh file you provide. A
+generalized solution for this was added in I2P 1.7.0/0.9.53, the "ShellService"
+which performs state tracking for a single command and communicates with the
+ClientAppManager.
 
 External programs won't be stopped when the router stops, and a second copy
-will fire up when the router starts. To work around this, you could write a
-wrapper class or shell script that does the usual storage of the PID in a PID
-file, and check for it on start.
+will fire up when the router starts. This can usually be mitigated using
+a ShellService to perform state tracking. If that is unsuitable to your use case,
+you could write a wrapper class or shell script that does the usual storage of
+the PID in a PID file, and check for it on start.
 
 
 Other plugin guidelines
@@ -529,7 +539,8 @@ Other plugin guidelines
   uninstallation, the uninstallargs hook could ask.
 
 * $CWD may be anywhere; do not assume it is in a particular place, do not
-  attempt to read or write files relative to $CWD.
+  attempt to read or write files relative to $CWD. For a ShellService, it is
+  always the same as $PLUGIN.
 
 * Java programs should find out where they are with the directory getters in
   I2PAppContext.
@@ -556,7 +567,7 @@ Other plugin guidelines
 * As an alternative to stopargs in clients.config, a Java client may register a
   shutdown hook with I2PAppContext.addShutdownTask(). But this wouldn't shut
   down a plugin when upgrading, so stopargs is recommended. Also, set all
-  created threads to daemon mode.
+  created threads to daemon mode. This can also be enabled with a ShellService.
 
 * Do not include classes duplicating those in the standard installation. Extend
   the classes if necessary.
