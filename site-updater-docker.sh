@@ -50,6 +50,6 @@ DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )" || exit
 cd "$DIR"
 
 git pull origin $i2p_www_branch
-docker build $i2p_www_docker_build_args -t i2p-mirror/i2p.www$suffix .
+docker build $i2p_www_docker_build_args -t i2p-mirror/mirror.i2p.www$suffix .
 docker rm -f mirror.i2p.www$suffix
 docker run $i2p_www_docker_run_args --name mirror.i2p.www$suffix -p 0.0.0.0:$port:80 i2p-mirror/i2p.www$suffix $@
