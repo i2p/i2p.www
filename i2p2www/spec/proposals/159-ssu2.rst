@@ -5,7 +5,7 @@ SSU2
     :author: eyedeekay, orignal, zlatinb, zzz
     :created: 2021-09-12
     :thread: http://zzz.i2p/topics/2612
-    :lastupdated: 2022-03-24
+    :lastupdated: 2022-03-25
     :status: Open
     :target: 0.9.55
 
@@ -2787,6 +2787,8 @@ Before header obfuscation and protection:
 
   Destination Connection ID :: 8 bytes, unsigned big endian integer
 
+  Packet Number :: 4 bytes, unsigned big endian integer
+
   type :: The message type, 0-255
 
   ver :: The protocol version, equal to 2
@@ -2794,8 +2796,6 @@ Before header obfuscation and protection:
   id :: 1 byte, the network ID (currently 2, except for test networks)
 
   flag :: 1 byte, unused, set to 0 for future compatibility
-
-  Packet Number :: 4 bytes, unsigned big endian integer
 
   Source Connection ID :: 8 bytes, unsigned big endian integer
 
@@ -2836,20 +2836,21 @@ Before header obfuscation and protection:
 
 {% endhighlight %}
 
-Note: If any out-of-session relay or peer test messages are defined
-and used, we must also have the ver and id fields present.
-
-
 
 
 Connection ID Numbering
 ```````````````````````````
 
 Connection IDs must be randomly generated.
-Source and Destination IDs must NOT be identical.
-Do NOT use a counter to generate connection IDs.
+Source and Destination IDs must NOT be identical,
+so that an on-path attacker cannot capture and send a packet
+back to the originator that looks valid.
+Do NOT use a counter to generate connection IDs, so that an on-path
+attacker cannot generate a packet that looks valid.
 
-TBD change during handshake like QUIC?
+Unlike in QUIC, we do not change the connection IDs during or after the handshake,
+even after a Retry message. The IDs remain constant from the first message
+(Token Request or Session Request) to the last message (Data with Termination).
 
 
 
@@ -4812,6 +4813,7 @@ New Token                                  17           15
 Path Challenge                             18         varies
 Path Response                              19         varies
 First Packet Number                        20            7  
+Congestion                                 21            4
 reserved for experimental features      224-253
 Padding                                   254         varies    
 reserved for future extension             255
@@ -5677,22 +5679,28 @@ and nack/ack ranges
 
 {% endhighlight %}
 
-Example: ACK 10 9 8 6 5 2 1 0, NACK 7 4 3
+Example:
+
+We want to ACK 10 9 8 6 5 2 1 0, and NACK 7 4 3.
+The encoding of the ACK Block is:
 
 - Ack Through: 10
 - acnt: 2 (ack 9 8)
 - range: 1 2 (nack 7, ack 6 5)
 - range: 2 3 (nack 4 3, ack 2 1 0)
 
-Range nack may be zero if acking more than 255 consecutive packets.
-Range ack may be zero if nacking more than 255 consecutive packets.
-Range nack and ack may not both be zero.
+Notes:
 
-After the last range, packets are neither acked nor nacked.
-Length of the ack block and how old acks/nacks are handled
-is up to the sender of the ack block.
-See ack sections below for discussion.
-
+- Range nack may be zero if acking more than 255 consecutive packets.
+- Range ack may be zero if nacking more than 255 consecutive packets.
+- Range nack and ack may not both be zero.
+- After the last range, packets are neither acked nor nacked.
+  Length of the ack block and how old acks/nacks are handled
+  is up to the sender of the ack block.
+  See ack sections below for discussion.
+- This format is a simplified version of that in QUIC.
+  It is designed to efficiently encode a large number of ACKs,
+  together with bursts of NACKs.
 
 
 Address
@@ -5878,6 +5886,8 @@ to specify the first packet number that will be sent.
 This provides more security for header encryption,
 similar to TCP.
 
+Not fully specified, not currently supported.
+
 .. raw:: html
 
   {% highlight lang='dataspec' %}
@@ -5888,6 +5898,57 @@ similar to TCP.
   blk :: 20
   size :: 4
   pkt num :: The first packet number to be sent in the data phase
+
+{% endhighlight %}
+
+
+
+Congestion
+``````````````````````
+This is block is designed to be an extensible method
+to exchange congestion control information.
+Congestion control can be complex and may evolve as
+we get more experience with the protocol in live testing,
+or after full rollout.
+
+This keeps any congestion information out of the high-usage
+I2NP, First Fragment, Followon Fragment, and ACK blocks,
+where there is no space for flags allocated.
+While there are three bytes of unused flags in the Data packet header,
+that also provides limited space for extensibility,
+and weaker encryption protection.
+
+While it is somewhat wasteful to use a 4-byte block
+for two bits of information, by putting this in a separate block,
+we can easily extend it with additional data such as
+current window sizes, measured RTT, or other flags.
+Experience has shown that flag bits alone is often insufficient
+and awkward for implementation of advanced congestion control schemes.
+Trying to add support for any possible congestion control feature
+in, for example, the ACK block, would waste space and add complexity
+to the parsing of that block.
+
+Implementations should not assume that the other router supports
+any particular flag bit or feature included here,
+unless implementation is required by a future version of this specification.
+
+This block should probably be the last non-padding block in the payload.
+
+
+.. raw:: html
+
+  {% highlight lang='dataspec' %}
++----+----+----+----+
+  | 21 |  size   |flag|
+  +----+----+----+----+
+
+  blk :: 21
+  size :: 1 (or more if extended)
+  flag :: 1 byte flags
+         bit order: 76543210 (bit 7 is MSB)
+         bit 0: 1 to request immediate ack
+         bit 1: 1 for explicit congestion notification (ECN)
+         bits 7-2: Unused, set to 0 for future compatibility
 
 {% endhighlight %}
 
@@ -6263,21 +6324,13 @@ Sending ACK Blocks
 ---------------------
 
 Every packet should be acknowledged at least once, and ack-eliciting
-packets must be acknowledged at least once within the maximum delay
-an endpoint communicated using the max_ack_delay transport parameter.
-Max_ack_delay declares an explicit contract: an
-endpoint promises to never intentionally delay acknowledgments of an
-ack-eliciting packet by more than the indicated value.  If it does,
-any excess accrues to the RTT estimate and could result in spurious
-or delayed retransmissions from the peer.  A sender uses the
-receiver's max_ack_delay value in determining timeouts for timer-
-based retransmission.
+packets must be acknowledged at least once within a maximum delay.
 
-An endpoint MUST acknowledge all ack-eliciting handshake
+An endpoint mustgacknowledge all ack-eliciting handshake
 packets immediately
-within its advertised max_ack_delay, with the following exception.
+within its maximum delay, with the following exception.
 Prior to handshake confirmation, an endpoint might not have packet
-protection keys for decrypting Handshake, 0-RTT, or 1-RTT packets
+header encryption keys for decrypting the packets
 when they are received.  It might therefore buffer them and
 acknowledge them when the requisite keys become available.
 
@@ -6318,10 +6371,6 @@ eliciting packet either:
    numbered ack-eliciting packet that has been received and there are
    missing packets between that packet and this packet.
 
-Similarly, packets marked with the ECN Congestion Experienced (CE)
-codepoint in the IP header SHOULD be acknowledged immediately, to
-reduce the peer's response time to congestion events.
-
 The algorithms are expected to be resilient to
 receivers that do not follow the guidance offered above.  However, an
 implementation should only deviate from these requirements after
@@ -6360,7 +6409,7 @@ A receiver may process multiple available packets before determining
 whether to send an ACK block in response.
 
 
-Sending ACK Ranges
+ACK Block Size
 --------------------
 
 When an ACK block is sent, one or more ranges of acknowledged packets
@@ -6376,36 +6425,30 @@ the blocks it contains.  An ACK block must fit within a
 single packet.  If it does not, then older ranges (those with
 the smallest packet numbers) are omitted.
 
-A receiver limits the number of ACK Ranges it
+A receiver limits the number of ACK ranges it
 remembers and sends in ACK blocks, both to limit the size of ACK
 blocks and to avoid resource exhaustion.  After receiving
 acknowledgments for an ACK block, the receiver should stop tracking
-those acknowledged ACK Ranges.  Senders can expect acknowledgments
+those acknowledged ACK ranges.  Senders can expect acknowledgments
 for most packets, but this protocol does not guarantee receipt of an
 acknowledgment for every packet that the receiver processes.
 
-It is possible that retaining many ACK Ranges could cause an ACK
+It is possible that retaining many ACK ranges could cause an ACK
 block to become too large.  A receiver can discard unacknowledged ACK
 Ranges to limit ACK block size, at the cost of increased
 retransmissions from the sender.  This is necessary if an ACK block
-would be too large to fit in a packet.  Receivers MAY also limit ACK
+would be too large to fit in a packet.  Receivers may also limit ACK
 block size further to preserve space for other blocks or to limit the
-capacity that acknowledgments consume.
+bandwidth that acknowledgments consume.
 
-A receiver MUST retain an ACK Range unless it can ensure that it will
+A receiver must retain an ACK range unless it can ensure that it will
 not subsequently accept packets with numbers in that range.
 Maintaining a minimum packet number that increases as ranges are
 discarded is one way to achieve this with minimal state.
 
-Receivers can discard all ACK Ranges, but they MUST retain the
+Receivers can discard all ACK ranges, but they must retain the
 largest packet number that has been successfully processed, as that
 is used to recover packet numbers from subsequent packets.
-
-A receiver should include an ACK Range containing the largest
-received packet number in every ACK block.  The Largest Acknowledged
-field is used in ECN validation at a sender, and including a lower
-value than what was included in a previous ACK block could cause ECN
-to be unnecessarily disabled.
 
 The following section describes an exemplary approach for determining what
 packets to acknowledge in each ACK block.  Though the goal of this
@@ -6415,10 +6458,10 @@ processed, it is still possible for acknowledgments to be lost.
 Limiting Ranges by Tracking ACK Blocks
 -------------------------------------------
 
-When a packet containing an ACK block is sent, the Largest
-Acknowledged field in that block can be saved.  When a packet
+When a packet containing an ACK block is sent, the Ack Through
+field in that block can be saved.  When a packet
 containing an ACK block is acknowledged, the receiver can stop
-acknowledging packets less than or equal to the Largest Acknowledged
+acknowledging packets less than or equal to the Ack Through
 field in the sent ACK block.
 
 A receiver that sends only non-ack-eliciting packets, such as ACK
