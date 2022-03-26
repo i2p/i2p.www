@@ -5,7 +5,7 @@ SSU2
     :author: eyedeekay, orignal, zlatinb, zzz
     :created: 2021-09-12
     :thread: http://zzz.i2p/topics/2612
-    :lastupdated: 2022-03-25
+    :lastupdated: 2022-03-26
     :status: Open
     :target: 0.9.55
 
@@ -2483,6 +2483,10 @@ but delivery may eventually fail without causing the full connection to be
 disconnected. Also, new I2NP messages may continue to be sent even
 while retransmission (loss recovery) is occurring for other I2NP messages.
 
+This protocol does NOT completely prevent duplicate delivery of I2NP messages.
+The router should enforce I2NP expiration and use a Bloom filter or other
+mechanism based on the I2NP message ID.
+See the I2NP Message Duplication section below.
 
 
 Noise Protocol Framework
@@ -6242,6 +6246,25 @@ into three different block types, to improve processing efficiency.
 
 
 
+I2NP Message Duplication
+===========================
+
+This protocol does NOT completely prevent duplicate delivery of I2NP messages.
+IP-layer duplicates or replay attacks will be detected at the SSU2 layer,
+because each packet number may only be used once.
+
+When I2NP messages or fragments are retransmitted in new packets, however,
+this is not detectable at the SSU2 layer.
+The router should enforce I2NP expiration (both too old and too far in the future)
+and use a Bloom filter or other mechanism based on the I2NP message ID.
+
+Additional mechanisms may be used by the router, or in the SSU2 implementation,
+to detect duplicates.
+For example, SSU2 could maintain a cache of recently-received message IDs.
+This is implementation-dependent.
+
+
+
 Congestion Control
 ====================
 
@@ -7272,6 +7295,18 @@ The steps above may make sense to do before SSU 1 processing, to avoid attemptin
 using both protocol versions.
 
 TBD if required.
+
+
+Recommended Constants
+=======================
+
+- Handshake retransmission timeout: 3 seconds, with exponential backoff
+  (retransmissions at 3 and 9 seconds)
+- Total handshake timeout: 20 seconds
+- Timeout after sending retry: 9 seconds
+- ACK delay: max(10, min(rtt/6, 150) ms
+- Max ACK ranges: 256?
+- Max ACK depth: 512?
 
 
 
