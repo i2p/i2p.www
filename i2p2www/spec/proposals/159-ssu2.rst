@@ -5,7 +5,7 @@ SSU2
     :author: eyedeekay, orignal, zlatinb, zzz
     :created: 2021-09-12
     :thread: http://zzz.i2p/topics/2612
-    :lastupdated: 2022-03-26
+    :lastupdated: 2022-03-27
     :status: Open
     :target: 0.9.55
 
@@ -85,16 +85,13 @@ Design Goals
   even though NTCP2 has an additional round trip; replacing ElGamal in
   SSU2 should reduce it, but other changes may also help.
 
-- (maybe) Prevent traffic amplification attacks from spoofed source addresses
-  via "address validation"? Is this necessary, or are there other
-  ways that would not require an additional round trip?
-  Does this conflict with the requirement to prevent traffic identification?
-  See below.
+- Prevent traffic amplification attacks from spoofed source addresses
+  via "address validation".
 
 - Make packet identification easier, to reduce reliance on fallbacks and
   heuristics that make the code overly complex.
 
-- (maybe) Support SSU 1 and 2 on a single port, auto-detect, and published as a single
+- Support SSU 1 and 2 on a single port, auto-detect, and published as a single
   "transport" (i.e. [RouterAddress]_) in the [NetDB]_.
 
 - Publish support for version 1 only, 2 only, or 1+2 in the NetDB in a separate
@@ -104,7 +101,8 @@ Design Goals
 - Ensure that all implementations (Java/i2pd/Go) can add version 2
   support (or not) on their own schedules
 
-- Add random padding to all SSU messages including handshake and data messages.
+- Add random padding to all messages including handshake and data messages.
+  All padding must be covered by the MAC, unlike the end-of-packet padding in SSU 1.
   Provide options mechanism for both sides to request min and max padding
   and/or padding distribution. Specifics of the padding distribution are
   implementation-dependent and may or may not be specified in the protocol
@@ -147,16 +145,18 @@ Design Goals
   Remove the delay waiting for data messages that makes
   [SSU]_ effectively a two-round-trip handshake.
 
-- Improve efficiency of ACKs and NACKs. Reduce bandwidth required
+- Dramatically improve efficiency of ACKs and NACKs,
+  which is horrible in SSU 1. Reduce the bandwidth required
   for ACKs and NACKs, and increase packet size available for data.
+  Efficiently encode NACKs for a burst of missing messages,
+  which is common over WiFi.
 
 - Reduce the complexity required to implement I2NP message fragmentation.
+  Bypass fragmentation mechanisms and encoding for complete I2NP messages.
 
 - Minimize protocol overhead before padding. While padding will be added,
   overhead before padding is still overhead.
   Low-bandwidth nodes must be able to use SSU2.
-
-- All padding must be covered by the MAC, unlike the end-of-packet padding in SSU.
 
 - Maintain timestamps for replay and skew detection.
 
@@ -164,6 +164,9 @@ Design Goals
 
 - Increase minimum MTU from 620 to 1280 for efficiency, ease of implementation,
   and increasing the maximum I2NP message size.
+  Fragmentation and reassembly is quite costly.
+  By providing room for 1028 byte tunnel messages, a large majority of I2NP
+  messages will not require fragmentation.
 
 - Increase maximum MTU from 1488 (1484 for IPv6) to 1500 for efficiency.
   Remove requirement that the MTU be a multiple of 16.
@@ -171,8 +174,12 @@ Design Goals
 - Increase the maximum I2NP message size from approximately 32K in SSU 1
   to approximately 64 KB as in NTCP2.
 
-- Remove IP and port fields from the handshake, so that routers that don't know
+- Remove the signature of IP and port fields from the handshake,
+  so that routers that don't know
   their external IP and port will be able to connect.
+
+- Retain the IP/port discovery mechanism from SSU 1 in the handshake,
+  so that routers may learn their external IP and port.
 
 - Include representatives of Java, C++, and Go router developers in the design.
 
@@ -5683,7 +5690,19 @@ and nack/ack ranges
 
 {% endhighlight %}
 
-Example:
+Examples:
+
+We want to ACK packet 10 only:
+
+- Ack Through: 10
+- acnt: 0
+- no ranges are included
+
+We want to ACK packets 8-10 only:
+
+- Ack Through: 10
+- acnt: 2
+- no ranges are included
 
 We want to ACK 10 9 8 6 5 2 1 0, and NACK 7 4 3.
 The encoding of the ACK Block is:
@@ -5692,6 +5711,7 @@ The encoding of the ACK Block is:
 - acnt: 2 (ack 9 8)
 - range: 1 2 (nack 7, ack 6 5)
 - range: 2 3 (nack 4 3, ack 2 1 0)
+
 
 Notes:
 
