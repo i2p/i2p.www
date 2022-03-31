@@ -5,7 +5,7 @@ SSU2
     :author: eyedeekay, orignal, zlatinb, zzz
     :created: 2021-09-12
     :thread: http://zzz.i2p/topics/2612
-    :lastupdated: 2022-03-27
+    :lastupdated: 2022-03-31
     :status: Open
     :target: 0.9.55
 
@@ -25,16 +25,18 @@ Preliminary rollout plan:
 Local test code                         2022-02
 Joint test code                         2022-03
 Joint test in-net               0.9.54  2022-05
+Freeze basic protocol           0.9.54  2022-05
 Basic Session                   0.9.55  2022-08        0.9.56  2022-11
 Address Validation (Retry)      0.9.55  2022-08        0.9.56  2022-11
+Fragmented RI in handshake      0.9.55  2022-08        0.9.56  2022-11
+Freeze extended protocol        0.9.55  2022-08
 Relay                           0.9.56  2022-11        0.9.57  2023-02
 Peer Test                       0.9.56  2022-11        0.9.57  2023-02
 New Token                       0.9.56  2022-11        0.9.57  2023-02
-Fragmented RI in handshake      0.9.57  2023-02        0.9.58  2023-05
 Path Validation                 0.9.57  2023-02        0.9.58  2023-05
 Connection Migration            0.9.57  2023-02        0.9.58  2023-05
 Key Rotation                    0.9.57  2023-02        0.9.58  2023-05
-Disable SSU 1                   0.9.57  2023-02        0.9.58  2023-05
+Disable SSU 1                   0.9.58  2023-05        0.9.59  2023-08
 ==========================      =====================  ====================
 
 Basic Session includes the handshake and data phase.
@@ -5240,10 +5242,12 @@ This must be the last non-padding block in the payload.
 
 Notes:
 
-Not all reasons may actually be used, implementation dependent.
-Most failures will generally result in the message being dropped, not a termination.
-See notes in handshake message sections above.
-Additional reasons listed are for consistency, logging, debugging, or if policy changes.
+- Not all reasons may actually be used, implementation dependent.
+  Most failures will generally result in the message being dropped, not a termination.
+  See notes in handshake message sections above.
+  Additional reasons listed are for consistency, logging, debugging, or if policy changes.
+- It is recommended that an ACK block be included with the Termination block.
+
 
 RelayRequest
 ``````````````
@@ -5665,7 +5669,29 @@ TODO only if we rotate keys
 Ack
 ``````````````
 4 byte ack through, followed by an ack count
-and nack/ack ranges
+and zero or more nack/ack ranges.
+
+This design is adapted and simplified from QUIC.
+The design goals are as follows:
+
+- We want to efficiently encode a "bitfield", which is a
+  sequence of bits representing acked packets.
+- The bitfield is mostly 1's. Both the 1's and the 0's
+  generally come in sequential "clumps".
+- The amount of room in the packet available for acks varies.
+- The most important bit is the highest numbered one.
+  Lower numbered ones are less important.
+  Below a certain distance from the highest bit, the oldest
+  bits will be "forgotten" and never sent again.
+
+The encoding specified below accomplishes these design goals,
+by sending the number of the highest bit that is set to 1,
+together with additional consecutive bits lower than that
+which are also set to 1.
+After that, if there is room, one or more "ranges" specifying
+the number of consectutive 0 bits and consecutive 1 bits
+lower than that.
+
 
 .. raw:: html
 
@@ -5680,11 +5706,12 @@ and nack/ack ranges
   +----+----+----+----+----+----+----+----+
 
   blk :: 12
-  size :: 2 bytes, big endian, size of data to follow
+  size :: 2 bytes, big endian, size of data to follow,
+          5 minimum
   ack through :: highest packet number acked
   acnt :: number of acks lower than ack through also acked,
           0-255
-  range :: 0 or more two-byte fields. Each is a
+  range :: If present,
            1 byte nack count followed by 1 byte ack count,
            0-255 each
 
@@ -5715,6 +5742,8 @@ The encoding of the ACK Block is:
 
 Notes:
 
+- Ranges may not be present. Max number of ranges is not specified,
+  may be as many as will fit in the packet.
 - Range nack may be zero if acking more than 255 consecutive packets.
 - Range ack may be zero if nacking more than 255 consecutive packets.
 - Range nack and ack may not both be zero.
@@ -5722,6 +5751,14 @@ Notes:
   Length of the ack block and how old acks/nacks are handled
   is up to the sender of the ack block.
   See ack sections below for discussion.
+- The ack through should be the highest packet number received,
+  and any packets higher have not been received.
+  However, in limited situations, it could be lower, such as
+  acking a single packet that "fills in a hole", or a simplified
+  implementation that does not maintain the state of all received packets.
+  Above the highest received, packets are neither acked nor nacked,
+  but after several ack blocks, it may be appropriate to go
+  into fast retransmit mode.
 - This format is a simplified version of that in QUIC.
   It is designed to efficiently encode a large number of ACKs,
   together with bursts of NACKs.
@@ -5754,8 +5791,9 @@ or Bob's address, sent to Bob by Alice.
 
 Intro Key
 ``````````````
-Sent by Alice in the Session Request, to be used
-by Bob to protect the Session Created header.
+Sent by Alice in the Session Confirmed, when the RI
+is fragmented, so that Bob may encrypt
+the header for ACKs before receiving and verifying the full RI.
 
 .. raw:: html
 
@@ -5772,7 +5810,7 @@ by Bob to protect the Session Created header.
   |              |
   +----+----+----+
 
-  blk :: 18
+  blk :: 14
   size :: 32
   key :: 32-byte introduction key
 
@@ -6312,8 +6350,13 @@ I2NP messages and fragments were in that packet, to decide what to retransmit.
 Session Confirmed ACK
 ------------------------
 
+Bob sends an ACK of packet 0, which acknowledges the Session Confirmed message and allows
+Alice to proceed to the data phase, and discard the large Session Confirmed message
+being saved for possible retransmission.
+This replaces the DeliveryStatusMessage sent by Bob in SSU 1.
+
 Bob should send an ACK as soon as possible after receiving the Session Confirmed message.
-A small delay (no more than 100 ms) is acceptable, since at least one Data message should arrive almost
+A small delay (no more than 50 ms) is acceptable, since at least one Data message should arrive almost
 immediately after the Session Confirmed message, so that the ACK may acknowledge both
 the Session Confirmed and the Data message.
 This will prevent Bob from having to retransmit the Session Confirmed message.
