@@ -5,9 +5,9 @@ SSU2
     :author: eyedeekay, orignal, zlatinb, zzz
     :created: 2021-09-12
     :thread: http://zzz.i2p/topics/2612
-    :lastupdated: 2022-03-31
+    :lastupdated: 2022-04-01
     :status: Open
-    :target: 0.9.55
+    :target: 0.9.56
 
 .. contents::
 
@@ -2901,6 +2901,22 @@ Data Packets are never retransmitted with the same packet number.
 Any retransmission of packet contents (whether or not the contents remain the same)
 must use the next unused packet number.
 
+Retransmitting an unchanged whole packet as-is, with the same packet number,
+is not allowed for several reasons. For background see QUIC [RFC-9000]_ section 12.3.
+
+- It's inefficient to store packets for retransmission
+- A new packet data looks different to an on-path observer, can't tell it's retransmitted
+- A new packet gets an updated ack block sent with it, not the old ack block
+- You only retransmit what's necessary. some fragments could have been already retransmitted once and been acked
+- You can fit as much as you need into each retransmitted packet if more is pending
+- Endpoints that track all individual packets for the purposes of
+  detecting duplicates are at risk of accumulating excessive state.
+  The data required for detecting duplicates can be limited by
+  maintaining a minimum packet number below which all packets are
+  immediately dropped.
+- This scheme is much more flexible
+
+
 New packets are used to carry information that is
 determined to have been lost.  In general, information is sent again
 when a packet containing that information is determined to be lost,
@@ -4730,6 +4746,7 @@ Each Noise payload contains zero or more "blocks".
 
 This uses the same block format as defined in the [NTCP2]_ and [ECIES]_ specifications.
 Individual block types are defined differently.
+The equivalent term in QUIC [RFC-9000]_ is "frames".
 
 There are concerns that encouraging implementers to share code
 may lead to parsing issues. Implementers should carefully consider
@@ -5691,6 +5708,7 @@ which are also set to 1.
 After that, if there is room, one or more "ranges" specifying
 the number of consectutive 0 bits and consecutive 1 bits
 lower than that.
+See QUIC [RFC-9000]_ section 13.2.3 for more background.
 
 
 .. raw:: html
