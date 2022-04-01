@@ -2658,6 +2658,8 @@ Each datagram (or packet) contains a single message (unlike QUIC, where
 a datagram may contain multiple QUIC packets).
 The "packet header" is the part after the IP/UDP header.
 
+TODO except fragmented Session Confirmed
+
 All SSU2 messages are at least 40 bytes in length, except for Hole Punch which is empty.
 Any message of length 1-39 bytes is invalid.
 All SSU2 messages are less than or equal to 1472 (IPv4) or 1452 (IPv6) bytes in length. The message
@@ -4085,7 +4087,7 @@ Unencrypted data (Poly1305 auth tags not shown):
 +----+----+----+----+----+----+----+----+
   |      Destination Connection ID        |
   +----+----+----+----+----+----+----+----+
-  |   Packet Number   |type|    flags     |
+  |   Packet Number   |type|frag|  flags  |
   +----+----+----+----+----+----+----+----+
   |                                       |
   +                                       +
@@ -4108,11 +4110,16 @@ Unencrypted data (Poly1305 auth tags not shown):
   Destination Connection ID :: As sent in Session Request,
                                or one received in Session Confirmed?
 
-  Packet Number :: 0 always, even if retransmitted
+  Packet Number :: 0 always, for all fragments, even if retransmitted
 
   type :: 2
 
-  flags :: 3 bytes, unused, set to 0 for future compatibility
+  frag :: 1 byte fragment info:
+         bit order: 76543210 (bit 7 is MSB)
+         bits 7-4: fragment number 0-14, big endian
+         bits 3-0: total fragments 1-15, big endian
+
+  flags :: 2 bytes, unused, set to 0 for future compatibility
 
   S :: 32 bytes, Alice's X25519 static key, little endian
 
@@ -4179,6 +4186,83 @@ Notes
   the Session Confirmed message, and send all I2NP blocks in
   subsequent Data messages.
   See Router Info block section below for maximum block size.
+
+
+Session Confirmed Fragmentation
+`````````````````````````````````````
+
+The Session Confirmed message must contain the full signed Router Info from Alice so that
+Bob may perform several required checks:
+
+- The static key "s" in the RI matches the static key in the handshake
+- The introduction key "i" in the RI must be extracted and valid, to be used
+  in the data phase
+- The RI signature is valid
+
+Unfortunately, the Router Info, even when gzip compressed in the RI block, may exceed the MTU.
+Therefore, the Session Confirmed may be fragmented across two or more packets.
+This is the ONLY case in the SSU2 protcol where an AEAD-protected payload is fragmented
+across two or more packets.
+
+The headers for each packet are constructed as follows:
+
+- ALL headers are short headers with the same packet number 0
+- ALL headers contain a "frag" field, with the fragment number and
+  total number of fragments
+- The unencrypted header of fragment 0 is the associated data (AD) for the "jumbo" message
+- Each header is encrypted using the last 24 bytes of data in THAT packet
+
+Construct the series of packets as follows:
+
+- Create a single RI block (fragment 0 of 1 in the RI block frag field).
+  We do not use RI block fragmentation, that was for an alternate method
+  of solving the same problem.
+- Create a "jumbo" payload with the RI block and any other blocks to be included
+- Calculate the total data size (not including the header),
+  which is the payload size + 64 bytes for the static key and two MACs
+- Calculate the space available in each packet, which is
+  the MTU minus the IP header (20 or 40), minus the UDP header (8),
+  minus the SSU2 short header (16). Total per-packet overhead is
+  44 (IPv4) or 64 (IPv6).
+- Calculate the number of packets.
+- Calculate the size of the data in the last packet. It must be greater than
+  or equal to 24 bytes, so that header encryption will work.
+  If it is too small, either add a padding block, OR increase the size of the
+  padding block if already present, OR reduce the size of one of the other packets
+  so that the last packet will be big enough.
+- Create the unencrypted header for the first packet, with the total number of
+  fragments in the frag field, and encrypt the "jumbo"
+  payload with Noise, using the header as AD, as usual.
+- Split up the encrypted jumbo packet into fragments
+- Add an unencrypted header for each fragment 1-n
+- Encrypt the header for each fragment 0-n. Each header uses the SAME
+  k_header_1 and k_header_2 as defined above in the Session Confirmed KDF.
+- Transmit all fragments
+
+When Bob receives any fragment (possibly out-of order), he decrypts the header,
+inspects the frag field, and determines that the Session Confirmed is fragmented.
+He does not (and cannot) decrypt the message until all fragments are received
+and reassembled.
+
+There is no mechanism for Bob to ack individual fragments. When Bob receives all
+fragments, reassembles, decrypts, and validates the contents, Bob does a split()
+as usual, enters the data phase, and sends an ACK of packet number 0.
+
+If Alice does not receive an ACK of packet number 0, she must retransmit all
+session confirmed packets as-is.
+
+Examples:
+For 1500 MTU over IPv6, max payload is 1372, RI block overhead is 5,
+max (gzip compressed) RI data size is 1367 (assuming no other blocks).
+With two packets, the overhead of the 2nd packet is 64, so it can hold
+another 1436 bytes of payload. So two packets is enough for a compressed
+RI up to 2803 bytes.
+
+The largest compressed RI seen in the current network is about 1400 bytes;
+therefore, in practice, two fragments should be enough, even with
+a minimum 1280 MTU. The protocol allows for 15 fragments max.
+
+
 
 
 KDF for data phase
@@ -5030,7 +5114,8 @@ Notes:
   94% of current router infos are smaller than 1147 witout gzipping.
   97% of current router infos are smaller than 1147 when gzipped.
 
-- Maximum size of a follow-on fragment in a Data message:
+- TO BE REMOVED, see Session Confirmed Fragmentation above for the replacement mechanism.
+  Maximum size of a follow-on fragment in a Data message:
   MTU - TBD for IPv4 or MTU - TBD for IPv6.
   Assuming 1500 byte default MTU, and no other blocks in the message,
   TBD for IPv4 or TBD for IPv6.
@@ -6249,6 +6334,8 @@ A token received on IPv4 may not be used for IPv6 or vice versa.
 
 Router Info Fragmentation
 ===========================
+
+TO BE REMOVED, see Session Confirmed Fragmentation above for the replacement mechanism.
 
 SSU 1 contains a mechanism for Router Identity fragmentation in the Session Confirmed message
 but it is unused, as the Router Identity is only 391 bytes
