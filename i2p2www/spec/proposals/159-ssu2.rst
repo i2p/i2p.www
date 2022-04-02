@@ -5,7 +5,7 @@ SSU2
     :author: eyedeekay, orignal, zlatinb, zzz
     :created: 2021-09-12
     :thread: http://zzz.i2p/topics/2612
-    :lastupdated: 2022-04-01
+    :lastupdated: 2022-04-02
     :status: Open
     :target: 0.9.56
 
@@ -2776,7 +2776,7 @@ Once a session has been established, Alice and Bob can exchange Data messages.
 Packet Header
 ---------------
 
-All packets start with an obfuscated header.
+All packets start with an obfuscated (encrypted) header.
 There are two header types, long and short.
 
 Long Header
@@ -2784,7 +2784,7 @@ Long Header
 The long header is 32 bytes. It is used before a session is created, for SessionRequest, SessionCreated, and Retry.
 Note that the first 9 bytes (Destination Connection ID and type) are the same for both headers.
 
-Before header obfuscation and protection:
+Before header encryption:
 
 .. raw:: html
 
@@ -2821,15 +2821,44 @@ Before header obfuscation and protection:
 
 Short Header
 `````````````
-The short header is 16 bytes. It is used after a session is created, for Data messages.
-or (maybe?) for unauthenticated messages.
+The short header is 16 bytes. It is used for Session Created and for Data messages.
+Uauthenticated messages such as Session Request, Retry, and Peer Test will
+always use the long header.
 
 16 bytes is required, because
 the receiver must decrypt the first 16 bytes to get the message type,
 and then must decrypt an additional 16 bytes if it's actually a long header,
 as indicated by the message type.
 
-Before header obfuscation and protection:
+For Session Confirmed, before header encryption:
+
+.. raw:: html
+
+  {% highlight lang='dataspec' %}
+
++----+----+----+----+----+----+----+----+
+  |      Destination Connection ID        |
+  +----+----+----+----+----+----+----+----+
+  |   Packet Number   |type|frag|  flags  |
+  +----+----+----+----+----+----+----+----+
+
+  Destination Connection ID :: 8 bytes, unsigned big endian integer
+
+  Packet Number :: 4 bytes, all zeros
+
+  type :: The message type = 2
+
+  frag :: 1 byte fragment info:
+         bit order: 76543210 (bit 7 is MSB)
+         bits 7-4: fragment number 0-14, big endian
+         bits 3-0: total fragments 1-15, big endian
+
+  flags :: 2 bytes, unused, set to 0 for future compatibility
+
+{% endhighlight %}
+
+
+For Data messages, before header encryption:
 
 .. raw:: html
 
@@ -4239,10 +4268,19 @@ Construct the series of packets as follows:
   k_header_1 and k_header_2 as defined above in the Session Confirmed KDF.
 - Transmit all fragments
 
-When Bob receives any fragment (possibly out-of order), he decrypts the header,
+Reassembly process:
+
+When Bob receives any Session Confirmed message, he decrypts the header,
 inspects the frag field, and determines that the Session Confirmed is fragmented.
 He does not (and cannot) decrypt the message until all fragments are received
 and reassembled.
+
+- Preserve the header for fragment 0, as it is used as the Noise AD
+- Discard the headers for other fragments before reassembly
+- Reassemble the "jumbo" payload, with the header for fragment 0 as AD,
+  and decrypt with Noise
+- Validate the RI block as usual
+- Proceed to the data phase and send ACK 0, as usual
 
 There is no mechanism for Bob to ack individual fragments. When Bob receives all
 fragments, reassembles, decrypts, and validates the contents, Bob does a split()
@@ -4252,6 +4290,7 @@ If Alice does not receive an ACK of packet number 0, she must retransmit all
 session confirmed packets as-is.
 
 Examples:
+
 For 1500 MTU over IPv6, max payload is 1372, RI block overhead is 5,
 max (gzip compressed) RI data size is 1367 (assuming no other blocks).
 With two packets, the overhead of the 2nd packet is 64, so it can hold
@@ -4262,6 +4301,14 @@ The largest compressed RI seen in the current network is about 1400 bytes;
 therefore, in practice, two fragments should be enough, even with
 a minimum 1280 MTU. The protocol allows for 15 fragments max.
 
+Security analysis:
+
+The integrity and security of a fragmented Session Confirmed is the same as that
+of an unfragmented one. Any alteration of any fragment will cause the
+Noise AEAD to fail after reassembly. The headers of the fragments after fragment
+0 are only used to identify the fragment. Even if an on-path attacker had the
+k_header_2 key used to encrypt the header (unlikely, derived from the handshake),
+this would not allow the attacker to substitute a valid fragment.
 
 
 
