@@ -1,10 +1,10 @@
-===============================
-Streaming Library Specification
-===============================
+================================
+Streaming Protocol Specification
+================================
 .. meta::
     :category: Protocols
-    :lastupdated: May 2020
-    :accuratefor: 0.9.46
+    :lastupdated: 2022-04
+    :accuratefor: 0.9.53
 
 .. contents::
 
@@ -12,7 +12,7 @@ Streaming Library Specification
 Overview
 ========
 
-See [STREAMING]_ for an overview of the Streaming Library.
+See [STREAMING]_ for an overview of the Streaming protocol.
 
 
 .. _versions:
