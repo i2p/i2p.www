@@ -182,7 +182,8 @@ Bit order: 15....0 (15 is MSB)
 
   6    DELAY_REQUESTED                 1       2 byte           Optional delay. How many milliseconds the sender of this packet
                                                [Integer]_       wants the recipient to wait before sending any more data. A
-                                                                value greater than 60000 indicates choking.
+                                                                value greater than 60000 indicates choking. A value of 0
+                                                                requests an immediate ack.
 
   7    MAX_PACKET_SIZE_INCLUDED        3       2 byte           The maximum length of the payload. Send with SYNCHRONIZE.
                                                [Integer]_
