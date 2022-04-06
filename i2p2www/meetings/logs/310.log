@@ -1,0 +1,90 @@
+(04:00:32 PM) eyedeekay: Hi everyone welcome to the April dev meeting, agenda for today:
+(04:00:32 PM) eyedeekay: 1. Hi
+(04:00:32 PM) eyedeekay: 2. Release Status (1.7.0 / 0.9.53)
+(04:00:32 PM) eyedeekay: 3. Development Status (1.8.0 / 0.9.54)
+(04:00:32 PM) eyedeekay: 4. JNA in easy-install bundles, what doors does it open?
+(04:00:42 PM) eyedeekay: 1. Hi
+(04:00:47 PM) zlatinb: hi
+(04:00:50 PM) zzz: hi
+(04:01:18 PM) eyedeekay: Hi zlatinb, hi zzz
+(04:01:27 PM) eyedeekay: Anybody else here today?
+(04:01:45 PM) eyedeekay: 2. Release Status (1.7.0 / 0.9.53)
+(04:02:52 PM) eyedeekay: 1.7.0 has been out for about 6 weeks now, updates from last month for me are that all the Android packages are successfully deployed and the bug that was discovered at release time is now fixed
+(04:03:28 PM) eyedeekay: As usual, the packages in Debian's main repositories haven't seen an update, if you're still using them please switch to deb.i2p2.de/.no as soon as possible
+(04:04:23 PM) zzz: re: Debian, I did find a volunteer to get 0.9.48 fixed and reinstated into Sid. that's done
+(04:04:46 PM) zzz: whether it will automatically trickle back into bullseye and ubuntu, no idea
+(04:05:00 PM) zzz: still no luck finding a new maintainer
+(04:05:01 PM) zzz: eot
+(04:05:08 PM) eyedeekay: Thanks
+(04:05:51 PM) eyedeekay: I have one more, this overlaps 2 and 3 and 4 actually but Easy-install bundles for Windows will still require one more manual update
+(04:06:25 PM) zzz: have you made progress since last meeting?
+(04:06:30 PM) eyedeekay: Considerable yes
+(04:07:15 PM) eyedeekay: Most of it is part of this MR, : https://i2pgit.org/i2p-hackers/i2p.firefox/-/merge_requests/6/diffs#10d851887651eddb01e5952f08999080b019da2e
+(04:07:35 PM) zzz: great. you have a target date for when you will propose transition out of beta?
+(04:08:02 PM) eyedeekay: As soon as users receive an automatic update I will consider it ready
+(04:08:22 PM) zzz: thanks
+(04:08:47 PM) eyedeekay: Anything else on 2?
+(04:09:33 PM) eyedeekay: 3. Development Status (1.8.0 / 0.9.54)
+(04:10:03 PM) zzz: (no, all good, haven't heard any complaints on 1.7.0)
+(04:10:21 PM) eyedeekay: Me either, people seem to be pretty happy with it so far
+(04:12:12 PM) eyedeekay: As for 3. Development Status (1.8.0 / 0.9.54) Unfortunately I've been a lot slower at some things than I expected, I'm stuck on UDP tunnels but almost ready for an MR on SAM authentication
+(04:12:38 PM) eyedeekay: Besides that I'm doing some revisions to the complicated bandwidth wizard pages to make the selection process more understandable and the notifications more noticable
+(04:12:52 PM) eyedeekay: We're about 6 weeks in with 7 weeks to go, right zzz?
+(04:13:02 PM) zzz: right
+(04:13:31 PM) eyedeekay: Do you want to update us on SSU2 or anything else you've been working on?
+(04:13:46 PM) zzz: 13 weeks would be a May 23 release
+(04:13:53 PM) zzz: yes, thanks
+(04:14:01 PM) zzz: enormous progress with i2pd on SSU 2
+(04:14:03 PM) mode (+v anonymousmaybe) by ChanServ
+(04:14:17 PM) zzz: live testing happening in the network now
+(04:14:40 PM) zzz: other things coming in the release: snark standalone improvements, router family fixes
+(04:14:49 PM) zzz: an SSU 1 performance fix
+(04:15:15 PM) zzz: things should slow down soon on SSU 2, and I'll be turning to some more bug fixes all over
+(04:15:23 PM) zzz: eot
+(04:16:04 PM) eyedeekay: Awesome, thanks for the updates zzz
+(04:16:37 PM) eyedeekay: zlatinb anything you want to talk about for this topic before we get to 4?
+(04:16:55 PM) zlatinb: I guess the reduction in tunnel build timeout should result in faster bootup
+(04:17:11 PM) zlatinb: or faster 0-to-Router.isRunning()
+(04:17:20 PM) zlatinb: that's all eot
+(04:17:38 PM) eyedeekay: Thanks zlatinb, that will make people happy :)
+(04:17:56 PM) eyedeekay: 4. JNA in easy-install bundles, what doors does it open?
+(04:18:15 PM) eyedeekay: zlatinb this was your topic but I have a lot of notes on it too, do you want to start?
+(04:18:24 PM) zlatinb: sure.
+(04:18:34 PM) zlatinb: Basically MR 6 adds the JNA libraries to the windows easy-install bundle
+(04:18:49 PM) zlatinb: which just today I learned wasn't necessary because of JEP 419 (which is built-in JNA replacement)
+(04:19:12 PM) zlatinb: but the overall point is the same: since we need to do some native things, what other native things do we want to do?
+(04:19:33 PM) eyedeekay: Sometimes we need to talk to power/batter management
+(04:19:36 PM) eyedeekay: *battery
+(04:19:57 PM) zlatinb: In MuWire I've implemented a "background priority" on windows, which according to the MSDN docs guarantees the process never interferes with foreground processes
+(04:20:05 PM) zlatinb: yes, battery power management is another such thing
+(04:20:17 PM) eyedeekay: I need to ask for admin rights in a conditional way, which isn't supported by NSIS itself
+(04:20:21 PM) zlatinb: so yeah that's from me, just invitation to think native :)
+(04:20:21 PM) zlatinb: eot
+(04:21:22 PM) eyedeekay: So yeah we definitely have a few cases in mind where it might be useful to have something JNA-like
+(04:22:41 PM) zlatinb: ok.. then the question is do we add any/all such functionality in the easy-install bundle and keep it outside of the core router package
+(04:22:45 PM) zzz: sorry to be the party-pooper, but at last month's meeting, JNA was a possible solution to a single problem (privilege) on Windows only
+(04:23:08 PM) zzz: and today we're at "it's definitely the solution for many problems, what other fun stuff can we do with it" ?
+(04:23:18 PM) zlatinb: yeah that's the party theme lol
+(04:23:34 PM) zzz: which is both a leap and typical solution-looking-for-a-problem
+(04:24:31 PM) zlatinb: that's one way to look at it, I think it (JNA / JEP 419) can make I2P better in many ways
+(04:25:14 PM) zlatinb: on many platforms
+(04:25:14 PM) zlatinb: I've just scratched the surface on windows tbh
+(04:25:28 PM) zzz: so JNA has not been decided on?
+(04:25:28 PM) zlatinb: JNA has the benefit of being backwards compatible down to java 1.4, JEP 419 is only in JDK 18
+(04:25:51 PM) zlatinb: I would say both are on the table, with JNA having some headstart
+(04:26:37 PM) zzz: 419 is "incubator" status meaning it could vanish, don't count on it
+(04:27:07 PM) eyedeekay: I'm pro-JNA because being able to control installer privs solves at least 2 problems for me and gives me the power to install to/run entirely from flash drives
+(04:27:46 PM) eyedeekay: I don't want to lose that to a project being unready or abandoned
+(04:29:03 PM) eyedeekay: So I guess pro-JNA, hesitant on 419 from me
+(04:29:54 PM) zlatinb: well 419 with a slightly different api is already in JDK 17 which is LTS, but I won't have a strong opinion until it's out of incubation
+(04:30:00 PM) zzz: we should continue to keep an eye out for the best tools to solve the problems we have now... daydreaming what else we could do with it isn't so important
+(04:31:10 PM) zzz: going out of the JVM is always going to be messy and less maintainable, to be used only if really necessary, no matter what mechanism is used
+(04:33:14 PM) zlatinb: Nobody disagrees with that, but I think we shouldn't stop ourselves from dreaming big
+(04:33:38 PM) zlatinb: integrating with the windows shell or power management on laptops sounds awfully nice to me
+(04:34:18 PM) zlatinb: that should be possible on linux laptops as well btw
+(04:34:33 PM) eyedeekay: I'm still dreaming small TBH, flash-drive-portables were just a by-product of supporting adminless installs
+(04:36:24 PM) eyedeekay: But if there's a non-JNA way of doing something then yeah we should probably try that first
+(04:38:54 PM) eyedeekay: Anything else on 4?
+(04:39:07 PM) zlatinb: not from me, eot
+(04:40:26 PM) eyedeekay: Anything else for the meeting? timeout 1m
+(04:41:43 PM) eyedeekay: All right thanks everybody for coming, looks like next month meeting will be May 3rd
