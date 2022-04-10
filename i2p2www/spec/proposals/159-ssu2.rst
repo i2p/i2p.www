@@ -5,7 +5,7 @@ SSU2
     :author: eyedeekay, orignal, zlatinb, zzz
     :created: 2021-09-12
     :thread: http://zzz.i2p/topics/2612
-    :lastupdated: 2022-04-02
+    :lastupdated: 2022-04-10
     :status: Open
     :target: 0.9.56
 
@@ -82,10 +82,13 @@ Design Goals
 - Make implementation easier by allowing for standard flow control
   algorithms.
 
-- Increase speed and reduce latency.
+- Reduce setup latency.
   Median setup time is currently about 135 ms for NTCP2 and 187 ms for SSU,
   even though NTCP2 has an additional round trip; replacing ElGamal in
   SSU2 should reduce it, but other changes may also help.
+
+- Maintain or increase maximum throughput compared to SSU 1,
+  as measured over a range of simulated latencies and packet drop percentages on a testnet.
 
 - Prevent traffic amplification attacks from spoofed source addresses
   via "address validation".
@@ -156,7 +159,8 @@ Design Goals
 - Reduce the complexity required to implement I2NP message fragmentation.
   Bypass fragmentation mechanisms and encoding for complete I2NP messages.
 
-- Minimize protocol overhead before padding. While padding will be added,
+- Minimize protocol overhead before padding, especially for ACKs.
+  While padding will be added,
   overhead before padding is still overhead.
   Low-bandwidth nodes must be able to use SSU2.
 
@@ -2857,6 +2861,9 @@ For Session Confirmed, before header encryption:
 
 {% endhighlight %}
 
+See the Session Confirmed Fragmentation section below for more information
+about the frag field.
+
 
 For Data messages, before header encryption:
 
@@ -5086,15 +5093,16 @@ Options Issues:
 RouterInfo
 ``````````
 Pass Alice's RouterInfo to Bob.
-Used in Session Confirmed part 2.
-Pass Alice's RouterInfo to Bob, or Bob's to Alice.
-Used optionally in the data phase.
+Used in Session Confirmed part 2 payload only.
+Not to be used in the data phase; use an
+I2NP DatabaseStore Message instead.
 
 Minimum Size: About 420 bytes, unless the router identity and
 signature in the router info are compressible, which is unlikely.
 
-NOTE: Unlike in NTCP2, the Router Info may be fragmented.
-Session setup is not complete until all fragments are received.
+NOTE: The Router Info block is never fragmented.
+The frag field is always 0/1.
+See the Session Confirmed Fragmentation section above for more information.
 
 
 .. raw:: html
@@ -5121,8 +5129,8 @@ Session setup is not complete until all fragments are received.
          bits 7-2: Unused, set to 0 for future compatibility
   frag :: 1 byte fragment info:
          bit order: 76543210 (bit 7 is MSB)
-         bits 7-4: fragment number 0-14, big endian
-         bits 3-0: total fragments 1-15, big endian
+         bits 7-4: fragment number, always 0
+         bits 3-0: total fragments, always 1, big endian
 
   routerinfo :: Alice's or Bob's RouterInfo
 
@@ -5130,14 +5138,6 @@ Session setup is not complete until all fragments are received.
 {% endhighlight %}
 
 Notes:
-
-- When used in the data phase, receiver (Alice or Bob) shall validate that
-  it's the same Router Hash as originally sent (for Alice) or sent to (for Bob).
-  Then, treat it as a local I2NP DatabaseStore Message. Validate signature,
-  validate more recent timestamp, and store in the local netdb.
-  If the flag bit 0 is 1, and the receiving party is floodfill,
-  treat it as a DatabaseStore Message with a nonzero reply token,
-  and flood it to the nearest floodfills.
 
 - The Router Info is optionally compressed with gzip,
   as indicated by flag bit 1.
@@ -5148,7 +5148,7 @@ Notes:
   but is very beneficial for large Router Infos with several
   compressible Router Addresses.
   Compression is recommended if it allows a Router Info to fit
-  in a single message without fragmentation.
+  in a single Session Confirmed packet without fragmentation.
 
 - Maximum size of first or only fragment in the Session Confirmed message:
   MTU - 113 for IPv4 or MTU - 133 for IPv6.
@@ -5161,22 +5161,9 @@ Notes:
   94% of current router infos are smaller than 1147 witout gzipping.
   97% of current router infos are smaller than 1147 when gzipped.
 
-- TO BE REMOVED, see Session Confirmed Fragmentation above for the replacement mechanism.
-  Maximum size of a follow-on fragment in a Data message:
-  MTU - TBD for IPv4 or MTU - TBD for IPv6.
-  Assuming 1500 byte default MTU, and no other blocks in the message,
-  TBD for IPv4 or TBD for IPv6.
-  Assuming 1280 byte minimum MTU, and no other blocks in the message,
-  TBD for IPv4 or TBD for IPv6.
-
-- If the Router Info is compressed AND fragmented,
-  the data is compressed first and then fragmented.
-  The fragments are not individually compressed.
-
-- State machine handling and retransmission for a fragmented router info
-  in the handshake will be quite complex; it would be much easier
-  to simply require the router info to be unfragmented,
-  and avoid outbound SSU2 connections if the local router info is too large.
+- The frag byte is now unused, the Router Info block is never fragmented.
+  The frag byte must be set to fragment 0, total fragments 1.
+  See the Session Confirmed Fragmentation section above for more information.
 
 - Flooding must not be requested unless there are published
   RouterAddresses in the RouterInfo. The receiving router
@@ -5184,22 +5171,11 @@ Notes:
   RouterAddresses in it.
 
 - This protocol does not provide an acknowledgment that the RouterInfo
-  was stored or flooded (either in the handshake or data phase).
+  was stored or flooded.
   If acknowledgment is desired, and the receiver is floodfill,
   the sender should instead send a standard I2NP DatabaseStoreMessage
   with a reply token.
 
-
-Issues:
-
-- May also be used in data phase, instead of a I2NP DatabaseStoreMessage.
-  For example, Bob could use it to start off the data phase.
-  However, may NOT be fragmented in the data phase; use
-  a I2NP DatabaseStoreMessage instead.
-
-- Is it allowed for this to contain the RI for routers other than the
-  originator, as a general replacement for DatabaseStoreMessages,
-  e.g. for flooding by floodfills?
 
 
 I2NP Message
@@ -5250,7 +5226,6 @@ This uses the same 9 bytes for the I2NP header
 as in [NTCP2]_ (type, message id, short expiration).
 
 Total number of fragments is not specified.
-TODO include total length so that receiver can allocate a buffer?
 
 
 .. raw:: html
@@ -5267,13 +5242,13 @@ TODO include total length so that receiver can allocate a buffer?
   +----+----+----+----+----+----+----+----+
 
   blk :: 4
-  size :: 2 bytes, big endian, size of type + msg id + exp + partial message to follow
+  size :: 2 bytes, big endian, size of data to follow
           Fragment size is (size - 9).
   type :: 1 byte, I2NP msg type, see I2NP spec
   msg id :: 4 bytes, big endian, I2NP message ID
   short exp :: 4 bytes, big endian, I2NP message expiration, Unix timestamp, unsigned seconds.
                Wraps around in 2106
-  message :: Partial I2NP message body, bytes 0 - (size -1)
+  message :: Partial I2NP message body, bytes 0 - (size - 10)
 
 {% endhighlight %}
 
@@ -5310,11 +5285,11 @@ An additional fragment (fragment number greater than zero) of an I2NP message.
   +----+----+----+----+----+----+----+----+
 
   blk :: 5
-  size :: 2 bytes, big endian, size of frag + msg id + partial message to follow
+  size :: 2 bytes, big endian, size of data to follow
           Fragment size is (size - 5).
   frag :: Fragment info:
           Bit order: 76543210 (bit 7 is MSB)
-          bits 7-1: fragment # 1 - 127 (0 not allowed)
+          bits 7-1: fragment number 1 - 127 (0 not allowed)
           bit 0: isLast (1 = true)
   msg id :: 4 bytes, big endian, I2NP message ID
   message :: Partial I2NP message body
@@ -5941,9 +5916,7 @@ or Bob's address, sent to Bob by Alice.
 
 Intro Key
 ``````````````
-Sent by Alice in the Session Confirmed, when the RI
-is fragmented, so that Bob may encrypt
-the header for ACKs before receiving and verifying the full RI.
+UNUSED, to be removed
 
 .. raw:: html
 
@@ -6374,63 +6347,6 @@ there is no requirement to store multiple inbound or outbound tokens for the sam
 
 A token is bound to the combination of source IP/port and destination IP/port.
 A token received on IPv4 may not be used for IPv6 or vice versa.
-
-
-
-
-
-Router Info Fragmentation
-===========================
-
-TO BE REMOVED, see Session Confirmed Fragmentation above for the replacement mechanism.
-
-SSU 1 contains a mechanism for Router Identity fragmentation in the Session Confirmed message
-but it is unused, as the Router Identity is only 391 bytes
-(387 for old DSA-SHA1 routers) and so fragmentation was never required.
-The full Router Info was sent in a subsequent I2NP database store message in the data phase
-and was fragmented as necessary.
-
-In SSU2, the full Router Info is sent in the Session Confirmed message
-(as in NTCP2), and validation of the signature
-(and matching the static key in the Router Identity to that received in the Noise handshake)
-is a vital part of the handshake.
-
-Median Router Info sizes in the network are about 800 bytes, with a maximum size
-of about 2000 bytes (uncompressed) or 1300 bytes (compressed).
-Maximum Router Info sizes are expected to increase in the future,
-due to additional Router Addresses.
-If both SSU and SSU2 addresses are supported, or if multiple addresses for
-different IPv4 or IPv6 IPs are supported (currently supported by i2pd but not Java i2p)
-the sizes could increase significantly.
-
-The Router Info block supports optional gzip compression.
-Compression is optional because it usually is of little benefit
-for small Router Infos, where there is little compressible content,
-but is very beneficial for large Router Infos with several
-compressible Router Addresses.
-Compression is recommended if it allows a Router Info to fit
-in a single message without fragmentation.
-
-While a typical MTU and Router Info size would allow the Router Info to be sent
-unfragmented, fragmentation will be necessary and this protocol must support it.
-The Router Info block contains a fragmentation field (unlike in NTCP2 where it is not required).
-
-If fragmentation is required, the first fragment is sent in the Session Confirmed message,
-and subsequent fragments are sent in Data messages.
-However, the session must be considered as in a pending state until all Router Info
-fragments are received by Bob.
-
-Alice must NOT send any I2NP blocks before all Router Info blocks are sent.
-Alice MAY send I2NP blocks in the same message as the last RouterInfo fragment.
-Bob MUST either queue or discard any I2NP blocks received from Alice before all Router Info blocks
-are received and the signature and static key are validated.
-Bob must NOT send any I2NP blocks to Alice before all Router Info blocks
-are received and the signature and static key are validated.
-
-TODO: Another alternative to fragmentation is to make the RI much more compressible,
-by padding the Router Identity (between the two keys) with zeros.
-This would be 320 bytes of zeros assuming a 32-byte X25519 crypto key and
-a 32-byte EdDSA signing key.
 
 
 
