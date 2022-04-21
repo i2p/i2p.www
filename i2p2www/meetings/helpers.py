@@ -54,6 +54,7 @@ def get_meetings_ids(num=0):
         # iterate over all files
         for f in v[2]:
             # ignore all non-.rst files
+            print("Meeting file found", f)
             if not f.endswith('.rst'):
                 continue
             try:
