@@ -5462,12 +5462,12 @@ See Relay Process section below.
 +----+----+----+----+----+----+----+----+
   |  8 |  size   |flag|code|    nonce
   +----+----+----+----+----+----+----+----+
-       |     relay tag     |   timestamp
+       |     timestamp     | ver| csz|Char
   +----+----+----+----+----+----+----+----+
-       | ver| csz|Char Port|  Charlie IP
-  +----+----+----+----+----+----+----+----+
-   addr|         signature                |
-  +----+       length varies              +
+   Port|   Charlie IP addr |              |
+  +----+----+----+----+----+              +
+  |              signature                |
+  +            length varies              +
   |         64 bytes for Ed25519          |
   ~                                       ~
   |                 . . .                 |
@@ -5482,7 +5482,8 @@ See Relay Process section below.
          2: rejected by Bob, Charlie is banned
          3: rejected by Bob, limit exceeded
          4: rejected by Bob, signature failure
-         5-63: other rejected by Bob codes TBD
+         5: rejected by Bob, relay tag not found
+         6-63: other rejected by Bob codes TBD
          64: rejected by Charlie, reason unspecified
          65: rejected by Charlie, unsupported address
          66: rejected by Charlie, limit exceeded
@@ -5500,16 +5501,18 @@ See Relay Process section below.
 
   The data below is present only if the code is 0 (accept).
 
-  relay tag :: 4 bytes, the itag from Charlie's RI
   timestamp :: Unix timestamp, unsigned seconds.
                Wraps around in 2106
   ver ::  1 byte SSU version to be used for the introduction:
          1: SSU 1
          2: SSU 2
-  csz :: 1 byte endpoint (port + IP) size (6 or 18)
+  csz :: 1 byte endpoint (port + IP) size (0 or 6 or 18)
+         may be 0 for some rejection codes
   CharliePort :: 2 byte Charlie's port number, big endian
+                 not present if csz is 0
   Charlie IP :: (csz - 2) byte representation of Charlie's IP address,
                 network byte order
+                not present if csz is 0
   signature :: length varies, 64 bytes for Ed25519.
                Signature of prologue, Bob's hash,
                and signed data above, as signed by
@@ -5530,7 +5533,6 @@ Signature algorithm: Sign the following data with the Charlie's router signing k
 
 - prologue: 16 bytes "RelayAgreementOK", not null-terminated (not included in the message)
 - bhash: Bob's 32-byte router hash (not included in the message)
-- relay tag: 4 byte relay tag
 - timestamp: 4 byte timestamp (seconds)
 - ver: 1 byte SSU version
 - csz: 1 byte endpoint (port + IP) size (6 or 18)
