@@ -5391,7 +5391,7 @@ See Relay Process section below.
   +----+----+----+----+----+----+----+----+
   |     relay tag     |     timestamp     |
   +----+----+----+----+----+----+----+----+
-  | ver| asz|  Alice IP address |AlicePort|
+  | ver| asz|AlicePort|  Alice IP address |
   +----+----+----+----+----+----+----+----+
   |              signature                |
   +            length varies              +
@@ -5414,10 +5414,10 @@ See Relay Process section below.
   ver ::  1 byte SSU version to be used for the introduction:
          1: SSU 1
          2: SSU 2
-  asz :: 1 byte IP address size (4 or 16)
-  Alice IP :: asz byte representation of Alice's IP address,
-              network byte order
+  asz :: 1 byte endpoint (port + IP) size (6 or 18)
   AlicePort :: 2 byte Alice's port number, big endian
+  Alice IP :: (asz - 2) byte representation of Alice's IP address,
+              network byte order
   signature :: length varies, 64 bytes for Ed25519.
                Signature of prologue, Bob's hash,
                and signed data above, as signed by
@@ -5443,9 +5443,9 @@ Signature algorithm: Sign the following data with the Alice's router signing key
 - relay tag: 4 byte relay tag
 - timestamp: 4 byte timestamp (seconds)
 - ver: 1 byte SSU version
-- asz: 1 byte IP address size (4 or 16)
-- Alice IP: asz byte Alice IP address
+- asz: 1 byte endpoint (port + IP) size (6 or 18)
 - AlicePort: 2 byte Alice's port number
+- Alice IP: (asz - 2) byte Alice IP address
 
 
 RelayResponse
@@ -5464,9 +5464,9 @@ See Relay Process section below.
   +----+----+----+----+----+----+----+----+
        |     relay tag     |   timestamp
   +----+----+----+----+----+----+----+----+
-       | ver| csz|Charlie IP address |Char
+       | ver| csz|Char Port|  Charlie IP
   +----+----+----+----+----+----+----+----+
-   port|         signature                |
+   addr|         signature                |
   +----+       length varies              +
   |         64 bytes for Ed25519          |
   ~                                       ~
@@ -5506,10 +5506,10 @@ See Relay Process section below.
   ver ::  1 byte SSU version to be used for the introduction:
          1: SSU 1
          2: SSU 2
-  csz :: 1 byte IP address size (4 or 16)
-  Charlie IP :: csz byte representation of Charlie's IP address,
-                network byte order
+  csz :: 1 byte endpoint (port + IP) size (6 or 18)
   CharliePort :: 2 byte Charlie's port number, big endian
+  Charlie IP :: (csz - 2) byte representation of Charlie's IP address,
+                network byte order
   signature :: length varies, 64 bytes for Ed25519.
                Signature of prologue, Bob's hash,
                and signed data above, as signed by
@@ -5533,9 +5533,9 @@ Signature algorithm: Sign the following data with the Charlie's router signing k
 - relay tag: 4 byte relay tag
 - timestamp: 4 byte timestamp (seconds)
 - ver: 1 byte SSU version
-- csz: 1 byte IP address size (4 or 16)
-- Charlie IP: csz byte Charlie IP address
+- csz: 1 byte endpoint (port + IP) size (6 or 18)
 - CharliePort: 2 byte Charlie's port number
+- Charlie IP: (csz - 2) byte Charlie IP address
 
 
 
@@ -5566,7 +5566,7 @@ either in the same payload (if there's room), or in a previous message.
   +----+----+----+----+----+----+----+----+
   |     relay tag     |     timestamp     |
   +----+----+----+----+----+----+----+----+
-  | ver| asz|  Alice IP address |AlicePort|
+  | ver| asz|AlicePort|  Alice IP address |
   +----+----+----+----+----+----+----+----+
   |              signature                |
   +            length varies              +
@@ -5591,10 +5591,10 @@ either in the same payload (if there's room), or in a previous message.
   ver ::  1 byte SSU version to be used for the introduction:
          1: SSU 1
          2: SSU 2
-  asz :: 1 byte IP address size (4 or 16)
-  Alice IP :: asz byte representation of Alice's IP address,
-              network byte order
+  asz :: 1 byte endpoint (port + IP) size (6 or 18)
   AlicePort :: 2 byte Alice's port number, big endian
+  Alice IP :: (asz - 2) byte representation of Alice's IP address,
+              network byte order
   signature :: length varies, 64 bytes for Ed25519.
                Signature of prologue, Bob's hash,
                and signed data above, as signed by
@@ -5623,13 +5623,14 @@ Verification algorithm: Verify the following data with the Alice's router signin
 
 - prologue: 16 bytes "RelayRequestData", not null-terminated (not included in the message)
 - bhash: Bob's 32-byte router hash (not included in the message)
+- chash: Charlie's 32-byte router hash (not included in the message)
 - nonce: 4 byte nonce
 - relay tag: 4 byte relay tag
 - timestamp: 4 byte timestamp (seconds)
 - ver: 1 byte SSU version
-- asz: 1 byte IP address size (4 or 16)
-- Alice IP: asz byte Alice IP address
+- asz: 1 byte endpoint (port + IP) size (6 or 18)
 - AlicePort: 2 byte Alice's port number
+- Alice IP: (asz - 2) byte Alice IP address
 
 
 PeerTest
@@ -5666,7 +5667,7 @@ either in the same payload (if there's room), or in a previous message.
   +----+----+----+----+----+----+----+----+
   |       nonce       |     timestamp     |
   +----+----+----+----+----+----+----+----+
-  | asz|  Alice IP address |AlicePort|    |
+  | asz|AlicePort|  Alice IP address |    |
   +----+----+----+----+----+----+----+    +
   |              signature                |
   +            length varies              +
@@ -5713,10 +5714,10 @@ either in the same payload (if there's room), or in a previous message.
   nonce :: 4 byte test nonce, big endian
   timestamp :: Unix timestamp, unsigned seconds.
                Wraps around in 2106
-  asz :: 1 byte IP address size (4 or 16)
-  Alice IP :: asz byte representation of Alice's IP address,
-              network byte order, if size is greater than zero
+  asz :: 1 byte endpoint (port + IP) size (6 or 18)
   AlicePort :: 2 byte Alice's port number, big endian
+  Alice IP :: (asz - 2) byte representation of Alice's IP address,
+              network byte order
   signature :: length varies, 64 bytes for Ed25519.
                Signature of prologue, Bob's hash,
                and signed data above, as signed by
@@ -5770,9 +5771,9 @@ Signature algorithm: Sign or verify the following data with the Alice's or Charl
 - ver: 1 byte SSU version
 - nonce: 4 byte test nonce
 - timestamp: 4 byte timestamp (seconds)
-- asz: 1 byte IP address size (4 or 16)
-- Alice IP: asz byte Alice IP address
+- asz: 1 byte endpoint (port + IP) size (6 or 18)
 - AlicePort: 2 byte Alice's port number
+- Alice IP: (asz - 2) byte Alice IP address
 
 
 
