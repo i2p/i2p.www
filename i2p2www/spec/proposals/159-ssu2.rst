@@ -5,7 +5,7 @@ SSU2
     :author: eyedeekay, orignal, zlatinb, zzz
     :created: 2021-09-12
     :thread: http://zzz.i2p/topics/2612
-    :lastupdated: 2022-04-25
+    :lastupdated: 2022-04-27
     :status: Open
     :target: 0.9.56
 
@@ -5533,6 +5533,7 @@ Signature algorithm: Sign the following data with the Charlie's router signing k
 
 - prologue: 16 bytes "RelayAgreementOK", not null-terminated (not included in the message)
 - bhash: Bob's 32-byte router hash (not included in the message)
+- nonce: 4 byte nonce
 - timestamp: 4 byte timestamp (seconds)
 - ver: 1 byte SSU version
 - csz: 1 byte endpoint (port + IP) size (6 or 18)
@@ -6877,6 +6878,10 @@ Alice                     Bob                  Charlie
 {% endhighlight %}
 
 
+NOTE: RI may be sent either I2NP Database Store messages in I2NP blocks,
+or as RI blocks (if small enough). These may be contained in the
+same packets as the peer test blocks, if small enough.
+
 Messages 1-4 are in-session using Peer Test blocks in a Data message.
 Messages 5-7 are out-of-session using Peer Test blocks in a Peer Test message.
 
@@ -6996,6 +7001,10 @@ Alice                         Bob                  Charlie
 
 {% endhighlight %}
 
+NOTE: RI may be sent either I2NP Database Store messages in I2NP blocks,
+or as RI blocks (if small enough). These may be contained in the
+same packets as the ralay blocks, if small enough.
+
 In SSU 1, Charlie's router info contains the IP, port, intro key, relay tag, and expiration of each introducer.
 
 In SSU 2, Charlie's router info contains the router hash, relay tag, and expiration of each introducer.
@@ -7052,12 +7061,15 @@ The following address properties may be published, unchanged from SSU 1:
   Shortened IPv6 address (with "::") is allowed.
   Only present if firewalled, and introducers are required.
   Host names are not allowed.
+  SSU address only.
 
 - ikey[0-2]: Introducer's Base 64 introduction key.
   Only present if firewalled, and introducers are required.
+  SSU address only.
 
 - iport[0-2]: Introducer's port 1024 - 65535.
   Only present if firewalled, and introducers are required.
+  SSU address only.
 
 - itag[0-2]: Introducer's tag 1 - (2**32 - 1)
   ASCII digits.
@@ -7129,6 +7141,28 @@ in the same RouterInfo (for additional IP addresses or ports),
 all addresses specifying the same port must contain the identical SSU2 options and values.
 In particular, all must contain the same static key "s" and introduction key "i".
 
+
+Introducers
+```````````
+When published as SSU or SSU2 with introducers, the following options are present:
+
+- ih[0-2]=(Base64 hash)
+  A router hash for an introducer.
+  Base 64 encoded using the standard I2P Base 64 alphabet.
+  32 bytes in binary, 44 bytes as Base 64 encoded
+
+- iexp[0-2]: Expiration of this introducer.
+  Unchanged from SSU 1.
+
+- itag[0-2]: Introducer's tag 1 - (2**32 - 1)
+  Unchanged from SSU 1.
+
+The following options are for SSU only and are not used for SSU2.
+In SSU2, Alice gets this information from Charlie's RI instead.
+
+- ihost[0-2]
+- ikey[0-2]
+- itag[0-2]
 
 
 Unpublished SSU2 Address
