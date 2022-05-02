@@ -5,7 +5,7 @@ SSU2
     :author: eyedeekay, orignal, zlatinb, zzz
     :created: 2021-09-12
     :thread: http://zzz.i2p/topics/2612
-    :lastupdated: 2022-04-30
+    :lastupdated: 2022-05-02
     :status: Open
     :target: 0.9.56
 
@@ -2237,6 +2237,10 @@ correlate the HolePunch with Charlie.
 Four byte nonce may need to be replaced or supplemented by
 8-byte connection ID.
 
+The empty Hole Punch message is unique and may be used
+by on-path observers to identify the protocol, this should be
+changed.
+
 
 Peer Test Security
 ---------------------
@@ -2664,7 +2668,7 @@ The "packet header" is the part after the IP/UDP header.
 
 TODO except fragmented Session Confirmed
 
-All SSU2 messages are at least 40 bytes in length, except for Hole Punch which is empty.
+All SSU2 messages are at least 40 bytes in length.
 Any message of length 1-39 bytes is invalid.
 All SSU2 messages are less than or equal to 1472 (IPv4) or 1452 (IPv6) bytes in length. The message
 format is based on Noise messages, with modifications for framing and indistinguishability.
@@ -2684,7 +2688,7 @@ Type      Message       Header Length  Header Encr. Length
   7   PeerTest          32             32
   9   Retry             32             32
  10   Token Request     32             32
-n/a   HolePunch          0              0
+ 11   HolePunch         32             32
 ====  ================  =============  =============
 
 
@@ -3065,7 +3069,7 @@ For Retry, bytes 16-31 of the long header
 are encrypted using ChaCha20.
 The unencrypted data is random, so the encrypted data will appear to be random.
 
-There are six header protection key phases:
+There are seven header protection key phases:
 
 - Session Request and Token Request
 - Session Created
@@ -3073,6 +3077,7 @@ There are six header protection key phases:
 - Session Confirmed
 - Data Phase
 - Peer Test
+- Hole Punch
 
 
 =================  ===================  ====================
@@ -3086,6 +3091,7 @@ Retry              Bob Intro Key        Bob Intro Key
 Data               Alice/Bob Intro Key  See data phase KDF
 Peer Test 5,7      Alice Intro Key      Alice Intro Key
 Peer Test 6        Charlie Intro Key    Charlie Intro Key
+Hole Punch         Alice Intro Key      Alice Intro Key
 =================  ===================  ====================
 
 
@@ -4867,16 +4873,124 @@ Notes
 
 
 
-Hole Punch Message
+KDF for Hole Punch
+--------------------------
+
+This message must be fast to generate, using symmetric encryption only.
+
+.. raw:: html
+
+  {% highlight lang='text' %}
+
+// AEAD parameters
+  // aik = Alice's intro key
+  k = aik
+  n = 4 byte packet number from header
+  ad = 32 byte header, before header encryption
+  ciphertext = ENCRYPT(k, n, payload, ad)
+
+  // Header encryption keys for this message
+  k_header_1 = aik
+  k_header_2 = aik
+
+{% endhighlight %}
+
+
+
+
+Hole Punch (Type 11)
 -------------------------------
 
-An empty datagram. No content. Same as SSU 1.
-A HolePunch is simply a UDP packet with no data.  It is unauthenticated and
-unencrypted.  It does not contain a SSU header, so it does not have a message
-type number.  It is sent from Charlie to Alice as a part of the Introduction
-sequence.
+Charlie sends to Alice, in response to a Relay Intro received from Bob.
+Alice responds with a new Session Request.
+Size: 48 + payload size.
 
-TODO should it be a real peer test message instead?
+Noise payload: See below.
+
+Raw contents:
+
+.. raw:: html
+
+  {% highlight lang='dataspec' %}
++----+----+----+----+----+----+----+----+
+  |  Long Header bytes 0-15, ChaCha20     |
+  +  encrypted with Alice intro key       +
+  |                                       |
+  +----+----+----+----+----+----+----+----+
+  |  Long Header bytes 16-31, ChaCha20    |
+  +  encrypted with Alice intro key       +
+  |                                       |
+  +----+----+----+----+----+----+----+----+
+  |                                       |
+  +                                       +
+  |   ChaCha20 encrypted data             |
+  +          (length varies)              +
+  |                                       |
+  +  see KDF for key and n                +
+  |  see KDF for associated data          |
+  +----+----+----+----+----+----+----+----+
+  |                                       |
+  +        Poly1305 MAC (16 bytes)        +
+  |                                       |
+  +----+----+----+----+----+----+----+----+
+
+
+{% endhighlight %}
+
+Unencrypted data (Poly1305 authentication tag not shown):
+
+.. raw:: html
+
+  {% highlight lang='dataspec' %}
++----+----+----+----+----+----+----+----+
+  |      Destination Connection ID        |
+  +----+----+----+----+----+----+----+----+
+  |   Packet Number   |type| ver| id |flag|
+  +----+----+----+----+----+----+----+----+
+  |        Source Connection ID           |
+  +----+----+----+----+----+----+----+----+
+  |                 Token                 |
+  +----+----+----+----+----+----+----+----+
+  |    ChaCha20 payload (block data)      |
+  +          (length varies)              +
+  |    see below for allowed blocks       |
+  +----+----+----+----+----+----+----+----+
+
+
+  Destination Connection ID :: See below
+
+  Packet Number :: Random number generated by Charlie
+
+  type :: 11
+
+  ver :: 2
+
+  id :: 1 byte, the network ID (currently 2, except for test networks)
+
+  flag :: 1 byte, unused, set to 0 for future compatibility
+
+  Source Connection ID :: See below
+
+  Token :: 8 byte unsigned integer, randomly generated by Charlie, nonzero.
+           Identical to the token sent in the Relay Response.
+
+{% endhighlight %}
+
+Payload
+```````
+- DateTime block
+- Address block
+- Padding block (optional)
+
+The minimum payload size is 8 bytes. Since the DateTime and Address blocks
+total more than that, the requirement is met with only those two blocks.
+
+Connection IDs: The two connection IDs are derived from the test nonce.
+The Destination Connection ID
+is two copies of the 4-byte relay nonce, i.e. ((nonce << 32) | nonce).
+The Source Connection ID is the inverse of the Destination Connection ID,
+i.e. ~((nonce << 32) | nonce).
+
 
 
 
@@ -5472,6 +5586,8 @@ See Relay Process section below.
   ~                                       ~
   |                 . . .                 |
   +----+----+----+----+----+----+----+----+
+  |                 Token                 |
+  +----+----+----+----+----+----+----+----+
 
   blk :: 8
   size :: 2 bytes, 6
@@ -5516,7 +5632,11 @@ See Relay Process section below.
   signature :: length varies, 64 bytes for Ed25519.
                Signature of prologue, Bob's hash,
                and signed data above, as signed by
-               Alice.
+               Charlie.
+               Not present if rejected by Bob.
+  token :: Token generated by Charlie for Alice to use
+           in the Session Request.
+           Only present if code is 0 (accept)
 
 {% endhighlight %}
 
