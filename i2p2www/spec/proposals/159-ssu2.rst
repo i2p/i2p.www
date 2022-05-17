@@ -5,7 +5,7 @@ SSU2
     :author: eyedeekay, orignal, zlatinb, zzz
     :created: 2021-09-12
     :thread: http://zzz.i2p/topics/2612
-    :lastupdated: 2022-05-02
+    :lastupdated: 2022-05-17
     :status: Open
     :target: 0.9.56
 
@@ -5788,12 +5788,12 @@ either in the same payload (if there's room), or in a previous message.
   + sent to Alice)   (32 bytes)           +
   |                                       |
   +                             +----+----+
-  |                             |role| ver|
+  |                             | ver|
   +----+----+----+----+----+----+----+----+
-  |       nonce       |     timestamp     |
+     nonce       |     timestamp     | asz|
   +----+----+----+----+----+----+----+----+
-  | asz|AlicePort|  Alice IP address |    |
-  +----+----+----+----+----+----+----+    +
+  |AlicePort|  Alice IP address |         |
+  +----+----+----+----+----+----+         +
   |              signature                |
   +            length varies              +
   |         64 bytes for Ed25519          |
@@ -5830,9 +5830,6 @@ either in the same payload (if there's room), or in a previous message.
   For messages 1-4, the data below here is covered
   by the signature, if present, and Bob forwards it unmodified.
 
-  role :: 1 byte role of the signer:
-         1: Alice
-         3: Charlie
   ver ::  1 byte SSU version to be used for messages 5-7:
          1: SSU 1 (not supported)
          2: SSU 2 (required)
@@ -5892,7 +5889,6 @@ Signature algorithm: Sign or verify the following data with the Alice's or Charl
 - prologue: 16 bytes "PeerTestValidate", not null-terminated (not included in the message)
 - bhash: Bob's 32-byte router hash (not included in the message)
 - ahash: Alice's 32-byte router hash (for messages 3 and 4 only; not included in the message)
-- role: 1 byte role of the signer
 - ver: 1 byte SSU version
 - nonce: 4 byte test nonce
 - timestamp: 4 byte timestamp (seconds)
@@ -7172,6 +7168,9 @@ SSU2 makes the Hole Punch easier to process by making it a new
 message with defined connection IDs and contents.
 The Relay Response (Data message) and Hole Punch message both contain the identical
 signed Relay Response block.
+Also, note that if Alice is firewalled, she will not receive the Hole Punch
+message at all.
+
 
 
 Published Router Info
