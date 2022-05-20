@@ -144,8 +144,6 @@ tunnels.conf
        outbound.length = 1
        inbound.quantity = 5
        outbound.quantity = 5
-       inbound.backupQuantity = 2
-       outbound.backupQuantity = 2
        i2cp.reduceOnIdle = true
        keys = ssh-in.dat
 
@@ -294,10 +292,8 @@ adjust it for your performance/anonymity needs.
        outbound.length = 1
        inbound.quantity = 5
        outbound.quantity = 5
-       inbound.backupQuantity = 2
-       outbound.backupQuantity = 2
        i2cp.dontPublishLeaseSet = true
-       destination = bubfjkl2l46pevgnh7yicm2e7rkld4jrgpmruw2ueqn5fa4ag6eq.b32.I2P
+       destination = thisshouldbethebase32ofthesshservertunnelabovebefore.b32.i2p
        keys = ssh-in.dat
 
 {% trans -%}Restart the I2P router on the client{%- endtrans %}
