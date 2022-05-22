@@ -139,6 +139,7 @@ tunnels.conf
 
        [SSH-SERVER]
        type = server
+       host = 127.0.0.1
        port = 22
        inbound.length = 1
        outbound.length = 1
