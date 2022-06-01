@@ -5,7 +5,7 @@ SSU2
     :author: eyedeekay, orignal, zlatinb, zzz
     :created: 2021-09-12
     :thread: http://zzz.i2p/topics/2612
-    :lastupdated: 2022-05-17
+    :lastupdated: 2022-06-01
     :status: Open
     :target: 0.9.56
 
@@ -4986,7 +4986,7 @@ Payload
 The minimum payload size is 8 bytes. Since the DateTime and Address blocks
 total more than that, the requirement is met with only those two blocks.
 
-Connection IDs: The two connection IDs are derived from the test nonce.
+Connection IDs: The two connection IDs are derived from the relay nonce.
 The Destination Connection ID
 is two copies of the 4-byte relay nonce, i.e. ((nonce << 32) | nonce).
 The Source Connection ID is the inverse of the Destination Connection ID,
@@ -5601,14 +5601,16 @@ See Relay Process section below.
          3: rejected by Bob, limit exceeded
          4: rejected by Bob, signature failure
          5: rejected by Bob, relay tag not found
-         6-63: other rejected by Bob codes TBD
+         6: rejected by Bob, Alice RI not found
+         7-63: other rejected by Bob codes TBD
          64: rejected by Charlie, reason unspecified
          65: rejected by Charlie, unsupported address
          66: rejected by Charlie, limit exceeded
          67: rejected by Charlie, signature failure
          68: rejected by Charlie, Alice is already connected
          69: rejected by Charlie, Alice is banned
-         70-127: other rejected by Charlie codes TBD
+         70: rejected by Charlie, Alice is unknown
+         71-127: other rejected by Charlie codes TBD
          128: reject, source and reason unspecified
          129-255: other reject codes TBD
 
@@ -5888,7 +5890,8 @@ Signature algorithm: Sign or verify the following data with the Alice's or Charl
 
 - prologue: 16 bytes "PeerTestValidate", not null-terminated (not included in the message)
 - bhash: Bob's 32-byte router hash (not included in the message)
-- ahash: Alice's 32-byte router hash (for messages 3 and 4 only; not included in the message)
+- ahash: Alice's 32-byte router hash
+  (Only used in the signature for messages 3 and 4; not included in message 3 or 4)
 - ver: 1 byte SSU version
 - nonce: 4 byte test nonce
 - timestamp: 4 byte timestamp (seconds)
