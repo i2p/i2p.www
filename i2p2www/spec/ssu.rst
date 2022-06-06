@@ -3,8 +3,8 @@ SSU Protocol Specification
 ==========================
 .. meta::
     :category: Transports
-    :lastupdated: 2021-10
-    :accuratefor: 0.9.52
+    :lastupdated: 2022-06
+    :accuratefor: 0.9.54
 
 .. contents::
 
@@ -994,7 +994,9 @@ Note: IPv6 peer testing is supported as of release 0.9.27.
 
 ====================  ==========================================================
 **Peer:**             Any
-**Data:**             * 4 byte nonce
+**Data:**             See notes section below for details
+
+                      * 4 byte nonce
                       * 1 byte IP address size (may be zero)
                       * that many byte representation of Alice's IP address, if
                         size > 0
@@ -1085,6 +1087,10 @@ Notes
 
 * When sent by Bob or Charlie, IP and port are present, and IP address is
   4 or 16 bytes. IPv6 testing is supported as of release 0.9.27.
+
+* When sent by Charlie to Alice, the IP and port are as follows:
+  First time (message 5): Alice's requested IP and port as received in message 2.
+  Second time (message 7): Alice's actual IP and port that message 6 was received from.
 
 * IPv6 Notes: Through release 0.9.26, only testing of IPv4 addresses is supported. Therefore, all
   Alice-Bob and Alice-Charlie communication must be via IPv4. Bob-Charlie

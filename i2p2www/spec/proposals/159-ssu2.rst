@@ -5,7 +5,7 @@ SSU2
     :author: eyedeekay, orignal, zlatinb, zzz
     :created: 2021-09-12
     :thread: http://zzz.i2p/topics/2612
-    :lastupdated: 2022-06-05
+    :lastupdated: 2022-06-06
     :status: Open
     :target: 0.9.56
 
@@ -4584,7 +4584,7 @@ Unencrypted data (Poly1305 authentication tag not shown):
 Payload
 ```````
 - DateTime block
-- Address block
+- Address block (required for messages 6 and 7, see note below)
 - Peer Test block
 - Padding block (optional)
 
@@ -4607,6 +4607,12 @@ is two copies of the 4-byte test nonce, i.e. ((nonce << 32) | nonce).
 The Source Connection ID is the inverse of the Destination Connection ID,
 i.e. ~((nonce << 32) | nonce).
 For messages sent from Alice to Charlie, swap the two connection IDs.
+
+Address block contents:
+
+- In message 5: Not required.
+- In message 6: Charlie's IP and port as selected from Charlie's RI.
+- In message 7: Alice's actual IP and port message 6 was received from.
 
 
 
@@ -7314,6 +7320,11 @@ A router must not publish host or port in the address when publishing introducer
 A router must publish 4 and/or 6 caps in the address when publishing introducers
 to indicate support for IPv4 and/or IPv6.
 This is the same as the current practice for recent SSU 1 addresses.
+
+Note: If published as SSU, and there is a mix of SSU 1 and SSU2 introducers,
+the SSU 1 introducers should be at the lower indexes and
+the SSU2 introducers should be at the higher indexes,
+for compatibility with older routers.
 
 
 
