@@ -3,8 +3,8 @@ I2NP Specification
 ==================
 .. meta::
     :category: Protocols
-    :lastupdated: 2021-07
-    :accuratefor: 0.9.51
+    :lastupdated: 2022-06
+    :accuratefor: 0.9.54
 
 .. contents::
 
@@ -1085,7 +1085,7 @@ tag :: 8 byte reply_tag
 
 
 ECIES to ECIES (0.9.49)
------------------------------
+`````````````````````````````
 
 ECIES destination or router sends a lookup to a ECIES router.
 Supported as of 0.9.49.
@@ -1098,7 +1098,7 @@ The requester is anonymous.
 
 
 ECIES to ECIES (future)
------------------------------
+`````````````````````````````
 
 This option is not yet fully defined.
 See [Prop156]_.
