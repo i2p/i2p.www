@@ -1,7 +1,7 @@
 {% extends "global/layout.html" %}
 {% block title %}SAM V3{% endblock %}
-{% block lastupdated %}2021-12{% endblock %}
-{% block accuratefor %}1.6.1{% endblock %}
+{% block lastupdated %}2022-06{% endblock %}
+{% block accuratefor %}1.8.0{% endblock %}
 {% block content %}
 <p>SAM is a simple client protocol for interacting with I2P.
 SAM is the recommended protocol for non-Java applications to connect to the I2P network,
@@ -1038,7 +1038,39 @@ or other fields, merely the data that the sender provided.  This
 continues until the session is closed (by the client dropping the
 connection).
 
-<h3>SAM Datagrams : Forwarding Raw or Repliable Datagrams</h3>
+<h3>SAM Datagrams</h3>
+<p>
+SAMv3 provides mechanisms to send and receive datagrams over local datagram sockets.
+Some SAMv3 implementations also support the older v1/v2 way of sending/receiving
+datagrams over the SAM bridge socket. Both are documented below.
+</p><p>
+I2P supports two types of datagrams:
+</p>
+<ul><li>
+"Repliable" datagrams are prefixed with the destination of the sender,
+and contain the signature of the sender, so the receiver
+may verify that the sender's destination was not spoofed,
+and may reply to the datagram.
+</li><li>
+"Raw" datagrams do not contain the destination of the sender or a signature.
+</li></ul>
+<p>
+Default I2CP ports are defined for both repliable and raw datagrams.
+The I2CP port may be changed for raw datagrams.
+</p><p>
+A common protocol design pattern is for repliable datagrams to be sent
+to servers, with some identifier included, and the server to
+respond with a raw datagram that includes that indentifier,
+so the response may be correlated with the request.
+This design pattern eliminates the substantial overhead of repliable datagrams
+in replies.
+All choices of I2CP protocols and ports are application-specific,
+and designers should take these issues into consideration.
+</p>
+
+
+
+<h4>Forwarding Raw or Repliable Datagrams</h4>
 <p>
 When creating a datagram session, the client can ask SAM to forward
 incoming messages to a specified ip:port. It does so by issuing the
@@ -1128,7 +1160,7 @@ depending on signature type.
 </p>
 
 
-<h3>SAM Anonymous (Raw) Datagrams</h3>
+<h4>SAM Anonymous (Raw) Datagrams</h4>
 <p>
 Squeezing the most out of I2P's bandwidth, SAM allows clients to send
 and receive anonymous datagrams, leaving authentication and reply
@@ -1188,7 +1220,30 @@ the forwarded raw datagram will be prepended with a header line as follows:
 For an alternate method of sending anonymous datagrams, see <a href="#dgsend">RAW SEND</a>.
 </p>
 
-<h3 id="dgsend">DATAGRAM SEND, RAW SEND (V1/V2 Compatible Datagram Handling)</h3>
+
+<h4>V3 Datagram MTU Considerations</h4>
+<p>
+I2P Datagrams may be larger than the typical internet MTU of 1500.
+Locally sent datagrams and forwarded repliable datagrams
+prefixed with the 516+ byte base64 destination are likely to exceed that MTU.
+However, localhost MTUs on Linux systems are typically much larger,
+for example 65536. Localhost MTUs will vary by OS.
+I2P Datagrams will never be larger than 65536.
+Datagram size is dependent on the application protocol.
+</p><p>
+If the SAM client is local to the SAM server and the system supports
+a larger MTU, then the datagrams will not be fragmented locally.
+However, if the SAM client is remote, then IPv4 datagrams would
+be fragmented and IPv6 datagrams would fail (IPv6 does not support UDP fragmentation).
+</p><p>
+Client library and application developers should be aware of these issues
+and document recommendations to avoid fragmentation and
+prevent packet loss, especially on remote SAM client-server connections.
+</p>
+
+
+
+<h4 id="dgsend">DATAGRAM SEND, RAW SEND (V1/V2 Compatible Datagram Handling)</h4>
 <p>
 In SAM V3, the preferred way to send datagrams is via the datagram socket
 at port 7655 as documented above. However, repliable datagrams may be sent
@@ -1569,12 +1624,6 @@ See those references for option names and defaults.
 Base 64 encoding must use the I2P standard Base 64 alphabet "A-Z, a-z, 0-9, -, ~".
 </p>
 
-<h3>Client Library Implementations</h3>
-<p>
-Client libraries are available for C, C++, C#, Perl, and Python.
-These are in the apps/sam/ directory in the <a href="{{ get_url('downloads_list') }}">I2P Source Package</a>.
-Some may be older and have not been updated for SAMv3 support.
-</p>
 
 <h3>Default SAM Setup</h3>
 <p>
