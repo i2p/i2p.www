@@ -5,7 +5,7 @@ SSU2
     :author: eyedeekay, orignal, zlatinb, zzz
     :created: 2021-09-12
     :thread: http://zzz.i2p/topics/2612
-    :lastupdated: 2022-06-06
+    :lastupdated: 2022-06-12
     :status: Open
     :target: 0.9.56
 
@@ -2421,9 +2421,11 @@ The possible version combinations are:
 =========   ===========   =============   =============
 Alice/Bob   Bob/Charlie   Alice/Charlie   Supported
 =========   ===========   =============   =============
+1           1             1               SSU 1
 1           1             2               no, use 1/1/1
 1           2             1               Relay: yes? Peer Test: no
 1           2             2               no, use 1/2/1
+2           1             1               Relay: yes? Peer Test: no
 2           1             2               Relay: yes? Peer Test: no
 2           2             1               no, use 2/2/2
 2           2             2               yes
@@ -5025,8 +5027,11 @@ Payload Format
 ----------------
 
 There are one or more blocks in the encrypted payload.
+A block is a simple Tag-Length-Value (TLV) format.
 Each block contains a one-byte identifier, a two-byte length,
 and zero or more bytes of data.
+This format is identical to that in [NTCP2]_ and [ECIES]_,
+however the block definitions are different.
 
 For extensibility, receivers must ignore blocks with unknown identifiers,
 and treat them as padding.
@@ -5103,7 +5108,7 @@ Peer Test                                  10         varies
 Next Nonce                                 11           TBD
 ACK                                        12         varies 
 Address                                    13         9 or 21
-Intro Key                                  14           35
+reserved                                   14           --
 Relay Tag Request                          15            3      
 Relay Tag                                  16            7      
 New Token                                  17           15
@@ -5662,7 +5667,7 @@ Notes:
 
 Signature:
 
-If Charlie agrees,
+If Charlie agrees (response code 0) or rejects (response code 64 or higher),
 Charlie signs the response and includes it in this block; Bob forwards it in the Relay Response block to Alice.
 Signature algorithm: Sign the following data with the Charlie's router signing key:
 
@@ -5675,6 +5680,16 @@ Signature algorithm: Sign the following data with the Charlie's router signing k
 - CharliePort: 2 byte Charlie's port number
 - Charlie IP: (csz - 2) byte Charlie IP address
 
+If Bob rejects (response code 1-63),
+Bob signs the response and includes it in this block.
+Signature algorithm: Sign the following data with the Bob's router signing key:
+
+- prologue: 16 bytes "RelayAgreementOK", not null-terminated (not included in the message)
+- bhash: Bob's 32-byte router hash (not included in the message)
+- nonce: 4 byte nonce
+- timestamp: 4 byte timestamp (seconds)
+- ver: 1 byte SSU version
+- csz: 1 byte = 0
 
 
 RelayIntro
@@ -6059,34 +6074,6 @@ or Bob's address, sent to Bob by Alice.
 
 
 
-Intro Key
-``````````````
-UNUSED, to be removed
-
-.. raw:: html
-
-  {% highlight lang='dataspec' %}
-+----+----+----+----+----+----+----+----+
-  | 14 |   32    |    Intro Key           |
-  +----+----+----+                        +
-  |                                       |
-  +                                       +
-  |                                       |
-  +                                       +
-  |                                       |
-  +              +----+----+----+----+----+
-  |              |
-  +----+----+----+
-
-  blk :: 14
-  size :: 32
-  key :: 32-byte introduction key
-
-{% endhighlight %}
-
-
-
-
 Relay Tag Request
 ```````````````````````
 This may be sent by Alice in a Session Request, Session Confirmed, or Data message.
@@ -6363,10 +6350,10 @@ Handshake Retransmission
 
 Session Request
 ----------------
-If no Session Created is received by Alice:
+If no Session Created or Retry is received by Alice:
 
 Maintain same source and connection IDs, ephemeral key, and packet number 0.
-Or, just retain the encrypted packet.
+Or, just retain and retransmit the same encrypted packet.
 Packet number must not be incremented, because that would change
 the chained hash value used to encrypt the Session Created message.
 
@@ -6428,23 +6415,60 @@ If this is too complex, Bob may just drop the undecryptable Data messages,
 as Alice will retransmit them.
 
 
+Token Request
+----------------
+If no Retry is received by Alice:
+
+Maintain same source and connection IDs.
+An implementation may generate a new random packet number and encrypt a new packet;
+Or it may reuse the same packet number or just retain and retransmit the same encrypted packet.
+Packet number must not be incremented, because that would change
+the chained hash value used to encrypt the Session Created message.
+
+Recommended retransmission intervals: 3 and 6 seconds (3 and 9 seconds after first sent).
+Recommended timeout: 15 seconds total
+
 
 Retry
 ---------
-TODO: Resend or not? If so, same packet number or not?
+If no Session Confirmed is received by Bob:
 
-A Retry message is never retransmitted, except (optionally) in response to a repeated
-Session Request message being received.
+A Retry message is not retransmitted on timeout, to reduce the impacts
+of spoofed source addresses.
+
+However, a Retry message may be retransmitted in response to a repeated
+Session Request message being received with the original (invalid) token,
+or in response to a repeated Token Request message.
+In either case, this indicates that the Retry message was lost.
+
+If a second Session Request message is received with a different
+but still-invalid token, drop the pending session and do not respond.
 
 If resending the Retry message:
-Maintain same source and connection IDs. Increment packet number.
-Re-encrypt the header, as the packet number changed.
+Maintain same source and connection IDs and token.
+An implementation may generate a new random packet number and encrypt a new packet;
+Or it may reuse the same packet number or just retain and retransmit the same encrypted packet.
 
 
 
 Total Timeout
 --------------
 Recommended total timeout for the handshake is 20 seconds.
+
+
+
+Duplicates and Error Handling
+-----------------------------
+Duplicates of the three Noise handshake messages
+Session Request, Session Created, and Session Confirmed
+must be detected before MixHash() of the header.
+While the Noise AEAD processing will presumably fail after that,
+the handshake hash would already be corrupted.
+
+If any of the three messages is corrupted and fails AEAD,
+the handshake cannot subsequently be recovered even with retransmission,
+because MixHash() was already called on the corrupted message.
+
 
 
 Tokens
@@ -7024,7 +7048,7 @@ When message 5 arrives before message 4,
 Alice cannot immediately send message 6, because she does not
 yet have Charlie's intro key to encrypt the header.
 When message 4 arrives before message 5,
-should not immediately send message 6, because she should wait
+Alice should not immediately send message 6, because she should wait
 to see if message 5 arrives without opening the firewall with message 6.
 
 
@@ -7048,9 +7072,11 @@ The only allowed version combination is where all peers are version 2.
 =========   ===========   =============   =============
 Alice/Bob   Bob/Charlie   Alice/Charlie   Supported
 =========   ===========   =============   =============
+1           1             1               SSU 1
 1           1             2               no, use 1/1/1
 1           2             1               no, Bob must select a version 1 Charlie
 1           2             2               no, Bob must select a version 1 Charlie
+2           1             1               no, Bob must select a version 2 Charlie
 2           1             2               no, Bob must select a version 2 Charlie
 2           2             1               no, use 2/2/2
 2           2             2               yes
@@ -7153,9 +7179,11 @@ The allowed version combinations are (TODO):
 =========   ===========   =============   =============
 Alice/Bob   Bob/Charlie   Alice/Charlie   Supported
 =========   ===========   =============   =============
+1           1             1               SSU 1
 1           1             2               no, use 1/1/1
 1           2             1               yes?
 1           2             2               no, use 1/2/1
+2           1             1               yes?
 2           1             2               yes?
 2           2             1               no, use 2/2/2
 2           2             2               yes
