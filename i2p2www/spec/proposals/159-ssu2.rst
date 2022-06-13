@@ -5,7 +5,7 @@ SSU2
     :author: eyedeekay, orignal, zlatinb, zzz
     :created: 2021-09-12
     :thread: http://zzz.i2p/topics/2612
-    :lastupdated: 2022-06-12
+    :lastupdated: 2022-06-13
     :status: Open
     :target: 0.9.56
 
@@ -2673,7 +2673,9 @@ Each datagram (or packet) contains a single message (unlike QUIC, where
 a datagram may contain multiple QUIC packets).
 The "packet header" is the part after the IP/UDP header.
 
-TODO except fragmented Session Confirmed
+Exception:
+The Session Confirmed message is unique in that it may be fragmented across multiple packets.
+See the Session Confirmed Fragmentation section below for more information.
 
 All SSU2 messages are at least 40 bytes in length.
 Any message of length 1-39 bytes is invalid.
@@ -2682,6 +2684,7 @@ format is based on Noise messages, with modifications for framing and indistingu
 Implementations using standard Noise libraries must pre-process received
 messages to the standard Noise message format. All encrypted fields are AEAD
 ciphertexts.
+
 
 The following messages are defined:
 
@@ -2979,6 +2982,7 @@ The following packets contain a random packet number that is ignored:
 - Token Request
 - Retry
 - Peer Test
+- Hole Punch
 
 For Alice, outbound packet numbering starts at 0 with Session Confirmed.
 For Bob, outbound packet numbering starts at 0 with first Data packet,
@@ -6126,19 +6130,22 @@ If Bob does not wish to relay for Alice, he does not send a Relay Tag block.
 
 New Token
 ```````````````
-For a subsequent connection:
+For a subsequent connection.
+Generally included in the Session Created and Session Confirmed messages.
+May also be sent again in the Data message of a long-lived session
+if the previous token expires.
 
 .. raw:: html
 
   {% highlight lang='dataspec' %}
 +----+----+----+----+----+----+----+----+
-  | 17 |    4    |     expires       |    |
+  | 17 |   12    |     expires       |    |
   +----+----+----+----+----+----+----+    +
                   token              |
   +----+----+----+----+----+----+----+
 
   blk :: 17
-  size :: 2 bytes, big endian, value = 4
+  size :: 2 bytes, big endian, value = 12
   expires :: Unix timestamp, unsigned seconds.
              Wraps around in 2106
   token :: 8 bytes, big endian
@@ -7492,22 +7499,27 @@ Initial processing of all inbound messages:
 - If the connection is found and is in the data phase, go to the
   data phase section
 - If the connection is not found, go to the handshake section
+- Note: Peer Test and Hole Punch messages may also be looked up
+  by the Destination Connection ID created from the test or relay nonce.
 
 
-Handshake messages (Session Request/Created/Confirmed, Retry) processing:
+Handshake messages (Session Request/Created/Confirmed, Retry, Token Request)
+and other out-of-session messages (Peer Test, Hole Punch)
+processing:
 
 - Decrypt bytes 8-15 of the header
   (the packet type, version, and net ID) with the intro key. If it is a
-  valid Session Request, continue
-- If not a Session Request, lookup a pending outbound connection by the packet
+  valid Session Request, Token Request, Peer Test, or Hole Punch, continue
+- If not a valid message, lookup a pending outbound connection by the packet
   source IP/port, treat the packet as a Session Created or Retry.
   Re-decrypt the first 8 bytes of the header with the correct key,
   and the bytes 8-15 of the header
   (the packet type, version, and net ID). If it is a
   valid Session Created or Retry, continue
-- If not a Session Created or Retry, fail, or queue as a possible out-of-order data phase packet
-- For Session Request/Created and Retry, decrypt bytes 16-31 of the header
+- If not a valid message, fail, or queue as a possible out-of-order data phase packet
+- For Session Request/Created, Retry, Token Request, Peer Test, and Hole Punch, decrypt bytes 16-31 of the header
 - For Session Request/Created, decrypt the ephemeral key
+- Validate all header fields, stop if not valid
 - mixHash() the header
 - For Session Request/Created/Confirmed, decrypt the payload using Noise
 - For Retry and data phase, decrypt the payload using ChaChaPoly
@@ -7656,13 +7668,15 @@ Therefore, the recommended processing steps in the receiver loop logic are:
 4) If running SSU 1 on the same port, attempt to process the message as an SSU 1 packet.
 
 
+Notes
+-------
 
-Issues
---------
-
-If Relay and Peer Test messages are allowed outside of a session, they may also require
-additional processing steps to classify them.
-
+For Session Created and Session Confirmed, implementations must carefully validate
+all decrypted header fields (Connection IDs, packet number, packet type, version, id, frag, and flags)
+BEFORE calling mixHash() on the header and attempting to decrypt the
+payload with Noise AEAD. If the Noise AEAD decryption fails, no further processing
+may be done, because mixHash() will have corrupted the handshake state,
+unless an implementation stores and "backs out" the hash state.
 
 
 Version Detection
@@ -7685,6 +7699,7 @@ Recommended Constants
 - ACK delay: max(10, min(rtt/6, 150) ms
 - Max ACK ranges: 256?
 - Max ACK depth: 512?
+- Padding distribution: ?
 
 
 
