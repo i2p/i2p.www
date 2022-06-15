@@ -5,7 +5,7 @@ SSU2
     :author: eyedeekay, orignal, zlatinb, zzz
     :created: 2021-09-12
     :thread: http://zzz.i2p/topics/2612
-    :lastupdated: 2022-06-13
+    :lastupdated: 2022-06-15
     :status: Open
     :target: 0.9.56
 
@@ -29,10 +29,10 @@ Freeze basic protocol           0.9.54  2022-05
 Basic Session                   0.9.55  2022-08        0.9.56  2022-11
 Address Validation (Retry)      0.9.55  2022-08        0.9.56  2022-11
 Fragmented RI in handshake      0.9.55  2022-08        0.9.56  2022-11
+New Token                       0.9.55  2022-08        0.9.57  2022-11
 Freeze extended protocol        0.9.55  2022-08
 Relay                           0.9.56  2022-11        0.9.57  2023-02
 Peer Test                       0.9.56  2022-11        0.9.57  2023-02
-New Token                       0.9.56  2022-11        0.9.57  2023-02
 Path Validation                 0.9.57  2023-02        0.9.58  2023-05
 Connection Migration            0.9.57  2023-02        0.9.58  2023-05
 Key Rotation                    0.9.57  2023-02        0.9.58  2023-05
@@ -6139,8 +6139,8 @@ if the previous token expires.
 
   {% highlight lang='dataspec' %}
 +----+----+----+----+----+----+----+----+
-  | 17 |   12    |     expires       |    |
-  +----+----+----+----+----+----+----+    +
+  | 17 |   12    |     expires       |
+  +----+----+----+----+----+----+----+----+
                   token              |
   +----+----+----+----+----+----+----+
 
@@ -7197,29 +7197,66 @@ Alice/Bob   Bob/Charlie   Alice/Charlie   Supported
 =========   ===========   =============   =============
 
 
-Retransmissions: Relay Request, Relay Intro, and Relay Response
+Retransmissions
+-----------------
+Relay Request, Relay Intro, and Relay Response
 are all in-session and are covered by the
 data phase ACK and retransmission processes.
 Relay Request, Relay Intro, and Relay Response blocks are ack-eliciting.
 
 Hole punch may be retransmitted, as in SSU 1.
 
+IPv4/v6
+----------
 All features of SSU 1 relay are supported, including those documented in
 [Prop158]_ and supported as of 0.9.50.
 IPv4 and IPv6 introductions are supported.
 A Relay Request may be sent over an IPv4 session for an IPv6 introduction,
 and a Relay Request may be sent over an IPv6 session for an IPv4 introduction.
 
-As in SSU 1 (but may not be well-documented in those specifications),
-Alice should initiate the handshake with Charlie after receiving
-EITHER the Relay Response from Bob OR the Hole Punch from Charlie,
-which may be received in either order.
-SSU2 makes the Hole Punch easier to process by making it a new
-message with defined connection IDs and contents.
-The Relay Response (Data message) and Hole Punch message both contain the identical
+Processing by Alice
+-----------------------------
+Following are differences from SSU 1 and recommendations for SSU 2 implementation.
+
+Introducer Selection
+`````````````````````
+In SSU 1, introduction is relatively inexpensive, and Alice generally sends Relay Requests to all introducers.
+In SSU 2, introduction is more expensive, as a connection must first be established with an introducer.
+To minimize introduction latency and overhead, the recommended processing steps are as follows:
+
+- Ignore any introducers that are expired based on the iexp value in the address
+- If an SSU2 connection is already established to one or more introducers,
+  pick one and send the Relay Request to that introducer only.
+- Otherwise, if a Router Info is locally known for one or more introducers,
+  pick one and connect to that introducer only.
+- Otherwise, lookup the Router Infos for all introducers,
+  connect to the introducer whose Router Info is received first.
+
+Response Handling
+```````````````````````
+In both SSU 1 and SSU 2,
+the Relay Response and Hole Punch may be received in either order,
+or may not be received at all.
+
+In SSU 1, Alice usually receives the Relay Response (1 RTT)
+before the Hole Punch (1 1/2 RTT).
+It may not be well-documented in those specifications, but
+Alice must receive the Relay Response from Bob before continuing,
+to receive Charlie's IP.
+If the Hole Punch is received first, Alice will not recognize it,
+because it contains no data and the source IP is not recognized.
+After receiving the Relay Response, Alice should wait for
+EITHER receiving the Hole Punch from Charlie, OR
+a short delay (recommended 500 ms) before initiating the handshake with Charlie.
+
+In SSU 2, Alice will usually receive the Hole Punch (1 1/2 RTT)
+before the Relay Response (2 RTT).
+The Hole Punch is easier to process because it is a full
+message with defined connection IDs (derived from the relay nonce) and contents including Charlie's IP.
+The Relay Response (Data message) and Hole Punch message contain the identical
 signed Relay Response block.
-Also, note that if Alice is firewalled, she will not receive the Hole Punch
-message at all.
+Therefore, Alice may initiate the handshake with Charlie after
+EITHER receiving the Hole Punch from Charlie, OR receiving the Relay Response from Bob.
 
 
 
