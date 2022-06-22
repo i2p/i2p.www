@@ -5,7 +5,7 @@ SSU2
     :author: eyedeekay, orignal, zlatinb, zzz
     :created: 2021-09-12
     :thread: http://zzz.i2p/topics/2612
-    :lastupdated: 2022-06-20
+    :lastupdated: 2022-06-22
     :status: Open
     :target: 0.9.56
 
@@ -4608,11 +4608,11 @@ containing the request signed by Alice,
 or it may be regenerated. Signature is optional.
 
 Connection IDs: The two connection IDs are derived from the test nonce.
-For messages sent from Charlie to Alice, the Destination Connection ID
+For messages 5 and 7 sent from Charlie to Alice, the Destination Connection ID
 is two copies of the 4-byte big-endian test nonce, i.e. ((nonce << 32) | nonce).
 The Source Connection ID is the inverse of the Destination Connection ID,
 i.e. ~((nonce << 32) | nonce).
-For messages sent from Alice to Charlie, swap the two connection IDs.
+For message 6 sent from Alice to Charlie, swap the two connection IDs.
 
 Address block contents:
 
@@ -5849,7 +5849,8 @@ either in the same payload (if there's room), or in a previous message.
          2: rejected by Bob, no Charlie available
          3: rejected by Bob, limit exceeded
          4: rejected by Bob, signature failure
-         5-63: other rejected by Bob codes TBD
+         5: rejected by Bob, address unsupported
+         6-63: other rejected by Bob codes TBD
          64: rejected by Charlie, reason unspecified
          65: rejected by Charlie, unsupported address
          66: rejected by Charlie, limit exceeded
@@ -7080,6 +7081,8 @@ Message     Path            Intro Key
 
 
 
+Versions
+------------------
 Cross-version peer testing is not supported.
 The only allowed version combination is where all peers are version 2.
 
@@ -7097,11 +7100,27 @@ Alice/Bob   Bob/Charlie   Alice/Charlie   Supported
 =========   ===========   =============   =============
 
 
-Retransmissions: Messages 1-4 are in-session and are covered by the
+Retransmissions
+------------------
+Messages 1-4 are in-session and are covered by the
 data phase ACK and retransmission processes.
 Peer Test blocks are ack-eliciting.
 
 Messages 5-7 may be retransmitted, unchanged.
+
+
+IPv6 Notes
+------------------
+As in SSU 1, testing of IPv6 addresses is supported,
+and Alice-Bob and Alice-Charlie communication may be via IPv6,
+if Bob and Charlie indicate support with a 'B' capability in their published IPv6 address.
+See Proposal 126 for details.
+
+As in SSU 1,
+Alice sends the request to Bob using an existing session over the transport (IPv4 or IPv6) that she wishes to test.
+When Bob receives a request from Alice via IPv4, Bob must select a Charlie that advertises an IPv4 address.
+When Bob receives a request from Alice via IPv6, Bob must select a Charlie that advertises an IPv6 address.
+The actual Bob-Charlie communication may be via IPv4 or IPv6 (i.e., independent of Alice's address type).
 
 
 Relay Process
