@@ -5,7 +5,7 @@ SSU2
     :author: eyedeekay, orignal, zlatinb, zzz
     :created: 2021-09-12
     :thread: http://zzz.i2p/topics/2612
-    :lastupdated: 2022-06-22
+    :lastupdated: 2022-06-30
     :status: Open
     :target: 0.9.56
 
@@ -5008,6 +5008,8 @@ is two copies of the 4-byte big-endian relay nonce, i.e. ((nonce << 32) | nonce)
 The Source Connection ID is the inverse of the Destination Connection ID,
 i.e. ~((nonce << 32) | nonce).
 
+Alice should ignore the token in the header. The token to be used in
+the Session Request is in the Relay Response block.
 
 
 
@@ -5674,6 +5676,9 @@ See Relay Process section below.
 
 
 Notes:
+
+The token must be used immediately by Alice in the Session Request.
+
 
 
 Signature:
@@ -6532,6 +6537,11 @@ there is no requirement to store multiple inbound or outbound tokens for the sam
 A token is bound to the combination of source IP/port and destination IP/port.
 A token received on IPv4 may not be used for IPv6 or vice versa.
 
+Implementations may, but are not required to, save tokens on disk and
+reload them on restart. If persisted, the implementation must
+ensure that the IP and port have not changed since shutdown
+before reloading them.
+
 
 
 I2NP Message Fragmentation
@@ -7121,6 +7131,16 @@ Alice sends the request to Bob using an existing session over the transport (IPv
 When Bob receives a request from Alice via IPv4, Bob must select a Charlie that advertises an IPv4 address.
 When Bob receives a request from Alice via IPv6, Bob must select a Charlie that advertises an IPv6 address.
 The actual Bob-Charlie communication may be via IPv4 or IPv6 (i.e., independent of Alice's address type).
+
+
+Processing by Bob
+-----------------------------
+Unlike in SSU 1, Alice specifies the requested test IP and port in message 1.
+Bob should validate this IP and port, and reject with code 5 if invalid.
+Recommended IP validation is that, for IPv4, it matches Alice's IP,
+and for IPv6, at least the first 8 bytes of the IP match.
+Port validation should reject privileged ports and ports for well-known protocols.
+
 
 
 Relay Process
