@@ -5,7 +5,7 @@ SSU2
     :author: eyedeekay, orignal, zlatinb, zzz
     :created: 2021-09-12
     :thread: http://zzz.i2p/topics/2612
-    :lastupdated: 2022-06-30
+    :lastupdated: 2022-07-09
     :status: Open
     :target: 0.9.56
 
@@ -2946,7 +2946,7 @@ so that the same chained hash will be used to encrypt the response.
 The Retry message is never transmitted.
 
 Data phase packets that are determined to be lost are never retransmitted
-whole.  The same applies to the blocks that are contained within lost
+whole (except termination, see below).  The same applies to the blocks that are contained within lost
 packets.  Instead, the information that might be carried in blocks is
 sent again in new packets as needed.
 Data Packets are never retransmitted with the same packet number.
@@ -2974,6 +2974,11 @@ determined to have been lost.  In general, information is sent again
 when a packet containing that information is determined to be lost,
 and sending ceases when a packet containing that information is remain the same)
 acknowledged.
+
+Exception: A data phase packet containing a Termination block may,
+but is not required to be, retransmitted whole, as-is.
+See the Session Termination section below.
+
 
 The following packets contain a random packet number that is ignored:
 
@@ -6864,8 +6869,56 @@ General guidance may be found in [RFC-9002]_.
 Session Termination
 =====================
 
-Message or block? TBD
+Handshake phase
+------------------
+Sessions in the handshake phase are generally terminated simply
+by timing out, or not responding further. Optionally, they may be terminated
+by including a Termination block in the response, but 
+most errors are not possible to respond to due to a lack of cryptographic keys.
+Even if keys are available for a response including a termination block,
+it is usually not worth the CPU to perform the DH for the response.
+An exception MAY be a Termination block in a retry message, which
+is inexpensive to generate.
 
+
+Data phase
+------------------
+Sessions in the data phase are terminated by sending a data
+message that includes a Termination block.
+This message should also include an ACK block.
+It may, if the session has been up long enough that a previously
+sent token has expired or is about to expire,
+a New Token block.
+This message is not ack-eliciting and is not acknowledged.
+
+After sending a Termination block,
+the session should enter the closing phase for some period of time TBD.
+The closing state is necessary to protect against the
+packet containing the Termination block being lost,
+and packets in-flight in the other direction.
+While in the closing phase, there is no requirement to process
+any additional received packets.
+A session in the closing state sends a packet containing a Termination block in response
+to any incoming packet that it attributes to the session.
+A sesssion should limit the rate at which it generates packets in
+the closing state.  For instance, an session could wait for a
+progressively increasing number of received packets or amount of time
+before responding to received packets.
+
+To minimize the state that a router
+maintains for a closing session, sessions may, but are not required to, send the exact same
+packet with the same packet number as-is in response to any received packet.
+Note: Allowing retransmission of a termination packet is an
+exception to the requirement that a new packet number be used
+for each packet. Sending new packet numbers
+is primarily of advantage to loss recovery and congestion
+control, which are not expected to be relevant for a closed connection.
+Retransmitting the final packet requires less state.
+
+
+
+Cleanup
+------------------
 Upon any normal or abnormal termination, routers should
 zero-out any in-memory ephemeral data, including handshake ephemeral keys,
 symmetric crypto keys, and related information.
@@ -6885,6 +6938,9 @@ and short tunnel build messages will fit in one datagram, greatly reducing the
 typical amount of fragmentation. This also allows
 an increase in the maximum I2NP message size.
 1820-byte streaming messages should fit in two datagrams.
+
+A router must not enable SSU2 or publish an SSU2 address unless
+the MTU for that address is at least 1280.
 
 
 SSU Address
