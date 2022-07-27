@@ -5,7 +5,7 @@ SSU2
     :author: eyedeekay, orignal, zlatinb, zzz
     :created: 2021-09-12
     :thread: http://zzz.i2p/topics/2612
-    :lastupdated: 2022-07-19
+    :lastupdated: 2022-07-27
     :status: Open
     :target: 0.9.56
 
@@ -5521,6 +5521,8 @@ Notes:
   See notes in handshake message sections above.
   Additional reasons listed are for consistency, logging, debugging, or if policy changes.
 - It is recommended that an ACK block be included with the Termination block.
+- In the data phase, for any reason other than "termination received",
+  the peer should respond with a termination block with the reason "termination received".
 
 
 RelayRequest
@@ -6869,9 +6871,9 @@ phase if the send window allows it.
 Retransmission
 ---------------
 
-A sender does not need to retain the full contents of a message, to be retransmitted
-identically, although that is allowed.
-A sender is encouraged to assemble messages containing up-to-date information
+A sender should not retain the full contents of a message, to be retransmitted
+identically (except for handshake messages, see above).
+A sender must assemble messages containing up-to-date information
 (ACKs, NACKs, and unacknowledged data) every time it sends a message.
 A sender should avoid retransmitting information from messages once they are acknowledged.
 This includes messages that are acknowledged after being declared lost,
@@ -6909,10 +6911,13 @@ This message should also include an ACK block.
 It may, if the session has been up long enough that a previously
 sent token has expired or is about to expire,
 a New Token block.
-This message is not ack-eliciting and is not acknowledged.
+This message is not ack-eliciting.
+When receiving a Termination block with any reason except "Termination Received",
+the peer responds with a data message containing a
+Termination block with the reason "Termination Received".
 
-After sending a Termination block,
-the session should enter the closing phase for some period of time TBD.
+After sending or receiving a Termination block,
+the session should enter the closing phase for some maximum period of time TBD.
 The closing state is necessary to protect against the
 packet containing the Termination block being lost,
 and packets in-flight in the other direction.
@@ -6935,6 +6940,8 @@ is primarily of advantage to loss recovery and congestion
 control, which are not expected to be relevant for a closed connection.
 Retransmitting the final packet requires less state.
 
+After receiving a Termination block with the reason "Termination Received",
+the session may exit the closing phase.
 
 
 Cleanup
@@ -7204,11 +7211,13 @@ and Alice-Bob and Alice-Charlie communication may be via IPv6,
 if Bob and Charlie indicate support with a 'B' capability in their published IPv6 address.
 See Proposal 126 for details.
 
-As in SSU 1,
+As in SSU 1 prior to 0.9.50,
 Alice sends the request to Bob using an existing session over the transport (IPv4 or IPv6) that she wishes to test.
 When Bob receives a request from Alice via IPv4, Bob must select a Charlie that advertises an IPv4 address.
 When Bob receives a request from Alice via IPv6, Bob must select a Charlie that advertises an IPv6 address.
 The actual Bob-Charlie communication may be via IPv4 or IPv6 (i.e., independent of Alice's address type).
+This is NOT the behavior of SSU 1 as of 0.9.50, where mixed IPv4/v6 requests are allowed.
+
 
 
 Processing by Bob
