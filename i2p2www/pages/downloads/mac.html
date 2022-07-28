@@ -3,16 +3,11 @@
 {% block title %}Mac OS X Easy Install Bundle{% endblock %}
 {% block content %}
 
-<h1>{{ _('Mac OS X Easy Install Bundle') }}</h1>
+<h1>{{ _('Mac OS Easy Install Bundle') }}</h1>
 <p>{% trans -%}
-We are excited to offer you a DMG-based bundle for Mac OS X.  It installs and behaves
-the same way many other Mac OS X applications do and does not require a Java
+We are excited to offer you a DMG-based bundle for Mac OS.  It installs and behaves
+the same way many other Mac OS applications do and does not require a Java
 Runtime Environment to be available.
-{%- endtrans %}</p>
-<p>{% trans perf="https://i2pgit.org/i2p-hackers/i2p-jpackage-mac/-/issues/1" -%}
-This bundle is built for <code>x86_64(Intel)</code> Macs. It will run on
-<code>ARM(M1)</code> Macs in emulated mode, but the performance is unknown. M1 Mac
-users should report results to us at the <a href="{{ perf }}">Gitlab Repository</a>.
 {%- endtrans %}</p>
 <h2>{{ _('How do I use it?') }}</h2>
 <p>{% trans -%}
@@ -43,11 +38,14 @@ that are familiar and built-into the operating system.
 {%- set name     = 'OSX' -%}
 {%- set icon     = 'images/download/mac-osx.png' -%}
 {%- set filename = 'I2P-%s.dmg' -%}
+{%- set filename_arm64 = 'I2P-arm64-%s.dmg' -%}
 {%- set hash     = '18cb22cfcc3cbe0cec150e89a394d1a35703cb508ed627ef48084b7ba7c90dde' -%}
+{%- set hash_arm64 = '4a1b4e392a2ec272980bf88bfe6dbad2d341bc74717f94a0b26e73afc300462b' -%}
 
 {% call package_outer('osx', name, icon) %}
     <div class = "file">
 	    <a class = "default" href="{{ url_for('downloads_redirect', version=mver(), net=def_mirror.net, protocol=def_mirror.protocol, domain=def_mirror.domain, file=mver(filename) )}}">
+                    <span class = "name">Intel (x86-64)</span><br/>
 		    <span class = "name">{{ mver(filename) }}</span><br/>
 		    <span class="mirror">{{ _('Mirror:') }} <img src="{{ url_for('static', filename='images/flags/'+def_mirror.country+'.png') }}" /> {{ def_mirror.org }}</span>
 	    </a>
@@ -58,12 +56,44 @@ that are familiar and built-into the operating system.
 		    <code>{{ hash }}</code>
 	    </div>
     </div>
-    <p>{% trans -%}
-Download that file and double-click on it.  Accept the License Agreement, then
+{% endcall %}
+
+{% call package_outer('osx', name, icon) %}
+    <div class = "file">
+	    <a class = "default" href="{{ url_for('downloads_redirect', version=mver(), net=def_mirror.net, protocol=def_mirror.protocol, domain=def_mirror.domain, file=mver(filename_arm64) )}}">
+                    <span class = "name">Apple Silicon (arm64) BETA</span><br/>
+		    <span class = "name">{{ mver(filename_arm64) }}</span><br/>
+		    <span class="mirror">{{ _('Mirror:') }} <img src="{{ url_for('static', filename='images/flags/'+def_mirror.country+'.png') }}" /> {{ def_mirror.org }}</span>
+	    </a>
+	    <a class="mirrors" href="{{ get_url('downloads_select', version=mver(), file=mver(filename_arm64)) }}">{{ _('select alternate mirror') }}</a>
+    </div>
+    <div class="meta">
+	    <div class="hash">
+		    <code>{{ hash_arm64 }}</code>
+	    </div>
+    </div>
+{% endcall %}
+
+<h2>{{ _('Instructions') }}</h2>
+<p>{% trans -%}
+Download the appropriate file for your Mac hardware and double-click on it.  Accept the License Agreement, then
 drag the <code>I2P</code> icon on top of the <code>Applications</code> icon.
 Launch I2P from Finder.
-    {%- endtrans %}</p>
-{% endcall %}
+{%- endtrans %}</p>
+
+<h3>{{ _('Apple Silicon Notes') }}</h3>
+<p>{% trans -%}
+The I2P bundle for Apple silicon is currently in BETA.  If you own an Apple silicon Mac and have previously installed the Intel bundle on it you need to change the update configuration to make sure the next I2P update does not revert your bundle to Intel.
+{%- endtrans %}</p>
+
+<p>{% trans -%}
+Go to the "Configure Update" page, usually located at:
+{%- endtrans %}</p> 
+<code>http://127.0.0.1:7657/configupdate</code>
+<p>{% trans -%}
+Then copy-paste the following in the "News URL" field:
+{%- endtrans %}</p> 
+<code>http://tc73n4kivdroccekirco7rhgxdg5f3cjvbaapabupeyzrqwv5guq.b32.i2p/mac-arm64/stable/news.su3</code>
 
 <h2>{{ _('Limitations') }}</h2>
 <p>{% trans -%}
