@@ -5,7 +5,7 @@ SSU2
     :author: eyedeekay, orignal, zlatinb, zzz
     :created: 2021-09-12
     :thread: http://zzz.i2p/topics/2612
-    :lastupdated: 2022-07-27
+    :lastupdated: 2022-07-29
     :status: Open
     :target: 0.9.56
 
@@ -90,11 +90,16 @@ Design Goals
 - Maintain or increase maximum throughput compared to SSU 1,
   as measured over a range of simulated latencies and packet drop percentages on a testnet.
 
-- Prevent traffic amplification attacks from spoofed source addresses
+- Prevent traffic amplification and misrouting attacks from spoofed source addresses
   via "address validation".
 
 - Make packet identification easier, to reduce reliance on fallbacks and
   heuristics that make the code overly complex.
+
+- Formalize and improve connection migration when the peer's IP or port changes.
+  Do not migrate connections until address validation is complete, to prevent attacks.
+  Some SSU 1 implementations use expensive heuristics to handle port changes
+  due to NAT rebinding. No known SSU 1 implementations can handle IP changes at all.
 
 - Support SSU 1 and 2 on a single port, auto-detect, and published as a single
   "transport" (i.e. [RouterAddress]_) in the [NetDB]_.
@@ -2799,7 +2804,8 @@ There are two header types, long and short.
 
 Long Header
 `````````````
-The long header is 32 bytes. It is used before a session is created, for SessionRequest, SessionCreated, and Retry.
+The long header is 32 bytes. It is used before a session is created, for Token Request, SessionRequest, SessionCreated, and Retry.
+It is also used for out-of-session Peer Test and Hole Punch messages.
 Note that the first 9 bytes (Destination Connection ID and type) are the same for both headers.
 
 Before header encryption:
@@ -2916,6 +2922,11 @@ attacker cannot generate a packet that looks valid.
 Unlike in QUIC, we do not change the connection IDs during or after the handshake,
 even after a Retry message. The IDs remain constant from the first message
 (Token Request or Session Request) to the last message (Data with Termination).
+Additionally, connection IDs do not change during or after
+path challenge or connection migration.
+
+Also different than QUIC is that connection IDs in the headers
+are always header-encrypted. See below.
 
 
 
@@ -3085,6 +3096,16 @@ For Retry, bytes 16-31 of the long header
 are encrypted using ChaCha20.
 The unencrypted data is random, so the encrypted data will appear to be random.
 
+Unlike the QUIC [RFC-9001]_ header protection scheme,
+ALL parts of all headers, including destination and source connection IDs,
+are encrypted.
+QUIC [RFC-9001]_ and [Nonces]_ are primarily focused on encrypting
+the "critical" part of the header, i.e. the packet number (ChaCha20 nonce).
+While encrypting the session ID makes incoming packet classification a little more complex,
+it makes some attacks more difficult. QUIC defines different connection IDs
+for different phases, and for path challenge and connection migration.
+Here we use the same connection IDs throughout, as they are encrypted.
+
 There are seven header protection key phases:
 
 - Session Request and Token Request
@@ -3185,7 +3206,7 @@ Header Encryption KDF
   packet[16:63] = ChaCha20.encrypt(k_header_2, iv, packet[16:63])
 
 
-  // For Retry, Token Request, and Peer Test only:
+  // For Retry, Token Request, Peer Test, and Hole Punch only:
   iv = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}
 
   // encrypt the third part of the header
@@ -5508,6 +5529,7 @@ This must be the last non-padding block in the payload.
          19: connection limits
          20: incompatible version
          21: wrong net ID
+         22: replaced by new session
   addl data :: optional, 0 or more bytes, for future expansion, debugging,
                or reason text.
                Format unspecified and may vary based on reason code.
@@ -6200,6 +6222,11 @@ used as a keep-alive or to validate an IP/Port change.
 
 {% endhighlight %}
 
+Notes:
+
+A minimum data size of 8 bytes, containing random data,
+is recommended but not required.
+
 
 
 Path Response
@@ -6669,6 +6696,8 @@ In-session data packets containing any block
 EXCEPT for the following are ack-eliciting:
 
 - ACK block
+- Address block
+- DateTime block
 - Padding block
 - Termination block
 - Others?
@@ -6885,6 +6914,307 @@ Window
 TBD.
 General guidance may be found in [RFC-9002]_.
 
+
+Connection Migration
+=====================
+
+A peer's IP or port may change during the lifetime of a session.
+An IP change may be caused by IPv6 temporary address rotation,
+ISP-driven periodic IP change, a mobile client transitioning
+between WiFi and cellular IPs, or other local network changes.
+A port change may be caused by a NAT rebinding after
+the previous binding timed out.
+
+A peer's IP or port may appear to change due to various
+on- and off-path attacks, including modifying or injecting
+packets.
+
+Connection migration is the process by which a new source endpoint
+(IP+port) is validated, while preventing changes that are not validated.
+This process is a simplified version of that defined in QUIC [RFC-9000]_.
+This process is defined only for the data phase of a session.
+Migration is not permitted during the handshake. All handshake packets
+must be verified to be from the same IP and port as previously
+sent and received packets. In other words, a peer's IP and port
+must be constant during the handshake.
+
+Threat Model
+-------------
+(Adapted from QUIC [RFC-9000]_)
+
+Peer Address Spoofing
+`````````````````````````
+A peer may spoofing its source address to cause an endpoint to send excessive amounts of data to an unwilling host.
+If the endpoint sends significantly more data than the spoofing peer,
+connection migration might be used to amplify the volume of data that an attacker can generate toward a victim.
+
+On-Path Address Spoofing
+`````````````````````````
+An on-path attacker could cause a spurious connection migration by copying and forwarding a packet
+with a spoofed address such that it arrives before the original packet.
+The packet with the spoofed address will be seen to come from a migrating connection,
+and the original packet will be seen as a duplicate and dropped.
+After a spurious migration, validation of the source address will fail because the entity at the source address
+does not have the necessary cryptographic keys to read or respond to the Path Challenge that is sent to it even if it wanted to.
+
+Off-Path Packet Forwarding
+````````````````````````````
+An off-path attacker that can observe packets might forward copies of genuine packets to endpoints.
+If the copied packet arrives before the genuine packet, this will appear as a NAT rebinding.
+Any genuine packet will be discarded as a duplicate.
+If the attacker is able to continue forwarding packets, it might be able to cause migration to a path via the attacker.
+This places the attacker on-path, giving it the ability to observe or drop all subsequent packets.
+
+Privacy Implications
+`````````````````````
+QUIC [RFC-9000]_ specified changing connection IDs when changing network paths.
+Using a stable connection ID on multiple network paths would allow a passive observer to correlate activity between those paths.
+An endpoint that moves between networks might not wish to have their activity correlated by any entity other than their peer.
+However, QUIC does not encrypt the connection IDs in the header.
+SSU2 does do that, so the privacy leak would require the passive observer to also
+have access to the network database to get the introduction key required to decrypt the connection ID.
+Even with the introduction key, this is not a strong attack, and we do not
+change connection IDs after migration in SSU2, as this would be a significant complication.
+
+
+Initiating Path Validation
+---------------------------
+
+During the data phase, peers must check that the source IP and port
+of each received data packet. If the IP or port is different than
+previously received, AND the packet is not a duplicate packet number,
+AND the packet successfully decrypts, the session enters
+the path validation phase.
+
+Additionally, a peer must verify that the new IP and port
+are valid according to local validation rules
+(not blocked, not illegal ports, etc.).
+Peers are NOT required to support migration between IPv4 and IPv6,
+and may treat a new IP in the other address family as invalid,
+since this is not expected behavior and may add significant implementation complexity.
+On receiving a packet from an invalid IP/port, an implementation
+may simply drop it, or may initiate a path validation with the old IP/port.
+
+Upon entering the path validation phase, take the following steps:
+
+- Start a path validation timeout timer of several seconds,
+  or several times the current RTO (TBD)
+- Reduce the congestion window to the minimum
+- Reduce the PMTU to the minimum (1280)
+- Send a data packet containing a Path Challenge block,
+  an Address block (containing the new IP/port),
+  and, typically, an ACK block, to the new IP and port.
+  This packet uses the same connection ID and encryption keys
+  as the current session.
+  The Path Challenge block data must contain sufficient entropy
+  (at least 8 bytes) so that it cannot be spoofed.
+- Optionally, also send a Path Challenge to the old IP/port,
+  with different block data. See below.
+- Start a Path Response timeout timer based on the current
+  RTO (typically RTT + a multiple of RTTdev)
+
+While in the path validation phase, the session may continue to
+process incoming packets. Whether from the old or new IP/port.
+The session may also continue to send and acknowledge data packets.
+However, the congestion window and PMTU must remain at the minimum
+values during the path validation phase, to prevent
+being used for deinal of service attacks by
+sending large amounts of traffic to a spoofed address.
+
+An implementation may, but is not required, to attempt to validate
+multiple paths simultaneously. This is probably not worth the complexity.
+It may, but is not required, to
+remember a previous IP/port as being already validated, and to
+skip path validation if a peer returns to its previous IP/port.
+
+If a Path Response is received, containing the identical data
+sent in the Path Challenge, the Path Validation has succeeded.
+The source IP/port of the Path Response message is
+not required to be the same as the Path Challenge was sent to.
+
+If a Path Response is not received before the Path Response timer
+expires, send another Path Challenge and double the Path Response timer.
+
+If a Path Response is not received before the Path Validation timer
+expires, the Path Validation has failed.
+
+Message Contents
+--------------------------
+The Data messages should contain the following blocks.
+Order is not specified except that Padding must be last:
+
+- Path Validation or Path Response block.
+  Path Validation contains opaque data, recommended 8 bytes minimum.
+  Path Response contains the data from the Path Validation.
+- Address block containing the recipient's apparent IP
+- DateTime block
+- ACK block
+- Padding block
+
+It is not recommended to include any other blocks
+(for example, I2NP) in the message.
+
+It is allowed to include a Path Validation block in the message
+containing the Path Response, to initiate a validation
+in the other direction.
+
+Path Challenge and Path Response blocks are ACK-eliciting.
+The Path Challenge will be ACKed by a Data message containing
+the Path Response and ACK blocks.
+The Path Response should be ACKed by a Data message containing an ACK block.
+
+
+Routing during Path Validation
+-------------------------------
+The QUIC specification is not clear on where to send data packets
+during path validation - to the old or new IP/port?
+There is a balance to be struck between rapidly responding to
+IP/port changes, and not sending traffic to spoofed addresses.
+Also, spoofed packets must not be allowed to substantially impact
+an existing session.
+Port-only changes are likely to be caused by NAT rebinding after
+an idle period; IP changes could happen during high-traffic phases
+in one or both directions.
+
+Strategies are subject to research and refinement.
+Possibilities include:
+
+- Not sending data packets to the new IP/port until validated
+- Continuing to send data packets to the old IP/port until
+  the new IP/port is validated
+- Simultaneously revalidating the old IP/port
+- Not sending any data until either the old or new IP/port is validated
+- Different strategies for port-only change than for IP change
+- Different strategies for an IPv6 change in the same /32, likely caused
+  by temporary address rotation
+
+
+Responding to Path Challenge
+------------------------------
+Upon receiving a Path Challenge, the peer must respond
+with a data packet containing a Path Response, with the data
+from the Path Challenge.
+TODO Maybe???:
+The Path Response must be sent to the IP/port from which the
+Path Challenge was received. This is NOT NECESSARILY
+the IP/port that was previously established for the peer.
+This ensures that path validation by a peer only succeeds if the path is functional in both directions.
+See the Validation after Local Change section below.
+
+Unless the IP/port is different from the previously-known IP/port for the peer,
+treat a Path Challenge as a simple ping, and simply respond unconditionally with a Path Response.
+The receiver does not keep or change any state based on a received Path Challenge.
+If the IP/port is different, a peer must verify that the new IP and port
+are valid according to local validation rules
+(not blocked, not illegal ports, etc.).
+Peers are NOT required to support cross-address-family responses between IPv4 and IPv6,
+and may treat a new IP in the other address family as invalid,
+since this is not expected behavior.
+
+Unless constrained by congestion control, the Path Response should be sent immediately.
+Implementations should take measures to rate limit Path Responses or the bandwidth used
+if necessary.
+
+A Path Challenge block generally is accompanied by an Address block in the same message.
+If the address block contains a new IP/port, a peer may
+validate that IP/port and initiate peer testing of that new IP/port, with
+the session peer or any other peer.
+If the peer thinks it is firewalled, and only the port changed, this change is probably
+due to NAT rebinding, and further peer testing is probably not required.
+
+
+Successful Path Validation
+---------------------------
+On successful path validation, the connection is fully migrated to the new IP/port.
+On success:
+
+- Exit the path validation phase
+- All packets are sent to the new IP and port.
+- The restrictions on congestion window and PMTU are removed, and they
+  are allowed to increase. Do not simply restore them to the
+  old values, as the new path may have different characteristics.
+- If the IP changed, set calculated RTT and RTO to initial values.
+  Because port-only changes are commonly the result of NAT rebinding or other middlebox activity,
+  the peer may instead retain its congestion control state and round-trip estimate in those cases
+  instead of reverting to initial values.
+- Delete (invalidate) any tokens sent or received for the old IP/port (optional)
+- Send a new token block for the new IP/port (optional)
+
+
+Cancelling Path Validation
+---------------------------
+While in the path validation phase, any valid, non-duplicate packets
+that are received from the old IP/port and are successfully decrypted
+will cause Path Validation to be cancelled.
+It is important that a cancelled path validation, caused by a spoofed packet,
+does not cause a valid session to be terminated or significantly disrupted.
+
+On cancelled path validation:
+
+- Exit the path validation phase
+- All packets are sent to the old IP and port.
+- The restrictions on congestion window and PMTU are removed, and they
+  are allowed to increase, or, optionally, restore the previous values
+- Retransmit any data packets that were previously sent to the new IP/port
+  to the old IP/port.
+
+
+Failed Path Validation
+---------------------------
+It is important that a failed path validation, caused by a spoofed packet,
+does not cause a valid session to be terminated or significantly disrupted.
+
+On failed path validation:
+
+- Exit the path validation phase
+- All packets are sent to the old IP and port.
+- The restrictions on congestion window and PMTU are removed, and they
+  are allowed to increase.
+- Optionally, start a path validation on the old IP and port.
+  If it fails, terminate the session.
+- Otherwise, follow standard session timeout and termination rules.
+- Retransmit any data packets that were previously sent to the new IP/port
+  to the old IP/port.
+
+
+Validation After Local Change
+------------------------------
+The above process is defined for peers who receive a packet from
+a changed IP/port. However, it may also be initiated in the other direction,
+by a peer who detects that his IP or port have changed.
+A peer may be able to detect that his local IP changed; however, it is much less
+likely to detect that his port changed because of a NAT rebinding.
+Therefore, this is optional.
+
+On receiving a path challenge from a peer whose IP or port has changed,
+the other peer should initiate a path challenge in the other direction.
+
+
+Use as Ping/Pong
+-----------------
+Path Validation and Path Response blocks may be used at any time as Ping/Pong packets.
+Reception of a Path Validation block does not change any state at the receiver,
+unless received from a different IP/port.
+
+
+
+Multiple Sessions
+==================
+
+Peers should not establish multiple sessions with the same peer,
+whether SSU 1 or 2, or with the same or different IP addresses.
+However, this could happen, either due to bugs, or a previous
+session termination message being lost, or in a race where the
+termination message has not arrived yet.
+
+If Bob has an existing session with Alice,
+when Bob receives the Session Confirmed from Alice, completing the
+handshake and establishing a new session, Bob should:
+
+- Migrate any unsent or unacknowledged outbound I2NP messages from the
+  old session to the new one
+- Send a termination with reason code 22 on the old session
+- Remove the old session and replace it with the new one
 
 
 
