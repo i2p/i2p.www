@@ -14,7 +14,7 @@ We are pleased to offer an Easy Install BETA bundle for Mac OS running on Apple 
 
 `{% trans %}I2P Mac OS Easy Install bundles{% endtrans %}`__
 
-__ /en/download/mac
+__ https://geti2p.net/en/download/mac
 
 
 **{% trans -%}Speed{%- endtrans %}**
