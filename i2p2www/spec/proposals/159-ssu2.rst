@@ -5,7 +5,7 @@ SSU2
     :author: eyedeekay, orignal, zlatinb, zzz
     :created: 2021-09-12
     :thread: http://zzz.i2p/topics/2612
-    :lastupdated: 2022-06-30
+    :lastupdated: 2022-07-29
     :status: Open
     :target: 0.9.56
 
@@ -90,11 +90,16 @@ Design Goals
 - Maintain or increase maximum throughput compared to SSU 1,
   as measured over a range of simulated latencies and packet drop percentages on a testnet.
 
-- Prevent traffic amplification attacks from spoofed source addresses
+- Prevent traffic amplification and misrouting attacks from spoofed source addresses
   via "address validation".
 
 - Make packet identification easier, to reduce reliance on fallbacks and
   heuristics that make the code overly complex.
+
+- Formalize and improve connection migration when the peer's IP or port changes.
+  Do not migrate connections until address validation is complete, to prevent attacks.
+  Some SSU 1 implementations use expensive heuristics to handle port changes
+  due to NAT rebinding. No known SSU 1 implementations can handle IP changes at all.
 
 - Support SSU 1 and 2 on a single port, auto-detect, and published as a single
   "transport" (i.e. [RouterAddress]_) in the [NetDB]_.
@@ -2799,7 +2804,8 @@ There are two header types, long and short.
 
 Long Header
 `````````````
-The long header is 32 bytes. It is used before a session is created, for SessionRequest, SessionCreated, and Retry.
+The long header is 32 bytes. It is used before a session is created, for Token Request, SessionRequest, SessionCreated, and Retry.
+It is also used for out-of-session Peer Test and Hole Punch messages.
 Note that the first 9 bytes (Destination Connection ID and type) are the same for both headers.
 
 Before header encryption:
@@ -2916,6 +2922,11 @@ attacker cannot generate a packet that looks valid.
 Unlike in QUIC, we do not change the connection IDs during or after the handshake,
 even after a Retry message. The IDs remain constant from the first message
 (Token Request or Session Request) to the last message (Data with Termination).
+Additionally, connection IDs do not change during or after
+path challenge or connection migration.
+
+Also different than QUIC is that connection IDs in the headers
+are always header-encrypted. See below.
 
 
 
@@ -2946,7 +2957,7 @@ so that the same chained hash will be used to encrypt the response.
 The Retry message is never transmitted.
 
 Data phase packets that are determined to be lost are never retransmitted
-whole.  The same applies to the blocks that are contained within lost
+whole (except termination, see below).  The same applies to the blocks that are contained within lost
 packets.  Instead, the information that might be carried in blocks is
 sent again in new packets as needed.
 Data Packets are never retransmitted with the same packet number.
@@ -2974,6 +2985,11 @@ determined to have been lost.  In general, information is sent again
 when a packet containing that information is determined to be lost,
 and sending ceases when a packet containing that information is remain the same)
 acknowledged.
+
+Exception: A data phase packet containing a Termination block may,
+but is not required to be, retransmitted whole, as-is.
+See the Session Termination section below.
+
 
 The following packets contain a random packet number that is ignored:
 
@@ -3080,6 +3096,16 @@ For Retry, bytes 16-31 of the long header
 are encrypted using ChaCha20.
 The unencrypted data is random, so the encrypted data will appear to be random.
 
+Unlike the QUIC [RFC-9001]_ header protection scheme,
+ALL parts of all headers, including destination and source connection IDs,
+are encrypted.
+QUIC [RFC-9001]_ and [Nonces]_ are primarily focused on encrypting
+the "critical" part of the header, i.e. the packet number (ChaCha20 nonce).
+While encrypting the session ID makes incoming packet classification a little more complex,
+it makes some attacks more difficult. QUIC defines different connection IDs
+for different phases, and for path challenge and connection migration.
+Here we use the same connection IDs throughout, as they are encrypted.
+
 There are seven header protection key phases:
 
 - Session Request and Token Request
@@ -3180,7 +3206,7 @@ Header Encryption KDF
   packet[16:63] = ChaCha20.encrypt(k_header_2, iv, packet[16:63])
 
 
-  // For Retry, Token Request, and Peer Test only:
+  // For Retry, Token Request, Peer Test, and Hole Punch only:
   iv = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}
 
   // encrypt the third part of the header
@@ -5138,10 +5164,8 @@ In all other messages, order is unspecified, except for the
 following requirements:
 Padding, if present, must be the last block.
 Termination, if present, must be the last block except for Padding.
-
 Multiple Padding blocks are not allowed in a single payload.
-Other block types probably won't have multiple blocks in
-a single payload, but it is not prohibited.
+
 
 Block Specifications
 ----------------------
@@ -5505,6 +5529,7 @@ This must be the last non-padding block in the payload.
          19: connection limits
          20: incompatible version
          21: wrong net ID
+         22: replaced by new session
   addl data :: optional, 0 or more bytes, for future expansion, debugging,
                or reason text.
                Format unspecified and may vary based on reason code.
@@ -5518,6 +5543,8 @@ Notes:
   See notes in handshake message sections above.
   Additional reasons listed are for consistency, logging, debugging, or if policy changes.
 - It is recommended that an ACK block be included with the Termination block.
+- In the data phase, for any reason other than "termination received",
+  the peer should respond with a termination block with the reason "termination received".
 
 
 RelayRequest
@@ -6064,6 +6091,8 @@ Notes:
 - This format is a simplified version of that in QUIC.
   It is designed to efficiently encode a large number of ACKs,
   together with bursts of NACKs.
+- ACK blocks are used to acknowledge data phase packets.
+  They are only to be included for in-session data phase packets.
 
 
 Address
@@ -6094,6 +6123,10 @@ or Bob's address, sent to Bob by Alice.
 Relay Tag Request
 ```````````````````````
 This may be sent by Alice in a Session Request, Session Confirmed, or Data message.
+Not supported in the Session Created message, as Bob doesn't have Alice's RI yet,
+and doesn't know if Alice supports relay.
+Also, if Bob is getting an incoming connection, he probably doesn't need introducers
+(except perhaps for the other type ipv4/ipv6).
 
 When sent in the Session Request,
 Bob may respond with a Relay Tag in the Session Created message,
@@ -6189,20 +6222,25 @@ used as a keep-alive or to validate an IP/Port change.
 
 {% endhighlight %}
 
+Notes:
+
+A minimum data size of 8 bytes, containing random data,
+is recommended but not required.
+
 
 
 Path Response
 ``````````````
-A Pong with arbitrary data, a reply to a Path Challenge,
+A Pong with the data received in the Path Challenge, as reply to the Path Challenge,
 used as a keep-alive or to validate an IP/Port change.
 
 .. raw:: html
 
   {% highlight lang='dataspec' %}
 +----+----+----+----+----+----+----+----+
-  | 19 |  size   |    Arbitrary Data      |
+  | 19 |  size   |                        |
   +----+----+----+                        +
-  |                                       |
+  |    Data received in Path Challenge    |
   ~               .   .   .               ~
   |                                       |
   +----+----+----+----+----+----+----+----+
@@ -6377,7 +6415,7 @@ Or, just retain and retransmit the same encrypted packet.
 Packet number must not be incremented, because that would change
 the chained hash value used to encrypt the Session Created message.
 
-Recommended retransmission intervals: 3 and 6 seconds (3 and 9 seconds after first sent).
+Recommended retransmission intervals: 1.25, 2.5, and 5 seconds (1.25, 3.75, and 8.75 seconds after first sent).
 Recommended timeout: 15 seconds total
 
 
@@ -6390,16 +6428,17 @@ Or, just retain the encrypted packet.
 Packet number must not be incremented, because that would change
 the chained hash value used to encrypt the Session Confirmed message.
 
-Recommended retransmission intervals: 3 and 6 seconds (3 and 9 seconds after first sent).
-Recommended timeout: 15 seconds total
+Recommended retransmission intervals: 1, 2, and 4 seconds (1, 3,  and 7 seconds after first sent).
+Recommended timeout: 12 seconds total
 
 
 Session Confirmed
 ------------------
 In SSU 1, Alice does not shift to the data phase until the first data packet is
 received from Bob. This makes SSU 1 a two-round-trip setup.
-Session Confirmed messages will be retransmitted
-at 3 and 6 seconds (3 and 9 seconds after first sent).
+
+For SSU 2,
+Recommended Session Confirmed retransmission intervals: 1.25, 2.5, and 5 seconds (1.25, 3.75, and 8.75 seconds after first sent).
 
 There are several alternatives. All are 1 RTT:
 
@@ -6414,7 +6453,7 @@ There are several alternatives. All are 1 RTT:
 3) We could use IK instead of XK, as it has only two messages in the handshake, but
    it uses an extra DH (4 instead of 3).
 
-The preferred alternative is option 2).
+The recommeded implementation is option 2).
 Alice must retain the information required to retransmit the Session Confirmed message.
 Alice should also retransmit all Data messages after the Session Confirmed
 message is retransmitted.
@@ -6433,6 +6472,13 @@ After the Session Confirmed message is received, Bob is able to
 decrypt and process the queued Data messages.
 If this is too complex, Bob may just drop the undecryptable Data messages,
 as Alice will retransmit them.
+
+Note: If the session confirmed packets are lost, Bob will retransmit
+session created. The session created header will not be decryptable
+with Alice's intro key, as it is set with Bob's intro key
+(unless fallback decryption is performed with Bob's intro key).
+Bob may immediately retransmit the session confirmed packets
+if not previously acked, and an undecryptable packet is received.
 
 
 Token Request
@@ -6646,12 +6692,19 @@ load generated by a receiver that sends an ACK block in response to
 every ack-eliciting packet.  The guidance offered below seeks to
 strike this balance.
 
-All blocks EXCEPT for the following are ack-eliciting:
+In-session data packets containing any block
+EXCEPT for the following are ack-eliciting:
 
 - ACK block
+- Address block
+- DateTime block
 - Padding block
 - Termination block
 - Others?
+
+Out-of session packets, including handshake messages
+and peer test messages 5-7, have their own acknowledgement mechanisms.
+See below.
 
 
 Handshake ACKs
@@ -6670,6 +6723,9 @@ These are special cases:
 
 Sending ACK Blocks
 ---------------------
+
+ACK blocks are used to acknowledge data phase packets.
+They are only to be included for in-session data phase packets.
 
 Every packet should be acknowledged at least once, and ack-eliciting
 packets must be acknowledged at least once within a maximum delay.
@@ -6844,9 +6900,9 @@ phase if the send window allows it.
 Retransmission
 ---------------
 
-A sender does not need to retain the full contents of a message, to be retransmitted
-identically, although that is allowed.
-A sender is encouraged to assemble messages containing up-to-date information
+A sender should not retain the full contents of a message, to be retransmitted
+identically (except for handshake messages, see above).
+A sender must assemble messages containing up-to-date information
 (ACKs, NACKs, and unacknowledged data) every time it sends a message.
 A sender should avoid retransmitting information from messages once they are acknowledged.
 This includes messages that are acknowledged after being declared lost,
@@ -6859,13 +6915,367 @@ TBD.
 General guidance may be found in [RFC-9002]_.
 
 
+Connection Migration
+=====================
+
+A peer's IP or port may change during the lifetime of a session.
+An IP change may be caused by IPv6 temporary address rotation,
+ISP-driven periodic IP change, a mobile client transitioning
+between WiFi and cellular IPs, or other local network changes.
+A port change may be caused by a NAT rebinding after
+the previous binding timed out.
+
+A peer's IP or port may appear to change due to various
+on- and off-path attacks, including modifying or injecting
+packets.
+
+Connection migration is the process by which a new source endpoint
+(IP+port) is validated, while preventing changes that are not validated.
+This process is a simplified version of that defined in QUIC [RFC-9000]_.
+This process is defined only for the data phase of a session.
+Migration is not permitted during the handshake. All handshake packets
+must be verified to be from the same IP and port as previously
+sent and received packets. In other words, a peer's IP and port
+must be constant during the handshake.
+
+Threat Model
+-------------
+(Adapted from QUIC [RFC-9000]_)
+
+Peer Address Spoofing
+`````````````````````````
+A peer may spoofing its source address to cause an endpoint to send excessive amounts of data to an unwilling host.
+If the endpoint sends significantly more data than the spoofing peer,
+connection migration might be used to amplify the volume of data that an attacker can generate toward a victim.
+
+On-Path Address Spoofing
+`````````````````````````
+An on-path attacker could cause a spurious connection migration by copying and forwarding a packet
+with a spoofed address such that it arrives before the original packet.
+The packet with the spoofed address will be seen to come from a migrating connection,
+and the original packet will be seen as a duplicate and dropped.
+After a spurious migration, validation of the source address will fail because the entity at the source address
+does not have the necessary cryptographic keys to read or respond to the Path Challenge that is sent to it even if it wanted to.
+
+Off-Path Packet Forwarding
+````````````````````````````
+An off-path attacker that can observe packets might forward copies of genuine packets to endpoints.
+If the copied packet arrives before the genuine packet, this will appear as a NAT rebinding.
+Any genuine packet will be discarded as a duplicate.
+If the attacker is able to continue forwarding packets, it might be able to cause migration to a path via the attacker.
+This places the attacker on-path, giving it the ability to observe or drop all subsequent packets.
+
+Privacy Implications
+`````````````````````
+QUIC [RFC-9000]_ specified changing connection IDs when changing network paths.
+Using a stable connection ID on multiple network paths would allow a passive observer to correlate activity between those paths.
+An endpoint that moves between networks might not wish to have their activity correlated by any entity other than their peer.
+However, QUIC does not encrypt the connection IDs in the header.
+SSU2 does do that, so the privacy leak would require the passive observer to also
+have access to the network database to get the introduction key required to decrypt the connection ID.
+Even with the introduction key, this is not a strong attack, and we do not
+change connection IDs after migration in SSU2, as this would be a significant complication.
+
+
+Initiating Path Validation
+---------------------------
+
+During the data phase, peers must check that the source IP and port
+of each received data packet. If the IP or port is different than
+previously received, AND the packet is not a duplicate packet number,
+AND the packet successfully decrypts, the session enters
+the path validation phase.
+
+Additionally, a peer must verify that the new IP and port
+are valid according to local validation rules
+(not blocked, not illegal ports, etc.).
+Peers are NOT required to support migration between IPv4 and IPv6,
+and may treat a new IP in the other address family as invalid,
+since this is not expected behavior and may add significant implementation complexity.
+On receiving a packet from an invalid IP/port, an implementation
+may simply drop it, or may initiate a path validation with the old IP/port.
+
+Upon entering the path validation phase, take the following steps:
+
+- Start a path validation timeout timer of several seconds,
+  or several times the current RTO (TBD)
+- Reduce the congestion window to the minimum
+- Reduce the PMTU to the minimum (1280)
+- Send a data packet containing a Path Challenge block,
+  an Address block (containing the new IP/port),
+  and, typically, an ACK block, to the new IP and port.
+  This packet uses the same connection ID and encryption keys
+  as the current session.
+  The Path Challenge block data must contain sufficient entropy
+  (at least 8 bytes) so that it cannot be spoofed.
+- Optionally, also send a Path Challenge to the old IP/port,
+  with different block data. See below.
+- Start a Path Response timeout timer based on the current
+  RTO (typically RTT + a multiple of RTTdev)
+
+While in the path validation phase, the session may continue to
+process incoming packets. Whether from the old or new IP/port.
+The session may also continue to send and acknowledge data packets.
+However, the congestion window and PMTU must remain at the minimum
+values during the path validation phase, to prevent
+being used for deinal of service attacks by
+sending large amounts of traffic to a spoofed address.
+
+An implementation may, but is not required, to attempt to validate
+multiple paths simultaneously. This is probably not worth the complexity.
+It may, but is not required, to
+remember a previous IP/port as being already validated, and to
+skip path validation if a peer returns to its previous IP/port.
+
+If a Path Response is received, containing the identical data
+sent in the Path Challenge, the Path Validation has succeeded.
+The source IP/port of the Path Response message is
+not required to be the same as the Path Challenge was sent to.
+
+If a Path Response is not received before the Path Response timer
+expires, send another Path Challenge and double the Path Response timer.
+
+If a Path Response is not received before the Path Validation timer
+expires, the Path Validation has failed.
+
+Message Contents
+--------------------------
+The Data messages should contain the following blocks.
+Order is not specified except that Padding must be last:
+
+- Path Validation or Path Response block.
+  Path Validation contains opaque data, recommended 8 bytes minimum.
+  Path Response contains the data from the Path Validation.
+- Address block containing the recipient's apparent IP
+- DateTime block
+- ACK block
+- Padding block
+
+It is not recommended to include any other blocks
+(for example, I2NP) in the message.
+
+It is allowed to include a Path Validation block in the message
+containing the Path Response, to initiate a validation
+in the other direction.
+
+Path Challenge and Path Response blocks are ACK-eliciting.
+The Path Challenge will be ACKed by a Data message containing
+the Path Response and ACK blocks.
+The Path Response should be ACKed by a Data message containing an ACK block.
+
+
+Routing during Path Validation
+-------------------------------
+The QUIC specification is not clear on where to send data packets
+during path validation - to the old or new IP/port?
+There is a balance to be struck between rapidly responding to
+IP/port changes, and not sending traffic to spoofed addresses.
+Also, spoofed packets must not be allowed to substantially impact
+an existing session.
+Port-only changes are likely to be caused by NAT rebinding after
+an idle period; IP changes could happen during high-traffic phases
+in one or both directions.
+
+Strategies are subject to research and refinement.
+Possibilities include:
+
+- Not sending data packets to the new IP/port until validated
+- Continuing to send data packets to the old IP/port until
+  the new IP/port is validated
+- Simultaneously revalidating the old IP/port
+- Not sending any data until either the old or new IP/port is validated
+- Different strategies for port-only change than for IP change
+- Different strategies for an IPv6 change in the same /32, likely caused
+  by temporary address rotation
+
+
+Responding to Path Challenge
+------------------------------
+Upon receiving a Path Challenge, the peer must respond
+with a data packet containing a Path Response, with the data
+from the Path Challenge.
+TODO Maybe???:
+The Path Response must be sent to the IP/port from which the
+Path Challenge was received. This is NOT NECESSARILY
+the IP/port that was previously established for the peer.
+This ensures that path validation by a peer only succeeds if the path is functional in both directions.
+See the Validation after Local Change section below.
+
+Unless the IP/port is different from the previously-known IP/port for the peer,
+treat a Path Challenge as a simple ping, and simply respond unconditionally with a Path Response.
+The receiver does not keep or change any state based on a received Path Challenge.
+If the IP/port is different, a peer must verify that the new IP and port
+are valid according to local validation rules
+(not blocked, not illegal ports, etc.).
+Peers are NOT required to support cross-address-family responses between IPv4 and IPv6,
+and may treat a new IP in the other address family as invalid,
+since this is not expected behavior.
+
+Unless constrained by congestion control, the Path Response should be sent immediately.
+Implementations should take measures to rate limit Path Responses or the bandwidth used
+if necessary.
+
+A Path Challenge block generally is accompanied by an Address block in the same message.
+If the address block contains a new IP/port, a peer may
+validate that IP/port and initiate peer testing of that new IP/port, with
+the session peer or any other peer.
+If the peer thinks it is firewalled, and only the port changed, this change is probably
+due to NAT rebinding, and further peer testing is probably not required.
+
+
+Successful Path Validation
+---------------------------
+On successful path validation, the connection is fully migrated to the new IP/port.
+On success:
+
+- Exit the path validation phase
+- All packets are sent to the new IP and port.
+- The restrictions on congestion window and PMTU are removed, and they
+  are allowed to increase. Do not simply restore them to the
+  old values, as the new path may have different characteristics.
+- If the IP changed, set calculated RTT and RTO to initial values.
+  Because port-only changes are commonly the result of NAT rebinding or other middlebox activity,
+  the peer may instead retain its congestion control state and round-trip estimate in those cases
+  instead of reverting to initial values.
+- Delete (invalidate) any tokens sent or received for the old IP/port (optional)
+- Send a new token block for the new IP/port (optional)
+
+
+Cancelling Path Validation
+---------------------------
+While in the path validation phase, any valid, non-duplicate packets
+that are received from the old IP/port and are successfully decrypted
+will cause Path Validation to be cancelled.
+It is important that a cancelled path validation, caused by a spoofed packet,
+does not cause a valid session to be terminated or significantly disrupted.
+
+On cancelled path validation:
+
+- Exit the path validation phase
+- All packets are sent to the old IP and port.
+- The restrictions on congestion window and PMTU are removed, and they
+  are allowed to increase, or, optionally, restore the previous values
+- Retransmit any data packets that were previously sent to the new IP/port
+  to the old IP/port.
+
+
+Failed Path Validation
+---------------------------
+It is important that a failed path validation, caused by a spoofed packet,
+does not cause a valid session to be terminated or significantly disrupted.
+
+On failed path validation:
+
+- Exit the path validation phase
+- All packets are sent to the old IP and port.
+- The restrictions on congestion window and PMTU are removed, and they
+  are allowed to increase.
+- Optionally, start a path validation on the old IP and port.
+  If it fails, terminate the session.
+- Otherwise, follow standard session timeout and termination rules.
+- Retransmit any data packets that were previously sent to the new IP/port
+  to the old IP/port.
+
+
+Validation After Local Change
+------------------------------
+The above process is defined for peers who receive a packet from
+a changed IP/port. However, it may also be initiated in the other direction,
+by a peer who detects that his IP or port have changed.
+A peer may be able to detect that his local IP changed; however, it is much less
+likely to detect that his port changed because of a NAT rebinding.
+Therefore, this is optional.
+
+On receiving a path challenge from a peer whose IP or port has changed,
+the other peer should initiate a path challenge in the other direction.
+
+
+Use as Ping/Pong
+-----------------
+Path Validation and Path Response blocks may be used at any time as Ping/Pong packets.
+Reception of a Path Validation block does not change any state at the receiver,
+unless received from a different IP/port.
+
+
+
+Multiple Sessions
+==================
+
+Peers should not establish multiple sessions with the same peer,
+whether SSU 1 or 2, or with the same or different IP addresses.
+However, this could happen, either due to bugs, or a previous
+session termination message being lost, or in a race where the
+termination message has not arrived yet.
+
+If Bob has an existing session with Alice,
+when Bob receives the Session Confirmed from Alice, completing the
+handshake and establishing a new session, Bob should:
+
+- Migrate any unsent or unacknowledged outbound I2NP messages from the
+  old session to the new one
+- Send a termination with reason code 22 on the old session
+- Remove the old session and replace it with the new one
+
 
 
 Session Termination
 =====================
 
-Message or block? TBD
+Handshake phase
+------------------
+Sessions in the handshake phase are generally terminated simply
+by timing out, or not responding further. Optionally, they may be terminated
+by including a Termination block in the response, but 
+most errors are not possible to respond to due to a lack of cryptographic keys.
+Even if keys are available for a response including a termination block,
+it is usually not worth the CPU to perform the DH for the response.
+An exception MAY be a Termination block in a retry message, which
+is inexpensive to generate.
 
+
+Data phase
+------------------
+Sessions in the data phase are terminated by sending a data
+message that includes a Termination block.
+This message should also include an ACK block.
+It may, if the session has been up long enough that a previously
+sent token has expired or is about to expire,
+a New Token block.
+This message is not ack-eliciting.
+When receiving a Termination block with any reason except "Termination Received",
+the peer responds with a data message containing a
+Termination block with the reason "Termination Received".
+
+After sending or receiving a Termination block,
+the session should enter the closing phase for some maximum period of time TBD.
+The closing state is necessary to protect against the
+packet containing the Termination block being lost,
+and packets in-flight in the other direction.
+While in the closing phase, there is no requirement to process
+any additional received packets.
+A session in the closing state sends a packet containing a Termination block in response
+to any incoming packet that it attributes to the session.
+A sesssion should limit the rate at which it generates packets in
+the closing state.  For instance, an session could wait for a
+progressively increasing number of received packets or amount of time
+before responding to received packets.
+
+To minimize the state that a router
+maintains for a closing session, sessions may, but are not required to, send the exact same
+packet with the same packet number as-is in response to any received packet.
+Note: Allowing retransmission of a termination packet is an
+exception to the requirement that a new packet number be used
+for each packet. Sending new packet numbers
+is primarily of advantage to loss recovery and congestion
+control, which are not expected to be relevant for a closed connection.
+Retransmitting the final packet requires less state.
+
+After receiving a Termination block with the reason "Termination Received",
+the session may exit the closing phase.
+
+
+Cleanup
+------------------
 Upon any normal or abnormal termination, routers should
 zero-out any in-memory ephemeral data, including handshake ephemeral keys,
 symmetric crypto keys, and related information.
@@ -6885,6 +7295,11 @@ and short tunnel build messages will fit in one datagram, greatly reducing the
 typical amount of fragmentation. This also allows
 an increase in the maximum I2NP message size.
 1820-byte streaming messages should fit in two datagrams.
+
+A router must not enable SSU2 or publish an SSU2 address unless
+the MTU for that address is at least 1280.
+
+Routers must publish a non-default MTU in each SSU or SSU2 router address.
 
 
 SSU Address
@@ -7126,11 +7541,13 @@ and Alice-Bob and Alice-Charlie communication may be via IPv6,
 if Bob and Charlie indicate support with a 'B' capability in their published IPv6 address.
 See Proposal 126 for details.
 
-As in SSU 1,
+As in SSU 1 prior to 0.9.50,
 Alice sends the request to Bob using an existing session over the transport (IPv4 or IPv6) that she wishes to test.
 When Bob receives a request from Alice via IPv4, Bob must select a Charlie that advertises an IPv4 address.
 When Bob receives a request from Alice via IPv6, Bob must select a Charlie that advertises an IPv6 address.
 The actual Bob-Charlie communication may be via IPv4 or IPv6 (i.e., independent of Alice's address type).
+This is NOT the behavior of SSU 1 as of 0.9.50, where mixed IPv4/v6 requests are allowed.
+
 
 
 Processing by Bob
@@ -7314,6 +7731,19 @@ there are several options to validate the signature:
 - Don't re-validate the signature if the contents are identical
   to that in the Relay Response, if already received
 - Don't validate the signature at all
+
+
+Tag Requests by Bob
+------------------------
+In SSU 1, only Alice could request a tag, in the Session Request.
+Bob could never request a tag, and Alice could not relay for Bob.
+
+In SSU2, Alice generally requests a tag in the Session Request,
+but either Alice or Bob may also request a tag in the data phase.
+Bob generally is not firewalled after receiving an inbound request,
+but it could be after a relay, or Bob's state may change,
+or he may request an introducer for the other address type (IPv4/v6).
+So, in SSU2, it is possible for both Alice and Bob to simultaneously be relays for the other party.
 
 
 
@@ -7762,6 +8192,27 @@ Therefore, the recommended processing steps in the receiver loop logic are:
 4) If running SSU 1 on the same port, attempt to process the message as an SSU 1 packet.
 
 
+Error Handling
+```````````````
+In general, a session (in the handshake or data phase) should never be destroyed
+after receiving a packet with an unexpected message type. This prevents
+packet injection attacks. These packets will also commonly be received
+after retransmission of a handshake packet, when the header decryption keys
+are no longer valid.
+
+In most cases, simply drop the packet. An implementation may, but is not required to,
+retransmit the previously-sent packet (handshake message or ACK 0) in response.
+
+After sending Session Created as Bob, unexpected packets are commonly Data packets
+that cannot be decrypted because the Session Confirmed packets were lost or out-of-order.
+Queue the packets and attempt to decrypt them after receiving the Session Confirmed packets.
+
+After receiving Session Confirmed as Bob, unexpected packets are commonly retransmitted
+Session Confirmed packets, because the ACK 0 of the Sesssion Confirmed was lost.
+The unexpected packets may be dropped.
+An implementation may, but is not required to, send a Data packet containing an ACK block in response.
+
+
 Notes
 -------
 
@@ -7786,14 +8237,17 @@ TBD if required.
 Recommended Constants
 =======================
 
-- Handshake retransmission timeout: 3 seconds, with exponential backoff
-  (retransmissions at 3 and 9 seconds)
-- Total handshake timeout: 20 seconds
+- Outbound handshake retransmission timeout: 1.25 seconds, with exponential backoff
+  (retransmissions at 1.25, 3.75, and 8.75 seconds)
+- Total outbound handshake timeout: 15 seconds
+- Inbound handshake retransmission timeout: 1 second, with exponential backoff
+  (retransmissions at 1, 3, and 7 seconds)
+- Total inbound handshake timeout: 12 seconds
 - Timeout after sending retry: 9 seconds
 - ACK delay: max(10, min(rtt/6, 150) ms
 - Max ACK ranges: 256?
 - Max ACK depth: 512?
-- Padding distribution: ?
+- Padding distribution: 0-15 bytes, or greater
 
 
 
@@ -7831,7 +8285,7 @@ Message              Header+MACs   Keys    Data    Padding  Total   Notes
 ==================   ===========   =====   ======  =======  ======  =====
 Session Request      48             32        7               87    DateTime block
 Session Created      48             32       16               96    DateTime, Address blocks
-Session Confirmed    48             32     1005             1085    1000 byte RI block
+Session Confirmed    48             32     1005             1085    1000 byte compressed RI block
 Data (1 full msg)    32                      14               46
 Total                                                       1314
 ==================   ===========   =====   ======  =======  ======  =====
