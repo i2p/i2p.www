@@ -31,7 +31,7 @@ will become the new default outproxy in the upcoming release.
 In their own words, StormyCloud is:
 
 {% trans -%}
-  Mission of StormyCloud Inc.
+  Mission of StormyCloud Inc
   To defend Internet access as a universal human right. By doing so, the group protects users’ electronic privacy and builds community by fostering unrestricted access to information and thus the free exchange of ideas across borders. This is essential because the Internet is the most powerful tool available for making a positive difference in the world.
 {%- endtrans %}
 
@@ -40,7 +40,7 @@ In their own words, StormyCloud is:
 {%- endtrans %}
 
 {% trans -%}
-To learn more about StormyCloud visit the `web site
+To learn more about StormyCloud visit their `web site
 <https://www.stormycloud.org/>`_.
 {%- endtrans %}
 
