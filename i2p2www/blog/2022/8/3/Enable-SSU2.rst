@@ -22,27 +22,29 @@ the new protocol can enable it by following these procedures for I2P and
 i2pd respectively.
 {%- endtrans %}
 
-*{% trans %}
-Warning: After enabling SSU2, you will publish a routerInfo which
+*{% trans %}Warning: After enabling SSU2, you will publish a routerInfo which
 informs other routers that you can speak SSU2. This is still a small
 fraction of the network and identifies you as an early-adopter of
-SSU2.
-{% endtrans %}*
+SSU2.*{% endtrans %}*
 
 **{% trans %}Enabling SSU2 on I2P{% endtrans %}**
 
 {% trans -%}
 In order to enable SSU2 on Java I2P, you will need to locate your `router.config`
-file. That file is usually in `/var/lib/i2p/i2p-config/router.config` on Debian,
-`$HOME/i2p/router.config` on other Linux,
+file. If you have enabled "Advanced Mode" in your I2P installation already, then
+you can edit the `router.config` file from http://127.0.0.1:7657/configadvanced.
+{%- endtrans %}
+
+{% trans -%}
+If you have not enabled advanced configuration, you'll need to edit the `router.config`
+file in a text editor. That file is usually in `/var/lib/i2p/i2p-config/router.config`
+on Debian, `$HOME/i2p/router.config` on other Linux,
 `$HOME/Library/Application Support/I2P/router.config` on OSX,` and in
-`%APPDATA%\I2P\router.config` on Windows. Open that file in a text editor(like
+`%LOCALAPPDATA%\I2P\router.config` on Windows. Open that file in a text editor(like
 `notepad.exe`` on Windows) and add the following line to the end of the file:
 {%- endtrans %}
 
-```
-i2np.ssu2.enable=true
-```
+`i2np.ssu2.enable=true`
 
 **{% trans %}Enabling SSU2 on i2pd{% endtrans %}**
 
@@ -54,10 +56,9 @@ and on OSX it is: `$HOME/Library/Application Support/i2pd/i2pd.conf`. Open that,
 and add the following lines to the end of the file:
 {%- endtrans %}
 
-```
-[SSU2]
-enabled = true
-```
+`[SSU2]`
+
+`enabled = true`
 
 **{% trans %}Thanks to all Testers{% endtrans %}**
 
