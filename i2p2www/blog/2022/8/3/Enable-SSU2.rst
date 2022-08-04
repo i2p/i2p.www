@@ -39,7 +39,7 @@ you can edit the `router.config` file from http://127.0.0.1:7657/configadvanced.
 If you have not enabled advanced configuration, you'll need to edit the `router.config`
 file in a text editor. That file is usually in `/var/lib/i2p/i2p-config/router.config`
 on Debian, `$HOME/i2p/router.config` on other Linux,
-`$HOME/Library/Application Support/I2P/router.config` on OSX,` and in
+`$HOME/Library/Application Support/i2p/router.config` on OSX,` and in
 `%LOCALAPPDATA%\I2P\router.config` on Windows. Open that file in a text editor(like
 `notepad.exe`` on Windows) and add the following line to the end of the file:
 {%- endtrans %}
