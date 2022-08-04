@@ -36,6 +36,7 @@ In their own words, StormyCloud is:
 {%- endtrans %}
 
 {% trans -%}
+  Hardware
   We own all of our hardware and currently colocate at a Tier 4 data center. As of now have a 10GBps uplink with the option to upgrade to 40GBps without the need for much change. We have our own ASN and IP space (IPv4 & IPv6).
 {%- endtrans %}
 
