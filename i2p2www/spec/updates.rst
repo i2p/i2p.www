@@ -3,8 +3,8 @@ Software Update Specification
 =============================
 .. meta::
     :category: Design
-    :lastupdated: 2022-02
-    :accuratefor: 0.9.53
+    :lastupdated: 2022-08
+    :accuratefor: 0.9.55
 
 .. contents::
 
@@ -315,9 +315,8 @@ SU3 Details
 
 * SU3 Version: The router version
 
-* Jar and war files in the zip are compressed with pack200 as documented above
-  for "su2" files. If the client does not support pack200, it must download the
-  update in a "sud" format.
+* Jar and war files in the zip are no longer compressed with pack200 as documented above
+  for "su2" files, because recent Java runtimes no longer support it.
 
 Notes
 `````
@@ -338,7 +337,7 @@ Goals
   man-in-the-middle attacks that could boot victims into a separate, untrusted
   network.
 
-* Use su3 file format already used for updates, reseeding, and plugins
+* Use su3 file format already used for updates and plugins
 
 * Single compressed file to speed up reseeding, which was slow to fetch 200 files
 
@@ -362,7 +361,8 @@ SU3 Details
 
 * SU3 File Type: 0 (ZIP)
 
-* SU3 Version: Seconds since the epoch, in ASCII (date +%s)
+* SU3 Version: Seconds since the epoch, in ASCII (date +%s).
+  Does NOT roll over in 2038 or 2106.
 
 * Router info files in the zip file must be at the "top level". No directories
   are in the zip file.
@@ -386,8 +386,8 @@ SU3 Details
 
 * SU3 Version: The plugin version, must match that in plugin.config.
 
-* Jar and war files in the zip are compressed with pack200 as documented above
-  for "su2" files.
+* Jar and war files in the zip should not be compressed with pack200 as documented above
+  for "su2" files, as recent Java runtimes no longer support it.
 
 SU3 News File Specification
 ---------------------------
@@ -415,7 +415,8 @@ SU3 Details
 
 * SU3 File Type: 1 (XML) or 3 (XML.GZ)
 
-* SU3 Version: Seconds since the epoch, in ASCII (date +%s)
+* SU3 Version: Seconds since the epoch, in ASCII (date +%s).
+  Does NOT roll over in 2038 or 2106.
 
 * File Format: XML or gzipped XML, containing an [RFC-4287]_ (Atom) XML Feed.
   Charset must be UTF-8.
@@ -637,7 +638,8 @@ then each unblock entry in the order received with a newline after each.
 Blocklist File Specification
 ----------------------------
 
-TBD, unimplemented, see proposal 130
+TBD, unimplemented, see proposal 130.
+Blocklist updates are delivered in the news file, see above.
 
 
 
