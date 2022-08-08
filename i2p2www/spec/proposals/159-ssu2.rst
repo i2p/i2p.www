@@ -6671,6 +6671,30 @@ transmitter to implement an efficient and responsive congestion control algorith
 while allowing flexibility and innovation in that implementation.
 This section discusses implementation goals and provides suggestions.
 General guidance may be found in [RFC-9002]_.
+See also [RFC-6298]_ for guidance on retransmission timers.
+
+ACK-only data packets should not count for bytes or packets in-flight
+and are not congestion-controlled.
+Unlike in TCP, SSU2 can detect the loss of these packets and
+that information may be used to adjust the congestion state.
+However, this document does not specify a mechanism for doing so.
+
+Packets containing some other non-data blocks may also be excluded from congestion control
+if desired, implementation-dependent. For example:
+
+- Peer Test
+- Relay request/intro/response
+- Path challenge/response
+
+It is recommended that the congestion control be based on byte count, not
+packet count, following the guidance in TCP RFCs and QUIC [RFC-9002]_.
+An additional packet count limit may be useful as well to prevent
+buffer overflow in the kernel or in middleboxes, implementation dependent,
+although this may add significant complexity.
+If per-session and/or total packet output is bandwidth-limited and/or paced,
+this may mitigate the need for packet count ilmiting.
+
+
 
 
 Packet Numbers
@@ -8381,6 +8405,9 @@ References
 
 .. [RFC-6151]
     https://tools.ietf.org/html/rfc6151
+
+.. [RFC-6298]
+    https://tools.ietf.org/html/rfc6298
 
 .. [RFC-6437]
     https://tools.ietf.org/html/rfc6437
