@@ -47,7 +47,7 @@ To learn more about StormyCloud visit their `web site
 
 {% trans -%}
 Or, visit them on `I2P
-<https://www.stormycloud.i2p/>`_.
+<http://stormycloud.i2p/>`_.
 {%- endtrans %}
 
 **{% trans %}Switching to the StormyCloud Outproxy on I2P{% endtrans %}**
