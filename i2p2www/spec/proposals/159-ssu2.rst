@@ -5,7 +5,7 @@ SSU2
     :author: eyedeekay, orignal, zlatinb, zzz
     :created: 2021-09-12
     :thread: http://zzz.i2p/topics/2612
-    :lastupdated: 2022-08-04
+    :lastupdated: 2022-08-08
     :status: Open
     :target: 0.9.56
 
@@ -31,16 +31,16 @@ Address Validation (Retry)      0.9.55  2022-08        0.9.56  2022-11
 Fragmented RI in handshake      0.9.55  2022-08        0.9.56  2022-11
 New Token                       0.9.55  2022-08        0.9.57  2022-11
 Freeze extended protocol        0.9.55  2022-08
-Relay                           0.9.56  2022-11        0.9.57  2023-02
-Peer Test                       0.9.56  2022-11        0.9.57  2023-02
-Path Validation                 0.9.57  2023-02        0.9.58  2023-05
-Connection Migration            0.9.57  2023-02        0.9.58  2023-05
+Relay                           0.9.55  2022-08        0.9.56  2022-11
+Peer Test                       0.9.55  2022-08        0.9.56  2022-11
+Path Validation                 0.9.56  2022-11        0.9.57  2023-02
+Connection Migration            0.9.56  2022-11        0.9.57  2023-02
 Key Rotation                    0.9.57  2023-02        0.9.58  2023-05
 Disable SSU 1                   0.9.58  2023-05        0.9.59  2023-08
 ==========================      =====================  ====================
 
 Basic Session includes the handshake and data phase.
-
+Extended protocol includes relay and peer test.
 
 
 
@@ -60,6 +60,8 @@ for point-to-point (router-to-router) transport of I2NP messages.
 It is not a general-purpose data pipe.
 Like [SSU]_, it also provides two additional services:
 Relaying for NAT traversal, and Peer Testing for determination of inbound reachability.
+It also provides a third service, not in SSU, for connection migration
+when a peer changes IP or port.
 
 
 Motivation
@@ -2711,7 +2713,7 @@ Type      Message       Header Length  Header Encr. Length
 Session Establishment
 -----------------------
 
-The standard establishment sequence is as follows:
+The standard establishment sequence, when Alice has a valid token previously received from Bob, is as follows:
 
 .. raw:: html
 
@@ -2724,7 +2726,7 @@ Alice                           Bob
 {% endhighlight %}
 
 
-When address verification is used, and Alice does not have a valid token, the establishment sequence is as follows:
+When Alice does not have a valid token, the establishment sequence is as follows:
 
 .. raw:: html
 
@@ -2739,7 +2741,7 @@ Alice                           Bob
 {% endhighlight %}
 
 
-When address verification is used, Alice thinks she has a valid token,
+When Alice thinks she has a valid token,
 but Bob rejects it (perhaps because Bob restarted),
 the establishment sequence is as follows:
 
@@ -2806,7 +2808,7 @@ Long Header
 `````````````
 The long header is 32 bytes. It is used before a session is created, for Token Request, SessionRequest, SessionCreated, and Retry.
 It is also used for out-of-session Peer Test and Hole Punch messages.
-Note that the first 9 bytes (Destination Connection ID and type) are the same for both headers.
+Note that the first 13 bytes (Destination Connection ID, packet number, and type) are the same for all headers.
 
 Before header encryption:
 
@@ -6387,19 +6389,43 @@ Notes:
 Replay Prevention
 =====================
 
-Token Request, Retry, Session Request, Session Created, and Peer Test messages must contain DateTime blocks.
+SSU2 is designed to minimize the impact of messages replayed by an attacker.
 
-Both Alice and Bob validate that the time is within a valid skew (recommended +/- 2 minutes)
-and for replay prevention. Bob should reject duplicate
-Token Request, Retry, and Session Request messages,
+Token Request, Retry, Session Request, Session Created, Hole Punch,
+and out-of-session Peer Test messages must contain DateTime blocks.
+
+Both Alice and Bob validate that the time for these messages is within a valid skew (recommended +/- 2 minutes).
+For "probing resistance", Bob should not reply to Token Request or Session Request
+messages if the skew is invalid, as these messages may be a replay or probing attack.
+
+Bob may choose to reject duplicate Token Request and Retry messages,
 even if the skew is valid, via a Bloom filter or other mechanism.
+However, the size and CPU cost of replying to these messages is low.
+At worst, a replayed Token Request message may invalidate a previously-sent
+token.
+
+The token system greatly minimizes the impact of replayed Session Request messages.
+Since tokens may only be used once, a replayed Session Request message
+will never have a valid token.
+Bob may choose to reject duplicate Session Request messages,
+even if the skew is valid, via a Bloom filter or other mechanism.
+However, the size and CPU cost of replying with a Retry message is low.
+At worst, sending a Retry message may invalidate a previously-sent
+token.
+
 
 Duplicate Session Created and Session Confirmed messages will
 not validate because the Noise handshake state will not be in the correct state to decrypt them.
+At worst, a peer may retransmit a Session Confirmed in response to an apparent
+duplicate Session Created.
 
-Routers should use the data message packet number to
+Replayed Hole Punch and Peer Test messages should have little or no impact.
+
+Routers must use the data message packet number to
 detect and drop duplicate data phase messages.
 Each packet number should only be used once.
+Replayed messages must be ignored.
+
 
 
 
@@ -6540,7 +6566,8 @@ because MixHash() was already called on the corrupted message.
 Tokens
 =============
 
-The Token in the Session Request header is used for DoS mitigation.
+The Token in the Session Request header is used for DoS mitigation,
+to prevent source address spoofing, and as resistance to replay attacks.
 
 If Bob does not accept the token in the Session Request message, Bob does NOT decrypt
 the message, as it requires an expensive DH operation.
@@ -6549,12 +6576,12 @@ Bob simply sends a Retry message with a new token.
 If a subsequent Session Request message then is received with that token,
 Bob proceeds to decrypt that message and proceed with the handshake.
 
-The token may be a randomly-generated 8 byte value, if the generator of the token
+The token must be a randomly-generated 8 byte value, if the generator of the token
 stores the values and associated IP and port (in-memory or persistently).
-Alternatively, the generator may generate an opaque value, for example,
+The generator may not generate an opaque value, for example,
 using the SipHash (with a secret seed K0, K1) of the IP, port, and current hour or day,
-to create tokens that do not need to be saved in-memory.
-Note that this method may make it difficult to reject reused tokens.
+to create tokens that do not need to be saved in-memory,
+because this method make it difficult to reject reused tokens and replay attacks.
 
 Tokens may only be used once.
 A token sent from Bob to Alice in a Retry message must be used immediately, and expires
@@ -6582,6 +6609,10 @@ there is no requirement to store multiple inbound or outbound tokens for the sam
 
 A token is bound to the combination of source IP/port and destination IP/port.
 A token received on IPv4 may not be used for IPv6 or vice versa.
+
+If either peer migrates to a new IP or port during the session
+(see the Connection Migration section), any previously-exchanged tokens are invalited,
+and new tokens must be exchanged.
 
 Implementations may, but are not required to, save tokens on disk and
 reload them on restart. If persisted, the implementation must
