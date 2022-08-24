@@ -67,7 +67,7 @@ def get_blog_slugs(num=0):
     # walk over all directories/files
     for v in os.walk(BLOG_DIR):
         # iterate over all files
-        slugbase = slug_base_validate(os.path.relpath(v[0], BLOG_DIR))
+        slugbase = slug_base_datevalidate(os.path.relpath(v[0], BLOG_DIR))
         
         for f in v[2]:
             # ignore all non-.rst files and drafts
@@ -82,37 +82,37 @@ def get_blog_slugs(num=0):
 
 # reads a date and if it finds a one-digit representation of a day or month,
 # lengthens it to two
-def slug_base_validate(slugbase):
+def slug_base_datevalidate(slugbase):
     parts = slugbase.split('/')
     slugParts = []
     for p in parts:
-        slugParts.append(validate(p))
+        slugParts.append(datevalidate(p))
     return "/".join(slugParts)
 
 # turns a one-digit date unit into a two-digit date unit
-def validate(slugfrag):
+def datevalidate(slugfrag):
     if len(str(slugfrag)) == 1:
         return "0"+str(slugfrag)
     else:
         return str(slugfrag)
 
 # turns a two-digit date unit into a one-digit date unit
-def devalidate(slugfrag):
+def dedatevalidate(slugfrag):
     if len(str(slugfrag)) == 2:
         return str(slugfrag).lstrip("0")
     else:
         return str(slugfrag)
 
-# reverses slug_base_validate
-def slug_base_devalidate(slugbase):
+# reverses slug_base_datevalidate
+def slug_base_dedatevalidate(slugbase):
     parts = slugbase.split('/')
     slugParts = []
     for p in parts:
-        slugParts.append(devalidate(p))
+        slugParts.append(dedatevalidate(p))
     return "/".join(slugParts)
 
 def get_date_from_slug(slug):
-    slug = slug_base_validate(slug)
+    slug = slug_base_datevalidate(slug)
     parts = slug.split('/')
     return "%s-%s-%s" % (parts[0], parts[1], parts[2])
 
@@ -129,7 +129,7 @@ def render_blog_post(slug):
         # check for drafts
         path = safe_join(BLOG_DIR, slug + ".draft.rst")
         if not os.path.exists(path):
-            slug = slug_base_devalidate(slug)
+            slug = slug_base_dedatevalidate(slug)
             path = safe_join(BLOG_DIR, slug+".rst")
             if not os.path.exists(path):
                 path = safe_join(BLOG_DIR, slug + ".draft.rst")
