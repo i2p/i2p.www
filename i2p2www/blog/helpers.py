@@ -67,7 +67,8 @@ def get_blog_slugs(num=0):
     # walk over all directories/files
     for v in os.walk(BLOG_DIR):
         # iterate over all files
-        slugbase = os.path.relpath(v[0], BLOG_DIR)
+        slugbase = slug_base_validate(os.path.relpath(v[0], BLOG_DIR))
+        
         for f in v[2]:
             # ignore all non-.rst files and drafts
             if not f.endswith('.rst') or f.endswith('.draft.rst'):
@@ -79,8 +80,44 @@ def get_blog_slugs(num=0):
         return slugs[:num]
     return slugs
 
+# reads a date and if it finds a one-digit representation of a day or month,
+# lengthens it to two
+def slug_base_validate(slugbase):
+    parts = slugbase.split('/')
+    slugParts = []
+    for p in parts:
+        slugParts.append(validate(p))
+    return "/".join(slugParts)
+
+# turns a one-digit date unit into a two-digit date unit
+def validate(slugfrag):
+    if len(str(slugfrag)) == 1:
+        return "0"+str(slugfrag)
+    else:
+        return str(slugfrag)
+
+# turns a two-digit date unit into a one-digit date unit
+def devalidate(slugfrag):
+    if len(str(slugfrag)) == 2:
+        return str(slugfrag).lstrip("0")
+    else:
+        return str(slugfrag)
+
+# reverses slug_base_validate
+def slug_base_devalidate(slugbase):
+    parts = slugbase.split('/')
+    slugParts = []
+    for p in parts:
+        slugParts.append(devalidate(p))
+    return "/".join(slugParts)
+
 def get_date_from_slug(slug):
+    slug = slug_base_validate(slug)
     parts = slug.split('/')
+    #if len(parts[1]) == 1:
+    #    parts[1] = "0"+parts[1]
+    #if len(parts[2]) == 1:
+    #    parts[2] = "0"+parts[2]
     return "%s-%s-%s" % (parts[0], parts[1], parts[2])
 
 def render_blog_post(slug):
@@ -96,7 +133,12 @@ def render_blog_post(slug):
         # check for drafts
         path = safe_join(BLOG_DIR, slug + ".draft.rst")
         if not os.path.exists(path):
-            abort(404)
+            slug = slug_base_devalidate(slug)
+            path = safe_join(BLOG_DIR, slug+".rst")
+            if not os.path.exists(path):
+                path = safe_join(BLOG_DIR, slug + ".draft.rst")
+                if not os.path.exists(path):
+                    abort(404)
 
     # read file
     with codecs.open(path, encoding='utf-8') as fd:
