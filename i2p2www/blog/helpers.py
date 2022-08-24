@@ -114,10 +114,6 @@ def slug_base_devalidate(slugbase):
 def get_date_from_slug(slug):
     slug = slug_base_validate(slug)
     parts = slug.split('/')
-    #if len(parts[1]) == 1:
-    #    parts[1] = "0"+parts[1]
-    #if len(parts[2]) == 1:
-    #    parts[2] = "0"+parts[2]
     return "%s-%s-%s" % (parts[0], parts[1], parts[2])
 
 def render_blog_post(slug):
