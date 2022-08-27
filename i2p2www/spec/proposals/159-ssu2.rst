@@ -5,7 +5,7 @@ SSU2
     :author: eyedeekay, orignal, zlatinb, zzz
     :created: 2021-09-12
     :thread: http://zzz.i2p/topics/2612
-    :lastupdated: 2022-08-08
+    :lastupdated: 2022-08-27
     :status: Open
     :target: 0.9.56
 
@@ -3667,6 +3667,7 @@ Notes
   replay attacks. Values in the cache must have a lifetime of at least 2*D.
   The cache values are implementation-dependent, however the 32-byte X value
   (or its encrypted equivalent) may be used.
+  Reject by sending a Retry message containing a zero token and a termination block.
 
 - Diffie-Hellman ephemeral keys may never be reused, to prevent cryptographic attacks,
   and reuse will be rejected as a replay attack.
@@ -3685,11 +3686,11 @@ Notes
   (Distribution to be determined, see Appendix A.)
   TODO UNLESS minimum packet size is enforced for PMTU.
 
-- On any error, including AEAD, DH, apparent replay, or key
-  validation failure, Bob must halt further message processing and
+- On most errors, including AEAD, DH, apparent replay, or key
+  validation failure, Bob should halt further message processing and
   drop the message without responding.
 
-- Bob MAY send a Retry message containing a Termination block with a
+- Bob MAY send a Retry message containing a zero token and a Termination block with a
   clock skew reason code if the timestamp in the DateTime block is too
   far skewed.
 
@@ -3931,7 +3932,7 @@ Payload
 - New Token block (optional)
 - First Packet Number block (optional)
 - Options block (optional)
-- Termination block (optional, if session is rejected)
+- Termination block (not recommended, send in a retry message instead)
 - Padding block (optional)
 
 The minimum payload size is 8 bytes. Since the DateTime and Address blocks
@@ -4912,7 +4913,20 @@ Notes
 - This is NOT a standard Noise message and is not part of the handshake.
   It is not bound to the Session Request message other than by connection IDs.
 
-- Alice must drop the message if the payload is not successfully decrypted.
+- On most errors, including AEAD, or apparent replay
+  Bob should halt further message processing and
+  drop the message without responding.
+
+- Bob must reject connections where the timestamp value is too far off from the
+  current time. Call the maximum delta time "D".  Bob must maintain a local
+  cache of previously-used handshake values and reject duplicates, to prevent
+  replay attacks. Values in the cache must have a lifetime of at least 2*D.
+  The cache values are implementation-dependent, however the 32-byte X value
+  (or its encrypted equivalent) may be used.
+
+- Bob MAY send a Retry message containing a zero token and a Termination block with a
+  clock skew reason code if the timestamp in the DateTime block is too
+  far skewed.
 
 - Minimum size: TBD, same rules as for Session Created?
 
