@@ -14,7 +14,7 @@ This update includes the new 1.9.0 router and major quality-of-life improvements
 =================================================================================================
 
 {% trans -%}
-This release includes the new I2P 1.8.0 router and is based on Java 18.02.1.
+This release includes the new I2P 1.9.0 router and is based on Java 18.02.1.
 {%- endtrans %}
 
 {% trans -%}
