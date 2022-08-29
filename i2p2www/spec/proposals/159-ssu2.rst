@@ -5,7 +5,7 @@ SSU2
     :author: eyedeekay, orignal, zlatinb, zzz
     :created: 2021-09-12
     :thread: http://zzz.i2p/topics/2612
-    :lastupdated: 2022-08-27
+    :lastupdated: 2022-08-29
     :status: Open
     :target: 0.9.56
 
@@ -33,8 +33,9 @@ New Token                       0.9.55  2022-08        0.9.57  2022-11
 Freeze extended protocol        0.9.55  2022-08
 Relay                           0.9.55  2022-08        0.9.56  2022-11
 Peer Test                       0.9.55  2022-08        0.9.56  2022-11
-Path Validation                 0.9.56  2022-11        0.9.57  2023-02
-Connection Migration            0.9.56  2022-11        0.9.57  2023-02
+Path Validation                 0.9.55+ dev            0.9.56  2022-11
+Connection Migration            0.9.55+ dev            0.9.56  2022-11
+Immediate ACK flag              0.9.55+ dev            0.9.56  2022-11
 Key Rotation                    0.9.57  2023-02        0.9.58  2023-05
 Disable SSU 1                   0.9.58  2023-05        0.9.59  2023-08
 ==========================      =====================  ====================
@@ -2896,7 +2897,7 @@ For Data messages, before header encryption:
 +----+----+----+----+----+----+----+----+
   |      Destination Connection ID        |
   +----+----+----+----+----+----+----+----+
-  |   Packet Number   |type|    flags     |
+  |   Packet Number   |type|flag|moreflags|
   +----+----+----+----+----+----+----+----+
 
   Destination Connection ID :: 8 bytes, unsigned big endian integer
@@ -2905,7 +2906,12 @@ For Data messages, before header encryption:
 
   type :: The message type, 0-10
 
-  flags :: 3 bytes, unused, set to 0 for future compatibility
+  flag :: 1 byte flags:
+         bit order: 76543210 (bit 7 is MSB)
+         bits 7-1: unused, set to 0 for future compatibility
+         bits 0: when set to 1, immediate ack requested
+
+  moreflags :: 2 bytes, unused, set to 0 for future compatibility
 
 {% endhighlight %}
 
@@ -6835,14 +6841,16 @@ infinite feedback loop of acknowledgments.
 
 In order to assist loss detection at the sender, an endpoint should
 generate and send an ACK block without delay when it receives an ack-
-eliciting packet either:
+eliciting packet in any of these cases:
 
-*  when the received packet has a packet number less than another
-   ack-eliciting packet that has been received, or
+*  When the received packet has a packet number less than another
+   ack-eliciting packet that has been received
 
-*  when the packet has a packet number larger than the highest-
+*  When the packet has a packet number larger than the highest-
    numbered ack-eliciting packet that has been received and there are
    missing packets between that packet and this packet.
+
+*  When the ack-immediate flag in the packet header is set
 
 The algorithms are expected to be resilient to
 receivers that do not follow the guidance offered above.  However, an
@@ -6880,6 +6888,35 @@ characteristics.
 
 A receiver may process multiple available packets before determining
 whether to send an ACK block in response.
+In general, the receiver should not delay an ACK by more than RTT / 6,
+or 150 ms max.
+
+The ack-immediate flag in the data packet header is a request that
+the receiver send an ack soon after reception, probably within
+a few ms.
+In general, the receiver should not delay an immediate ACK by more than RTT / 16,
+or 5 ms max.
+
+
+Immediate ACK Flag
+-------------------
+
+The receiver does not know the sender's send window size,
+and so does not know how long to delay before sending an ACK.
+The immediate ACK flag in the data packet header is an important way to
+maintain maximum throughput by minimizing effective RTT.
+
+There are several possible strategies a sender may use to determine
+when to set the immediate-ack flag:
+
+- Set once every N packets, for some small N
+- Set on the last in a burst of packet
+- Set whenver the send window is almost full, for example over 2/3 full
+- Set on all packets with retransmitted fragments
+
+Immediate ACK flags should only be necessary on data packets containing
+I2NP messages or message fragments.
+
 
 
 ACK Block Size
@@ -6927,6 +6964,7 @@ The following section describes an exemplary approach for determining what
 packets to acknowledge in each ACK block.  Though the goal of this
 algorithm is to generate an acknowledgment for every packet that is
 processed, it is still possible for acknowledgments to be lost.
+
 
 Limiting Ranges by Tracking ACK Blocks
 -------------------------------------------
@@ -8313,7 +8351,8 @@ Recommended Constants
   (retransmissions at 1, 3, and 7 seconds)
 - Total inbound handshake timeout: 12 seconds
 - Timeout after sending retry: 9 seconds
-- ACK delay: max(10, min(rtt/6, 150) ms
+- ACK delay: max(10, min(rtt/6, 150)) ms
+- Immediate ACK delay: min(rtt/16, 5) ms
 - Max ACK ranges: 256?
 - Max ACK depth: 512?
 - Padding distribution: 0-15 bytes, or greater
