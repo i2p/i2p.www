@@ -3,8 +3,8 @@ Configuration File Specification
 ================================
 .. meta::
     :category: Formats
-    :lastupdated: March 2020
-    :accuratefor: 0.9.45
+    :lastupdated: August 2022
+    :accuratefor: 0.9.56
 
 .. contents::
 
@@ -170,6 +170,8 @@ Properties are as follows::
     logger.flushInterval=nnn
     # d = date, c = class, t = thread name, p = priority, m = message
     logger.format={dctpm}*
+    # As of 0.9.56. Default false
+    logger.gzip=true|false
     # Max to buffer before flushing. Default 1024
     logger.logBufferSize=n
     # Default logs/log-@.txt; @ replaced with number
@@ -179,6 +181,8 @@ Properties are as follows::
     logger.logFileSize=nnn[K|M|G]
     # Highest file number. Default 2
     logger.logRotationLimit=n
+    # As of 0.9.56. Default 65536 (bytes)
+    logger.minGzipSize=nnnnn
     # Default CRIT
     logger.minimumOnScreenLevel=CRIT|ERROR|WARN|INFO|DEBUG
     logger.record.{class}=CRIT|ERROR|WARN|INFO|DEBUG
