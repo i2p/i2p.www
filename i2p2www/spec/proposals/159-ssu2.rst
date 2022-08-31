@@ -5,7 +5,7 @@ SSU2
     :author: eyedeekay, orignal, zlatinb, zzz
     :created: 2021-09-12
     :thread: http://zzz.i2p/topics/2612
-    :lastupdated: 2022-08-30
+    :lastupdated: 2022-08-31
     :status: Open
     :target: 0.9.56
 
@@ -2804,12 +2804,13 @@ Packet Header
 
 All packets start with an obfuscated (encrypted) header.
 There are two header types, long and short.
+Note that the first 13 bytes (Destination Connection ID, packet number, and type)
+are the same for all headers.
 
 Long Header
 `````````````
 The long header is 32 bytes. It is used before a session is created, for Token Request, SessionRequest, SessionCreated, and Retry.
 It is also used for out-of-session Peer Test and Hole Punch messages.
-Note that the first 13 bytes (Destination Connection ID, packet number, and type) are the same for all headers.
 
 Before header encryption:
 
@@ -6905,6 +6906,9 @@ The receiver does not know the sender's send window size,
 and so does not know how long to delay before sending an ACK.
 The immediate ACK flag in the data packet header is an important way to
 maintain maximum throughput by minimizing effective RTT.
+The immediate ACK flag is header byte 13, bit 0, i.e. (header[13] & 0x01).
+When set, an immediate ACK is requested.
+See the short header section above for details.
 
 There are several possible strategies a sender may use to determine
 when to set the immediate-ack flag:
