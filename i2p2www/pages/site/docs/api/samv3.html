@@ -1,7 +1,7 @@
 {% extends "global/layout.html" %}
 {% block title %}SAM V3{% endblock %}
-{% block lastupdated %}2022-06{% endblock %}
-{% block accuratefor %}1.8.0{% endblock %}
+{% block lastupdated %}2022-09{% endblock %}
+{% block accuratefor %}1.9.0{% endblock %}
 {% block content %}
 <p>SAM is a simple client protocol for interacting with I2P.
 SAM is the recommended protocol for non-Java applications to connect to the I2P network,
@@ -539,6 +539,8 @@ received through other forms are answered with an error message) :
           [TO_PORT=nnn]                        # SAM 3.2 or higher only, default 0
           [PROTOCOL=nnn]                       # SAM 3.2 or higher only, for STYLE=RAW only, default 18
           [HEADER={true,false}]                # SAM 3.2 or higher only, for STYLE=RAW only, default false
+          [sam.udp.host=hostname]              # Datagram bind host, Java I2P only, DATAGRAM/RAW only, default 127.0.0.1
+          [sam.udp.port=nnn]                   # Datagram bind port, Java I2P only, DATAGRAM/RAW only, default 7655
           [option=value]*                      # I2CP and streaming options
 </pre>
 
@@ -990,7 +992,7 @@ Reliability is inversely proportional to message size, perhaps even exponentiall
 
 </p><p>
 After establishing a SAM session with STYLE=DATAGRAM or STYLE=RAW, the client can
-send repliable or raw datagrams through SAM's UDP port (7655).
+send repliable or raw datagrams through SAM's UDP port (7655 by default).
 
 </p><p>
 The first line of a datagram sent through this port must be in the
@@ -1097,6 +1099,8 @@ CREATE command with PORT and HOST options:
           [FROM_PORT=nnn]                      # SAM 3.2 or higher only, default 0
           [TO_PORT=nnn]                        # SAM 3.2 or higher only, default 0
           [PROTOCOL=nnn]                       # SAM 3.2 or higher only, for STYLE=RAW only, default 18
+          [sam.udp.host=hostname]              # Datagram bind host, Java I2P only, default 127.0.0.1
+          [sam.udp.port=nnn]                   # Datagram bind port, Java I2P only, default 7655
           [option=value]*                      # I2CP options
 </pre>
 
@@ -1313,6 +1317,8 @@ for DHT communication.
           STYLE=PRIMARY                        # prior to 0.9.47, use STYLE=MASTER
           ID=$nickname
           DESTINATION={$privkey,TRANSIENT}
+          [sam.udp.host=hostname]              # Datagram bind host, Java I2P only, default 127.0.0.1
+          [sam.udp.port=nnn]                   # Datagram bind port, Java I2P only, default 7655
           [option=value]*                      # I2CP and streaming options
 </pre>
 
@@ -1357,6 +1363,8 @@ Using the same control socket on which the PRIMARY session was created:
           [LISTEN_PROTOCOL=nnn]                # For inbound traffic for STYLE=RAW only.
                                                # Default is the PROTOCOL value; 6 (streaming) is disallowed
           [HEADER={true,false}]                # For STYLE=RAW only, default false
+          [sam.udp.host=hostname]              # Datagram bind host, Java I2P only, DATAGRAM/RAW only, default 127.0.0.1
+          [sam.udp.port=nnn]                   # Datagram bind port, Java I2P only, DATAGRAM/RAW only, default 7655
           [option=value]*                      # I2CP and streaming options
 </pre>
 
@@ -1649,11 +1657,13 @@ The default SAM port is 7656. SAM is not enabled by default in the Java I2P Rout
 it must be started manually, or configured to start automatically,
 on the configure clients page in the router console, or in the clients.config file.
 The default SAM UDP port is 7655, listening on 127.0.0.1.
-These may be changed by adding the arguments sam.udp.port=nnnnn and/or
-sam.udp.host=w.x.y.z to the invocation.
+These may be changed in the Java router by adding the arguments sam.udp.port=nnnnn and/or
+sam.udp.host=w.x.y.z to the invocation, or on the SESSION line.
 
 </p><p>
 Configuration in other routers is implementation-specific.
+See <a href="https://i2pd.readthedocs.io/en/latest/user-guide/configuration/">the i2pd configuration guide here</a>.
+
 
 </p>
 {% endblock %}
