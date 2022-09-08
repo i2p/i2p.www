@@ -1,7 +1,7 @@
 {% extends "global/layout.html" %}
 {% block title %}I2PTunnel{% endblock %}
-{% block lastupdated %}January 2016{% endblock %}
-{% block accuratefor %}0.9.24{% endblock %}
+{% block lastupdated %}2022-09{% endblock %}
+{% block accuratefor %}1.9.0{% endblock %}
 {% block content %}
 
 <h2 id="overview">{% trans %}Overview{% endtrans %}</h2>
@@ -35,10 +35,9 @@ A HTTP proxy used for browsing I2P and the regular internet anonymously through 
 Browsing internet through I2P uses a random proxy specified by the "Outproxies:" option.
 {%- endtrans %}</li>
 <li><b>Irc2P</b> - <i>localhost:6668</i> - {% trans %}An IRC tunnel to the default anonymous IRC network, Irc2P.{% endtrans %}</li>
-<li><b>mtn.i2p2.i2p</b> - <i>localhost:8998</i> - {% trans monotone='http://en.wikipedia.org/wiki/Monotone_%28software%29' -%}
-The anonymous <a href="{{ monotone }}">monotone</a>
-sourcecode repository for I2P
-{%- endtrans %}</li>
+<li><b>gitssh.idk.i2p</b> - <i>localhost:7670</i> -
+SSH access to the project Git repository
+</li>
 <li><b>smtp.postman.i2p</b> - <i>localhost:7659</i> - {% trans postman=i2pconv('hq.postman.i2p') -%}
 A SMTP service provided by postman at <a href="http://{{ postman }}/?page_id=16">{{ postman }}</a>
 {%- endtrans %}</li>
@@ -74,6 +73,50 @@ in a HTTP request. Supports proxying onto internet if an outproxy is provided. S
 </ul>
 
 <p>
+The HTTP client proxy provides a number of services to protect the user
+and to provide a better user experience.
+</p>
+
+<ul><li>Request header processing:
+<ul><li>Strip privacy-problematic headers
+<li>Routing to local or remote outproxy
+<li>Outproxy selection, caching, and reachability tracking
+<li>Hostname to destination lookups
+<li>Host header replacement to b32
+<li>Add header to indicate support for transparent decompression
+<li>Force connection: close
+<li>RFC-compliant proxy support
+<li>RFC-compliant hop-by-hop header processing and stripping
+<li>Optional digest and basic username/password authentication
+<li>Optional outproxy digest and basic username/password authentication
+<li>Buffering of all headers before passing through for efficiency
+<li>Jump server links
+<li>Jump response processing and forms (address helper)
+<li>Blinded b32 processing and credential forms
+<li>Supports standard HTTP and HTTPS (CONNECT) requests
+</ul>
+
+<li>Response header processing:
+<ul><li>Check for whether to decompress response
+<li>Force connection: close
+<li>RFC-compliant hop-by-hop header processing and stripping
+<li>Buffering of all headers before passing through for efficiency
+</ul>
+
+<li>HTTP error responses:
+<ul><li>For many common and not-so-common errors, so the user knows what happened
+<li>Over 20 unique translated, styled, and formatted error pages for various errors
+<li>Internal web server to serve forms, CSS, images, and errors
+</ul>
+
+<li>Transparent response decompression:
+<ul><li>If the server-side HTTP proxy compressed the response,
+the HTTP client proxy transparently decompresses it.
+</ul>
+</ul>
+
+
+<p>
 The i2ptunnel compression is requested with the HTTP header:
 </p>
 <ul>
@@ -91,7 +134,7 @@ The response indicating i2ptunnel compression contains the following HTTP header
 Depending on if the tunnel is using an outproxy or not it will append the following User-Agent: 
 {%- endtrans %}</p>
 <ul>
-<li><i>{% trans %}Outproxy:{% endtrans %} </i><b>User-Agent:</b> Mozilla/5.0 (Windows; U; Windows NT 5.1; en-US; rv:1.9.2.6) Gecko/20100625 Firefox/3.6.6</li>
+<li><i>{% trans %}Outproxy:{% endtrans %} </i><b>User-Agent:</b> Uses the user agent from a recent Firefox release on Windows</li>
 <li><i>{% trans %}Internal I2P use:{% endtrans %} </i><b>User-Agent:</b> MYOB/6.66 (AN/ON)</li>
 </ul>
 </p>
@@ -101,8 +144,8 @@ Depending on if the tunnel is using an outproxy or not it will append the follow
 Creates a connection to a random IRC server specified by the comma seprated (", ") 
 list of destinations. Only a whitelisted subset of IRC commands are allowed due to anonymity concerns.
 {%- endtrans %}
-The following whitelist is for commands inbound from the IRC server to the IRC client.
-<br>{% trans %}Whitelist:{% endtrans %}</p>
+The following allow list is for commands inbound from the IRC server to the IRC client.
+<br>Allow list:</p>
 <ul>
 <li>AUTHENTICATE</li>
 <li>CAP</li>
@@ -173,7 +216,51 @@ Creates a destination to a local HTTP server ip:port. Supports gzip for requests
 Accept-encoding: x-i2p-gzip, replies with Content-encoding: x-i2p-gzip in such a request.
 {%- endtrans %}</p>
 
+<p>
+The HTTP server proxy provides a number of services to make hosting a website easier and more secure,
+and to provide a better user experience on the client side.
+</p>
+
+<ul><li>Request header processing:
+<ul><li>Header validation
+<li>Header spoof protection
+<li>Header size checks
+<li>Optional inproxy and user-agent rejection
+<li>Add X-I2P headers so the webserver knows where the request came from
+<li>Host header replacement to make webserver vhosts easier
+<li>Force connection: close
+<li>RFC-compliant hop-by-hop header processing and stripping
+<li>Buffering of all headers before passing through for efficiency
+</ul>
+
+<li>DDoS protection:
+<ul><li>POST throttling
+<li>Timeouts and slowloris protection
+<li>Additional throttling happens in streaming for all tunnel types
+</ul>
+
+<li>Response header processing:
+<ul><li>Stripping of some privacy-problematic headers
+<li>Mime type and other headers check for whether to compress response
+<li>Force connection: close
+<li>RFC-compliant hop-by-hop header processing and stripping
+<li>Buffering of all headers before passing through for efficiency
+</ul>
+
+<li>HTTP error responses:
+<ul><li>For many common and not-so-common errors and on throttling, so the client-side user knows what happened
+</ul>
+
+<li>Transparent response compression:
+<ul><li>The web server and/or the I2CP layer may compress, but the web server often does not,
+and it's most efficient to compress at a high layer, even if I2CP also compresses.
+The HTTP server proxy works cooperatively with the client-side proxy to transparently compress responses.
+</ul>
+</ul>
+
+
 <h3 id="server-mode-http-bidir">HTTP Bidirectional</h3>
+<p><i>Deprecated</i></p>
 <p>{% trans -%}
 Functions as both a I2PTunnel HTTP Server, and a I2PTunnel HTTP client with no outproxying
 capabilities. An example application would be a web application that does client-type
