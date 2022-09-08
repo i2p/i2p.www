@@ -22,6 +22,6 @@ so far, it is highly recommended that all users update to the new build.
 {%- endtrans %}
 
 {% trans -%}
-This release also features faster startup times improved stability in the profile
+This release also features faster startup and times improved stability in the profile
 manager.
 {%- endtrans %}
