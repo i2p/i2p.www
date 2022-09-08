@@ -5,8 +5,8 @@
 
 .. meta::
    :author: sadie
-   :date: 2022-08-28
-   :category: release
+   :date: 2022-09-07
+   :category: general
    :excerpt: {% trans %}An interview with the maintainers of the StormyCloud Outproxy{% endtrans %}
 
 {% trans -%}

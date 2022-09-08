@@ -4,7 +4,7 @@
 
 .. meta::
    :author: idk
-   :date: 2022-08-28
+   :date: 2022-09-07
    :category: release
    :excerpt: {% trans %}Windows Easy-Install Bundle 1.9.5{% endtrans %}
 

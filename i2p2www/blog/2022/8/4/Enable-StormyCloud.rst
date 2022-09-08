@@ -5,7 +5,7 @@
 .. meta::
    :author: idk
    :date: 2022-08-04
-   :category: outproxy
+   :category: general
    :excerpt: {% trans %}How to Switch to the StormyCloud Outproxy Service{% endtrans %}
 
 {% trans -%}
