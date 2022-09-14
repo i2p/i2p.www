@@ -19,7 +19,7 @@ and performance, we can do better. Much better.
 {%- endtrans %}
 
 {% trans -%}
-That's why, together with i2pd, we have designed and implemented "SSU2",
+That's why, together with the i2pd project, we have created and implemented "SSU2",
 a modern UDP protocol designed to the highest standards of security and blocking resistance.
 {%- endtrans %}
 
@@ -32,7 +32,7 @@ SSU2 may be one of the most secure transport protocols ever designed.
 
 
 {% trans link1="{{ proposal_url('159') }}", link2="{{ site_url('docs/transport/ssu') }}", link3="https://en.wikipedia.org/wiki/ElGamal_encryption" -%}
-The Java I2P and i2pd teams are finishing the `SSU2 transport <{{ link1 }}>`_ and we will enable it for all in the next release.
+The Java I2P and i2pd teams are finishing the `SSU2 transport <{{ link1 }}>`_ and we will enable it for all routers in the next release.
 This completes our decade-long plan to upgrade all the cryptography from the original
 Java I2P implementation dating back to 2003.
 SSU2 will replace `SSU <{{ link2 }}>`_, our last remaining use of `ElGamal <{{ link3 }}>`_ cryptography.
@@ -109,9 +109,45 @@ Then, we carefully reviewed and borrowed heavily from two recently-developed UDP
 - `WireGuard <https://www.wireguard.com/protocol/>`_
 
 {% trans -%}
+Protocol classification and blocking by adversarial on-path attackers such
+as nation-state firewalls is not an explicit part of the threat model for those protocols.
+However, it is an important part of I2P's threat model, as our mission is to
+provide an anonymous and censorship-resistant communications system to at-risk users around the world.
+Therefore, much of our design work involved combining the lessons learned from
+NTCP2 and SSU with the features and security supported by QUIC and WireGuard.
+{%- endtrans %}
+
+
+{% trans -%}
 Unlike QUIC, I2P transport protocols are peer-to-peer, with no defined server/client relationship.
 Identities and public keys are published in I2P's network database,
 and the handshake must authenticate participants to those identities.
+{%- endtrans %}
+
+
+{% trans -%}
+A complete summary of the SSU2 design is beyond the scope of this article.
+However, we highlight several features of the protocol below,
+emphasizing the challenges of UDP protocol design and threat models.
+{%- endtrans %}
+
+
+
+
+
+{% trans %}DoS Resistance{% endtrans %}
+`````````````````````````````````````````````````
+
+{% trans -%}
+UDP protocols are especially vulnerable to Denial of Service (DoS) attacks.
+By sending a large amount of packets with spoofed source addresses to a victim,
+an attacker can induce the victim to consume large amounts of CPU and bandwidth to respond.
+In SSU2, we adapt the token concept from QUIC and WireGuard.
+When a router receives a connection request without a valid token,
+it does not perform an expensive cryptographic DH operation.
+It simply responds with small message containing a valid token using inexpensive cryptographic operations.
+If the initiator was not spoofing his address, he will receive the token and the handshake may proceed normally.
+This prevents any traffic amplification attacks using spoofed addresses.
 {%- endtrans %}
 
 
@@ -162,13 +198,13 @@ While encrypting the session ID makes incoming packet classification a little mo
 {% trans %}Packet Numbering, ACKS, and Retransmission{% endtrans %}
 ```````````````````````````````````````````````````````````````````````
 
-{% trans link1="{{ spec_url('streaming') }}>" -%}
+{% trans link1="{{ spec_url('streaming') }}" -%}
 SSU2 contains several improvements over SSU for security and efficiency.
 The packet number is the AEAD nonce, and each packet number is only used once.
-Acknowledgements (ACKs) are for packet numbers, not I2NP message numbers.
+Acknowledgements (ACKs) are for packet numbers, not I2NP message numbers or fragments.
 ACKs are sent in a very efficient, compact format adapted from QUIC.
 An immediate-ack request mechanism is supported, similar to SSU.
-Congestion control, windoing, timers, and retransmission strategies are not fully specified,
+Congestion control, windowing, timers, and retransmission strategies are not fully specified,
 to allow for implementation flexibility and improvements,
 but general guidance is taken from the RFCs for TCP.
 Additional algorithms for timers are adapted from I2P's `streaming protocol <{{ link1 }}>`_ and SSU implementations.
@@ -214,4 +250,38 @@ These two services are essentially sub-protocols within the SSU transport.
 SSU2 updates the security and reliability of these services by
 enhancing the sub-protocols to add more response codes, encryption, authentication,
 and restrictions to the design and implementation.
+{%- endtrans %}
+
+
+
+
+
+{% trans %}Summary{% endtrans %}
+------------------------------------
+
+{% trans -%}
+The founders of I2P had to make plenty of choices for cryptographic algorithms and protocols.
+Some of those choices were better than others, but twenty years later, most are showing their age.
+Of course, we knew this was coming, and we've spent the last decade planning and making changes.
+As the old saying goes, upgrading protocols while maintaining backward compatibility
+and avoiding a "flag day" is like changing the tires on the bus while it's rolling down the road.
+{%- endtrans %}
+
+{% trans -%}
+The final and most complex protocol to develop in our long upgrade path has been SSU2.
+UDP has a very challenging set of assumptions and threat model.
+We first needed to design and roll out three other flavors of Noise protocols,
+and gain experience and deeper understanding of security and protocol design issues.
+Finally, we had to discover, research, and fully understand two modern UDP protocols - WireGuard and QUIC.
+While the authors of those protocols didn't solve all of our problems for us,
+the documentation of the UDP threat models and their designed countermeasures gave us the
+confidence that we too would be able to complete our task.
+We thank them as well as the creators of all the cryptography we rely on to keep our users safe.
+{%- endtrans %}
+
+
+{% trans -%}
+Expect SSU2 to be enabled in the i2pd and Java I2P releases scheduled for November 2022.
+If the update goes well, nobody will notice anything different at all.
+It's just additional protection for whatever is coming at us next.
 {%- endtrans %}
