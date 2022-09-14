@@ -31,7 +31,7 @@ SSU2 may be one of the most secure transport protocols ever designed.
 {%- endtrans %}
 
 
-{% trans link1="{{ proposal_url('159') }}", link2="{{ site_url('docs/transport/ssu') }}", link3="https://en.wikipedia.org/wiki/ElGamal_encryption" -%}
+{% trans link1="{{ proposal_url("159") }}", link2="{{ site_url("docs/transport/ssu") }}", link3="https://en.wikipedia.org/wiki/ElGamal_encryption" -%}
 The Java I2P and i2pd teams are finishing the `SSU2 transport <{{ link1 }}>`_ and we will enable it for all routers in the next release.
 This completes our decade-long plan to upgrade all the cryptography from the original
 Java I2P implementation dating back to 2003.
@@ -83,7 +83,7 @@ All I2P Noise protocols use the following standard cryptographic algorithms:
 {% trans %}Design{% endtrans %}
 ------------------------------------
 
-{% trans link1="{{ spec_url('i2np') }}" -%}
+{% trans link1="{{ spec_url("i2np") }}" -%}
 SSU2, like previous I2P transport protocols, is not a general-purpose pipe for data.
 Its primary job is to securely deliver I2P's low-level `I2NP messages <{{ link1 }}>`_
 from one router to the next router.
@@ -198,7 +198,7 @@ While encrypting the session ID makes incoming packet classification a little mo
 {% trans %}Packet Numbering, ACKS, and Retransmission{% endtrans %}
 ```````````````````````````````````````````````````````````````````````
 
-{% trans link1="{{ spec_url('streaming') }}" -%}
+{% trans link1="{{ spec_url("streaming") }}" -%}
 SSU2 contains several improvements over SSU for security and efficiency.
 The packet number is the AEAD nonce, and each packet number is only used once.
 Acknowledgements (ACKs) are for packet numbers, not I2NP message numbers or fragments.
