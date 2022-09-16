@@ -18,8 +18,8 @@ However, by today's standards of security, blocking resistance,
 and performance, we can do better. Much better.
 {%- endtrans %}
 
-{% trans -%}
-That's why, together with the i2pd project, we have created and implemented "SSU2",
+{% trans link1="https://i2pd.xyz/" -%}
+That's why, together with the `i2pd project <{{ link1 }}>`_, we have created and implemented "SSU2",
 a modern UDP protocol designed to the highest standards of security and blocking resistance.
 {%- endtrans %}
 
@@ -31,7 +31,7 @@ SSU2 may be one of the most secure transport protocols ever designed.
 {%- endtrans %}
 
 
-{% trans link1="{{proposal_url('159')}}", link2="{{site_url('docs/transport/ssu')}}", link3="https://en.wikipedia.org/wiki/ElGamal_encryption" -%}
+{% trans link1="/spec/proposals/159", link2="/en/docs/transport/ssu", link3="https://en.wikipedia.org/wiki/ElGamal_encryption" -%}
 The Java I2P and i2pd teams are finishing the `SSU2 transport <{{ link1 }}>`_ and we will enable it for all routers in the next release.
 This completes our decade-long plan to upgrade all the cryptography from the original
 Java I2P implementation dating back to 2003.
@@ -83,7 +83,7 @@ All I2P Noise protocols use the following standard cryptographic algorithms:
 {% trans %}Design{% endtrans %}
 ------------------------------------
 
-{% trans link1="{{spec_url('i2np')}}" -%}
+{% trans link1="/spec/i2np" -%}
 SSU2, like previous I2P transport protocols, is not a general-purpose pipe for data.
 Its primary job is to securely deliver I2P's low-level `I2NP messages <{{ link1 }}>`_
 from one router to the next router.
@@ -198,7 +198,7 @@ While encrypting the session ID makes incoming packet classification a little mo
 {% trans %}Packet Numbering, ACKS, and Retransmission{% endtrans %}
 ```````````````````````````````````````````````````````````````````````
 
-{% trans link1="{{spec_url('streaming')}}" -%}
+{% trans link1="/en/docs/api/streaming" -%}
 SSU2 contains several improvements over SSU for security and efficiency.
 The packet number is the AEAD nonce, and each packet number is only used once.
 Acknowledgements (ACKs) are for packet numbers, not I2NP message numbers or fragments.
@@ -256,11 +256,36 @@ and restrictions to the design and implementation.
 
 
 
+{% trans %}Transition Plan{% endtrans %}
+--------------------------------------------
+
+{% trans -%}
+I2P strives to maintain backward compatibility, both to ensure network stability,
+and to allow older routers to continue to be useful and secure.
+However, there are limits, because compatibility increases code complexity
+and maintenance requirements.
+{%- endtrans %}
+
+
+{% trans -%}
+The Java I2P and i2pd projects will both enable SSU2 by default in their next releases (2.0.0 and 2.44.0) in November 2022.
+However, they have different plans for disabling SSU 1.
+I2pd will disable SSU 1 immediately, because SSU2 is a vast improvement over their SSU 1 implementation.
+Java I2P plans to disable SSU 1 in mid-2023, to support a gradual transition
+and give older routers time to upgrade.
+Because Java I2P release 0.9.36 and i2pd release 2.20.0 (2018) were the first to support NTCP2,
+routers older than that will not be able to connect to i2pd routers 2.44.0 or higher.
+{%- endtrans %}
+
+
+
+
+
 {% trans %}Summary{% endtrans %}
 ------------------------------------
 
 {% trans -%}
-The founders of I2P had to make plenty of choices for cryptographic algorithms and protocols.
+The founders of I2P had to make several choices for cryptographic algorithms and protocols.
 Some of those choices were better than others, but twenty years later, most are showing their age.
 Of course, we knew this was coming, and we've spent the last decade planning and making changes.
 As the old saying goes, upgrading protocols while maintaining backward compatibility
@@ -268,7 +293,7 @@ and avoiding a "flag day" is like changing the tires on the bus while it's rolli
 {%- endtrans %}
 
 {% trans -%}
-The final and most complex protocol to develop in our long upgrade path has been SSU2.
+The last and most complex protocol to develop in our long upgrade path has been SSU2.
 UDP has a very challenging set of assumptions and threat model.
 We first needed to design and roll out three other flavors of Noise protocols,
 and gain experience and deeper understanding of security and protocol design issues.
@@ -283,5 +308,12 @@ We thank them as well as the creators of all the cryptography we rely on to keep
 {% trans -%}
 Expect SSU2 to be enabled in the i2pd and Java I2P releases scheduled for November 2022.
 If the update goes well, nobody will notice anything different at all.
-It's just additional protection for whatever is coming at us next.
+The performance benefits are not expected to be visible to the user.
+The security benefits are just additional protection for future threats.
+{%- endtrans %}
+
+
+{% trans -%}
+As usual, we recommend that you update to the new release. The best way to
+maintain security and help the network is to run the latest release.
 {%- endtrans %}
