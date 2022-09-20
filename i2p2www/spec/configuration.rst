@@ -3,7 +3,7 @@ Configuration File Specification
 ================================
 .. meta::
     :category: Formats
-    :lastupdated: August 2022
+    :lastupdated: September 2022
     :accuratefor: 0.9.56
 
 .. contents::
@@ -412,7 +412,11 @@ Properties are as follows::
 
     # HTTP Clients only. The MD5 of the password for local authorization for
     # user USER.
-    tunnel.N.option.proxy.auth.USER.md5=
+    tunnel.N.option.proxy.auth.USER.md5=(32 char lowercase hex)
+
+    # HTTP Clients only. The SHA-256 of the password for local authorization for
+    # user USER. (RFC 7616) Since 0.9.56
+    tunnel.N.option.proxy.auth.USER.sha256=(64 char lowercase hex)
 
     # HTTP Servers only. Whether to reject incoming connections apparently via
     # an inproxy. Default false.
