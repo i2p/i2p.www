@@ -32,10 +32,10 @@
 ##sudo adduser --disabled-password --disabled-login --ingroup docker docker
 ## however the specifics may vary from distribution to distribution.
 
+dir=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
 
-
-if [ -f config.sh ]; then
-	. config.sh
+if [ -f "${dir}/config.sh" ]; then
+	. "${dir}/config.sh"
 fi
 
 if [ -z $port ]; then
