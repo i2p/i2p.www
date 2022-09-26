@@ -108,6 +108,7 @@ them, prior to interacting with us.
 {%- endtrans %}
 
 -  `Launchpad : https://launchpad.net/i2p <https://launchpad.net/i2p>`__
+-  `Github : https://github.com/i2p <https://github.com/i2p>`__
 -  `Twitter : https://twitter.com/GetI2P <https://twitter.com/GetI2P>`__
 -  `Reddit :
    https://www.reddit.com/r/i2p/ <https://www.reddit.com/r/i2p/>`__
