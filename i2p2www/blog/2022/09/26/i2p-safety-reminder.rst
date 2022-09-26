@@ -54,8 +54,8 @@ wild, we are documenting their tactics:
    third-party service unless you already use it(Note that this is not
    always true for other forks and projects, but it is true of
    geti2p.net).
--  The use of bot networks to amplify the message on social media.
-   I2P(geti2p.net) does not use bots to spread the message.
+-  The use of bot networks to amplify any message on social media.
+   I2P(geti2p.net) does not use bots for social media advertising.
 
 {% trans -%}
 These campaigns have had the side-effect of “shadow-banning” some
