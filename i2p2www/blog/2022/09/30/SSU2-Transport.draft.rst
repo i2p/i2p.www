@@ -35,7 +35,7 @@ SSU2 may be one of the most secure transport protocols ever designed.
 The Java I2P and i2pd teams are finishing the `SSU2 transport <{{ link1 }}>`_ and we will enable it for all routers in the next release.
 This completes our decade-long plan to upgrade all the cryptography from the original
 Java I2P implementation dating back to 2003.
-SSU2 will replace `SSU <{{ link2 }}>`_, our last remaining use of `ElGamal <{{ link3 }}>`_ cryptography.
+SSU2 will replace `SSU <{{ link2 }}>`_, our sole remaining use of `ElGamal <{{ link3 }}>`_ cryptography.
 {%- endtrans %}
 
 - Signature types and ECDSA signatures (0.9.12, 2014)
@@ -46,7 +46,7 @@ SSU2 will replace `SSU <{{ link2 }}>`_, our last remaining use of `ElGamal <{{ l
 - Router encryption types and X25519 routers (0.9.49, 2021)
 
 {% trans link1="https://noiseprotocol.org/" -%}
-With the completion of SSU2,
+After the transition to SSU2,
 we will have migrated all our authenticated and encrypted protocols to standard `Noise Protocol <{{ link1 }}>`_ handshakes:
 {%- endtrans %}
 
@@ -156,7 +156,7 @@ This prevents any traffic amplification attacks using spoofed addresses.
 `````````````````````````````````````````````````
 
 {% trans -%}
-SSU2's packet headers are similar to WireGuard, with encryption similar to that in QUIC.
+SSU2's packet headers are similar to WireGuard, and are encrypted in a manner similar to that in QUIC.
 {%- endtrans %}
 
 {% trans -%}
@@ -169,18 +169,10 @@ new UDP protocols such as QUIC and WireGuard.
 Ensuring that SSU2 headers are adequately obfuscated and/or encrypted was the first task we addressed.
 {%- endtrans %}
 
-{% trans -%}
-Headers are encrypted with known keys published in the network database or calculated later.
-In the handshake phase, this is for DPI resistance only, as the key is public and the key and nonces are reused,
-so it is effectively just obfuscation.
-Note that the header encryption is also used to obfuscate the X25519 ephemeral keys in the handshake,
-to inhibit protocol identification.
-{%- endtrans %}
-
 {% trans link1="https://eprint.iacr.org/2019/624.pdf" -%}
 Headers are encrypted using a header protection scheme by XORing with data calculated from known keys,
 using ChaCha20, similar to QUIC [RFC-9001] and `Nonces are Noticed <{{ link1 }}>`_.
-This ensures that the encrypted short header and the first part of the long header will appear to be random.
+This ensures that the encrypted headers will appear to be random, without any distinguishable pattern.
 {%- endtrans %}
 
 {% trans -%}
@@ -189,8 +181,21 @@ QUIC [RFC-9001] and [Nonces] are primarily focused on encrypting the "critical" 
 While encrypting the session ID makes incoming packet classification a little more complex, it makes some attacks more difficult.
 {%- endtrans %}
 
+{% trans -%}
+Our threat model assumes that censorship firewalls do not have real-time access to I2P's network database.
+Headers are encrypted with known keys published in the network database or calculated later.
+In the handshake phase, header encryption is for traffic classification resistance only,
+as the decryption key is public and the key and nonces are reused.
+Header encryption in this phase is effectively just obfuscation.
+Note that the header encryption is also used to obfuscate the X25519 ephemeral keys in the handshake,
+for additional protection.
+{%- endtrans %}
 
-
+{% trans -%}
+In the data phase, only the session ID field is encrypted with a key from the network database.
+The critical nonce field is encrypted with a key derived from the handshake,
+so it may not be decrypted even by a party with access to the network database.
+{%- endtrans %}
 
 
 
@@ -248,11 +253,59 @@ These two services are essentially sub-protocols within the SSU transport.
 
 {% trans -%}
 SSU2 updates the security and reliability of these services by
-enhancing the sub-protocols to add more response codes, encryption, authentication,
+enhancing them to add more response codes, encryption, authentication,
 and restrictions to the design and implementation.
 {%- endtrans %}
 
 
+
+
+
+{% trans %}Performance{% endtrans %}
+--------------------------------------------
+
+{% trans -%}
+The I2P network is a complex mix of diverse routers.
+There are two primary implementations running all over the world on
+hardware ranging from high-performance data center computers to
+Raspberry Pis and Android phones.
+Routers use both TCP and UDP transports.
+While the SSU2 improvements are significant, we do not expect them
+to be apparent to the user, either locally or in end-to-end transfer speeds.
+End-to-end transfers depend on the performance of 13 other routers
+and 14 point-to-point transport links, each of which could be
+SSU2, NTCP2, or SSU 1.
+{%- endtrans %}
+
+{% trans -%}
+In the live network, latency and packet loss varies widely.
+Even in a test setup, performance depends on configured latency and packet loss.
+The i2pd project reports that maximum transfer rates for SSU2 were over 3 times
+faster than SSU 1 in some tests. However, they completely redesigned their
+SSU 1 code for SSU2 as their previous implementation was rather poor.
+The Java I2P project does not expect that their SSU2 implementation will be any faster than SSU 1.
+{%- endtrans %}
+
+{% trans -%}
+Very low-end platforms such as Raspberry Pis and OpenWRT may see substantial improvements
+from the elimination of SSU 1.
+ElGamal is extremely slow and limits performance on those platforms.
+{%- endtrans %}
+
+{% trans -%}
+SSU2 data phase encryption uses ChaCha20/Poly1305, compared to AES with a MD5 HMAC for SSU 1.
+Both are very fast and the change is not expected to measurably affect performance.
+{%- endtrans %}
+
+{% trans -%}
+Here are some highlights of the estimated improvements for SSU2 over SSU 1:
+{%- endtrans %}
+
+- {% trans %}40% reduction in total handshake packet size{% endtrans %}
+- {% trans %}50% or more reduction in handshake CPU{% endtrans %}
+- {% trans %}90% or more reduction in ACK overhead{% endtrans %}
+- {% trans %}50% reduction in packet fragmentation{% endtrans %}
+- {% trans %}10% reduction in data phase overhead{% endtrans %}
 
 
 
@@ -287,19 +340,19 @@ routers older than that will not be able to connect to i2pd routers 2.44.0 or hi
 {% trans -%}
 The founders of I2P had to make several choices for cryptographic algorithms and protocols.
 Some of those choices were better than others, but twenty years later, most are showing their age.
-Of course, we knew this was coming, and we've spent the last decade planning and making changes.
-As the old saying goes, upgrading protocols while maintaining backward compatibility
+Of course, we knew this was coming, and we've spent the last decade planning and implementing cryptographic upgrades.
+As the old saying goes, upgrading things while maintaining backward compatibility
 and avoiding a "flag day" is like changing the tires on the bus while it's rolling down the road.
 {%- endtrans %}
 
 {% trans -%}
-The last and most complex protocol to develop in our long upgrade path has been SSU2.
+SSU2 was the last and most complex protocol to develop in our long upgrade path.
 UDP has a very challenging set of assumptions and threat model.
-We first needed to design and roll out three other flavors of Noise protocols,
-and gain experience and deeper understanding of security and protocol design issues.
-Finally, we had to discover, research, and fully understand two modern UDP protocols - WireGuard and QUIC.
+We first designed and rolled out three other flavors of Noise protocols,
+and gained experience and deeper understanding of the security and protocol design issues.
+Finally, we had to research and fully understand other modern UDP protocols - WireGuard and QUIC.
 While the authors of those protocols didn't solve all of our problems for us,
-the documentation of the UDP threat models and their designed countermeasures gave us the
+their documentation of the UDP threat models and their designed countermeasures gave us the
 confidence that we too would be able to complete our task.
 We thank them as well as the creators of all the cryptography we rely on to keep our users safe.
 {%- endtrans %}
@@ -308,12 +361,11 @@ We thank them as well as the creators of all the cryptography we rely on to keep
 {% trans -%}
 Expect SSU2 to be enabled in the i2pd and Java I2P releases scheduled for November 2022.
 If the update goes well, nobody will notice anything different at all.
-The performance benefits are not expected to be visible to the user.
-The security benefits are just additional protection for future threats.
+The performance benefits, while significant, will probably not be noticeable.
 {%- endtrans %}
 
 
 {% trans -%}
-As usual, we recommend that you update to the new release. The best way to
-maintain security and help the network is to run the latest release.
+As usual, we recommend that you update to the new release when it's available.
+The best way to maintain security and help the network is to run the latest release.
 {%- endtrans %}
