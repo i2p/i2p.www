@@ -5,7 +5,7 @@ A Reminder to be Safe as I2P Grows
 {%- endtrans %}
 .. meta::
     :author: idk
-    :date: 2022-09-24
+    :date: 2022-09-26
     :category: general
     :excerpt: {% trans %}{% endtrans %}
 
