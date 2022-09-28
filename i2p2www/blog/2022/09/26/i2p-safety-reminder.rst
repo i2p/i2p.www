@@ -75,7 +75,7 @@ We have official sites where people may obtain the I2P software safely:
 -  `Official Website - geti2p.net - TLS Fingerprint(SHA256) -
    5B:09:29:D9:26:64:7D:0E:33:B6:4A:9D:6F:58:FA:5E:24:EF:18:81:21:A9:A9:4F:8B:D2:CE:D8:74:91:60:8B <https://geti2p.net>`__
 -  `Official Gitlab - i2pgit.org - TLS Fingerprint(SHA256) -
-   0E:90:B8:61:AA:38:AB:4A:A4:F3:54:07:AC:8B:B6:FF:03:3D:DC:18:31:BD:BA:EA:4C:A9:73:28:22:CB:97:30 <https://i2pgit.org>`__
+   D5:E4:E0:88:B2:21:69:F2:A1:6F:AB:FF:97:08:8C:65:5C:2C:27:2A:B1:CB:E7:49:A4:54:10:52:81:B4:4D:B1 <https://i2pgit.org>`__
 -  `Official Debian Repository - deb.i2p2.de - TLS
    Fingerprint(SHA256) -
    17:42:0B:AB:B6:4F:24:51:5E:BC:AD:10:44:9E:2C:C9:37:BB:28:89:74:62:6B:0A:9F:23:4C:5E:A5:EA:64:91 <https://deb.i2p2.de>`__
