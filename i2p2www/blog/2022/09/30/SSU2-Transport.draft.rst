@@ -21,6 +21,7 @@ and performance, we can do better. Much better.
 {% trans link1="https://i2pd.xyz/" -%}
 That's why, together with the `i2pd project <{{ link1 }}>`_, we have created and implemented "SSU2",
 a modern UDP protocol designed to the highest standards of security and blocking resistance.
+This protocol will replace SSU.
 {%- endtrans %}
 
 {% trans -%}
@@ -38,8 +39,7 @@ Java I2P implementation dating back to 2003.
 SSU2 will replace `SSU <{{ link2 }}>`_, our sole remaining use of `ElGamal <{{ link3 }}>`_ cryptography.
 {%- endtrans %}
 
-- Signature types and ECDSA signatures (0.9.12, 2014)
-- ECDSA routers (??)
+- Signature types and ECDSA signatures (0.9.8, 2013)
 - Ed25519 signatures and leasesets (0.9.15, 2014)
 - Ed25519 routers (0.9.22, 2015)
 - Destination encryption types and X25519 leasesets (0.9.46, 2020)
@@ -83,10 +83,19 @@ All I2P Noise protocols use the following standard cryptographic algorithms:
 {% trans %}Design{% endtrans %}
 ------------------------------------
 
+{% trans -%}
+I2P uses multiple layers of encryption to protect traffic from attackers.
+The lowest layer is the transport protocol layer, used for point-to-point links between two routers.
+We currently have two transport protocols:
+NTCP2, a modern TCP protocol introduced in 2018,
+and SSU, a UDP protocol developed in 2005.
+{%- endtrans %}
+
+
 {% trans link1="/spec/i2np" -%}
 SSU2, like previous I2P transport protocols, is not a general-purpose pipe for data.
-Its primary job is to securely deliver I2P's low-level `I2NP messages <{{ link1 }}>`_
-from one router to the next router.
+Its primary task is to securely deliver I2P's low-level `I2NP messages <{{ link1 }}>`_
+from one router to the next.
 Each of these point-to-point connections comprises one hop in an I2P tunnel.
 Higher-layer I2P protocols run over these point-to-point connections
 to deliver garlic messages end-to-end between I2P's destinations.
@@ -171,13 +180,13 @@ Ensuring that SSU2 headers are adequately obfuscated and/or encrypted was the fi
 
 {% trans link1="https://eprint.iacr.org/2019/624.pdf" -%}
 Headers are encrypted using a header protection scheme by XORing with data calculated from known keys,
-using ChaCha20, similar to QUIC [RFC-9001] and `Nonces are Noticed <{{ link1 }}>`_.
+using ChaCha20, similar to QUIC RFC-9001_ and `Nonces are Noticed <{{ link1 }}>`_.
 This ensures that the encrypted headers will appear to be random, without any distinguishable pattern.
 {%- endtrans %}
 
-{% trans -%}
-Unlike the QUIC [RFC-9001] header protection scheme, all parts of all headers, including destination and source connection IDs, are encrypted.
-QUIC [RFC-9001] and [Nonces] are primarily focused on encrypting the "critical" part of the header, i.e. the packet number (ChaCha20 nonce).
+{% trans link1="https://eprint.iacr.org/2019/624.pdf" -%}
+Unlike the QUIC RFC-9001_ header protection scheme, all parts of all headers, including destination and source connection IDs, are encrypted.
+QUIC RFC-9001_ and `Nonces are Noticed <{{ link1 }}>`_ are primarily focused on encrypting the "critical" part of the header, i.e. the packet number (ChaCha20 nonce).
 While encrypting the session ID makes incoming packet classification a little more complex, it makes some attacks more difficult.
 {%- endtrans %}
 
@@ -274,31 +283,31 @@ While the SSU2 improvements are significant, we do not expect them
 to be apparent to the user, either locally or in end-to-end transfer speeds.
 End-to-end transfers depend on the performance of 13 other routers
 and 14 point-to-point transport links, each of which could be
-SSU2, NTCP2, or SSU 1.
+SSU2, NTCP2, or SSU.
 {%- endtrans %}
 
 {% trans -%}
 In the live network, latency and packet loss varies widely.
 Even in a test setup, performance depends on configured latency and packet loss.
 The i2pd project reports that maximum transfer rates for SSU2 were over 3 times
-faster than SSU 1 in some tests. However, they completely redesigned their
-SSU 1 code for SSU2 as their previous implementation was rather poor.
-The Java I2P project does not expect that their SSU2 implementation will be any faster than SSU 1.
+faster than SSU in some tests. However, they completely redesigned their
+SSU code for SSU2 as their previous implementation was rather poor.
+The Java I2P project does not expect that their SSU2 implementation will be any faster than SSU.
 {%- endtrans %}
 
 {% trans -%}
 Very low-end platforms such as Raspberry Pis and OpenWRT may see substantial improvements
-from the elimination of SSU 1.
+from the elimination of SSU.
 ElGamal is extremely slow and limits performance on those platforms.
 {%- endtrans %}
 
 {% trans -%}
-SSU2 data phase encryption uses ChaCha20/Poly1305, compared to AES with a MD5 HMAC for SSU 1.
+SSU2 data phase encryption uses ChaCha20/Poly1305, compared to AES with a MD5 HMAC for SSU.
 Both are very fast and the change is not expected to measurably affect performance.
 {%- endtrans %}
 
 {% trans -%}
-Here are some highlights of the estimated improvements for SSU2 over SSU 1:
+Here are some highlights of the estimated improvements for SSU2 vs. SSU:
 {%- endtrans %}
 
 - {% trans %}40% reduction in total handshake packet size{% endtrans %}
@@ -322,12 +331,13 @@ and maintenance requirements.
 
 {% trans -%}
 The Java I2P and i2pd projects will both enable SSU2 by default in their next releases (2.0.0 and 2.44.0) in November 2022.
-However, they have different plans for disabling SSU 1.
-I2pd will disable SSU 1 immediately, because SSU2 is a vast improvement over their SSU 1 implementation.
-Java I2P plans to disable SSU 1 in mid-2023, to support a gradual transition
+However, they have different plans for disabling SSU.
+I2pd will disable SSU immediately, because SSU2 is a vast improvement over their SSU implementation.
+Java I2P plans to disable SSU in mid-2023, to support a gradual transition
 and give older routers time to upgrade.
 Because Java I2P release 0.9.36 and i2pd release 2.20.0 (2018) were the first to support NTCP2,
-routers older than that will not be able to connect to i2pd routers 2.44.0 or higher.
+routers older than that will not be able to connect to i2pd routers 2.44.0 or higher,
+as they have no compatible transports.
 {%- endtrans %}
 
 
@@ -361,7 +371,7 @@ We thank them as well as the creators of all the cryptography we rely on to keep
 {% trans -%}
 Expect SSU2 to be enabled in the i2pd and Java I2P releases scheduled for November 2022.
 If the update goes well, nobody will notice anything different at all.
-The performance benefits, while significant, will probably not be noticeable.
+The performance benefits, while significant, will probably not be noticeable for most people.
 {%- endtrans %}
 
 
@@ -369,3 +379,8 @@ The performance benefits, while significant, will probably not be noticeable.
 As usual, we recommend that you update to the new release when it's available.
 The best way to maintain security and help the network is to run the latest release.
 {%- endtrans %}
+
+
+.. _RFC-9000: https://www.rfc-editor.org/rfc/rfc9000.html
+.. _RFC-9001: https://www.rfc-editor.org/rfc/rfc9001.html
+.. _RFC-9002: https://www.rfc-editor.org/rfc/rfc9002.html
