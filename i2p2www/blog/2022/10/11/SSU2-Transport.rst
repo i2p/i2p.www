@@ -4,7 +4,7 @@
 
 .. meta::
    :author: zzz
-   :date: 2022-09-30
+   :date: 2022-10-11
    :category: development
    :excerpt: {% trans %}SSU2 Transport{% endtrans %}
 
@@ -51,8 +51,8 @@ we will have migrated all our authenticated and encrypted protocols to standard 
 {%- endtrans %}
 
 - `NTCP2 <{{ spec_url("ntcp2") }}>`_ (0.9.36, 2018)
-- `{% trans %}Ratchet end-to-end protocol{% endtrans %} <{{ spec_url("ecies") }}>`_ (0.9.46, 2020)
-- `{% trans %}ECIES tunnel build messages{% endtrans %} <{{ spec_url("tunnel-creation-ecies") }}>`_ (1.5.0, 2021)
+- `{% trans %}ECIES-X25519-Ratchet end-to-end protocol{% endtrans %} <{{ spec_url("ecies") }}>`_ (0.9.46, 2020)
+- `{% trans %}ECIES-X25519 tunnel build messages{% endtrans %} <{{ spec_url("tunnel-creation-ecies") }}>`_ (1.5.0, 2021)
 - `SSU2 <{{ proposal_url("159") }}>`_ (2.0.0, 2022)
 
 {% trans -%}
@@ -330,7 +330,7 @@ and maintenance requirements.
 
 
 {% trans -%}
-The Java I2P and i2pd projects will both enable SSU2 by default in their next releases (2.0.0 and 2.44.0) in November 2022.
+The Java I2P and i2pd projects will both enable SSU2 by default in their next releases (2.0.0 and 2.44.0) in late November 2022.
 However, they have different plans for disabling SSU.
 I2pd will disable SSU immediately, because SSU2 is a vast improvement over their SSU implementation.
 Java I2P plans to disable SSU in mid-2023, to support a gradual transition
@@ -352,7 +352,7 @@ The founders of I2P had to make several choices for cryptographic algorithms and
 Some of those choices were better than others, but twenty years later, most are showing their age.
 Of course, we knew this was coming, and we've spent the last decade planning and implementing cryptographic upgrades.
 As the old saying goes, upgrading things while maintaining backward compatibility
-and avoiding a "flag day" is like changing the tires on the bus while it's rolling down the road.
+and avoiding a "flag day" is quite challenging, like changing the tires on the bus while it's rolling down the road.
 {%- endtrans %}
 
 {% trans -%}
@@ -369,9 +369,9 @@ We thank them as well as the creators of all the cryptography we rely on to keep
 
 
 {% trans -%}
-Expect SSU2 to be enabled in the i2pd and Java I2P releases scheduled for November 2022.
+Expect SSU2 to be enabled in the i2pd and Java I2P releases scheduled for late November 2022.
 If the update goes well, nobody will notice anything different at all.
-The performance benefits, while significant, will probably not be noticeable for most people.
+The performance benefits, while significant, will probably not be measurable for most people.
 {%- endtrans %}
 
 
