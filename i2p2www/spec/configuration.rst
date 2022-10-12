@@ -3,7 +3,7 @@ Configuration File Specification
 ================================
 .. meta::
     :category: Formats
-    :lastupdated: September 2022
+    :lastupdated: 2022-10
     :accuratefor: 0.9.56
 
 .. contents::
@@ -296,6 +296,7 @@ Properties are as follows::
     tunnel.N.option.i2ptunnel.httpclient.jumpServers=http://example.i2p/jump
 
     # HTTP client only. Whether to pass Accept* headers through. Default false.
+    # Note: Does not affect "Accept" and "Accept-Encoding".
     tunnel.N.option.i2ptunnel.httpclient.sendAccept=true|false
 
     # HTTP client only. Whether to pass Referer headers through. Default false.
