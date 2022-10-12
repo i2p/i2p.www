@@ -51,13 +51,8 @@ Extended protocol includes relay and peer test.
 Overview
 ========
 
-This proposal describes an authenticated key agreement protocol to improve the
+This specification defines an authenticated key agreement protocol to improve the
 resistance of [SSU]_ to various forms of automated identification and attacks.
-
-The proposal is organized as follows: the security goals are presented,
-followed by a discussion of the basic protocol. Next, a complete specification
-of all protocol messages is given. Finally, router addresses and version
-identification are discussed.
 
 As with other I2P transports, SSU2 is defined
 for point-to-point (router-to-router) transport of I2NP messages.
@@ -151,7 +146,7 @@ See the I2NP Message Duplication section below.
 Noise Protocol Framework
 -------------------------
 
-This proposal provides the requirements based on the Noise Protocol Framework
+This specification provides the requirements based on the Noise Protocol Framework
 [NOISE]_ (Revision 33, 2017-10-04).
 Noise has similar properties to the Station-To-Station protocol
 [STS]_, which is the basis for the [SSU]_ protocol.  In Noise parlance, Alice
@@ -185,7 +180,7 @@ This Noise protocol uses the following primitives:
 Additions to the Framework
 -------------------------------
 
-This proposal defines the following enhancements to
+This specification defines the following enhancements to
 Noise_XK_25519_ChaChaPoly_SHA256.  These generally follow the guidelines in
 [NOISE]_ section 13.
 
@@ -4303,7 +4298,7 @@ This is implementation-dependent.
 Congestion Control
 ====================
 
-This proposal specifies the protocol for packet numbering and
+This specification specifies the protocol for packet numbering and
 ACK blocks. This provides sufficient real-time information for a
 transmitter to implement an efficient and responsive congestion control algorithm,
 while allowing flexibility and innovation in that implementation.
