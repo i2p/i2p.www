@@ -5455,6 +5455,10 @@ there are several options to validate the signature:
   to that in the Relay Response, if already received
 - Don't validate the signature at all
 
+If Charlie is behind a symmetric NAT, his reported port in the Relay Response and Hole Punch
+may not be accurate. Therefore, Alice should check the UDP source port of the Hole Punch
+message, and use that if it is different than the reported port.
+
 
 Tag Requests by Bob
 ------------------------
