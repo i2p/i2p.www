@@ -61,7 +61,7 @@ We have official sites where people may obtain the I2P software safely:
 -  `{% trans -%}Official Debian Repository - deb.i2p2.no - TLS Fingerprint(SHA256){%- endtrans %} -
    EC:43:E8:DC:29:8E:BB:78:B9:88:70:ED:21:1A:8E:AD:FA:8D:6F:5E:D9:56:54:89:9F:7B:30:58:1E:03:02:CE <https://deb.i2p2.no>`__
 -  `{% trans -%}Official Forums - i2pforum.net - TLS Fingerprint(SHA256){%- endtrans %} -
-   7B:1E:B6:5D:C7:5A:DE:32:E6:08:DB:8E:3C:4C:DB:5F:67:DB:13:A3:C8:1F:F9:26:53:C9:49:94:8E:CD:90:D1 <https://i2pforum.net>`__
+   BB:2F:77:2D:C1:18:8C:63:BC:5F:9B:33:36:F3:4A:D3:52:44:B0:F7:4E:03:2F:E1:6B:33:E5:FB:01:9E:9B:C6 <https://i2pforum.net>`__
 
 {% trans -%}Invisible Internet Project Forums, Blogs and Social Media{%- endtrans %}
 ---------------------------------------------------------
