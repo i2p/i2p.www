@@ -50,18 +50,18 @@ These campaigns have had the side-effect of “shadow-banning” some legitimate
 We have official sites where people may obtain the I2P software safely:
 {%- endtrans %}
 
--  `{% trans -%}Official Website - i2p.net - TLS Fingerprint(SHA256){%- endtrans %} -
-   5B:09:29:D9:26:64:7D:0E:33:B6:4A:9D:6F:58:FA:5E:24:EF:18:81:21:A9:A9:4F:8B:D2:CE:D8:74:91:60:8B <https://i2p.net>`__
--  `{% trans -%}Official Website - geti2p.net - TLS Fingerprint(SHA256){%- endtrans %} -
-   5B:09:29:D9:26:64:7D:0E:33:B6:4A:9D:6F:58:FA:5E:24:EF:18:81:21:A9:A9:4F:8B:D2:CE:D8:74:91:60:8B <https://geti2p.net>`__
--  `{% trans -%}Official Gitlab - i2pgit.org - TLS Fingerprint(SHA256){%- endtrans %} -
-   D5:E4:E0:88:B2:21:69:F2:A1:6F:AB:FF:97:08:8C:65:5C:2C:27:2A:B1:CB:E7:49:A4:54:10:52:81:B4:4D:B1 <https://i2pgit.org>`__
--  `{% trans -%}Official Debian Repository - deb.i2p2.de - TLS Fingerprint(SHA256){%- endtrans %} -
-   17:42:0B:AB:B6:4F:24:51:5E:BC:AD:10:44:9E:2C:C9:37:BB:28:89:74:62:6B:0A:9F:23:4C:5E:A5:EA:64:91 <https://deb.i2p2.de>`__
--  `{% trans -%}Official Debian Repository - deb.i2p2.no - TLS Fingerprint(SHA256){%- endtrans %} -
-   EC:43:E8:DC:29:8E:BB:78:B9:88:70:ED:21:1A:8E:AD:FA:8D:6F:5E:D9:56:54:89:9F:7B:30:58:1E:03:02:CE <https://deb.i2p2.no>`__
--  `{% trans -%}Official Forums - i2pforum.net - TLS Fingerprint(SHA256){%- endtrans %} -
-   BB:2F:77:2D:C1:18:8C:63:BC:5F:9B:33:36:F3:4A:D3:52:44:B0:F7:4E:03:2F:E1:6B:33:E5:FB:01:9E:9B:C6 <https://i2pforum.net>`__
+-  `{% trans -%}Official Website - i2p.net{%- endtrans %}
+   <https://i2p.net>`__
+-  `{% trans -%}Official Website - geti2p.net{%- endtrans %}
+   <https://geti2p.net>`__
+-  `{% trans -%}Official Gitlab - i2pgit.org{%- endtrans %}
+   <https://i2pgit.org>`__
+-  `{% trans -%}Official Debian Repository - deb.i2p2.de{%- endtrans %}
+   <https://deb.i2p2.de>`__
+-  `{% trans -%}Official Debian Repository - deb.i2p2.no{%- endtrans %}
+   <https://deb.i2p2.no>`__
+-  `{% trans -%}Official Forums - i2pforum.net{%- endtrans %}
+   <https://i2pforum.net>`__
 
 {% trans -%}Invisible Internet Project Forums, Blogs and Social Media{%- endtrans %}
 ---------------------------------------------------------
@@ -98,4 +98,9 @@ This post attempts to provide ways of vetting the source for obtaining the Java 
 It is not intended to pass judgement on third-party forks, downstream projects, embedders, packagers, people experimenting in laboratories, or people who just disagree with us.
 You are all valued members of our community who are trying to protect, and not compromise, the privacy of others.
 Since we are aware of attempts to impersonate I2P project community members, you may wish to review the download, verification, and installation procedures which you recommend to your users in order to document your official sources and known mirrors.
+{%- endtrans %}
+
+{% trans -%}
+Authors Note: An earlier version of this blog post contained the TLS fingerprint of each of the services operated by the I2P Project.
+These were removed when a certificate renewal caused the fingerprints to become inaccurate.
 {%- endtrans %}
