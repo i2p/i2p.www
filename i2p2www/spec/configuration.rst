@@ -3,7 +3,7 @@ Configuration File Specification
 ================================
 .. meta::
     :category: Formats
-    :lastupdated: 2022-10
+    :lastupdated: 2022-11
     :accuratefor: 0.9.56
 
 .. contents::
@@ -387,9 +387,9 @@ Properties are as follows::
     # HTTP Clients only. The username for the outproxy authorization.
     tunnel.N.option.outproxyUsername=
 
-    # HTTP Clients only. Whether to send authorization to an outproxy. Default
-    # false.
-    tunnel.N.option.outproxyAuth=true|false
+    # SOCKS client only. The type of the configured outproxies: socks or connect (HTTPS).
+    # Default socks. As of 0.9.57.
+    tunnel.N.option.outproxyType=socks|connect
 
     # Clients only. Whether to store a destination in a private key file and
     # reuse it. Default false.
