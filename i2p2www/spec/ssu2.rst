@@ -1902,7 +1902,7 @@ Bob may perform several required checks:
 
 Unfortunately, the Router Info, even when gzip compressed in the RI block, may exceed the MTU.
 Therefore, the Session Confirmed may be fragmented across two or more packets.
-This is the ONLY case in the SSU2 protcol where an AEAD-protected payload is fragmented
+This is the ONLY case in the SSU2 protocol where an AEAD-protected payload is fragmented
 across two or more packets.
 
 The headers for each packet are constructed as follows:
