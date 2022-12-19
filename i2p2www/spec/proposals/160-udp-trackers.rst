@@ -5,9 +5,9 @@ UDP Trackers
     :author: zzz
     :created: 2022-01-03
     :thread: http://zzz.i2p/topics/1634
-    :lastupdated: 2022-01-17
+    :lastupdated: 2022-12-19
     :status: Open
-    :target: 0.9.54
+    :target: 0.9.58
 
 .. contents::
 
@@ -114,6 +114,22 @@ Client                        Tracker
 {% endhighlight %}
 
 This mode omits a round-trip, but requires every announce request to be repliable.
+
+
+Security Analysis
+------------------
+
+The primary goal of an announce protocol is to impose a cost on address spoofing.
+In compatibility mode, the client must actually exist and bundle a real leaseset.
+It must have inbound tunnels to receive the Connect Response.
+These tunnels could be zero-hop and built instantly, but that would
+expose the creator.
+
+However, in fast mode, the destination and leaseset could be fake.
+Multiple fake destinations and leasesets can be rapidly generated without
+actually building tunnels. The Announce Request messages could then be sent out
+any tunnel.
+
 
 
 
@@ -231,9 +247,9 @@ Offset  Size            Name            Value
   12          32-bit integer  leechers
   16          32-bit integer  seeders
   20          16-bit integer  count of hashes to follow
-  22 + 32 * n 32-byte hash    binary hashes
+  22   32 * n 32-byte hash    binary hashes
   ...
-  22 + 32 * c TBD             additional data TBD
+  22 + 32 * n TBD             additional data TBD
 
 {% endhighlight %}
 

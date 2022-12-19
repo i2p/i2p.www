@@ -3,8 +3,8 @@ Common structures Specification
 ===============================
 .. meta::
     :category: Design
-    :lastupdated: 2021-04
-    :accuratefor: 0.9.49
+    :lastupdated: 2022-11
+    :accuratefor: 0.9.56
 
 .. contents::
 

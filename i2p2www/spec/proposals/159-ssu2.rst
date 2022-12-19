@@ -5,7 +5,7 @@ SSU2
     :author: eyedeekay, orignal, zlatinb, zzz
     :created: 2021-09-12
     :thread: http://zzz.i2p/topics/2612
-    :lastupdated: 2022-10-16
+    :lastupdated: 2022-12-19
     :status: Open
     :target: 0.9.56
 
@@ -5215,10 +5215,11 @@ For time synchronization:
 
 Notes:
 
-Unlike in SSU 1, there is no timestamp in the packet header
-for the data phase in SSU 2.
-Implementations should periodically send DateTime blocks
-in the data phase.
+- Unlike in SSU 1, there is no timestamp in the packet header
+  for the data phase in SSU 2.
+- Implementations should periodically send DateTime blocks
+  in the data phase.
+- Implementations must round to the nearest second to prevent clock bias in the network.
 
 
 Options
@@ -6389,6 +6390,7 @@ If present, this must be the last block in the payload.
 
 Notes:
 
+- Size = 0 is allowed.
 - Padding strategies TBD.
 - Minimum padding TBD.
 - Padding-only payloads are allowed.
@@ -6546,7 +6548,7 @@ Recommended timeout: 15 seconds total
 
 Retry
 ---------
-If no Session Confirmed is received by Bob:
+If no Session Request is received by Bob:
 
 A Retry message is not retransmitted on timeout, to reduce the impacts
 of spoofed source addresses.
@@ -6778,7 +6780,12 @@ EXCEPT for the following are ack-eliciting:
 - DateTime block
 - Padding block
 - Termination block
+- Any blocks in the same packet as a Termination block
 - Others?
+
+Packets containing a Termination block with a reason other than
+"termination received" are acknowledged with a packet containing
+a Termination block with "termination received".
 
 Out-of session packets, including handshake messages
 and peer test messages 5-7, have their own acknowledgement mechanisms.

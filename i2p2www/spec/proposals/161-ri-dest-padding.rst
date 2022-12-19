@@ -5,7 +5,7 @@ RI and Destination Padding
     :author: zzz
     :created: 2022-09-28
     :thread: http://zzz.i2p/topics/3279
-    :lastupdated: 2022-09-28
+    :lastupdated: 2022-12-19
     :status: Open
     :target: 0.9.57
 
@@ -272,6 +272,8 @@ Subject to backward compatibility issues, and after disabling SSU,
 implementations may remove ElGamal code completely.
 Approximately 14% of routers in the network are ElGamal encryption type, including many floodfills.
 
+A draft merge request for Java I2P is at [MR]_.
+
 
 References
 ==========
@@ -287,6 +289,9 @@ References
 
 .. [I2NP]
     {{ spec_url('i2np') }}
+
+.. [MR]
+    http://git.idk.i2p/i2p-hackers/i2p.i2p/-/merge_requests/66
 
 .. [NTCP2]
     {{ spec_url('ntcp2') }}

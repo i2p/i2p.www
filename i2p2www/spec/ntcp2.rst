@@ -3,8 +3,8 @@ NTCP 2
 ======
 .. meta::
     :category: Transports
-    :lastupdated: 2022-01
-    :accuratefor: 0.9.53
+    :lastupdated: 2022-12
+    :accuratefor: 0.9.56
 
 .. contents::
 
@@ -1475,6 +1475,7 @@ Special case for time synchronization:
 
 {% endhighlight %}
 
+NOTE: Implementations must round to the nearest second to prevent clock bias in the network.
 
 Options
 ```````
@@ -1748,6 +1749,7 @@ If present, this must be the last block in the frame.
 
 Notes
 `````
+- Size = 0 is allowed.
 - Padding strategies TBD.
 - Minimum padding TBD.
 - Padding-only frames are allowed.

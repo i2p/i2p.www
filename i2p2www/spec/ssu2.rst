@@ -3,7 +3,7 @@ SSU2
 ======
 .. meta::
     :category: Transports
-    :lastupdated: 2022-10
+    :lastupdated: 2022-12
     :accuratefor: 0.9.56
 
 .. contents::
@@ -2825,10 +2825,11 @@ For time synchronization:
 
 Notes:
 
-Unlike in SSU 1, there is no timestamp in the packet header
-for the data phase in SSU 2.
-Implementations should periodically send DateTime blocks
-in the data phase.
+- Unlike in SSU 1, there is no timestamp in the packet header
+  for the data phase in SSU 2.
+- Implementations should periodically send DateTime blocks
+  in the data phase.
+- Implementations must round to the nearest second to prevent clock bias in the network.
 
 
 Options
@@ -3999,6 +4000,7 @@ If present, this must be the last block in the payload.
 
 Notes:
 
+- Size = 0 is allowed.
 - Padding strategies TBD.
 - Minimum padding TBD.
 - Padding-only payloads are allowed.
