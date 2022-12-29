@@ -1,7 +1,7 @@
 {% extends "global/layout.html" %}
 {% block title %}SAM V3{% endblock %}
-{% block lastupdated %}2022-11{% endblock %}
-{% block accuratefor %}1.9.0{% endblock %}
+{% block lastupdated %}2022-12{% endblock %}
+{% block accuratefor %}2.0.0{% endblock %}
 {% block content %}
 <p>SAM is a simple client protocol for interacting with I2P.
 SAM is the recommended protocol for non-Java applications to connect to the I2P network,
@@ -256,6 +256,34 @@ To implement a basic TCP-only, peer-to-peer application, the client must support
 <li> STREAM ACCEPT ID=... <br> To accept incoming connections
 </ul>
 
+
+
+<h2>General Guidance for Developers</h2>
+<p>
+SAM sessions (or inside I2P, tunnel pools or sets of tunnels) are designed to be long-lived.
+Most applications will only need one session, created at startup and closed on exit.
+I2P is different from Tor, where circuits may be rapidly created and discarded.
+Think carefully and consult with I2P developers before designing your application
+to use more than one or two simultaneous sessions, or to rapidly create and discard them.
+Most threat models will not require a unique session for every connection.
+</p><p>
+Also, please ensure your application settings
+(and guidance to users about router settings, or router defaults if you bundle a router)
+will result in your users contributing more resources to the network than they consume.
+I2P is a peer-to-peer network, and the network cannot survive if a popular application
+drives the network into permanent congestion.
+</p><p>
+The Java I2P and i2pd routers have different defaults for tunnel quantities.
+The Java default is 2 and the i2pd default is 5.
+For most low- to medium-bandwidth and low- to medium-connection counts,
+2 or 3 is sufficient.
+Please specify the tunnel quantity in the SESSION CREATE message
+to get consistent performance with the Java I2P and i2pd routers.
+See below.
+</p><p>
+For more guidance to developers on ensuring your application uses only the resources it needs, please see
+<a href="{{ site_url('docs/applications/embedding') }}">our guide to bundling I2P with your application</a>.
+</p>
 
 
 
@@ -624,7 +652,17 @@ $nickname is the choice of the client. No whitespace is allowed.
 </p><p>
 Additional options given are passed to the I2P session
 configuration if not interpreted by the SAM bridge (e.g.
-outbound.length=0). These options <a href="#options">are documented below</a>.
+outbound.length=0).
+</p><p>
+The Java I2P and i2pd routers have different defaults for tunnel quantities.
+The Java default is 2 and the i2pd default is 5.
+For most low- to medium-bandwidth and low- to medium-connection counts,
+2 or 3 is sufficient.
+Please specify the tunnel quantities in the SESSION CREATE message
+to get consistent performance with the Java I2P and i2pd routers,
+using the options e.g. inbound.length=3 outbound.length=3.
+These and other options <a href="#options">are documented in the links below</a>.
+</p><p>
 
 </p><p>
 The SAM bridge itself should already be configured with what router
@@ -1663,11 +1701,11 @@ their meaning:
 
 <h3 id="options">Tunnel, I2CP, and Streaming Options</h3>
 <p>
-These options may be passed in as name=value pairs at the end of a
+These options may be passed in as name=value pairs in the
 SAM SESSION CREATE line.
 
 </p><p>
-All sessions may include <a href="{{ site_url('docs/protocol/i2cp') }}#options">I2CP options such as tunnel lengths</a>.
+All sessions may include <a href="{{ site_url('docs/protocol/i2cp') }}#options">I2CP options such as tunnel lengths and quantities</a>.
 STREAM sessions may include <a href="{{ site_url('docs/api/streaming') }}#options">Streaming library options</a>.
 </p><p>
 See those references for option names and defaults.
