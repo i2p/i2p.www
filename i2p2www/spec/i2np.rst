@@ -3,8 +3,8 @@ I2NP Specification
 ==================
 .. meta::
     :category: Protocols
-    :lastupdated: 2022-06
-    :accuratefor: 0.9.54
+    :lastupdated: 2022-12
+    :accuratefor: 0.9.57
 
 .. contents::
 
@@ -45,6 +45,8 @@ below.
 ==============  ================================================================
  API Version    Required I2NP Features
 ==============  ================================================================
+   0.9.55       SSU2 transport support (if published in router info)
+
    0.9.51       Short tunnel build messages for ECIES-X25519 routers
 
    0.9.49       Garlic messages to ECIES-X25519 routers
@@ -67,7 +69,7 @@ below.
    0.9.38       DSM type bits 3-0 now contain the type;
                 LeaseSet2 may be sent in a DSM
 
-   0.9.36       NTCP2 transport support (if advertised in router address)
+   0.9.36       NTCP2 transport support (if published in router info)
 
                 Minimum peers will build tunnels through, as of 0.9.46
 
@@ -163,7 +165,7 @@ Standard (16 bytes):
   |type| short_expiration  |
   +----+----+----+----+----+
 
-  Short (NTCP2, 9 bytes):
+  Short (NTCP2 and SSU2, 9 bytes):
 
   +----+----+----+----+----+----+----+----+
   |type|      msg_id       | short_expira-
@@ -211,9 +213,9 @@ Notes
   and size are incorporated in the SSU data packet format.
   The checksum is not required since errors are caught in decryption.
 
-* When transmitted over [NTCP2]_, the 16-byte standard header is not used. Only a
+* When transmitted over [NTCP2]_ or [SSU2]_, the 16-byte standard header is not used. Only a
   1-byte type, 4-byte message id, and a 4-byte expiration in seconds are included.
-  The size is incorporated in the NTCP2 data packet format.
+  The size is incorporated in the NTCP2 and SSU2 data packet formats.
   The checksum is not required since errors are caught in decryption.
 
 * The standard header is also required for I2NP messages contained in other
@@ -1699,6 +1701,9 @@ References
 
 .. [SSU-ED]
     {{ site_url('docs/transport/ssu', True) }}#establishDirect
+
+.. [SSU2]
+    {{ spec_url('ssu2') }}
 
 .. [TMDI]
     {{ ctags_url('TunnelMessageDeliveryInstructions') }}
