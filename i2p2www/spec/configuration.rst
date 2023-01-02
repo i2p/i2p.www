@@ -3,8 +3,8 @@ Configuration File Specification
 ================================
 .. meta::
     :category: Formats
-    :lastupdated: 2022-11
-    :accuratefor: 0.9.56
+    :lastupdated: 2023-01
+    :accuratefor: 0.9.57
 
 .. contents::
 
@@ -248,6 +248,11 @@ individual configuration files for each tunnel in the i2ptunnel.config.d directo
 After being split, the properties in the individual files are NOT prefixed
 with "tunnel.N.".
 
+Note: "tunnel.N.option.i2cp.*" options, while appearing to be I2CP options,
+are implemented in i2ptunnel, and are NOT supported via other interfaces
+or APIs such as I2CP or SAM.
+
+
 Properties are as follows::
 
     # Display description for UI
@@ -268,6 +273,11 @@ Properties are as follows::
     # Display name for UI
     tunnel.N.name=
 
+    # Clients only. Do not open the socket manager and build tunnels
+    # until the first socket is opened on the local port.
+    # Default false
+    tunnel.N.option.i2cp.delayOpen=true|false
+
     # Servers only. Default false. Originate connections to local server with a
     # unique IP per-remote-destination.
     tunnel.N.option.enableUniqueLocal=true|false
@@ -278,7 +288,11 @@ Properties are as follows::
     # Servers only. Persistent private leaseset key
     tunnel.N.option.i2cp.leaseSetSigningPrivateKey=sigtype:base64
 
-    # Clients only. Create a new destination when reopening the socket manager
+    # Clients only. Create a new destination when reopening the socket manager,
+    # after it was previously closed due to an idle timeout.
+    # Default false
+    # When true, requires I2CP option i2cp.closeOnIdle=true
+    # When true, tunnel.N.option.persistentClientKey must be unset or false
     tunnel.N.option.i2cp.newDestOnResume=true|false
 
     # Servers only. The maximum size of the thread pool, default 65. Ignored
@@ -393,6 +407,7 @@ Properties are as follows::
 
     # Clients only. Whether to store a destination in a private key file and
     # reuse it. Default false.
+    # When true, tunnel.N.option.newDestOnResume must be unset or false
     tunnel.N.option.persistentClientKey=true|false
 
     # HTTP Server only. Time period for banning POSTs from a single destination
