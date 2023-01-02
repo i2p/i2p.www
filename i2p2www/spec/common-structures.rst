@@ -3,8 +3,8 @@ Common structures Specification
 ===============================
 .. meta::
     :category: Design
-    :lastupdated: 2022-11
-    :accuratefor: 0.9.56
+    :lastupdated: 2023-01
+    :accuratefor: 0.9.57
 
 .. contents::
 
@@ -635,6 +635,50 @@ A PublicKey_ followed by a SigningPublicKey_ and then a Certificate_.
   total length: 387+ bytes
 {% endhighlight %}
 
+
+Padding Generation Guidelines
+`````````````````````````````````
+These guidelines were proposed in Proposal 161 and implemented in API version 0.9.57.
+These guidelines are backward-compatible with all versions since 0.6 (2005).
+See Proposal 161 for background and further information.
+
+For any currently-used combination of key types other than ElGamal + DSA-SHA1,
+padding will be present. Additionally, for destinations, the 256-byte
+public key field has been unused since version 0.6 (2005).
+
+Implementers should generate the random data for
+Destination public keys, and Destination and Router Identity padding,
+so that it is compressible in various I2P protocols while
+still being secure, and without having Base 64 representations appear to be corrupt or insecure.
+This provides most of the benefits of removing the padding fields without any
+disruptive protocol changes.
+
+Strictly speaking, the 32-byte signing public key alone (in both Destinations and Router Identities)
+and the 32-byte encryption public key (in Router Identities only) is a random number
+that provides all the entropy necessary for the SHA-256 hashes of these structures
+to be cryptographically strong and randomly distributed in the network database DHT.
+
+However, out of an abundance of caution, we recommend a minimum of 32 bytes of random data
+be used in the ElG public key field and padding. Additionally, if the fields were all zeros,
+Base 64 destinations would contain long runs of AAAA characters, which may cause alarm
+or confusion to users.
+
+Repeat the 32 bytes of random data as necessary so the full KeysAndCert structure is highly compressible
+in I2P protocols such as I2NP Database Store Message, Streaming SYN, SSU2 handshake, and repliable Datagrams.
+
+Examples:
+
+* A Router Identity with X25519 encryption type and Ed25519 signature type
+  will contain 10 copies (320 bytes) of the random data, for a savings of approximately 288 bytes when compressed.
+
+* A Destination with Ed25519 signature type
+  will contain 11 copies (352 bytes) of the random data, for a savings of approximately 320 bytes when compressed.
+
+Implementations must, of course, store the full 387+ byte structure because the SHA-256 hash of the structure
+covers the full contents.
+
+
+
 Notes
 `````
 * Do not assume that these are always 387 bytes! They are 387 bytes plus the
@@ -661,6 +705,9 @@ Defines the way to uniquely identify a particular router
 Contents
 ````````
 Identical to KeysAndCert.
+
+See KeysAndCert_ for guidelines on generating the random data for
+the padding field.
 
 Notes
 `````
@@ -694,12 +741,16 @@ for secure delivery.
 
 Contents
 ````````
-Identical to KeysAndCert_.
+Identical to KeysAndCert_, except that the public key is never used,
+and may contain random data instead of a valid ElGamal Public Key.
+
+See KeysAndCert_ for guidelines on generating the random data for
+the public key and padding fields.
 
 Notes
 `````
 * The public key of the destination was used for the old i2cp-to-i2cp
-  encryption which was disabled in version 0.6, it is currently unused except
+  encryption which was disabled in version 0.6 (2005), it is currently unused except
   for the IV for LeaseSet encryption, which is deprecated. The public key in
   the LeaseSet is used instead.
 

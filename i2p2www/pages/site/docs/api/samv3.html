@@ -1,7 +1,7 @@
 {% extends "global/layout.html" %}
 {% block title %}SAM V3{% endblock %}
-{% block lastupdated %}2022-12{% endblock %}
-{% block accuratefor %}2.0.0{% endblock %}
+{% block lastupdated %}2023-01{% endblock %}
+{% block accuratefor %}API 0.9.57{% endblock %}
 {% block content %}
 <p>SAM is a simple client protocol for interacting with I2P.
 SAM is the recommended protocol for non-Java applications to connect to the I2P network,
@@ -617,6 +617,9 @@ optionally followed by the <a href="{{ site_url('docs/spec/common-structures') }
 which is 663 or more bytes in binary and 884 or more bytes in base 64,
 depending on signature type.
 The binary format is specified in <a href="http://{{ i2pconv('idk.i2p/javadoc-i2p') }}/net/i2p/data/PrivateKeyFile.html">Private Key File</a>.
+See additional notes about the
+<a href="{{ site_url('docs/spec/common-structures') }}#type_PrivateKey">Private Key</a>
+in the Destination Key Generation section below.
 
 </p><p>
 If the signing private key is all zeros, the
@@ -1594,6 +1597,22 @@ followed by the <a href="{{ site_url('docs/spec/common-structures') }}#type_Sign
 which is 884 or more base 64 characters (663 or more bytes in binary),
 depending on signature type.
 The binary format is specified in <a href="http://{{ i2pconv('idk.i2p/javadoc-i2p') }}/net/i2p/data/PrivateKeyFile.html">Private Key File</a>.
+
+Notes about the 256-byte binary
+<a href="{{ site_url('docs/spec/common-structures') }}#type_PrivateKey">Private Key</a>:
+This field has been unused since version 0.6 (2005).
+SAM implementations may send random data or all zeros in this field;
+do not be alarmed about a string of AAAA in the base 64.
+Most applications will simply store the base 64 string and return it as-is in the SESSION CREATE, or
+decode to binary for storage, then encode again for SESSION CREATE.
+Applications may, however, decode the base 64, parse the binary following
+the PrivateKeyFile specification, discard the 256-byte private key portion,
+and then replace it with 256 bytes of random data or all zeros when re-encoding it for the SESSION CREATE.
+ALL other fields in the PrivateKeyFile specification must be preserved.
+This would save 256 bytes of file system storage but is probably not worth the trouble for most applications.
+
+See proposal 161 for addtional information and background.
+
 
 </p><p>
 DEST GENERATE does not require that a session has been created first.

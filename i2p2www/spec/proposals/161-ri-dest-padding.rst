@@ -5,12 +5,18 @@ RI and Destination Padding
     :author: zzz
     :created: 2022-09-28
     :thread: http://zzz.i2p/topics/3279
-    :lastupdated: 2022-12-19
+    :lastupdated: 2023-01-02
     :status: Open
     :target: 0.9.57
 
 .. contents::
 
+
+Status
+========
+
+Implemented in 0.9.57.
+Leaving this proposal open so we may enhance and discuss the ideas in the "Future Planning" section.
 
 
 Overview
