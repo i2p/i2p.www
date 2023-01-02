@@ -273,14 +273,14 @@ Properties are as follows::
     # Display name for UI
     tunnel.N.name=
 
+    # Servers only. Default false. Originate connections to local server with a
+    # unique IP per-remote-destination.
+    tunnel.N.option.enableUniqueLocal=true|false
+
     # Clients only. Do not open the socket manager and build tunnels
     # until the first socket is opened on the local port.
     # Default false
     tunnel.N.option.i2cp.delayOpen=true|false
-
-    # Servers only. Default false. Originate connections to local server with a
-    # unique IP per-remote-destination.
-    tunnel.N.option.enableUniqueLocal=true|false
 
     # Servers only. Persistent private leaseset key
     tunnel.N.option.i2cp.leaseSetPrivateKey=base64
