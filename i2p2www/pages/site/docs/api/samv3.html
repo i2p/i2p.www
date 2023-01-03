@@ -12,6 +12,7 @@ Java applications should use the streaming or I2CP APIs directly.
 was introduced in I2P release 0.7.3 (May 2009) and is a stable and supported interface.
 3.1 is also stable and supports the signature type option, which is strongly recommended.
 More recent 3.x versions support advanced features.
+Note that i2pd does not currently support most 3.2 and 3.3 features.
 </p><p>
 Alternatives:
 <a href="socks">SOCKS</a>,
@@ -308,9 +309,10 @@ can forward back I2P datagrams to the client's datagram server.
 
 <h3>Version 3.1 Changes</h3>
 <p>
-Version 3.1 was introduced in I2P release 0.9.14 (July 2014). SAM 3.1 is the recommended
+Version 3.1 was introduced in Java I2P release 0.9.14 (July 2014). SAM 3.1 is the recommended
 minimum SAM implementation because of its support for better signature types
 than SAM 3.0.
+i2pd also supports most 3.1 features.
 <ul>
 <li>DEST GENERATE and SESSION CREATE now support a SIGNATURE_TYPE parameter.
 <li>The MIN and MAX parameters in HELLO VERSION are now optional.
@@ -321,7 +323,8 @@ than SAM 3.0.
 
 <h3>Version 3.2 Changes</h3>
 <p>
-Version 3.2 was introduced in I2P release 0.9.24 (January 2016).
+Version 3.2 was introduced in Java I2P release 0.9.24 (January 2016).
+Note that i2pd does not currently support most 3.2 features.
 </p>
 
 <h4>I2CP Port and Protocol Support</h4>
@@ -369,7 +372,8 @@ Version 3.2 was introduced in I2P release 0.9.24 (January 2016).
 
 <h3>Version 3.3 Changes</h3>
 <p>
-Version 3.3 was introduced in I2P release 0.9.25 (March 2016).
+Version 3.3 was introduced in Java I2P release 0.9.25 (March 2016).
+Note that i2pd does not currently support most 3.3 features.
 <ul>
 <li>The same session may be used for streams, datagrams, and raw simultaneously.
     Incoming packets and streams will be routed based on I2P protocol and to-port.
@@ -446,7 +450,7 @@ COMMAND without a SUBCOMMAND is supported for some new commands in SAM 3.2 only.
 </p><p>
 Key=value pairs must be separated by
 a single space. (As of SAM 3.2, multiple spaces are allowed)
-Values may be enclosed in double quotes if they contain spaces,
+Values must be enclosed in double quotes if they contain spaces,
 e.g. key="long value text".
 (Prior to SAM 3.2, this did not work reliably in some implementations)
 </p><p>
@@ -502,7 +506,7 @@ If the SAM bridge cannot find a suitable version, it replies with:
 </pre>
 If some error occurred, such as a bad request format, it replies with:
 <pre>
-&lt;- HELLO REPLY RESULT=I2P_ERROR MESSAGE=$message
+&lt;- HELLO REPLY RESULT=I2P_ERROR MESSAGE="$message"
 </pre>
 </p>
 
@@ -531,13 +535,13 @@ Clients should promptly send the HELLO and the next command after connecting.
 </p><p>
 If a timeout occurs before the HELLO is received, the bridge replies with:
 <pre>
-&lt;- HELLO REPLY RESULT=I2P_ERROR MESSAGE=$message
+&lt;- HELLO REPLY RESULT=I2P_ERROR MESSAGE="$message"
 </pre>
 and then disconnects.
 </p><p>
 If a timeout occurs after the HELLO is received but before the next command, the bridge replies with:
 <pre>
-&lt;- SESSION STATUS RESULT=I2P_ERROR MESSAGE=$message
+&lt;- SESSION STATUS RESULT=I2P_ERROR MESSAGE="$message"
 </pre>
 and then disconnects.
 </p>
@@ -721,7 +725,7 @@ If the destination is not a valid private destination key:
 </p><p>
 If some other error has occurred:
 <pre>
-&lt;-  SESSION STATUS RESULT=I2P_ERROR MESSAGE=$message
+&lt;-  SESSION STATUS RESULT=I2P_ERROR MESSAGE="$message"
 </pre>
 
 </p><p>
@@ -1527,7 +1531,7 @@ which is answered by
         RESULT=$result
         NAME=$name
         [VALUE=$destination]
-        [MESSAGE=$message]
+        [MESSAGE="$message"]
 </pre>
 
 
@@ -1639,7 +1643,7 @@ Either side may close the session and socket if no response is received in a rea
 </p><p>
 If a timeout occurs waiting for a PONG from the client, the bridge may send:
 <pre>
-&lt;- SESSION STATUS RESULT=I2P_ERROR MESSAGE=$message
+&lt;- SESSION STATUS RESULT=I2P_ERROR MESSAGE="$message"
 </pre>
 and then disconnect.
 </p><p>
