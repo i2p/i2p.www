@@ -1,14 +1,16 @@
 {% extends "global/layout.html" %}
 {% block title %}{% trans %}Embedding I2P in your Application{% endtrans %}{% endblock %}
-{% block lastupdated %}2019-11{% endblock %}
-{% block accuratefor %}0.9.44{% endblock %}
+{% block lastupdated %}2023-01{% endblock %}
+{% block accuratefor %}2.1.0{% endblock %}
 {% block content %}
 
 <h2>{% trans %}Overview{% endtrans %}</h2>
 <p>{% trans -%}
 This page is about bundling the entire I2P router binary with your application.
 It is not about writing an application to work with I2P (either bundled or external).
-{%- endtrans %}</p>
+{%- endtrans %}
+However, many of the guidelines may be useful even if not bundling a router.
+</p>
 
 <p>{% trans -%}
 Lots of projects are bundling, or talking about bundling, I2P. That's great if done right.
@@ -17,8 +19,10 @@ The I2P router is complex, and it can be a challenge to hide all the complexity 
 This page discusses some general guidelines.
 {%- endtrans %}</p>
 
-
-
+<p>
+Most of these guidelines apply equally to Java I2P or i2pd.
+However, some guidelines are specific to Java I2P and are noted below.
+</p>
 
 <h3>{% trans %}Talk to us{% endtrans %}</h3>
 <p>{% trans -%}
@@ -125,8 +129,53 @@ Be aware of possible blocking by hostile governments.
 
 
 
+<h3>Use Shared Clients</h3>
+<p>
+Java I2P i2ptunnel supports shared clients, where clients may be configured to use a single pool.
+If you require multiple clients, and if consistent with your security goals,
+configure the clients to be shared.
+</p>
+
+
+
+<h3>Limit Tunnel Quantity</h3>
+<p>
+Specify tunnel quantity explicitly with the options <tt>inbound.quantity</tt> and <tt>outbound.quantity</tt>.
+The default in Java I2P is 2; the default in i2pd is higher.
+Specify in the SESSION CREATE line using SAM to get consistent settings with both routers.
+Two each in/out is sufficient for most low-to-medium bandwidth and low-to-medium fanout applications.
+Servers and high-fanout P2P applications may need more.
+See <a href="http://zzz.i2p/topics/1584">this forum post</a> for guidance on calculating requirements
+for high-traffic servers and applications.
+</p>
+
+
+
+
+<h3>Limit SAM Sessions</h3>
+<p>
+Most applications will only need one SAM session.
+SAM provides the ability to quickly overwhelm the local router, or even the broader network,
+if a large number of sessions are created.
+If multiple sub-services can use a single session, set them up with
+a PRIMARY session and SUBSESSIONS (not currently supported on i2pd).
+A reasonable limit to sessions is 3 or 4 total, or maybe up to 10 for rare situations.
+If you do have multiple sessions, be sure to specify a low tunnel quantity for each, see above.
+</p><p>
+In almost no situation should you require a unique session per-connection.
+Without careful design, this could quickly DDoS the network.
+Carefully consider if your security goals require unique sessions.
+Please consult with the Java I2P or i2pd developers before implementing per-connection sessions.
+</p>	
+
+
 
 <h3>{% trans %}Reduce Network Resource Usage{% endtrans %}</h3>
+<p>
+Note that these options are not currently supported on i2pd.
+These options are supported via I2CP and SAM (except delay-open, which is via i2ptunnel only).
+See the I2CP documentation (and, for delay-open, the i2ptunnel configuration documentation) for details.
+</p>
 <p>{% trans -%}
 Consider setting your application tunnels to delay-open, reduce-on-idle and/or close-on-idle.
 This is straightforward if using i2ptunnel but you'll have to implement some of it yourself if using I2CP directly.
@@ -207,6 +256,9 @@ and talk to the people who are running them to make sure it's ok.
 
 
 <h3>{% trans %}Time / NTP Issues{% endtrans %}</h3>
+<p>
+Note: This section refers to Java I2P. i2pd does not include an SNTP client.
+</p>
 <p>{% trans -%}
 I2P includes an SNTP client. I2P requires correct time to operate.
 It will compensate for a skewed system clock but this may delay startup. You may disable I2P's SNTP queries,
@@ -216,6 +268,9 @@ but this isn't advised unless your application makes sure the system clock is co
 
 
 <h3>{% trans %}Choose What and How you Bundle{% endtrans %}</h3>
+<p>
+Note: This section refers to Java I2P only.
+</p>
 <p>{% trans -%}
 At a minimum you will need i2p.jar, router.jar, streaming.jar, and mstreaming.jar.
 You may omit the two streaming jars for a datagram-only app.
@@ -243,15 +298,18 @@ License requirements may require you to include the LICENSES.txt file and the li
 <li>{% trans -%}
 You may also wish to bundle a hosts.txt file.
 {%- endtrans %}</li>
-<li>{% trans -%}
-Be sure to specify a Java 7 bootclasspath if compiling with Java 8.
-{%- endtrans %}</li>
+<li>
+Be sure to specify a bootclasspath if you are compiling Java I2P for your release, rather than taking our binaries.
+</li>
 </ul>
 </p>
 
 
 
 <h3>{% trans %}Android considerations{% endtrans %}</h3>
+<p>
+Note: This section refers to Java I2P only.
+</p>
 <p>{% trans -%}
 Our Android router app may be shared by multiple clients.
 If it is not installed, the user will be prompted when he starts a client app.
@@ -269,6 +327,9 @@ If you require assistance, please contact us.
 
 
 <h3>{% trans %}Maven jars{% endtrans %}</h3>
+<p>
+Note: This section refers to Java I2P only.
+</p>
 <p>{% trans -%}
 We have a limited number of our jars on <a href="http://search.maven.org/#search%7Cga%7C1%7Cg%3A%22net.i2p%22">Maven Central</a>.
 There are numerous trac tickets for us to address that will improve and expand the released jars on Maven Central.
@@ -326,6 +387,9 @@ Other examples are: Vuze, the Nightweb Android app, iMule, TAILS, iCloak, and Mo
 
 
 <h3>{% trans %}Code Example{% endtrans %}</h3>
+<p>
+Note: This section refers to Java I2P only.
+</p>
 <p>{% trans -%}
 None of the above actually tells you how to write your code to
 bundle the Java router, so following is a brief example.
