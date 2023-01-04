@@ -1,10 +1,144 @@
 {% extends "global/layout.html" %}
 {% block title %}{{ _('How to Set up a Reseed Server') }}{% endblock %}
-{% block lastupdated %}2023-1{% endblock %}
+{% block lastupdated %}2023-01{% endblock %}
 {% block content %}
 
 <h2>{% trans %}General Information{% endtrans %}</h2>
 
+  <p>{% trans -%}
+  Thank you for volunteering to run an I2P reseed server.
+  "Reseeding" is our term for bootstrapping new routers into the network.
+  New routers fetch a bundle of peer references, or "router infos", from one or more of a hardcoded list of HTTPS URLs.
+  {%- endtrans %}</p>
+  
+<h2>{% trans %}Requirements{% endtrans %}</h2>
+
+  <p>{% trans -%}
+  A reseed server must be reachable on the public internet.
+  It must use TLS, but it may use a self-signed TLS certificate if the reseed administrator is in communication with the router development team.
+  The administrator of the reseed server should provide contact information in order to respond to issues and be in touch with the I2P team.
+  {%- endtrans %}</p>
+
+<h2>{% trans %}More Information{% endtrans %}</h2>
+
+<h4><a href="reseed-policy">To read the reseed policy, follow this link.</a></h4>
+<h4><a href="reseed-debian">Are you a Debian user? You can find Debian-Specific instructions here.</a></h4>
+<h4><a href="reseed-plugin">Would you like to use an I2P Plugin? I2P Plugin instructions are available here.</a></h4>
+<h4><a href="reseed-proxy">Click here for instructions on using a reverse proxy such as nginx or Apache2.</a></h4>
+<h4><a href="reseed-old">To read the old instructions, follow this link.</a></h4>
+
 <h2>{% trans %}Installation from Source Code{% endtrans %}</h2>
+
+<p>
+  Reseed Tools is a pure Go application which can be built statically without CGO.
+  It makes use of Go Modules.
+  A Makefile is provided with some targets which are convenient helpers for generating binaries, especially for production and release purposes.
+</p>
+<p>
+
+  <strong>
+    1.
+  </strong>
+  Install the build dependencies
+</p>
+<pre><code class="language-sh">
+sudo apt-get install go git make
+</code></pre>
+<p>
+
+  <strong>
+    2.
+  </strong>
+  Clone the source code
+</p>
+<pre><code class="language-sh">
+git clone https://i2pgit.org/idk/reseed-tools ~/go/src/i2pgit.org/idk/reseed-tools
+</code></pre>
+<p>
+
+  <strong>
+    3.
+  </strong>
+  Generate the
+  <code>
+    binaries
+  </code>
+  package using the
+  <code>
+    make build
+  </code>
+  target
+</p>
+<pre><code class="language-sh">
+cd ~/go/src/i2pgit.org/idk/reseed-tools
+make build
+</code></pre>
+<p>
+
+  <strong>
+    4.
+  </strong>
+  Install the binary and the config files
+</p>
+<pre><code class="language-sh">
+sudo make install
+</code></pre>
+<h2>
+  Running the Service
+</h2>
+<p>
+
+  <strong>
+    1.
+  </strong>
+  First, ensure that the I2P service is already running. The longer the better,
+  if you have to re-start the service, or if the service has very few peers, allow it to
+  run for 24 hours before advancing to step
+  <strong>
+    2.
+  </strong>
+</p>
+<pre><code class="language-sh">
+sudo systemctl start i2p
+# or, if you use sysvinit
+sudo service i2p start
+</code></pre>
+<p>
+
+  <strong>
+    2.
+  </strong>
+  Once your I2P router is &ldquo;Well-Integrated,&rdquo; start the reseed service.
+</p>
+<pre><code class="language-sh">
+sudo systemctl start reseed
+# or, if you use sysvinit
+sudo service reseed start
+</code></pre>
+<p>
+  Your reseed will auto-configure with a self-signed certificate on port
+  <code>
+    :8443
+  </code>
+  . The
+  certificates themselves are available in
+  <code>
+    /var/lib/i2p/i2p-config/reseed
+  </code>
+  . When
+  you are ready, you should copy the
+  <code>
+    *.crt
+  </code>
+  files from that directory and share them
+  witth the I2P community on
+  <a href="http://zzz.i2p">
+    <code>
+      zzz.i2p
+    </code>
+  </a>
+  . These will allow I2P users
+  to authenticate your reseed services and secure the I2P network.
+</p>
 
 {% endblock %}
