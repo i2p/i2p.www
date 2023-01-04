@@ -1,0 +1,954 @@
+{% extends "global/layout.html" %}
+{% block title %}{{ _('How to Set up a Reseed Server') }}{% endblock %}
+{% block lastupdated %}2021-12{% endblock %}
+{% block content %}
+
+<h2>{% trans %}Overview{% endtrans %}</h2>
+
+<p>{% trans -%}
+Thank you for volunteering to run an I2P reseed server.
+"Reseeding" is our term for bootstrapping new routers into the network.
+New routers fetch a bundle of peer references, or "router infos", from one or more of a hardcoded list of HTTPS URLs.
+{%- endtrans %}</p>
+
+<h2>{% trans %}Requirements{% endtrans %}</h2>
+
+<p>{% trans -%}
+At its simplest, a reseed server consists of a Java I2P router, an HTTPS web server,
+and some scripts that periodically gather router infos from the router,
+bundle and sign them into a custom file format, and deliver these files over HTTPS.
+In practice, it's a bit more complex, and a reseed operator must be fairly competent and attentive.
+A reseed server is not appropriate for a residential internet connection. The complexities include:
+{%- endtrans %}</p>
+
+<ul>
+<li>{% trans -%}
+You must have a secure SSL setup with either a self-signed certificate or a cert that chains up to a standard CA
+{%- endtrans %}</li>
+<li>{% trans -%}
+The SSL configuration must conform to current best practices on allowed ciphers and protocols, and the CN/SAN host name must match the URL
+{%- endtrans %}</li>
+<li>{% trans -%}
+The scripts are designed to deliver different router info bundles to different requestors for network diversity
+{%- endtrans %}</li>
+<li>{% trans -%}
+The scripts are designed to deliver the same bundle to the same repeated requestor to prevent scraping
+{%- endtrans %}</li>
+<li>{% trans -%}
+The reseed servers are under periodic attacks and DDoS attempts, and from other buggy I2P implementations and botnets.
+This necessitates that you run fail2ban or an equivalent solution.
+{%- endtrans %}</li>
+</ul>
+
+<h2>{% trans %}Information Required{% endtrans %}</h2>
+
+<p>{% trans -%}
+When your setup is complete and ready for testing, we will need the HTTPS URL,
+the SSL public key certificate (only if selfsigned), and the su3 public key certificate.
+After testing is complete, these will be added to the hardcoded entries in the Java and C++ routers in the next release,
+and you will start seeing traffic.
+We also will need your email address so we may continue to contact you about reseed administration issues.
+The email will not be made public but will be known to the other reseed operators.
+You should expect that your nick or name and its association with that URL or IP will become public.
+{%- endtrans %}</p>
+
+<h2>{% trans %}Privacy Policy{% endtrans %}</h2>
+
+<p>{% trans -%}
+A reseed operator is a trusted role in the network.
+While we do not yet have a formal privacy policy, you must ensure the privacy of our users
+by not publicizing logs or IPs found in those logs, except as necessary to discuss administration issues with the I2P reseed team.
+{%- endtrans %}</p>
+
+<h2>{% trans %}Financial Support{% endtrans %}</h2>
+
+<p>{% trans -%}
+Modest financial support may be available to those running reseed servers.
+This support would be in partial reimbursement for your server costs.
+Support will not be paid in advance and will probably not cover all your expenses.
+Support is only available to those who have been running reseed servers in good standing for several months, and is based on actual need.
+{%- endtrans %}</p>
+
+<p>{% trans -%}
+If you would like to discuss support, please contact echelon and CC: zzz
+{%- endtrans %}</p>
+
+
+<h2>{% trans %}Getting Started{% endtrans %}</h2>
+
+<p>{% trans -%}
+Our reseed coordinator is "zzz" and he may be contacted at zzz at mail.i2p or zzz at i2pmail.org.
+Unfortunately, he is not generally on IRC. The reseed setup is somewhat specialized, and you should direct most questions to him.
+{%- endtrans %}</p>
+
+<p>{% trans -%}
+For actual implementation, details below. We have one recommended reseed solution:
+{%- endtrans %}</p>
+
+<ul>
+<li>{% trans -%}
+A Go implementation that includes the web server and all the scripts. This is the recommended solution.
+{%- endtrans %}</li>
+
+</ul>
+
+<p>{% trans -%}
+For further information, read the information at the following links, and then contact zzz.
+Thank you!
+{%- endtrans %}</p>
+
+<ul><li>
+<a href="http://zzz.i2p/topics/1893">zzz.i2p thread</a>
+</li><li>
+<a href="http://zzz.i2p/topics/1716">zzz.i2p thread</a>
+</li><li>
+<a href="https://github.com/martin61/i2p-tools">Go reseed server source on github</a>
+</li><li>
+<a href="/en/docs/spec/updates">SU3 Reseed File Format Specification</a>
+</li></ul>
+
+<h2>{% trans %}Detailed Instructions{% endtrans %}</h2>
+
+<h3>How-to Public reseed servers - su3</h3>
+
+<ul>
+<li>Some parts of this how-to are copied from <a href="http://zzz.i2p">zzz.i2p</a> and are modified.
+<li>Fetching individual RI (dat-files -the legacy/old style-) is not part of this how-to.
+<li>Questions can be placed on <a href="http://zzz.i2p/forums/18">zzz.i2p</a> - in the Reseeding sub-forum.
+</ul>
+
+<h3>Table of contents</h3>
+
+<ol>
+<li>Introduction
+<li>Requirements
+<li>Go Solution - Quick Guide
+  <ol>
+   <li>Start Web Server
+   <li>Install git and golang
+   <li>Build and Test
+   <li>Run Reseed
+   <li>Backup Certificates and Keys
+   <li>Enable Autostart
+   <li>Connect Web Server to Reseed
+   <li>Test From Another Computer
+   <li>Send Us Your Certificates
+  </ol>
+<li>Go Solution -Detailed Guide
+  <ol>
+   <li>Overview
+   <li>Building From Source
+   <li>Run The Reseed Server
+   <li>Draft For Startup Script
+   <li>Reverse-Proxy Setup
+   <li>Convert Existing Java Keystore to crt- and pem-file
+  </ol>
+<li>Seamless SSL-Certificate Exchange
+<li>Reseed Server Domain/URL/Port Exchange
+<li>Tests
+<li>Contact Reseed Maintainer
+</ol>
+
+<h2>1. Introduction</h2>
+<p>
+Public reseed servers are necessary to bootstrap into the I2P net.
+New installed I2P routers needs one-time about one hundred RouterInfo's (RI) as jump start.
+</p>
+<p>
+RI contains IP and Port from other I2P routers and are stored in dat-files in the netDB folder.
+</p>
+<p>
+A random bunch of dat-files from the netDB are zipped, then signed to a su3-file
+and finally offered to I2P routers seeking reseed service.
+</p>
+<p>
+To secure bootstrap and enable a trusted start, HTTPS/TLS and signed su3-files are mandatory.
+</p>
+<p>
+It is essential not to publish all RI from netDB, or all RI to one client.
+</p>
+
+
+<h2>2. Requirements</h2>
+
+<p>
+Requirements for running a public reseed server:
+<ul>
+<li>Well integrated running I2P router @ 24/7
+<li>Server with static IPv4 (2 cpu/ 2GB ram is fine)
+<li>Unix to run the golang solution
+<li>Own domain, sub-domain or an anonymous third-level domain
+<li>A self-signed SSL certificate, or an SSL certificate from <a href="https://letsencrypt.org" target="_blank">Let's Encrypt</a>
+<li>Enough bandwidth and traffic volume - Around 15 GB/month as of December 2016
+<li>Up-to-date web server (Apache/nginx), HTTPS ONLY with TLS 1.2 and good ciphers
+</ul>
+Optional:
+<ul>
+<li>fail2ban to protect you from botnets
+<li>GnuPG/PGP for signed/encrypted emails
+<li>IPv6
+</ul>
+
+<p>
+This How-to is tested with Ubuntu/Debian as well as FreeBSD.
+The web server has to be public reachable from all over the world, an I2P Site inside I2P can be setup in addition.
+Also frequent or infrequent attempts to scrape all your reseed files, and of course attacks on your server.
+The web server doesn't need to listen at default SSL/TLS port 443 - any other port can be used for obfuscation.
+</p>
+
+
+<h2>3. Go Solution - Quick Guide</h2>
+
+<h3>1. Fire Up Your Favorite Webserver</h3>
+<ol><li>
+	Connect a domain, sub-domain or (anonymous) third-level-domain
+</li><li>
+	Setup a state-of-the-art TLS(SSL) certificate
+</li><li>
+	Allow access only via HTTPS/TLS, no unencrypted HTTP
+</li><li>
+  Allow only very good ciphers, compatible to Java 7/8/9. See <a href="https://cipherli.st/" target="_blank">Cipherli.st</a>
+</li></ol>
+<p>
+Note: A non default port other than 443 can be used; TLS certificate can be self signed; configure fail2ban as bot-net protection
+</p>
+
+
+<h3>2. Install git and golang-go (1.4.2 or higher)</h3>
+<pre>
+	Debian/Ubuntu:    sudo apt install git golang-go
+        Arch:             sudo pacman -s git go
+</pre>
+
+
+<h3>3. Switch To User Running I2P, Fetch the i2p-tool Source Code, Build and Test it</h3>
+<p>
+Note: Visit http://reseed.i2p and download a pre-build x86_64 binary, so you can skip step 2+3.
+</p>
+<pre>
+	export GOPATH=$HOME/go; mkdir $GOPATH; cd $GOPATH
+	go get github.com/martin61/i2p-tools
+	bin/i2p-tools -h
+</pre>
+
+
+<h3>4. Run i2p-tools locally, </h3>
+<p>
+Replace 'yourname@mail.i2p' with your email address
+Replace '/home/i/.i2p/netDb' with the path to the I2P 'netDb' in the home folder of the user running I2P
+</p>
+<pre>
+	GOPATH=$HOME/go;
+        cd $GOPATH;
+        bin/i2p-tools reseed --signer=yourname@mail.i2p \
+                             --netdb=/home/i/.i2p/netDb \
+                             --port=8443 \
+                             --ip=127.0.0.1 \
+                             --trustProxy
+</pre>
+
+
+<h3>5. Back Up New Certificates</h3>
+<p>
+Make a backup from the newly created su3-signing key and certificate found in $GOPATH (.crt/.pem/.crl) and keep it in a safe, password protected location
+</p>
+
+
+<h3>6. Enable Autostart (+restart) for i2p-tools in Your crontab</h3>
+<p>
+Replace '...' with the appropriate command-line arguments as in step 4
+</p>
+<pre>
+	@reboot   GOPATH=$HOME/go; cd $GOPATH; bin/i2p-tools reseed ... &gt;/dev/null 2>&amp;1
+	9 * * * * GOPATH=$HOME/go; cd $GOPATH; bin/i2p-tools reseed ... &gt;/dev/null 2>&amp;1
+</pre>
+
+<h3>7. Connect Your Webserver via Reverse-Proxy setup to the i2p-tool, Examples</h3>
+<p>
+<b>lighttpd is no longer supported due to a limitation with the 'X-Forwarded-For' HTTP Header. Please use Apache or nginx.</b>
+</p>
+<p>
+	nginx configuration example:
+</p>
+<pre>
+		location / {
+			proxy_pass http://127.0.0.1:8443;
+                        proxy_set_header X-Real-IP  $remote_addr;
+                        proxy_set_header X-Forwarded-For $remote_addr;
+		}
+</pre>
+<p>
+	Apache (untested - feedback would be appreciated)
+</p>
+<pre>
+		ProxyRequests Off
+		&lt;Proxy *&gt;
+			Order deny,allow
+			Allow from all
+		&lt;/Proxy&gt;
+		ProxyPass / http://127.0.0.1:8443/
+		ProxyPassReverse / http://127.0.0.1:8443/
+</pre>
+<p>
+Additionally, ensure that your webserver uses these suggested settings for Strong SSL Security (visit <a href="https://cipherli.st/" target="_blank">CipherLi.st</a> for the latest settings). Sample SSL settings are provided in section <b>4.5 Reverse-Proxy Setup</b>.
+</p>
+
+<p>
+Note: i2p-tool has also an build-in standalone webserver with TLS support which can be used without a webserver. Please contact (zzz at mail.i2p.de) if you need help, or stop by #i2p-dev on IRC2P and talk to other reseed operators.
+</p>
+
+
+<h3>8. Final Test From Another Computer With I2P Running</h3>
+<ol><li>
+	Place your su3-certificate (*.crt) in i2p/certificates/reseed/
+</li><li>
+	Place your TLS-certificate (*.crt) in i2p/certificates/ssl/
+</li><li>
+	Visit with your web browser http://localhost:7657/configreseed
+</li><li>
+	Enter your new reseed-url and delete all others, hit "Save changes and reseed now"
+</li><li>
+	Check the I2P logs for "Reseed got 77 router infos from ... with 0 errors, Reseed complete, 77 received"
+</li></ol>
+
+
+<h3>9. Send Us Your Information</h3>
+<ol><li>
+	Domain/URL/Port
+</li><li>
+	su3-signing certificate
+</li><li>
+	TLS certificate (if self signed)
+</li></ol>
+<p>
+Send an email: zzz at mail.i2p, PGP signed welcome :-)
+
+
+<h2>4. Go Solution - Detailed Instructions</h2>
+
+<h3>1. Overview</h3>
+
+<p>
+The previous steps for reseeding involves many steps, scripts and programs.
+Most of them are easy and plain straight forward, but overall you can call it a little confusing.
+
+<p>
+Here comes now an all-in-one solution from matt (Big Thanks!) for providing
+a reseed server which merges the following functions into one binary:
+
+<ul>
+<li>Create su3-files
+<li>Create su3 signer certificate+key
+<li>Create SSL-certificate+key
+<li>Replaces the http-server and the PHP code (or run next to them in parallel)
+</ul>
+
+<p>
+Almost all previous used scripts and described steps are not needed with this solution,
+but to understand the overall reseed process it is recommended to read them too :-)
+
+<ul>
+<li>If you already have an SSL-certificate and su3-signer-key you can reuse them, see one of the following chapter.
+<li>For testing and new reseeders the required certs and keys are created automatically at first start.
+<li>Also take a look at the content and the naming scheme of these pem and crt files.
+</ul>
+
+<p>
+Of course you need an up-to-date netDB folder with routerinfos from a running I2P router.
+I2P does not have to be running on the same machine as this reseed binary.
+In this case you can setup a cronjob to transfer the netDB from the I2P machine to the reseed machine.
+
+<p>
+Matt's go solution can be used in parallel next to an already running http-server.
+For this leave the http-server running at normal port 80 and 443,
+and configure Go solution too use another port, e.g. port 8443.
+
+<p>
+More: at github, README.md, https://github.com/martin61/i2p-tools
+
+
+<h3>2. Building From Source</h3>
+
+<p>
+Requirements:
+<ul>
+<li>go1.4.2 (older versions may not work)
+</ul>
+
+<p>
+Install go from https://golang.org/doc/install, example for 64 bit Ubuntu/Debian:
+<ul>
+<li>wget https://storage.googleapis.com/golang/go1.4.2.linux-amd64.tar.gz
+<li>sudo tar -C /usr/local -xzf go1.4.2.linux-amd64.tar.gz
+<li>mkdir $HOME/go
+<li>edit /etc/profile and add:
+<pre>
+	export GOPATH=$HOME/go
+	export PATH=$PATH:/usr/local/go/bin:$GOPATH/bin
+</pre>
+</ul>
+
+<p>
+Verify go:
+<pre>
+$ go version
+</pre>
+which should state something like: "go version go1.4.2"
+
+<p>
+Install Go solution from https://github.com/martin61/i2p-tools into $HOME/go:
+<pre>
+$ go get github.com/martin61/i2p-tools
+</pre>
+
+<p>
+This will install a binary to $GOPATH/bin/i2p-tools
+
+<p>
+Run the go solution, the usage/help should be displayed, nothing more:
+<pre>
+$ i2p-tools
+</pre>
+
+<h3>3. Run the Reseed Server</h3>
+
+<pre>
+$ i2p-tools reseed --tlsHost=myserver.com --signer=myemail@mail.i2p --netdb=$HOME/.i2p/netDb
+</pre>
+
+<ul>
+<li>Replace myserver.com with your real domain
+<li>Replace myemail@mail.i2p with a valid existing email, which you want to use for reseeding purpose
+<li>New TLS certificate+key will be created (if they do not exist)
+<li>New signing certificate+key will be created (if they do not exist)
+<li>netdb=... should point to the netdb folder of your running I2P with the routerinfos
+<li>To use another port append "--port=443" to the command, default is port 8443
+</ul>
+
+<p>
+Output:
+<pre>
+2015/03/15 12:28:25 Rebuilding su3 cache...
+2015/03/15 12:28:25 Building 200 su3 files each containing 75 out of 3180 routerInfos.
+2015/03/15 12:28:35 Done rebuilding.
+2015/03/15 12:28:35 HTTPS server started on 0.0.0.0:8443
+</pre>
+
+<p>
+So you can now test to reach the server at port 8443, see a previous chapter about proper testing.
+
+<p>
+Some remarks:
+<ul>
+<li>Don't run the server daemon as root
+<li>Every port between 1024 and 49151 is fine for I2P.
+<li>If you want to use the privileged (https-default) port 443, create a port redirect, e.g.
+    <pre>'iptables -A PREROUTING -t nat -p tcp --dport 443 -j REDIRECT --to-port 8443'</pre>
+<li>Redirect the output from the go solution to a logfile, format is default apache-style combined logs
+<li>Add a logrotate for the logfiles, since they grow big :-(
+<li>Logfiles can be used by fail2ban
+<li>Both of the certificates (*.crt) will need to be sent to the reseed maintainer
+in order for your reseed server to be included in the standard I2P package.
+<li>Add a proper startup script, to run the reseed server, see next chapter
+</ul>
+
+
+<h3>4. Draft for Startup Script "seedserver"</h3>
+
+<p>
+The reseed server should be started automatically, so you need a init.d or some sort of
+startscript, here named as "seedserver".
+This is only a very first draft for a simple startscript (it could be done better :-))
+<p>
+Login as I2P user:
+<ul>
+<li>Place the shell-script "seedserver" in the /home/i2p/bin folder (next to i2p-tools)
+<li>Make it executable: chmod u+x /home/i2p/bin/seedserver
+</ul>
+Update the header "# Your settings" with your individual settings.
+
+<p>
+Now you can use the shell-script:
+<pre>
+seedserver start
+</pre>
+<p>
+And then (give it some seconds) take a look at the status:
+<pre>
+seedserver status
+seedserver showlog
+</pre>
+
+<p>
+Some short explanation about seedserver:
+<ul>
+<li>runs i2p-tools in the background
+<li>creates logfiles
+<li>take care of all settings
+</ul>
+
+<p>
+If this is working fine, you can put the script in your personal crontab, to run it by auto-start
+and to do logrotes simply by restarting it regularly once a week to avoid too big logfiles.
+If you already reboot your server regularly, you can skip of course the "restart" command line.
+
+<p>
+Login as I2P user, edit your crontab:
+<pre>
+crontab -e
+</pre>
+<p>
+and add these 3 lines at the end:
+<pre>
+@reboot /home/i2p/bin/seedserver startdelayed
+04 14 * * 2 /home/i2p/bin/seedserver restart
+#end
+</pre>
+
+<p>
+Save and close the editor. It would be good to check if this is properly working when you reboot your machine.
+
+<p>
+"seedserver" shell script:
+
+<pre>
+######################################################################################################
+#!/bin/sh
+
+# Your settings
+toolpath=/home/i2p/bin
+tlsHost=myserver.com
+signer=myemail@mail.i2p
+netdb="/home/i2p/.i2p/netDb"
+
+
+tool=i2p-tools
+logpath="$toolpath/${tool}.log"
+logfile="$logpath/reseed.log"
+errfile="$logpath/reseed.error"
+
+cd "$toolpath"
+mkdir --parents "$logpath"
+
+
+do_status() {
+/bin/sleep 1
+if [ -n "$(pgrep -x "$tool")" ]; then
+echo "$tool running, pid $(pgrep "$tool")"
+else
+echo "$tool not running."
+fi;
+}
+
+do_start() {
+if [ -z "$(pgrep -x "$tool")" ]; then
+do_logrotate
+nohup "$toolpath/$tool" reseed -tlsHost="$tlsHost" --signer="$signer" --netdb="$netdb" &gt; "$logfile" 2&gt; "$errfile" &
+fi;
+do_status
+}
+
+do_stop() {
+if [ -n "$(pgrep -x "$tool")" ]; then
+pkill "$tool"
+fi;
+do_status
+}
+
+do_startdelayed() {
+echo "waiting 20s..."
+/bin/sleep 20
+do_start
+}
+
+do_restart() {
+do_status
+do_stop
+do_start
+}
+
+do_logrotate() {
+do_status
+if [ -z "$(pgrep -x "$tool")" ]; then
+mv --force "${logfile}.6" "${logfile}.7" 2&gt;/dev/null
+mv --force "${logfile}.5" "${logfile}.6" 2&gt;/dev/null
+mv --force "${logfile}.4" "${logfile}.5" 2&gt;/dev/null
+mv --force "${logfile}.3" "${logfile}.4" 2&gt;/dev/null
+mv --force "${logfile}.2" "${logfile}.3" 2&gt;/dev/null
+mv --force "${logfile}.1" "${logfile}.2" 2&gt;/dev/null
+mv --force "${logfile}" "${logfile}.1" 2&gt;/dev/null
+mv --force "${errfile}.6" "${errfile}.7" 2&gt;/dev/null
+mv --force "${errfile}.5" "${errfile}.6" 2&gt;/dev/null
+mv --force "${errfile}.4" "${errfile}.5" 2&gt;/dev/null
+mv --force "${errfile}.3" "${errfile}.4" 2&gt;/dev/null
+mv --force "${errfile}.2" "${errfile}.3" 2&gt;/dev/null
+mv --force "${errfile}.1" "${errfile}.2" 2&gt;/dev/null
+mv --force "${errfile}" "${errfile}.1" 2&gt;/dev/null
+echo "log-rotate done."
+else
+echo "log-rotate not possible."
+fi;
+}
+
+do_showlog() {
+echo "-------------------------------------------------------------------------------"
+tail "$errfile"
+echo "-------------------------------------------------------------------------------"
+tail "$logfile"
+echo "-------------------------------------------------------------------------------"
+}
+
+
+do_usage() {
+echo "Usage: {start|stop|status|restart|logrotate|startdelayed|showlog}"
+}
+
+case "$1" in
+start)
+do_start
+;;
+stop)
+do_stop
+;;
+status)
+do_status
+;;
+restart)
+do_restart
+;;
+startdelayed)
+do_startdelayed
+;;
+logrotate)
+do_logrotate
+;;
+showlog)
+do_showlog
+;;
+*)
+do_usage
+;;
+esac
+
+exit 0
+######################################################################################################
+</pre>
+
+
+<h3>5. Reverse-Proxy Setup</h3>
+
+<p>
+You can run i2p-tools also behind your normal web-server (reverse-proxy).
+
+<p>
+The web-server handles the TLS handshake, encryption, SSL Certificate and the logfiles.
+But you don't need the scripts su3.php and the shell cronjob for creating su3-files.
+i2p-tools is running "behind" the web-server, without TLS management, only bind to
+local interface 127.0.0.1 and is handling complete building and handling of su3-files.
+
+
+<p>
+Run i2p-tools with this command:
+
+<pre>
+i2p-tools reseed --signer test@test.de \
+                 --key /path_to/test_at_test.de.pem \
+                 --netdb /path_to/netDb \
+                 --port=8443 \
+                 --ip 127.0.0.1 \
+                 --trustProxy
+</pre>
+
+
+Important notes for this special setup:
+<ul>
+<li>do *not* specify  --tlsHost, --tlsCert or --tlsKey on the command-line
+<li>"ip 127.0.0.1" binds the program only to local interface
+<li>"trustProxy" uses the "X-Forwarded-For" to get the real client IP
+</ul>
+
+"trustProxy" uses the "X-Forwarded-For" to get the real client IP
+<p>
+	nginx configuration example:
+</p>
+<pre>
+		location / {
+			proxy_pass http://127.0.0.1:8443;
+                        proxy_set_header X-Real-IP  $remote_addr;
+                        proxy_set_header X-Forwarded-For $remote_addr;
+		}
+</pre>
+<p>
+	Apache (untested - feedback would be appreciated)
+</p>
+<pre>
+		ProxyRequests Off
+		&lt;Proxy *&gt;
+			Order deny,allow
+			Allow from all
+		&lt;/Proxy&gt;
+		ProxyPass / http://127.0.0.1:8443/
+		ProxyPassReverse / http://127.0.0.1:8443/
+</pre>
+<p>
+
+<p>
+and for X-Forwarded-For:
+<pre>
+     proxy_set_header        X-Real-IP       $remote_addr;
+     proxy_set_header        X-Forwarded-For $proxy_add_x_forwarded_for;
+</pre>
+
+<p>
+Additionally, ensure that your webserver uses these suggested settings for Strong SSL Security (visit <a href="https://cipherli.st/" target="_blank">CipherLi.st</a> for the latest settings). A sample configuration is provided below.
+</p>
+<p>
+Apache
+</p>
+<pre>
+SSLCipherSuite EECDH+AESGCM:EDH+AESGCM:AES256+EECDH:AES256+EDH
+SSLProtocol All -SSLv2 -SSLv3
+SSLHonorCipherOrder On
+Header always set Strict-Transport-Security "max-age=63072000; includeSubDomains; preload"
+Header always set X-Frame-Options DENY
+Header always set X-Content-Type-Options nosniff
+# Requires Apache >= 2.4
+SSLCompression off 
+SSLUseStapling on 
+SSLStaplingCache "shmcb:logs/stapling-cache(150000)" 
+# Requires Apache >= 2.4.11
+SSLSessionTickets Off
+</pre>
+<p>
+nginx (remember to replace '$DNS-IP-1' & '$DNS-IP-2' with 2 trusted DNS servers)
+</p>
+<pre>
+ssl_protocols TLSv1 TLSv1.1 TLSv1.2;
+ssl_prefer_server_ciphers on;
+ssl_ciphers "EECDH+AESGCM:EDH+AESGCM:AES256+EECDH:AES256+EDH";
+ssl_ecdh_curve secp384r1; # Requires nginx >= 1.1.0
+ssl_session_cache shared:SSL:10m;
+ssl_session_tickets off; # Requires nginx >= 1.5.9
+ssl_stapling on; # Requires nginx >= 1.3.7
+ssl_stapling_verify on; # Requires nginx => 1.3.7
+resolver $DNS-IP-1 $DNS-IP-2 valid=300s;
+resolver_timeout 5s;
+add_header Strict-Transport-Security "max-age=63072000; includeSubDomains; preload";
+add_header X-Frame-Options DENY;
+add_header X-Content-Type-Options nosniff;
+</pre>
+<p>
+Complete nginx configuration (sample)
+<p>
+<pre>
+user nobody;
+worker_processes 1;
+
+events {
+    worker_connections  1024;
+}
+
+http {
+    include       mime.types;
+    default_type  application/octet-stream;
+    sendfile        on;
+    keepalive_timeout  65;
+
+    server {
+        listen $IP_ADDRESS:443 ssl;
+        server_name $DOMAIN;
+
+        ssl_certificate keys/fullchain.pem;
+        ssl_certificate_key keys/privkey.pem;
+
+        ssl_protocols TLSv1 TLSv1.1 TLSv1.2;
+        ssl_ciphers "EECDH+AESGCM:EDH+AESGCM:AES256+EECDH:AES256+EDH";
+        ssl_ecdh_curve secp384r1; # Requires nginx >= 1.1.0
+        ssl_session_cache shared:SSL:10m;
+        ssl_session_tickets off; # Requires nginx >= 1.5.9
+        ssl_stapling on; # Requires nginx >= 1.3.7
+        ssl_stapling_verify on; # Requires nginx => 1.3.7
+        resolver $DNS_IP_1 $DNS_IP_2 valid=300s;
+        resolver_timeout 5s;
+        ssl_prefer_server_ciphers on;
+        ssl_dhparam keys/dh.pem;
+        server_tokens off;
+
+        charset utf8;
+
+        location /i2pseeds.su3 {
+                proxy_pass http://127.0.0.1:8443;
+                proxy_set_header X-Real-IP  $remote_addr;
+                proxy_set_header X-Forwarded-For $remote_addr;
+	  }
+	}
+}
+</pre>
+
+
+<h3>6. Convert Existing Java Keystore to crt- and pem-file</h3>
+
+<p>
+This describes how to convert your existing Java keystore with your su3 signing key to a plain crt- and pem-file.
+This is only needed, when you already have a Java keystore and want to use Go solution.
+If you create new keys+certs with matt's solution you can skip this chapter!
+
+<p>
+Requirements:
+<ul>
+<li>Java keytool
+<li>openssl
+<li>and of course your secret password for the keystore
+</ul>
+
+<p>
+Keep in mind: the Java keystore has two passwords:
+<ul>
+<li>The secret key password you have entered while creating your keystore the first time (SU3File keygen ...)
+<li>And a "storage" password, which is most probably default "changeit".
+</ul>
+
+<p>
+This works in a Ubuntu/Debian shell:
+
+<pre>
+######################################################################################################
+file="keystore.ks"
+pass_jks=changeit
+
+# List the keystore content, show the included (email) alias
+keytool -list -storepass $pass_jks -keystore $file
+
+# Convert jks --&gt; pkcs12, specify the correct email alias (xxxxx@mail.i2p):
+keytool -importkeystore \
+        -srcalias xxxxx@mail.i2p \
+        -srckeystore $file \
+        -srcstoretype jks \
+        -srcstorepass $pass_jks \
+        -destkeystore ${file}.p12 \
+        -deststoretype pkcs12 \
+        -deststorepass $pass_jks \
+        -destkeypass $pass_jks
+
+# Show the pkcs12 content:
+openssl pkcs12 -passin pass:$pass_jks -in ${file}.p12 -nodes -info
+
+# Convert pkcs12 --&gt; pem
+openssl pkcs12 -passin pass:$pass_jks -in ${file}.p12 -nodes -out ${file}.pem
+
+# Decrypt the pem
+openssl rsa  -in ${file}.pem -out xxxxx_at_mail.i2p.pem
+
+# Extract the certificate
+openssl x509 -in ${file}.pem -out xxxxx_at_mail.i2p.crt
+######################################################################################################
+</pre>
+
+
+<h3>5. Seamless SSL-Certificate Exchange</h3>
+
+<p>
+The update/exchange of an already existing self-signed certificates has to be correct timed
+on server *and* client side. Considering thousands of clients (many with older I2P version) the exchange
+will not be seamless possible and will have very bad impact on many clients: reseed won't work for them.
+
+<p>
+To avoid this issue and make the exchange as smooth as possible follow these simple steps:
+
+<ol>
+<li>Generate a new SSL-certificate NOW, but do NOT implement it on server
+<li>Send the new SSL-certificate to us to perform a roll-out towards clients NOW
+<li>WAIT some month, e.g. 3-4 i2p-releases
+<li>New SSL-certificate is now hopefully present on many clients (in parallel to the current/old one)
+<li>THEN exchange the SSL-certificate on server
+</ol>
+
+<p>
+This idea based on the fact, that you can provide in i2p/certificates/ssl more than one crt-file for a server, e.g.
+server.com.crt and server.com2.crt
+
+
+<h3>6. Reseed Server Domain/URL/Port Exchange</h3>
+
+
+<p>
+You are already operating a reseed server but want to change your Domain/URL/Port?
+To make the exchange as smooth as possible for many clients please follow these steps if possible:
+
+<ol>
+<li>Setup an additional reseed instance at the new Domain/URL/Port
+<li>We include the new URL into I2P source NOW and delete the old URL NOW
+<li>Both of your reseed instances have to run some time in parallel
+<li>WAIT some month, e.g. 3-4 i2p-releases
+<li>New URL is now hopefully present on many clients
+<li>THEN shutdown the old reseed instance
+</ol>
+
+
+<h3>7. Tests</h3>
+
+<p>
+Some simple pre-test: test the website and fetch
+<pre>
+	wget --user-agent="Wget/1.11.4" \
+             -O /tmp/test.su3 \
+             --no-check-certificate https://your-server.com:PORT/i2pseeds.su3
+</pre>
+Replace "PORT" with default 443 or your chosen server setting.
+Inspect the fetched file.:
+Some simple pre-test: test the website and fetch
+<pre>
+	zipinfo -z /tmp/test.su3
+</pre>
+
+<p>
+Replace "--no-check-certificate" with "--ca-certificate=~/i2p/certificates/ssl/your-server.com.crt"
+which contains the path to your local public SSL-certificate to check also your ssl-certificate chain.
+
+<p>
+Confirm the following:
+<ul>
+<li>SSL-certificate chain valid?
+<li>The su3-files can be downloaded?
+<li>Contains &gt; 50 dat-files?
+<li>And is always the same for one client-IP?
+<li>Other client-IP's gets another file?
+<li>Clients has no direct access to complete folder e.g. https://your-server.com/su3/ ?
+</ul>
+
+<p>
+Do a real reseed test on *another* I2P router machine:
+<ul>
+<li>Include manually new SSL-certificate into i2p installation:	~/i2p/certificates/ssl/
+<li>Include manually new public reseed key into i2p installation:	~/i2p/certificates/reseed/
+<li>http://localhost:7657/configreseed --&gt; remove all reseed hosts
+<li>Add the new reseed host e.g. "https://your-server.com/" *without* trailing "i2pseeds.su3"
+<li>Save and Shutdown router.
+<li>Clear netdb: empty folder ./i2p/netDb.
+<li>Restart I2P and watch the I2P router log:
+<pre>
+2014/10/13 23:01:02 | Reseed start
+2014/10/13 23:01:02 | Reseeding from https://your-server/i2pseeds.su3
+2014/10/13 23:01:05 | INFO: xx files extracted to /tmp/i2p-V2qudTbd.tmp/reseeds-1010682701
+2014/10/13 23:01:05 | Reseed got xx router infos from https://your-server.com/i2pseeds.su3 with 0 errors
+2014/10/13 23:01:06 | Reseed complete, xx received
+</pre>
+</ul>
+
+<h3>8. Contact Reseed Maintainer</h3>
+
+<p>
+Contact us via email zzz at mail.i2p (alternatively, post in the reseed section on the zzz.i2p forum)
+Provide us with details about your new reseed server:
+<ul>
+<li>Reseed website URL
+<li>Public SSL certificate
+    (Only required if selfsigned, which is not recommended. Please use Lets Encrypt or other CA)
+<li>Public reseed su3 certificate
+<li>Your contact email
+<li>A statement that you agree to the privacy policy above
+</ul>
+<p>
+Feel free to contact zzz at mail.i2p in case of questions or problems or post your question at zzz's forum in the reseed section.
+
+{% endblock %}
