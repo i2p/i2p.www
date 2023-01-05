@@ -17,7 +17,7 @@ How to Switch to the StormyCloud Outproxy Service
 
 {% trans -%}
 For years, I2P has been served by a single default outproxy, `false.i2p`
-who's reliability has been degrading. Although several competitors
+whose reliability has been degrading. Although several competitors
 have emerged to take up some of the slack, they are mostly unable to
 volunteer to serve the clients of an entire I2P implementation by
 default. However, StormyCloud, a professional, non-profit organization
