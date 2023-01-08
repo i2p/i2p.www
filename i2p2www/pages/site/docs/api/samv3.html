@@ -274,6 +274,15 @@ will result in your users contributing more resources to the network than they c
 I2P is a peer-to-peer network, and the network cannot survive if a popular application
 drives the network into permanent congestion.
 </p><p>
+The Java I2P and i2pd router implementations are independent and have minor differences
+in behavior, feature support, and defaults.
+Please test your application with the latest version of both routers.
+</p><p>
+i2pd SAM is enabled by default; Java I2P SAM is not.
+Provide instructions to your users on how to enable SAM in Java I2P (via /configclients in the router console),
+and/or provide a good error message to the user if the initial connect fails,
+e.g. "ensure that I2P is running and the SAM interface is enabled".
+</p><p>
 The Java I2P and i2pd routers have different defaults for tunnel quantities.
 The Java default is 2 and the i2pd default is 5.
 For most low- to medium-bandwidth and low- to medium-connection counts,
@@ -651,7 +660,8 @@ As of version 3.1 (I2P 0.9.14), if the destination is TRANSIENT, an optional par
 SIGNATURE_TYPE is supported. The SIGNATURE_TYPE value may be any name
 (e.g. ECDSA_SHA256_P256, case insensitive) or number (e.g. 1)
 supported by <a href="{{ site_url('docs/spec/common-structures') }}#type_Certificate">Key Certificates</a>.
-The default is DSA_SHA1.
+The default is DSA_SHA1, which is NOT what you want.
+For most applications, please specify SIGNATURE_TYPE=7.
 
 </p><p>
 $nickname is the choice of the client. No whitespace is allowed.
@@ -732,11 +742,18 @@ If some other error has occurred:
 If it's not OK, the MESSAGE should contain human-readable information
 as to why the session could not be created.
 
+</p><p>
+Note that the router builds tunnels before responding with SESSION STATUS.
+This could take several seconds, or, at router startup or during severe network congestion,
+a minute or more.
+If unsuccessful, the router will not respond with a failure message for several minutes.
+Do not set a short timeout waiting for the response.
+Do not abandon the session while tunnel build is in progress and retry.
 
 </p><p>
 SAM sessions live and die with the socket they are associated with.
 When the socket is closed, the session dies, and all communications
-using the session die at the same time. And the other way round, when
+using the session die at the same time. And the other way around, when
 the session dies for any reason, the SAM bridge closes the socket.
 </p>
 
@@ -831,6 +848,11 @@ peer. If the connection was not possible (timeout, etc),
 RESULT will contain the appropriate error value (accompanied by an
 optional human-readable MESSAGE), and the SAM bridge closes the
 socket.
+
+</p><p>
+The router stream connect timeout internally is approximately one minute, implementation-dependent.
+Do not set a shorter timeout waiting for the response.
+
 </p>
 
 <h3>SAM Virtual Streams : ACCEPT</h3>
@@ -1587,7 +1609,8 @@ which is answered by
 As of version 3.1 (I2P 0.9.14), an optional parameter SIGNATURE_TYPE is supported.
 The SIGNATURE_TYPE value may be any name (e.g. ECDSA_SHA256_P256, case insensitive) or number (e.g. 1)
 that is supported by <a href="{{ site_url('docs/spec/common-structures') }}#type_Certificate">Key Certificates</a>.
-The default is DSA_SHA1.
+The default is DSA_SHA1, which is NOT what you want.
+For most applications, please specify SIGNATURE_TYPE=7.
 
 </p><p>
 The $destination is the base 64 of the <a href="{{ site_url('docs/spec/common-structures') }}#type_Destination">Destination</a>,
