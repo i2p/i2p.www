@@ -3,8 +3,8 @@ SSU2
 ======
 .. meta::
     :category: Transports
-    :lastupdated: 2022-12
-    :accuratefor: 0.9.56
+    :lastupdated: 2023-01
+    :accuratefor: 0.9.57
 
 .. contents::
 
@@ -5282,6 +5282,91 @@ Bob should validate this IP and port, and reject with code 5 if invalid.
 Recommended IP validation is that, for IPv4, it matches Alice's IP,
 and for IPv6, at least the first 8 bytes of the IP match.
 Port validation should reject privileged ports and ports for well-known protocols.
+
+
+
+Results State Machine
+-----------------------------
+Here we document how Alice may determine the results of a peer test,
+based on which messages are received.
+SSU2's enhancements provide us the opportunity to fix, improve, and better-document
+the peer test result state machine compared to the one in [SSU]_.
+
+For each address type tested (IPv4 or IPv6), the result can be one of
+UNKNOWN, OK, FIREWALLED, or SYMNAT.
+Additionally, other processing may be done to detect IP or port change,
+or an external port different than the internal port.
+
+Problems with the documented SSU state machine:
+
+- We never send message 6 unless we got message 5, so we never know if we're SYMNAT
+- If we DID get messages 4 and 7, how could we possibly be SYMNAT
+- If the IP did not match but the port did, we aren't SYMNAT, we just changed our IP
+
+So, in contrast to SSU, we recommend waiting several seconds after getting message 4,
+then sending message 6 even if message 5 is not received.
+
+A summary of the state machine, based on whether messages 4, 5, and 7 are
+received (yes or no), is as follows:
+
+.. raw:: html
+
+  {% highlight %}
+4 5 7  Result             Notes
+  -----  ------             -----
+  n n n  UNKNOWN
+  y n n  FIREWALLED           (unless currently SYMNAT)
+  n y n  OK                   (unless currently SYMNAT, which is unlikely)
+  y y n  OK                   (unless currently SYMNAT, which is unlikely)
+  n n y  n/a                  (can't send msg 6)
+  y n y  FIREWALLED or SYMNAT (requires sending msg 6 w/o rcv msg 5)
+  n y y  n/a                  (can't send msg 6)
+  y y y  OK
+
+{% endhighlight %}
+
+
+A more detailed state machine, with checks of the IP/port received in
+the address block of message 7, is below.
+One challenge is to determine if you (Alice) are the one symmetric natted, or Charlie is.
+
+Post-processing or additional logic to confirm state transitions by
+requiring the same results on two or more peer tests is recommended.
+
+Received IP/port validation and confirmation by two or more tests,
+or with the address block in Session Created messages, is also recommended,
+but is outside the scope of this specification.
+
+
+.. raw:: html
+
+  {% highlight %}
+If Alice does not get msg 5:
+     If Alice does not get msg 4: -> UNKNOWN
+     If Alice does not get msg 7: -> UNKNOWN
+     If Alice gets msgs 4/7 and IP/port match: -> FIREWALLED
+     If Alice gets msgs 4/7 and IP matches, port does not match:
+        -> SYMNAT, but needs confirmation with 2nd test
+     If Alice gets msgs 4/7 and IP does not match, port matches:
+        -> FIREWALLED, address change?
+     If Alice gets msgs 4/7 and both IP and port do not match:
+        -> SYMNAT, address change?
+
+  If Alice gets msg 5:
+     If Alice does not get msg 4: -> OK unless currently SYMNAT, else UNKNOWN
+                                     (in SSU2 have to stop here)
+     If Alice does not get msg 7: -> OK unless currently SYMNAT, else UNKNOWN
+     If Alice gets msgs 4/5/7 and IP/port match: -> OK
+     If Alice gets msgs 4/5/7 and IP matches, port does not match:
+        -> OK, charlie is probably sym. natted
+     If Alice gets msgs 4/5/7 and IP does not match, port matches:
+        -> OK, address change?
+     If Alice gets msgs 4/5/7 and both IP and port do not match:
+        -> OK, address change?
+
+{% endhighlight %}
+
+
 
 
 
