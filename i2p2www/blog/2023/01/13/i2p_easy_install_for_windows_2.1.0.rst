@@ -28,9 +28,9 @@ Improvements have been made throughout the codebase and the deployment process.
 {%- endtrans %}
 
 {% trans -%}
-<b>Unfortunately, this release is still an unsigned <code>.exe</code> installer.</b>
+Unfortunately, this release is still an unsigned .exe installer.
 Please verify the checksum of the installer before using it.
-<b>The updates, on the other hand</b> are signed by my I2P signing keys and therefore safe.
+The updates, on the other hand are signed by my I2P signing keys and therefore safe.
 {%- endtrans %}
 
 {% trans -%}
