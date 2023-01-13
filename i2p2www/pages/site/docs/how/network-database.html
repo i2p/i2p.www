@@ -1,7 +1,7 @@
 {% extends "global/layout.html" %}
 {% block title %}{% trans %}The Network Database{% endtrans %}{% endblock %}
-{% block lastupdated %}{% trans %}August 2019{% endtrans %}{% endblock %}
-{% block accuratefor %}0.9.42{% endblock %}
+{% block lastupdated %}2023-01{% endblock %}
+{% block accuratefor %}0.9.57{% endblock %}
 {% block content %}
 <h2>{% trans %}Overview{% endtrans %}</h2>
 
@@ -62,22 +62,26 @@ to be present:
 <br>
 For compatibility with older routers, a router may publish multiple bandwidth letters, for example "PO".
   </li>
-  <li><b>coreVersion</b>
-({% trans %}The core library version, always the same as the router version{% endtrans %})
-(Never used, removed in release 0.9.24)
-  </li>
   <li><b>netId</b> = 2
 ({% trans %}Basic network compatibility - A router will refuse to communicate with a peer having a different netId{% endtrans %})
   </li>
   <li><b>router.version</b>
 ({% trans %}Used to determine compatibility with newer features and messages{% endtrans %})
   </li>
-  <li><b>stat_uptime</b> = 90m
-({% trans %}Always sent as 90m, for compatibility with an older scheme where routers published their actual uptime,
-and only sent tunnel requests to peers whose uptime was more than 60m{% endtrans %})
+</ul>
+
+Deprecated options:
+<ul>
+  <li><strike>coreVersion</strike>
+(Never used, removed in release 0.9.24)
+  </li>
+  <li><strike>stat_uptime</strike> = 90m
 (Unused since version 0.7.9, removed in release 0.9.24)
   </li>
 </ul>
+
+
+
 
 <p>{% trans -%}
 These values are used by other routers for basic decisions.
@@ -116,16 +120,60 @@ Current statistics are limited to:
   <li>{% trans %}1 hour average number of participating tunnels{% endtrans %}
 </ul>
 
-<p>{% trans -%}
-Floodfill routers publish additional data on the number of entries in their network database.
-{%- endtrans %}</p>
+<p>
+These are optional, but if included, help analysis of network-wide performance.
+As of API 0.9.58, these statistics are simplified and standardized, as follows:
+</p>
+<ul>
+  <li>Option keys are stat_(statname).(statperiod)
+  <li>Option values are ';' -separated
+  <li>Stats for event counts or normalized percentages use the 4th value;
+      the first three values are unused but must be present
+  <li>Stats for average values use the 1st value, and no ';' separator is required
+  <li>For equal weighting of all routers in stats analysis,
+      and for additional anonymity,
+      routers should include these stats only after an uptime of one hour or more,
+      and only one time every 16 times that the RI is published.
+</ul>
+
+<p>
+Example:
+<pre>
+    stat_tunnel.buildExploratoryExpire.60m = 0;0;0;53.14
+    stat_tunnel.buildExploratoryReject.60m = 0;0;0;15.51
+    stat_tunnel.buildExploratorySuccess.60m = 0;0;0;31.35
+    stat_tunnel.participatingTunnels.60m = 289.20
+</pre>
+</p>
+
+
 
 <p>{% trans -%}
-The data published can be seen in the router's user interface,
-but is not used or trusted within the router.
-As the network has matured, we have gradually removed most of the published
-statistics to improve anonymity, and we plan to remove more in future releases.
+Floodfill routers may publish additional data on the number of entries in their network database.
+These are optional, but if included, help analysis of network-wide performance.
 {%- endtrans %}</p>
+<p>
+The following two options should be included by floodfill routers in every published RI:
+</p>
+<ul>
+  <li><b>netdb.knownLeaseSets</b>
+  <li><b>netdb.knownRouters</b>
+</ul>
+<p>
+Example:
+<pre>
+    netdb.knownLeaseSets = 158
+    netdb.knownRouters = 11374
+</pre>
+</p>
+
+
+
+
+<p>
+The data published can be seen in the router's user interface,
+but is not used or trusted by any other router.
+</p>
 
 <h3>{% trans %}Family Options{% endtrans %}</h3>
 
