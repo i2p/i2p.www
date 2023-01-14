@@ -3,8 +3,8 @@ Streaming Protocol Specification
 ================================
 .. meta::
     :category: Protocols
-    :lastupdated: 2022-04
-    :accuratefor: 0.9.53
+    :lastupdated: 2023-01
+    :accuratefor: 0.9.57
 
 .. contents::
 
@@ -88,15 +88,15 @@ Framing is provided by the lower layers - I2CP and I2NP.
   sendStreamId :: 4 byte `Integer`
                   Random number selected by the packet recipient before sending
                   the first SYN reply packet and constant for the life of the
-                  connection. 0 in the SYN message sent by the connection
+                  connection, greater than zero. 0 in the SYN message sent by the connection
                   originator, and in subsequent messages, until a SYN reply is
                   received, containing the peer's stream ID.
 
   receiveStreamId :: 4 byte `Integer`
                      Random number selected by the packet originator before
                      sending the first SYN packet and constant for the life of
-                     the connection. May be 0 if unknown, for example in a RESET
-                     packet.
+                     the connection, greater than zero.
+                     May be 0 if unknown, for example in a RESET packet.
 
   sequenceNum :: 4 byte `Integer`
                  The sequence for this message, starting at 0 in the SYN
