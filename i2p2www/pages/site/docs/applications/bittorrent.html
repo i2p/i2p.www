@@ -1,7 +1,7 @@
 {% extends "global/layout.html" %}
 {% block title %}{% trans %}Bittorrent over I2P{% endtrans %}{% endblock %}
-{% block lastupdated %}2022-01{% endblock %}
-{% block accuratefor %}0.9.52{% endblock %}
+{% block lastupdated %}2023-01{% endblock %}
+{% block accuratefor %}0.9.57{% endblock %}
 {% block content %}
 
 <p>{% trans -%}
@@ -20,6 +20,54 @@ Specific clients and trackers may implement other unique features or protocols.
 <p>{% trans -%}
 We welcome additional ports of client and tracker software to I2P.
 {%- endtrans %}</p>
+
+
+
+<h2>General Guidance for Developers</h2>
+<p>
+Most non-Java bittorrent clients will connect to I2P via <a href="{{ site_url('docs/api/samv3') }}">SAMv3</a>.
+SAM sessions (or inside I2P, tunnel pools or sets of tunnels) are designed to be long-lived.
+Most bittorrent clients will only need one session, created at startup and closed on exit.
+I2P is different from Tor, where circuits may be rapidly created and discarded.
+Think carefully and consult with I2P developers before designing your application
+to use more than one or two simultaneous sessions, or to rapidly create and discard them.
+Bittorrent clients must not create a unique session for every connection.
+Design your client to use the same session for announces and client connections.
+</p><p>
+Also, please ensure your client settings
+(and guidance to users about router settings, or router defaults if you bundle a router)
+will result in your users contributing more resources to the network than they consume.
+I2P is a peer-to-peer network, and the network cannot survive if a popular application
+drives the network into permanent congestion.
+</p><p>
+Do not provide support for bittorrent through an I2P outproxy to the clearnet
+as it will probably be blocked. Consult with outproxy operators for guidance.
+</p><p>
+The Java I2P and i2pd router implementations are independent and have minor differences
+in behavior, feature support, and defaults.
+Please test your application with the latest version of both routers.
+</p><p>
+i2pd SAM is enabled by default; Java I2P SAM is not.
+Provide instructions to your users on how to enable SAM in Java I2P (via /configclients in the router console),
+and/or provide a good error message to the user if the initial connect fails,
+e.g. "ensure that I2P is running and the SAM interface is enabled".
+</p><p>
+The Java I2P and i2pd routers have different defaults for tunnel quantities.
+The Java default is 2 and the i2pd default is 5.
+For most low- to medium-bandwidth and low- to medium-connection counts, 3 is sufficient.
+Please specify the tunnel quantity in the SESSION CREATE message
+to get consistent performance with the Java I2P and i2pd routers.
+</p><p>
+DHT support requires SAM v3.3 PRIMARY and SUBSESSIONS for TCP and UDP over the same session.
+This will require substantial development effort on the client side, unless the client is written in Java.
+i2pd does not currently support SAM v3.3.
+libtorrent does not currently support SAM v3.3.
+</p><p>
+For more guidance to developers on ensuring your application uses only the resources it needs, please see
+the <a href="{{ site_url('docs/api/samv3') }}">SAMv3 specification</a> and
+<a href="{{ site_url('docs/applications/embedding') }}">our guide to bundling I2P with your application</a>.
+</p>
+
 
 
 
