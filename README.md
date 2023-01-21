@@ -1,3 +1,36 @@
+# Introduction
+
+This web-server for running the i2p-website is a collection of scripts (aka **The Python Scripts**) and content-files to:
+
+* manage updates (based on git),
+* manage translations (generating translation files before the web-server is run),
+* manage tags (generating tag files before the web-server is run),
+* run a web-server creating/delivering pages on-demand (using WSGI)
+
+This is not a static web-site generator. To see the pages you will need to setup your system for the python and shell-scripts and run the web-server contained as described. Due to heavy use of tags even content changes quickly will require a *build environment* to check your changes (towards breaking the build process). Translations can be done using solely a web-site and then do not require any of this (others will integrate all changes from the web-site using these scripts).
+
+The authors are the I2P team. For details about licensing see [LICENSE.txt](/LICENSE.txt).
+
+
+
+# Requirements Overview
+
+If you don't want to deal with the requirements/software, you can use a docker config (see [Dockerfile](/Dockerfile)) which will set these up automatically. Otherwise you will need to satisfy the following requirements (that Dockerfile contains the commands for Debian btw.):
+
+* git
+* python2
+* pip
+* virtualenv
+* apache (using WSGI to call the scripts)
+* ctags? (was mentioned to be needed as both, system package + python package, but it seems only the python package is being installed?)
+* transifex-client? (There is a transifex-client in Debian which might be needed for the translation steps described below?)
+
+**Note** that the scripts will install additional software packages (see /etc/reqs.txt) from outside your distribution (into the virtual environment if using docker) using pip and then do some custom patching (meaning pinned versions?). 
+
+**Note** also that the manual way described in the following suggests to use proxychains with Tor to avoid Clearnet traffic, while the Docker version seems to use Clearnet for that.
+
+
+
 # I2P website
 
 To run locally (for testing purposes):
@@ -45,7 +78,7 @@ If you want to mirror the I2P website, thanks! Here is a checklist:
 ## Running a mirror with Docker
 
 It's possible to set up a mirror using apache2 inside of a Docker container.
-It is intended to provide a HTTP server, to use HTTPS, using a reverse proxy
+It is intended to provide a HTTP-only server. To use HTTPS, using a reverse proxy
 is the easiest way. You should not need to make any modifications to the
 service running inside the container, but you may make the same modifications
 to the containerized mirror that you would to a normal mirror by changing your
@@ -57,7 +90,7 @@ settings.
 - When you have your mirror configured, add `site-updater-docker.sh` to your crontab
 to keep the site up-to-date.
 
-## Configuration
+# Configuration and Translations
 
 Configuration files for the various scripts are in `etc/`. Environment variables
 in `etc/translation.vars` can be overridden by creating the file
