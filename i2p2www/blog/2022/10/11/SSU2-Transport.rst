@@ -287,7 +287,7 @@ SSU2, NTCP2, or SSU.
 {%- endtrans %}
 
 {% trans -%}
-In the live network, latency and packet loss varies widely.
+In the live network, latency and packet loss vary widely.
 Even in a test setup, performance depends on configured latency and packet loss.
 The i2pd project reports that maximum transfer rates for SSU2 were over 3 times
 faster than SSU in some tests. However, they completely redesigned their
