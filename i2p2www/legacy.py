@@ -23,6 +23,7 @@ LEGACY_FUNCTIONS_MAP={
     'easyinstall':           {'function': 'downloads_easyinstall',    'params': {}},
     'nsis':           {'function': 'downloads_easyinstall',    'params': {}},
     'windows':           {'function': 'downloads_windows',    'params': {}},
+    'macos':           {'function': 'downloads_macos',    'params': {}},
     'download':      {'function': 'downloads_list',   'params': {}},
     'installation':  {'function': 'downloads_list',   'params': {}},
     'meetings':      {'function': 'meetings_index',   'params': {}},

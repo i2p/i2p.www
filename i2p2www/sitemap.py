@@ -124,6 +124,9 @@ def render_sitemap():
     urls.append({
         'path': '/download/windows',
         })
+    urls.append({
+        'path': '/download/macos',
+        })
     # Render and return the sitemap
     response = make_response(render_template('global/sitemap.xml', url_root=url_root, langs=LANG_FRAGS,
                                              curlang=to_url(g.lang), urls=urls))

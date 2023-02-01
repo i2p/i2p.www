@@ -90,6 +90,10 @@ def downloads_debian():
 def downloads_windows():
     return render_template('downloads/windows.html')
 
+# MacOS-specific page
+def downloads_macos():
+    return render_template('downloads/macos.html')
+
 # AIO-Windows-specific page
 def downloads_easyinstall():
     # TODO: read mirror list or list of available files
