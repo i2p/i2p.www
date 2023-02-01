@@ -5,7 +5,7 @@ Congestion Caps
     :author: dr|z3d, idk, orignal, zzz
     :created: 2023-01-24
     :thread: http://zzz.i2p/topics/3516
-    :lastupdated: 2023-01-24
+    :lastupdated: 2023-02-01
     :status: Open
     :target: 0.9.59
 
@@ -24,8 +24,8 @@ Add congestion indicators to the published Router Info (RI).
 Motivation
 ==========
 
-Bandwidth caps indicate total capacity but not congestion state, and could be spoofed.
-A congestion indicator could help routers avoid attempting to build through a congested router,
+Bandwidth "caps" (capabilities) indicate share bandwidth limits and reachability but not congestion state.
+A congestion indicator will help routers avoid attempting to build through a congested router,
 which contributes to more congestion and reduced tunnel build success.
 
 
@@ -55,6 +55,10 @@ Implementations may consider one or more of the following:
 - Network state such as firewalled or symmetric NAT or hidden or proxied
 - Configured not to accept tunnels
 
+Congestion state should be based on an average of conditions
+over several minutes, not an instantaneous measurement.
+
+
 
 Specification
 =============
@@ -65,7 +69,7 @@ Update [NETDB]_ as follows:
 .. raw:: html
 
   {% highlight %}
-D: Medium congestion, or a low-performance router (e.g. Rasp. Pi)
+D: Medium congestion, or a low-performance router (e.g. Android, Raspberry Pi)
      Other routers should downgrade or limit this router's
      apparent tunnel capacity in the profile.
 
@@ -89,12 +93,14 @@ Security Analysis
 =================
 
 Any published peer information cannot be trusted.
+Caps, like anything else in the Router Info, may be spoofed.
+We never use anything in the Router Info to up-rate a router's perceived capacity.
 
 Publishing congestion indicators, telling peers to avoid this router, is inherently
 much more secure than permissive or capacity indicators solicting more tunnels.
 
-The current bandwidth capacity indicators (L-P, X) are trusted for the purpose
-of building more tunnels through the peer.
+The current bandwidth capacity indicators (L-P, X) are trusted only to avoid
+very low-bandwidth routers. The "U" (unreachable) cap has a similar effect.
 
 Any published congestion indicator should have the same effect as
 rejecting or dropping a tunnel build request, with similar security properties.
@@ -113,7 +119,7 @@ things don't completely break.
 Routers may use different strategies for what types of tunnels to build through 'D' and 'E' routers,
 for example exploratory vs. client, or high vs. low bandwidth client tunnels.
 
-Routers should probably not publish a congestion cap at startup by default,
+Routers should probably not publish a congestion cap at startup or shutdown by default,
 even if their network state is unknown, to prevent restart detection by peers.
 
 
