@@ -11,7 +11,7 @@ Update on Mac Easy Install Notarization
 
 {% trans -%}
 The I2P Easy-Install Bundle for Mac has been experiencing stalled updates for the past 2 releases due to the departure of its maintainer.
-For the time being, it is recommended that existing Easy-Install users delay updating and remain on 1.9.0 until the development team can successfully notarize the application and resume automatic updates.
+For the time being, it is temporarily recommended that existing Easy-Install users delay updating and remain on 1.9.0 until the development team can successfully notarize the application and resume automatic updates.
 The updates will happen immediately once this has happened.
 For now, 1.9.0 is stable and has no known critical security issues.
 {%- endtrans %}
