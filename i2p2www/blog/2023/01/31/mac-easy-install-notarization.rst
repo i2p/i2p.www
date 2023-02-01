@@ -4,7 +4,7 @@ Update on Mac Easy Install Notarization
 =======================================
 {%- endtrans %}
 .. meta::
-    :author: idk
+    :author: idk,sadie
     :date: 2023-01-31
     :category: release
     :excerpt: {% trans %}{% endtrans %}
