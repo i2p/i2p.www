@@ -42,7 +42,7 @@ The good news is that we are down to only 4 errors during the notarization proce
 
 {% trans -%}
 New I2P participants can still download the Easy Installer for the macOS 1.9.0 software.
-It will receive updates no later than the next scheduled release in April.
+I hope to have a release ready near the end of April.
 Updates to the latest version will become available as soon as notarization is successful.
 {%- endtrans %}
 
