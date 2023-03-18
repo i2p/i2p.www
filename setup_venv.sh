@@ -7,7 +7,7 @@ if [ ! $venv ]; then
     exit 1
 else
     if [ ! -d $venv_dir ] ; then
-        $venv --distribute $venv_dir
+        $venv $spec $venv_dir
     fi
 
     . $venv_dir/bin/activate

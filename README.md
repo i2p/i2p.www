@@ -2,7 +2,9 @@
 
 To run locally (for testing purposes):
 
-- Install proxychains, configure it for Tor
+- Install virtualenv and Python 2.7
+
+- (Optional) Install proxychains, configure it for Tor
 
 - Pull in the dependencies:
 
@@ -21,8 +23,12 @@ To run locally (for testing purposes):
 - Start the webserver:
 
     ```
+    $ source env/bin/activate # activates virtualenv
     $ ./runserver.py
+    $ deactivate # ..s virtualenv
     ```
+
+    (if the shell in use is not bash, you can append its name to the activator if supported: `...ivate.fish`)
 
 - Open the site at http://localhost:5000/
 
