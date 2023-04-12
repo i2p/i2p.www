@@ -25,3 +25,16 @@ This release syncs translations with transifex and updates the GeoIP database.
 As usual, we recommend that you update to this release.
 The best way to maintain security and help the network is to run the latest release.
 {%- endtrans %}
+
+**DETAILS**
+
+*Changes*
+
+- {% trans %}Fix missing Java options in docker/rootfs/startapp.sh{% endtrans %}
+- {% trans %}Detect when running in Podman instead of regular Docker{% endtrans %}
+- {% trans %}Update Tor Browser User-Agent String{% endtrans %}
+- {% trans %}Update local GeoIP database{% endtrans %}
+- {% trans %}Remove invalid signing keys from old installs{% endtrans %}
+- {% trans %}Update Tomcat version in Ubuntu Lunar and Debian Sid{% endtrans %}
+
+Full list of fixed bugs: http://git.idk.i2p/i2p-hackers/i2p.i2p/-/issues?scope=all&state=closed&milestone_title=2.2.1
