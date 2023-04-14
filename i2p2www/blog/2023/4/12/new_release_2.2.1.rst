@@ -5,7 +5,7 @@ I2P Release 2.2.1
 {%- endtrans %}
 .. meta::
     :author: idk
-    :date: 2023-03-13
+    :date: 2023-04-12
     :category: release
     :excerpt: {% trans %}{% endtrans %}
 
