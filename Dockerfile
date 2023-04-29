@@ -2,15 +2,16 @@ FROM debian:buster
 ENV SERVERNAME=geti2p.net
 ENV SERVERMAIL=example@geti2p.net
 
-ADD . /var/www/i2p.www
-
 WORKDIR /var/www/i2p.www
 
     ## Install the dependencies
 RUN apt-get update && \
-    apt-get -y install apache2 apache2-utils libapache2-mod-wsgi python2-dev python-pip patch python-virtualenv git python-polib && \
+    apt-get -y install apache2 apache2-utils libapache2-mod-wsgi python2-dev python-pip patch python-virtualenv git python-polib
+
+ADD . /var/www/i2p.www
+
     ## Start setting up the site
-    rm -rfv env && \
+RUN rm -rfv env && \
     virtualenv --distribute env                && \  
     . env/bin/activate                          && \
     pip install -r etc/reqs.txt                 && \
