@@ -53,4 +53,4 @@ git pull origin $i2p_www_branch
 docker build $i2p_www_docker_build_args -t mirror.i2p.www$suffix .
 docker rm -f mirror.i2p.www$suffix
 docker run -it $i2p_www_docker_run_args --env DEV:on --name mirror.i2p.www$suffix --net=host --volume $(pwd)/env:/env mirror.i2p.www$suffix ./runserver.py
-#./runserver.py
+docker logs -f mirror.i2p.www$suffix
