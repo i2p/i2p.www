@@ -7,7 +7,7 @@ I2P Release 2.2.0
     :author: idk
     :date: 2023-03-13
     :category: release
-    :excerpt: {% trans %}{% endtrans %}
+    :excerpt: {% trans %}DDoS Mitigations, New Release Maintainer{% endtrans %}
 
 {% trans -%}
 We have elected to move forward the 2.2.0 release date, which will be occurring today, March 13, 2023.

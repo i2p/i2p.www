@@ -7,7 +7,7 @@ Update on Mac Easy Install Notarization
     :author: idk,sadie
     :date: 2023-01-31
     :category: release
-    :excerpt: {% trans %}{% endtrans %}
+    :excerpt: {% trans %}Easy Install Bundle for Mac is stalled{% endtrans %}
 
 {% trans -%}
 The I2P Easy-Install Bundle for Mac has been experiencing stalled updates for the past 2 releases due to the departure of its maintainer.
