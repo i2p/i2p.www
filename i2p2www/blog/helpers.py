@@ -140,7 +140,7 @@ def render_blog_post(slug):
     with codecs.open(path, encoding='utf-8') as fd:
         content = fd.read()
 
-    print(content)
+    #print(content)
 
     # render the post with Jinja2 to handle URLs etc.
     rendered_content = render_template_string(content)
