@@ -1,10 +1,12 @@
-FROM debian:buster
+FROM debian:oldoldstable
 ENV SERVERNAME=geti2p.net
 ENV SERVERMAIL=example@geti2p.net
 
 WORKDIR /var/www/i2p.www
 
     ## Install the dependencies
+#RUN #grep -v security.debian /etc/apt/sources.list > /etc/apt/sources.list.bak && \
+    #grep -v stretch-updates /etc/apt/sources.list.bak > /etc/apt/sources.list && \
 RUN apt-get update && \
     apt-get -y install apache2 apache2-utils libapache2-mod-wsgi python2-dev python-pip patch python-virtualenv git python-polib
 
