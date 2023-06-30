@@ -28,7 +28,7 @@ This includes tweaks to the netDb, the rate-limiting mechanisms, and the behavio
 {%- endtrans %}
 
 {% trans -%}
-This release adds not_bob as a second default hosts provider, and adds <a href="http://notbob.i2p">notbob.i2p</a> and <a href="http://ramble.i2p">ramble.i2p</a> to the console homepage.
+This release adds not_bob as a second default hosts provider, and adds `notbob.i2p <http://notbob.i2p>`_ and `ramble.i2p <http://ramble.i2p>`_ to the console homepage.
 {%- endtrans %}
 
 {% trans -%}
