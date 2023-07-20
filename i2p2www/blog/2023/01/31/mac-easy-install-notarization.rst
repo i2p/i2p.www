@@ -7,13 +7,13 @@ Update on Mac Easy Install Notarization
     :author: idk,sadie
     :date: 2023-01-31
     :category: release
-    :excerpt: {% trans %}{% endtrans %}
+    :excerpt: {% trans %}Easy Install Bundle for Mac is stalled{% endtrans %}
 
 {% trans -%}
 The I2P Easy-Install Bundle for Mac has been experiencing stalled updates for the past 2 releases due to the departure of its maintainer.
-For the time being, it is temporarily recommended that existing Easy-Install users delay updating and remain on 1.9.0 until the development team can successfully notarize the application and resume automatic updates.
-The updates will happen immediately once this has happened.
-For now, 1.9.0 is stable and has no known critical security issues.
+It is recommended that users of the Easy-Install bundle for Mac switch to the classic java-style installer which was recently restored to the download page.
+1.9.0 has known security issues and is not suitable for hosting services or any long-term use. Users are advised to migrate away as soon as possible.
+Advanced users of the Easy-Install bundle may work around this by compiling the bundle from source and self-signing the software.
 {%- endtrans %}
 
 {% trans -%}The Notarization Process For MacOS{%- endtrans %}

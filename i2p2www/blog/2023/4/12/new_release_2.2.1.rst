@@ -7,7 +7,7 @@ I2P Release 2.2.1
     :author: idk
     :date: 2023-04-12
     :category: release
-    :excerpt: {% trans %}{% endtrans %}
+    :excerpt: {% trans %}Packaging Fixes{% endtrans %}
 
 {% trans -%}
 After the I2P 2.2.0 release, which was moved forward to accelerate mitigations for the DDOS attacks, we learned about a few developing issues which made it necessary to build and release new packages.
