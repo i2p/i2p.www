@@ -66,35 +66,34 @@
 {% endblock %}
 
 {% block content %}
-<h2>{% trans %}What do we mean by "anonymous"?{% endtrans %}</h2>
+<h2>{% trans %}What does "anonymous" actually mean?{% endtrans %}</h2>
 
 <p>{% trans -%}
-Your level of anonymity can be described as "how hard it is for someone
-to find out information you don't want them to know?" - who you are, where
-you are located, who you communicate with, or even when you communicate.  
-"Perfect" anonymity is not a useful concept here - software will not make 
-you indistinguishable from people that don't use computers or who are not on
-the Internet.  Instead, we are working to provide sufficient anonymity to meet the
-real needs of whomever we can - from those simply browsing websites, to those exchanging
-data, to those fearful of discovery by powerful organizations or states.
+Anonymity may be described as "how hard is it for someone
+to find out information I don't want them to know." This could include who you are, where
+you are located, who you communicate with, and what you communicate.  
+I2P network design hides the client from the server, and the server from the client. No one can see where that traffic is coming from,
+where it is going, or what the contents are. The network function creates anonymity in this way. 
+Reducing anonymity is typically done by identifying characteristics that are consistent across identities or identifying ephemeral characteristics of repeated connections.
+  
+Attacks on I2P in the past have relied on correlating NetDB storage and verification. By randomizing the delay between storage and verification, we reduce the consistency with which that verification can be linked to I2P activity, thereby limiting the utility of that data point. Attacks on software configured to work with I2P are out of scope for I2P to solve. When browsing I2P, hosting or using I2P services, it is the responsibility of the user to consider their threat model.
+I2P cannot and does not compensate for what a participant chooses to expose or make unique when 
+communicating on the network with others or creating and hosting content.
 {%- endtrans %}</p>
   
 <p>{% trans -%}
-The question of whether I2P provides sufficient anonymity for your 
-particular needs is a hard one, but this page will hopefully assist in 
-answering that question by exploring how I2P operates under various attacks
-so that you may decide whether it meets your needs.
+The question of whether using the I2P network provides sufficient anonymity for a 
+specific usecase or workflow is difficult to answer. This page provides information about
+how the network responds to different attacks.
 {%- endtrans %}</p>
 
 <p>{% trans -%}
-We welcome further research and analysis on I2P's resistance to the threats described below.
-More review of existing literature (much of it focused on Tor) and original
-work focused on I2P is needed.
+Further research and analysis about I2P network resistance to the threats described below is welcomed.
 {%- endtrans %}</p>
 
 <h2>{% trans %}Network Topology Summary{% endtrans %}</h2>
 <p>{% trans comparisons=site_url('comparison'), links=site_url('links') -%}
-I2P builds off the ideas of many <a href="{{ comparisons }}">other</a> 
+I2P network design builds on the ideas of many <a href="{{ comparisons }}">other</a> 
 <a href="{{ links }}">systems</a>, but a few key points should be kept in mind when 
 reviewing related literature:
 {%- endtrans %}</p>
@@ -106,29 +105,26 @@ recipient explicitly defines the path that messages will be received on (the
 inbound tunnel).
 {%- endtrans %}</li>
 <li>{% trans -%}
-<b>I2P has no official entry and exit points</b> - all peers fully participate in the 
-mix, and there are no network layer in- or out-proxies (however, at the 
-application layer, a few proxies do exist)
+<b>The network has no official entry and exit points</b> - all peers fully participate in routing traffic, and there are no network layer in- or out-proxies with exception to the application layer.
 {%- endtrans %}</li>
 <li>{% trans -%}
-<b>I2P is fully distributed</b> - there are no central controls or authorities.
-One could modify some routers to operate mix cascades (building tunnels and giving
+<b>The network is fully distributed</b> - there are no central controls or authorities.
+A person could modify some routers to operate mix cascades (building tunnels and giving
 out the keys necessary to control the forwarding at the tunnel endpoint) or directory 
-based profiling and selection, all without breaking compatibility with the rest of 
-the network, but doing so is of course not necessary (and may even harm one's
-anonymity).
+based profiling and selection. This would not break compatibility with the rest of 
+the network, but may interfere with anonymity.
 {%- endtrans %}</li>
 </ul>
 
 <p>{% trans todo=site_url('get-involved/todo') -%}
-We have documented plans to implement <a href="{{ todo }}#stop">nontrivial delays</a>
+There are documented plans to implement <a href="{{ todo }}#stop">nontrivial delays</a>
 and <a href="{{ todo }}#batching">batching strategies</a> 
 whose existence is only known to the particular hop or tunnel gateway that 
 receives the message, allowing a mostly low latency mixnet to provide cover 
 traffic for higher latency communication (e.g. email).
-However we are aware that significant delays are required to provide meaningful
-protection, and that implementation of such delays will be a significant challenge.
-It is not clear at this time whether we will actually implement these delay features.
+However, significant delays are required to provide meaningful
+protection, and implementation of these delays will be a significant challenge.
+It is not clear at this time if these features will be implemented.
 {%- endtrans %}</p>
 
 <p>{% trans -%}
@@ -140,37 +136,33 @@ the current implementation does not.
 
 <h2>{% trans %}The Threat Model{% endtrans %}</h2>
 <p>{% trans -%}
-I2P design started in 2003, not long after the advent of
+I2P development started in 2003, not long after the advent of
 <a href="http://www.onion-router.net">[Onion Routing]</a>,
 <a href="http://freenetproject.org/">[Freenet]</a>, and
 <a href="https://www.torproject.org/">[Tor]</a>.
-Our design benefits substantially from the research published around that time.
-I2P uses several onion routing techniques, so we continue to benefit
+The network design benefits substantially from the research published around that time.
+I2P uses several onion routing techniques, so it continues to benefit
 from the significant academic interest in Tor.
 {%- endtrans %}</p>
 
 <p>{% trans -%}
-Taking from the attacks and analysis put forth in the 
-<a href="http://freehaven.net/anonbib/topic.html">anonymity literature</a> (largely 
+Referencing the attacks and analysis in the 
+<a href="http://freehaven.net/anonbib/topic.html">anonymity research</a> (largely 
 <a href="http://citeseer.ist.psu.edu/454354.html">Traffic Analysis: Protocols, Attacks, Design 
 Issues and Open Problems</a>), the following briefly describes a wide variety 
-of attacks as well as many of I2Ps defenses.  We update
-this list to include new attacks as they are identified.
+of attacks, and I2Ps defenses.  
+This list is updated to include new attacks as they are identified.
 {%- endtrans %}</p>
 
 <p>{% trans -%}
-Included are some attacks that may be unique to I2P.
-We do not have good answers for all these attacks, however
-we continue to do research and improve our defenses.
+Some of the attacks mentioned may be unique to I2P,
+and developers continue to research and improve network defenses.
 {%- endtrans %}</p>
 
 <p>{% trans -%}
-In addition, many of these attacks are significantly easier than
-they should be, due to the modest size of the current network.
-While we are aware of some limitations that need to be addressed,
-I2P is designed to support hundreds of thousands, or millions, of
-participants.
-As we continue to spread the word and grow the network,
+Some attacks may be more successful due to the modest size of the current network.
+However, I2P is designed to support an unlimited amount of
+participants, and as network numbers continue to increase,
 these attacks will become much harder.
 {%- endtrans %}</p>
 
@@ -210,23 +202,23 @@ and priority scores are calculated using the equations outlined
 <p>{% trans -%}
 A brute force attack can be mounted by a global passive or active adversary, 
 watching all the messages pass between all of the nodes and attempting to correlate
-which message follows which path.  Mounting this attack against I2P should be 
-nontrivial, as all peers in the network are frequently sending messages (both
-end to end and network maintenance messages), plus an end to end message changes
+which message follows which path.  Mounting this attack against the network should be 
+nontrivial, as all peers in the network are frequently sending both 
+end to end and network maintenance messages. Also, an end to end message changes
 size and data along its path.  In addition, the external adversary does not have
 access to the messages either, as inter-router communication is both encrypted
-and streamed (making two 1024 byte messages indistinguishable from one 2048 byte
-message).
+and streamed, making two 1024 byte messages indistinguishable from one 2048 byte
+message.
 {%- endtrans %}</p>
 
 <p>{% trans -%}
-However, a powerful attacker can use brute force to detect trends - if they 
-can send 5GB to an I2P destination and monitor everyone's network connection,
+However, a powerful attacker can use brute force to detect trends. An attacker 
+can send 5GB to an I2P network destination and monitor everyone's network connection,
 they can eliminate all peers who did not receive 5GB of data.  Techniques to 
 defeat this attack exist, but may be prohibitively expensive (see: 
 <a href="http://citeseer.ist.psu.edu/freedman02tarzan.html">Tarzan</a>'s mimics
-or constant rate traffic).  Most users are not concerned with this attack, as 
-the cost of mounting it are extreme (and often require illegal activity).  
+or constant rate traffic).  Most participants are not concerned with this attack, as 
+the cost of mounting it is extreme and would require illegal activity.  
 However, the attack is still possible, for example by an observer at
 a large ISP or an Internet exchange point.
 Those who want to defend against it 
@@ -252,7 +244,7 @@ are discussed on the
 {# DREAD_score(2, 2, 2, 3, 2) #}
 
 <p>{% trans -%}
-I2P's messages are unidirectional and do not necessarily imply that a reply
+I2P messages are unidirectional, and do not necessarily imply that a reply
 will be sent.  However, applications on top of I2P will most likely have
 recognizable patterns within the frequency of their messages - for instance, an 
 HTTP request will be a small message with a large sequence of reply messages 
@@ -262,7 +254,7 @@ slow to have passed the message along.
 {%- endtrans %}</p>
 
 <p>{% trans -%}
-This sort of attack is powerful, but its applicability to I2P is non obvious,
+This sort of attack is powerful, but its applicability to I2P is not obvious,
 as the variation on message delays due to queuing, message processing, and 
 throttling will often meet or exceed the time of passing a message along a 
 single link - even when the attacker knows that a reply will be sent as soon as
@@ -289,8 +281,8 @@ References: <a href="{{ pdf }}">Low-Resource Routing Attacks Against Anonymous S
 {# DREAD_score(3, 2, 2, 3, 3) #}
 
 <p>{% trans -%}
-Intersection attacks against low latency systems are extremely powerful -
-periodically make contact with the target and keep track of what peers are on
+Intersection attacks against low latency systems are extremely powerful,
+periodically making contact with the target to keep track of what peers are on
 the network.  Over time, as node churn occurs the attacker will gain 
 significant information about the target by simply intersecting the sets of
 peers that are online when a message successfully goes through.  The cost of 
@@ -300,14 +292,14 @@ scenarios.
 
 <p>{% trans url='https://trac.torproject.org/projects/tor/wiki/TheOnionRouter/TorFAQ#Whatattacksremainagainstonionrouting' -%}
 In summary, if an attacker is at both ends of your tunnel at the same time,
-he may be successful.
-I2P does not have a full defense to this for low latency communication.
-This is an inherent weakness of low-latency onion routing.
+they may be successful.
+I2P does not have a full defense to this for low latency communication, and it is an
+inherent weakness of low-latency onion routing.
 Tor provides a <a href="{{ url }}">similar disclaimer</a>.
 {%- endtrans %}</p>
 
 <p>{% trans -%}
-Partial defenses implemented in I2P:
+Partial defenses implemented in I2P network infrastructure:
 {%- endtrans %}</p>
 <ul>
 <li>{% trans tunnelimpl=site_url('docs/tunnels/implementation') -%}
@@ -331,14 +323,14 @@ simultaneous hosting on multiple routers, or
 
 <p>{% trans -%}
 Even in total, these defenses are not a complete solution.
-Also, we have made some design choices that may significantly increase our vulnerability:
+Also, there are some design choices that may significantly increase vulnerability:
 {%- endtrans %}</p>
 <ul>
 <li>{% trans -%}
-We do not use low-bandwidth "guard nodes"
+The network does not use low-bandwidth "guard nodes"
 {%- endtrans %}</li>
 <li>{% trans -%}
-We use tunnel pools comprised of several tunnels, and traffic can shift from tunnel to tunnel.
+The network uses tunnel pools comprised of several tunnels, and traffic can shift from tunnel to tunnel.
 {%- endtrans %}</li>
 <li>{% trans -%}
 Tunnels are not long-lived; new tunnels are built every 10 minutes.
@@ -353,10 +345,10 @@ services use 2-hop tunnels by default.
 <p>{% trans todo=site_url('get-involved/todo') -%}
 In the future, it could
 for peers who can afford significant delays (per <a href="{{ todo }}#stop">nontrivial
-delays</a> and <a href="{{ todo }}#batching">batching strategies</a>).  In addition,
+delays</a> and <a href="{{ todo }}#batching">batching strategies</a>). In addition,
 this is only relevant for destinations that other people know about - a private
 group whose destination is only known to trusted peers does not have to worry,
-as an adversary can't "ping" them to mount the attack.</p>
+as an adversary cannot "ping" them to mount the attack.</p>
 {%- endtrans %}</p>
 
 <p>{% trans oce='http://blog.torproject.org/blog/one-cell-enough' -%}
@@ -367,8 +359,8 @@ Reference: <a href="{{ oce }}">One Cell Enough</a>
 <h3 id="dos">{% trans %}Denial of service attacks{% endtrans %}</h3>
 
 <p>{% trans -%}
-There are a whole slew of denial of service attacks available against I2P,
-each with different costs and consequences:
+There are many different kinds of denial of service attacks that can be used against the I2P network,
+each with different costs and consequences.
 {%- endtrans %}</p>
 
 {# DREAD_score(1, 1, 2, 1, 3) #}
@@ -380,17 +372,17 @@ willing to contribute. The defense against this is:
   <ul>
   <li>{% trans comparisons=site_url('comparison') -%}
 Set defaults so that most users provide resources to the network.
-In I2P, users route traffic by default. In sharp distinction to
+Participants route traffic by default, a distinction from
 <a href="{{ comparisons }}">other networks</a>,
-over 95&#37; of I2P users relay traffic for others.
+over 95&#37; of I2P participants relay traffic for others.
 {%- endtrans %}</li>
   <li>{% trans -%}
-Provide easy configuration options so that users may increase their
-contribution (share percentage) to the network. Display easy-to-understand
-metrics such as "share ratio" so that users may see what they are contributing.
+Provide configuration options so that participants can increase their
+contribution share percentage with the network. Display easy-to-understand
+metrics such as "share ratio" to monitor these contributions.
 {%- endtrans %}</li>
   <li>{% trans -%}
-Maintain a strong community with blogs, forums, IRC, and other means of communication.
+Maintain communication with participants in the community regarding resource sharing and its effect on personal and network connection health..
 {%- endtrans %}</li>
   </ul>
 <div style="clear:both"></div>
@@ -399,7 +391,7 @@ Maintain a strong community with blogs, forums, IRC, and other means of communic
 <p>{% trans peerselection=site_url('docs/how/peer-selection') -%}
 <b>Starvation attack:</b> A hostile user may attempt to harm the network by
 creating a significant number of peers in the network who are not identified as
-being under control of the same entity (as with Sybil). These nodes then 
+being under control of the same entity, similar to a Sybil attack. These nodes would then 
 decide not to provide any resources to the network, causing existing peers 
 to search through a larger network database or request more tunnels than 
 should be necessary. 
@@ -409,25 +401,25 @@ This behavior may be indistinguishable from that of a heavily-loaded or failing 
 I2P addresses these issues by maintaining <a href="{{ peerselection }}">profiles</a> on the 
 peers, attempting to identify underperforming ones and simply ignoring 
 them, or using them rarely.
-We have significantly enhanced the
-ability to recognize and avoid troublesome peers; however there are still
+Significantly enhancing the
+ability to recognize and avoid troublesome peers has been implemented, however there are still
 significant efforts required in this area.
 {%- endtrans %}</p>
 <div style="clear:both"></div>
 
 {# DREAD_score(1, 2, 2, 2, 3) #}
 <p>{% trans todo=site_url('get-involved/todo') -%}
-<b>Flooding attack:</b> A hostile user may attempt to flood the network,
+<b>Flooding attack:</b> An attacker may attempt to flood the network,
 a peer, a destination, or a tunnel.  Network and peer flooding is possible,
 and I2P does nothing to prevent standard IP layer flooding.  The flooding of
 a destination with messages by sending a large number to the target's various
 inbound tunnel gateways is possible, but the destination will know this both
 by the contents of the message and because the tunnel's tests will fail.  The
-same goes for flooding just a single tunnel.  I2P has no defenses for a network
+same goes for flooding just a single tunnel. I2P has no defenses for a network
 flooding attack.  For a destination and tunnel flooding attack, the target
 identifies which tunnels are unresponsive and builds new ones.  New code could
-also be written to add even more tunnels if the client wishes to handle the
-larger load.  If, on the other hand, the load is more than the client can
+also be written to add even more tunnels if the client wants to increase capacity.
+If, on the other hand, the traffic is more than the client can
 deal with, they can instruct the tunnels to throttle the number of messages or
 bytes they should pass on (once the <a href="{{ todo }}#batching">advanced tunnel
 operation</a> is implemented).
@@ -436,21 +428,21 @@ operation</a> is implemented).
 
 {# DREAD_score(1, 1, 1, 1, 1) #}
 <p>{% trans -%}
-<b>CPU load attack:</b> There are currently some methods for people to 
-remotely request that a peer perform some cryptographically expensive 
-operation, and a hostile attacker could use these to flood that peer with
-a large number of them in an attempt to overload the CPU.  Both using good 
+<b>CPU load attack:</b> There are currently some methods for 
+remotely requesting that a peer perform cryptographically expensive 
+operations that a hostile attacker could use to flood that peer with
+in an attempt to overload their CPU.  However, using good 
 engineering practices and potentially requiring nontrivial certificates 
 (e.g. HashCash) to be attached to these expensive requests should mitigate
-the issue, though there may be room for an attacker to exploit various
-bugs in the implementation.
+the issue, though there may be room for an attacker to exploit 
+bugs in implementation.
 {%- endtrans %}</p>
 <div style="clear:both"></div>
 
 {# DREAD_score(2, 2, 3, 2, 3) #}
 <p id="ffdos">{% trans peerselection=site_url('docs/how/peer-selection'),
 netdb=site_url('docs/how/network-database') -%}
-<b>Floodfill DOS attack:</b> A hostile user may attempt to harm the network by
+<b>Floodfill DOS attack:</b> An attacker may attempt to harm the network by
 becoming a floodfill router. The current defenses against unreliable,
 intermittent, or malicious floodfill routers are poor.
 A floodfill router may provide bad or no response to lookups, and
@@ -469,7 +461,7 @@ For more information see the
 
 <p>{% trans todo=site_url('get-involved/todo') -%}
 Tagging attacks - modifying a message so that it can later be identified 
-further along the path - are by themselves impossible in I2P, as messages 
+further along the path, are by themselves impossible in I2P, as messages 
 passed through tunnels are signed.  However, if an attacker is the inbound 
 tunnel gateway as well as a participant further along in that tunnel, with
 collusion they can identify the fact that they are in the same tunnel (and 
@@ -486,10 +478,9 @@ as the links are encrypted and messages signed.
 {# DREAD_score(3, 1, 1, 1, 2) #}
 
 <p>{% trans -%}
-Partitioning attacks - finding ways to segregate (technically or analytically)
-the peers in a network - are important to keep in mind when dealing with a 
-powerful adversary, since the size of the network plays a key role in determining
-your anonymity.  Technical partitioning by cutting links between peers to create
+Partitioning attacks: Finding ways to segregate, either technically or analytically,
+the peers in a network is important to keep in mind because the size of the network plays a key role in determining
+participant anonymity.  Technical partitioning by cutting links between peers to create
 fragmented networks is addressed by I2P's built in network database, which 
 maintains statistics about various peers so as to allow any existing connections
 to other fragmented sections to be exploited so as to heal the network.  However,
@@ -571,17 +562,17 @@ which is an update to the 2004 predecessor attack paper
 {# DREAD_score(1, 1, 2, 2, 3) #}
 
 <p>{% trans -%}
-"Harvesting" means compiling a list of users running I2P.
+"Harvesting" means compiling a list of participants running I2P.
 It can be used for legal attacks and to help
 other attacks by simply running a peer, seeing who it connects to, and 
 harvesting whatever references to other peers it can find.
 {%- endtrans %}</p>
 
 <p>{% trans -%}
-I2P itself is not designed with effective defenses against
+The network itself is not designed with effective defenses against
 this attack, since there is the distributed network database 
 containing just this information.
-The following factors make the attack somewhat harder in practice:
+The following factors make the attack harder in practice:
 {%- endtrans %}</p>
 <ul>
 <li>{% trans -%}
@@ -592,7 +583,7 @@ Floodfill routers implement query limits as DOS protection
 {%- endtrans %}</li>
 <li>{% trans -%}
 "Hidden mode", which prevents a router from publishing its information to the netDb,
-(but also prevents it from relaying data) is not widely used now but could be.
+and also prevents it from relaying data, is not widely used now but could be.
 {%- endtrans %}</li>
 </ul>
 
@@ -600,16 +591,14 @@ Floodfill routers implement query limits as DOS protection
 In future implementations,
 <a href="{{ todo }}#nat">basic</a> and 
 <a href="{{ todo }}#fullRestrictedRoutes">comprehensive</a> restricted routes,
-this attack loses much of its power, as the "hidden" peers do not publish their
+this attack loses much of its power, as the hidden peers do not publish their
 contact addresses in the network database - only the tunnels through which 
-they can be reached (as well as their public keys, etc).
+they can be reached, public keys and other limited information.
 {%- endtrans %}</p>
 
 <p>{% trans -%}
-In the future, routers could use GeoIP to identify if they are in a particular
-country where identification as an I2P node would be risky.
-In that case, the router could automatically enable hidden mode, or
-enact other restricted route methods.
+Routers now use GeoIP to identify and automatically enable Hidden Mode if they are in a region
+where identification as an I2P node could be a risk.
 {%- endtrans %}</p>
 
 
@@ -619,9 +608,9 @@ enact other restricted route methods.
 
 <p>{% trans transport=site_url('docs/transport') -%}
 By inspecting the traffic into and out of a router, a malicious ISP
-or state-level firewall could identify that a computer is running I2P.
+or state-level firewall could identify that a computer is running an I2P router.
 As discussed <a href="#harvesting">above</a>, I2P is not specifically designed
-to hide that a computer is running I2P. However, several design decisions made
+to hide that a computer is running an I2P router/ node. However, several design decisions made
 in the design of the
 <a href="{{ transport }}">transport layer and protocols</a>
 make it somewhat difficult to identify I2P traffic:
@@ -645,7 +634,7 @@ UDP may be much harder for some Deep Packet Inspection (DPI) equipment to track.
 </ul>
 
 <p>{% trans -%}
-In the near future, we plan to directly address traffic analysis issues by further obfuscation of I2P transport protocols, possibly including:
+In the near future, there is a plan to directly address traffic analysis issues by further obfuscation of I2P transport protocols, possibly including:
 {%- endtrans %}</p>
 <ul>
 <li>{% trans -%}
@@ -664,7 +653,7 @@ Review of padding strategies at higher layers to see how they affect packet size
 Review of methods implemented by various state-level firewalls to block Tor
 {%- endtrans %}</li>
 <li>{% trans -%}
-Working directly with DPI and obfuscation experts
+Working directly with DPI and obfuscation researchers
 {%- endtrans %}</li>
 </ul>
 
@@ -679,8 +668,8 @@ Reference: <a href="{{ pdf }}">Breaking and Improving Protocol Obfuscation</a>
 
 <p>{% trans -%}
 Sybil describes a category of attacks where the adversary creates arbitrarily
-large numbers of colluding nodes and uses the increased numbers to help 
-mounting other attacks.  For instance, if an attacker is in a network where peers
+large numbers of colluding nodes, and then uses those increased numbers to 
+mount other attacks.  For example, if an attacker is in a network where peers
 are selected randomly and they want an 80&#37; chance to be one of those peers, they
 simply create five times the number of nodes that are in the network and roll 
 the dice.  When identity is free, Sybil can be a very potent technique for a 
@@ -689,7 +678,7 @@ identity 'non free' - <a href="http://www.pdos.lcs.mit.edu/tarzan/">Tarzan</a>
 (among others) uses the fact that IP addresses are limited, while 
 IIP used 
 <a href="http://www.hashcash.org/">HashCash</a> to 'charge' for creating a new
-identity.  We currently have not implemented any particular technique to address
+identity.  Currently developers have not implemented any particular technique to address
 Sybil, but do include placeholder certificates in the router's and 
 destination's data structures which can contain a HashCash certificate of 
 appropriate value when necessary (or some other certificate proving scarcity).
@@ -732,10 +721,10 @@ for more Sybil discussion.
 
 <p>{% trans peerselection=site_url('docs/how/peer-selection') -%}
 By refusing to accept or forward tunnel build requests, except to a colluding peer, a router could ensure
-that a tunnel is formed wholly from its set of colluding routers.
+that a tunnel is formed completely from its set of colluding routers.
 The chances of success are enhanced if there is a large number of colluding routers,
 i.e. a <a href="#sybil">Sybil attack</a>.
-This is somewhat mitigated by our
+This is somewhat mitigated by 
 <a href="{{ peerselection }}">peer profiling</a> methods used to monitor the performance
 of peers.
 However, this is a powerful attack as the number of routers approaches
@@ -743,7 +732,7 @@ However, this is a powerful attack as the number of routers approaches
 The malicous routers could also maintain connections to the target router and provide
 excellent forwarding bandwidth for traffic over those connections, in an attempt
 to manipulate the profiles managed by the target and appear attractive.
-Further research and defenses may be necessary.
+Further research and defenses are necessary.
 {%- endtrans %}</p>
 
 
@@ -752,20 +741,20 @@ Further research and defenses may be necessary.
 {# DREAD_score(3, 2, 1, 3, 1) #}
 
 <p>{% trans cryptography=site_url('docs/how/cryptography') -%}
-We use strong cryptography with long keys, and
-we assume the security of the industry-standard cryptographic primitives used in I2P, as documented
+I2P uses strong cryptography with long keys, and
+development assumes the security of the industry-standard cryptographic primitives used in I2P, as documented
 <a href="{{ cryptography }}">on the low-level cryptography page</a>. 
 Security features include the immediate detection of 
 altered messages along the path, the inability to decrypt messages not addressed to you,
 and defense against man-in-the-middle attacks.
 The key sizes chosen in 2003 were quite conservative at the time, and are still longer than
 those used in <a href="https://torproject.org/">other anonymity networks</a>.
-We don't think the current key lengths are our biggest weakness,
-especially for traditional, non-state-level adversaries;
-bugs and the small size of the network are much more worrisome.
+It is not assumed that the current key lengths are a design weakness,
+especially for traditional, non-state-level adversaries.
+Bugs and the small size of the network are a bigger issue.
 Of course, all cryptographic algorithms eventually become obsolete due to
 the advent of faster processors, cryptographic research, and advancements in
-methods such as rainbow tables, clusters of video game hardware, etc.
+methods such as rainbow tables, clusters of video game hardware, and so on.
 Unfortunately, I2P was not designed with easy mechanisms to lengthen keys or change
 shared secret values while maintaining backward compatibility.
 {%- endtrans %}</p>
@@ -775,8 +764,8 @@ Upgrading the various data structures and protocols to support longer keys
 will have to be tackled eventually, and this will be a
 <a href="{{ cryptography }}">major undertaking</a>, just as it will be for 
 <a href="https://torproject.org/">others</a>.
-Hopefully, through careful planning, we can minimize the disruption, and
-implement mechanisms to make it easier for future transitions.
+Through careful planning, disruption can be minimized, and
+mechanisms implemented to make it easier for future transitions.
 {%- endtrans %}</p>
 
 <p>{% trans -%}
@@ -803,7 +792,6 @@ of the total keyspace, and the keyspace rotates daily, as explained
 on the <a href="{{ netdb }}#threat">network database page</a>.
 The specific mechanisms by which routers communicate with floodfills have been
 <a href="{{ netdb }}#delivery">carefully designed</a>.
-However, these threats should be studied further.
 The specific potential threats and corresponding defenses are a topic for future research.
 {%- endtrans %}</p>
 
@@ -811,7 +799,7 @@ The specific potential threats and corresponding defenses are a topic for future
 <h3 id="netdb">{% trans %}Other Network Database attacks{% endtrans %}</h3>
 <p>{% trans netdb=site_url('docs/how/network-database') -%}
 A hostile user may attempt to harm the network by
-creating one or more floodfill routers and crafting them to offer
+creating one or more floodfill routers and configuring them to offer
 bad, slow, or no responses.
 Several scenarios are discussed on the
 <a href="{{ netdb }}#threat">network database page</a>.
@@ -824,12 +812,12 @@ Several scenarios are discussed on the
 {# DREAD_score(1, 1, 1, 3, 3) #}
 
 <p>{% trans -%}
-There are a few centralized or limited resources (some inside I2P, some not)
+There are a few centralized or limited resources, some inside I2P, some not,
 that could be attacked or used as a vector for attacks.
 The absence of jrandom starting November 2007, followed by the loss of the i2p.net hosting service in January 2008,
-highlighted numerous centralized resources in the development and operation of the I2P network,
+highlighted centralized resources in the development and operation of the I2P network,
 most of which are now distributed.
-Attacks on externally-reachable resources mainly affect the ability of new users to find us,
+Attacks on externally-reachable resources mainly affect the ability for people to find the project,
 not the operation of the network itself.
 {%- endtrans %}</p>
 <ul>
@@ -867,7 +855,7 @@ However, all naming services require some measure of trust, see
 <a href="{{ naming }}">the naming page</a> for details.
 {%- endtrans %}</li>
 <li>{% trans -%}
-We remain reliant on the DNS service for i2p2.de, losing this would cause substantial
+There is reliance on the DNS service for i2p2.de, losing this would cause substantial
 disruption in our ability to attract new users,
 and would shrink the network (in the short-to-medium term), just as the loss of i2p.net did.
 {%- endtrans %}</li>
@@ -879,12 +867,10 @@ and would shrink the network (in the short-to-medium term), just as the loss of 
 {# DREAD_score(2, 1, 1, 3, 1) #}
 
 <p>{% trans -%}
-These attacks aren't directly on the network, but instead go after its development team 
+Some attacks affect the network by attempting to compromise the development team or process
 by either introducing legal hurdles on anyone contributing to the development
-of the software, or by using whatever means are available to get the developers to 
-subvert the software.  Traditional technical measures cannot defeat these attacks, and
-if someone threatened the life or livelihood of a developer (or even just issuing a 
-court order along with a gag order, under threat of prison), we would have a big problem.
+of the software, or by using means to get developers to 
+subvert the software.
 {%- endtrans %}</p>
 
 <p>{% trans -%}
@@ -895,23 +881,21 @@ However, two techniques help defend against these attacks:
 All components of the network must be open source to enable inspection, verification, 
 modification, and improvement.  If a developer is compromised, once it is noticed 
 the community should demand explanation and cease to accept that developer's work.
-All checkins to our <a href="{{ monotone }}">distributed source control system</a>
-are cryptographically signed, and the release packagers use a trust-list system
+All checkins are cryptographically signed, and the release packagers use a trust-list system
 to restrict modifications to those previously approved.
 {%- endtrans %}</li>
 <li>{% trans monotone=site_url('get-involved/guides/monotone') -%}
 Development over the network itself, allowing developers to stay anonymous but still 
-secure the development process.  All I2P development can occur through I2P - using
-a <a href="{{ monotone }}">distributed source control system</a>,
+secure the development process.  All I2P development can be done on the I2P network using
+a distributed source control system,
 a distributed source control system, IRC chat,
 public web servers,
-discussion forums (forum.i2p), and the software distribution sites,
-all available within I2P.
+discussion forums and the software distribution sites within I2P.
 {%- endtrans %}</li>
 </ul>
 
 <p>{% trans -%}
-We also maintain relationships with various organizations that offer legal advice,
+The project maintains relationships with organizations that offer legal advice,
 should any defense be necessary.
 {%- endtrans %}</p>
 
@@ -920,39 +904,25 @@ should any defense be necessary.
 {# DREAD_score(2, 2, 1, 3, 1) #}
 
 <p>{% trans -%}
-Try as we might, most nontrivial applications include errors in the design or 
-implementation, and I2P is no exception.  There may be bugs that could be exploited to 
+Most nontrivial applications include errors in design or 
+implementation, and I2P is no exception. There may be bugs that could be exploited to 
 attack the anonymity or security of the communication running over I2P in unexpected 
-ways.  To help withstand attacks against the design or protocols in use, we publish 
-all designs and documentation and solicit review and criticism with 
-the hope that many eyes will improve the system.
-We do not believe in
-<a href="http://www.haystacknetwork.com/">security through obscurity</a>.
+ways. To help withstand attacks against the design or protocols in use, the project publishes 
+all designs and documentation to solicit review and criticism to improve the network.
 {%- endtrans %}</p>
 
-<p>{% trans -%}
-In addition, the code is being 
-treated the same way, with little aversion towards reworking or throwing out 
-something that isn't meeting the needs of the software system (including ease of 
-modification).  Documentation for the design and implementation of the network and 
-the software components are an essential part of security, as without them it is 
-unlikely that developers would be willing to spend the time to learn the software 
-enough to identify shortcomings and bugs.
-{%- endtrans %}</p>
 
 <p>{% trans -%}
-Our software is likely, in particular, to contain bugs related to denial of service
+The software is likely to contain bugs related to denial of service
 through out-of-memory errors (OOMs), cross-site-scripting (XSS) issues  in the router console,
 and other vulnerabilities to non-standard inputs via the various protocols.
 {%- endtrans %}</p>
 
 <p>{% trans volunteer=site_url('get-involved') -%}
-I2P is still a small network with a small development community and almost no
-interest from academic or research groups.
-Therefore we lack the analysis that
+I2P is still a small network with a small development community.
+Therefore it lacks the analysis that
 <a href="https://torproject.org/">other anonymity networks</a>
-may have received. We continue to recruit people to
-<a href="{{ volunteer }}">get involved</a> and help.
+have received. 
 {%- endtrans %}</p>
 
 
@@ -970,17 +940,17 @@ listing anti-P2P organizations, potential state-level adversaries, and others.
 To the extent that active peers actually do show up in the actual blocklist,
 blocking by only a subset of peers would tend to segment the network,
 exacerbate reachability problems, and decrease overall reliability.
-Therefore we would want to agree on a particular blocklist and
+Therefore it would be nessessary to agree on a particular blocklist and
 enable it by default.
 {%- endtrans %}</p>
 
 <p>{% trans -%}
-Blocklists are only a part (perhaps a small part) of an array of defenses
+Blocklists are only a part (perhaps a small part), of an array of defenses
 against maliciousness.
 In large part the profiling system does a good job of measuring
-router behavior so that we don't need to trust anything in netDb.
-However there is more that can be done. For each of the areas in the
-list above there are improvements we can make in detecting badness.
+router behavior so that there is no need to trust anything in the netDb.
+However, there is more that can be done. For each of the areas in the
+list above there are improvements that can be made to detecting attacks.
 {%- endtrans %}</p>
 
 <p>{% trans -%}
@@ -988,16 +958,16 @@ If a blocklist is hosted at a central location with automatic updates
 the network is vulnerable to a
 <a href="#central">central resource attack</a>.
 Automatic subscription to a list gives the list provider the power to shut
-the i2p network down. Completely.
+the network down. Completely.
 {%- endtrans %}</p>
 
 <p>{% trans -%}
-Currently, a default blocklist is distributed with our software,
+Currently, a default blocklist is distributed with the core Java software,
 listing only the IPs of past DOS sources.
 There is no automatic update mechanism.
 Should a particular IP range implement serious attacks on the I2P network,
 we would have to ask people to update their blocklist manually through
-out-of-band mechanisms such as forums, blogs, etc.
+out-of-band mechanisms such as forums, blogs, and social media.
 {%- endtrans %}</p>
 
 
