@@ -3,8 +3,8 @@ I2NP Specification
 ==================
 .. meta::
     :category: Protocols
-    :lastupdated: 2022-12
-    :accuratefor: 0.9.57
+    :lastupdated: 2023-10
+    :accuratefor: 0.9.59
 
 .. contents::
 
@@ -48,6 +48,10 @@ below.
    0.9.55       SSU2 transport support (if published in router info)
 
    0.9.51       Short tunnel build messages for ECIES-X25519 routers
+
+                Minimum peers will build tunnels through, as of 0.9.58
+
+                Minimum floodfill peers will send DSM to, as of 0.9.58
 
    0.9.49       Garlic messages to ECIES-X25519 routers
 
