@@ -1,7 +1,7 @@
 {% extends "global/layout.html" %}
 {% block title %}SAM V3{% endblock %}
-{% block lastupdated %}2023-01{% endblock %}
-{% block accuratefor %}API 0.9.57{% endblock %}
+{% block lastupdated %}2023-10{% endblock %}
+{% block accuratefor %}API 0.9.59{% endblock %}
 {% block content %}
 <p>SAM is a simple client protocol for interacting with I2P.
 SAM is the recommended protocol for non-Java applications to connect to the I2P network,
@@ -943,6 +943,26 @@ After this '\n' terminated line, all remaining data
 passing through the current socket is forwarded from and to the connected
 I2P destination peer, until one of the peer closes the socket.
 </p>
+
+<h4>Errors After OK</h4>
+<p>
+In rare cases, the SAM bridge may encounter an error after sending RESULT=OK,
+but before a connection comes in and sending the $destination line to the client.
+These errors may include router shutdown, router restart, and session close.
+In these cases, when SILENT=false, the SAM bridge may, but is not required to
+(implementation-dependent), send the line:
+
+<pre>
+&lt;-  STREAM STATUS
+         RESULT=I2P_ERROR
+         [MESSAGE=...]
+</pre>
+
+before immediately closing the socket. This line is not, of course, decodable as a
+valid Base 64 destination.
+</p>
+
+
 
 <h3>SAM Virtual Streams : FORWARD</h3>
 <p>
