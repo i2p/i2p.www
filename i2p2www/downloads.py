@@ -27,13 +27,13 @@ DEFAULT_MIRROR = {
 #    "country": "no",
 #}
 
-DEFAULT_MIRROR= {
-    'net': 'clearnet',
-    'protocol': 'https',
-    'domain':   'download.i2p2.no',
-    'org':      'sigterm.no',
-    'country':  'no',
-}
+#DEFAULT_MIRROR= {
+#    'net': 'clearnet',
+#    'protocol': 'https',
+#    'domain':   'download.i2p2.no',
+#    'org':      'sigterm.no',
+#    'country':  'no',
+#}
 
 DEFAULT_I2P_MIRROR = {
     'net': 'i2p',
