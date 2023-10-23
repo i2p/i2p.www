@@ -3,8 +3,8 @@ I2CP Specification
 ==================
 .. meta::
     :category: Protocols
-    :lastupdated: 2021-12
-    :accuratefor: 0.9.52
+    :lastupdated: 2023-10
+    :accuratefor: 0.9.59
 
 .. contents::
 
@@ -302,6 +302,8 @@ below.
    0.7.1        Send Message Expires message supported
 
                 Reconfigure Session message supported
+
+                Ports and protocol numbers in gzip header
 
    0.7          Dest Lookup and Dest Reply messages supported
 
