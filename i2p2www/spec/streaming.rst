@@ -3,8 +3,8 @@ Streaming Protocol Specification
 ================================
 .. meta::
     :category: Protocols
-    :lastupdated: 2023-01
-    :accuratefor: 0.9.57
+    :lastupdated: 2023-10
+    :accuratefor: 0.9.59
 
 .. contents::
 
@@ -34,6 +34,8 @@ Java I2P version in which they were implemented.
 ==============  ================================================================
 Router Version  Streaming Features
 ==============  ================================================================
+   0.9.58       Bob's hash in NACKs field of SYN packet
+
    0.9.39       OFFLINE_SIGNATURE option
 
    0.9.36       I2CP protocol number enforced
@@ -114,11 +116,15 @@ Framing is provided by the lower layers - I2CP and I2NP.
                 below.
 
   NACK count :: 1 byte `Integer`
-                The number of 4-byte NACKs in the next field
+                The number of 4-byte NACKs in the next field,
+                or 8 when used together with SYNCHRONIZE for replay prevention
+                as of 0.9.58; see below.
 
   NACKs :: $nc * 4 byte `Integer`s
            Sequence numbers less than ackThrough that are not yet received. Two
            NACKs of a packet is a request for a 'fast retransmit' of that packet.
+           Also used together with SYNCHRONIZE for replay prevention
+           as of 0.9.58; see below.
 
   resendDelay :: 1 byte `Integer`
                  How long is the creator of this packet going to wait before
@@ -241,6 +247,39 @@ in the option.
   SIGNATURE_INCLUDED is the last option), but the packet will probably be
   discarded anyway, since there is no FROM available to validate the signature.
   If more option fields are defined in the future, they must be accounted for.
+
+
+
+Replay prevention
+-----------------
+
+To prevent Bob from using a replay attack by storing a valid signed SYNCHRONIZE packet
+received from Alice and later sending it to a victim Charlie,
+Alice must include Bob's destination hash in the SYNCHRONIZE packet as follows:
+
+.. raw:: html
+
+  {% highlight lang='dataspec' %}
+Set NACK count field to 8
+Set the NACKs field to Bob's 32-byte destination hash
+
+{% endhighlight %}
+
+Upon reception of a SYNCHRONIZE, if the NACK count field is 8,
+Bob must interpret the NACKs field as a 32-byte destination hash,
+and must verify that it matches his destination hash.
+He must also verify the signature of the packet as usual,
+as that covers the entire packet including the NACK count and NACKs fields.
+If the NACK count is 8 and the NACKs field does not match,
+Bob must drop the packet.
+
+This is required for versions 0.9.58 and higher.
+This is backward-compatible with older versions,
+because NACKs are not expected in a SYNCHRONIZE packet.
+Destinations do not and cannot know what version the other end is running.
+
+No change is necessary for the SYNCHRONIZE ACK packet sent from Bob to Alice;
+do not include NACKs in that packet.
 
 
 References
