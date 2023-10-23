@@ -1,7 +1,7 @@
 {% extends "global/layout.html" %}
 {% block title %}I2PTunnel{% endblock %}
-{% block lastupdated %}2022-10{% endblock %}
-{% block accuratefor %}0.9.56{% endblock %}
+{% block lastupdated %}2023-10{% endblock %}
+{% block accuratefor %}0.9.59{% endblock %}
 {% block content %}
 
 <h2 id="overview">{% trans %}Overview{% endtrans %}</h2>
@@ -107,28 +107,118 @@ and to provide a better user experience.
 <li>Over 20 unique translated, styled, and formatted error pages for various errors
 <li>Internal web server to serve forms, CSS, images, and errors
 </ul>
-
-<li>Transparent response decompression:
-<ul><li>If the server-side HTTP proxy compressed the response,
-the HTTP client proxy transparently decompresses it.
-</ul>
 </ul>
 
 
+
+<h4>Transparent Response Compression</h4>
 <p>
-The i2ptunnel compression is requested with the HTTP header:
+The i2ptunnel response compression is requested with the HTTP header:
 </p>
 <ul>
 <li><b>X-Accept-Encoding: </b> x-i2p-gzip;q=1.0, identity;q=0.5, deflate;q=0, gzip;q=0, *;q=0</li>
 </ul>
+<p>
+The server side strips this hop-by-hop header before sending the request to the web server.
+The elaborate header with all the q values is not necessary;
+servers should just look for "x-i2p-gzip" anywhere in the header.
+</p>
 
 <p>
-The response indicating i2ptunnel compression contains the following HTTP header:
+The server side determines whether to compress the response based on
+the headers received from the webserver, including
+Content-Type, Content-Length, and Content-Encoding,
+to assess if the response is compressible and is worth the additional CPU required.
+If the server side compresses the response, it adds the following HTTP header:
 </p>
 <ul>
 <li><b>Content-Encoding: </b> x-i2p-gzip</li>
 </ul>
+<p>
+If this header is present in the response,
+the HTTP client proxy transparently decompresses it.
+The client side strips this header and gunzips before sending the response to the browser.
+Note that we still have the underlying gzip compression at the I2CP layer,
+which is still effective if the response is not compressed at the HTTP layer.
+</p>
 
+<p>
+This design and the current implementation violate RFC 2616 in several ways:
+</p>
+
+
+<ul><li>
+X-Accept-Encoding is not a standard header
+</li><li>
+Does not dechunk/chunk per-hop; it passes through chunking end-to-end
+</li><li>
+Passes Transfer-Encoding header through end-to-end
+</li><li>
+Uses Content-Encoding, not Transfer-Encoding, to specify the per-hop encoding
+</li><li>
+Prohibits x-i2p gzipping when Content-Encoding is set (but we probably don't want to do that anyway)
+</li><li>
+The server side gzips the server-sent chunking, rather than doing dechunk-gzip-rechunk and dechunk-gunzip-rechunk
+</li><li>
+The gzipped content is not chunked afterwards.
+RFC 2616 requires that all Transfer-Encoding other than "identity" is chunked.
+</li><li>
+Because there is no chunking outside (after) the gzip,
+it is more difficult to find the end of the data, making any implementation of keepalive harder.
+</li><li>
+RFC 2616 says Content-Length must not be sent if Transfer-Encoding is present,
+but we do. The spec says ignore Content-Length if Transfer-Encoding is present,
+which the browsers do, so it works for us.
+</li></ul>
+
+<p>
+Changes to implement a standards-compliant hop-by-hop compression in a backward-compatible
+manner are a topic for further study.
+Any change to dechunk-gzip-rechunk would require a new encoding type, perhaps
+x-i2p-gzchunked.
+This would be identical to Transfer-Encoding: gzip, but would have to be
+signalled differently for compatibility reasons.
+Any change would require a formal proposal.
+</p>
+
+
+<h4>Transparent Request Compression</h4>
+<p>
+Not supported, although POST would benefit.
+Note that we still have the underlying gzip compression at the I2CP layer.
+</p>
+
+
+<h4>Persistence</h4>
+<p>
+The client and server proxies do not currently support RFC 2616 HTTP persistent sockets
+on any of the three hops (browser socket, I2P socket, server socket).
+Connection: close headers are injected at every hop.
+Changes to implement a persistence are under investigation.
+These changes should be standards-complaint and backwards-compatible,
+and would not require a formal proposal.
+</p>
+
+
+<h4>Pipelining</h4>
+<p>
+The client and server proxies do not currently support RFC 2616 HTTP pipelining
+and there are no plans to do so.
+Modern browswers do not support pipelining through proxies because
+most proxies cannot implement it correctly.
+</p>
+
+
+<h4>Compatibility</h4>
+<p>
+Proxy implementations must work correctly with other implementations
+on the other side. Client proxies should work without a
+HTTP-aware server proxy (i.e. a standard tunnel) on the server side.
+Not all implementations support x-i2p-gzip.
+</p>
+
+
+<h4>User Agent</h4>
 <p>{% trans -%}
 Depending on if the tunnel is using an outproxy or not it will append the following User-Agent: 
 {%- endtrans %}</p>
