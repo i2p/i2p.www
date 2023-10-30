@@ -67,7 +67,7 @@ Alice must include Bob's destination hash in the SYNCHRONIZE packet as follows:
 
   {% highlight lang='dataspec' %}
 Set NACK count field to 8
-    Set the NACKs field to Bob's 32-byte destination hash
+  Set the NACKs field to Bob's 32-byte destination hash
 
 {% endhighlight %}
 
