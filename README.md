@@ -107,7 +107,7 @@ in `etc/translation.vars` can be overridden by creating the file
 1. Pull new and updated translations from Transifex:
 
     ```
-    $ tx pull -a
+    $ tx pull --use-git-timestamps -a
     ```
 
 2. Correctly format the translations:
@@ -165,7 +165,7 @@ in `etc/translation.vars` can be overridden by creating the file
 3. Push pots file changes to Transifex:
 
     ```
-    $ tx push -s
+    $ tx push --use-git-timestamps -s
     ```
 
 ## Updating spec tags:
