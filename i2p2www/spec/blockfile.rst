@@ -3,8 +3,8 @@ Blockfile and Hosts Database Specification
 ==========================================
 .. meta::
     :category: Formats
-    :lastupdated: 2020-09
-    :accuratefor: 0.9.47
+    :lastupdated: 2023-11
+    :accuratefor: 0.9.59
 
 .. contents::
 
@@ -240,8 +240,8 @@ The DestEntry Properties typically contains:
     "a"
         The time added (Java long time in ms)
 
-    "a"
-        The time added (Java long time in ms)
+    "m"
+        The time last modified (Java long time in ms)
 
     "notes"
         User-supplied comments
