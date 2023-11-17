@@ -188,6 +188,12 @@ entries containing only one entry:
             Comma-separated list of host databases, to be searched in-order for
             lookups. Almost always "privatehosts.txt,userhosts.txt,hosts.txt".
 
+        listversion_*
+            The version of each database in lists, for example: listversion_hosts.txt=4.
+            Used to identify partial or aborted upgrade of individual lists.
+            (as of database version 4)
+
+
 Reverse Lookup Skiplist
 -----------------------
 
