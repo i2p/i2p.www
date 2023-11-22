@@ -19,7 +19,7 @@ del _k
 
 def load(cfgFile):
     mod = {}
-    execfile(cfgFile, mod)
+    exec(compile(open(cfgFile, "rb").read(), cfgFile, 'exec'), mod)
     for _k in _KEYS:
         try:
             globals()[_k]=mod[_k]
@@ -28,7 +28,7 @@ def load(cfgFile):
 
     INITIAL_STRINGS.update(_EXTRA_INITIAL_STRINGS)
     AUTHOR_RE_LIST[:] = [
-        (re.compile(k, re.I), v,) for k, v in AUTHOR_URLS.items()
+        (re.compile(k, re.I), v,) for k, v in list(AUTHOR_URLS.items())
         ]
 
     NO_COLLAPSE_AUTHORS_RE_LIST[:] = [
@@ -36,7 +36,7 @@ def load(cfgFile):
         ]
 
     ALPHABETIZE_AUTHOR_AS_RE_LIST[:] = [
-        (re.compile(k, re.I), v,) for k,v in ALPHABETIZE_AUTHOR_AS.items()
+        (re.compile(k, re.I), v,) for k,v in list(ALPHABETIZE_AUTHOR_AS.items())
         ]
 
 _EXTRA_INITIAL_STRINGS = {

@@ -10,10 +10,10 @@ from i2p2www import helpers
 
 
 BLOG_METATAGS = {
-    'author': u'I2P devs',
+    'author': 'I2P devs',
     'category': None,
     'date': None,
-    'excerpt': u'',
+    'excerpt': '',
     }
 
 BLOG_LIST_METATAGS = [

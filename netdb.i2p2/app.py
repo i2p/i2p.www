@@ -23,7 +23,7 @@ def app(environ, start_response):
     path = req.path[1:]
     if path == '':
         # page
-        page = u'<html><head><title>NetDB</title></head><body><ul>%s</ul></body></html>'
+        page = '<html><head><title>NetDB</title></head><body><ul>%s</ul></body></html>'
         
         # generate links
         entries = os.listdir('netdb')
@@ -46,7 +46,7 @@ def app(environ, start_response):
             res += '<li><a href="%s">%s</a></li>' % (entry, entry)
         resp = Response(page % res, mimetype='text/html')
     elif path == 'robots.txt':
-        dat = u"User-agent: *\nDisallow: /routerInfo-*.dat$\n"
+        dat = "User-agent: *\nDisallow: /routerInfo-*.dat$\n"
         resp = Response(dat, mimetype='text/plain')
     else:
         # load file

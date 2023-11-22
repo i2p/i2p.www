@@ -7,7 +7,7 @@
 cache_expire = 60*60*24*30 # 30 days
 
 # Checks
-import config
+from . import config
 import os
 import sys
 from os.path import exists, isdir, join, getmtime
@@ -32,8 +32,8 @@ def cache_folder():
    return r
 
 import re
-from urllib2 import urlopen, build_opener
-from urllib import quote
+from urllib.request import urlopen, build_opener
+from urllib.parse import quote
 from datetime import date
 import hashlib
 
@@ -66,17 +66,17 @@ def getPageForTitle(title, cache=True, update=True, save=True):
    if exists(join(cache_folder(), md5h(url))) and cache:
       return url, file(join(cache_folder(), md5h(url)),'r').read()
    elif update:
-      print "Downloading rank for %r."%title
+      print("Downloading rank for %r."%title)
 
       # Make a custom user agent (so that we are not filtered by Google)!
       opener = build_opener()
       opener.addheaders = [('User-agent', 'Anon.Bib.0.1')]
 
-      print "connecting..."
+      print("connecting...")
       connection = opener.open(url)
-      print "reading"
+      print("reading")
       page = connection.read()
-      print "done"
+      print("done")
       if save:
          file(join(cache_folder(), md5h(url)),'w').write(page)
       return url, page
@@ -140,20 +140,20 @@ def get_rank_html(title, years=None, base_url=".", update=True,
 def TestScholarFormat():
    # We need to ensure that Google Scholar does not change its page format under our feet
    # Use some cases to check if all is good
-   print "Checking google scholar formats..."
+   print("Checking google scholar formats...")
    stopAndGoCites = getCite("Stop-and-Go MIXes: Providing Probabilistic Anonymity in an Open System", False)[0]
    dragonCites = getCite("Mixes protected by Dragons and Pixies: an empirical study", False, save=False)[0]
 
    if stopAndGoCites in (0, None):
-      print """OOPS.\n
+      print("""OOPS.\n
 It looks like Google Scholar changed their URL format or their output format.
-I went to count the cites for the Stop-and-Go MIXes paper, and got nothing."""
+I went to count the cites for the Stop-and-Go MIXes paper, and got nothing.""")
       sys.exit(1)
 
    if dragonCites != None:
-      print """OOPS.\n
+      print("""OOPS.\n
 It looks like Google Scholar changed their URL format or their output format.
-I went to count the cites for a fictitious paper, and found some."""
+I went to count the cites for a fictitious paper, and found some.""")
       sys.exit(1)
 
 def urlIsUseless(u):
@@ -170,7 +170,7 @@ URLTYPES=[ "pdf", "ps", "txt", "ps_gz", "html" ]
 
 if __name__ == '__main__':
    # First download the bibliography file.
-   import BibTeX
+   from . import BibTeX
    suggest = False
    if sys.argv[1] == 'suggest':
       suggest = True
@@ -182,7 +182,7 @@ if __name__ == '__main__':
    bib = BibTeX.parseFile(config.MASTER_BIB)
    remove_old()
 
-   print "Downloading missing ranks."
+   print("Downloading missing ranks.")
    for ent in bib.entries:
       getCite(ent['title'], cache=True, update=True)
 
@@ -190,13 +190,13 @@ if __name__ == '__main__':
       for ent in bib.entries:
          haveOne = False
          for utype in URLTYPES:
-            if ent.has_key("www_%s_url"%utype):
+            if "www_%s_url"%utype in ent:
                haveOne = True
                break
          if haveOne:
             continue
-         print ent.key, "has no URLs given."
+         print(ent.key, "has no URLs given.")
          urls = [ u for u in getPaperURLs(ent['title']) if not urlIsUseless(u) ]
          for u in urls:
-            print "\t", u
+            print("\t", u)
 

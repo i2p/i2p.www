@@ -45,7 +45,7 @@ SINGLETONS = {
     'z': 's',
 }
 
-ALLCHARS = "".join(map(chr, range(256)))
+ALLCHARS = "".join(map(chr, list(range(256))))
 NONLCCHARS = "".join([c for c in ALLCHARS if not c.islower()])
 def metaphone(s):
     """Return the metaphone equivalent of a provided string"""
@@ -182,7 +182,7 @@ def metaphone(s):
     return "".join(result)
 
 def demo(a):
-    print a, "=>", metaphone(a)
+    print(a, "=>", metaphone(a))
 
 if __name__ == '__main__':
     demo("Nick. Mathewson")

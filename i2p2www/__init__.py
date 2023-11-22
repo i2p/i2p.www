@@ -67,32 +67,32 @@ SUPPORTED_LANGS = [
     ]
 
 SUPPORTED_LANG_NAMES = {
-    'ar': u'Arabic العربية',
-    'id': u'Bahasa Indonesia',
-    'zh': u'Chinese 中文',
-    'zh_TW': u'Chinese 中文 (繁體中文, 台灣)',
-    'de': u'Deutsch',
-    'en': u'English',
-    'es': u'Castellano',
-    'fr': u'Français',
-    'el': u'Greek Ελληνικά',
-    'he': u'Hebrew עברית',
-    'hu': u'Hungarian',
-    'it': u'Italiano',
-    'ja': u'Japanese 日本語',
-    'ko': u'Korean 한국말',
-    'mg': u'Fiteny Malagasy',
-    'nl': u'Nederlands',
-    'fa': u'Persian فارسی',
-    'pl': u'Polski',
-    'pt': u'Português',
-    'pt_BR': u'Português do Brasil',
-    'ro': u'Română',
-    'ru': u'Russian Русский язык',
-    'fi': u'Suomi',
-    'sv': u'Svenska',
-    'tr': u'Türkçe',
-    'uk': u'Ukrainian Українська',
+    'ar': 'Arabic العربية',
+    'id': 'Bahasa Indonesia',
+    'zh': 'Chinese 中文',
+    'zh_TW': 'Chinese 中文 (繁體中文, 台灣)',
+    'de': 'Deutsch',
+    'en': 'English',
+    'es': 'Castellano',
+    'fr': 'Français',
+    'el': 'Greek Ελληνικά',
+    'he': 'Hebrew עברית',
+    'hu': 'Hungarian',
+    'it': 'Italiano',
+    'ja': 'Japanese 日本語',
+    'ko': 'Korean 한국말',
+    'mg': 'Fiteny Malagasy',
+    'nl': 'Nederlands',
+    'fa': 'Persian فارسی',
+    'pl': 'Polski',
+    'pt': 'Português',
+    'pt_BR': 'Português do Brasil',
+    'ro': 'Română',
+    'ru': 'Russian Русский язык',
+    'fi': 'Suomi',
+    'sv': 'Svenska',
+    'tr': 'Türkçe',
+    'uk': 'Ukrainian Українська',
     }
 
 RTL_LANGS = [
@@ -213,7 +213,7 @@ def detect_theme():
     theme = 'duck'
     if 'style' in request.cookies:
         theme = request.cookies['style']
-    if 'theme' in request.args.keys():
+    if 'theme' in list(request.args.keys()):
         theme = request.args['theme']
         # TEMPORARY: enable external themes
         # TODO: Remove this (and the corresponding lines in global/layout.html
@@ -263,5 +263,5 @@ def server_error(error):
     return render_template('global/error_500.html'), 500
 
 # Import these to ensure they get loaded
-import templatevars
-import urls
+from . import templatevars
+from . import urls

@@ -3,8 +3,8 @@
 
 """Unit tests for anonbib."""
 
-import BibTeX
-import metaphone
+from . import BibTeX
+from . import metaphone
 #import reconcile
 #import writeHTML
 #import updateCache
@@ -18,40 +18,40 @@ class MetaphoneTests(unittest.TestCase):
 class BibTeXTests(unittest.TestCase):
     def testTranslation(self):
         ut = BibTeX.url_untranslate
-        self.assertEquals(ut("Fred"),"Fred")
-        self.assertEquals(ut("Hello, World."), "Hello_2c_20World.")
+        self.assertEqual(ut("Fred"),"Fred")
+        self.assertEqual(ut("Hello, World."), "Hello_2c_20World.")
 
         te = BibTeX.TeXescapeURL
         ute = BibTeX.unTeXescapeURL
-        self.assertEquals(te("http://example/~me/my_file"),
+        self.assertEqual(te("http://example/~me/my_file"),
                           r"http://example/\{}~me/my\_file")
-        self.assertEquals(ute(r"http:{}//example/\{}~me/my\_file"),
+        self.assertEqual(ute(r"http:{}//example/\{}~me/my\_file"),
                           "http://example/~me/my_file")
 
         h = BibTeX.htmlize
-        self.assertEquals(h("Hello, world"), "Hello, world")
-        self.assertEquals(h(r"\'a\`e\'{i}(\'\i)\"o&\^u"),
+        self.assertEqual(h("Hello, world"), "Hello, world")
+        self.assertEqual(h(r"\'a\`e\'{i}(\'\i)\"o&\^u"),
                           "&aacute;&egrave;&iacute;(&iacute;)&ouml;&amp;"
                           "&ucirc;")
-        self.assertEquals(h(r"\~n and \c{c}"), "&ntilde; and &ccedil;")
-        self.assertEquals(h(r"\AE---a ligature"), "&AElig;&mdash;a ligature")
-        self.assertEquals(h(r"{\it 33}"), " 33")
-        self.assertEquals(h(r"Pages 33--99 or vice--versa?"),
+        self.assertEqual(h(r"\~n and \c{c}"), "&ntilde; and &ccedil;")
+        self.assertEqual(h(r"\AE---a ligature"), "&AElig;&mdash;a ligature")
+        self.assertEqual(h(r"{\it 33}"), " 33")
+        self.assertEqual(h(r"Pages 33--99 or vice--versa?"),
                           "Pages 33-99 or vice&ndash;versa?")
 
         t = BibTeX.txtize
-        self.assertEquals(t("Hello, world"), "Hello, world")
-        self.assertEquals(t(r"\'a\`e\'{i}(\'\i)\"o&\^u"),
+        self.assertEqual(t("Hello, world"), "Hello, world")
+        self.assertEqual(t(r"\'a\`e\'{i}(\'\i)\"o&\^u"),
                           "aei(i)o&u")
-        self.assertEquals(t(r"\~n and \c{c}"), "n and c")
-        self.assertEquals(t(r"\AE---a ligature"), "AE---a ligature")
-        self.assertEquals(t(r"{\it 33}"), " 33")
-        self.assertEquals(t(r"Pages 33--99 or vice--versa?"),
+        self.assertEqual(t(r"\~n and \c{c}"), "n and c")
+        self.assertEqual(t(r"\AE---a ligature"), "AE---a ligature")
+        self.assertEqual(t(r"{\it 33}"), " 33")
+        self.assertEqual(t(r"Pages 33--99 or vice--versa?"),
                           "Pages 33--99 or vice--versa?")
 
     def authorsParseTo(self,authors,result):
         pa = BibTeX.parseAuthor(authors)
-        self.assertEquals(["|".join(["+".join(item) for item in
+        self.assertEqual(["|".join(["+".join(item) for item in
                                      [a.first,a.von,a.last,a.jr]])
                            for a in pa],
                           result)

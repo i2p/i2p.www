@@ -1,7 +1,7 @@
 import ctags
 from flask import g, request, safe_join, url_for
 import os.path
-from urlparse import urlsplit, urlunsplit
+from urllib.parse import urlsplit, urlunsplit
 
 from i2p2www import (
     CANONICAL_DOMAIN,

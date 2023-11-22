@@ -122,7 +122,7 @@ def application(environ, start_response):
 
 
     if path == '':
-        page = u'<html><head><title>NetDB</title></head><body><ul>%s</ul></body></html>'
+        page = '<html><head><title>NetDB</title></head><body><ul>%s</ul></body></html>'
 
         if len(info) == 0:
             # tag the ip as new
@@ -136,7 +136,7 @@ def application(environ, start_response):
                 new = []
                 if len(entries) > 150:
                     # select some randomly
-                    for i in xrange(100):
+                    for i in range(100):
                         while True:
                             sel = choice(entries)
                             if not sel.startswith('routerInfo-'):
@@ -179,7 +179,7 @@ def application(environ, start_response):
         resp.add_etag()
 
     elif path == 'robots.txt':
-        dat = u"User-agent: *\nDisallow: /routerInfo-*.dat$\n"
+        dat = "User-agent: *\nDisallow: /routerInfo-*.dat$\n"
         resp = Response(dat, mimetype='text/plain')
         resp.add_etag()
 

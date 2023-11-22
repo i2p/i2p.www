@@ -9,10 +9,10 @@ import os
 import json
 
 assert sys.version_info[:3] >= (2,2,0)
-os.umask(022)
+os.umask(0o22)
 
-import BibTeX
-import config
+from . import BibTeX
+from . import config
 
 def getTemplate(name):
     f = open(name)
@@ -39,15 +39,15 @@ def writeBody(f, sections, section_urls, cache_path, base_url):
         sDisp = re.sub(r'\s+', ' ', s.strip())
         sDisp = sDisp.replace(" ", "&nbsp;")
         if u:
-            print >>f, ('<li><h3><a name="%s"></a><a href="%s">%s</a></h3>'%(
-                (BibTeX.url_untranslate(s), u, sDisp)))
+            print(('<li><h3><a name="%s"></a><a href="%s">%s</a></h3>'%(
+                (BibTeX.url_untranslate(s), u, sDisp))), file=f)
         else:
-            print >>f, ('<li><h3><a name="%s">%s</a></h3>'%(
-                BibTeX.url_untranslate(s),sDisp))
-        print >>f, "<ul class='expand'>"
+            print(('<li><h3><a name="%s">%s</a></h3>'%(
+                BibTeX.url_untranslate(s),sDisp)), file=f)
+        print("<ul class='expand'>", file=f)
         for e in entries:
-            print >>f, e.to_html(cache_path=cache_path, base_url=base_url)
-        print >>f, "</ul></li>"
+            print(e.to_html(cache_path=cache_path, base_url=base_url), file=f)
+        print("</ul></li>", file=f)
 
 def writeHTML(f, sections, sectionType, fieldName, choices,
               tag, config, cache_url_path, section_urls={}):
@@ -69,7 +69,7 @@ def writeHTML(f, sections, sectionType, fieldName, choices,
 
     #
     tagListStr = []
-    st = config.TAG_SHORT_TITLES.keys()
+    st = list(config.TAG_SHORT_TITLES.keys())
     st.sort()
     root = "../"*pathLength(config.TAG_DIRECTORIES[tag])
     if root == "": root = "."
@@ -104,10 +104,10 @@ def writeHTML(f, sections, sectionType, fieldName, choices,
          }
 
     header, footer = getTemplate(config.TEMPLATE_FILE)
-    print >>f, header%fields
+    print(header%fields, file=f)
     writeBody(f, sections, section_urls, cache_path=cache_url_path,
               base_url=root)
-    print >>f, footer%fields
+    print(footer%fields, file=f)
 
 def jsonDumper(obj):
     if isinstance(obj, BibTeX.BibTeXEntry):
@@ -125,7 +125,7 @@ def writePageSet(config, bib, tag):
         bib_entries = bib.entries[:]
 
     if not bib_entries:
-        print >>sys.stderr, "No entries with tag %r; skipping"%tag
+        print("No entries with tag %r; skipping"%tag, file=sys.stderr)
         return
 
     tagdir = config.TAG_DIRECTORIES[tag]
@@ -133,7 +133,7 @@ def writePageSet(config, bib, tag):
     cache_url_path = BibTeX.smartJoin("../"*pathLength(tagdir),
                                       config.CACHE_DIR)
     if not os.path.exists(outdir):
-        os.makedirs(outdir, 0755)
+        os.makedirs(outdir, 0o755)
     ##### Sorted views:
 
     ## By topic.
@@ -174,7 +174,7 @@ def writePageSet(config, bib, tag):
     except ValueError:
         last_year = int(entries[-2][1][0].get('year'))
 
-    years = map(str, range(first_year, last_year+1))
+    years = list(map(str, list(range(first_year, last_year+1))))
     if entries[-1][0] == 'Unknown':
         years.append("Unknown")
 
@@ -216,15 +216,15 @@ def writePageSet(config, bib, tag):
 
     header,footer = getTemplate(config.BIBTEX_TEMPLATE_FILE)
     f = open(os.path.join(outdir,"bibtex.html"), 'w')
-    print >>f, header % { 'command_line' : "",
+    print(header % { 'command_line' : "",
                           'title': config.TAG_TITLES[tag],
-                          'root': root }
+                          'root': root }, file=f)
     for ent in entries:
-        print >>f, (
+        print((
             ("<tr><td class='bibtex'><a name='%s'>%s</a>"
             "<pre class='bibtex'>%s</pre></td></tr>")
-            %(BibTeX.url_untranslate(ent.key), ent.key, ent.format(90,8,1)))
-    print >>f, footer
+            %(BibTeX.url_untranslate(ent.key), ent.key, ent.format(90,8,1))), file=f)
+    print(footer, file=f)
     f.close()
 
     f = open(os.path.join(outdir,"bibtex.json"), 'w')
@@ -234,13 +234,13 @@ def writePageSet(config, bib, tag):
 
 if __name__ == '__main__':
     if len(sys.argv) == 2:
-        print "Loading from %s"%sys.argv[1]
+        print("Loading from %s"%sys.argv[1])
     else:
-        print >>sys.stderr, "Expected a single configuration file as an argument"
+        print("Expected a single configuration file as an argument", file=sys.stderr)
         sys.exit(1)
     config.load(sys.argv[1])
 
     bib = BibTeX.parseFile(config.MASTER_BIB)
 
-    for tag in config.TAG_DIRECTORIES.keys():
+    for tag in list(config.TAG_DIRECTORIES.keys()):
         writePageSet(config, bib, tag)

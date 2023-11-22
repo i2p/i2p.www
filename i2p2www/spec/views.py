@@ -40,12 +40,12 @@ SPEC_CATEGORY_SORT = defaultdict(lambda: 999, {
     })
 
 PROPOSAL_METATAGS = {
-    'author': u'I2P devs',
+    'author': 'I2P devs',
     'created': None,
     'editor': None,
     'implementedin': None,
     'lastupdated': None,
-    'status': u'Draft',
+    'status': 'Draft',
     'supercededby': None,
     'supercedes': None,
     'target': None,
@@ -70,18 +70,18 @@ PROPOSAL_STATUS_SORT = defaultdict(lambda: 999, {
     })
 
 METATAG_LABELS = {
-    'accuratefor': u'Accurate for',
-    'author': u'Author',
-    'category': u'Category',
-    'created': u'Created',
-    'editor': u'Editor',
-    'implementedin': u'Implemented in',
-    'lastupdated': u'Last updated',
-    'status': u'Status',
-    'supercededby': u'Superceded by',
-    'supercedes': u'Supercedes',
-    'target': u'Target',
-    'thread': u'Thread',
+    'accuratefor': 'Accurate for',
+    'author': 'Author',
+    'category': 'Category',
+    'created': 'Created',
+    'editor': 'Editor',
+    'implementedin': 'Implemented in',
+    'lastupdated': 'Last updated',
+    'status': 'Status',
+    'supercededby': 'Superceded by',
+    'supercedes': 'Supercedes',
+    'target': 'Target',
+    'thread': 'Thread',
     }
 
 
@@ -150,7 +150,7 @@ def render_rst(directory, name, meta_parser, template):
         # Change highlight formatter
         content = content.replace('{% highlight', "{% highlight formatter='textspec'")
         # Metatags
-        for (metatag, label) in METATAG_LABELS.items():
+        for (metatag, label) in list(METATAG_LABELS.items()):
             content = content.replace('    :%s' % metatag, label)
 
     # render the post with Jinja2 to handle URLs etc.

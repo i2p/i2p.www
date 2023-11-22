@@ -12,7 +12,7 @@
 import os
 import sys
 import os.path
-import StringIO
+import io
 
 from pygments.formatter import Formatter
 from pygments.token import Token, Text, STANDARD_TYPES
@@ -27,11 +27,11 @@ __all__ = ['I2PHtmlFormatter', 'TextSpecFormatter']
 
 
 _escape_html_table = {
-    ord('&'): u'&amp;',
-    ord('<'): u'&lt;',
-    ord('>'): u'&gt;',
-    ord('"'): u'&quot;',
-    ord("'"): u'&#39;',
+    ord('&'): '&amp;',
+    ord('<'): '&lt;',
+    ord('>'): '&gt;',
+    ord('"'): '&quot;',
+    ord("'"): '&#39;',
 }
 
 kinds = {
@@ -459,7 +459,7 @@ class I2PHtmlFormatter(Formatter):
         """
         if arg is None:
             arg = ('cssclass' in self.options and '.'+self.cssclass or '')
-        if isinstance(arg, basestring):
+        if isinstance(arg, str):
             args = [arg]
         else:
             args = list(arg)
@@ -473,7 +473,7 @@ class I2PHtmlFormatter(Formatter):
             return ', '.join(tmp)
 
         styles = [(level, ttype, cls, style)
-                  for cls, (style, ttype, level) in self.class2style.iteritems()
+                  for cls, (style, ttype, level) in self.class2style.items()
                   if cls and style]
         styles.sort()
         lines = ['%s { %s } /* %s */' % (prefix(cls), style, repr(ttype)[6:])
@@ -511,8 +511,8 @@ class I2PHtmlFormatter(Formatter):
                     cssfilename = os.path.join(os.path.dirname(filename),
                                                self.cssfile)
                 except AttributeError:
-                    print >>sys.stderr, 'Note: Cannot determine output file name, ' \
-                          'using current directory as base for the CSS file name'
+                    print('Note: Cannot determine output file name, ' \
+                          'using current directory as base for the CSS file name', file=sys.stderr)
                     cssfilename = self.cssfile
             # write CSS file only if noclobber_cssfile isn't given as an option.
             try:
@@ -521,7 +521,7 @@ class I2PHtmlFormatter(Formatter):
                     cf.write(CSSFILE_TEMPLATE %
                             {'styledefs': self.get_style_defs('body')})
                     cf.close()
-            except IOError, err:
+            except IOError as err:
                 err.strerror = 'Error writing CSS file: ' + err.strerror
                 raise
 
@@ -540,7 +540,7 @@ class I2PHtmlFormatter(Formatter):
         yield 0, DOC_FOOTER
 
     def _wrap_tablelinenos(self, inner):
-        dummyoutfile = StringIO.StringIO()
+        dummyoutfile = io.StringIO()
         lncount = 0
         for t, line in inner:
             if t:
@@ -884,7 +884,7 @@ class TextSpecFormatter(Formatter):
             else:
                 outfile.write(value)
 
-        for ref in refs.values():
+        for ref in list(refs.values()):
             if enc:
                 outfile.write(ref.encode(enc))
             else:
