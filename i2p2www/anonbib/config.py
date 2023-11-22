@@ -1,5 +1,6 @@
 # Copyright 2003-2006, Nick Mathewson.  See LICENSE for licensing info.
 
+from __future__ import absolute_import
 import re
 
 _KEYS = [ "ALL_TAGS",
@@ -19,7 +20,7 @@ del _k
 
 def load(cfgFile):
     mod = {}
-    execfile(cfgFile, mod)
+    exec(compile(open(cfgFile, "rb").read(), cfgFile, 'exec'), mod)
     for _k in _KEYS:
         try:
             globals()[_k]=mod[_k]

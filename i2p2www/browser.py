@@ -1,3 +1,4 @@
+from __future__ import absolute_import
 from flask import redirect, render_template, request
 from i2p2www import CURRENT_I2P_VERSION, MIRRORS_FILE
 

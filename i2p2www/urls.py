@@ -1,3 +1,4 @@
+from __future__ import absolute_import
 from werkzeug.routing import BaseConverter
 
 from i2p2www import app

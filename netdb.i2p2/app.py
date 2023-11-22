@@ -1,9 +1,11 @@
+from __future__ import absolute_import
 from werkzeug import BaseRequest, BaseResponse, ETagResponseMixin, escape, run_simple, SharedDataMiddleware
 from werkzeug.exceptions import HTTPException
 import os
 import sha
 from time import time
 from random import choice
+from six.moves import range
 
 class Request(BaseRequest):
     """Useful subclass of the default request that knows how to build urls."""

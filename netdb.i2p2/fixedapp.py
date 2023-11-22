@@ -14,6 +14,8 @@
 
 
 # Modify as needed, or use a symlink.
+from __future__ import absolute_import
+from six.moves import range
 netdbdir = 'netdb'
 database = 'Driver=SQLite;DATABASE=I2PnetDb'
 
@@ -136,7 +138,7 @@ def application(environ, start_response):
                 new = []
                 if len(entries) > 150:
                     # select some randomly
-                    for i in xrange(100):
+                    for i in range(100):
                         while True:
                             sel = choice(entries)
                             if not sel.startswith('routerInfo-'):

@@ -1,3 +1,4 @@
+from __future__ import absolute_import
 from flask import g, make_response, render_template, request, safe_join
 import os.path
 

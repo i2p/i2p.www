@@ -1,3 +1,5 @@
+from __future__ import absolute_import
+from __future__ import print_function
 import codecs
 import datetime
 from docutils.core import publish_parts
@@ -54,7 +56,7 @@ def get_meetings_ids(num=0):
         # iterate over all files
         for f in v[2]:
             # ignore all non-.rst files
-            print("Meeting file found", f)
+            print(("Meeting file found", f))
             if not f.endswith('.rst'):
                 continue
             try:

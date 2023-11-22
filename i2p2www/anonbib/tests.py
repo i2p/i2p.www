@@ -3,8 +3,9 @@
 
 """Unit tests for anonbib."""
 
-import BibTeX
-import metaphone
+from __future__ import absolute_import
+from . import BibTeX
+from . import metaphone
 #import reconcile
 #import writeHTML
 #import updateCache

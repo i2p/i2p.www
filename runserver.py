@@ -1,4 +1,5 @@
 #!env/bin/python
+from __future__ import absolute_import
 from i2p2www import app
 import os
 

@@ -1,3 +1,4 @@
+from __future__ import absolute_import
 from flask import abort, redirect, render_template, request
 try:
     import json
@@ -166,13 +167,13 @@ def downloads_redirect(version, net, protocol, domain, file):
         }
 
     if not protocol:
-        protocol = mirrors.keys()[randint(0, len(mirrors) - 1)]
+        protocol = list(mirrors.keys())[randint(0, len(mirrors) - 1)]
     if not protocol in mirrors:
         abort(404)
     mirrors=mirrors[protocol]
 
     if not domain:
-        domain = mirrors.keys()[randint(0, len(mirrors) - 1)]
+        domain = list(mirrors.keys())[randint(0, len(mirrors) - 1)]
     if not domain in mirrors:
         abort(404)
     return render_template('downloads/redirect.html',

@@ -1,5 +1,7 @@
 # -*- coding: utf8 -*-
 
+from __future__ import absolute_import
+from __future__ import print_function
 import os
 import sys
 from jinja2 import nodes
@@ -9,6 +11,7 @@ from pygments import highlight
 from pygments.lexers import get_lexer_by_name, guess_lexer
 from pygments.formatters import HtmlFormatter
 from pygments.util import ClassNotFound
+import six
 
 try:
     import ctags
@@ -29,8 +32,8 @@ def we_are_frozen():
 def module_path():
     encoding = sys.getfilesystemencoding()
     if we_are_frozen():
-        return os.path.dirname(unicode(sys.executable, encoding))
-    return os.path.dirname(unicode(__file__, encoding))
+        return os.path.dirname(six.text_type(sys.executable, encoding))
+    return os.path.dirname(six.text_type(__file__, encoding))
 
 
 class HighlightExtension(Extension):

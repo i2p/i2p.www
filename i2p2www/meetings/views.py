@@ -1,3 +1,4 @@
+from __future__ import absolute_import
 import codecs
 from flask import abort, render_template, request, safe_join, send_from_directory
 import os.path

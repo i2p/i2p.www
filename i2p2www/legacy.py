@@ -1,3 +1,4 @@
+from __future__ import absolute_import
 from flask import g, redirect, url_for
 
 
@@ -197,7 +198,7 @@ LEGACY_RELEASES_MAP={
     '0.9.8':    (2013, 9, 30),
     '0.9.8.1':  (2013, 10, 2),
     '0.9.9':    (2013, 12, 7),
-    '0.9.10':   (2014, 01, 22),
+    '0.9.10':   (2014, 0o1, 22),
 }
 
 def legacy_show(f):
@@ -232,5 +233,6 @@ def legacy_release(version):
     else:
         return legacy_show('release-%s' % version)
 
-def legacy_blog(lang, (year, month, day), title):
+def legacy_blog(lang, xxx_todo_changeme, title):
+    (year, month, day) = xxx_todo_changeme
     return redirect(url_for('blog_post', lang=lang, slug=('%d/%02d/%02d/%s' % (year, month, day, title))), 301)

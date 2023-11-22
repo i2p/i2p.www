@@ -1,3 +1,4 @@
+from __future__ import absolute_import
 from flask import abort, g, redirect, render_template, request, url_for
 from werkzeug.contrib.atom import AtomFeed
 

@@ -1,3 +1,4 @@
+from __future__ import absolute_import
 from flask import abort, redirect, render_template, safe_join, send_from_directory, url_for
 import os.path
 

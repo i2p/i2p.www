@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+from __future__ import absolute_import
 from flask import Flask, request, g, redirect, url_for, abort, render_template, send_from_directory, safe_join
 try:
     from flaskext.babel import Babel
@@ -213,7 +214,7 @@ def detect_theme():
     theme = 'duck'
     if 'style' in request.cookies:
         theme = request.cookies['style']
-    if 'theme' in request.args.keys():
+    if 'theme' in list(request.args.keys()):
         theme = request.args['theme']
         # TEMPORARY: enable external themes
         # TODO: Remove this (and the corresponding lines in global/layout.html
@@ -263,5 +264,5 @@ def server_error(error):
     return render_template('global/error_500.html'), 500
 
 # Import these to ensure they get loaded
-import templatevars
-import urls
+from . import templatevars
+from . import urls

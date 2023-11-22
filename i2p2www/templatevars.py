@@ -1,7 +1,8 @@
+from __future__ import absolute_import
 import ctags
 from flask import g, request, safe_join, url_for
 import os.path
-from urlparse import urlsplit, urlunsplit
+from six.moves.urllib.parse import urlsplit, urlunsplit
 
 from i2p2www import (
     CANONICAL_DOMAIN,

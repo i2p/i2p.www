@@ -6,14 +6,19 @@
    Based on perl code by Eddie Kohler; heavily modified.
 """
 
+from __future__ import absolute_import
+from __future__ import print_function
 import cStringIO
 import re
 import sys
 import os
 
-import config
+from . import config
 
-import rank
+from . import rank
+from six.moves import map
+from six.moves import range
+from six.moves import zip
 
 __all__ = [ 'ParseError', 'BibTeX', 'BibTeXEntry', 'htmlize',
             'ParsedAuthor', 'FileIter', 'Parser', 'parseFile',
@@ -66,7 +71,7 @@ class BibTeX:
         """Add a BibTeX entry to this file."""
         k = ent.key
         if self.byKey.get(ent.key.lower()):
-            print >> sys.stderr, "Already have an entry named %s"%k
+            print("Already have an entry named %s"%k, file=sys.stderr)
             return
         self.entries.append(ent)
         self.byKey[ent.key.lower()] = ent
@@ -79,7 +84,7 @@ class BibTeX:
                 try:
                     cr = self.byKey[ent['crossref'].lower()]
                 except KeyError:
-                    print "No such crossref: %s"% ent['crossref']
+                    print("No such crossref: %s"% ent['crossref'])
                     break
                 if seen.get(cr.key):
                     raise ParseError("Circular crossref at %s" % ent.key)
@@ -87,12 +92,12 @@ class BibTeX:
                 del ent.entries['crossref']
 
                 if cr.entryLine < ent.entryLine:
-                    print "Warning: crossref %s used after declaration"%cr.key
+                    print("Warning: crossref %s used after declaration"%cr.key)
 
                 for k in cr.entries.keys():
-                    if ent.entries.has_key(k):
-                        print "ERROR: %s defined both in %s and in %s"%(
-                            k,ent.key,cr.key)
+                    if k in ent.entries:
+                        print("ERROR: %s defined both in %s and in %s"%(
+                            k,ent.key,cr.key))
                     else:
                         ent.entries[k] = cr.entries[k]
 
@@ -105,7 +110,7 @@ class BibTeX:
             rk = "title"
 
         for ent in self.entries:
-            if ent.type in config.OMIT_ENTRIES or not ent.has_key(rk):
+            if ent.type in config.OMIT_ENTRIES or rk not in ent:
                 ent.check()
                 del self.byKey[ent.key.lower()]
             else:
@@ -130,7 +135,7 @@ def buildAuthorTable(entries):
 
     for e in entries:
         for author in e.parsedAuthor:
-            if result.has_key(author):
+            if author in result:
                 continue
 
             c = author
@@ -143,14 +148,14 @@ def buildAuthorTable(entries):
     if 0:
         for a,c in result.items():
             if a != c:
-                print "Collapsing authors: %s => %s" % (a,c)
+                print("Collapsing authors: %s => %s" % (a,c))
     if 0:
-        print parseAuthor("Franz Kaashoek")[0].collapsesTo(
-            parseAuthor("M. Franz Kaashoek")[0])
-        print parseAuthor("Paul F. Syverson")[0].collapsesTo(
-            parseAuthor("Paul Syverson")[0])
-        print parseAuthor("Paul Syverson")[0].collapsesTo(
-            parseAuthor("Paul F. Syverson")[0])
+        print(parseAuthor("Franz Kaashoek")[0].collapsesTo(
+            parseAuthor("M. Franz Kaashoek")[0]))
+        print(parseAuthor("Paul F. Syverson")[0].collapsesTo(
+            parseAuthor("Paul Syverson")[0]))
+        print(parseAuthor("Paul Syverson")[0].collapsesTo(
+            parseAuthor("Paul F. Syverson")[0]))
 
     return result
 
@@ -221,7 +226,7 @@ def splitEntriesByAuthor(entries):
 
             htmlResult[sortkey] = secname
             result.setdefault(sortkey, []).append(ent)
-    sortnames = result.keys()
+    sortnames = list(result.keys())
     sortnames.sort()
     sections = [ (htmlResult[n], result[n]) for n in sortnames ]
     return sections, url_map
@@ -255,13 +260,13 @@ def sortEntriesByDate(entries):
                     monthname = match.group(1)
             mon = MONTHS.index(monthname)
         except ValueError:
-            print "Unknown month %r in %s"%(ent.get("month"), ent.key)
+            print("Unknown month %r in %s"%(ent.get("month"), ent.key))
             mon = 0
 
         try:
             date = int(ent['year'])*13 + mon
         except KeyError:
-            print "ERROR: No year field in %s"%ent.key
+            print("ERROR: No year field in %s"%ent.key)
             date = 10000*13
         except ValueError:
             date = 10000*13
@@ -286,7 +291,7 @@ class BibTeXEntry:
     def get(self, k, v=None):
         return self.entries.get(k,v)
     def has_key(self, k):
-        return self.entries.has_key(k)
+        return k in self.entries
     def __getitem__(self, k):
         return self.entries[k]
     def __setitem__(self, k, v):
@@ -318,7 +323,7 @@ class BibTeXEntry:
         else:
             df = DISPLAYED_FIELDS
         for f in df:
-            if not self.entries.has_key(f):
+            if f not in self.entries:
                 continue
             v = self.entries[f]
             if v.startswith("<span class='bad'>"):
@@ -330,7 +335,7 @@ class BibTeXEntry:
                 d.append("%%%%% "+("ERROR: Non-ASCII characters: '%r'\n"%np))
             d.append("  ")
             v = v.replace("&", "&amp;")
-            if invStrings.has_key(v):
+            if v in invStrings:
                 s = "%s = %s,\n" %(f, invStrings[v])
             else:
                 s = "%s = {%s},\n" % (f, v)
@@ -359,7 +364,7 @@ class BibTeXEntry:
            none."""
         errs = self._check()
         for e in errs:
-            print e
+            print(e)
         return not errs
 
     def _check(self):
@@ -396,7 +401,7 @@ class BibTeXEntry:
                    not self['booktitle'].startswith("{Proceedings of"):
                     errs.append("ERROR: %s's booktitle (%r) doesn't start with 'Proceedings of'" % (self.key, self['booktitle']))
 
-        if self.has_key("pages") and not re.search(r'\d+--\d+', self['pages']):
+        if "pages" in self and not re.search(r'\d+--\d+', self['pages']):
             errs.append("ERROR: Misformed pages in %s"%self.key)
 
         if self.type == 'proceedings':
@@ -551,8 +556,8 @@ class BibTeXEntry:
             cache_section = self.get('www_cache_section', ".")
             if cache_section not in config.CACHE_SECTIONS:
                 if cache_section != ".":
-                    print >>sys.stderr, "Unrecognized cache section %s"%(
-                        cache_section)
+                    print("Unrecognized cache section %s"%(
+                        cache_section), file=sys.stderr)
                     cache_section="."
 
             for key, name, ext in (('www_abstract_url', 'abstract','abstract'),
@@ -766,13 +771,13 @@ class ParsedAuthor:
                 short = o.first; long = self.first
 
             initials_s = "".join([n[0] for n in short])
-            initials_l = "".join([n[0] for n in long])
+            initials_l = "".join([n[0] for n in int])
             idx = initials_l.find(initials_s)
             if idx < 0:
                 return self
-            n = long[:idx]
+            n = int[:idx]
             for i in range(idx, idx+len(short)):
-                a = long[i]; b = short[i-idx]
+                a = int[i]; b = short[i-idx]
                 if a == b:
                     n.append(a)
                 elif len(a) == 2 and a[1] == '.' and a[0] == b[0]:
@@ -781,7 +786,7 @@ class ParsedAuthor:
                     n.append(a)
                 else:
                     return self
-            n += long[idx+len(short):]
+            n += int[idx+len(short):]
 
             if n == self.first:
                 return self
@@ -842,7 +847,7 @@ def _split(s,w=79,indent=8):
     first = 1
     indentation = ""
     while len(s) > w:
-        for i in xrange(w-1, 20, -1):
+        for i in range(w-1, 20, -1):
             if s[i] == ' ':
                 r.append(indentation+s[:i])
                 s = s[i+1:]
@@ -866,7 +871,7 @@ class FileIter:
         if string:
             file = cStringIO.StringIO(string)
         if file:
-            it = iter(file.xreadlines())
+            it = iter(file)
         self.iter = it
         assert self.iter
         self.lineno = 0
@@ -880,7 +885,7 @@ def parseAuthor(s):
     try:
         return _parseAuthor(s)
     except:
-        print >>sys.stderr, "Internal error while parsing author %r"%s
+        print("Internal error while parsing author %r"%s, file=sys.stderr)
         raise
 
 def _parseAuthor(s):
@@ -891,7 +896,7 @@ def _parseAuthor(s):
     while s:
         s = s.strip()
         bracelevel = 0
-        for i in xrange(len(s)):
+        for i in range(len(s)):
             if s[i] == '{':
                 bracelevel += 1
             elif s[i] == '}':
@@ -947,8 +952,8 @@ def _parseAuthor(s):
 
     return parsedAuthors
 
-ALLCHARS = "".join(map(chr,range(256)))
-PRINTINGCHARS = "\t\n\r"+"".join(map(chr,range(32, 127)))
+ALLCHARS = "".join(map(chr,list(range(256))))
+PRINTINGCHARS = "\t\n\r"+"".join(map(chr,list(range(32, 127))))
 LC_CHARS = "abcdefghijklmnopqrstuvwxyz"
 SV_DELCHARS = ("ABCDEFGHIJKLMNOPQRSTUVWXYZ"
                "abcdefghijklmnopqrstuvwxyz"
@@ -1049,7 +1054,7 @@ class Parser:
                         continue
                     data.append(line)
                     data.append(" ")
-                    line = it.next()
+                    line = next(it)
                 self.litStringLine = 0
             elif line[0] == '{':
                 bracelevel += 1
@@ -1076,13 +1081,13 @@ class Parser:
                         #print bracelevel, "C", repr(line)
                         data.append(line)
                         data.append(" ")
-                        line = it.next()
+                        line = next(it)
             elif line[0] == '#':
-                print >>sys.stderr, "Weird concat on line %s"%it.lineno
+                print("Weird concat on line %s"%it.lineno, file=sys.stderr)
             elif line[0] in "},":
                 if not data:
-                    print >>sys.stderr, "No data after field on line %s"%(
-                        it.lineno)
+                    print("No data after field on line %s"%(
+                        it.lineno), file=sys.stderr)
             else:
                 m = RAW_DATA_RE.match(line)
                 if m:
@@ -1170,7 +1175,7 @@ class Parser:
         else:
             key = v[0]
             d = {}
-            for i in xrange(1,len(v),2):
+            for i in range(1,len(v),2):
                 d[v[i].lower()] = v[i+1]
             ent = BibTeXEntry(self.curEntType, key, d)
             ent.entryLine = self.entryLine
@@ -1197,11 +1202,11 @@ class Parser:
 
     def _parse(self):
         it = self.fileiter
-        line = it.next()
+        line = next(it)
         while 1:
             # Skip blank lines.
             while not line or line.isspace() or OUTER_COMMENT_RE.match(line):
-                line = it.next()
+                line = next(it)
             # Get the first line of an entry.
             m = ENTRY_BEGIN_RE.match(line)
             if m:
@@ -1215,7 +1220,7 @@ class Parser:
 
 def _advance(it,line):
     while not line or line.isspace() or COMMENT_RE.match(line):
-        line = it.next()
+        line = next(it)
     return line
 
 # Matches a comment line outside of an entry.
@@ -1265,5 +1270,5 @@ if __name__ == '__main__':
 
     for e in r.entries:
         if e.type in ("proceedings", "journal"): continue
-        print e.to_html()
+        print(e.to_html())
 

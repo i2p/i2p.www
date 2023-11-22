@@ -1,3 +1,4 @@
+from __future__ import absolute_import
 import codecs
 import datetime
 from docutils.core import publish_parts

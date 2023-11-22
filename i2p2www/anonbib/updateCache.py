@@ -4,19 +4,21 @@
 """Download files in bibliography into a local cache.
 """
 
+from __future__ import absolute_import
+from __future__ import print_function
 import os
 import sys
 import signal
 import time
 import gzip
 
-import BibTeX
-import config
-import urllib2
+from . import BibTeX
+from . import config
+import six.moves.urllib.request, six.moves.urllib.error, six.moves.urllib.parse
 import getopt
 import socket
 import errno
-import httplib
+import six.moves.http_client
 
 FILE_TYPES = [ "txt", "html", "pdf", "ps", "ps.gz", "abstract" ]
 BIN_FILE_TYPES = [ 'pdf', 'ps.gz' ]
@@ -53,12 +55,12 @@ def downloadFile(key, ftype, section, url,timeout=None):
     signal.alarm(timeout)
     try:
         try:
-            infile = urllib2.urlopen(url)
-        except httplib.InvalidURL, e:
+            infile = six.moves.urllib.request.urlopen(url)
+        except six.moves.http_client.InvalidURL as e:
             raise UIError("Invalid URL %s: %s"%(url,e))
-        except IOError, e:
+        except IOError as e:
             raise UIError("Cannot connect to url %s: %s"%(url,e))
-        except socket.error, e:
+        except socket.error as e:
             if getattr(e,"errno",-1) == errno.EINTR:
                 raise UIError("Connection timed out to url %s"%url)
             else:
@@ -80,9 +82,9 @@ def downloadFile(key, ftype, section, url,timeout=None):
         outfile.close()
 
     urlfile = open(fnameURL, 'w')
-    print >>urlfile, time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
+    print(time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()), file=urlfile)
     if "\n" in url: url = url.replace("\n", " ")
-    print >>urlfile, url
+    print(url, file=urlfile)
     urlfile.close()
 
     os.rename(fnameTmp, fname)
@@ -105,7 +107,7 @@ def getCachedURL(key, ftype, section):
     lines = f.readlines()
     f.close()
     if len(lines) != 2:
-        print >>sys.stderr, "ERROR: unexpected number of lines in", urlFname
+        print("ERROR: unexpected number of lines in", urlFname, file=sys.stderr)
     return lines[1].strip()
 
 def downloadAll(bibtex, missingOnly=0):
@@ -119,29 +121,29 @@ def downloadAll(bibtex, missingOnly=0):
             if missingOnly:
                 cachedURL = getCachedURL(key, ftype, section)
                 if cachedURL == url:
-                    print >>sys.stderr,"Skipping",url
+                    print("Skipping",url, file=sys.stderr)
                     continue
                 elif cachedURL is not None:
-                    print >>sys.stderr,"URL for %s.%s has changed"%(key,ftype)
+                    print("URL for %s.%s has changed"%(key,ftype), file=sys.stderr)
                 else:
-                    print >>sys.stderr,"I have no copy of %s.%s"%(key,ftype)
+                    print("I have no copy of %s.%s"%(key,ftype), file=sys.stderr)
             try:
                 downloadFile(key, ftype, section, url)
-                print "Downloaded",url
-            except UIError, e:
-                print >>sys.stderr, str(e)
+                print("Downloaded",url)
+            except UIError as e:
+                print(str(e), file=sys.stderr)
                 errors.append((key,ftype,url,str(e)))
-            except (IOError, socket.error), e:
+            except (IOError, socket.error) as e:
                 msg = "Error downloading %s: %s"%(url,str(e))
-                print >>sys.stderr, msg
+                print(msg, file=sys.stderr)
                 errors.append((key,ftype,url,msg))
-        if urls.has_key("ps") and not urls.has_key("ps.gz"):
+        if "ps" in urls and "ps.gz" not in urls:
             # Say, this is something we'd like to have gzipped locally.
             psFname = getCacheFname(key, "ps", section)
             psGzFname = getCacheFname(key, "ps.gz", section)
             if os.path.exists(psFname) and not os.path.exists(psGzFname):
                 # This is something we haven't gzipped yet.
-                print "Compressing a copy of",psFname
+                print("Compressing a copy of",psFname)
                 outf = gzip.GzipFile(psGzFname, "wb")
                 inf = open(psFname, "rb")
                 while 1:
@@ -156,9 +158,9 @@ def downloadAll(bibtex, missingOnly=0):
 
 if __name__ == '__main__':
     if len(sys.argv) == 2:
-        print "Loading from %s"%sys.argv[1]
+        print("Loading from %s"%sys.argv[1])
     else:
-        print >>sys.stderr, "Expected a single configuration file as an argument"
+        print("Expected a single configuration file as an argument", file=sys.stderr)
         sys.exit(1)
     config.load(sys.argv[1])
 

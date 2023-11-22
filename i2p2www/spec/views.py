@@ -1,3 +1,4 @@
+from __future__ import absolute_import
 import codecs
 from collections import defaultdict
 from docutils import io
@@ -23,6 +24,7 @@ import os.path
 
 from i2p2www import PROPOSAL_DIR, SPEC_DIR
 from i2p2www import helpers
+from six.moves import range
 
 
 SPEC_METATAGS = {

@@ -1,3 +1,4 @@
+from __future__ import absolute_import
 from flask import render_template
 
 from i2p2www import ANONBIB_CFG, ANONBIB_FILE
