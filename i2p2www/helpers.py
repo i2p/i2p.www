@@ -1,6 +1,6 @@
 from __future__ import absolute_import
 from math import ceil
-from werkzeug import import_string, cached_property
+from werkzeug.utils import cached_property, import_string
 from six.moves import range
 
 ########################

@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import
-from flask import Flask, request, g, redirect, url_for, abort, render_template, send_from_directory, safe_join
+from flask import Flask, request, g, redirect, url_for, abort, render_template, send_from_directory
+from werkzeug.utils import safe_join
 try:
     from flaskext.babel import Babel
 except ImportError:
@@ -141,7 +142,7 @@ cache = Cache(app, config=CACHE_CONFIG)
 #################
 # Babel selectors
 
-@babel.localeselector
+#@babel.localeselector
 def get_locale():
     # If viewing specs, require English
     if request.path.startswith('/spec'):
@@ -153,7 +154,7 @@ def get_locale():
     # header the browser transmits. The best match wins.
     return request.accept_languages.best_match(SUPPORTED_LANGS)
 
-@babel.domainselector
+#@babel.domainselector
 def get_domains():
     domains = []
     frags = request.path.split('/', 2)
@@ -168,6 +169,7 @@ def get_domains():
     domains.append(DEFAULT_GETTEXT_DOMAIN)
     return domains
 
+babel.init_app(app, locale_selector=get_locale, default_domain=get_domains)
 
 ##########################
 # Hooks - helper functions

@@ -1,6 +1,7 @@
 from __future__ import absolute_import
 import ctags
-from flask import g, request, safe_join, url_for
+from flask import g, request, url_for
+from werkzeug.utils import safe_join
 import os.path
 from six.moves.urllib.parse import urlsplit, urlunsplit
 
