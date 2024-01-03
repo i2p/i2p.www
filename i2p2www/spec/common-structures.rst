@@ -3,8 +3,8 @@ Common structures Specification
 ===============================
 .. meta::
     :category: Design
-    :lastupdated: 2023-01
-    :accuratefor: 0.9.57
+    :lastupdated: 2024-01
+    :accuratefor: 0.9.61
 
 .. contents::
 
@@ -623,11 +623,10 @@ A PublicKey_ followed by a SigningPublicKey_ and then a Certificate_.
 
   padding :: random data
              length -> 0 bytes or as specified in key certificate
-             padding length + signing_key length == 128 bytes
+             public_key length + padding length + signing_key length == 384 bytes
 
   signing__key :: `SigningPublicKey` (partial or full)
                   length -> 128 bytes or as specified in key certificate
-                  padding length + signing_key length == 128 bytes
 
   certificate :: `Certificate`
                  length -> >= 3 bytes
