@@ -3,8 +3,8 @@ SSU2
 ======
 .. meta::
     :category: Transports
-    :lastupdated: 2023-01
-    :accuratefor: 0.9.57
+    :lastupdated: 2024-01
+    :accuratefor: 0.9.61
 
 .. contents::
 
@@ -40,7 +40,7 @@ Connection Migration            0.9.55+ dev            0.9.56  2022-11
 Immediate ACK flag              0.9.55+ dev            0.9.56  2022-11
 Key Rotation                    0.9.57  2023-02        0.9.58  2023-05
 Disable SSU 1 (i2pd)            0.9.56  2022-11
-Disable SSU 1 (Java I2P)        0.9.58  2023-05        0.9.59  2023-08
+Disable SSU 1 (Java I2P)        0.9.58  2023-05        0.9.61  2023-12
 ==========================      =====================  ====================
 
 Basic Session includes the handshake and data phase.
