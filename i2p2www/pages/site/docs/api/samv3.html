@@ -1,7 +1,7 @@
 {% extends "global/layout.html" %}
 {% block title %}SAM V3{% endblock %}
-{% block lastupdated %}2023-11{% endblock %}
-{% block accuratefor %}API 0.9.59{% endblock %}
+{% block lastupdated %}2024-01{% endblock %}
+{% block accuratefor %}API 0.9.61{% endblock %}
 {% block content %}
 <p>SAM is a simple client protocol for interacting with I2P.
 SAM is the recommended protocol for non-Java applications to connect to the I2P network,
@@ -252,7 +252,7 @@ To implement a basic TCP-only, peer-to-peer application, the client must support
 <li> HELLO VERSION MIN=3.1 MAX=3.1 <br> Needed for all of the remaining ones
 <li> DEST GENERATE SIGNATURE_TYPE=7 <br> To generate our private key and destination
 <li> NAMING LOOKUP NAME=... <br> To convert .i2p addresses to destinations
-<li> SESSION CREATE STYLE=STREAM ID=... DESTINATION=... <br> Needed for STREAM CONNECT and STREAM ACCEPT
+<li> SESSION CREATE STYLE=STREAM ID=... DESTINATION=... i2cp.leaseSetEncType=4,0<br> Needed for STREAM CONNECT and STREAM ACCEPT
 <li> STREAM CONNECT ID=... DESTINATION=... <br> To make outgoing connections
 <li> STREAM ACCEPT ID=... <br> To accept incoming connections
 </ul>
@@ -260,6 +260,7 @@ To implement a basic TCP-only, peer-to-peer application, the client must support
 
 
 <h2>General Guidance for Developers</h2>
+<h3>Application Design</h3>
 <p>
 SAM sessions (or inside I2P, tunnel pools or sets of tunnels) are designed to be long-lived.
 Most applications will only need one session, created at startup and closed on exit.
@@ -273,7 +274,9 @@ Also, please ensure your application settings
 will result in your users contributing more resources to the network than they consume.
 I2P is a peer-to-peer network, and the network cannot survive if a popular application
 drives the network into permanent congestion.
-</p><p>
+</p>
+<h3>Compatibility and Testing</h3>
+<p>
 The Java I2P and i2pd router implementations are independent and have minor differences
 in behavior, feature support, and defaults.
 Please test your application with the latest version of both routers.
@@ -294,8 +297,20 @@ See below.
 For more guidance to developers on ensuring your application uses only the resources it needs, please see
 <a href="{{ site_url('docs/applications/embedding') }}">our guide to bundling I2P with your application</a>.
 </p>
-
-
+<h3>Signature and Encryption Types</h3>
+<p>
+I2P supports multiple signature and encryption types.
+For backward compatibility, SAM defaults to old and inefficient types, so all clients should
+specify newer types.
+</p><p>
+The signature type is specified in the DEST GENERATE and SESSION CREATE (for transient) commands.
+All clients should set SIGNATURE_TYPE=7 (Ed25519).
+</p><p>
+The encryption type is specified in the SESSION CREATE command.
+Multiple encryption types are allowed.
+Clients should set either i2cp.leaseSetEncType=4 (for ECIES-X25519 only)
+or i2cp.leaseSetEncType=4,0 (for ECIES-X25519 and ElGamal, if compatibility is required).
+</p>
 
 
 <h2>Version 3 Changes</h2>
