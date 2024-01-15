@@ -3,8 +3,8 @@ I2CP Specification
 ==================
 .. meta::
     :category: Protocols
-    :lastupdated: 2023-10
-    :accuratefor: 0.9.59
+    :lastupdated: 2024-01
+    :accuratefor: 0.9.62
 
 .. contents::
 
@@ -235,6 +235,8 @@ below.
 ==============  ======================
    Version      Required I2CP Features
 ==============  ======================
+   0.9.62       MessageStatus message Loopback error code
+
    0.9.43       BlindingInfo message supported
 
                 Additional HostReply message failure codes
@@ -1092,6 +1094,11 @@ Status Code  As Of Release           Name           Description
                                                     and cannot be sent to. The client should request the meta
                                                     lease set's contents with a HostLookupMessage, and select
                                                     one of the hashes contained within to look up and send to.
+
+                                                    This is a guaranteed failure.
+
+    23          0.9.62      Loopback Denied         The message was attempted to be sent from and to
+                                                    the same destination or session.
 
                                                     This is a guaranteed failure.
 
