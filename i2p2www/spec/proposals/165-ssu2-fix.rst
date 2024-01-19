@@ -1,7 +1,6 @@
 ===========================
 I2P proposal #165: SSU2 fix
 ===========================
-
 .. meta::
     :author: weko, orignal, the Anonymous, zzz
     :created: 2024-01-19
@@ -9,6 +8,10 @@ I2P proposal #165: SSU2 fix
     :lastupdated: 2024-01-19
     :status: Open
     :target: 0.9.62
+
+.. contents::
+
+
 
 Proposal by weko, orignal, the Anonymous and zzz.
 
