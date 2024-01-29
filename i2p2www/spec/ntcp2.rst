@@ -3,8 +3,8 @@ NTCP 2
 ======
 .. meta::
     :category: Transports
-    :lastupdated: 2022-12
-    :accuratefor: 0.9.56
+    :lastupdated: 2024-01
+    :accuratefor: 0.9.61
 
 .. contents::
 
@@ -1382,6 +1382,14 @@ Raw contents
   Maximum ChaChaPoly frame is 65535 bytes.
 
 {% endhighlight %}
+
+Notes
+`````
+- As the receiver must get the entire frame to check the MAC,
+  it is recommended that the sender limit frames to a few KB
+  rather than maximizing the frame size.
+  This will minimize latency at the receiver.
+
 
 
 Unencrypted data
