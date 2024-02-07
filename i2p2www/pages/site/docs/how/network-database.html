@@ -529,8 +529,33 @@ Routing keys are never sent on-the-wire in any I2NP message, they are only used 
 determination of distance.
 {%- endtrans %}</p>
 
-
-
+<h2 id="segmentation">{% trans %}Network Database Segmentation - Sub-Databases{% endtrans %}</h2>
+<p>{% trans -%}Traditionally Kademlia-style DHT's are not concerned with preserving the unlinkability of information stored on any particular node in the DHT.
+For example, a piece of information may be stored to one node in the DHT, then requested back from that node unconditionally.
+Within I2P and using the netDb, this is not the case, information stored in the DHT may only be shared under certain known circumstances where it is "safe" to do so.
+This is to prevent a class of attacks where a malicious actor can try to associate a client tunnel with a router by sending a store to a client tunnel, then requesting it back directly from the suspected "Host" of the client tunnel.
+{%- endtrans %}</p>
+<h3>{% trans %}Segmentation Structure{% endtrans %}</h3>
+<p>{% trans -%}I2P routers can implement effective defenses against the attack class provided a few conditions are met.
+A network database implementation should be able to keep track of whether a database entry was recieved down a client tunnel or directly.
+If it was recieved down a client tunnel, then it should also keep track of which client tunnel it was recieved through, using the client's local destination.
+If the entry was recieved down multiple client tunnels, then the netDb should keep track of all destinations where the entry was observed.
+It should also keep track of whether an entry was recieved as a reply to a lookup, or as a store.
+{%- endtrans %}</p>
+<p>{% trans -%}In both the Java and C++ implementations, this achieved by using a single "Main" netDb for direct lookups and floodfill operations first.
+This main netDb exists in the router context.
+Then, each client is given it's own version of the netDb, which is used to capture database entries sent to client tunnels and respond to lookups sent down client tunnels.
+We call these "Client Network Databases" or "Sub-Databases" and they exist in the client context.
+The netDb operated by the client exists for the lifetime of the client only and contains only entries that are communicated with the client's tunnels.
+This makes it impossible for entries sent down client tunnels to overlap with entries sent directly to the router.
+{%- endtrans %}</p>
+<p>{% trans -%}Additionally, each netDb needs to be able to remember if a database entry was recieved because it was sent to one of our destinations, or because it was requested by us as part of a lookup.
+If a database entry it was recieved as a store, as in some other router sent it to us, then a netDb should respond to requests for the entry when another router looks up the key.
+However, if it was recieved as a reply to a query, then the netDb should only reply to a query for the entry if the entry had already been stored to the same destination.
+A client should never answer queries with an entry from the main netDb, only it's own client network database.
+{%- endtrans %}</p>
+<p>{% trans -%}These strategies should be taken and used combined so that both are applied.
+{%- endtrans %%}</p>
 <h2 id="delivery">{% trans %}Storage, Verification, and Lookup Mechanics{% endtrans %}</h2>
 
 <h3>{% trans %}RouterInfo Storage to Peers{% endtrans %}</h3>
