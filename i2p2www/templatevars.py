@@ -25,7 +25,7 @@ I2P_TO_CLEAR = {
     'mail.i2p': 'i2pmail.org',
     'lists.i2p': 'lists.i2p.email',
     'i2p-javadocs.i2p': 'docs.i2p-projekt.de/javadoc', # Hacky to include the path, but it works!
-    'idk.i2p/javadoc': 'docs.i2p-projekt.de/javadoc', # Hacky to include the path, but it works!
+    'idk.i2p/javadoc-i2p': 'docs.i2p-projekt.de/javadoc', # Hacky to include the path, but it works!
     "idk.i2p": "eyedeekay.github.io",
     'stats.i2p': 'stats.i2p', # Inproxy disabled at request of site owner
     'zzz.i2p': 'zzz.i2p',     # Inproxy disabled at request of site owner
@@ -139,7 +139,8 @@ def utility_processor():
 
     # Convert an I2P url to an equivalent clearnet one
     def convert_url_to_clearnet(value):
-        if not value.endswith('.i2p'):
+        parts = value.split("/")
+        if not parts[0].endswith('.i2p'):
             # The url being passed in isn't an I2P url, so just return it
             return value
         if request.headers.get('X-I2P-Desthash') and not request.headers.get('X-Forwarded-Server'):
