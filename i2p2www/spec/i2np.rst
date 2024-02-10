@@ -3,8 +3,8 @@ I2NP Specification
 ==================
 .. meta::
     :category: Protocols
-    :lastupdated: 2023-10
-    :accuratefor: 0.9.59
+    :lastupdated: 2024-02
+    :accuratefor: 0.9.62
 
 .. contents::
 
@@ -45,6 +45,8 @@ below.
 ==============  ================================================================
  API Version    Required I2NP Features
 ==============  ================================================================
+   0.9.58       Minimum peers will build tunnels through, as of 0.9.62
+
    0.9.55       SSU2 transport support (if published in router info)
 
    0.9.51       Short tunnel build messages for ECIES-X25519 routers
