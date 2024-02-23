@@ -3,7 +3,7 @@ SSU2
 ======
 .. meta::
     :category: Transports
-    :lastupdated: 2024-01
+    :lastupdated: 2024-02
     :accuratefor: 0.9.61
 
 .. contents::
@@ -4768,9 +4768,9 @@ Message Contents
 The Data messages should contain the following blocks.
 Order is not specified except that Padding must be last:
 
-- Path Validation or Path Response block.
-  Path Validation contains opaque data, recommended 8 bytes minimum.
-  Path Response contains the data from the Path Validation.
+- Path Challenge or Path Response block.
+  Path Challenge contains opaque data, recommended 8 bytes minimum.
+  Path Response contains the data from the Path Challenge.
 - Address block containing the recipient's apparent IP
 - DateTime block
 - ACK block
@@ -4779,7 +4779,7 @@ Order is not specified except that Padding must be last:
 It is not recommended to include any other blocks
 (for example, I2NP) in the message.
 
-It is allowed to include a Path Validation block in the message
+It is allowed to include a Path Challenge block in the message
 containing the Path Response, to initiate a validation
 in the other direction.
 
@@ -4917,8 +4917,8 @@ the other peer should initiate a path challenge in the other direction.
 
 Use as Ping/Pong
 -----------------
-Path Validation and Path Response blocks may be used at any time as Ping/Pong packets.
-Reception of a Path Validation block does not change any state at the receiver,
+Path Challenge and Path Response blocks may be used at any time as Ping/Pong packets.
+Reception of a Path Challenge block does not change any state at the receiver,
 unless received from a different IP/port.
 
 
