@@ -53,6 +53,7 @@ It also "remembers" how that communication occurred.
 {%- endtrans %}
 
 {% trans -%}
+For a moment, we should imagine ourselves as an attacker.
 Imagine if you were trying to discover the identity of a master of disguise.
 You know for sure you have seen his real face, and you know for sure that you regularly communicate with one of his disguises.
 How would you go about establishing that the disguise identity and the real identity belong to the same person?
