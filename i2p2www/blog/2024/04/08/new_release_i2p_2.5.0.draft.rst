@@ -75,6 +75,19 @@ __ http://{{ i2pconv('git.idk.i2p') }}/i2p-hackers/i2p.i2p/-/issues?scope=all&st
 **{% trans %}SHA256 Checksums:{% endtrans %}**
 
 ::
-
-      TODO: after release
+      
+    i2pinstall_2.5.0-0.jar - 61d3720accc6935f255611680b08ba1a414d32daa00d052017630c2424c30069
+    i2pinstall_2.5.0-0_windows.exe - a0d84c519f3c35874a9f661b9f40220e5a1d29716166c682e2bd1ee15ff83f33
+    i2pinstall_2.5.0.jar - 61d3720accc6935f255611680b08ba1a414d32daa00d052017630c2424c30069
+    i2pinstall_2.5.0.jar.sig - c8a6d79909d06ac6bca23d8e890765c6e6ed21a535f7529e0708797fdaf9fc1b
+    i2pinstall_2.5.0_windows.exe - 762b9d672dfff0baccd46f970deb5a2621358d1e2dfc0dd85a78aecda3623ac6
+    i2pinstall_2.5.0_windows.exe.sig - 103a1bd155110514fe9ae075243cc66e2fef866353165b2c806248e15925e957
+    i2psource_2.5.0.tar.bz2 - 6bda9aff7daa468cbf6ddf141c670140de4d1db145329645a90c22c1e5c7bc01
+    i2psource_2.5.0.tar.bz2.sig - a1d0ea6f2051ed0643bc2c0207a2cf594f2b2bc4303ac49cd6a43baaf0558f62
+    i2pupdate-2.5.0.su3 - 7bcfc3df3a14a0b9313b9a0fe20e56db75267d5afcfd8a3203fbfcfac46deae4
+    i2pupdate-2.5.0.su3.torrent - a7dd76348bf404d84a67bda8b009d54cc08748c036988dbe78bff6ca6928950c
+    i2pupdate.su3 - 7bcfc3df3a14a0b9313b9a0fe20e56db75267d5afcfd8a3203fbfcfac46deae4
+    i2pupdate.zip - d0a4cfe6cb587e0ffabcfb6012682f400a38ee87f23fa90f8a18f25e77b742d8
+    i2pupdate_2.5.0.zip - d0a4cfe6cb587e0ffabcfb6012682f400a38ee87f23fa90f8a18f25e77b742d8
+    i2pupdate_2.5.0.zip.sig - 411eb4ca31e2984dae4c943136411e8ee85435f59749391edefec07509cfd5af 
 
