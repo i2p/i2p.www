@@ -35,7 +35,7 @@ An attacker runs an I2P router and queries the NetDB for the target RouterInfo a
 It then crafts a new LeaseSet which is unique and and potentially even fake, and sends it down a tunnel to the LeaseSet for the client it is targeting for attack.
 The client processes the crafted LeaseSet and adds it to its own NetDB.
 The attacker then requests the crafted LeaseSet back directly, from the router, using the RouterInfo it got from the NetDB.
-If the crafted LeaseSet is recieved back as a reply, then the attacker can conclude that the target client and the target router share a common view of the NetDB.
+If the crafted LeaseSet is received back as a reply, then the attacker can conclude that the target client and the target router share a common view of the NetDB.
 {%- endtrans %}
 
 {% trans -%}
@@ -69,9 +69,9 @@ It needs to be able to "remember" several important pieces of information about 
 It must be able to recall:
 {%- endtrans %}
 
-* {% trans -%}Whether a NetDB Entry was recieved directly, or recieved down a client tunnel{%- endtrans %}
+* {% trans -%}Whether a NetDB Entry was received directly, or received down a client tunnel{%- endtrans %}
 * {% trans -%}Whether a NetDB Entry was sent by a peer in response to our lookup, or sent unsolicited{%- endtrans %}
-* {% trans -%}Which NetDB Entry was recieved down Which client Tunnel{%- endtrans %}
+* {% trans -%}Which NetDB Entry was received down Which client Tunnel{%- endtrans %}
 * {% trans -%}Multiple versions of the same entry for different client tunnels{%- endtrans %}
 
 {% trans -%}
