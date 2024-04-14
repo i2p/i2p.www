@@ -126,7 +126,6 @@ Add Datagram2 to [DATAGRAMS]_ as follows:
 
 .. raw:: html
 
-  {% highlight %}
   {% highlight lang='dataspec' -%}
 +----+----+----+----+----+----+----+----+
   |                                       |
@@ -244,11 +243,10 @@ Four bytes for the hash prefix should be sufficient?
 Notes
 =====
 
-* The practical length is limited by lower layers of protocols - the transports
+- The practical length is limited by lower layers of protocols - the transports
   [TRANSPORT]_ currently limit messages to about 64 KB, so the data length here
   is limited to about 63 KB.
-
-* See important notes about the reliability of large datagrams [API]_. For
+- See important notes about the reliability of large datagrams [API]_. For
   best results, limit the payload to about 10 KB or less.
 
 
