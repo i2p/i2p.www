@@ -200,6 +200,11 @@ Add Datagram2 to [DATAGRAMS]_ as follows:
 
 {% endhighlight %}
 
+Total length: minimum 433 + payload length;
+typical length for X25519 senders and without offline signatures:
+461 + payload length.
+Note that the message will typically be compressed with gzip at the I2CP layer,
+which will result in significant savings if the from destination is compressible.
 
 
 Signatures
@@ -216,6 +221,13 @@ The signature is over the following fields.
 In repliable datagram, for the DSA_SHA1 key type, the signature was over the
 SHA-256 hash of the payload, not the payload itself; here, the signature is
 always over the fields above (NOT the hash), regardless of key type.
+
+
+ToHash Verification
+-------------------
+
+Receivers must verify that the tohash field matches the first four bytes
+of their destination hash, and discard on mismatch, for replay prevention.
 
 
 SAM
