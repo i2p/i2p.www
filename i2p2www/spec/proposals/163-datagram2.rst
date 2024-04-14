@@ -86,7 +86,7 @@ The standard I2CP protocol number for repliable datagrams is PROTO_DATAGRAM (17)
                The signature may be verified by the signing public key of $from
 
   payload ::  The data
-              Length: 0 to ~63 KB (see notes)
+              Length: 0 to about 31.5 KB (see notes)
 
   Total length: Payload length + 427+
 {% endhighlight %}
@@ -158,7 +158,7 @@ Add Datagram2 to [DATAGRAMS]_ as follows:
   flags :: (2 bytes)
            Bit order: 15 14 ... 3 2 1 0
            Bits 3-0: Version: 0x02 (0 0 1 0)
-           Bit 4: If 0, no offline sig; if 1, offline sig
+           Bit 4: If 0, no offline sig; if 1, offline signed
            Bits 15-5: unused, set to 0 for compatibility with future uses
 
   tohash :: (4 bytes)
@@ -185,7 +185,7 @@ Add Datagram2 to [DATAGRAMS]_ as follows:
             64 bytes for Ed25519 sig type.
 
   payload ::  The data
-              Length: 0 to ~63 KB (see notes)
+              Length: 0 to about 61 KB (see notes)
 
   signature :: a `Signature`
                Signature type must match the signing public key type of $from
@@ -243,9 +243,10 @@ Four bytes for the hash prefix should be sufficient?
 Notes
 =====
 
-- The practical length is limited by lower layers of protocols - the transports
+- The practical length is limited by lower layers of protocols - the tunnel
+  message spec [TUNMSG]_ limits messages to about 61.2 KB and the transports
   [TRANSPORT]_ currently limit messages to about 64 KB, so the data length here
-  is limited to about 63 KB.
+  is limited to about 61 KB.
 - See important notes about the reliability of large datagrams [API]_. For
   best results, limit the payload to about 10 KB or less.
 
@@ -313,4 +314,7 @@ References
 
 .. [TRANSPORT]
     {{ site_url('docs/transport', True) }}
+
+.. [TUNMSG]
+    {{ spec_url('tunnel-message') }}#notes
 
