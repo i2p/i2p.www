@@ -1,7 +1,7 @@
 {% extends "global/layout.html" %}
 {% block title %}{% trans %}The Network Database{% endtrans %}{% endblock %}
-{% block lastupdated %}2024-02{% endblock %}
-{% block accuratefor %}0.9.61{% endblock %}
+{% block lastupdated %}2024-04{% endblock %}
+{% block accuratefor %}0.9.62{% endblock %}
 {% block content %}
 <h2>{% trans %}Overview{% endtrans %}</h2>
 
@@ -611,7 +611,13 @@ The floodfill router replies with a
 with the Message ID set to the value of the Reply Token.
 {%- endtrans %}</p>
 
-
+<p>In some circumstances, a router may also send the RouterInfo DatabaseStoreMessage out
+an exploratory tunnel; for example, due to connection limits, connection incompatibility,
+or a desire to hide the actual IP from the floodfill.
+The floodfill may not accept such a store in times of overload or based
+on other criteria; whether to explicitly declare non-direct store of a RouterInfo illegal is a topic
+for further study.
+</p>
 
 
 <h3>{% trans %}LeaseSet Storage to Floodfills{% endtrans %}</h3>
@@ -634,6 +640,13 @@ This message is sent back to one of the client's inbound tunnels.
 
 
 <h3>{% trans %}Flooding{% endtrans %}</h3>
+<p>
+Like any router, a floodfill uses various criteria to validate the LeaseSet or RouterInfo before storing it locally.
+These criteria may be adaptive and dependent on current conditions including current load, netdb size,
+and other factors.
+All validation must be done before flooding.
+</p>
+
 <p>{% trans floodsize=3 -%}
 After a floodfill router receives a DatabaseStoreMessage containing a
 valid RouterInfo or LeaseSet which is newer than that previously stored in its
@@ -653,6 +666,14 @@ as this is a direct connection, so there are no intervening routers
 (and no need to hide this data anyway).
 The other routers do not reply or re-flood, as the Reply Token is zero.
 {%- endtrans %}</p>
+
+<p>
+Floodfills must not flood via tunnels; the DatabaseStoreMessage must be sent over a direct connection.
+</p>
+
+<p>
+Floodfills must never flood an expired LeaseSet or a RouterInfo published more than one hour ago. 
+</p>
 
 
 <h3 id="lookup">{% trans %}RouterInfo and LeaseSet Lookup{% endtrans %}</h3>
