@@ -3,7 +3,7 @@ I2NP Specification
 ==================
 .. meta::
     :category: Protocols
-    :lastupdated: 2024-02
+    :lastupdated: 2024-05
     :accuratefor: 0.9.62
 
 .. contents::
@@ -1198,8 +1198,12 @@ Notes
 
 * The returned peer hashes are not necessarily closer to the key than the
   router being queried.
+  For replies to regular lookups, this facilitates discovery of new floodfills
+  and "backwards" searching (further-from-the-key) for robustness.
 
 * Typical number of hashes returned: 3
+
+* Recommended maximum number of hashes to return: 16
 
 * The lookup key, peer hashes, and from hash are "real" hashes, NOT routing
   keys.
