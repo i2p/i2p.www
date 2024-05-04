@@ -7,7 +7,7 @@ New Release I2P 2.5.0
     :author: idk
     :date: 2024-04-08
     :category: release
-    :excerpt: {% trans %}{% endtrans %}
+    :excerpt: {% trans %}I2P 2.5.0 release{% endtrans %}
 
 {% trans -%}
 This release, I2P 2.5.0, provides more user-facing improvements than the 2.4.0 release, which was focused on implementing the NetDB isolation strategy.
