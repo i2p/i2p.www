@@ -22,7 +22,7 @@ except ImportError:
 ###########
 # Constants
 
-CURRENT_I2P_VERSION = '2.5.0'
+CURRENT_I2P_VERSION = '2.5.1'
 CURRENT_I2P_FIREFOX_PROFILE_VERSION = '2.5.0'
 CURRENT_I2P_OSX_VERSION = '1.9.0'
 
