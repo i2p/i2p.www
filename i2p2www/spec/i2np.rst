@@ -1201,6 +1201,14 @@ Notes
   For replies to regular lookups, this facilitates discovery of new floodfills
   and "backwards" searching (further-from-the-key) for robustness.
 
+* The key for an exploration lookup is usually generated randomly.
+  Therefore, the response's non-floodfill peer_hashes may be selected using an
+  optimized algorithm, such as providing peers that are close to the key but not
+  necessarily the closest in the entire local network database, to avoid an
+  inefficient sort or search of the entire local database.
+  Other strategies such as caching may also be appropriate.
+  This is implementation-dependent.
+	
 * Typical number of hashes returned: 3
 
 * Recommended maximum number of hashes to return: 16
