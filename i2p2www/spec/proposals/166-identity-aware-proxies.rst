@@ -2,7 +2,7 @@
 I2P proposal #166: Identity/Host Aware Tunnel Types
 ===================================================
 .. meta::
-    :author: weko, orignal, the Anonymous, zzz
+    :author: eyedeekay
     :created: 2024-05-27
     :thread: http://i2pforum.i2p/viewforum.php?f=13
     :lastupdated: 2024-05-27
