@@ -69,8 +69,6 @@ which supports “Tabbed” operation.
    third-party resources.
 -  Disabling Javascript accomplishes **nothing** against the Shared
    Identity problem.
--  The only browser which I know of where it is not possible to create a
-   Shared Identity fingerprint is lynx, and only in some configurations.
 
 How you view the severity of the Shared Identity problem as it applies
 to the I2P HTTP proxy depends on where you(or more to the point, a
