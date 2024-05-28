@@ -208,6 +208,14 @@ person is visiting multiple sites which they operate.
                                                        \__-> HTTP Proxy(Destination C) <--> translate.idk.i2p
                                                         \__-> HTTP Proxy(Destination C) <--> git.idk.i2p
 
+Status:
+~~~~~~~
+
+A working Java implementation of the host-aware proxy which conforms to this proposal is available at idk's fork under the branch: i2p.i2p.2.6.0-browser-proxy-post-keepalive
+Link in citations.
+Implementations with varying capabilities have been written in Go using the SAM library, they may be useful for embedding in other Go Applications of for go-i2p but are unsuitable for Java I2P.
+Additionally, they lack good support for working interactively with encrypted leaseSets.
+
 Addendum: SOCKS
 '''''''''''''''
 
@@ -262,3 +270,5 @@ https://en.wikipedia.org/wiki/Shadow_profile
 https://github.com/eyedeekay/si-i2p-plugin/
 https://github.com/eyedeekay/eeproxy/
 https://geti2p.net/en/docs/api/socks
+https://i2pgit.org/idk/i2p.www/-/compare/master...166-identity-aware-proxies?from_project_id=17
+https://i2pgit.org/idk/i2p.i2p/-/tree/i2p.i2p.2.6.0-browser-proxy-post-keepalive?ref_type=heads
