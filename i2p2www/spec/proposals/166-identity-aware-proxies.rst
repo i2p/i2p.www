@@ -90,7 +90,7 @@ identity” for the application lies. There are several possibilities:
 
 It also depends on who you think your attackers are and what you would
 like to prevent. Someone in a position to carry out this attack would be
-a person in a position to have multiple sites “collude” in order too
+a person in a position to have multiple sites “collude” in order to
 collect the destinations of I2P Clients, in order to correlate activity
 on one site with activity on another. This is a fairly basic form of
 profile-building on the clear web where organizations can correlate
@@ -111,7 +111,7 @@ Is it Solvable?
 It is probably not possible to make a proxy which intelligently responds
 to every possible case in which it’s operation could weaken the
 anonymity of an application. However, it is possible to build a proxy
-which intelligently responds to a specific application which is behaves
+which intelligently responds to a specific application which behaves
 in a predictable way. For instance, in modern Web Browsers, it is
 expected that users will have multiple tabs open, where they will be
 interacting with multiple web sites, which will be distinguished by
