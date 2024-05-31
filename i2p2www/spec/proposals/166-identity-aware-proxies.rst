@@ -12,7 +12,7 @@ I2P proposal #166: Identity/Host Aware Tunnel Types
 .. contents::
 
 Proposal for a Host-Aware HTTP Proxy Tunnel Type
-================================================
+------------------------------------------------
 
 This is a proposal to resolve the “Shared Identity Problem” in
 conventional HTTP-over-I2P usage by introducing a new HTTP proxy tunnel
@@ -21,7 +21,7 @@ prevent or limit the utility of tracking conducted by server operators,
 against user-agents(browsers) and the I2P Client Application itself.
 
 What is the “Shared Identity” problem?
---------------------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 The “Shared Identity” problem occurs when a user-agent on a
 cryptographically addressed overlay network shares a cryptographic
@@ -34,7 +34,7 @@ cryptographic in origin. This means that the linkability observed by the
 Shared Identity problem is perfect.
 
 But is it a problem?
-~~~~~~~~~~~~~~~~~~~~
+^^^^^^^^^^^^^^^^^^^^
 
 The shared identity problem is a problem when user-agents that speak the
 same protocol desire unlinkability. `It was first mentioned in the
@@ -84,8 +84,8 @@ identity” for the application lies. There are several possibilities:
 3. HTTP is the Application, but the Contextual Identity is controlled
    with the “Authentication Hack” - Interesting possibility detailed at
    the end of this proposal, not the object of this proposal
-4. HTTP is the Application, but the Host is the Contextual Identity -
-   This is the object of this proposal, which treats each Host as a
+4. HTTP is the Application, but the Host is the Contextual Identity
+   -This is the object of this proposal, which treats each Host as a
    potential “Web Application” and treats the threat surface as such.
 
 It also depends on who you think your attackers are and what you would
@@ -106,25 +106,25 @@ could be conducted for stalking, financial gain, or intelligence-related
 reasons.
 
 Is it Solvable?
-~~~~~~~~~~~~~~~
+^^^^^^^^^^^^^^^
 
 It is probably not possible to make a proxy which intelligently responds
 to every possible case in which it’s operation could weaken the
 anonymity of an application. However, it is possible to build a proxy
-which intelligently responds to a specific application which behaves
-in a predictable way. For instance, in modern Web Browsers, it is
-expected that users will have multiple tabs open, where they will be
-interacting with multiple web sites, which will be distinguished by
-hostname. This allows us to improve upon the behavior of the HTTP Proxy
-for this type of HTTP user-agent by making the behavior of the proxy
-match the behavior of the user-agent by giving each host it’s own
-Destination when used with the HTTP Proxy. This change makes it
-impossible to use the Shared Identity problem to derive a fingerprint
-which can be used to correlate client activity with 2 hosts, because the
-2 hosts will simply no longer share a return identity.
+which intelligently responds to a specific application which behaves in
+a predictable way. For instance, in modern Web Browsers, it is expected
+that users will have multiple tabs open, where they will be interacting
+with multiple web sites, which will be distinguished by hostname. This
+allows us to improve upon the behavior of the HTTP Proxy for this type
+of HTTP user-agent by making the behavior of the proxy match the
+behavior of the user-agent by giving each host it’s own Destination when
+used with the HTTP Proxy. This change makes it impossible to use the
+Shared Identity problem to derive a fingerprint which can be used to
+correlate client activity with 2 hosts, because the 2 hosts will simply
+no longer share a return identity.
 
 Description:
-~~~~~~~~~~~~
+^^^^^^^^^^^^
 
 A new HTTP Proxy will be created and added to Hidden Services
 Manager(I2PTunnel). The new HTTP Proxy will operate as a “multiplexer”
@@ -141,12 +141,12 @@ carrier of an “Outproxy” for any site which does *not* have an I2P
 Destination, for example any Clearnet site. This effectively makes all
 Outproxy usage a single Contextual Identity, with the caveat that
 configuring multiple Outproxies for the tunnel will cause the normal
-"Sticky" outproxy rotation, where each outproxy only gets requests for
-a single site. This is *almost* the equivalent behavior as isolating
+"Sticky" outproxy rotation, where each outproxy only gets requests for a
+single site. This is *almost* the equivalent behavior as isolating
 HTTP-over-I2P proxies by destination, on the clear internet.
 
 Resource Considerations:
-^^^^^^^^^^^^^^^^^^^^^^^^
+''''''''''''''''''''''''
 
 The new HTTP proxy requires additional resources compared to the
 existing HTTP proxy. It will:
@@ -161,7 +161,7 @@ Each of these requires:
 -  Network resources from peers
 
 Settings:
-^^^^^^^^^
+'''''''''
 
 In order to minimize the impact of the increased resource usage, the
 proxy should be configured to use as little as possible. Proxies which
@@ -177,7 +177,7 @@ to:
    parent Multiplexer is.
 
 Diagrams:
-~~~~~~~~~
+^^^^^^^^^
 
 The diagram below represents the current operation of the HTTP proxy,
 which corresponds to “Possibility 1.” under the “Is it a problem”
@@ -185,7 +185,7 @@ section. As you can see, the HTTP proxy interacts with I2P sites
 directly using only one destination. In this scenario, HTTP is both the
 application and the contextual identity.
 
-.. code:: md
+.. code::
 
    **Current Situation: HTTP is the Application, HTTP is the Contextual Identity**
                                              __-> Outproxy <-> i2pgit.org
@@ -202,7 +202,7 @@ different HTTP proxy with a unique destination per-host. This prevents
 operators of multiple sites from being able to distinguish when the same
 person is visiting multiple sites which they operate.
 
-.. code:: md
+.. code::
 
    **After the Change: HTTP is the Application, Host is the Contextual Identity**
                                                         __-> HTTP Proxy(Destination A - Outproxies Only) <--> i2pgit.org
@@ -212,11 +212,11 @@ person is visiting multiple sites which they operate.
                                                         \__-> HTTP Proxy(Destination C) <--> git.idk.i2p
 
 Status:
-~~~~~~~
+^^^^^^^
 
 A working Java implementation of the host-aware proxy which conforms to
-this proposal is available at idk's fork under the branch: i2p.i2p.2.6.0-browser-proxy-post-keepalive
-Link in citations.
+this proposal is available at idk's fork under the branch:
+i2p.i2p.2.6.0-browser-proxy-post-keepalive Link in citations.
 Implementations with varying capabilities have been written in Go using
 the SAMv3 library, they may be useful for embedding in other Go
 applications of for go-i2p but are unsuitable for Java I2P.
@@ -224,7 +224,7 @@ Additionally, they lack good support for working interactively with
 encrypted leaseSets.
 
 Addendum: SOCKS
-'''''''''''''''
+               
 
 A similar shared identity problem exists in the SOCKS proxy as well.
 However, there, it is harder to solve in part due to the reasons
@@ -258,7 +258,7 @@ like ``curlhttpidk`` giving it a destination which exists only for the
 time it takes to run the application. ``curl`` is merely an example,
 this approach would work for applications with longer lifetimes too.
 
-.. code:: md
+.. code::
 
    **Hypothetical Future: SOCKS is the Application, Contextual Identity is decided by the app or perhaps a wrapper**
                                                                               __-> SOCKS Proxy(Isolation String firefoxi2pgitorg) <--> i2pgit.org
@@ -268,7 +268,7 @@ this approach would work for applications with longer lifetimes too.
                                                                               \__-> SOCKS Proxy(Isolation String firefoxgitidk) <--> git.idk.i2p
 
 Citations:
-^^^^^^^^^^
+''''''''''
 
 https://old.reddit.com/r/i2p/comments/579idi/warning_i2p_is_linkablefingerprintable/
 https://api.pullpush.io/reddit/search/comment/?link_id=579idi
