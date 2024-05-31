@@ -138,7 +138,12 @@ creating one or more in advance and storing them outside the multiplexer
 
 An additional HTTP proxy, with it’s own destination, is set up as the
 carrier of an “Outproxy” for any site which does *not* have an I2P
-Destination, for example any Clearnet site.
+Destination, for example any Clearnet site. This effectively makes all
+Outproxy usage a single Contextual Identity, with the caveat that
+configuring multiple Outproxies for the tunnel will cause the normal
+"Sticky" outproxy rotation, where each outproxy only gets requests for
+a single site. This is *almost* the equivalent behavior as isolating
+HTTP-over-I2P proxies by destination, on the clear internet.
 
 Resource Considerations:
 ^^^^^^^^^^^^^^^^^^^^^^^^
@@ -183,7 +188,7 @@ application and the contextual identity.
 .. code:: md
 
    **Current Situation: HTTP is the Application, HTTP is the Contextual Identity**
-                                             __-> i2pgit.org
+                                             __-> Outproxy <-> i2pgit.org
                                             /
    Browser <-> HTTP Proxy(one Destination) <---> idk.i2p
                                             \__-> translate.idk.i2p
@@ -200,7 +205,7 @@ person is visiting multiple sites which they operate.
 .. code:: md
 
    **After the Change: HTTP is the Application, Host is the Contextual Identity**
-                                                        __-> HTTP Proxy(Destination A) <--> i2pgit.org
+                                                        __-> HTTP Proxy(Destination A - Outproxies Only) <--> i2pgit.org
                                                        /
    Browser <-> HTTP Proxy Multiplexer(No Destination) <---> HTTP Proxy(Destination B) <--> idk.i2p
                                                        \__-> HTTP Proxy(Destination C) <--> translate.idk.i2p
@@ -209,10 +214,14 @@ person is visiting multiple sites which they operate.
 Status:
 ~~~~~~~
 
-A working Java implementation of the host-aware proxy which conforms to this proposal is available at idk's fork under the branch: i2p.i2p.2.6.0-browser-proxy-post-keepalive
+A working Java implementation of the host-aware proxy which conforms to
+this proposal is available at idk's fork under the branch: i2p.i2p.2.6.0-browser-proxy-post-keepalive
 Link in citations.
-Implementations with varying capabilities have been written in Go using the SAM library, they may be useful for embedding in other Go Applications of for go-i2p but are unsuitable for Java I2P.
-Additionally, they lack good support for working interactively with encrypted leaseSets.
+Implementations with varying capabilities have been written in Go using
+the SAMv3 library, they may be useful for embedding in other Go
+applications of for go-i2p but are unsuitable for Java I2P.
+Additionally, they lack good support for working interactively with
+encrypted leaseSets.
 
 Addendum: SOCKS
 '''''''''''''''
