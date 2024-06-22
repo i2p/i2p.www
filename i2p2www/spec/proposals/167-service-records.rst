@@ -125,7 +125,7 @@ In LS2 for aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa.b32.i2p, pointing to two
 
 In LS2 for bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb.b32.i2p, pointing to itself as a SMTP server:
 
-"_smtp._tcp" "0 999999"
+"_smtp._tcp" "0 999999 25"
 
 Possible format for redirecting email (see below):
 
@@ -141,17 +141,6 @@ Maybe only one or two with a long appoptions field, or up to four or five with a
 This should be sufficient; multiple records should be rare.
 
 
-
-Service Name Registry
-----------------------
-
-Non-standard identifiers that are not listed in [REGISTRY]_ or Linux /etc/services
-may be requested and added to the common structures specification [LS2]_.
-
-Service-specific appoptions formats may also be added there.
-
-
-
 Differences from [RFC2782]_
 ````````````````````````````
 
@@ -163,12 +152,22 @@ Differences from [RFC2782]_
 - Additional appoptions field
 
 
+Service Name Registry
+----------------------
+
+Non-standard identifiers that are not listed in [REGISTRY]_ or Linux /etc/services
+may be requested and added to the common structures specification [LS2]_.
+
+Service-specific appoptions formats may also be added there.
+
+
 I2CP Specification
 ------------------
 
-The I2CP protocol may need to be extended to support service lookups;
+The [I2CP]_ protocol may need to be extended to support service lookups;
 or, maybe, just do a lookup for "_service._proto.xxx.b32.i2p" and the router figures it out.
 But no way to pass ttl and port back without changes.
+See Recommendations section below.
 
 TODO
 
@@ -176,11 +175,33 @@ TODO
 SAM Specification
 ------------------
 
-The SAMv3 protocol may need to be extended to support service lookups;
+The [SAMv3]_ protocol may need to be extended to support service lookups;
 or, maybe, just do a lookup for "_service._proto.xxx.b32.i2p" and the router figures it out.
 But no way to pass ttl and port back without changes.
+See Recommendations section below.
 
 TODO
+
+
+Naming Specification
+---------------------
+
+Update [NAMING]_ to specify handling of hostnames starting with '_', as
+documented in the implementation section below.
+
+
+
+
+Recommendations
+================
+
+It may be difficult and low-priority for us to design and implement the
+I2CP and SAM changes necessary to pass through the TTL and port information to the client.
+If those are unavailable to the application, it should assume a TTL
+of 86400 (one day) and use the standard internet port (e.g. 25 for SMTP)
+as the I2CP port.
+
+Servers should specify a TTL of at least 86400, and the standard port for the application.
 
 
 
@@ -225,6 +246,12 @@ Implementation Notes
 Caching of service records up to the TTL may be done by the router or the application,
 implementation-dependent. Whether to cache persistently is also implementation-dependent.
 
+Configuration is implementation-dependent. We may define standard I2CP options
+for i2ptunnel and SAM.
+
+Naming service subsystems must check for a leading "_", strip off the first two labels,
+look up the leaseset for the remaining part of the hostname, and then lookup the
+two labels in the options field of the leaseset.
 
 
 Security Analysis
@@ -243,6 +270,7 @@ Compatibility
 No issues. All known implementations currently ignore the properties field in LS2.
 LS2 was implemented in 0.9.38 in 2016 and is well-supported by all router implementations.
 
+'_' is not a valid character in i2p hostnames.
 
 
 Migration
@@ -257,6 +285,9 @@ References
 
 .. [DOTWELLKNOWN]
     http://i2pforum.i2p/viewtopic.php?p=3102
+
+.. [I2CP]
+    {{ spec_url('i2cp') }}
 
 .. [LS2]
     {{ spec_url('common-structures') }}
@@ -275,6 +306,9 @@ References
 
 .. [RFC2782]
     https://datatracker.ietf.org/doc/html/rfc2782
+
+.. [SAMv3]
+    {{ site_url('docs/api/samv3') }}
 
 .. [SRV]
     https://en.wikipedia.org/wiki/SRV_record
