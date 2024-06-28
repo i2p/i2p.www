@@ -116,7 +116,8 @@ Defined as follows:
 - optionvalue := self | srvrecord[,srvrecord]*
 - self := "0" ttl port [appoptions]
 - srvrecord := "1" ttl priority weight port target [appoptions]
-- ttl := time to live, integer seconds. Positive integer. Example: "85400"
+- ttl := time to live, integer seconds. Positive integer. Example: "86400".
+  A minimum of 86400 (one day) is recommended, see Recommendations section below for details.
 - priority := The priority of the target host, lower value means more preferred. Non-negative integer. Example: "0"
   Only useful if more than one record, but required even if just one record.
 - weight := A relative weight for records with the same priority. Higher value means more chance of getting picked. Non-negative integer. Example: "0"
@@ -188,6 +189,12 @@ The [I2CP]_ protocol may need to be extended to support service lookups;
 or, maybe, just do a lookup for "_service._proto.xxx.b32.i2p" and the router figures it out.
 But no way to pass ttl and port back without changes.
 See Recommendations section below.
+
+Additional MessageStatusMessage and/or HostReplyMessage error codes related to service lookup
+may be required and must be added to the [I2CP]_ document.
+
+Configuration is implementation-dependent. We may define standard I2CP options
+for i2ptunnel and SAM, to be documented in [I2CP-OPTIONS]_.
 
 TODO
 
@@ -273,6 +280,9 @@ Naming service subsystems must check for a leading "_", strip off the first two 
 look up the leaseset for the remaining part of the hostname, and then lookup the
 two labels in the options field of the leaseset.
 
+Lookups must also lookup the target leaseset and verify it contains a "self" record
+before returning the target destination to the client.
+
 
 Security Analysis
 =================
@@ -282,6 +292,13 @@ As the leaseset is signed, any service records within it are authenticated by th
 The service records are public and visible to floodfills, unless the leaseset is encrypted.
 Any router requesting the leaseset will be able to see the service records.
 
+A SRV record other than "self" (i.e., one that points to a different hostname/b32 target)
+does not require the consent of the targeted hostname/b32.
+It's not clear if a redirection of a service to an arbitrary destination could facilitate some
+sort of attack, or what the purpose of such an attack would be.
+However, this proposal mitigates such an attack by requiring that the target
+also publish a "self" SRV record. Implementers must check for a "self" record
+in the leaseset of the target.
 
 
 Compatibility
