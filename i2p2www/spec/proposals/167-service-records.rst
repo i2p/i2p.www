@@ -167,7 +167,7 @@ Differences from [RFC2782]_
 Notes
 `````
 
-No wildcarding such as "*", "*._tcp", or "_tcp" is allowed.
+No wildcarding such as (asterisk), (asterisk)._tcp, or _tcp is allowed.
 Each supported service must have its own record.
 
 
