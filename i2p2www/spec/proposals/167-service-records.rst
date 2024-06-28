@@ -5,7 +5,7 @@ Service Records in LS2
     :author: zzz
     :created: 2024-06-22
     :thread: http://zzz.i2p/topics/3641
-    :lastupdated: 2024-06-22
+    :lastupdated: 2024-06-28
     :status: Open
     :target: 0.9.65
 
@@ -66,6 +66,14 @@ a service for aaa...aaa.b32.i2p does not require that lookup, it can just connec
 
 But there's an ambiguity there, because example.i2p can also be addressed by its b32.
 
+MX Records
+----------
+
+SRV records are simply a generic version of MX records for any service.
+"_smtp._tcp" is the "MX" record.
+There is no need for MX records if we have SRV records, and MX records
+alone does not provide a generic record for any service.
+
 
 Design
 ======
@@ -81,6 +89,10 @@ a different hostname/b32.
 
 If the target destination for the service is different, the target LS must also
 include a service record, pointing to itself, indicating that it supports the service.
+
+The design does not require special support or caching or any changes in the floodfills.
+Only the leaseset publisher, and the client looking up a service record,
+must support these changes.
 
 
 
@@ -99,7 +111,7 @@ Defined as follows:
   Standard identifiers from [REGISTRY]_ or Linux /etc/services must be used if defined there.
 - proto := The transport protocol of the desired service. Must be lower case, either "tcp" or "udp".
   "tcp" means streaming and "udp" means repliable datagrams.
-  Indicators for raw datagrams and datagram2 may be defined later.
+  Protocol indicators for raw datagrams and datagram2 may be defined later.
   Allowed chars are [a-z0-9-] and must not start or end with a '-'.
 - optionvalue := self | srvrecord[,srvrecord]*
 - self := "0" ttl port [appoptions]
@@ -150,6 +162,14 @@ Differences from [RFC2782]_
 - In text format with comma-separated records, not binary DNS format
 - Different record type indicators
 - Additional appoptions field
+
+
+Notes
+`````
+
+No wildcarding such as "*", "*._tcp", or "_tcp" is allowed.
+Each supported service must have its own record.
+
 
 
 Service Name Registry
@@ -247,7 +267,7 @@ Caching of service records up to the TTL may be done by the router or the applic
 implementation-dependent. Whether to cache persistently is also implementation-dependent.
 
 Configuration is implementation-dependent. We may define standard I2CP options
-for i2ptunnel and SAM.
+for i2ptunnel and SAM, to be documented in [I2CP-OPTIONS]_.
 
 Naming service subsystems must check for a leading "_", strip off the first two labels,
 look up the leaseset for the remaining part of the hostname, and then lookup the
@@ -267,8 +287,12 @@ Any router requesting the leaseset will be able to see the service records.
 Compatibility
 ===============
 
-No issues. All known implementations currently ignore the properties field in LS2.
+No issues. All known implementations currently ignore the options field in LS2,
+and correctly skip over a non-empty options field.
+This was verified in recent testing by both Java I2P and i2pd.
 LS2 was implemented in 0.9.38 in 2016 and is well-supported by all router implementations.
+
+The design does not require special support or caching or any changes in the floodfills.
 
 '_' is not a valid character in i2p hostnames.
 
@@ -288,6 +312,9 @@ References
 
 .. [I2CP]
     {{ spec_url('i2cp') }}
+
+.. [I2CP-OPTIONS]
+    {{ site_url('docs/protocol/i2cp', True) }}
 
 .. [LS2]
     {{ spec_url('common-structures') }}
