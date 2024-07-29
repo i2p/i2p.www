@@ -497,9 +497,11 @@ Contents
 
 Notes
 `````
-Currently, the client limits are the only values set, and are actually the
-router limits. All the values labeled as router limits are always 0.  As of
-release 0.7.2.
+The client limits may be the only values set, and may be the
+actual router limits, or a percentage of the router limits, or specific to
+the particular client, implementation-dependent.
+All the values labeled as router limits may be 0, implementation-dependent.
+As of release 0.7.2.
 
 
 .. _msg-BlindingInfo:
