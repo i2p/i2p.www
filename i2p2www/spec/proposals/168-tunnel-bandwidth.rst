@@ -37,7 +37,7 @@ the tunnel build request and reply messages.
 Design
 ======
 
-Add bandwidth parameters to the ECIES tunnel build messages [Tunnel-Creation-ECIES]_
+Add bandwidth parameters to the records in ECIES tunnel build messages [Tunnel-Creation-ECIES]_
 in the tunnel build options mapping field. Use short parameter names since the space available
 for the options field is limited.
 Tunnel build messages are fixed-size so this does not increase the
@@ -51,12 +51,12 @@ Specification
 Update the ECIES tunnel build message specification [Tunnel-Creation-ECIES]_
 as follows:
 
-For both long and short ECIES build messages:
+For both long and short ECIES build records:
 
 Build Request Options
 ---------------------------
 
-The following two options may be set in the tunnel build options mapping field.
+The following two options may be set in the tunnel build options mapping field of the record:
 A requesting router may include either or both.
 
 - m := minimum bandwidth required for this tunnel (KBps positive integer as a string)
@@ -69,7 +69,8 @@ provide at least that much bandwidth.
 Build Reply Option
 ---------------------------
 
-The following option may be set in the tunnel build reply options mapping field.
+The following option may be set in the tunnel build reply options mapping field of the record,
+when the response is ACCEPTED:
 
 - b := bandwidth available for this tunnel (KBps positive integer as a string)
 
@@ -82,8 +83,8 @@ much bandwidth for the tunnel, however this is not guaranteed.
 Routers cannot predict conditions 10 minutes into the future, and
 participating traffic is lower-priority than a router's own traffic and tunnels.
 
-Routers may also over-allocate available bandwidth if necessary.
-
+Routers may also over-allocate available bandwidth if necessary, and this is
+probably desirable, as other hops in the tunnel could reject it.
 
 
 
@@ -100,6 +101,24 @@ including ratchet and streaming. Intermittent small messages such as streaming a
 will be expanded to 1 KB each.
 However, gzip compression at the I2CP layer may substantially reduce bandwidth.
 
+The simplest implementation at the requesting router is to use
+the average, minimum, and/or maximum bandwidths of current tunnels in the pool
+to calculate the values to put in the request.
+More complex algorithms are possible and are up to the implementer.
+
+There are no current I2CP or SAM options defined for the client to tell the
+router what bandwidth is required, and no new options are proposed here.
+
+Implementations may use available bandwidth or any other data, algorithm, local policy,
+or local configuration to calculate the bandwidth value returned in the
+build response. Not specified by this proposal.
+
+This proposal does not require participating hops to implement per-tunnel or global
+throttling of any type, or specify a particular algorithm or implementation, if any.
+
+This proposal also does not require client routers to throttle traffic
+to the limit returned by the participating hop, and depending on application,
+that may not be possible, particularly for inbound tunnels.
 
 
 
@@ -107,6 +126,9 @@ Security Analysis
 =================
 
 Client fingerprinting based on requests.
+The client (originating) router may wish to randomize the "m" and "r" values instead of sending
+the same value to each hop; or send a limited set values that represent bandwidth "buckets",
+or some conbination of both.
 
 Avoid over-allocation ddos.
 
