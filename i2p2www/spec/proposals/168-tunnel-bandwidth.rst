@@ -128,7 +128,7 @@ Security Analysis
 Client fingerprinting based on requests.
 The client (originating) router may wish to randomize the "m" and "r" values instead of sending
 the same value to each hop; or send a limited set values that represent bandwidth "buckets",
-or some conbination of both.
+or some combination of both.
 
 Avoid over-allocation ddos.
 
