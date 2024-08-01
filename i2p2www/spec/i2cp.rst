@@ -3,7 +3,7 @@ I2CP Specification
 ==================
 .. meta::
     :category: Protocols
-    :lastupdated: 2024-07
+    :lastupdated: 2024-08
     :accuratefor: 0.9.63
 
 .. contents::
@@ -1190,6 +1190,12 @@ Notes
 * Some configuration options may only be set in the CreateSessionMessage_, and
   changes here will not be recognized by the router. Changes to tunnel options
   inbound.* and outbound.* are always recognized.
+
+* In general, the router should merge the updated config with the current config,
+  so the updated config only needs to contain the new or changed options.
+  However, because of the merge, options may not be removed in this manner;
+  they must be set explicitly to the desired default value.
+
 
 .. _msg-ReportAbuse:
 
