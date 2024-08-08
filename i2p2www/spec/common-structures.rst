@@ -1585,6 +1585,10 @@ Notes
 * See proposal 123 for notes on using offline signatures
   with encrypted leasesets.
 
+* See note on the 'published' field in LeaseSet2Header_
+  (same issue, even though we do not use the LeaseSet2Header format here)
+
+
 .. _EncryptedLeaseSet: {{ site_url('docs/spec/encryptedleaseset') }}
 
 JavaDoc: http://{{ i2pconv('idk.i2p/javadoc-i2p') }}/net/i2p/data/EncryptedLeaseSet.html
