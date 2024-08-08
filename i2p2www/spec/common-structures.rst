@@ -3,8 +3,8 @@ Common structures Specification
 ===============================
 .. meta::
     :category: Design
-    :lastupdated: 2024-01
-    :accuratefor: 0.9.61
+    :lastupdated: 2024-08
+    :accuratefor: 0.9.63
 
 .. contents::
 
@@ -1137,6 +1137,13 @@ Notes
 * Maximum actual expires time is about 660 (11 minutes) for
   LeaseSet2_ and 65535 (the full 18.2 hours) for MetaLeaseSet_.
 
+* LeaseSet_ (1) did not have a 'published' field, so versioning required
+  a search for the earliest lease. LeaseSet2 adds a 'published' field
+  with a resolution of one second. Routers should rate-limit sending
+  new leasesets to floodfills to a rate much slower than once a second (per destination).
+  If this is not implemented, then the code must ensure that each new leaseset
+  has a 'published' time at least one second later than the one before, or else
+  floodills will not store or flood the new leaseset.
 
 
 .. _struct-LeaseSet2:
@@ -1268,6 +1275,8 @@ Notes
 
 * The key length is provided for each key, so that floodfills and clients
   may parse the structure even if not all encryption types are known or supported.
+
+* See note on the 'published' field in LeaseSet2Header_
 
 
 JavaDoc: http://{{ i2pconv('idk.i2p/javadoc-i2p') }}/net/i2p/data/LeaseSet2.html
@@ -1449,6 +1458,8 @@ Notes
 * The signature may be verified using the signing public key of the
   destination, or the transient signing public key, if an offline signature
   is included in the leaseset2 header.
+
+* See note on the 'published' field in LeaseSet2Header_
 
 
 JavaDoc: http://{{ i2pconv('idk.i2p/javadoc-i2p') }}/net/i2p/data/MetaLeaseSet.html
