@@ -3,8 +3,8 @@ ECIES-X25519-AEAD-Ratchet
 =========================
 .. meta::
     :category: Protocols
-    :lastupdated: 2020-11
-    :accuratefor: 0.9.47
+    :lastupdated: 2024-08
+    :accuratefor: 0.9.63
 
 .. contents::
 
@@ -15,7 +15,7 @@ Network deployment and testing in progress.
 Subject to minor revisions.
 See [Prop144]_ for the original proposal, including background discussion and additional information.
 
-The following features are not implemented as of 0.9.46:
+The following features are not implemented as of 0.9.63:
 
 - MessageNumbers, Options, and Termination blocks
 - Protocol-layer responses
@@ -2143,7 +2143,7 @@ a single frame, but it is not prohibited.
 DateTime
 ````````
 An expiration.
-Assists in reply prevention.
+Assists in replay prevention.
 Bob must validate that the message is recent, using this timestamp.
 Bob must implement a Bloom filter or other mechanism to prevent replay attacks,
 if the time is valid.

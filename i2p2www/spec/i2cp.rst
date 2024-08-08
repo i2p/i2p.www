@@ -3,8 +3,8 @@ I2CP Specification
 ==================
 .. meta::
     :category: Protocols
-    :lastupdated: 2024-01
-    :accuratefor: 0.9.62
+    :lastupdated: 2024-08
+    :accuratefor: 0.9.63
 
 .. contents::
 
@@ -497,9 +497,11 @@ Contents
 
 Notes
 `````
-Currently, the client limits are the only values set, and are actually the
-router limits. All the values labeled as router limits are always 0.  As of
-release 0.7.2.
+The client limits may be the only values set, and may be the
+actual router limits, or a percentage of the router limits, or specific to
+the particular client, implementation-dependent.
+All the values labeled as router limits may be 0, implementation-dependent.
+As of release 0.7.2.
 
 
 .. _msg-BlindingInfo:
@@ -1189,6 +1191,12 @@ Notes
   changes here will not be recognized by the router. Changes to tunnel options
   inbound.* and outbound.* are always recognized.
 
+* In general, the router should merge the updated config with the current config,
+  so the updated config only needs to contain the new or changed options.
+  However, because of the merge, options may not be removed in this manner;
+  they must be set explicitly to the desired default value.
+
+
 .. _msg-ReportAbuse:
 
 ReportAbuseMessage
@@ -1228,6 +1236,12 @@ Request that a client authorize the inclusion of a particular set of inbound
 tunnels.  Sent from Router to Client.  The client responds with a
 CreateLeaseSetMessage_.
 
+The first of these messages sent on a session is a signal to the client
+that tunnels are built and ready for traffic. The router must not
+send the first of these messages until at least one inbound AND one outbound tunnel
+have been built. Clients should timeout and destroy the session if the first
+of these messages is not received after some time (recommended: 5 minutes or more).
+
 Contents
 ````````
 1. `Session ID`_
@@ -1256,6 +1270,12 @@ Request that a client authorize the inclusion of a particular set of inbound
 tunnels.
 
 Sent from Router to Client.  The client responds with a CreateLeaseSetMessage_ or CreateLeaseSet2Message_.
+
+The first of these messages sent on a session is a signal to the client
+that tunnels are built and ready for traffic. The router must not
+send the first of these messages until at least one inbound AND one outbound tunnel
+have been built. Clients should timeout and destroy the session if the first
+of these messages is not received after some time (recommended: 5 minutes or more).
 
 Contents
 ````````
@@ -1466,8 +1486,11 @@ Description
 ```````````
 Instruct the client as to the status of its session.
 
-Sent from Router to Client, possibly in response to a CreateSessionMessage_,
+Sent from Router to Client, in response to a CreateSessionMessage_,
 ReconfigureSessionMessage_, or DestroySessionMessage_.
+In all cases, including in response to CreateSessionMessage_,
+the router should respond immediately (do not wait for tunnels to be built).
+
 
 Contents
 ````````
