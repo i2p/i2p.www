@@ -12,13 +12,21 @@ I2CP Specification
 Overview
 ========
 
-This page specified the I2P Control Protocol (I2CP), which is the interface
+This page specified the I2P Control Protocol (I2CP), which is the low-level interface
 between clients and the router.  Java clients will use the I2CP client API,
-which implements this protocol.  Non-Java clients will most likely use a
-higher-layer protocol such as SAM or BOB.
+which implements this protocol.
 
+There are no known non-Java implementations of a client-side library
+that implements I2CP. Additionally, socket-oriented (streaming) applications would need
+an implementation of the streaming protocol, but there are no non-Java libraries for that either.
+Therefore, non-Java clients should instead use the higher-layer protocol SAM [SAMv3]_,
+for which libraries exist in several languages.
+
+This is a low-level protocol supported both internally and externally
+by the Java I2P router.
 The protocol is only serialized if the client and router are not in the same
-JVM; otherwise, I2CP message objects are passed via an internal JVM interface.
+JVM; otherwise, I2CP message Java objects are passed via an internal JVM interface.
+I2CP is also supported externally by the C++ router i2pd.
 
 More information is on the I2CP Overview page [I2CP]_.
 
@@ -1611,6 +1619,9 @@ References
 
 .. [RouterIdentity]
     {{ ctags_url('RouterIdentity') }}
+
+.. [SAMv3]
+    {{ site_url('docs/api/samv3') }}
 
 .. [Signature]
     {{ ctags_url('Signature') }}
