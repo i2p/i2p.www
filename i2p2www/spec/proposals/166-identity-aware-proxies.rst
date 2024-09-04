@@ -142,16 +142,15 @@ Description:
 
 A new HTTP Proxy will be created and added to Hidden Services
 Manager(I2PTunnel). The new HTTP Proxy will operate as a “multiplexer”
-of I2P Sockets. The multiplexer itself has no destination. Each
-individual I2P Socket which becomes part of the multiplex has it’s own
-local destination, random local port, and it’s own tunnel pool. I2P
-Sockets are created on-demand by the multiplexer, where the “demand” is
-the first visit to the new host. It is possible to optimize the creation
-of the I2P Sockets before inserting them into the multiplexer by
-creating one or more in advance and storing them outside the
-multiplexer. This may improve performance.
+of I2PSocketManagers. The multiplexer itself has no destination. Each
+individual I2PSocketManager which becomes part of the multiplex has it’s own
+local destination, and it’s own tunnel pool. I2PSocketManagerss are created
+on-demand by the multiplexer, where the “demand” is the first visit to the
+new host. It is possible to optimize the creation of the I2PSocketManagers
+before inserting them into the multiplexer by creating one or more in advance
+and storing them outside the multiplexer. This may improve performance.
 
-An additional I2P Socket, with it’s own destination, is set up as the
+An additional I2PSocketManager, with it’s own destination, is set up as the
 carrier of an “Outproxy” for any site which does *not* have an I2P
 Destination, for example any Clearnet site. This effectively makes all
 Outproxy usage a single Contextual Identity, with the caveat that
@@ -166,7 +165,7 @@ Resource Considerations:
 The new HTTP proxy requires additional resources compared to the
 existing HTTP proxy. It will:
 
--  Potentially build more tunnels and I2PSockets
+-  Potentially build more tunnels and I2PSocketManagers
 -  Build tunnels more often
 
 Each of these requires:
@@ -182,11 +181,11 @@ proxy should be configured to use as little as possible. Proxies which
 are part of the multiplexer(not the parent proxy) should be configured
 to:
 
--  Multiplexed I2PSockets build 1 tunnel in, 1 tunnel out in their
+-  Multiplexed I2PSocketManagers build 1 tunnel in, 1 tunnel out in their
    tunnel pools
--  Multiplexed I2PSockets take 3 hops by default.
+-  Multiplexed I2PSocketManagers take 3 hops by default.
 -  Close sockets after 10 minutes of inactivity
--  I2PSockets started by the Multiplexer share the lifespan of the
+-  I2PSocketManagers started by the Multiplexer share the lifespan of the
    Multiplexer. Multiplexed tunnels are not “Destructed” until the
    parent Multiplexer is.
 
@@ -204,7 +203,7 @@ application and the contextual identity.
    **Current Situation: HTTP is the Application, HTTP is the Contextual Identity**
                                                           __-> Outproxy <-> i2pgit.org
                                                          /
-   Browser <-> HTTP Proxy(one Destination)<->I2P Socket <---> idk.i2p
+   Browser <-> HTTP Proxy(one Destination)<->I2PSocketManager <---> idk.i2p
                                                          \__-> translate.idk.i2p
                                                           \__-> git.idk.i2p
 
@@ -219,11 +218,11 @@ person is visiting multiple sites which they operate.
 .. code:: md
 
    **After the Change: HTTP is the Application, Host is the Contextual Identity**
-                                                        __-> I2P Socket(Destination A - Outproxies Only) <--> i2pgit.org
+                                                        __-> I2PSocketManager(Destination A - Outproxies Only) <--> i2pgit.org
                                                        /
-   Browser <-> HTTP Proxy Multiplexer(No Destination) <---> I2P Socket(Destination B) <--> idk.i2p
-                                                       \__-> I2P Socket(Destination C) <--> translate.idk.i2p
-                                                        \__-> I2P Socket(Destination C) <--> git.idk.i2p
+   Browser <-> HTTP Proxy Multiplexer(No Destination) <---> I2PSocketManager(Destination B) <--> idk.i2p
+                                                       \__-> I2PSocketManager(Destination C) <--> translate.idk.i2p
+                                                        \__-> I2PSocketManager(Destination C) <--> git.idk.i2p
 
 Status:
 ^^^^^^^
