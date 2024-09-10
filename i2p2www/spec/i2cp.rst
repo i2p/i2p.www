@@ -3,7 +3,7 @@ I2CP Specification
 ==================
 .. meta::
     :category: Protocols
-    :lastupdated: 2024-08
+    :lastupdated: 2024-09
     :accuratefor: 0.9.63
 
 .. contents::
@@ -12,7 +12,7 @@ I2CP Specification
 Overview
 ========
 
-This page specified the I2P Control Protocol (I2CP), which is the low-level interface
+This is the specification of the I2P Control Protocol (I2CP), the low-level interface
 between clients and the router.  Java clients will use the I2CP client API,
 which implements this protocol.
 
