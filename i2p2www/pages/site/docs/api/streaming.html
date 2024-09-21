@@ -1,7 +1,7 @@
 {% extends "global/layout.html" %}
 {% block title %}{% trans %}Streaming Protocol{% endtrans %}{% endblock %}
-{% block lastupdated %}2022-04{% endblock %}
-{% block accuratefor %}0.9.53{% endblock %}
+{% block lastupdated %}2024-09{% endblock %}
+{% block accuratefor %}0.9.64{% endblock %}
 {% block content %}
 <h2>{% trans %}Overview{% endtrans %}</h2>
 
@@ -330,10 +330,9 @@ As of release {{ release }}.
 
 <tr><td>i2p.streaming.maxWindowSize</td><td>128</td></tr>
 
-<tr><td>i2p.streaming.profile</td><td>1 (bulk)</td><td>{% trans -%}
-(2=interactive not supported)
-This doesn't currently do anything, but setting it to a value other than 1 will cause an error.
-{%- endtrans %}</td></tr>
+<tr><td>i2p.streaming.profile</td><td>1 (bulk)</td><td>
+1=bulk; 2=interactive; see important notes <a href="#profile">below</a>.
+</td></tr>
 
 <tr><td>i2p.streaming.readTimeout</td><td>-1</td><td>{% trans -%}
 How long to block on read, in milliseconds. Negative means indefinitely.
@@ -532,6 +531,29 @@ The payload in the ping, up to a maximum of 32 bytes, is returned in the pong.
 <p>{% trans -%}
 Streaming may be configured to disable sending pongs with the configuration i2p.streaming.answerPings=false.
 {%- endtrans %}</p>
+
+
+
+<h3 id="profile">i2p.streaming.profile Notes</h3>
+<p>
+This option supports two values; 1=bulk and 2=interactive.
+The option provides a hint to the streaming library and/or router as to
+the traffic pattern that is expected.
+</p><p>
+"Bulk" means to optimize for high bandwidth, possibly at the expense of latency.
+This is the default.
+"Interactive" means to optimize for low latency, possibly at the expense of bandwidth or efficiency.
+Optimization strategies, if any, are implementation-dependent, and may include changes
+outside of the streaming protocol.
+</p><p>
+Through API version 0.9.63, Java I2P would return an error for any value other than 1 (bulk) and the tunnel would fail to start.
+As of API 0.9.64, Java I2P ignores the value.
+Through API version 0.9.63, i2pd ignored this option; it is implemented in i2pd as of API 0.9.64.
+</p><p>
+While the streaming protocol includes a flag field to pass the profile setting to the
+other end, this is not implemented in any known router.
+</p>
+
 
 
 <h3 id="sharing">{% trans %}Control Block Sharing{% endtrans %}</h3>
