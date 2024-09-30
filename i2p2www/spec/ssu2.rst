@@ -3,8 +3,8 @@ SSU2
 ======
 .. meta::
     :category: Transports
-    :lastupdated: 2024-02
-    :accuratefor: 0.9.61
+    :lastupdated: 2024-10
+    :accuratefor: 0.9.64
 
 .. contents::
 
@@ -13,7 +13,7 @@ SSU2
 Status
 ========
 
-Testing in progress. See [Prop159]_ for additional background and goals,
+Substantially complete. See [Prop159]_ for additional background and goals,
 including security analysis, threat models, a review of SSU 1 security and issues,
 and excerpts of the QUIC specifications.
 
@@ -4327,7 +4327,7 @@ An additional packet count limit may be useful as well to prevent
 buffer overflow in the kernel or in middleboxes, implementation dependent,
 although this may add significant complexity.
 If per-session and/or total packet output is bandwidth-limited and/or paced,
-this may mitigate the need for packet count ilmiting.
+this may mitigate the need for packet count limiting.
 
 
 
