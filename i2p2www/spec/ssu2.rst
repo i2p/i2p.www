@@ -3,7 +3,7 @@ SSU2
 ======
 .. meta::
     :category: Transports
-    :lastupdated: 2024-10
+    :lastupdated: 2024-11
     :accuratefor: 0.9.64
 
 .. contents::
@@ -5476,6 +5476,10 @@ Relay Request, Relay Intro, and Relay Response
 are all in-session and are covered by the
 data phase ACK and retransmission processes.
 Relay Request, Relay Intro, and Relay Response blocks are ack-eliciting.
+
+Note that usually, Charlie will respond immediately to a Relay Intro
+with a Relay Response, which should include an ACK block.
+In that case, no separate message with an ACK block is required.
 
 Hole punch may be retransmitted, as in SSU 1.
 
