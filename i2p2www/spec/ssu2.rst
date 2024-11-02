@@ -5483,6 +5483,13 @@ In that case, no separate message with an ACK block is required.
 
 Hole punch may be retransmitted, as in SSU 1.
 
+Unlike I2NP messages, the Relay messages do not have unique identifiers,
+so duplicates must be detected by the relay state machine, using the nonce.
+Implementations may also need to maintain a cache of recently-used nonces,
+so that received duplicates may be detected even after the state machine for that nonce has completed.
+
+
+
 IPv4/v6
 ----------
 All features of SSU 1 relay are supported, including those documented in
