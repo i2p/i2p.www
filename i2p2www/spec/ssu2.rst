@@ -6074,6 +6074,8 @@ Recommended Constants
 - Max ACK ranges: 256?
 - Max ACK depth: 512?
 - Padding distribution: 0-15 bytes, or greater
+- Data phase minimum retransmission timeout: 1 second, as in [RFC-6298]_
+- See also [RFC-6298]_ for additional guidance on retransmission timers for the data phase.
 
 
 Packet Overhead Analysis
