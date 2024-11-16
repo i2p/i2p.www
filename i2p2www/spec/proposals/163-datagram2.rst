@@ -5,7 +5,7 @@ Datagram2 Protocol
     :author: zzz
     :created: 2023-01-24
     :thread: http://zzz.i2p/topics/3540
-    :lastupdated: 2024-04-14
+    :lastupdated: 2024-11-16
     :status: Open
     :target: 0.9.64
 
@@ -104,6 +104,7 @@ Design
   This is accomplished by moving the signature after the payload,
   and by adding a prelude to the signature function.
 - Add replay prevention as in [Prop164]_ for streaming.
+- Reuse offline signature format from [Common]_ and [Streaming]_.
 - Offline signature section must be before the variable-length
   payload and signature sections, as it specifies the length
   of the signature.
@@ -166,23 +167,24 @@ Add Datagram2 to [DATAGRAMS]_ as follows:
 
   offline_signature ::
                If flag indicates offline keys, the offline signature section,
+               as specified in the Common Structures Specification,
                with the following 4 fields. Length: varies by online and offline
                sig types, typically 102 bytes for Ed25519
                This section can, and should, be generated offline.
 
-  expires :: Expires timestamp
-             (4 bytes, big endian, seconds since epoch, rolls over in 2106)
+    expires :: Expires timestamp
+               (4 bytes, big endian, seconds since epoch, rolls over in 2106)
 
-  sigtype :: Transient sig type (2 bytes, big endian)
+    sigtype :: Transient sig type (2 bytes, big endian)
 
-  pubkey :: Transient signing public key (length as implied by sig type),
-            typically 32 bytes for Ed25519 sig type.
+    pubkey :: Transient signing public key (length as implied by sig type),
+              typically 32 bytes for Ed25519 sig type.
 
-  offsig :: a `Signature`
-            Signature of expires timestamp, transient sig type,
-            and public key, by the destination public key,
-            length: 40+ bytes, as implied by the Signature type, typically
-            64 bytes for Ed25519 sig type.
+    offsig :: a `Signature`
+              Signature of expires timestamp, transient sig type,
+              and public key, by the destination public key,
+              length: 40+ bytes, as implied by the Signature type, typically
+              64 bytes for Ed25519 sig type.
 
   payload ::  The data
               Length: 0 to about 61 KB (see notes)
@@ -206,13 +208,14 @@ typical length for X25519 senders and without offline signatures:
 Note that the message will typically be compressed with gzip at the I2CP layer,
 which will result in significant savings if the from destination is compressible.
 
+Note: The offline signature format is the same as in the Common Structures spec [Common]_ and [Streaming]_.
 
 Signatures
 ----------
 
 The signature is over the following fields.
 
-- Prelude: "DatagramProtocol" ? (not included in the datagram)
+- Prelude: "Datagram2Prelude" (not included in the datagram)
 - flags
 - tohash
 - offline_signature (if present)
@@ -309,6 +312,9 @@ References
 .. [BT-SPEC]
     {{ site_url('docs/applications/bittorrent', True) }}
 
+.. [Common]
+    {{ spec_url('common-structures') }}
+
 .. [DATAGRAMS]
     {{ spec_url('datagrams') }}
 
@@ -323,6 +329,9 @@ References
 
 .. [Prop164]
     {{ proposal_url('164') }}
+
+.. [Streaming]
+    {{ spec_url('streaming') }}
 
 .. [TRANSPORT]
     {{ site_url('docs/transport', True) }}
