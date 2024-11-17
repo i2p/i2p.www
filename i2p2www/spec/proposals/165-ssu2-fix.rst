@@ -5,7 +5,7 @@ I2P proposal #165: SSU2 fix
     :author: weko, orignal, the Anonymous, zzz
     :created: 2024-01-19
     :thread: http://i2pforum.i2p/viewforum.php?f=13
-    :lastupdated: 2024-01-19
+    :lastupdated: 2024-11-17
     :status: Open
     :target: 0.9.62
 
@@ -19,9 +19,7 @@ Proposal by weko, orignal, the Anonymous and zzz.
 Overview
 --------
 
-Suggesting changes in SSU2 after the attack on I2P that used SSU2’s
-problem.
-
+This document suggests changes to SSU2 following an attack on I2P that exploited vulnerabilities in SSU2. The primary goal is to enhance security and prevent Distributed Denial of Service (DDoS) attacks and de-anonymization attempts.
 
 Threat model
 ------------
@@ -156,6 +154,41 @@ Notes
 To save on RI size, better add handling if i key isn’t specified. If it
 is, then i = RouterIdent. In that case, Bob does not support old
 routers.
+
+4. Add one more MixHash to KDF of SessionRequest
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. _overview-4:
+
+Overview
+^^^^^^^^
+
+Add MixHash(Bob's ident hash) to NOISE state of "SessionRequest" message, e.g.
+h = SHA256 (h || Bob's ident hash).
+It must be last MixHash used as ad for ENCYPT or DECRYPT.
+Additional SSU2 header flag "Verify Bob's ident" = 0x02 must be introduced.
+
+.. _behavior-4:
+
+Behavior
+^^^^^^^^
+
+- Alice adds MixHash with Bob's ident hash from Bob's RouterInfo and use it as ad for ENCRYPT and sets "Verify Bob's ident" flag
+- Bob checks "Verify Bob's ident" flag and adds MixHash with own ident hash and use it ad as for DECRYPT. Is AEAD/Chacha20/Poly1305 fails, Bob closes the session.
+
+Compatibity with older routers
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+- Alice must check Bob's router version and if it satisfies miminal version supporting this proposal add this MixHash and set "Verify Bob's ident" flag. If router is older, Alice doesn't add MixHash and doesn't set "Verify Bob's ident" flag.
+- Bob checks "Verify Bob's ident" flag and adds this MixHash if it's set. Older router don't set this flag and this MixHash shouldn't be added.
+
+.. _problems-4:
+
+Problems
+^^^^^^^^
+
+- An attacker can claim fake routers with older version. At some point olders router should be used with precaution and  after they got verified by other ways.
+
 
 Backward compability
 --------------------
