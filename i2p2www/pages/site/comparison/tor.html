@@ -1,6 +1,6 @@
 {% extends "global/layout.html" %}
 {% block title %}{{ _('I2P Compared to Tor') }}{% endblock %}
-{% block lastupdated %}{% trans %}November 2016{% endtrans %}{% endblock %}
+{% block lastupdated %}{% trans %}July 2023{% endtrans %}{% endblock %}
 {% block content %}
 
 <h2>Tor / Onion Routing</h2>
@@ -9,36 +9,39 @@
 <p>{% trans netdb=site_url('docs/how/network-database'), peerselection=site_url('docs/how/peer-selection') -%}
 Tor and Onion Routing are both anonymizing proxy networks, 
 allowing people to tunnel out through their low latency mix 
-network. The two primary differences between Tor / 
-Onion-Routing and I2P are again related to differences in 
-the threat model and the out-proxy design (though Tor
-supports hidden services as well).  In addition, Tor
-takes the directory-based approach - providing a 
-centralized point to manage the overall 'view' of the 
-network, as well as gather and report statistics, as 
-opposed to I2P's distributed <a href="{{ netdb }}">network 
+network. The primary differences between Tor / 
+Onion-Routing and I2P are 
+threat model and out-proxy design, though Tor
+supports hidden services as well. In addition, Tor
+takes the directory-based approach, providing a 
+centralized point to manage the overall view of the 
+network, and gather and report statistics. This is different from I2P's distributed <a href="{{ netdb }}">network 
 database</a> and <a href="{{ peerselection }}">peer selection</a>.
 {%- endtrans %}</p>
 
 <p>{% trans -%}
-The I2P/Tor outproxy functionality does have a few 
-substantial weaknesses against certain attackers - 
-once the communication leaves the mixnet, global passive
-adversaries can more easily mount traffic analysis.  In 
-addition, the outproxies have access to the cleartext 
+Outproxy functionality has some  
+substantial weaknesses against certain attackers. For instance, 
+once communication leaves a mixnet, 
+adversaries can more easily mount traffic analysis. In 
+addition, outproxies have access to the cleartext 
 of the data transferred in both directions, and 
-outproxies are prone to abuse, along with all of the 
-other security issues we've come to know and love with 
-normal Internet traffic.
+outproxies are prone to abuse, along with  
+other security issues associated with 
+regular Internet traffic.
 {%- endtrans %}</p>
 
 <p>{% trans -%}
-However, many people don't need to worry about those 
-situations, as they are outside their threat model.  It
-is, also, outside I2P's (formal) functional scope (if people want
-to build outproxy functionality on top of an anonymous
-communication layer, they can).  In fact, some I2P users
-currently take advantage of Tor to outproxy.
+It's not always productive to compare Tor and I2P directly, because they are intended to accomplish things in somewhat different ways.
+
+I2P is a peer-to-peer network where every participant has exactly the same "status" within the network, more-or-less. This is in contrast to Tor which has a clear separation of "Clients" "Routers" and "Exits" with sub-categories within. In I2P, everyone is a "Client" and a "Router" and no one is an "Exit."
+The I2P network is not designed to exit traffic. Instead it is designed to be used as an internal, internet-like overlay network.
+
+Almost any application can run over the I2P network with enough effort. Things that involve knocking a TCP service to open a UDP service are possible on I2P in ways that are not immediately possible on Tor.
+
+On the other hand, Tor was designed with egress in mind. Exit nodes are official services, and Tor has defences designed around traffic confirmation by the exit node. The Tor Browser Bundle has made Tor much easier to use, and it has benefitted from extensive development, code review, and user facing design. This makes Tor better for accessing a clearnet website than using I2P's outproxy function.
+
+I2P network use-cases are much broader. Instead, the project ships a "Router Console" along with accompanying applications such as Bittorrent and email. These applications are pre-configured for I2P network use. The result is that I2P provides a broader use case end-user console UX that can seem confusing due to presenting the complexity of options.
 {%- endtrans %}</p>
 <!--
 <p>See also the
@@ -72,13 +75,12 @@ While Tor and I2P are similar in many ways, much of the terminology is different
 <tr><td>{{ _('Server') }}<td>{{ _('Router') }}
 </table>
 
-<h3>{{ _('Benefits of Tor over I2P') }}</h3>
+<h3>{{ _('Tor Overview') }}</h3>
 <ul>
  <li>
 {% trans -%}
-Much bigger user base; much more visibility in the academic and hacker communities; benefits from
-formal studies of anonymity, resistance, and performance;
-has a non-anonymous, visible, university-based leader
+Tor has a larger user base, and more visibility in academic communities. The project benefits from
+extensive formal studies related to anonymity, resistance, and performance. 
 {%- endtrans %}
  </li>
  <li>{% trans %}Has already solved some scaling issues I2P has yet to address{% endtrans %}</li>
@@ -94,8 +96,7 @@ More resistant to state-level blocking due to TLS transport layer and bridges
  <li>{% trans %}Designed and optimized for exit traffic, with a large number of exit nodes{% endtrans %}</li>
  <li>
 {% trans -%}
-Better documentation, has formal papers and specifications,
-better website, many more translations
+Better documentation, formal papers and specifications.
 {%- endtrans %}
  </li>
  <li>{% trans %}More efficient with memory usage{% endtrans %}</li>
@@ -112,12 +113,12 @@ A core of high capacity nodes provides higher
 throughput and lower latency
 {%- endtrans %}
  </li>
- <li>{% trans %}C, not Java (ewww){% endtrans %}</li>
+ 
 </ul>
 
-<h3>{{ _('Benefits of I2P over Tor') }}</h3>
+<h3>{{ _('I2P Overview') }}</h3>
 <ul>
- <li>{% trans %}Designed and optimized for hidden services, which are much faster than in Tor{% endtrans %}</li>
+ <li>{% trans %}Designed and optimized for hidden services, which are faster than in Tor{% endtrans %}</li>
  <li>{% trans %}Fully distributed and self organizing{% endtrans %}</li>
  <li>
 {% trans -%}
@@ -131,7 +132,7 @@ Floodfill peers ("directory servers") are varying and untrusted,
 rather than hardcoded
 {%- endtrans %}
  </li>
- <li>{% trans %}Small enough that it hasn't been blocked or DOSed much, or at all{% endtrans %}</li>
+ <li>{% trans %}Has had to adapt to blocking and DOS attempts{% endtrans %}</li>
  <li>{% trans %}Peer-to-peer friendly{% endtrans %}</li>
  <li>{% trans %}Packet switched instead of circuit switched{% endtrans %}
   <ul>
@@ -194,17 +195,17 @@ security, while SOCKS is designed for functionality.
  <li>
 {% trans -%}
 The bandwidth overhead of being a full peer is low, 
-while in Tor, while client nodes don't require much
+however in Tor, while client nodes don't require much
 bandwidth, they don't fully participate in the mixnet.
 {%- endtrans %}
  </li>
  <li>{% trans %}Integrated automatic update mechanism{% endtrans %}</li>
  <li>{% trans %}Both TCP and UDP transports{% endtrans %}</li>
- <li>{% trans %}Java, not C (ewww){% endtrans %}</li>
+ 
 </ul>
 
-<h3>{{ _('Other potential benefits of I2P but not yet implemented') }}</h3>
-<p>{% trans %}...and may never be implemented, so don't count on them!{% endtrans %}</p>
+<h3>{{ _('Potential design differences of I2P that are not yet implemented') }}</h3>
+<p>{% endtrans %}</p>
 <ul>
  <li>
 {% trans -%}
@@ -221,10 +222,10 @@ by other hops)
  </li>
  <li>
 {% trans -%}
-Various mixing strategies at the tunnel level (e.g.
+Mixing strategies at the tunnel level (e.g.
 create a tunnel that will handle 500 messages / minute,
 where the endpoint will inject dummy messages if there
-are insufficient messages, etc)
+are insufficient messages.)
 {%- endtrans %}
  </li>
 </ul>
