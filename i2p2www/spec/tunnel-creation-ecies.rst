@@ -3,8 +3,8 @@ ECIES-X25519 Tunnel Creation
 =============================
 .. meta::
     :category: Protocols
-    :lastupdated: 2021-07
-    :accuratefor: 0.9.51
+    :lastupdated: 2024-12
+    :accuratefor: 0.9.65
 
 .. contents::
 
@@ -904,6 +904,108 @@ Implementation Notes
   if possible, to reduce CPU usage.
 
 
+Tunnel Bandwidth Parameters
+===========================
+
+Overview
+--------
+
+As we have increased the performance of the network over the last several years
+with new protocols, encryption types, and congestion control improvements,
+faster applications such as video streaming are becoming possible.
+These applications require high bandwidth at each hop in their client tunnels.
+
+Participating routers, however, do not have any information about how much
+bandwidth a tunnel will use when they get a tunnel build message.
+They can only accept or reject a tunnel based on the current total bandwidth
+used by all participating tunnels and the total bandwidth limit for participating tunnels.
+
+Requesting routers also do not have any information on how much bandwidth
+is available at each hop.
+
+Also, routers currently have no way to limit inbound traffic on a tunnel.
+This would be quite useful during times of overload or DDoS of a service.
+
+Tunnel bandwidth parameters in the tunnel build request and reply messages
+add support for these features. See [Prop168]_ for additional background.
+These parameters are defined as of API 0.9.65, but support may vary by implementation.
+They are supported for both long and short ECIES build records.
+
+Build Request Options
+---------------------------
+
+The following three options may be set in the tunnel build options mapping field of the record:
+A requesting router may include any, all, or none.
+
+- m := minimum bandwidth required for this tunnel (KBps positive integer as a string)
+- r := requested bandwidth for this tunnel (KBps positive integer as a string)
+- l := limit bandwidth for this tunnel; only sent to IBGW (KBps positive integer as a string)
+
+Constraint: m <= r <= l
+
+The participating router should reject the tunnel if "m" is specified and it cannot
+provide at least that much bandwidth.
+
+Request options are sent to each participant in the corresponding encrypted build request record,
+and are not visible to other participants.
+
+
+Build Reply Option
+---------------------------
+
+The following option may be set in the tunnel build reply options mapping field of the record,
+when the response is ACCEPTED:
+
+- b := bandwidth available for this tunnel (KBps positive integer as a string)
+
+Constraint: b >= m
+
+The participating router should include this if either "m" or "r" was specified
+in the build request. The value should be at least that of the "m" value if specified,
+but may be less or more than the "r" value if specified.
+
+The participating router should attempt to reserve and provide at least this
+much bandwidth for the tunnel, however this is not guaranteed.
+Routers cannot predict conditions 10 minutes into the future, and
+participating traffic is lower-priority than a router's own traffic and tunnels.
+
+Routers may also over-allocate available bandwidth if necessary, and this is
+probably desirable, as other hops in the tunnel could reject it.
+
+For these reasons, the participating router's reply should be treated
+as a best-effort commitment, but not a guarantee.
+
+Reply options are sent to the requesting router in the corresponding encrypted build reply record,
+and are not visible to other participants.
+
+
+Implementation Notes
+---------------------
+
+Bandwidth parameters are as seen at the participating routers at the tunnel layer,
+i.e. the number of fixed-size 1 KB tunnel messages per second.
+Transport (NTCP2 or SSU2) overhead is not included.
+
+This bandwidth may be much more or less than the bandwidth seen at the client.
+Tunnel messages contain substantial overhead, including overhead from higher layers
+including ratchet and streaming. Intermittent small messages such as streaming acks
+will be expanded to 1 KB each.
+However, gzip compression at the I2CP layer may substantially reduce bandwidth.
+
+The simplest implementation at the requesting router is to use
+the average, minimum, and/or maximum bandwidths of current tunnels in the pool
+to calculate the values to put in the request.
+More complex algorithms are possible and are up to the implementer.
+
+There are no current I2CP or SAM options defined for the client to tell the
+router what bandwidth is required, and no new options are proposed here.
+Options may be defined at a later date if necessary.
+
+Implementations may use available bandwidth or any other data, algorithm, local policy,
+or local configuration to calculate the bandwidth value returned in the
+build response.
+
+
 
 References
 ==========
@@ -949,6 +1051,9 @@ References
 
 .. [Prop157]
     {{ proposal_url('157') }}
+
+.. [Prop168]
+    {{ proposal_url('168') }}
 
 .. [Tunnel-Creation]
    {{ spec_url('tunnel-creation') }}

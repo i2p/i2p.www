@@ -5,11 +5,20 @@ Tunnel Bandwidth Parameters
     :author: zzz
     :created: 2024-07-31
     :thread: http://zzz.i2p/topics/3652
-    :lastupdated: 2024-12-09
-    :status: Open
+    :lastupdated: 2024-12-10
+    :status: Closed
     :target: 0.9.65
 
 .. contents::
+
+
+
+NOTE
+====
+
+This proposal was approved and is now in the
+[Tunnel-Creation-ECIES]_ specification as of API 0.9.65.
+There are no known implementations yet; implementation dates / API versions are TBD.
 
 
 
