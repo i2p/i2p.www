@@ -208,7 +208,7 @@ The request exipration is for future variable tunnel duration.
 For now, the only supported value is 600 (10 minutes).
 
 The tunnel build options is a Mapping structure as defined in [Common]_.
-This is for future use. No options are currently defined.
+The only options currently defined are for bandwidth parameters, as of API 0.9.65, see below for details.
 If the Mapping structure is empty, this is two bytes 0x00 0x00.
 The maximum size of the Mapping (including the length field) is 296 bytes,
 and the maximum value of the Mapping length field is 294.
@@ -267,7 +267,7 @@ bytes    0-x: Tunnel Build Reply Options (Mapping)
 {% endhighlight %}
 
 The tunnel build reply options is a Mapping structure as defined in [Common]_.
-This is for future use. No options are currently defined.
+The only options currently defined are for bandwidth parameters, as of API 0.9.65, see below for details.
 If the Mapping structure is empty, this is two bytes 0x00 0x00.
 The maximum size of the Mapping (including the length field) is 511 bytes,
 and the maximum value of the Mapping length field is 509.
@@ -681,7 +681,7 @@ This is only included in the plaintext record in an Inbound Tunnel Build message
 It is required because there is no DH at this layer for the build record.
 
 The tunnel build options is a Mapping structure as defined in [Common]_.
-This is for future use. No options are currently defined.
+The only options currently defined are for bandwidth parameters, as of API 0.9.65, see below for details.
 If the Mapping structure is empty, this is two bytes 0x00 0x00.
 The maximum size of the Mapping (including the length field) is 98 bytes,
 and the maximum value of the Mapping length field is 96.
@@ -739,7 +739,7 @@ bytes    0-x: Tunnel Build Reply Options (Mapping)
 {% endhighlight %}
 
 The tunnel build reply options is a Mapping structure as defined in [Common]_.
-This is for future use. No options are currently defined.
+The only options currently defined are for bandwidth parameters, as of API 0.9.65, see below for details.
 If the Mapping structure is empty, this is two bytes 0x00 0x00.
 The maximum size of the Mapping (including the length field) is 201 bytes,
 and the maximum value of the Mapping length field is 199.
