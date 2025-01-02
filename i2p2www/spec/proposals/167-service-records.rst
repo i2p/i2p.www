@@ -5,9 +5,9 @@ Service Records in LS2
     :author: zzz
     :created: 2024-06-22
     :thread: http://zzz.i2p/topics/3641
-    :lastupdated: 2024-06-28
+    :lastupdated: 2025-01-02
     :status: Open
-    :target: 0.9.65
+    :target: 0.9.66
 
 .. contents::
 
@@ -30,8 +30,8 @@ Other possible applications: DNS, GNS, key servers, certificate authorities, tim
 bittorrent, cryptocurrencies, other peer-to-peer applications.
 
 
-Related Proposals
-==================
+Related Proposals and Alternatives
+==================================
 
 Service Lists
 --------------
@@ -72,13 +72,15 @@ MX Records
 SRV records are simply a generic version of MX records for any service.
 "_smtp._tcp" is the "MX" record.
 There is no need for MX records if we have SRV records, and MX records
-alone does not provide a generic record for any service.
+alone do not provide a generic record for any service.
 
 
 Design
 ======
 
-Service records are placed in the (currently unused) options section in LS2 [LS2]_.
+Service records are placed in the options section in LS2 [LS2]_.
+The options section is currently unused, however it will be used when
+the tunnel bandwidth proposal [Prop168]_ is implemented.
 Not supported for LS1.
 
 To lookup a service address for a specific hostname or b32, the router fetches the
@@ -131,6 +133,10 @@ Defined as follows:
 
 Examples
 ``````````
+
+In LS2 for aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa.b32.i2p, pointing to one SMTP server:
+
+"_smtp._tcp" "1 86400 0 0 25 bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb.b32.i2p"
 
 In LS2 for aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa.b32.i2p, pointing to two SMTP servers:
 
@@ -192,6 +198,11 @@ See Recommendations section below.
 
 Additional MessageStatusMessage and/or HostReplyMessage error codes related to service lookup
 may be required and must be added to the [I2CP]_ document.
+
+Possible implementation: Extend HostLookupMessage to add request for
+LS2 options for hash, hostname, and destination (request types 2-4).
+Extend HostReplyMessage to add the options mapping if requested.
+Extend HostReplyMessage with additional error codes.
 
 Configuration is implementation-dependent. We may define standard I2CP options
 for i2ptunnel and SAM, to be documented in [I2CP-OPTIONS]_.
@@ -344,6 +355,9 @@ References
 
 .. [Prop123]
     {{ proposal_url('123') }}
+
+.. [Prop168]
+    {{ proposal_url('168') }}
 
 .. [REGISTRY]
     http://www.dns-sd.org/ServiceTypes.html
