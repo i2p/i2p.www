@@ -5,7 +5,7 @@ Datagram2 Protocol
     :author: zzz
     :created: 2023-01-24
     :thread: http://zzz.i2p/topics/3540
-    :lastupdated: 2024-11-16
+    :lastupdated: 2025-01-05
     :status: Open
     :target: 0.9.64
 
@@ -88,7 +88,7 @@ The standard I2CP protocol number for repliable datagrams is PROTO_DATAGRAM (17)
   payload ::  The data
               Length: 0 to about 31.5 KB (see notes)
 
-  Total length: Payload length + 427+
+  Total length: Payload length + 423+
 {% endhighlight %}
 
 
@@ -102,8 +102,8 @@ Design
 - New signature specification different from repliable datagram or streaming, so that
   signature verification will fail if interpreted as repliable datagram or streaming.
   This is accomplished by moving the signature after the payload,
-  and by adding a prelude to the signature function.
-- Add replay prevention as in [Prop164]_ for streaming.
+  and by including the destination hash in the signature function.
+- Add replay prevention for datagrams, as was done in [Prop164]_ for streaming.
 - Reuse offline signature format from [Common]_ and [Streaming]_.
 - Offline signature section must be before the variable-length
   payload and signature sections, as it specifies the length
@@ -134,8 +134,8 @@ Add Datagram2 to [DATAGRAMS]_ as follows:
   ~                                       ~
   |                                       |
   +----+----+----+----+----+----+----+----+
-  |  flags  |       tohash      |         |
-  +----+----+----+----+----+----+         +
+  |  flags  |                             |
+  +----+----+                             +
   |                                       |
   ~     offline_signature (optional)      ~
   ~   expires, sigtype, pubkey, offsig    ~
@@ -161,9 +161,6 @@ Add Datagram2 to [DATAGRAMS]_ as follows:
            Bits 3-0: Version: 0x02 (0 0 1 0)
            Bit 4: If 0, no offline sig; if 1, offline signed
            Bits 15-5: unused, set to 0 for compatibility with future uses
-
-  tohash :: (4 bytes)
-            The first 4 bytes of the target destination, for replay prevention
 
   offline_signature ::
                If flag indicates offline keys, the offline signature section,
@@ -215,9 +212,8 @@ Signatures
 
 The signature is over the following fields.
 
-- Prelude: "Datagram2Prelude" (not included in the datagram)
+- Prelude: The 32-byte hash of the target destination (not included in the datagram)
 - flags
-- tohash
 - offline_signature (if present)
 - payload
 
@@ -243,7 +239,7 @@ Update the information on offline signatures.
 Overhead
 --------
 
-This design adds 6 bytes of overhead to repliable datagrams; 2 for flags and 4 for replay prevention.
+This design adds 2 bytes of overhead to repliable datagrams for flags.
 This is acceptable.
 
 
@@ -251,7 +247,7 @@ This is acceptable.
 Security Analysis
 =================
 
-Four bytes for the hash prefix should be sufficient?
+Including the target hash in the signature should be effective at preventing replay attacks.
 
 
 
