@@ -104,6 +104,7 @@ Design
   This is accomplished by moving the signature after the payload,
   and by including the destination hash in the signature function.
 - Add replay prevention for datagrams, as was done in [Prop164]_ for streaming.
+- Add section for arbitrary options
 - Reuse offline signature format from [Common]_ and [Streaming]_.
 - Offline signature section must be before the variable-length
   payload and signature sections, as it specifies the length
@@ -134,8 +135,8 @@ Add Datagram2 to [DATAGRAMS]_ as follows:
   ~                                       ~
   |                                       |
   +----+----+----+----+----+----+----+----+
-  |  flags  |                             |
-  +----+----+                             +
+  |  flags  | options (optional)|         |
+  +----+----+----+----+----+----+         +
   |                                       |
   ~     offline_signature (optional)      ~
   ~   expires, sigtype, pubkey, offsig    ~
@@ -159,8 +160,13 @@ Add Datagram2 to [DATAGRAMS]_ as follows:
   flags :: (2 bytes)
            Bit order: 15 14 ... 3 2 1 0
            Bits 3-0: Version: 0x02 (0 0 1 0)
-           Bit 4: If 0, no offline sig; if 1, offline signed
-           Bits 15-5: unused, set to 0 for compatibility with future uses
+           Bit 4: If 0, no options; if 1, options mapping is included
+           Bit 5: If 0, no offline sig; if 1, offline signed
+           Bits 15-6: unused, set to 0 for compatibility with future uses
+
+  options :: (2+ bytes if present)
+           If flag indicates options are present, a `Mapping`
+           containing arbitrary text options
 
   offline_signature ::
                If flag indicates offline keys, the offline signature section,
@@ -214,6 +220,7 @@ The signature is over the following fields.
 
 - Prelude: The 32-byte hash of the target destination (not included in the datagram)
 - flags
+- options (if present)
 - offline_signature (if present)
 - payload
 
@@ -225,8 +232,8 @@ always over the fields above (NOT the hash), regardless of key type.
 ToHash Verification
 -------------------
 
-Receivers must verify that the tohash field matches the first four bytes
-of their destination hash, and discard on mismatch, for replay prevention.
+Receivers must verify the signature (using their destination hash)
+and discard the datagram on failure, for replay prevention.
 
 
 SAM
