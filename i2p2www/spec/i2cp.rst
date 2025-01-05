@@ -3,8 +3,8 @@ I2CP Specification
 ==================
 .. meta::
     :category: Protocols
-    :lastupdated: 2024-09
-    :accuratefor: 0.9.63
+    :lastupdated: 2025-01
+    :accuratefor: 0.9.64
 
 .. contents::
 
@@ -1438,6 +1438,7 @@ Bit 8
 Bits 7-4
     Low tag threshold. If there are less than this many tags available, send
     more.  This is advisory and does not force tags to be delivered.
+    For ElGamal only. Ignored for ECIES-Ratchet.
 
 ===========  =============
 Field value  Tag threshold
@@ -1463,6 +1464,7 @@ Field value  Tag threshold
 Bits 3-0
     Number of tags to send if required.  This is advisory and does not force
     tags to be delivered.
+    For ElGamal only. Ignored for ECIES-Ratchet.
 
 ===========  ============
 Field value  Tags to send
