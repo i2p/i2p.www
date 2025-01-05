@@ -135,8 +135,11 @@ Add Datagram2 to [DATAGRAMS]_ as follows:
   ~                                       ~
   |                                       |
   +----+----+----+----+----+----+----+----+
-  |  flags  | options (optional)|         |
-  +----+----+----+----+----+----+         +
+  |  flags  |     options (optional)      |
+  +----+----+                             +
+  ~                                       ~
+  ~                                       ~
+  +----+----+----+----+----+----+----+----+
   |                                       |
   ~     offline_signature (optional)      ~
   ~   expires, sigtype, pubkey, offsig    ~
