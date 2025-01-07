@@ -104,7 +104,7 @@ Format
                The signature may be verified by the signing public key of $from
 
   payload ::  The data
-              Length: 0 to ~31.5 KB (see notes)
+              Length: 0 to about 31.5 KB (see notes)
 
   Total length: Payload length + 427+
 {% endhighlight %}

@@ -18,6 +18,7 @@ RUN rm -rfv env && \
     . env/bin/activate                          && \
     pip install -r etc/reqs.txt                 && \
     patch -p0 -N -r - <etc/multi-domain.patch   && \
+    cp -rv env ../env                           && \
     ./compile-messages.sh                       && \  
     echo "Git revision: $(git log -n 1 | grep commit | sed 's/commit //' | sed 's/ .*$//')" | tee ./i2p2www/pages/include/mtnversion && \
     ## We've now updated the site
@@ -37,4 +38,4 @@ RUN rm -rfv env && \
     sed -i 's|IncludeOptional sites-enabled|# IncludeOptional sites-enabled|g' /etc/apache2/apache2.conf && \
     sed -i '1 i\IncludeOptional sites-enabled/i2p.conf' /etc/apache2/apache2.conf
 
-CMD service apache2 restart && tail -f /var/log/apache2/access.log
+CMD service apache2 restart && tail -f /var/log/apache2/access.log /var/log/apache2/error.log

@@ -3,8 +3,8 @@ I2NP Specification
 ==================
 .. meta::
     :category: Protocols
-    :lastupdated: 2022-12
-    :accuratefor: 0.9.57
+    :lastupdated: 2024-05
+    :accuratefor: 0.9.62
 
 .. contents::
 
@@ -45,9 +45,15 @@ below.
 ==============  ================================================================
  API Version    Required I2NP Features
 ==============  ================================================================
+   0.9.58       Minimum peers will build tunnels through, as of 0.9.62
+
    0.9.55       SSU2 transport support (if published in router info)
 
    0.9.51       Short tunnel build messages for ECIES-X25519 routers
+
+                Minimum peers will build tunnels through, as of 0.9.58
+
+                Minimum floodfill peers will send DSM to, as of 0.9.58
 
    0.9.49       Garlic messages to ECIES-X25519 routers
 
@@ -1192,8 +1198,20 @@ Notes
 
 * The returned peer hashes are not necessarily closer to the key than the
   router being queried.
+  For replies to regular lookups, this facilitates discovery of new floodfills
+  and "backwards" searching (further-from-the-key) for robustness.
 
+* The key for an exploration lookup is usually generated randomly.
+  Therefore, the response's non-floodfill peer_hashes may be selected using an
+  optimized algorithm, such as providing peers that are close to the key but not
+  necessarily the closest in the entire local network database, to avoid an
+  inefficient sort or search of the entire local database.
+  Other strategies such as caching may also be appropriate.
+  This is implementation-dependent.
+	
 * Typical number of hashes returned: 3
+
+* Recommended maximum number of hashes to return: 16
 
 * The lookup key, peer hashes, and from hash are "real" hashes, NOT routing
   keys.

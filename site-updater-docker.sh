@@ -52,4 +52,4 @@ cd "$DIR" || exit
 git pull origin $i2p_www_branch
 docker build $i2p_www_docker_build_args -t mirror.i2p.www$suffix .
 docker rm -f mirror.i2p.www$suffix
-docker run $i2p_www_docker_run_args --name mirror.i2p.www$suffix -p 0.0.0.0:$port:80 mirror.i2p.www$suffix $@
+docker run -it $i2p_www_docker_run_args --name mirror.i2p.www$suffix -p 127.0.0.1:5000:5000 -p 0.0.0.0:$port:80 $devmode mirror.i2p.www$suffix $@

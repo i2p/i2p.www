@@ -1,7 +1,7 @@
 {% extends "global/layout.html" %}
 {% block title %}{% trans %}The Network Database{% endtrans %}{% endblock %}
-{% block lastupdated %}2023-01{% endblock %}
-{% block accuratefor %}0.9.57{% endblock %}
+{% block lastupdated %}2024-04{% endblock %}
+{% block accuratefor %}0.9.62{% endblock %}
 {% block content %}
 <h2>{% trans %}Overview{% endtrans %}</h2>
 
@@ -46,7 +46,10 @@ to be present:
   <li><b>caps</b>
 ({% trans %}Capabilities flags - used to indicate floodfill participation, approximate bandwidth, and perceived reachability{% endtrans %})
   <ul>
+    <li><b>D</b>: Medium congestion (as of release 0.9.58)</li>
+    <li><b>E</b>: High congestion (as of release 0.9.58)</li>
     <li><b>f</b>: {% trans %}Floodfill{% endtrans %}</li>
+    <li><b>G</b>: Rejecting all tunnels (as of release 0.9.58)</li>
     <li><b>H</b>: {% trans %}Hidden{% endtrans %}</li>
     <li><b>K</b>: {% trans amount='12 KBps' %}Under {{amount }} shared bandwidth{% endtrans %}</li>
     <li><b>L</b>: {% trans amount='12 - 48 KBps' %}{{ amount }} shared bandwidth{% endtrans %} ({% trans %}default{% endtrans %})</li>
@@ -70,6 +73,13 @@ For compatibility with older routers, a router may publish multiple bandwidth le
   </li>
 </ul>
 
+<p>
+Notes on R/U capabilities:
+A router should usually publish the R or U capability, unless the reachability state is currently unknown.
+R means that the router is directly reachable (no introducers required, not firewalled) on at least one transport address.
+U means that the router is NOT directly reachable on ANY transport address.
+
+<p>
 Deprecated options:
 <ul>
   <li><strike>coreVersion</strike>
@@ -519,7 +529,34 @@ Routing keys are never sent on-the-wire in any I2NP message, they are only used 
 determination of distance.
 {%- endtrans %}</p>
 
-
+<h2 id="segmentation">{% trans %}Network Database Segmentation - Sub-Databases{% endtrans %}</h2>
+<p>{% trans -%}Traditionally Kademlia-style DHT's are not concerned with preserving the unlinkability of information stored on any particular node in the DHT.
+For example, a piece of information may be stored to one node in the DHT, then requested back from that node unconditionally.
+Within I2P and using the netDb, this is not the case, information stored in the DHT may only be shared under certain known circumstances where it is "safe" to do so.
+This is to prevent a class of attacks where a malicious actor can try to associate a client tunnel with a router by sending a store to a client tunnel, then requesting it back directly from the suspected "Host" of the client tunnel.
+{%- endtrans %}</p>
+<h3>{% trans %}Segmentation Structure{% endtrans %}</h3>
+<p>{% trans -%}I2P routers can implement effective defenses against the attack class provided a few conditions are met.
+A network database implementation should be able to keep track of whether a database entry was recieved down a client tunnel or directly.
+If it was recieved down a client tunnel, then it should also keep track of which client tunnel it was recieved through, using the client's local destination.
+If the entry was recieved down multiple client tunnels, then the netDb should keep track of all destinations where the entry was observed.
+It should also keep track of whether an entry was recieved as a reply to a lookup, or as a store.
+{%- endtrans %}</p>
+<p>{% trans -%}In both the Java and C++ implementations, this achieved by using a single "Main" netDb for direct lookups and floodfill operations first.
+This main netDb exists in the router context.
+Then, each client is given it's own version of the netDb, which is used to capture database entries sent to client tunnels and respond to lookups sent down client tunnels.
+We call these "Client Network Databases" or "Sub-Databases" and they exist in the client context.
+The netDb operated by the client exists for the lifetime of the client only and contains only entries that are communicated with the client's tunnels.
+This makes it impossible for entries sent down client tunnels to overlap with entries sent directly to the router.
+{%- endtrans %}</p>
+<p>{% trans -%}Additionally, each netDb needs to be able to remember if a database entry was recieved because it was sent to one of our destinations, or because it was requested by us as part of a lookup.
+If a database entry it was recieved as a store, as in some other router sent it to us, then a netDb should respond to requests for the entry when another router looks up the key.
+However, if it was recieved as a reply to a query, then the netDb should only reply to a query for the entry if the entry had already been stored to the same destination.
+A client should never answer queries with an entry from the main netDb, only it's own client network database.
+{%- endtrans %}</p>
+<p>{% trans -%}These strategies should be taken and used combined so that both are applied.
+In combination, they "Segment" the netDb and secure it against attacks.
+{%- endtrans %}</p>
 
 <h2 id="delivery">{% trans %}Storage, Verification, and Lookup Mechanics{% endtrans %}</h2>
 
@@ -574,7 +611,13 @@ The floodfill router replies with a
 with the Message ID set to the value of the Reply Token.
 {%- endtrans %}</p>
 
-
+<p>In some circumstances, a router may also send the RouterInfo DatabaseStoreMessage out
+an exploratory tunnel; for example, due to connection limits, connection incompatibility,
+or a desire to hide the actual IP from the floodfill.
+The floodfill may not accept such a store in times of overload or based
+on other criteria; whether to explicitly declare non-direct store of a RouterInfo illegal is a topic
+for further study.
+</p>
 
 
 <h3>{% trans %}LeaseSet Storage to Floodfills{% endtrans %}</h3>
@@ -597,6 +640,13 @@ This message is sent back to one of the client's inbound tunnels.
 
 
 <h3>{% trans %}Flooding{% endtrans %}</h3>
+<p>
+Like any router, a floodfill uses various criteria to validate the LeaseSet or RouterInfo before storing it locally.
+These criteria may be adaptive and dependent on current conditions including current load, netdb size,
+and other factors.
+All validation must be done before flooding.
+</p>
+
 <p>{% trans floodsize=3 -%}
 After a floodfill router receives a DatabaseStoreMessage containing a
 valid RouterInfo or LeaseSet which is newer than that previously stored in its
@@ -616,6 +666,14 @@ as this is a direct connection, so there are no intervening routers
 (and no need to hide this data anyway).
 The other routers do not reply or re-flood, as the Reply Token is zero.
 {%- endtrans %}</p>
+
+<p>
+Floodfills must not flood via tunnels; the DatabaseStoreMessage must be sent over a direct connection.
+</p>
+
+<p>
+Floodfills must never flood an expired LeaseSet or a RouterInfo published more than one hour ago. 
+</p>
 
 
 <h3 id="lookup">{% trans %}RouterInfo and LeaseSet Lookup{% endtrans %}</h3>

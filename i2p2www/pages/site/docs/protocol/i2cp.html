@@ -1,7 +1,7 @@
 {% extends "global/layout.html" %}
 {% block title %}I2CP{% endblock %}
-{% block lastupdated %}2020-09{% endblock %}
-{% block accuratefor %}0.9.47{% endblock %}
+{% block lastupdated %}2025-01{% endblock %}
+{% block accuratefor %}0.9.64{% endblock %}
 {% block content %}
 <p>{% trans -%}
 The I2P Client Protocol (I2CP) exposes a strong separation of concerns between
@@ -63,13 +63,15 @@ through an internal JVM interface.
 {%- endtrans %}</p>
 
 <p>{% trans commonstructures=site_url('docs/spec/common-structures') -%}
-The router also supports external connections over SSL.
+Some router and client implementations may also support external connections over SSL,
+as configured by the i2cp.SSL=true option.
 While SSL is not the default, it is strongly recommended for any traffic that may
 be exposed to the open Internet. The authorization user/password (if any), the
 <a href="{{ commonstructures }}#type_PrivateKey">Private Key</a> and
 <a href="{{ commonstructures }}#type_SigningPrivateKey">Signing Private Key</a> for the
 <a href="{{ commonstructures }}#struct_Destination">Destination</a>
 are all transmitted in-the-clear unless SSL is enabled.
+Some router and client implementations may also support external connections over domain sockets.
 {%- endtrans %}</p>
 
 <h2>{% trans %}I2CP Protocol Specification{% endtrans %}</h2>
@@ -923,7 +925,17 @@ to work reliably in the presence of multiple channels.
 <p>{% trans -%}
 The gzip function cannot be completely turned off, however setting i2cp.gzip=false
 turns the gzip effort setting to 0, which may save a little CPU.
-{%- endtrans %}</p>
+{%- endtrans %}
+Implementations may select different gzip efforts on a per-socket or
+per-message basis, depending on an assessment of the compressibility
+of the contents. Due to the compressibility of destination padding implemented in
+API 0.9.57 (proposal 161), compression of the streaming SYN packets
+in each direction, and of repliable datagrams, is recommended even if
+the payload is not compressible.
+Implementations may wish to write a trivial gzip/gunzip function for
+a gzip effort of 0, which will provide large efficiency gains
+over a gzip library for this case.
+</p>
 <table border=1>
 <tr>
 <th>{% trans %}Bytes{% endtrans %}</th>
@@ -970,6 +982,44 @@ I2P protocol number 255 is reserved for future expansion.
 Data integrity is verified with the standard gzip CRC-32 as
 specified by <a href="http://www.ietf.org/rfc/rfc1952.txt">RFC 1952</a>.
 {%- endtrans %}</p>
+
+
+
+<h2>Important Differences from Standard IP</h2>
+<p>
+I2CP ports are for I2P sockets and datagrams. They are unrelated to your local sockets or ports.
+Because I2P did not support ports and protocol numbers prior to release 0.7.1,
+ports and protocol numbers are somewhat different from that in standard IP,
+for backward compatibility:
+</p>
+
+<ul><li>
+Port 0 is valid and has special meaning.
+</li><li>
+Ports 1-1023 are not special or privileged.
+</li><li>
+Servers listen on port 0 by default, which means "all ports".
+</li><li>
+Clients send to port 0 by default, which means "any port".
+</li><li>
+Clients send from port 0 by default, which means "unspecified".
+</li><li>
+Servers may have a service listening on port 0 and other services listening on higher ports.
+If so, the port 0 service is the default, and will be connected to if the incoming
+socket or datagram port does not match another service.
+</li><li>
+Most I2P destinations only have one service running on them, so you may use the defaults, and ignore I2CP port configuration.
+</li><li>
+Protocol 0 is valid and means "any protocol". However, this is not recommended, and probably will not work.
+Streaming requires that the protocol number is set to 6.
+</li><li>
+Streaming sockets are tracked by an internal connection ID.
+Therefore, there is no requirement that the 5-tuple of dest:port:dest:port:protocol be unique.
+For example, there may be multiple sockets with the same ports between two destinations.
+Clients do not need to pick a "free port" for an outbound connection.
+</li></ul>
+
+
 
 
 <h2 id="future">{% trans %}Future Work{% endtrans %}</h2>

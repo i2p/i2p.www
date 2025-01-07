@@ -3,8 +3,8 @@ SSU2
 ======
 .. meta::
     :category: Transports
-    :lastupdated: 2023-01
-    :accuratefor: 0.9.57
+    :lastupdated: 2024-11
+    :accuratefor: 0.9.64
 
 .. contents::
 
@@ -13,7 +13,7 @@ SSU2
 Status
 ========
 
-Testing in progress. See [Prop159]_ for additional background and goals,
+Substantially complete. See [Prop159]_ for additional background and goals,
 including security analysis, threat models, a review of SSU 1 security and issues,
 and excerpts of the QUIC specifications.
 
@@ -40,7 +40,7 @@ Connection Migration            0.9.55+ dev            0.9.56  2022-11
 Immediate ACK flag              0.9.55+ dev            0.9.56  2022-11
 Key Rotation                    0.9.57  2023-02        0.9.58  2023-05
 Disable SSU 1 (i2pd)            0.9.56  2022-11
-Disable SSU 1 (Java I2P)        0.9.58  2023-05        0.9.59  2023-08
+Disable SSU 1 (Java I2P)        0.9.58  2023-05        0.9.61  2023-12
 ==========================      =====================  ====================
 
 Basic Session includes the handshake and data phase.
@@ -4327,7 +4327,7 @@ An additional packet count limit may be useful as well to prevent
 buffer overflow in the kernel or in middleboxes, implementation dependent,
 although this may add significant complexity.
 If per-session and/or total packet output is bandwidth-limited and/or paced,
-this may mitigate the need for packet count ilmiting.
+this may mitigate the need for packet count limiting.
 
 
 
@@ -4768,9 +4768,9 @@ Message Contents
 The Data messages should contain the following blocks.
 Order is not specified except that Padding must be last:
 
-- Path Validation or Path Response block.
-  Path Validation contains opaque data, recommended 8 bytes minimum.
-  Path Response contains the data from the Path Validation.
+- Path Challenge or Path Response block.
+  Path Challenge contains opaque data, recommended 8 bytes minimum.
+  Path Response contains the data from the Path Challenge.
 - Address block containing the recipient's apparent IP
 - DateTime block
 - ACK block
@@ -4779,7 +4779,7 @@ Order is not specified except that Padding must be last:
 It is not recommended to include any other blocks
 (for example, I2NP) in the message.
 
-It is allowed to include a Path Validation block in the message
+It is allowed to include a Path Challenge block in the message
 containing the Path Response, to initiate a validation
 in the other direction.
 
@@ -4917,8 +4917,8 @@ the other peer should initiate a path challenge in the other direction.
 
 Use as Ping/Pong
 -----------------
-Path Validation and Path Response blocks may be used at any time as Ping/Pong packets.
-Reception of a Path Validation block does not change any state at the receiver,
+Path Challenge and Path Response blocks may be used at any time as Ping/Pong packets.
+Reception of a Path Challenge block does not change any state at the receiver,
 unless received from a different IP/port.
 
 
@@ -5477,7 +5477,18 @@ are all in-session and are covered by the
 data phase ACK and retransmission processes.
 Relay Request, Relay Intro, and Relay Response blocks are ack-eliciting.
 
+Note that usually, Charlie will respond immediately to a Relay Intro
+with a Relay Response, which should include an ACK block.
+In that case, no separate message with an ACK block is required.
+
 Hole punch may be retransmitted, as in SSU 1.
+
+Unlike I2NP messages, the Relay messages do not have unique identifiers,
+so duplicates must be detected by the relay state machine, using the nonce.
+Implementations may also need to maintain a cache of recently-used nonces,
+so that received duplicates may be detected even after the state machine for that nonce has completed.
+
+
 
 IPv4/v6
 ----------
@@ -6063,6 +6074,8 @@ Recommended Constants
 - Max ACK ranges: 256?
 - Max ACK depth: 512?
 - Padding distribution: 0-15 bytes, or greater
+- Data phase minimum retransmission timeout: 1 second, as in [RFC-6298]_
+- See also [RFC-6298]_ for additional guidance on retransmission timers for the data phase.
 
 
 Packet Overhead Analysis

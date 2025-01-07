@@ -3,14 +3,18 @@ SSU Protocol Specification
 ==========================
 .. meta::
     :category: Transports
-    :lastupdated: 2022-06
-    :accuratefor: 0.9.54
+    :lastupdated: 2024-01
+    :accuratefor: 0.9.61
 
 .. contents::
 
 
 Overview
 ========
+
+DEPRECATED - SSU has been replaced by SSU2.
+SSU support was removed from i2pd in release 2.44.0 (API 0.9.56) 2022-11.
+SSU support was removed from Java I2P in release 2.4.0 (API 0.9.61) 2023-12.
 
 See [SSU]_ for an overview of the SSU transport.
 

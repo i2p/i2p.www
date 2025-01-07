@@ -3,8 +3,8 @@ Blockfile and Hosts Database Specification
 ==========================================
 .. meta::
     :category: Formats
-    :lastupdated: 2020-09
-    :accuratefor: 0.9.47
+    :lastupdated: 2023-11
+    :accuratefor: 0.9.59
 
 .. contents::
 
@@ -188,6 +188,12 @@ entries containing only one entry:
             Comma-separated list of host databases, to be searched in-order for
             lookups. Almost always "privatehosts.txt,userhosts.txt,hosts.txt".
 
+        listversion_*
+            The version of each database in lists, for example: listversion_hosts.txt=4.
+            Used to identify partial or aborted upgrade of individual lists.
+            (as of database version 4)
+
+
 Reverse Lookup Skiplist
 -----------------------
 
@@ -240,8 +246,8 @@ The DestEntry Properties typically contains:
     "a"
         The time added (Java long time in ms)
 
-    "a"
-        The time added (Java long time in ms)
+    "m"
+        The time last modified (Java long time in ms)
 
     "notes"
         User-supplied comments

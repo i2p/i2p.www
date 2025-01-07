@@ -1,7 +1,7 @@
 {% extends "global/layout.html" %}
 {% block title %}{% trans %}Bittorrent over I2P{% endtrans %}{% endblock %}
-{% block lastupdated %}2023-01{% endblock %}
-{% block accuratefor %}0.9.57{% endblock %}
+{% block lastupdated %}2024-11{% endblock %}
+{% block accuratefor %}0.9.64{% endblock %}
 {% block content %}
 
 <p>{% trans -%}
@@ -58,6 +58,19 @@ For most low- to medium-bandwidth and low- to medium-connection counts, 3 is suf
 Please specify the tunnel quantity in the SESSION CREATE message
 to get consistent performance with the Java I2P and i2pd routers.
 </p><p>
+I2P supports multiple signature and encryption types.
+For compatibility, I2P defaults to old and inefficient types, so all clients should
+specify newer types.
+</p><p>
+If using SAM, the signature type is specified in the DEST GENERATE and SESSION CREATE (for transient) commands.
+All clients should set SIGNATURE_TYPE=7 (Ed25519).
+</p><p>
+The encryption type is specified in the SAM SESSION CREATE command or in i2cp options.
+Multiple encryption types are allowed.
+Some trackers support ECIES-X25519, some support ElGamal, and some support both.
+Clients should set i2cp.leaseSetEncType=4,0 (for ECIES-X25519 and ElGamal)
+so that they may connect to both.
+</p><p>
 DHT support requires SAM v3.3 PRIMARY and SUBSESSIONS for TCP and UDP over the same session.
 This will require substantial development effort on the client side, unless the client is written in Java.
 i2pd does not currently support SAM v3.3.
@@ -108,7 +121,10 @@ the tracker should probably decode and reject bad Base64 when announced.
 The default response type is non-compact. Clients may request a compact response with
 the parameter compact=1. A tracker may, but is not required to, return
 a compact response when requested.
-{%- endtrans %}</p>
+{%- endtrans %}
+Note: All popular trackers now support compact responses and at least one requires compact=1 in the announce.
+All clients should request and support compact responses.
+</p>
 
 <p>{% trans -%}
 Developers of new I2P clients

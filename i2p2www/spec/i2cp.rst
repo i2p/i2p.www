@@ -3,8 +3,8 @@ I2CP Specification
 ==================
 .. meta::
     :category: Protocols
-    :lastupdated: 2021-12
-    :accuratefor: 0.9.52
+    :lastupdated: 2025-01
+    :accuratefor: 0.9.64
 
 .. contents::
 
@@ -12,13 +12,21 @@ I2CP Specification
 Overview
 ========
 
-This page specified the I2P Control Protocol (I2CP), which is the interface
+This is the specification of the I2P Control Protocol (I2CP), the low-level interface
 between clients and the router.  Java clients will use the I2CP client API,
-which implements this protocol.  Non-Java clients will most likely use a
-higher-layer protocol such as SAM or BOB.
+which implements this protocol.
 
+There are no known non-Java implementations of a client-side library
+that implements I2CP. Additionally, socket-oriented (streaming) applications would need
+an implementation of the streaming protocol, but there are no non-Java libraries for that either.
+Therefore, non-Java clients should instead use the higher-layer protocol SAM [SAMv3]_,
+for which libraries exist in several languages.
+
+This is a low-level protocol supported both internally and externally
+by the Java I2P router.
 The protocol is only serialized if the client and router are not in the same
-JVM; otherwise, I2CP message objects are passed via an internal JVM interface.
+JVM; otherwise, I2CP message Java objects are passed via an internal JVM interface.
+I2CP is also supported externally by the C++ router i2pd.
 
 More information is on the I2CP Overview page [I2CP]_.
 
@@ -235,6 +243,8 @@ below.
 ==============  ======================
    Version      Required I2CP Features
 ==============  ======================
+   0.9.62       MessageStatus message Loopback error code
+
    0.9.43       BlindingInfo message supported
 
                 Additional HostReply message failure codes
@@ -302,6 +312,8 @@ below.
    0.7.1        Send Message Expires message supported
 
                 Reconfigure Session message supported
+
+                Ports and protocol numbers in gzip header
 
    0.7          Dest Lookup and Dest Reply messages supported
 
@@ -493,9 +505,11 @@ Contents
 
 Notes
 `````
-Currently, the client limits are the only values set, and are actually the
-router limits. All the values labeled as router limits are always 0.  As of
-release 0.7.2.
+The client limits may be the only values set, and may be the
+actual router limits, or a percentage of the router limits, or specific to
+the particular client, implementation-dependent.
+All the values labeled as router limits may be 0, implementation-dependent.
+As of release 0.7.2.
 
 
 .. _msg-BlindingInfo:
@@ -1093,6 +1107,11 @@ Status Code  As Of Release           Name           Description
 
                                                     This is a guaranteed failure.
 
+    23          0.9.62      Loopback Denied         The message was attempted to be sent from and to
+                                                    the same destination or session.
+
+                                                    This is a guaranteed failure.
+
 ===========  =============  ======================  ==========================================================
 
 When status = 1 (accepted), the nonce matches the nonce in the
@@ -1180,6 +1199,12 @@ Notes
   changes here will not be recognized by the router. Changes to tunnel options
   inbound.* and outbound.* are always recognized.
 
+* In general, the router should merge the updated config with the current config,
+  so the updated config only needs to contain the new or changed options.
+  However, because of the merge, options may not be removed in this manner;
+  they must be set explicitly to the desired default value.
+
+
 .. _msg-ReportAbuse:
 
 ReportAbuseMessage
@@ -1219,6 +1244,12 @@ Request that a client authorize the inclusion of a particular set of inbound
 tunnels.  Sent from Router to Client.  The client responds with a
 CreateLeaseSetMessage_.
 
+The first of these messages sent on a session is a signal to the client
+that tunnels are built and ready for traffic. The router must not
+send the first of these messages until at least one inbound AND one outbound tunnel
+have been built. Clients should timeout and destroy the session if the first
+of these messages is not received after some time (recommended: 5 minutes or more).
+
 Contents
 ````````
 1. `Session ID`_
@@ -1247,6 +1278,12 @@ Request that a client authorize the inclusion of a particular set of inbound
 tunnels.
 
 Sent from Router to Client.  The client responds with a CreateLeaseSetMessage_ or CreateLeaseSet2Message_.
+
+The first of these messages sent on a session is a signal to the client
+that tunnels are built and ready for traffic. The router must not
+send the first of these messages until at least one inbound AND one outbound tunnel
+have been built. Clients should timeout and destroy the session if the first
+of these messages is not received after some time (recommended: 5 minutes or more).
 
 Contents
 ````````
@@ -1401,6 +1438,7 @@ Bit 8
 Bits 7-4
     Low tag threshold. If there are less than this many tags available, send
     more.  This is advisory and does not force tags to be delivered.
+    For ElGamal only. Ignored for ECIES-Ratchet.
 
 ===========  =============
 Field value  Tag threshold
@@ -1426,6 +1464,7 @@ Field value  Tag threshold
 Bits 3-0
     Number of tags to send if required.  This is advisory and does not force
     tags to be delivered.
+    For ElGamal only. Ignored for ECIES-Ratchet.
 
 ===========  ============
 Field value  Tags to send
@@ -1457,8 +1496,11 @@ Description
 ```````````
 Instruct the client as to the status of its session.
 
-Sent from Router to Client, possibly in response to a CreateSessionMessage_,
+Sent from Router to Client, in response to a CreateSessionMessage_,
 ReconfigureSessionMessage_, or DestroySessionMessage_.
+In all cases, including in response to CreateSessionMessage_,
+the router should respond immediately (do not wait for tunnels to be built).
+
 
 Contents
 ````````
@@ -1579,6 +1621,9 @@ References
 
 .. [RouterIdentity]
     {{ ctags_url('RouterIdentity') }}
+
+.. [SAMv3]
+    {{ site_url('docs/api/samv3') }}
 
 .. [Signature]
     {{ ctags_url('Signature') }}
