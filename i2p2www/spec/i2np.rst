@@ -3,8 +3,8 @@ I2NP Specification
 ==================
 .. meta::
     :category: Protocols
-    :lastupdated: 2024-05
-    :accuratefor: 0.9.62
+    :lastupdated: 2025-01
+    :accuratefor: 0.9.65
 
 .. contents::
 
@@ -46,6 +46,8 @@ below.
  API Version    Required I2NP Features
 ==============  ================================================================
    0.9.58       Minimum peers will build tunnels through, as of 0.9.62
+
+                ElGamal Routers deprecated
 
    0.9.55       SSU2 transport support (if published in router info)
 

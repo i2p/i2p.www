@@ -3,8 +3,8 @@ Common structures Specification
 ===============================
 .. meta::
     :category: Design
-    :lastupdated: 2024-08
-    :accuratefor: 0.9.63
+    :lastupdated: 2025-01
+    :accuratefor: 0.9.65
 
 .. contents::
 
@@ -87,7 +87,7 @@ X25519 keys are supported in RouterIdentities as of release 0.9.48.
 =======  ==============  ======  =====
  Type    Length (bytes)  Since   Usage
 =======  ==============  ======  =====
-ElGamal       256                All Router Identities and Destinations
+ElGamal       256                Deprecated for Router Identities as of 0.9.58; discouraged for Destinations
 P256           64         TBD    Reserved, see proposal 145
 P384           96         TBD    Reserved, see proposal 145
 P521          132         TBD    Reserved, see proposal 145
@@ -119,7 +119,7 @@ Keys are big-endian unless otherwise noted.
 =======  ==============  ======  =====
  Type    Length (bytes)  Since   Usage
 =======  ==============  ======  =====
-ElGamal       256                All Router Identities and Destinations
+ElGamal       256                Deprecated for Router Identities as of 0.9.58; discouraged for Destinations
 P256           32         TBD    Reserved, see proposal 145
 P384           48         TBD    Reserved, see proposal 145
 P521           66         TBD    Reserved, see proposal 145
@@ -161,8 +161,8 @@ Certificate of a Destination.  The default type is DSA_SHA1.  As of release
 ======================  ==============  ======  =====
          Type           Length (bytes)  Since   Usage
 ======================  ==============  ======  =====
-DSA_SHA1                     128                Legacy Router Identities and Destinations
-ECDSA_SHA256_P256             64        0.9.12  Recent Destinations
+DSA_SHA1                     128                Deprecated for Router Identities as of 09.58; discouraged for Destinations
+ECDSA_SHA256_P256             64        0.9.12  Older Destinations
 ECDSA_SHA384_P384             96        0.9.12  Rarely used for Destinations
 ECDSA_SHA512_P521            132        0.9.12  Rarely used for Destinations
 RSA_SHA256_2048              256        0.9.12  Offline signing, never used for Router Identities or Destinations
@@ -201,7 +201,7 @@ As of release 0.9.12, other types may be supported, depending on context.
 ======================  ==============  ======  =====
          Type           Length (bytes)  Since   Usage
 ======================  ==============  ======  =====
-DSA_SHA1                      20                Legacy Router Identities and Destinations
+DSA_SHA1                      20                Deprecated for Router Identities as of 09.58; discouraged for Destinations
 ECDSA_SHA256_P256             32        0.9.12  Recent Destinations
 ECDSA_SHA384_P384             48        0.9.12  Rarely used for Destinations
 ECDSA_SHA512_P521             66        0.9.12  Rarely used for Destinations
@@ -242,7 +242,7 @@ depending on context.
 ======================  ==============  ======  =====
          Type           Length (bytes)  Since   Usage
 ======================  ==============  ======  =====
-DSA_SHA1                      40                Legacy Router Identities and Destinations
+DSA_SHA1                      40                Deprecated for Router Identities as of 09.58; discouraged for Destinations
 ECDSA_SHA256_P256             64        0.9.12  Recent Destinations
 ECDSA_SHA384_P384             96        0.9.12  Rarely used for Destinations
 ECDSA_SHA512_P521            132        0.9.12  Rarely used for Destinations
@@ -422,7 +422,7 @@ The defined Signing Public Key types are:
 ======================  ===========  =======================  ======  =====
         Type             Type Code   Total Public Key Length  Since   Usage
 ======================  ===========  =======================  ======  =====
-DSA_SHA1                     0                  128           0.9.12  Legacy Router Identities and Destinations, never explicitly set
+DSA_SHA1                     0                  128           0.9.12  Deprecated for Router Identities as of 0.9.58; discouraged for Destinations, never explicitly set
 ECDSA_SHA256_P256            1                   64           0.9.12  Older Destinations
 ECDSA_SHA384_P384            2                   96           0.9.12  Rarely if ever used for Destinations
 ECDSA_SHA512_P521            3                  132           0.9.12  Rarely if ever used for Destinations
@@ -443,7 +443,7 @@ The defined Crypto Public Key types are:
 ========  ===========  =======================  =====
   Type     Type Code   Total Public Key Length  Usage
 ========  ===========  =======================  =====
-ElGamal        0                 256            All Router Identities and Destinations
+ElGamal        0                 256            Deprecated for Router Identities as of 0.9.58; discouraged for Destinations, never explicitly set
 P256           1                  64            Reserved, see proposal 145
 P384           2                  96            Reserved, see proposal 145
 P521           3                 132            Reserved, see proposal 145
