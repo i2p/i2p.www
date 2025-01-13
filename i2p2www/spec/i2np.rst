@@ -940,6 +940,11 @@ Contents
 Reply Encryption
 ````````````````
 
+NOTE: ElGamal routers are deprecated as of API 0.9.58.
+As the recommended minimum floodfill version to query is now 0.9.58,
+implementations need not implement encryption for ElGamal floodfill routers.
+ElGamal destinations are still supported.
+
 Flag bit 4 is used in combination with bit 1 to determine the reply encryption mode.
 Flag bit 4 must only be set when sending to routers with version 0.9.46 or higher.
 See proposals 154 and 156 for details.
@@ -968,6 +973,7 @@ reply_key, tags, and reply_tags are not present.
 ElG to ElG
 ``````````````
 Supported as of 0.9.7.
+Deprecated as of 0.9.58.
 ElG destination sends a lookup to a ElG router.
 
 Requester key generation:
@@ -1003,6 +1009,7 @@ reply_key ::
 ECIES to ElG
 ``````````````
 Supported as of 0.9.46.
+Deprecated as of 0.9.58.
 ECIES destination sends a lookup to a ElG router.
 The reply_key and reply_tags fields are redefined for an ECIES-encrypted reply.
 
