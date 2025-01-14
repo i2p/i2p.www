@@ -358,10 +358,12 @@ but a basic explanation is available below.
 {%- endtrans %}</p>
 
   <p>{% trans -%}
-A percentage of I2P users are appointed as 'floodfill peers'.
-Currently, I2P installations that have a lot of bandwidth and are fast enough,
-will appoint themselves as floodfill as soon as the number of existing floodfill routers
-drops too low.
+All I2P routers contain a local netDb, but not all routers participate in the DHT
+or respond to leaseset lookups.
+Those routers that do participate in the DHT and respond to leaseset lookups
+are called 'floodfills'.
+Routers may be manually configured as floodfills, or automatically become floodfill
+if they have enough capacity and meet other criteria for reliable operation.
 {%- endtrans %}</p>
 
   <p>{% trans netdb=site_url('docs/how/network-database') -%}
@@ -398,7 +400,7 @@ Some additional remarks are also important.
         <p>{% trans -%}
 One could only want specific people to be able to reach a destination.
 This is possible by not publishing the destination in the netDb. You will however have to transmit the destination by other means.
-An alternative are the 'encrypted leaseSets'. These leaseSets can only be decoded by people with access to the decryption key.
+This is supported by 'encrypted leaseSets'. These leaseSets can only be decoded by people with access to the decryption key.
 {%- endtrans %}</p>
       </li>
       <li>
@@ -408,16 +410,16 @@ Bootstrapping the netDb is quite simple. Once a router manages to receive a sing
 it can query that router for references to other routers in the network.
 Currently, a number of users post their routerInfo files to a website to make this information available.
 I2P automatically connects to one of these websites to gather routerInfo files and bootstrap.
+I2P calls this bootstrap process "reseeding".
 {%- endtrans %}</p>
       </li>
       <li>
         <b>{% trans %}Lookup scalability:{% endtrans %}</b>
         <p>{% trans -%}
-Lookups in the I2P network are not forwarded to other netDb routers.
-Currently, this is not a major problem, since the network is not very large.
-However, as the network grows, not all routerInfo and leaseSet files will be present
-on each netDb router. This will cause a deterioration of the percentage of successful lookups.
-Because of this, refinements to the netDb will be done in the next releases.
+Lookups in the I2P network are iterative, not recursive.
+If a lookup from a floodfill fails, the lookup will be repeated to the next-closest floodfill.
+The floodfill does not recursively ask another floodfill for the data.
+Iterative lookups are scalable to large DHT networks.
 {%- endtrans %}</p>
       </li>
     </ul>
