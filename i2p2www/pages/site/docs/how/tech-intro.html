@@ -17,6 +17,12 @@
 {% endblock %}
 
 {% block content %}
+<p>
+NOTE: This document was originally written by jrandom in 2003.
+While we strive to keep it current, some information may be obsolete or incomplete.
+The transport and cryptography sections are current as of 2025-01.
+</p>
+
   <h1 id="intro">{% trans %}Introduction{% endtrans %}</h1>
   <p>{% trans -%}
 I2P is a scalable, self organizing, resilient packet switched anonymous 
@@ -30,20 +36,16 @@ anonymity set of users already running on top of I2P.
   <p>{% trans -%}
 Applications available already provide the full range of typical Internet activities -
 <b>anonymous</b> web browsing, web hosting, chat, file sharing, e-mail,
-blogging and content syndication, newsgroups, as well as several other applications under development.
+blogging and content syndication, as well as several other applications under development.
 {%- endtrans %}</p>
     <ul>
       <li>{% trans %}Web browsing: using any existing browser that supports using a proxy.{% endtrans %}</li>
-      <li>{% trans %}Chat: IRC, Jabber, <a href="#app.i2pmessenger">I2P-Messenger</a>.{% endtrans %}</li>
+      <li>{% trans %}Chat: IRC and other protocols{% endtrans %}</li>
       <li>{% trans -%}
-File sharing: <a href="#app.i2psnark">I2PSnark</a>, <a href="#app.robert">Robert</a>, <a href="#app.imule">iMule</a>, 
-<a href="#app.i2phex">I2Phex</a>, <a href="#app.pybit">PyBit</a>, <a href="#app.i2pbt">I2P-bt</a>
-and others.
+File sharing: <a href="#app.i2psnark">I2PSnark</a> and other applications
 {%- endtrans %}</li>
-      <li>{% trans %}E-mail: <a href="#app.i2pmail">susimail</a> and <a href="#app.i2pbote">I2P-Bote</a>.{% endtrans %}</li>
-      <li>{% trans %}Blog: using e.g. the pebble plugin or the distributed blogging software <a href="#app.syndie">Syndie</a>.{% endtrans %}</li>
-      <li>{% trans %}Distributed Data Store: Save your data redundantly in the Tahoe-LAFS cloud over I2P.{% endtrans %}</li>
-      <li>{% trans %}Newsgroups: using any newsgroup reader that supports using a proxy.{% endtrans %}</li>
+      <li>{% trans %}E-mail: <a href="#app.i2pmail">susimail</a> and other applications</li>
+      <li>{% trans %}Blog: using any local web server, or available plugins{% endtrans %}</li>
     </ul>
 
   <p>{% trans -%}
@@ -403,15 +405,29 @@ communicate with other routers aren't critical - three separate protocols
 have been used at different points to provide those bare necessities.
 {%- endtrans %}</p>
 
-  <p>{% trans ssu=site_url('docs/transport/ssu') -%}
-I2P started with a TCP-based protocol which 
-has since been disabled. Then, to accommodate the need for high degree communication 
-(as a number of routers will end up speaking with many others), I2P moved 
-from a TCP based transport to a <a href="{{ ssu }}">UDP-based one</a> - "Secure 
-Semireliable UDP", or "SSU".
+  <p>{% trans ntcp=site_url('docs/transport/ntcp'), ssu=site_url('docs/transport/ssu'), ntcp2=spec_url('ntcp2'), ssu2=spec_url('ssu2') -%}
+I2P currently supports two transport protocols,
+<a href="{{ ntcp2 }}">NTCP2</a> over TCP, and <a href="{{ ssu2 }}">SSU2</a> over UDP.
+These have replaced the previous versions of the protocols,
+<a href="{{ ntcp }}">NTCP</a> and <a href="{{ ssu }}">SSU</a>, which are now deprecated.
+Both protocols support both IPv4 and IPv6.
+By supporting both TCP and UDP transports, I2P can effectively traverse most firewalls,
+including those intended to block traffic in restrictive censorship regimes.
+NTCP2 and SSU2 were designed to use modern encryption standards,
+improve traffic identification resistance,
+increase efficiency and security,
+and make NAT traversal more robust.
+Routers publish each supported transport and IP address in the network database.
+Routers with access to public IPv4 and IPv6 networks will usually publish
+four addresses, one for each combination of NTCP2/SSU2 with IPv4/IPv6.
 {%- endtrans %}</p>
 
-  <p>{% trans ssu=site_url('docs/transport/ssu') -%}
+  <p>{% trans ssu=site_url('docs/transport/ssu'), ssu2=spec_url('ssu2') -%}
+<a href="{{ ssu2 }}">SSU2</a> supports and extends the goals of SSU.
+SSU2 has many similarities to other modern UDP-based protocols such as Wireguard and QUIC.
+In addition to the reliable transport of network messages over UDP,
+SSU2 provides specialized facilities for peer-to-peer, cooperative
+IP address detection, firewall detection, and NAT traversal.
 As described in the <a href="{{ ssu }}">SSU spec</a>:
 {%- endtrans %}</p>
 
@@ -425,14 +441,11 @@ sufficient for home users. In addition, it should support techniques for address
 network obstacles, like most NATs or firewalls.
 {%- endtrans %}</blockquote>
 
-  <p>{% trans ntcp=site_url('docs/transport/ntcp') -%}
-Following the introduction of SSU, after issues with congestion collapse 
-appeared, a new NIO-based TCP transport called <a href="{{ ntcp }}">NTCP</a> 
-was implemented. It is enabled by default for outbound connections only. Those 
-who configure their NAT/firewall to allow inbound connections and specify 
-the external host and port (dyndns/etc is ok) on /config.jsp can receive inbound 
-connections. As NTCP is NIO based, so it doesn't suffer from the 1 thread 
-per connection issues of the old TCP transport.
+  <p>{% trans ntcp2=spec_url('ntcp2') -%}
+NTCP2 supports and extends the goals of NTCP.
+It provides an efficient and fully encrypted transport of network messages over TCP,
+and resistance to traffic identification,
+using modern encryption standards.
 {%- endtrans %}</p>
 
   <p>{% trans -%}
@@ -443,28 +456,51 @@ Transports may reply with different bids, depending on whether there is already
 an established connection to the peer.
 {%- endtrans %}</p>
 
-  <p>{% trans ntcp=site_url('docs/transport/ntcp') -%}
-The current implementation ranks NTCP as the highest-priority transport 
-for outbound connections in most situations. SSU is enabled for both outbound 
-and inbound connections. Your firewall and your I2P router must be configured 
-to allow inbound NTCP connections. For further information see the <a href="{{ ntcp }}">NTCP 
-page</a>.
+  <p>{% trans -%}
+The bid (priority) values are implementation-dependent and
+may vary based on traffic conditions, connection counts, and other factors.
+Routers also publish their transport preferences for inbound connections in the network database
+as transport "costs" for each transport and address.
 {%- endtrans %}</p>
 
   <h2 id="op.crypto">{% trans %}Cryptography{% endtrans %}</h2>
+
   <p>{% trans -%}
-A bare minimum set of cryptographic primitives are combined together to 
+I2P uses cryptography at several protocol layers for encryption, authentication, and verification.
+The major protocol layers are: transports, tunnel build messages, tunnel layer encryption,
+network database messages, and end-to-end (garlic) messages.
+I2P's original design used a small set of cryptographic primitives that at the time were considered secure.
+These included ElGamal asymmetric encryption, DSA-SHA1 signatures,
+AES256/CBC symmetric encryption, and SHA-256 hashes.
+As available computing power increased and cryptographic research evolved substantially
+over the years, I2P needed to upgrade its primitives and protocols.
+Therefore, we added a concept of "encryption types" and "signature types",
+and extended our protocols to include these identifiers and indicate support.
+This allows us to periodically update and extend the network support for
+modern cryptography and future-proof the network for new primitives,
+without breaking backward compatibility or requiring a "flag day" for network updates.
+Some signature and encryption types are also reserved for experimental use.
+{%- endtrans %}</p>
+
+  <p>{% trans -%}
+The current primitives used in most protocol layers are X25519 key exchange, EdDSA signatures,
+ChaCha20/Poly1305 authenticated symmetric encryption, and SHA-256 hashes.
+AES256 is still used for tunnel layer encryption.
+These modern protocols are used for the vast majority of network communication
+Older primitives including ElGamal, ECDSA, and DSA-SHA1 continue to be supported by most implementations
+for backward compatibility when communicating with older routers.
+Some old protocols have been deprecated and/or removed completely.
+In the near future we will begin research on a migration to post-quantum (PQ)
+or hybrid-PQ encryption and signatures to maintain our robust security standards.
+{%- endtrans %}</p>
+
+  <p>{% trans -%}
+These cryptographic primitives are combined together to 
 provide I2P's layered defenses against a variety of adversaries. At the lowest 
-level, inter router communication is protected by the transport layer security 
-- SSU encrypts each packet with AES256/CBC with both an explicit IV and MAC 
-(HMAC-MD5-128) after agreeing upon an ephemeral session key through a 2048bit 
-Diffie-Hellman exchange, station-to-station authentication with the other 
-router's DSA key, plus each network message has their own hash for local integrity 
-checking. <a href="#op.tunnels">Tunnel</a> messages passed over the transports 
-have their own layered AES256/CBC encryption with an explicit IV and verified 
-at the tunnel endpoint with an additional SHA256 hash. Various other messages 
-are passed along inside "garlic messages", which are encrypted with ElGamal/AES+SessionTags 
-(explained below).
+level, inter-router communication is protected by the transport layer security.
+<a href="#op.tunnels">Tunnel</a> messages passed over the transports 
+have their own layered encryption.
+Various other messages are passed along inside "garlic messages", which are also encrypted.
 {%- endtrans %}</p>
 
   <h3 id="op.garlic">{% trans %}Garlic messages{% endtrans %}</h3>
@@ -476,10 +512,10 @@ into a garlic message whenever the message would otherwise be passing in clearte
 through a peer who should not have access to the information - for instance, 
 when a router wants to ask another router to participate in a tunnel, they 
 wrap the request inside a garlic, encrypt that garlic to the receiving router's 
-2048bit ElGamal public key, and forward it through a tunnel. Another example 
+public key, and forward it through a tunnel. Another example 
 is when a client wants to send a message to a destination - the sender's router 
 will wrap up that data message (alongside some other messages) into a garlic, 
-encrypt that garlic to the 2048bit ElGamal public key published in the recipient's 
+encrypt that garlic to the public key published in the recipient's 
 leaseSet, and forward it through the appropriate tunnels.
 {%- endtrans %}</p>
 
@@ -500,11 +536,17 @@ not currently used in the existing implementation.
   <p>{% trans -%}
 As an unreliable, unordered, message based system, I2P uses a simple combination 
 of asymmetric and symmetric encryption algorithms to provide data confidentiality 
-and integrity to garlic messages. As a whole, the combination is referred 
+and integrity to garlic messages. The original combination was referred 
 to as ElGamal/AES+SessionTags, but that is an excessively verbose way to describe 
 the simple use of 2048bit ElGamal, AES256, SHA256 and 32 byte nonces.
+While this protocol is still supported, most of the network has migrated to
+a new protocol, ECIES-X25519-AEAD-Ratchet.
+This protocol combines X25519, ChaCha20/Poly1305, and a synchronized PRNG
+to generate the 32 byte nonces.
+Both protocols will be briefly described below.
 {%- endtrans %}</p>
 
+  <h4 id="op.elg">ElGamal/AES+SessionTags</h4>
   <p>{% trans -%}
 The first time a router wants to encrypt a garlic message to another router, 
 they encrypt the keying material for an AES256 session key with ElGamal and 
@@ -546,24 +588,50 @@ drop the ones previously assumed to be properly delivered, reverting back
 to the full expensive ElGamal encryption.
 {%- endtrans %}</p>
 
+  <h4 id="op.ratchet">ECIES-X25519-AEAD-Ratchet</h4>
   <p>{% trans -%}
-One alternative is to transmit only a single session tag, and from that, 
-seed a deterministic PRNG for determining what tags to use or expect. By keeping 
+ElGamal/AES+SessionTags required substantial overhead in a number of ways.
+CPU usage was high because ElGamal is quite slow.
+Bandwidth was excessive because large numbers of session tags had to be delivered in advance,
+and because ElGamal public keys are very large.
+Memory usage was high due to the requirement to store large amounts of session tags.
+Reliability was hampered by lost session tag delivery.
+{%- endtrans %}</p>
+
+  <p>{% trans -%}
+ECIES-X25519-AEAD-Ratchet was designed to address these issues.
+X25519 is used for key exchange.
+ChaCha20/Poly1305 is used for authenticated symmetric encryption.
+Encryption keys are "double ratcheted" or rotated periodically.
+Session tags are reduced from 32 bytes to 8 bytes and are generated with a PRNG.
+The protocol has many similarities to the signal protocol used in Signal and WhatsApp.
+This protocol provides substantially lower overhead in CPU, RAM, and bandwidth.
+{%- endtrans %}</p>
+
+  <p>{% trans -%}
+The session tags are generated from a deterministic synchronized PRNG running
+at both ends of the session to generate session tags and session keys.
+The PRNG is a HKDF using a SHA-256 HMAC, and is seeded from the X25519 DH result.
+Session tags are never transmitted in advance; they are only included with the message.
+The receiver stores a limited number of session keys, indexed by session tag.
+The sender does not need to store any session tags or keys because they
+are not sent in advance; they may be generated on-demand.
+By keeping 
 this PRNG roughly synchronized between the sender and recipient (the recipient 
 precomputes a window of the next e.g. 50 tags), the overhead of periodically 
-bundling a large number of tags is removed, allowing more options in the space/time 
-tradeoff, and perhaps reducing the number of ElGamal encryptions necessary. 
-However, it would depend upon the strength of the PRNG to provide the necessary 
-cover against internal adversaries, though perhaps by limiting the amount 
-of times each PRNG is used, any weaknesses can be minimized. At the moment, 
-there are no immediate plans to move towards these synchronized PRNGs.
+bundling a large number of tags is removed.
 {%- endtrans %}</p>
 
   <h1 id="future">{% trans %}Future{% endtrans %}</h1>
   <p>{% trans -%}
-While I2P is currently functional and sufficient for many scenarios, there 
+I2P's protocols are efficient on most platforms, including cell phones,
+and secure for most threat models. However, there
 are several areas which require further improvement to meet the needs of those 
-facing more powerful adversaries as well as substantial user experience optimization. 
+facing powerful state-sponsored adversaries, and to meet the threats of
+continued cryptographic advances and ever-increasing computing power.
+Two possible features, restricted routes and variable latency,
+were propsed by jrandom in 2003. While we no longer plan to
+implement these features, they are described below.
 {%- endtrans %}</p>
 
   <h2 id="future.restricted">{% trans %}Restricted route operation{% endtrans %}</h2>
@@ -584,7 +652,7 @@ Restricted route operation, where there are limits to what peers are reachable
 directly, has several different functional and anonymity implications, dependent 
 upon how the restricted routes are handled. At the most basic level, restricted 
 routes exist when a peer is behind a NAT or firewall which does not allow 
-inbound connections. This was largely addressed in I2P 0.6.0.6 by integrating 
+inbound connections. This was largely addressed by integrating 
 distributed hole punching into the transport layer, allowing people behind 
 most NATs and firewalls to receive unsolicited connections without any configuration. 
 However, this does not limit the exposure of the peer's IP address to routers 
@@ -610,8 +678,7 @@ tunnel gateway. The concept of 'client routers' simply extends the restricted
 route by not publishing any router addresses. Such a router would not even 
 need to publish their routerInfo in the netDb, merely providing their self 
 signed routerInfo to the peers that it contacts (necessary to pass the router's 
-public keys). Both levels of restricted route operation are planned for I2P 
-2.0.
+public keys).
 {%- endtrans %}</p>
 
   <p>{% trans -%}
@@ -625,6 +692,20 @@ are not hostile - either the network is large enough that the probability
 of using a hostile peer to get connected is small enough, or trusted (and 
 perhaps temporary) peers are used instead.
 {%- endtrans %}</p>
+
+  <p>{% trans -%}
+Restricted routes are complex, and the overall goal has been largely abandoned.
+Several related improvements have greatly reduced the need for them.
+We now support UPnP to automatically open firewall ports.
+We support both IPv4 and IPv6.
+SSU2 improved address detection, firewall state determination, and cooperative NAT hole punching.
+SSU2, NTCP2, and address compatibility checks ensure that tunnel hops can connect
+before the tunnel is built.
+GeoIP and country identification allow us to avoid peers in countries with restrictive firewalls.
+Support for "hidden" routers behind those firewalls has improved.
+Some implementations also support connections to peers on overlay networks such as Yggdrasil.
+{%- endtrans %}</p>
+
 
   <h2 id="future.variablelatency">{% trans %}Variable latency{% endtrans %}</h2>
   <p>{% trans -%}
@@ -645,20 +726,14 @@ or, most likely, to a remote client destination.
 {%- endtrans %}</p>
 
   <p>{% trans -%}
-There are a substantial number of ways to exploit this capacity for high 
-latency comm in I2P, but for the moment, doing so has been scheduled for the 
-I2P 3.0 release. In the meantime, those requiring the anonymity that high 
-latency comm can offer should look towards the application layer to provide 
-it.
+The goal of variable latency services requires substantial resources
+for store-and-forward mechanisms to support it.
+These mechanisms can and are supported in various messaging applications,
+such as i2p-bote.
+At the network level, alternative networks such as Freenet provide these services.
+We have decided not to pursue this goal at the I2P router level.
 {%- endtrans %}</p>
 
-  <h2 id="future.open">{% trans %}Open questions{% endtrans %}</h2>
-  <ul>
-    <li>{% trans %}How to get rid of the timing constraint?{% endtrans %}</li>
-    <li>{% trans %}Can we deal with the sessionTags more efficiently?{% endtrans %}</li>
-    <li>{% trans %}What, if any, batching/mixing strategies should be made available on the tunnels?{% endtrans %}</li>
-    <li>{% trans %}What other tunnel peer selection and ordering strategies should be available?{% endtrans %}</li>
-  </ul>
 
   <h1 id="similar">{% trans %}Similar systems{% endtrans %}</h1>
 
