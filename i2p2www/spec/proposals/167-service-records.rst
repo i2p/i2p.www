@@ -261,17 +261,20 @@ NAMING LOOKUP NAME=example.i2p OPTIONS=true requests the options mapping in the 
 NAME may be a full base64 destination when OPTIONS=true.
 
 If the destination lookup was successful, in the reply, following the destination,
-will be options in the form of key=value\n, one per line, UTF-8 encoded, followed by a blank line \n.
+will be options in the form of OPTION:key=value.
 All options from the leaseset will be included, not just service record options.
 For example, options for tunnel bandwidth parameters [Prop168]_ may be present.
+Example:
+
+NAMING REPLY RESULT=OK NAME=example.i2p VALUE=base64dest OPTION:_smtp._tcp="1 86400 0 0 25 bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb.b32.i2p"
 
 Keys containing '=', and keys or values containing a newline,
 are considered invalid and the key/value pair will be removed from the reply.
 
 If there are no options found in the leaseset, or if the leaseset was version 1,
-the response will be the destination and a blank line (destb64\n\n).
+then the response will not include any options.
 
-If the leaseset is not found, a new result value LEASESET_NOT_FOUND will be returned.
+If OPTIONS=true was in the lookup, and the leaseset is not found, a new result value LEASESET_NOT_FOUND will be returned.
 
 
 Naming Lookup Alternative
