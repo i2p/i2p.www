@@ -385,8 +385,9 @@ No version bump should be necessary.
 Migration
 =========
 
-Implementations may add support at any time, no coordination is needed.
-
+Implementations may add support at any time, no coordination is needed,
+except for an agreement on the effective API version for the I2CP changes.
+SAM compatibility versions for each implementation will be documented in the SAM spec.
 
 
 References
