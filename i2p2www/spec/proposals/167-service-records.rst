@@ -365,14 +365,21 @@ in the leaseset of the target.
 Compatibility
 ===============
 
-No issues. All known implementations currently ignore the options field in LS2,
+LS2: No issues. All known implementations currently ignore the options field in LS2,
 and correctly skip over a non-empty options field.
 This was verified in recent testing by both Java I2P and i2pd.
 LS2 was implemented in 0.9.38 in 2016 and is well-supported by all router implementations.
-
 The design does not require special support or caching or any changes in the floodfills.
 
-'_' is not a valid character in i2p hostnames.
+Naming: '_' is not a valid character in i2p hostnames.
+
+I2CP: Lookup types 2-4 should not be sent to routers below the minimum API version
+at which it is supported (TBD).
+
+SAM: Java SAM server ignores additional keys/values such as OPTIONS=true.
+i2pd should as well, to be verified.
+SAM clients will not get the additional values in the reply unless requested with OPTIONS=true.
+No version bump should be necessary.
 
 
 Migration
