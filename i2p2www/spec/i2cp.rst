@@ -4,7 +4,7 @@ I2CP Specification
 .. meta::
     :category: Protocols
     :lastupdated: 2025-01
-    :accuratefor: 0.9.64
+    :accuratefor: 0.9.65
 
 .. contents::
 
@@ -46,8 +46,9 @@ It also appears that there are some provisions for a single client to talk to
 multiple routers over separate connections. This is also untested, and probably
 not useful.
 
-It does not appear that there is currently a way for a session to be maintained
+There is no way for a session to be maintained
 after a disconnect, or to be recovered on a different I2CP connection.
+When the socket is closed, the session is destroyed.
 
 
 Example Message Sequences
@@ -211,13 +212,6 @@ that do not, clients may need additional logic to properly handle router
 responses.  DestLookup and DestReply do not contain Session IDs; use the newer
 HostLookup and HostReply instead.  GetBandwidthLimts and BandwidthLimits do not
 contain session IDs, however the response is not session-specific.
-
-Support for multiple sessions is preliminary and subject to change.  Support
-may not be complete in other parts of the API and user interface, particularly
-streaming and i2ptunnel.  Current support is primarily for clients (i.e.
-Destinations that do not publish their leaseset or accept incoming
-connections), and is incomplete and untested for servers.  Future releases may
-provide additional features and options.
 
 
 .. _notes:
@@ -995,8 +989,11 @@ router implementation uses the guaranteed status codes, not the best effort
 codes.
 
 As of router version 0.9.5, additional status codes are defined, however they
-are not necessarily implemented.  See [MSM-JAVADOCS]_ for details.  All status
-codes:
+are not necessarily implemented.  See [MSM-JAVADOCS]_ for details.
+For outgoing messages, the codes 1, 2, 4, and 6 indicate success; all others are failures.
+Returned failure codes may vary and are implementation-specific.
+
+All status codes:
 
 ===========  =============  ======================  ==========================================================
 Status Code  As Of Release           Name           Description
