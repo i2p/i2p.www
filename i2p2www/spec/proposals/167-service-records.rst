@@ -5,7 +5,7 @@ Service Records in LS2
     :author: zzz
     :created: 2024-06-22
     :thread: http://zzz.i2p/topics/3641
-    :lastupdated: 2025-01-02
+    :lastupdated: 2025-01-17
     :status: Open
     :target: 0.9.66
 
@@ -95,6 +95,9 @@ include a service record, pointing to itself, indicating that it supports the se
 The design does not require special support or caching or any changes in the floodfills.
 Only the leaseset publisher, and the client looking up a service record,
 must support these changes.
+
+Minor I2CP and SAM extensions are proposed to facilitate retrieval of
+service records by clients.
 
 
 
@@ -191,15 +194,13 @@ Service-specific appoptions formats may also be added there.
 I2CP Specification
 ------------------
 
-The [I2CP]_ protocol may need to be extended to support service lookups;
-or, maybe, just do a lookup for "_service._proto.xxx.b32.i2p" and the router figures it out.
-But no way to pass ttl and port back without changes.
-See Recommendations section below.
-
+The [I2CP]_ protocol must be extended to support service lookups.
 Additional MessageStatusMessage and/or HostReplyMessage error codes related to service lookup
-may be required and must be added to the [I2CP]_ document.
+are required.
+To make the lookup facility general, not just service record-specific,
+the design is to support retrieval of all LS2 options.
 
-Possible implementation: Extend HostLookupMessage to add request for
+Implementation: Extend HostLookupMessage to add request for
 LS2 options for hash, hostname, and destination (request types 2-4).
 Extend HostReplyMessage to add the options mapping if requested.
 Extend HostReplyMessage with additional error codes.
@@ -207,37 +208,87 @@ Extend HostReplyMessage with additional error codes.
 Configuration is implementation-dependent. We may define standard I2CP options
 for i2ptunnel and SAM, to be documented in [I2CP-OPTIONS]_.
 
-TODO
+Options mappings may be cached for a short time on either the client or router side,
+implementation-dependent. Recommended maximum time is one hour.
+
+
+Extend the specification as follows:
+
+HostLookup Message
+``````````````````
+
+- Lookup type 2: Hash lookup, request options mapping
+- Lookup type 3: Hostname lookup, request options mapping
+- Lookup type 4: Destination lookup, request options mapping
+
+For lookup type 4, item 5 is a Destination.
+
+
+
+HostReply Message
+``````````````````
+
+For lookup types 2-4, the router fetches the leaseset.
+
+If successful, the HostReply will contain the options Mapping
+from the leaseset, and includes it as item 5 after the destination.
+If there are no options in the Mapping, or the leaseset was version 1,
+it will still be included as an empty Mapping (two bytes: 0 0).
+All options from the leaseset will be included, not just service record options.
+For example, options for tunnel bandwidth parameters [Prop168]_ may be present.
+
+On leaseset lookup failure, the reply will contain a new error code 6 (Leaseset lookup failure)
+and will not include a mapping.
+When error code 6 is returned, the Destination field may or may not be present.
+It will be present if a hostname lookup in the address book was successful,
+or if a previous lookup was successful and the result was cached,
+or if the Destination was present in the lookup message (lookup type 4).
+
+If a lookup type is not supported,
+the reply will contain a new error code 7 (lookup type unsupported).
+
 
 
 SAM Specification
 ------------------
 
-The [SAMv3]_ protocol may need to be extended to support service lookups;
-or, maybe, just do a lookup for "_service._proto.xxx.b32.i2p" and the router figures it out.
-But no way to pass ttl and port back without changes.
-See Recommendations section below.
+The [SAMv3]_ protocol must be extended to support service lookups.
 
-TODO
+Extend NAMING LOOKUP as follows:
+
+NAMING LOOKUP NAME=example.i2p OPTIONS=true requests the options mapping in the reply.
+
+NAME may be a full base64 destination when OPTIONS=true.
+
+If the destination lookup was successful, in the reply, following the destination,
+will be options in the form of key=value\n, one per line, UTF-8 encoded, followed by a blank line \n.
+All options from the leaseset will be included, not just service record options.
+For example, options for tunnel bandwidth parameters [Prop168]_ may be present.
+
+Keys containing '=', and keys or values containing a newline,
+are considered invalid and the key/value pair will be removed from the reply.
+
+If there are no options found in the leaseset, or if the leaseset was version 1,
+the response will be the destination and a blank line (destb64\n\n).
+
+If the leaseset is not found, a new result value LEASESET_NOT_FOUND will be returned.
 
 
-Naming Specification
----------------------
+Naming Lookup Alternative
+==========================
 
-Update [NAMING]_ to specify handling of hostnames starting with '_', as
-documented in the implementation section below.
+An alternative design was considered, to support lookups of services
+as a full hostname, for example _smtp._tcp.example.i2p,
+by updating [NAMING]_ to specify handling of hostnames starting with '_'.
+This was rejected for two reasons:
 
-
+- I2CP and SAM changes would still be necessary to pass through the TTL and port information to the client.
+- It would not be a general facility that could be used to retrieve other LS2
+  options such as tunnel bandwidth parameters [Prop168]_.
 
 
 Recommendations
 ================
-
-It may be difficult and low-priority for us to design and implement the
-I2CP and SAM changes necessary to pass through the TTL and port information to the client.
-If those are unavailable to the application, it should assume a TTL
-of 86400 (one day) and use the standard internet port (e.g. 25 for SMTP)
-as the I2CP port.
 
 Servers should specify a TTL of at least 86400, and the standard port for the application.
 
@@ -286,10 +337,6 @@ implementation-dependent. Whether to cache persistently is also implementation-d
 
 Configuration is implementation-dependent. We may define standard I2CP options
 for i2ptunnel and SAM, to be documented in [I2CP-OPTIONS]_.
-
-Naming service subsystems must check for a leading "_", strip off the first two labels,
-look up the leaseset for the remaining part of the hostname, and then lookup the
-two labels in the options field of the leaseset.
 
 Lookups must also lookup the target leaseset and verify it contains a "self" record
 before returning the target destination to the client.
