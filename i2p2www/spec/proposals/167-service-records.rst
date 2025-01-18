@@ -5,7 +5,7 @@ Service Records in LS2
     :author: zzz
     :created: 2024-06-22
     :thread: http://zzz.i2p/topics/3641
-    :lastupdated: 2025-01-17
+    :lastupdated: 2025-01-18
     :status: Open
     :target: 0.9.66
 
@@ -79,9 +79,10 @@ Design
 ======
 
 Service records are placed in the options section in LS2 [LS2]_.
-The options section is currently unused, however it will be used when
-the tunnel bandwidth proposal [Prop168]_ is implemented.
+The LS2 options section is currently unused.
 Not supported for LS1.
+This is similar to the tunnel bandwidth proposal [Prop168]_,
+which defines options for tunnel build records.
 
 To lookup a service address for a specific hostname or b32, the router fetches the
 leaseset and looks up the service record in the properties.
@@ -235,7 +236,7 @@ from the leaseset, and includes it as item 5 after the destination.
 If there are no options in the Mapping, or the leaseset was version 1,
 it will still be included as an empty Mapping (two bytes: 0 0).
 All options from the leaseset will be included, not just service record options.
-For example, options for tunnel bandwidth parameters [Prop168]_ may be present.
+For example, options for parameters defined in the future may be present.
 
 On leaseset lookup failure, the reply will contain a new error code 6 (Leaseset lookup failure)
 and will not include a mapping.
@@ -263,7 +264,7 @@ NAME may be a full base64 destination when OPTIONS=true.
 If the destination lookup was successful, in the reply, following the destination,
 will be options in the form of OPTION:key=value.
 All options from the leaseset will be included, not just service record options.
-For example, options for tunnel bandwidth parameters [Prop168]_ may be present.
+For example, options for parameters defined in the future may be present.
 Example:
 
 NAMING REPLY RESULT=OK NAME=example.i2p VALUE=base64dest OPTION:_smtp._tcp="1 86400 0 0 25 bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb.b32.i2p"
@@ -287,7 +288,7 @@ This was rejected for two reasons:
 
 - I2CP and SAM changes would still be necessary to pass through the TTL and port information to the client.
 - It would not be a general facility that could be used to retrieve other LS2
-  options such as tunnel bandwidth parameters [Prop168]_.
+  options that could be defined in the future.
 
 
 Recommendations
@@ -367,7 +368,7 @@ Compatibility
 
 LS2: No issues. All known implementations currently ignore the options field in LS2,
 and correctly skip over a non-empty options field.
-This was verified in recent testing by both Java I2P and i2pd.
+This was verified in testing by both Java I2P and i2pd during the development of LS2.
 LS2 was implemented in 0.9.38 in 2016 and is well-supported by all router implementations.
 The design does not require special support or caching or any changes in the floodfills.
 
