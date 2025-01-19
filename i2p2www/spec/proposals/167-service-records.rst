@@ -5,7 +5,7 @@ Service Records in LS2
     :author: zzz
     :created: 2024-06-22
     :thread: http://zzz.i2p/topics/3641
-    :lastupdated: 2025-01-18
+    :lastupdated: 2025-01-19
     :status: Open
     :target: 0.9.66
 
@@ -108,6 +108,8 @@ Specification
 LS2 Option Specification
 ---------------------------
 
+LS2 options MUST be sorted by key.
+
 Defined as follows:
 
 - serviceoption := optionkey optionvalue
@@ -209,8 +211,9 @@ Extend HostReplyMessage with additional error codes.
 Configuration is implementation-dependent. We may define standard I2CP options
 for i2ptunnel and SAM, to be documented in [I2CP-OPTIONS]_.
 
-Options mappings may be cached for a short time on either the client or router side,
-implementation-dependent. Recommended maximum time is one hour.
+Options mappings may be cached or negative cached for a short time on either the client or router side,
+implementation-dependent. Recommended maximum time is one hour, unless the service record TTL is shorter.
+Service records may be cached up to the TTL specified by the application, client, or router.
 
 
 Extend the specification as follows:

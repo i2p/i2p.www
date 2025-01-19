@@ -551,7 +551,7 @@ Notes
 * The encoding allows duplicate keys, however in any usage where the mapping is
   signed, duplicates may cause a signature failure.
 
-* Mappings contained in I2NP messages (i.e. in a RouterAddress or RouterInfo)
+* Mappings contained in I2NP messages (e.g. in a RouterAddress or RouterInfo)
   must be sorted by key so that the signature will be invariant. Duplicate keys
   are not allowed.
 
@@ -1277,6 +1277,8 @@ Notes
   may parse the structure even if not all encryption types are known or supported.
 
 * See note on the 'published' field in LeaseSet2Header_
+
+* The options mapping, if the size is greater than one, must be sorted by key, so the signature is invariant.
 
 
 JavaDoc: http://{{ i2pconv('idk.i2p/javadoc-i2p') }}/net/i2p/data/LeaseSet2.html
