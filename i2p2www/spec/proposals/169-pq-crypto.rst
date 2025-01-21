@@ -269,12 +269,12 @@ The defined Signing Public Key types are:
 ============================  ===========  =======================  ======  =====
         Type                  Type Code    Total Public Key Length  Since   Usage
 ============================  ===========  =======================  ======  =====
-MLDSA44_EdDSA_SHA512_Ed25519      15                 1344           0.9.xx  See proposal 169
-MLDSA65_EdDSA_SHA512_Ed25519      16                 1984           0.9.xx  See proposal 169
-MLDSA87_EdDSA_SHA512_Ed25519      17                 2616           0.9.xx  See proposal 169
-MLDSA44                           12                 1312           0.9.xx  See proposal 169
-MLDSA65                           13                 1952           0.9.xx  See proposal 169
-MLDSA87                           14                 2592           0.9.xx  See proposal 169
+MLDSA44_EdDSA_SHA512_Ed25519      12                 1344           0.9.xx  See proposal 169
+MLDSA65_EdDSA_SHA512_Ed25519      13                 1984           0.9.xx  See proposal 169
+MLDSA87_EdDSA_SHA512_Ed25519      14                 2616           0.9.xx  See proposal 169
+MLDSA44                           15                 1312           0.9.xx  See proposal 169
+MLDSA65                           16                 1952           0.9.xx  See proposal 169
+MLDSA87                           17                 2592           0.9.xx  See proposal 169
 ============================  ===========  =======================  ======  =====
 
 
