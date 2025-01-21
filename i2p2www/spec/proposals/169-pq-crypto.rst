@@ -548,6 +548,25 @@ Speeds as reported by [CLOUDFLARE]_.
 
 
 
+
+
+Security Analysis
+=================
+
+Handshakes
+----------
+Probably need to prefer MLKEM768; MLKEM512 is not secure enough.
+
+
+
+
+Signatures
+----------
+MLDSA44 hybrid is preferable to MLDSA65 PQ-only.
+The keys and sig sizes for MLDSA65 and MLDSA87 are probably too big for us, at least at first.
+
+
+
 Type Preferences
 =================
 
@@ -574,7 +593,6 @@ Encryption: MLKEM1024_X25519 not allowed for SSU2
 
 Signatures: MLDSA87 and hybrid variant probably too large;
 MLDSA65 and hybrid variant may be too large
-
 
 
 
@@ -633,22 +651,6 @@ multiple packets (6-8?)
 
 TODO
 
-
-
-Security Analysis
-=================
-
-Handshakes
-----------
-Probably need to prefer MLKEM768; MLKEM512 is not secure enough.
-
-
-
-
-Signatures
-----------
-MLDSA44 hybrid is preferable to MLDSA65 PQ-only.
-The keys and sig sizes for MLDSA65 and MLDSA87 are probably too big for us, at least at first.
 
 
 
