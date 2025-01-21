@@ -168,7 +168,7 @@ Common Structures
 -----------------
 
 PublicKey
-----------------
+````````````````
 
 ================    ================= ======  =====
   Type              Public Key Length Since   Usage
@@ -187,7 +187,7 @@ KEM public keys are the ephemeral PQ key sent from Alice to Bob.
 
 
 PrivateKey
-----------------
+````````````````
 
 ================    ================== ======  =====
   Type              Private Key Length Since   Usage
@@ -208,7 +208,7 @@ KEM private keys are the ciphertext sent from Bob to Alice.
 
 
 SigningPublicKey
-----------------
+````````````````
 
 
 ============================   ==============  ======  =====
@@ -654,6 +654,8 @@ The keys and sig sizes for MLDSA65 and MLDSA87 are probably too big for us, at l
 
 Compatibility
 ===============
+
+TODO
 
 
 Priorities and Rollout
