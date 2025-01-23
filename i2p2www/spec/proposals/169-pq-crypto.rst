@@ -1360,10 +1360,82 @@ TODO
 
 
 
-Compatibility
-===============
+Router Compatibility
+====================
+
+Transport Names
+---------------
+
+We require new transport names.
+
+=========  ====
+Transport  Type
+=========  ====
+NTCP2PQ1   MLKEM512_X25519
+NTCP2PQ2   MLKEM768_X25519
+NTCP2PQ3   MLKEM1024_X25519
+SSU2PQ1    MLKEM512_X25519
+SSU2PQ2    MLKEM768_X25519
+=========  ====
+
+Note that SSU2 cannot support MLKEM1024, it is too big.
+
+
+
+Router Enc. Types
+-----------------
+
+We have several alternatives to consider:
+
+Type 5/6/7 Routers
+``````````````````
+
+Use only the new transports listed above that match the router type.
+Older routers cannot connect, build tunnels through, or send netdb messages to.
+Would take several release cycles to debug and ensure support before enabling by default.
+Might extend rollout by a year or more over alternatives below.
+
+
+Type 4 Routers
+``````````````
+
+As PQ does not affect the X25519 static key or N handshake protocols,
+we could leave the routers as type 4, and just advertise new transports.
+Older routers could still connect, build tunnels through, or send netdb messages to.
+
+
+NTCP2 Alternatives
+``````````````````
+
+Type 4 routers could advertise both NTCP2 and NTCP2PQ* addresses.
+These could use the same static key and other parameters, or not.
+These will probably need to be on different ports;
+it would be very difficult to support both NTCP2 and NTCP2PQ* protocols
+on the same port, as there is no header or framing that would allow
+Bob to classify and frame the incoming Session Request message.
+
+
+SSU2 Alternatives
+``````````````````
+
+Type 4 routers could advertise both SSU2 and SSU2PQ* addresses.
+With added header flags, Bob could identify the incoming transport
+type in the first message. Therefore, we could support
+both SSU2 and SSUPQ* on the same port.
+
+These could be published as separate addresses (as i2pd has done
+in previous transitions) or in the same address with a parameter
+indicating PQ support (as Java i2p has done in previous transitions).
+
+If in the same address, or on the same port in different addresses, these would use the same static key and other parameters.
+If in different addresses with different ports, these could use the same static key and other parameters, or not.
+
+
+Recommendations
+````````````````
 
 TODO
+
 
 
 Priorities and Rollout
