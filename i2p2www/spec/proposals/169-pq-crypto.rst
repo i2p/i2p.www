@@ -94,6 +94,16 @@ We will define the three ML-KEM variants as in [FIPS203]_,
 for 3 new encryption types total.
 Hybrid types will only be defined in combination with X25519.
 
+The new encryption types are:
+
+================
+  Type          
+================
+MLKEM512_X25519 
+MLKEM768_X25519 
+MLKEM1024_X25519
+================
+
 Overhead will be substantial. Typical message 1 and 2 sizes (for XK and IK)
 are currently around 100 bytes (before any additional payload).
 This will increase by 8x to 15x depending on algorithm.
@@ -123,6 +133,19 @@ We will define the three ML-DSA variants as in [FIPS204]_,
 for 6 new signature types total.
 Hybrid types will only be defined in combination with Ed25519.
 We will use the standard ML-DSA, NOT the pre-hash variants (HashML-DSA).
+
+The new signature types are:
+
+============================
+        Type                
+============================
+MLDSA44_EdDSA_SHA512_Ed25519
+MLDSA65_EdDSA_SHA512_Ed25519
+MLDSA87_EdDSA_SHA512_Ed25519
+MLDSA44                     
+MLDSA65                     
+MLDSA87                     
+============================
 
 X.509 certificates and other DER encodings will use the
 composite structures and OIDs defined in [COMPOSITE-SIGS]_.
