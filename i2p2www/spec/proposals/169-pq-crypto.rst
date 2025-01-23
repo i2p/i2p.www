@@ -479,6 +479,8 @@ Encrypted format:
 Decrypted format:
 
 .. raw:: html
+
+  {% highlight lang='dataspec' %}
 Payload Part 1:
 
 
@@ -580,6 +582,8 @@ Encrypted format:
 Decrypted format:
 
 .. raw:: html
+
+  {% highlight lang='dataspec' %}
 Payload Part 1:
 
 
@@ -802,8 +806,6 @@ Unencrypted data (Poly1305 auth tag not shown):
   ~               .   .   .               ~
   |                                       |
   +----+----+----+----+----+----+----+----+
-
-
 
 {% endhighlight %}
 
