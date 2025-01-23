@@ -5,7 +5,7 @@ Post-Quantum Crypto Protocols
     :author: zzz
     :created: 2025-01-21
     :thread: http://zzz.i2p/topics/3294
-    :lastupdated: 2025-01-21
+    :lastupdated: 2025-01-23
     :status: Open
     :target: 0.9.80
 
@@ -1268,6 +1268,9 @@ References
 
 .. [PQ-WIREGUARD]
    https://eprint.iacr.org/2020/379.pdf
+
+.. [RFC-2104]
+    https://tools.ietf.org/html/rfc2104
 
 .. [TLS-HYBRID]
    https://www.ietf.org/archive/id/draft-tls-westerbaan-xyber768d00-03.html
