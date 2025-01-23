@@ -435,10 +435,70 @@ XK:                       XKhfs:
 Noise Handshake KDF
 ---------------------
 
+This section applies to both IK and XK protocols.
+
 The KEM 32-byte shared secret is combined or mixHash()ed or HKDF()ed into the
 final Noise shared secret, before split(), for a final 32-byte shared secret.
 Not concatenated with the DH shared secret for a 64-byte final shared secret,
 which is what TLS does [TLS-HYBRID]_.
+
+Defined ML-KEM Operations
+`````````````````````````
+
+We define the following functions corresponding to the cryptographic building blocks used
+as defined in [FIPS203]_.
+
+(encap_key, decap_key) = KEYGEN()
+    Alice creates the encapsulation and decapsulation keys
+    The encapsulation key is sent in message 1.
+    encap_key and decap_key sizes vary based on ML-KEM variant.
+
+(cihpertext, kem_shared_key) = ENCAPS(encap_key)
+    Bob calculates the ciphertext and shared key,
+    using the ciphertext received in message 1.
+    The ciphertext is sent in message 2.
+    ciphertext size varies based on ML-KEM variant.
+    The kem_shared_key is always 32 bytes.
+
+kem_shared_key = DECAPS(ciphertext, decap_key)
+    Alice calculates the shared key,
+    using the ciphertext received in message 2.
+    The kem_shared_key is always 32 bytes.
+
+Note that both the encap_key and the ciphertext are encrypted inside ChaCha/Poly
+blocks in the Noise handshake messages 1 and 2.
+They will be decrypted as part of the handshake process.
+
+The kem_shared_key is combined with the X25519 DH shared key to
+create a shared session key.
+See below for details.
+
+
+Alice KDF for Message 1
+`````````````````````````
+
+(encap_key, decap_key) = KEYGEN()
+
+
+Bob KDF for Message 2
+`````````````````````````
+
+(cihpertext, kem_shared_key) = ENCAPS(encap_key)
+
+
+Alice KDF for Message 2
+`````````````````````````
+
+kem_shared_key = DECAPS(ciphertext, decap_key)
+
+
+Alice/Bob KDF for split()
+`````````````````````````
+
+see below
+
+
+
 
 
 Ratchet
@@ -474,7 +534,7 @@ Encrypted format:
   |                                       |
   +----+----+----+----+----+----+----+----+
   |                                       |
-  +       ML-KEM key and Static Key       +
+  + ML-KEM encap_key and X25519 Static Key+
   |       ChaCha20 encrypted data         |
   +      (see table below for length)     +
   |                                       |
@@ -511,7 +571,7 @@ Payload Part 1:
 
   +----+----+----+----+----+----+----+----+
   |                                       |
-  +       ML-KEM key                      +
+  +       ML-KEM encap_key                +
   |                                       |
   +      (see table below for length)     +
   |                                       |
@@ -578,7 +638,7 @@ Encrypted format:
   +----+----+----+----+----+----+----+----+
   |                                       |
   +                                       +
-  |   ChaCha20 encrypted PQ ciphertext    |
+  | ChaCha20 encrypted ML-KEM ciphertext  |
   +      (see table below for length)     +
   ~                                       ~
   +                                       +
@@ -732,7 +792,7 @@ Unencrypted data (Poly1305 authentication tag not shown):
   +                                       +
   |                                       |
   +----+----+----+----+----+----+----+----+
-  |           ML-KEM Public Key           |
+  |           ML-KEM encap_key            |
   +      (see table below for length)     +
   |                                       |
   +----+----+----+----+----+----+----+----+
@@ -1001,7 +1061,7 @@ Unencrypted data (Poly1305 authentication tag not shown):
   +                                       +
   |                                       |
   +----+----+----+----+----+----+----+----+
-  |           ML-KEM Public Key           |
+  |           ML-KEM encap_key            |
   +      (see table below for length)     +
   |                                       |
   +----+----+----+----+----+----+----+----+
@@ -1130,7 +1190,7 @@ unchanged
 KDF for data phase
 ```````````````````
 
-The data phase uses the header for associated data.
+This section applies to both IK and XK protocols.
 
 The KDF generates two cipher keys k_ab and k_ba from the chaining key ck,
 using HMAC-SHA256(key, data) as defined in [RFC-2104]_.
@@ -1139,17 +1199,25 @@ This is the split() function, exactly as defined in the Noise spec.
 .. raw:: html
 
   {% highlight lang='text' %}
-// split()
+// Alice side
+  (cihpertext, kem_shared_key) = ENCAPS(encap_key)
+  // Bob side
+  kem_shared_key = DECAPS(ciphertext, decap_key)
+
+  // split()
   // chainKey = from handshake phase
+
+  // mix the ML-KEM shared key into the chaining key
+  mixKey(kem_shared_key);
+
+  // chainKey was changed by the mixKey()
+
   keydata = HKDF(chainKey, ZEROLEN, "", 64)
 
-  TODO
+  remainder unchanged
 
-
-  k_ab = keydata[0:31]
-  k_ba = keydata[32:63]
-
-  Remainder unchanged
+  k_ab = ...
+  k_ba = ...
 
 
 {% endhighlight %}
