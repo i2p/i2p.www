@@ -430,7 +430,10 @@ Noise identifiers:
 1b) New session format (with binding)
 `````````````````````````````````````
 
-Length is 96 + payload length.
+Changes: Current ratchet contained only the static key in the first ChaCha section.
+With ML-KEM, the first ChaCha section will also contain the encrypted PQ public key.
+
+
 Encrypted format:
 
 .. raw:: html
@@ -446,9 +449,9 @@ Encrypted format:
   |                                       |
   +----+----+----+----+----+----+----+----+
   |                                       |
-  +         Static Key                    +
+  +       ML-KEM key and Static Key       +
   |       ChaCha20 encrypted data         |
-  +            32 bytes                   +
+  +      (see table below for length)     +
   |                                       |
   +                                       +
   |                                       |
@@ -470,19 +473,67 @@ Encrypted format:
   |             16 bytes                  |
   +----+----+----+----+----+----+----+----+
 
-  Public Key :: 32 bytes, little endian, Elligator2, cleartext
-
-  Static Key encrypted data :: 32 bytes
-
-  Payload Section encrypted data :: remaining data minus 16 bytes
-
-  MAC :: Poly1305 message authentication code, 16 bytes
 
 {% endhighlight %}
+
+Decrypted format:
+
+.. raw:: html
+Payload Part 1:
+
+
+  +----+----+----+----+----+----+----+----+
+  |                                       |
+  +       ML-KEM key                      +
+  |                                       |
+  +      (see table below for length)     +
+  |                                       |
+  ~                                       ~
+  |                                       |
+  +----+----+----+----+----+----+----+----+
+  |                                       |
+  +       X25519 Static Key               +
+  |                                       |
+  +      (32 bytes)                       +
+  |                                       |
+  +                                       +
+  |                                       |
+  +----+----+----+----+----+----+----+----+
+
+  Payload Part 2:
+
+  +----+----+----+----+----+----+----+----+
+  |                                       |
+  +            Payload Section            +
+  |                                       |
+  ~                                       ~
+  |                                       |
+  +                                       +
+  |                                       |
+  +----+----+----+----+----+----+----+----+
+
+{% endhighlight %}
+
+Sizes:
+
+================    =========  =====  =========  =============  =============  ==========  =======
+  Type              Type Code  X len  Msg 1 len  Msg 1 Enc len  Msg 1 Dec len  PQ key len  pl len
+================    =========  =====  =========  =============  =============  ==========  =======
+X25519                   4       32     96+pl        64+pl             pl           --       pl
+MLKEM512_X25519          5       32    896+pl       864+pl         800+pl          800       pl
+MLKEM768_X25519          6       32   1280+pl      1344+pl        1184+pl         1184       pl
+MLKEM1024_X25519         7       32   1664+pl      1632+pl        1568+pl         1568       pl
+================    =========  =====  =========  =============  =============  ==========  =======
 
 
 1g) New Session Reply format
 ````````````````````````````
+
+Changes: Current ratchet has an empty payload for the first ChaCha section.
+With ML-KEM, the first ChaCha section will contain the encrypted PQ ciphertext.
+
+
+Encrypted format:
 
 .. raw:: html
 
@@ -498,8 +549,16 @@ Encrypted format:
   +                                       +
   |                                       |
   +----+----+----+----+----+----+----+----+
+  |                                       |
+  +                                       +
+  |   ChaCha20 encrypted PQ ciphertext    |
+  +      (see table below for length)     +
+  ~                                       ~
+  +                                       +
+  |                                       |
+  +----+----+----+----+----+----+----+----+
   |  Poly1305 Message Authentication Code |
-  +  (MAC) for Key Section (no data)      +
+  +  (MAC) for Key Section                +
   |             16 bytes                  |
   +----+----+----+----+----+----+----+----+
   |                                       |
@@ -517,6 +576,47 @@ Encrypted format:
 
 
 {% endhighlight %}
+
+Decrypted format:
+
+.. raw:: html
+Payload Part 1:
+
+
+  +----+----+----+----+----+----+----+----+
+  |                                       |
+  +       ML-KEM ciphertext               +
+  |                                       |
+  +      (see table below for length)     +
+  |                                       |
+  ~                                       ~
+  |                                       |
+  +----+----+----+----+----+----+----+----+
+
+  Payload Part 2:
+
+  +----+----+----+----+----+----+----+----+
+  |                                       |
+  +            Payload Section            +
+  |                                       |
+  ~                                       ~
+  |                                       |
+  +                                       +
+  |                                       |
+  +----+----+----+----+----+----+----+----+
+
+{% endhighlight %}
+
+Sizes:
+
+================    =========  =====  =========  =============  =============  ==========  =======
+  Type              Type Code  Y len  Msg 2 len  Msg 2 Enc len  Msg 2 Dec len  PQ CT len   opt len
+================    =========  =====  =========  =============  =============  ==========  =======
+X25519                   4       32     72+pl        32+pl             pl           --       pl
+MLKEM512_X25519          5       32    872+pl       832+pl         800+pl          800       pl
+MLKEM768_X25519          6       32   1256+pl      1216+pl        1184+pl         1184       pl
+MLKEM1024_X25519         7       32   1664+pl      1600+pl        1568+pl         1568       pl
+================    =========  =====  =========  =============  =============  ==========  =======
 
 
 KDF for Payload Section Encrypted Contents
@@ -553,6 +653,9 @@ Noise identifiers:
 1) SessionRequest
 ``````````````````
 
+Changes: Current NTCP2 contains only the options in the ChaCha section.
+With ML-KEM, the ChaCha section will also contain the encrypted PQ public key.
+
 
 Raw contents:
 
@@ -571,7 +674,7 @@ Raw contents:
   |                                       |
   +                                       +
   |   ChaChaPoly frame                    |
-  +             (32 bytes)                +
+  +      (see table below for length)     +
   |   k defined in KDF for message 1      |
   +   n = 0                               +
   |   see KDF for associated data         |
@@ -600,6 +703,10 @@ Unencrypted data (Poly1305 authentication tag not shown):
   +                                       +
   |                                       |
   +----+----+----+----+----+----+----+----+
+  |           ML-KEM Public Key           |
+  +      (see table below for length)     +
+  |                                       |
+  +----+----+----+----+----+----+----+----+
   |               options                 |
   +              (16 bytes)               +
   |                                       |
@@ -611,14 +718,27 @@ Unencrypted data (Poly1305 authentication tag not shown):
   |                                       |
   +----+----+----+----+----+----+----+----+
 
-  add key
 
 
 {% endhighlight %}
 
+Sizes:
+
+================    =========  =====  =========  =============  =============  ==========  =======
+  Type              Type Code  X len  Msg 1 len  Msg 1 Enc len  Msg 1 Dec len  PQ key len  opt len
+================    =========  =====  =========  =============  =============  ==========  =======
+X25519                   4       32     64+pad       32              16           --         16
+MLKEM512_X25519          5       32    864+pad      832             816          800         16
+MLKEM768_X25519          6       32   1248+pad     1216            1200         1184         16
+MLKEM1024_X25519         7       32   1632+pad     1600            1584         1568         16
+================    =========  =====  =========  =============  =============  ==========  =======
+
 
 2) SessionCreated
 ``````````````````
+
+Changes: Current NTCP2 contains only the options in the ChaCha section.
+With ML-KEM, the ChaCha section will also contain the encrypted PQ public key.
 
 
 Raw contents:
@@ -637,7 +757,7 @@ Raw contents:
   +----+----+----+----+----+----+----+----+
   |   ChaChaPoly frame                    |
   +   Encrypted and authenticated data    +
-  |   32 bytes                            |
+  -      (see table below for length)     -
   +   k defined in KDF for message 2      +
   |   n = 0; see KDF for associated data  |
   +                                       +
@@ -668,6 +788,10 @@ Unencrypted data (Poly1305 auth tag not shown):
   +                                       +
   |                                       |
   +----+----+----+----+----+----+----+----+
+  |           ML-KEM Ciphertext           |
+  +      (see table below for length)     +
+  |                                       |
+  +----+----+----+----+----+----+----+----+
   |               options                 |
   +              (16 bytes)               +
   |                                       |
@@ -679,10 +803,21 @@ Unencrypted data (Poly1305 auth tag not shown):
   |                                       |
   +----+----+----+----+----+----+----+----+
 
-  add key
 
 
 {% endhighlight %}
+
+Sizes:
+
+================    =========  =====  =========  =============  =============  ==========  =======
+  Type              Type Code  Y len  Msg 2 len  Msg 2 Enc len  Msg 2 Dec len  PQ CT len   opt len
+================    =========  =====  =========  =============  =============  ==========  =======
+X25519                   4       32     64+pad       32              16           --         16
+MLKEM512_X25519          5       32    832+pad      800             784          768         16
+MLKEM768_X25519          6       32   1120+pad     1088            1104         1088         16
+MLKEM1024_X25519         7       32   1600+pad     1568            1584         1568         16
+================    =========  =====  =========  =============  =============  ==========  =======
+
 
 
 3) SessionConfirmed
@@ -775,6 +910,9 @@ Before header encryption:
 SessionRequest (Type 0)
 ```````````````````````
 
+Changes: Current SSU2 contains only the block data in the ChaCha section.
+With ML-KEM, the ChaCha section will also contain the encrypted PQ public key.
+
 
 Raw contents:
 
@@ -836,6 +974,10 @@ Unencrypted data (Poly1305 authentication tag not shown):
   +                                       +
   |                                       |
   +----+----+----+----+----+----+----+----+
+  |           ML-KEM Public Key           |
+  +      (see table below for length)     +
+  |                                       |
+  +----+----+----+----+----+----+----+----+
   |     Noise payload (block data)        |
   +          (length varies)              +
   |     see below for allowed blocks      |
@@ -844,9 +986,26 @@ Unencrypted data (Poly1305 authentication tag not shown):
 
 {% endhighlight %}
 
+Sizes, not including IP overhead:
+
+================    =========  =====  =========  =============  =============  ==========  =======
+  Type              Type Code  X len  Msg 1 len  Msg 1 Enc len  Msg 1 Dec len  PQ key len  pl len
+================    =========  =====  =========  =============  =============  ==========  =======
+X25519                   4       32     80+pl        16+pl             pl         --         pl
+MLKEM512_X25519          5       32    880+pl       816+pl         800+pl        800         pl
+MLKEM768_X25519          6       32   1264+pl      1200+pl        1184+pl       1184         pl
+MLKEM1024_X25519         7      n/a   too big
+================    =========  =====  =========  =============  =============  ==========  =======
+
+Minimum MTU for MLKEM768_X25519:
+About 1300 for IPv4 and 1320 for IPv6.
+
+
 
 SessionCreated (Type 1)
 ````````````````````````
+Changes: Current SSU2 contains only the block data in the ChaCha section.
+With ML-KEM, the ChaCha section will also contain the encrypted PQ public key.
 
 
 Raw contents:
@@ -909,12 +1068,30 @@ Unencrypted data (Poly1305 auth tag not shown):
   +                                       +
   |                                       |
   +----+----+----+----+----+----+----+----+
+  |           ML-KEM Ciphertext           |
+  +      (see table below for length)     +
+  |                                       |
+  +----+----+----+----+----+----+----+----+
   |     Noise payload (block data)        |
   +          (length varies)              +
   |      see below for allowed blocks     |
   +----+----+----+----+----+----+----+----+
 
 {% endhighlight %}
+
+Sizes, not including IP overhead:
+
+================    =========  =====  =========  =============  =============  ==========  =======
+  Type              Type Code  Y len  Msg 2 len  Msg 2 Enc len  Msg 2 Dec len  PQ CT len   pl len
+================    =========  =====  =========  =============  =============  ==========  =======
+X25519                   4       32     80+pl        16+pl             pl         --         pl
+MLKEM512_X25519          5       32    880+pl       816+pl         800+pl        800         pl
+MLKEM768_X25519          6       32   1264+pl      1200+pl        1184+pl       1184         pl
+MLKEM1024_X25519         7      n/a   too big
+================    =========  =====  =========  =============  =============  ==========  =======
+
+Minimum MTU for MLKEM768_X25519:
+About 1300 for IPv4 and 1320 for IPv6.
 
 
 SessionConfirmed (Type 2)
@@ -955,7 +1132,7 @@ This is the split() function, exactly as defined in the Noise spec.
 Issues
 ``````
 
-For messages 1 and 2, MLKEM768 would increase packet sizes close to or beyond the 1280 minimum MTU.
+For messages 1 and 2, MLKEM768 would increase packet sizes beyond the 1280 minimum MTU.
 Probably would just not support it for that connection if the MTU was too low.
 
 For messages 1 and 2, MLKEM1024 would increase packet sizes beyond 1500 maximum MTU.
