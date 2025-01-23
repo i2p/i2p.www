@@ -20,7 +20,7 @@ Overview
 ========
 
 While research and competition for suitable post-quantum (PQ)
-cryptography has been proceeding for a decade, the choices
+cryptography have been proceeding for a decade, the choices
 have not become clear until recently.
 
 We started looking at the implications of PQ crypto
@@ -176,6 +176,8 @@ New Crypto Required
 
 Test vectors for SHA3-256, SHAKE128, and SHAKE256 are at [NIST-VECTORS]_.
 
+Note that the Java bouncycastle library supports all the above.
+C++ library support TBD.
 
 
 Alternatives
@@ -183,7 +185,7 @@ Alternatives
 
 We will not support [FIPS205]_ (Sphincs+), it is much much slower and bigger than ML-DSA.
 We will not support the upcoming FIPS206 (Falcon), it is not yet standardized.
-
+We will not support NTRU or other PQ candidates that were not standardized by NIST.
 
 
 Specification
@@ -1414,6 +1416,8 @@ it would be very difficult to support both NTCP2 and NTCP2PQ* protocols
 on the same port, as there is no header or framing that would allow
 Bob to classify and frame the incoming Session Request message.
 
+Separate ports and addresses will be difficult for Java but straightforward for i2pd.
+
 
 SSU2 Alternatives
 ``````````````````
@@ -1430,12 +1434,55 @@ indicating PQ support (as Java i2p has done in previous transitions).
 If in the same address, or on the same port in different addresses, these would use the same static key and other parameters.
 If in different addresses with different ports, these could use the same static key and other parameters, or not.
 
+Separate ports and addresses will be difficult for Java but straightforward for i2pd.
+
 
 Recommendations
 ````````````````
 
 TODO
 
+
+Router Sig. Types
+-----------------
+
+Type 12-17 Routers
+``````````````````
+
+Older routers verify RIs and so cannot connect, build tunnels through, or send netdb messages to.
+Would take several release cycles to debug and ensure support before enabling by default.
+Would be the same issues as the enc. type 5/6/7 rollout;
+might extend rollout by a year or more over the type 4 enc. type rollout alternative listed above.
+
+No alternatives.
+
+
+LS Enc. Types
+-----------------
+
+Type 5-7 LS Keys
+``````````````````
+
+These may be present in the LS with older type 4 X25519 keys.
+Older routers will ignore unknown keys.
+
+Destinations can support multiple key types, but only by doing trial decrypts of
+message 1 with each key.
+The overhead may be mitigated by maintaining counts of successful decrypts for each key,
+and trying the most-used key first.
+Java I2P uses this strategy for ElGamal+X25519 on the same destination.
+
+
+Dest. Sig. Types
+-----------------
+
+Type 12-17 Dests
+``````````````````
+
+Routers verify leaseset signatures and so cannot connect, or receive leasesets for type 12-17 destinations.
+Would take several release cycles to debug and ensure support before enabling by default.
+
+No alternatives.
 
 
 Priorities and Rollout
@@ -1459,6 +1506,10 @@ We should implement hybrid ratchet first.
 Ratchet is the highest priority.
 Transports are next.
 Signatures are the lowest priority.
+
+Signature rollout will also be a year or more later than encryption rollout,
+because no backward compatibility is possible.
+
 
 
 ======================   ====
