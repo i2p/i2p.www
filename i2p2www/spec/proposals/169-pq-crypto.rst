@@ -147,9 +147,11 @@ New Crypto Required
 
 - ML-KEM (formerly CRYSTALS-Kyber) [FIPS203]_
 - ML-DSA (formerly CRYSTALS-Dilithium) [FIPS204]_
-- SHA3-128 (formerly Keccak-256) [FIPS202]_
+- SHA3-128 (formerly Keccak-256) [FIPS202]_ Used only for SHAKE128
 - SHA3-256 (formerly Keccak-512) [FIPS202]_
 - SHAKE128 and SHAKE256 (XOF extensions to SHA3-128 and SHA3-256) [FIPS202]_
+
+Test vectors for SHA3-256, SHAKE128, and SHAKE256 are at [NIST-VECTORS]_.
 
 
 
@@ -423,7 +425,118 @@ Noise identifiers:
 - "Noise_IKhfselg2_25519+MLKEM768_ChaChaPoly_SHA256"
 - "Noise_IKhfselg2_25519+MLKEM1024_ChaChaPoly_SHA256"
 
-Details TODO
+
+
+1b) New session format (with binding)
+`````````````````````````````````````
+
+Length is 96 + payload length.
+Encrypted format:
+
+.. raw:: html
+
+  {% highlight lang='dataspec' %}
++----+----+----+----+----+----+----+----+
+  |                                       |
+  +                                       +
+  |   New Session Ephemeral Public Key    |
+  +             32 bytes                  +
+  |     Encoded with Elligator2           |
+  +                                       +
+  |                                       |
+  +----+----+----+----+----+----+----+----+
+  |                                       |
+  +         Static Key                    +
+  |       ChaCha20 encrypted data         |
+  +            32 bytes                   +
+  |                                       |
+  +                                       +
+  |                                       |
+  +----+----+----+----+----+----+----+----+
+  |  Poly1305 Message Authentication Code |
+  +    (MAC) for Static Key Section       +
+  |             16 bytes                  |
+  +----+----+----+----+----+----+----+----+
+  |                                       |
+  +            Payload Section            +
+  |       ChaCha20 encrypted data         |
+  ~                                       ~
+  |                                       |
+  +                                       +
+  |                                       |
+  +----+----+----+----+----+----+----+----+
+  |  Poly1305 Message Authentication Code |
+  +         (MAC) for Payload Section     +
+  |             16 bytes                  |
+  +----+----+----+----+----+----+----+----+
+
+  Public Key :: 32 bytes, little endian, Elligator2, cleartext
+
+  Static Key encrypted data :: 32 bytes
+
+  Payload Section encrypted data :: remaining data minus 16 bytes
+
+  MAC :: Poly1305 message authentication code, 16 bytes
+
+{% endhighlight %}
+
+
+1g) New Session Reply format
+````````````````````````````
+
+.. raw:: html
+
+  {% highlight lang='dataspec' %}
++----+----+----+----+----+----+----+----+
+  |       Session Tag   8 bytes           |
+  +----+----+----+----+----+----+----+----+
+  |                                       |
+  +        Ephemeral Public Key           +
+  |                                       |
+  +            32 bytes                   +
+  |     Encoded with Elligator2           |
+  +                                       +
+  |                                       |
+  +----+----+----+----+----+----+----+----+
+  |  Poly1305 Message Authentication Code |
+  +  (MAC) for Key Section (no data)      +
+  |             16 bytes                  |
+  +----+----+----+----+----+----+----+----+
+  |                                       |
+  +            Payload Section            +
+  |       ChaCha20 encrypted data         |
+  ~                                       ~
+  |                                       |
+  +                                       +
+  |                                       |
+  +----+----+----+----+----+----+----+----+
+  |  Poly1305 Message Authentication Code |
+  +         (MAC) for Payload Section     +
+  |             16 bytes                  |
+  +----+----+----+----+----+----+----+----+
+
+
+{% endhighlight %}
+
+
+KDF for Payload Section Encrypted Contents
+``````````````````````````````````````````
+
+
+.. raw:: html
+
+  {% highlight lang='text' %}
+// split()
+  keydata = HKDF(chainKey, ZEROLEN, "", 64)
+
+  TODO
+
+  k_ab = keydata[0:31]
+  k_ba = keydata[32:63]
+
+  rest unchanged
+{% endhighlight %}
+
 
 
 
@@ -436,7 +549,179 @@ Noise identifiers:
 - "Noise_XKhfsaesobfse+hs2+hs3_25519+MLKEM768_ChaChaPoly_SHA256"
 - "Noise_XKhfsaesobfse+hs2+hs3_25519+MLKEM1024_ChaChaPoly_SHA256"
 
-Details TODO
+
+1) SessionRequest
+``````````````````
+
+
+Raw contents:
+
+.. raw:: html
+
+  {% highlight lang='dataspec' %}
++----+----+----+----+----+----+----+----+
+  |                                       |
+  +        obfuscated with RH_B           +
+  |       AES-CBC-256 encrypted X         |
+  +             (32 bytes)                +
+  |                                       |
+  +                                       +
+  |                                       |
+  +----+----+----+----+----+----+----+----+
+  |                                       |
+  +                                       +
+  |   ChaChaPoly frame                    |
+  +             (32 bytes)                +
+  |   k defined in KDF for message 1      |
+  +   n = 0                               +
+  |   see KDF for associated data         |
+  +----+----+----+----+----+----+----+----+
+  |     unencrypted authenticated         |
+  ~         padding (optional)            ~
+  |     length defined in options block   |
+  +----+----+----+----+----+----+----+----+
+
+  Same as before except ChaChaPoly frame is bigger
+
+
+{% endhighlight %}
+
+Unencrypted data (Poly1305 authentication tag not shown):
+
+.. raw:: html
+
+  {% highlight lang='dataspec' %}
++----+----+----+----+----+----+----+----+
+  |                                       |
+  +                                       +
+  |                   X                   |
+  +              (32 bytes)               +
+  |                                       |
+  +                                       +
+  |                                       |
+  +----+----+----+----+----+----+----+----+
+  |               options                 |
+  +              (16 bytes)               +
+  |                                       |
+  +----+----+----+----+----+----+----+----+
+  |     unencrypted authenticated         |
+  +         padding (optional)            +
+  |     length defined in options block   |
+  ~               .   .   .               ~
+  |                                       |
+  +----+----+----+----+----+----+----+----+
+
+  add key
+
+
+{% endhighlight %}
+
+
+2) SessionCreated
+``````````````````
+
+
+Raw contents:
+
+.. raw:: html
+
+  {% highlight lang='dataspec' %}
++----+----+----+----+----+----+----+----+
+  |                                       |
+  +        obfuscated with RH_B           +
+  |       AES-CBC-256 encrypted Y         |
+  +              (32 bytes)               +
+  |                                       |
+  +                                       +
+  |                                       |
+  +----+----+----+----+----+----+----+----+
+  |   ChaChaPoly frame                    |
+  +   Encrypted and authenticated data    +
+  |   32 bytes                            |
+  +   k defined in KDF for message 2      +
+  |   n = 0; see KDF for associated data  |
+  +                                       +
+  |                                       |
+  +----+----+----+----+----+----+----+----+
+  |     unencrypted authenticated         |
+  +         padding (optional)            +
+  |     length defined in options block   |
+  ~               .   .   .               ~
+  |                                       |
+  +----+----+----+----+----+----+----+----+
+
+  Same as before except ChaChaPoly frame is bigger
+
+{% endhighlight %}
+
+Unencrypted data (Poly1305 auth tag not shown):
+
+.. raw:: html
+
+  {% highlight lang='dataspec' %}
++----+----+----+----+----+----+----+----+
+  |                                       |
+  +                                       +
+  |                  Y                    |
+  +              (32 bytes)               +
+  |                                       |
+  +                                       +
+  |                                       |
+  +----+----+----+----+----+----+----+----+
+  |               options                 |
+  +              (16 bytes)               +
+  |                                       |
+  +----+----+----+----+----+----+----+----+
+  |     unencrypted authenticated         |
+  +         padding (optional)            +
+  |     length defined in options block   |
+  ~               .   .   .               ~
+  |                                       |
+  +----+----+----+----+----+----+----+----+
+
+  add key
+
+
+{% endhighlight %}
+
+
+3) SessionConfirmed
+```````````````````
+
+Unchanged
+
+
+Key Derivation Function (KDF) (for data phase)
+``````````````````````````````````````````````
+
+The data phase uses a zero-length associated data input.
+
+
+The KDF generates two cipher keys k_ab and k_ba from the chaining key ck,
+using HMAC-SHA256(key, data) as defined in [RFC-2104]_.
+This is the Split() function, exactly as defined in the Noise spec.
+
+.. raw:: html
+
+  {% highlight lang='text' %}
+
+ck = from handshake phase
+
+  // k_ab, k_ba = HKDF(ck, zerolen)
+  // ask_master = HKDF(ck, zerolen, info="ask")
+
+  // zerolen is a zero-length byte array
+  temp_key = HMAC-SHA256(ck, zerolen)
+
+  TODO
+
+
+  remainder unchanged
+
+{% endhighlight %}
+
+
+
 
 SSU2
 ----
@@ -447,9 +732,228 @@ Noise identifiers:
 - "Noise_XKhfschaobfse+hs1+hs2+hs3_25519+MLKEM768_ChaChaPoly_SHA256"
 - "Noise_XKhfschaobfse+hs1+hs2+hs3_25519+MLKEM1024_ChaChaPoly_SHA256"
 
-Details TODO
+Long Header
+`````````````
+The long header is 32 bytes. It is used before a session is created, for Token Request, SessionRequest, SessionCreated, and Retry.
+It is also used for out-of-session Peer Test and Hole Punch messages.
 
-Issues:
+Before header encryption:
+
+.. raw:: html
+
+  {% highlight lang='dataspec' %}
+
++----+----+----+----+----+----+----+----+
+  |      Destination Connection ID        |
+  +----+----+----+----+----+----+----+----+
+  |   Packet Number   |type| ver| id |flag|
+  +----+----+----+----+----+----+----+----+
+  |        Source Connection ID           |
+  +----+----+----+----+----+----+----+----+
+  |                 Token                 |
+  +----+----+----+----+----+----+----+----+
+
+  Destination Connection ID :: 8 bytes, unsigned big endian integer
+
+  Packet Number :: 4 bytes, unsigned big endian integer
+
+  type :: The message type = 0, 1, 7, 9, 10, or 11
+
+  ver :: The protocol version, equal to 2
+
+  id :: 1 byte, the network ID (currently 2, except for test networks)
+
+  flag :: 1 byte, unused, set to 0 for future compatibility
+
+  Source Connection ID :: 8 bytes, unsigned big endian integer
+
+  Token :: 8 bytes, unsigned big endian integer
+
+{% endhighlight %}
+
+
+SessionRequest (Type 0)
+```````````````````````
+
+
+Raw contents:
+
+.. raw:: html
+
+  {% highlight lang='dataspec' %}
++----+----+----+----+----+----+----+----+
+  |  Long Header bytes 0-15, ChaCha20     |
+  +  encrypted with Bob intro key         +
+  |    See Header Encryption KDF          |
+  +----+----+----+----+----+----+----+----+
+  |  Long Header bytes 16-31, ChaCha20    |
+  +  encrypted with Bob intro key n=0     +
+  |                                       |
+  +----+----+----+----+----+----+----+----+
+  |                                       |
+  +       X, ChaCha20 encrypted           +
+  |       with Bob intro key n=0          |
+  +              (32 bytes)               +
+  |                                       |
+  +                                       +
+  |                                       |
+  +----+----+----+----+----+----+----+----+
+  |                                       |
+  +                                       +
+  |   ChaCha20 encrypted data             |
+  +          (length varies)              +
+  |  k defined in KDF for Session Request |
+  +  n = 0                                +
+  |  see KDF for associated data          |
+  +----+----+----+----+----+----+----+----+
+  |                                       |
+  +        Poly1305 MAC (16 bytes)        +
+  |                                       |
+  +----+----+----+----+----+----+----+----+
+
+
+{% endhighlight %}
+
+Unencrypted data (Poly1305 authentication tag not shown):
+
+.. raw:: html
+
+  {% highlight lang='dataspec' %}
++----+----+----+----+----+----+----+----+
+  |      Destination Connection ID        |
+  +----+----+----+----+----+----+----+----+
+  |   Packet Number   |type| ver| id |flag|
+  +----+----+----+----+----+----+----+----+
+  |        Source Connection ID           |
+  +----+----+----+----+----+----+----+----+
+  |                 Token                 |
+  +----+----+----+----+----+----+----+----+
+  |                                       |
+  +                                       +
+  |                   X                   |
+  +              (32 bytes)               +
+  |                                       |
+  +                                       +
+  |                                       |
+  +----+----+----+----+----+----+----+----+
+  |     Noise payload (block data)        |
+  +          (length varies)              +
+  |     see below for allowed blocks      |
+  +----+----+----+----+----+----+----+----+
+
+
+{% endhighlight %}
+
+
+SessionCreated (Type 1)
+````````````````````````
+
+
+Raw contents:
+
+.. raw:: html
+
+  {% highlight lang='dataspec' %}
++----+----+----+----+----+----+----+----+
+  |  Long Header bytes 0-15, ChaCha20     |
+  +  encrypted with Bob intro key and     +
+  | derived key, see Header Encryption KDF|
+  +----+----+----+----+----+----+----+----+
+  |  Long Header bytes 16-31, ChaCha20    |
+  +  encrypted with derived key n=0       +
+  |  See Header Encryption KDF            |
+  +----+----+----+----+----+----+----+----+
+  |                                       |
+  +       Y, ChaCha20 encrypted           +
+  |       with derived key n=0            |
+  +              (32 bytes)               +
+  |       See Header Encryption KDF       |
+  +                                       +
+  |                                       |
+  +----+----+----+----+----+----+----+----+
+  |   ChaCha20 data                       |
+  +   Encrypted and authenticated data    +
+  |  length varies                        |
+  +  k defined in KDF for Session Created +
+  |  n = 0; see KDF for associated data   |
+  +                                       +
+  |                                       |
+  +----+----+----+----+----+----+----+----+
+  |                                       |
+  +        Poly1305 MAC (16 bytes)        +
+  |                                       |
+  +----+----+----+----+----+----+----+----+
+
+
+{% endhighlight %}
+
+Unencrypted data (Poly1305 auth tag not shown):
+
+.. raw:: html
+
+  {% highlight lang='dataspec' %}
++----+----+----+----+----+----+----+----+
+  |      Destination Connection ID        |
+  +----+----+----+----+----+----+----+----+
+  |   Packet Number   |type| ver| id |flag|
+  +----+----+----+----+----+----+----+----+
+  |        Source Connection ID           |
+  +----+----+----+----+----+----+----+----+
+  |                 Token                 |
+  +----+----+----+----+----+----+----+----+
+  |                                       |
+  +                                       +
+  |                  Y                    |
+  +              (32 bytes)               +
+  |                                       |
+  +                                       +
+  |                                       |
+  +----+----+----+----+----+----+----+----+
+  |     Noise payload (block data)        |
+  +          (length varies)              +
+  |      see below for allowed blocks     |
+  +----+----+----+----+----+----+----+----+
+
+{% endhighlight %}
+
+
+SessionConfirmed (Type 2)
+`````````````````````````
+unchanged
+
+
+
+KDF for data phase
+```````````````````
+
+The data phase uses the header for associated data.
+
+The KDF generates two cipher keys k_ab and k_ba from the chaining key ck,
+using HMAC-SHA256(key, data) as defined in [RFC-2104]_.
+This is the split() function, exactly as defined in the Noise spec.
+
+.. raw:: html
+
+  {% highlight lang='text' %}
+// split()
+  // chainKey = from handshake phase
+  keydata = HKDF(chainKey, ZEROLEN, "", 64)
+
+  TODO
+
+
+  k_ab = keydata[0:31]
+  k_ba = keydata[32:63]
+
+  Remainder unchanged
+
+
+{% endhighlight %}
+
+
+
+Issues
+``````
 
 For messages 1 and 2, MLKEM768 would increase packet sizes close to or beyond the 1280 minimum MTU.
 Probably would just not support it for that connection if the MTU was too low.
@@ -749,6 +1253,9 @@ References
 
 .. [NIST-PQ]
    https://www.nist.gov/news-events/news/2024/08/nist-releases-first-3-finalized-post-quantum-encryption-standards
+
+.. [NIST-VECTORS]
+   https://csrc.nist.gov/projects/cryptographic-standards-and-guidelines/example-values
 
 .. [Noise]
    https://noiseprotocol.org/noise.html
