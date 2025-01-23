@@ -96,13 +96,13 @@ Hybrid types will only be defined in combination with X25519.
 
 The new encryption types are:
 
-================
-  Type          
-================
-MLKEM512_X25519 
-MLKEM768_X25519 
-MLKEM1024_X25519
-================
+================  ====
+  Type            Code
+================  ====
+MLKEM512_X25519     5
+MLKEM768_X25519     6
+MLKEM1024_X25519    7
+================  ====
 
 Overhead will be substantial. Typical message 1 and 2 sizes (for XK and IK)
 are currently around 100 bytes (before any additional payload).
@@ -136,16 +136,16 @@ We will use the standard ML-DSA, NOT the pre-hash variants (HashML-DSA).
 
 The new signature types are:
 
-============================
-        Type                
-============================
-MLDSA44_EdDSA_SHA512_Ed25519
-MLDSA65_EdDSA_SHA512_Ed25519
-MLDSA87_EdDSA_SHA512_Ed25519
-MLDSA44                     
-MLDSA65                     
-MLDSA87                     
-============================
+============================  ====
+        Type                  Code
+============================  ====
+MLDSA44_EdDSA_SHA512_Ed25519   12
+MLDSA65_EdDSA_SHA512_Ed25519   13
+MLDSA87_EdDSA_SHA512_Ed25519   14
+MLDSA44                        15
+MLDSA65                        16
+MLDSA87                        17
+============================  ====
 
 X.509 certificates and other DER encodings will use the
 composite structures and OIDs defined in [COMPOSITE-SIGS]_.
