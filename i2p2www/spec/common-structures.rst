@@ -498,6 +498,11 @@ Notes
 * Implementers are cautioned to prohibit excess data in Key Certificates.
   The appropriate length for each certificate type should be enforced.
 
+* A KEY certificate with types 0,0 (ElGamal,DSA_SHA1) is allowed but discouraged.
+  It is not well-tested and may cause issues in some implementations.
+  Use a NULL certificate in the canonical representation of a
+  (ElGamal,DSA_SHA1) Destination or RouterIdentity, which will be 4 bytes shorter
+  than using a KEY certificate.
 
 
 .. _type-Mapping:
