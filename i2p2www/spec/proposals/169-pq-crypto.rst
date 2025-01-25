@@ -5,7 +5,7 @@ Post-Quantum Crypto Protocols
     :author: zzz
     :created: 2025-01-21
     :thread: http://zzz.i2p/topics/3294
-    :lastupdated: 2025-01-23
+    :lastupdated: 2025-01-25
     :status: Open
     :target: 0.9.80
 
@@ -52,7 +52,18 @@ Goals
 Non-Goals
 =========
 
-TBD
+- Don't change one-way (Noise N) encryption protocols
+
+
+Threat Model
+============
+
+- Routers at the OBEP or IBGW, possibly colluding,
+  storing garlic messages for later decryption (forward secrecy)
+- Network observers
+  storing transport messages for later decryption (forward secrecy)
+- Network participants forging signatures for RI, LS, streaming, datagrams,
+  or other structures
 
 
 
@@ -165,6 +176,19 @@ that are gzipped in-transit will increase by 12x - 38x depending on algorithm.
 TODO: Add RSA4096 hybrid types for su3?
 
 
+Combinations
+------------
+
+For Destinations, the new signature types are supported with all encryption
+types in the leaseset. Set the encryption type in the key certificate to 0.
+
+For RouterIdentities, ElGamal encryption type is deprecated.
+The new signature types are supported with X25519 (type 4) encryption only.
+The new encryption types will be indicated in the RouterAddresses.
+The encryption type in the key certificate will continue to be type 4.
+
+
+
 New Crypto Required
 -------------------
 
@@ -206,7 +230,6 @@ MLKEM1024_X25519              32      0.9.xx  See proposal 169, for Leasesets on
 MLKEM512                     800      0.9.xx  See proposal 169, for handshakes only, not for Leasesets, RIs or Destinations
 MLKEM768                    1184      0.9.xx  See proposal 169, for handshakes only, not for Leasesets, RIs or Destinations
 MLKEM1024                   1568      0.9.xx  See proposal 169, for handshakes only, not for Leasesets, RIs or Destinations
-NULL                           0      0.9.xx  See proposal 169, for destinations with PQ sig types only, not for RIs or Leasesets
 ================    ================= ======  =====
 
 Hybrid public keys are the X25519 key.
@@ -225,7 +248,6 @@ MLKEM1024_X25519              32       0.9.xx  See proposal 169, for Leasesets o
 MLKEM512                    1632       0.9.xx  See proposal 169, for handshakes only, not for Leasesets, RIs or Destinations
 MLKEM768                    2400       0.9.xx  See proposal 169, for handshakes only, not for Leasesets, RIs or Destinations
 MLKEM1024                   3168       0.9.xx  See proposal 169, for handshakes only, not for Leasesets, RIs or Destinations
-NULL                           0       0.9.xx  See proposal 169, for destinations with PQ sig types only, not for RIs or Leasesets
 ================    ================== ======  =====
 
 Hybrid private keys are the X25519 key followed by the PQ key.
@@ -314,15 +336,14 @@ The defined Crypto Public Key types are:
 MLKEM512_X25519          5                 32            0.9.xx  See proposal 169, for Leasesets only, not for RIs or Destinations
 MLKEM768_X25519          6                 32            0.9.xx  See proposal 169, for Leasesets only, not for RIs or Destinations
 MLKEM1024_X25519         7                 32            0.9.xx  See proposal 169, for Leasesets only, not for RIs or Destinations
-NULL                   255                  0            0.9.xx  See proposal 169, for destinations with PQ sig types only, not for RIs or Leasesets
 ================    ===========  ======================= ======  =====
 
 
 Hybrid key types are NEVER included in key certificates; only in leasesets.
 
-The NULL key type is ONLY for destinations or router identities with Hybrid or PQ signature types.
-Never in leasesets.
-This is used to indicate to KeysAndCert parsers that there is no crypto key, and the
+For destinations with Hybrid or PQ signature types,
+use type 0 for the encryption type,
+but there is no crypto key, and the
 entire 384-byte main section is for the signing key.
 
 
@@ -330,7 +351,7 @@ Destination sizes
 ``````````````````
 
 Here are lengths for the new Destination types.
-Enc type for all is NULL (255).
+Enc type for all is "ElGamal" (0) but the encryption key length is treated as 0.
 The entire 384-byte section is used for the first part of the signing public key.
 No padding.
 Total length is 7 + total key length.
@@ -1560,8 +1581,11 @@ The most valuable data are the end-to-end traffic, encrypted with ratchet.
 As an external observer between tunnel hops, that's encrypted twice more, with tunnel encryption and transport encryption.
 As an external observer between OBEP and IBGW, it's encrypted only once more, with transport encryption.
 As a OBEP or IBGW participant, ratchet is the only encryption.
+However, as tunnels are unidirectional, capturing both messages in the ratchet handshake
+would require colluding routers, unless tunnels were built with the
+OBEP and IBGW on the same router.
 
-The most worrisome PQ threat model right now is storing traffic today, for decryption many many years from now.
+The most worrisome PQ threat model right now is storing traffic today, for decryption many many years from now (forward secrecy).
 A hybrid approach would protect that.
 
 The PQ threat model of breaking the authentication keys in some reasonable period of time
