@@ -5,7 +5,7 @@ Post-Quantum Crypto Protocols
     :author: zzz
     :created: 2025-01-21
     :thread: http://zzz.i2p/topics/3294
-    :lastupdated: 2025-01-25
+    :lastupdated: 2025-01-27
     :status: Open
     :target: 0.9.80
 
@@ -353,6 +353,10 @@ Destination sizes
 Here are lengths for the new Destination types.
 Enc type for all is "ElGamal" (0) but the encryption key length is treated as 0.
 The entire 384-byte section is used for the first part of the signing public key.
+NOTE: This is different than the spec for the ECDSA_SHA512_P521
+and the RSA signature types, where we maintained the 256-byte ElGamal
+key in the destination even though it was unused.
+
 No padding.
 Total length is 7 + total key length.
 Key certificate length is 4 + excess key length.
@@ -368,7 +372,7 @@ skey[0:383] 5 (932 >> 8) (932 & 0xff) 00 12 00 255 skey[384:1311]
 ============================  ===========  =======================  ======  ======  =====
 MLDSA44_EdDSA_SHA512_Ed25519      12                 1344           384      960    1351
 MLDSA65_EdDSA_SHA512_Ed25519      13                 1984           384     1600    1991
-MLDSA87_EdDSA_SHA512_Ed25519      14                 2616           384     2648    2623
+MLDSA87_EdDSA_SHA512_Ed25519      14                 2616           384     2232    2623
 MLDSA44                           15                 1312           384      928    1319
 MLDSA65                           16                 1952           384     1568    1959
 MLDSA87                           17                 2592           384     2208    2599
@@ -397,7 +401,7 @@ enckey[0:31] skey[0:351] 5 (960 >> 8) (960 & 0xff) 00 12 00 4 skey[352:1311]
 ============================  ===========  =======================  ======  ======  =====
 MLDSA44_EdDSA_SHA512_Ed25519      12                 1344           352      992    1383
 MLDSA65_EdDSA_SHA512_Ed25519      13                 1984           352     1632    2023
-MLDSA87_EdDSA_SHA512_Ed25519      14                 2616           352     2660    2655
+MLDSA87_EdDSA_SHA512_Ed25519      14                 2616           352     2264    2655
 MLDSA44                           15                 1312           352      960    1351
 MLDSA65                           16                 1952           352     1600    1991
 MLDSA87                           17                 2592           352     2240    2631
