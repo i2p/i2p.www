@@ -45,6 +45,10 @@ below.
 ==============  ================================================================
  API Version    Required I2NP Features
 ==============  ================================================================
+   0.9.59       Minimum peers will build tunnels through, as of 0.9.63
+
+                Minimum floodfill peers will send DSM to, as of 0.9.63
+
    0.9.58       Minimum peers will build tunnels through, as of 0.9.62
 
                 ElGamal Routers deprecated
