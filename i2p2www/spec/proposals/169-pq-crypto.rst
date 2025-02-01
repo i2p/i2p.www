@@ -5,7 +5,7 @@ Post-Quantum Crypto Protocols
     :author: zzz
     :created: 2025-01-21
     :thread: http://zzz.i2p/topics/3294
-    :lastupdated: 2025-01-27
+    :lastupdated: 2025-02-01
     :status: Open
     :target: 0.9.80
 
@@ -1335,6 +1335,8 @@ MLDSA87                         2592   4896   7219     2631    2599   +7072     
 
 Speed:
 
+Speeds as reported by [CLOUDFLARE]_:
+
 ====================  ===================  ======
   Type                Relative speed sign  verify
 ====================  ===================  ======
@@ -1344,9 +1346,16 @@ MLDSA65                       ???          ???
 MLDSA87                       ???          ???
 ====================  ===================  ======
 
+Preliminary test results in Java:
 
-Speeds as reported by [CLOUDFLARE]_.
-
+====================  ===================  ============  ======
+  Type                Relative speed sign  verify        keygen
+====================  ===================  ============  ======
+EdDSA_SHA512_Ed25519       baseline        baseline      baseline
+MLDSA44                    4.6x slower     1.7x faster   2.6x faster
+MLDSA65                    8.1x slower     same          1.5x faster
+MLDSA87                    11.1x slower    1.5x slower   same
+====================  ===================  ============  ======
 
 
 
