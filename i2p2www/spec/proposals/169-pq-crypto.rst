@@ -5,7 +5,7 @@ Post-Quantum Crypto Protocols
     :author: zzz
     :created: 2025-01-21
     :thread: http://zzz.i2p/topics/3294
-    :lastupdated: 2025-02-01
+    :lastupdated: 2025-02-02
     :status: Open
     :target: 0.9.80
 
@@ -1291,6 +1291,8 @@ MLKEM1024_X25519     +1568              +1568
 
 Speed:
 
+Speeds as reported by [CLOUDFLARE]_:
+
 ================    ==============
   Type              Relative speed
 ================    ==============
@@ -1304,7 +1306,17 @@ MLKEM768_X25519     4x DH + 2x PQ (keygen + enc/dec) = 5.3x DH = 32% slower
 MLKEM1024_X25519    4x DH + 2x PQ (keygen + enc/dec) = 6x DH = 50% slower
 ================    ==============
 
-Speeds as reported by [CLOUDFLARE]_.
+
+Preliminary test results in Java:
+
+====================  ===================  ============  ======
+  Type                Relative DH/encaps   DH/decaps     keygen
+====================  ===================  ============  ======
+X25519                     baseline        baseline      baseline
+MLKEM512                   58x faster      44x faster    35x faster
+MLKEM768                   34x faster      28x faster    18x faster
+MLKEM1024                  25x faster      21x faster    13x faster
+====================  ===================  ============  ======
 
 
 Signatures
