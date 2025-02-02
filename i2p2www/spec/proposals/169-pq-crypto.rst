@@ -1313,9 +1313,9 @@ Preliminary test results in Java:
   Type                Relative DH/encaps   DH/decaps     keygen
 ====================  ===================  ============  ======
 X25519                     baseline        baseline      baseline
-MLKEM512                   58x faster      44x faster    35x faster
-MLKEM768                   34x faster      28x faster    18x faster
-MLKEM1024                  25x faster      21x faster    13x faster
+MLKEM512                   29x faster      22x faster    17x faster
+MLKEM768                   17x faster      14x faster    9x faster
+MLKEM1024                  12x faster      10x faster    6x faster
 ====================  ===================  ============  ======
 
 
