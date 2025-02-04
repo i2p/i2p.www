@@ -5,7 +5,7 @@ Post-Quantum Crypto Protocols
     :author: zzz
     :created: 2025-01-21
     :thread: http://zzz.i2p/topics/3294
-    :lastupdated: 2025-02-02
+    :lastupdated: 2025-02-04
     :status: Open
     :target: 0.9.80
 
@@ -727,9 +727,9 @@ Sizes:
   Type              Type Code  Y len  Msg 2 len  Msg 2 Enc len  Msg 2 Dec len  PQ CT len   opt len
 ================    =========  =====  =========  =============  =============  ==========  =======
 X25519                   4       32     72+pl        32+pl             pl           --       pl
-MLKEM512_X25519          5       32    872+pl       832+pl         800+pl          800       pl
-MLKEM768_X25519          6       32   1256+pl      1216+pl        1184+pl         1184       pl
-MLKEM1024_X25519         7       32   1664+pl      1600+pl        1568+pl         1568       pl
+MLKEM512_X25519          5       32    840+pl       800+pl         768+pl          768       pl
+MLKEM768_X25519          6       32   1160+pl      1120+pl        1088+pl         1088       pl
+MLKEM1024_X25519         7       32   1640+pl      1600+pl        1568+pl         1568       pl
 ================    =========  =====  =========  =============  =============  ==========  =======
 
 
@@ -1197,8 +1197,8 @@ Sizes, not including IP overhead:
   Type              Type Code  Y len  Msg 2 len  Msg 2 Enc len  Msg 2 Dec len  PQ CT len   pl len
 ================    =========  =====  =========  =============  =============  ==========  =======
 X25519                   4       32     80+pl        16+pl             pl         --         pl
-MLKEM512_X25519          5       32    880+pl       816+pl         800+pl        800         pl
-MLKEM768_X25519          6       32   1264+pl      1200+pl        1184+pl       1184         pl
+MLKEM512_X25519          5       32    848+pl       784+pl         768+pl        768         pl
+MLKEM768_X25519          6       32   1168+pl      1102+pl        1088+pl       1088         pl
 MLKEM1024_X25519         7      n/a   too big
 ================    =========  =====  =========  =============  =============  ==========  =======
 
