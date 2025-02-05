@@ -33,7 +33,8 @@ __ http://{{ i2pconv('git.idk.i2p') }}/i2p-hackers/i2p.i2p/-/issues?scope=all&st
 
 ::
     
-    32255865c5f89bceab4902ba401c971c5aa238ebe8bc1bfb2153acb6478ce656  i2pinstall_2.8.0.jar
-    06b305c24ed163bb09b1afaa3a8d44b2477eb3eb0e1c84236d210606986bd820  i2psource_2.8.0.tar.bz2
-    3ff1e0c52757a39e20ac864aa610c92f1a1168979b42a61cd1e9284becc0fe22  i2pupdate_2.8.0.zip
-    bfc6fc3c6e2cb486448450d3f08cef6afe2966b57113b17df65cbb53ed6d4a82  i2pupdate.su3
+     f2699359fd7c5a2fddb5730666e61c0dce2184f95507d4f33dcfaca16569b580  i2pinstall_2.8.0_windows.exe
+     32255865c5f89bceab4902ba401c971c5aa238ebe8bc1bfb2153acb6478ce656  i2pinstall_2.8.0.jar
+     06b305c24ed163bb09b1afaa3a8d44b2477eb3eb0e1c84236d210606986bd820  i2psource_2.8.0.tar.bz2
+     3ff1e0c52757a39e20ac864aa610c92f1a1168979b42a61cd1e9284becc0fe22  i2pupdate_2.8.0.zip
+     bfc6fc3c6e2cb486448450d3f08cef6afe2966b57113b17df65cbb53ed6d4a82  i2pupdate.su3
