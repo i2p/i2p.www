@@ -5,7 +5,7 @@ Post-Quantum Crypto Protocols
     :author: zzz
     :created: 2025-01-21
     :thread: http://zzz.i2p/topics/3294
-    :lastupdated: 2025-02-04
+    :lastupdated: 2025-02-05
     :status: Open
     :target: 0.9.80
 
@@ -26,11 +26,14 @@ have not become clear until recently.
 We started looking at the implications of PQ crypto
 in 2022 [FORUM]_.
 
-SSL added hybrid encryption support in the last two years and it now
-is used for a significant portion of encrypted traffic on the internet [CLOUDFLARE]_.
+TLS standards added hybrid encryption support in the last two years and it now
+is used for a significant portion of encrypted traffic on the internet
+due to support in Chrome and Firefox [CLOUDFLARE]_.
 
 NIST recently finalized and published the recommended algorithms
 for post-quantum cryptography [NIST-PQ]_.
+Several common cryptography libraries now support the NIST standards
+or will be releasing support in the near future.
 
 Both [CLOUDFLARE]_ and [NIST-PQ]_ recommend that migration start immediately.
 See also the 2022 NSA PQ FAQ [NSA-PQ]_.
@@ -847,6 +850,9 @@ MLKEM768_X25519          6       32   1248+pad     1216            1200         
 MLKEM1024_X25519         7       32   1632+pad     1600            1584         1568         16
 ================    =========  =====  =========  =============  =============  ==========  =======
 
+Note: Type codes are for internal use only. Routers will remain type 4,
+and support will be indicated in the router addresses.
+
 
 2) SessionCreated
 ``````````````````
@@ -929,6 +935,9 @@ MLKEM512_X25519          5       32    832+pad      800             784         
 MLKEM768_X25519          6       32   1120+pad     1088            1104         1088         16
 MLKEM1024_X25519         7       32   1600+pad     1568            1584         1568         16
 ================    =========  =====  =========  =============  =============  ==========  =======
+
+Note: Type codes are for internal use only. Routers will remain type 4,
+and support will be indicated in the router addresses.
 
 
 
@@ -1109,6 +1118,9 @@ MLKEM768_X25519          6       32   1264+pl      1200+pl        1184+pl       
 MLKEM1024_X25519         7      n/a   too big
 ================    =========  =====  =========  =============  =============  ==========  =======
 
+Note: Type codes are for internal use only. Routers will remain type 4,
+and support will be indicated in the router addresses.
+
 Minimum MTU for MLKEM768_X25519:
 About 1300 for IPv4 and 1320 for IPv6.
 
@@ -1201,6 +1213,9 @@ MLKEM512_X25519          5       32    848+pl       784+pl         768+pl       
 MLKEM768_X25519          6       32   1168+pl      1102+pl        1088+pl       1088         pl
 MLKEM1024_X25519         7      n/a   too big
 ================    =========  =====  =========  =============  =============  ==========  =======
+
+Note: Type codes are for internal use only. Routers will remain type 4,
+and support will be indicated in the router addresses.
 
 Minimum MTU for MLKEM768_X25519:
 About 1300 for IPv4 and 1320 for IPv6.
@@ -1421,6 +1436,13 @@ MLDSA65 and hybrid variant may be too large
 Implementation Notes
 =====================
 
+Library Support
+---------------
+
+Bouncycastle, BoringSSL, and WolfSSL libraries support MLKEM and MLDSA now.
+OpenSSL support will be in their 3.5 release scheduled for April 8, 2025 [OPENSSL]_.
+
+
 Reliability
 -----------
 
@@ -1445,10 +1467,33 @@ Increase minimum bandwidth requirements for floodfills?
 
 Ratchet
 --------
-Auto-classify/detect on same tunnels?
-If not, destinations would be hybrid-only, no support for regular ratchet.
+Auto-classify/detect on same tunnels should be possible based
+on a length check of message 1.
+Using MLKEM512_X25519 as an example, message 1 length is 800 bytes larger
+than current ratchet protocol, and the minimum message 1 size (with no payload included)
+is 872 bytes. Most message 1 sizes with current ratchet have a payload less than
+800 bytes, so they can be classified as non-hybrid ratchet.
+Large message 1s are probably POSTs which is rare.
 
-TODO
+So the recommended strategy is:
+
+- If message 1 is less than 872 bytes, it's the current ratchet protocol.
+- If message 1 is greater than or equal to 872 bytes, it's probably MLKEM512_X25519.
+  Try MLKEM512_X25519 first, and if it fails, try the current ratchet protocol.
+
+This should allow us to efficiently support standard ratchet and hybrid ratchet
+on the same destination, just as we previously supported ElGamal and ratchet
+on the same destination. Therefore, we can migrate to the MLKEM hybrid protocol
+much more quickly than if we could not support dual-protocols for the same destination,
+because we can add MLKEM support to existing destinations.
+
+We should probably NOT attempt to support multiple MLKEM flavors
+(for example, MLKEM512_X25519 and MLKEM_768_X25519)
+on the same destination. Pick just one.
+
+We MAY attempt to support three flavors (for example ElGamal, X25519, and MLKEM512_X25519)
+on the same destination. The classification and retry strategy may be too complex.
+
 
 
 NTCP2
@@ -1456,7 +1501,10 @@ NTCP2
 Need different transport address/port,
 would be hard to run both on the same port, we have no header or flags
 for message 1, it is fixed size (before padding).
-So probably a protocol name such as "PQTCP".
+So probably a protocol name such as "NTCP1PQ1".
+
+Note: Type codes are for internal use only. Routers will remain type 4,
+and support will be indicated in the router addresses.
 
 TODO
 
@@ -1465,11 +1513,15 @@ SSU2
 -----
 MAY Need different transport address/port,
 but hopefully not, we have a header with flags for message 1.
-Maybe just v=2,3 in the address would be sufficient.
+We could internally use the version field and use 3 for MLKEM512 and 4 for MLKEM768.
+Maybe just v=2,3,4 in the address would be sufficient.
 But we need identifiers for all 3 new flavors: 3a, 3b, 3c?
 
 Check and verify that SSU2 can handle the RI fragmented across
 multiple packets (6-8?)
+
+Note: Type codes are for internal use only. Routers will remain type 4,
+and support will be indicated in the router addresses.
 
 TODO
 
@@ -1506,6 +1558,7 @@ We have several alternatives to consider:
 Type 5/6/7 Routers
 ``````````````````
 
+Not recommended.
 Use only the new transports listed above that match the router type.
 Older routers cannot connect, build tunnels through, or send netdb messages to.
 Would take several release cycles to debug and ensure support before enabling by default.
@@ -1515,6 +1568,7 @@ Might extend rollout by a year or more over alternatives below.
 Type 4 Routers
 ``````````````
 
+Recommended.
 As PQ does not affect the X25519 static key or N handshake protocols,
 we could leave the routers as type 4, and just advertise new transports.
 Older routers could still connect, build tunnels through, or send netdb messages to.
@@ -1707,6 +1761,9 @@ References
 
 .. [NSA-PQ]
    https://media.defense.gov/2022/Sep/07/2003071836/-1/-1/0/CSI_CNSA_2.0_FAQ\_.PDF
+
+.. [OPENSSL]
+   https://openssl-library.org/post/2025-02-04-release-announcement-3.5/
 
 .. [PQ-WIREGUARD]
    https://eprint.iacr.org/2020/379.pdf
