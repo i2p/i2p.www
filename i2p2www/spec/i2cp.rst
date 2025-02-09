@@ -1269,7 +1269,7 @@ Contents
 
 Notes
 `````
-This requests a [LeaseSet]_ with all [Lease]_s set to expire at the same time.
+This requests a [LeaseSet]_ with all [Lease]_ entries set to expire at the same time.
 For client versions 0.9.7 or higher, RequestVariableLeaseSetMessage_ is
 used.
 
@@ -1295,7 +1295,7 @@ Contents
 ````````
 1. `Session ID`_
 2. 1 byte [Integer]_ number of tunnels
-3. That many [Lease]_s
+3. That many [Lease]_ entries
 
 Notes
 `````
