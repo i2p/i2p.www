@@ -3,7 +3,7 @@ I2CP Specification
 ==================
 .. meta::
     :category: Protocols
-    :lastupdated: 2025-01
+    :lastupdated: 2025-02
     :accuratefor: 0.9.65
 
 .. contents::
@@ -150,7 +150,7 @@ Existing session, with i2cp.fastReceive=true (as of 0.9.4)
    Message Payload Message  <---------------------
 {% endhighlight %}
 
-Existing session, with i2cp.fastReceive=false
+Existing session, with i2cp.fastReceive=false (DEPRECATED)
 
 .. raw:: html
 
@@ -463,11 +463,11 @@ HostLookupMessage_                C -> R     38   0.9.11
 HostReplyMessage_                 R -> C     39   0.9.11
 MessagePayloadMessage_            R -> C     31
 MessageStatusMessage_             R -> C     22
-ReceiveMessageBeginMessage_       C -> R      6
-ReceiveMessageEndMessage_         C -> R      7
+ReceiveMessageBeginMessage_       C -> R      6   deprecated
+ReceiveMessageEndMessage_         C -> R      7   deprecated
 ReconfigureSessionMessage_        C -> R      2   0.7.1
-ReportAbuseMessage_               bidir.     29
-RequestLeaseSetMessage_           R -> C     21
+ReportAbuseMessage_               bidir.     29   deprecated
+RequestLeaseSetMessage_           R -> C     21   deprecated
 RequestVariableLeaseSetMessage_   R -> C     37   0.9.7
 SendMessageMessage_               C -> R      5
 SendMessageExpiresMessage_        C -> R     36   0.7.1
@@ -998,7 +998,7 @@ All status codes:
 ===========  =============  ======================  ==========================================================
 Status Code  As Of Release           Name           Description
 ===========  =============  ======================  ==========================================================
-     0                      Available               For incoming messages only. All other status codes below
+     0                      Available               DEPRECATED. For incoming messages only. All other status codes below
                                                     are for outgoing messages.
 
                                                     The included size is the size in bytes of the available
@@ -1120,6 +1120,8 @@ success or failure notification.  Otherwise, the nonce may be ignored.
 ReceiveMessageBeginMessage
 --------------------------
 
+DEPRECATED. Not supported by i2pd.
+
 Description
 ```````````
 Request the router to deliver a message that it was previously notified of.
@@ -1145,6 +1147,8 @@ This is unused in "fast receive" mode, which is the default as of release
 
 ReceiveMessageEndMessage
 ------------------------
+
+DEPRECATED. Not supported by i2pd.
 
 Description
 ```````````
@@ -1207,6 +1211,8 @@ Notes
 ReportAbuseMessage
 ------------------
 
+DEPRECATED, UNUSED, UNSUPPORTED
+
 Description
 ```````````
 Tell the other party (client or router) that they are under attack, potentially
@@ -1235,6 +1241,9 @@ ReportAbuseMessage_, but neither has a handler for the message when received.
 RequestLeaseSetMessage
 ----------------------
 
+DEPRECATED. Not supported by i2pd. Not sent by Java I2P to clients version
+0.9.7 or higher (2013-07). Use RequestVariableLeaseSetMessage.
+
 Description
 ```````````
 Request that a client authorize the inclusion of a particular set of inbound
@@ -1262,7 +1271,7 @@ Notes
 `````
 This requests a [LeaseSet]_ with all [Leases]_ set to expire at the same time.
 For client versions 0.9.7 or higher, RequestVariableLeaseSetMessage_ is
-preferred.
+used.
 
 .. _msg-RequestVariableLeaseSet:
 
