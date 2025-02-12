@@ -5,7 +5,7 @@ Post-Quantum Crypto Protocols
     :author: zzz
     :created: 2025-01-21
     :thread: http://zzz.i2p/topics/3294
-    :lastupdated: 2025-02-05
+    :lastupdated: 2025-02-12
     :status: Open
     :target: 0.9.80
 
@@ -233,6 +233,7 @@ MLKEM1024_X25519              32      0.9.xx  See proposal 169, for Leasesets on
 MLKEM512                     800      0.9.xx  See proposal 169, for handshakes only, not for Leasesets, RIs or Destinations
 MLKEM768                    1184      0.9.xx  See proposal 169, for handshakes only, not for Leasesets, RIs or Destinations
 MLKEM1024                   1568      0.9.xx  See proposal 169, for handshakes only, not for Leasesets, RIs or Destinations
+NULL                           0      0.9.xx  See proposal 169, for destinations with PQ sig types only, not for RIs or Leasesets
 ================    ================= ======  =====
 
 Hybrid public keys are the X25519 key.
@@ -327,6 +328,7 @@ MLDSA87_EdDSA_SHA512_Ed25519      14                 2616           0.9.xx  See 
 MLDSA44                           15                 1312           0.9.xx  See proposal 169
 MLDSA65                           16                 1952           0.9.xx  See proposal 169
 MLDSA87                           17                 2592           0.9.xx  See proposal 169
+NULL                             255                    0           0.9.xx  See proposal 169
 ============================  ===========  =======================  ======  =====
 
 
@@ -345,7 +347,7 @@ MLKEM1024_X25519         7                 32            0.9.xx  See proposal 16
 Hybrid key types are NEVER included in key certificates; only in leasesets.
 
 For destinations with Hybrid or PQ signature types,
-use type 0 for the encryption type,
+use NULL (type 255) for the encryption type,
 but there is no crypto key, and the
 entire 384-byte main section is for the signing key.
 
@@ -354,7 +356,7 @@ Destination sizes
 ``````````````````
 
 Here are lengths for the new Destination types.
-Enc type for all is "ElGamal" (0) but the encryption key length is treated as 0.
+Enc type for all is NULL (type 255) and the encryption key length is treated as 0.
 The entire 384-byte section is used for the first part of the signing public key.
 NOTE: This is different than the spec for the ECDSA_SHA512_P521
 and the RSA signature types, where we maintained the 256-byte ElGamal
@@ -387,7 +389,7 @@ RouterIdent sizes
 ``````````````````
 
 Here are lengths for the new Destination types.
-Enc type for all is X25519 (4).
+Enc type for all is X25519 (type 4).
 The entire 352-byte section after the X28819 public key is used for the first part of the signing public key.
 No padding.
 Total length is 39 + total key length.
