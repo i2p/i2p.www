@@ -450,7 +450,7 @@ Message Types
 ===============================  =========  ====  =====
 BandwidthLimitsMessage_           R -> C     23   0.7.2
 BlindingInfoMessage_              C -> R     42   0.9.43
-CreateLeaseSetMessage_            C -> R      4
+CreateLeaseSetMessage_            C -> R      4   deprecated
 CreateLeaseSet2Message_           C -> R     41   0.9.39
 CreateSessionMessage_             C -> R      1
 DestLookupMessage_                C -> R     34   0.7
@@ -600,6 +600,11 @@ Notes
 CreateLeaseSetMessage
 ---------------------
 
+DEPRECATED. Cannot be used for LeaseSet2, offline keys, non-ElGamal encryption types,
+multiple encryption types, or encrypted LeaseSets.
+Use CreateLeaseSet2Message with all routers 0.9.39 or higher.
+
+
 Description
 ```````````
 This message is sent in response to a RequestLeaseSetMessage_ or
@@ -654,7 +659,7 @@ Contents
 1. `Session ID`_
 2. One byte type of lease set to follow.
 
-  - Type 1 is a [LeaseSet]_
+  - Type 1 is a [LeaseSet]_ (deprecated)
   - Type 3 is a [LeaseSet2]_
   - Type 5 is a [EncryptedLeaseSet]_
   - Type 7 is a [MetaLeaseSet]_
