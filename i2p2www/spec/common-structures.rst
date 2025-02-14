@@ -3,7 +3,7 @@ Common structures Specification
 ===============================
 .. meta::
     :category: Design
-    :lastupdated: 2025-01
+    :lastupdated: 2025-02
     :accuratefor: 0.9.65
 
 .. contents::
@@ -416,6 +416,10 @@ Crypto Public Key Type (Integer_)     2
 Excess Signing Public Key Data        0+
 Excess Crypto Public Key Data         0+
 ==================================  ======
+
+Warning: The key type order is the opposite of what you may expect;
+the Signing Public Key Type is first.
+
 
 The defined Signing Public Key types are:
 

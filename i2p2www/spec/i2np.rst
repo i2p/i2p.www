@@ -3,7 +3,7 @@ I2NP Specification
 ==================
 .. meta::
     :category: Protocols
-    :lastupdated: 2025-01
+    :lastupdated: 2025-02
     :accuratefor: 0.9.65
 
 .. contents::
@@ -246,6 +246,9 @@ Notes
 BuildRequestRecord
 ------------------
 
+DEPRECATED, only used in the current network when a tunnel contains an ElGamal router.
+See [TUNNEL-CREATION-ECIES]_.
+
 Description
 ```````````
 One Record in a set of multiple records to request the creation of one hop in
@@ -422,6 +425,9 @@ Notes
 
 BuildResponseRecord
 -------------------
+
+DEPRECATED, only used in the current network when a tunnel contains an ElGamal router.
+See [TUNNEL-CREATION-ECIES]_.
 
 Description
 ```````````
@@ -650,8 +656,8 @@ Garlic_                                11
 TunnelData_                            18
 TunnelGateway_                         19
 Data_                                  20
-TunnelBuild_                           21
-TunnelBuildReply_                      22
+TunnelBuild_                           21     deprecated
+TunnelBuildReply_                      22     deprecated
 VariableTunnelBuild_                   23     0.7.12
 VariableTunnelBuildReply_              24     0.7.12
 ShortTunnelBuild_                      25     0.9.51
@@ -1488,6 +1494,8 @@ Notes
 TunnelBuild
 -----------
 
+DEPRECATED, use VariableTunnelBuild_
+
 .. raw:: html
 
   {% highlight lang='dataspec' %}
@@ -1530,6 +1538,8 @@ Notes
 
 TunnelBuildReply
 ----------------
+
+DEPRECATED, use VariableTunnelBuildReply_
 
 .. raw:: html
 
