@@ -179,11 +179,11 @@ that are gzipped in-transit will increase by 12x - 38x depending on algorithm.
 TODO: Add RSA4096 hybrid types for su3?
 
 
-Combinations
-------------
+Legal Combinations
+------------------
 
 For Destinations, the new signature types are supported with all encryption
-types in the leaseset. Set the encryption type in the key certificate to 0.
+types in the leaseset. Set the encryption type in the key certificate to NULL (255).
 
 For RouterIdentities, ElGamal encryption type is deprecated.
 The new signature types are supported with X25519 (type 4) encryption only.
@@ -204,7 +204,7 @@ New Crypto Required
 Test vectors for SHA3-256, SHAKE128, and SHAKE256 are at [NIST-VECTORS]_.
 
 Note that the Java bouncycastle library supports all the above.
-C++ library support TBD.
+C++ library support will be in OpenSSL 3.5 [OPENSSL]_.
 
 
 Alternatives
