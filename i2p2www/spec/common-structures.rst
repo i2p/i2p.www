@@ -357,8 +357,9 @@ specifying the size of the certificate payload, then that many bytes.
 Notes
 `````
 * For `Router Identities`_, the Certificate is always NULL through version
-  0.9.15. As of 0.9.16, a Key Certificate may be used to specify the signing
-  public key type. See below.
+  0.9.15. As of 0.9.16, a Key Certificate is used to specify the
+  key types. As of 0.9.48, X25519 encryption public key types
+  are allowed. See below.
 
 * For `Garlic Cloves`_, the Certificate is always NULL, no others are currently
   implemented.
@@ -385,11 +386,11 @@ The following certificate types are defined:
 Type      Type Code  Payload Length  Total Length  Notes
 ========  =========  ==============  ============  =====
 Null          0             0              3
-HashCash      1          varies         varies     Experimental, unused. Payload contains an ASCII colon-separated hashcash string.
-Hidden        2             0              3       Experimental, unused. Hidden routers generally do not announce that they are hidden.
-Signed        3         40 or 72       43 or 75    Experimental, unused. Payload contains a 40-byte DSA signature,
+HashCash      1          varies         varies     Deprecated, unused. Payload contains an ASCII colon-separated hashcash string.
+Hidden        2             0              3       Deprecated, unused. Hidden routers generally do not announce that they are hidden.
+Signed        3         40 or 72       43 or 75    Deprecated, unused. Payload contains a 40-byte DSA signature,
                                                    optionally followed by the 32-byte Hash of the signing Destination.
-Multiple      4          varies         varies     Experimental, unused. Payload contains multiple certificates.
+Multiple      4          varies         varies     Deprecated, unused. Payload contains multiple certificates.
 Key           5             4+             7+      Since 0.9.12. See below for details.
 ========  =========  ==============  ============  =====
 
