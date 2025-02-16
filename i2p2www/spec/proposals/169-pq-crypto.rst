@@ -5,7 +5,7 @@ Post-Quantum Crypto Protocols
     :author: zzz
     :created: 2025-01-21
     :thread: http://zzz.i2p/topics/3294
-    :lastupdated: 2025-02-12
+    :lastupdated: 2025-02-16
     :status: Open
     :target: 0.9.80
 
@@ -269,7 +269,7 @@ SigningPublicKey
 ============================   ==============  ======  =====
 MLDSA44_EdDSA_SHA512_Ed25519         1344      0.9.xx  See proposal 169
 MLDSA65_EdDSA_SHA512_Ed25519         1984      0.9.xx  See proposal 169
-MLDSA87_EdDSA_SHA512_Ed25519         2616      0.9.xx  See proposal 169
+MLDSA87_EdDSA_SHA512_Ed25519         2624      0.9.xx  See proposal 169
 MLDSA44                              1312      0.9.xx  See proposal 169
 MLDSA65                              1952      0.9.xx  See proposal 169
 MLDSA87                              2592      0.9.xx  See proposal 169
@@ -301,11 +301,11 @@ Signature
          Type                  Length (bytes)  Since   Usage
 ============================   ==============  ======  =====
 MLDSA44_EdDSA_SHA512_Ed25519         2484      0.9.xx  See proposal 169
-MLDSA65_EdDSA_SHA512_Ed25519         4096      0.9.xx  See proposal 169
-MLDSA87_EdDSA_SHA512_Ed25519         4960      0.9.xx  See proposal 169
+MLDSA65_EdDSA_SHA512_Ed25519         3373      0.9.xx  See proposal 169
+MLDSA87_EdDSA_SHA512_Ed25519         4691      0.9.xx  See proposal 169
 MLDSA44                              2420      0.9.xx  See proposal 169
-MLDSA65                              4032      0.9.xx  See proposal 169
-MLDSA87                              4896      0.9.xx  See proposal 169
+MLDSA65                              3309      0.9.xx  See proposal 169
+MLDSA87                              4647      0.9.xx  See proposal 169
 ============================   ==============  ======  =====
 
 Hybrid signatures are the Ed25519 signature followed by the PQ signature.
@@ -324,7 +324,7 @@ The defined Signing Public Key types are:
 ============================  ===========  =======================  ======  =====
 MLDSA44_EdDSA_SHA512_Ed25519      12                 1344           0.9.xx  See proposal 169
 MLDSA65_EdDSA_SHA512_Ed25519      13                 1984           0.9.xx  See proposal 169
-MLDSA87_EdDSA_SHA512_Ed25519      14                 2616           0.9.xx  See proposal 169
+MLDSA87_EdDSA_SHA512_Ed25519      14                 2624           0.9.xx  See proposal 169
 MLDSA44                           15                 1312           0.9.xx  See proposal 169
 MLDSA65                           16                 1952           0.9.xx  See proposal 169
 MLDSA87                           17                 2592           0.9.xx  See proposal 169
@@ -377,7 +377,7 @@ skey[0:383] 5 (932 >> 8) (932 & 0xff) 00 12 00 255 skey[384:1311]
 ============================  ===========  =======================  ======  ======  =====
 MLDSA44_EdDSA_SHA512_Ed25519      12                 1344           384      960    1351
 MLDSA65_EdDSA_SHA512_Ed25519      13                 1984           384     1600    1991
-MLDSA87_EdDSA_SHA512_Ed25519      14                 2616           384     2232    2623
+MLDSA87_EdDSA_SHA512_Ed25519      14                 2624           384     2240    2631
 MLDSA44                           15                 1312           384      928    1319
 MLDSA65                           16                 1952           384     1568    1959
 MLDSA87                           17                 2592           384     2208    2599
@@ -406,7 +406,7 @@ enckey[0:31] skey[0:351] 5 (960 >> 8) (960 & 0xff) 00 12 00 4 skey[352:1311]
 ============================  ===========  =======================  ======  ======  =====
 MLDSA44_EdDSA_SHA512_Ed25519      12                 1344           352      992    1383
 MLDSA65_EdDSA_SHA512_Ed25519      13                 1984           352     1632    2023
-MLDSA87_EdDSA_SHA512_Ed25519      14                 2616           352     2264    2655
+MLDSA87_EdDSA_SHA512_Ed25519      14                 2624           352     2272    2663
 MLDSA44                           15                 1312           352      960    1351
 MLDSA65                           16                 1952           352     1600    1991
 MLDSA87                           17                 2592           352     2240    2631
@@ -1355,11 +1355,11 @@ See design section above.
 ============================  =======  ====  =======  ======  ======  ========  =====
 EdDSA_SHA512_Ed25519              32     64     96      391     391   baseline  baseline
 MLDSA44_EdDSA_SHA512_Ed25519    1344   2484   3828     1383    1351   +3412     +3380
-MLDSA65_EdDSA_SHA512_Ed25519    1984   4096   5357     2023    1991   +5668     +5632
-MLDSA87_EdDSA_SHA512_Ed25519    2616   4960   7315     2655    2673   +7160     +7128
+MLDSA65_EdDSA_SHA512_Ed25519    1984   3373   5357     2023    1991   +5668     +5636
+MLDSA87_EdDSA_SHA512_Ed25519    2624   4691   7315     2663    2631   +7488     +7456
 MLDSA44                         1312   2420   3732     1351    1319   +3316     +3284
-MLDSA65                         1952   4032   5261     1991    1959   +5668     +5636
-MLDSA87                         2592   4896   7219     2631    2599   +7072     +7040
+MLDSA65                         1952   3309   5261     1991    1959   +5668     +5636
+MLDSA87                         2592   4627   7219     2631    2599   +7072     +7040
 ============================  =======  ====  =======  ======  ======  ========  =====
 
 Speed:
