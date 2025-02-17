@@ -5,7 +5,7 @@ Post-Quantum Crypto Protocols
     :author: zzz
     :created: 2025-01-21
     :thread: http://zzz.i2p/topics/3294
-    :lastupdated: 2025-02-16
+    :lastupdated: 2025-02-17
     :status: Open
     :target: 0.9.80
 
@@ -238,6 +238,7 @@ NULL                           0      0.9.xx  See proposal 169, for destinations
 
 Hybrid public keys are the X25519 key.
 KEM public keys are the ephemeral PQ key sent from Alice to Bob.
+Byte order defined in [FIPS203]_.
 
 
 PrivateKey
@@ -256,6 +257,7 @@ MLKEM1024                   3168       0.9.xx  See proposal 169, for handshakes 
 
 Hybrid private keys are the X25519 key followed by the PQ key.
 KEM private keys are the ciphertext sent from Bob to Alice.
+Byte order defined in [FIPS203]_.
 
 
 
@@ -276,6 +278,7 @@ MLDSA87                              2592      0.9.xx  See proposal 169
 ============================   ==============  ======  =====
 
 Hybrid signing public keys are the Ed25519 key followed by the PQ key.
+Byte order defined in [FIPS204]_.
 
 
 SigningPrivateKey
@@ -293,6 +296,7 @@ MLDSA87                              4896      0.9.xx  See proposal 169
 ============================   ==============  ======  =====
 
 Hybrid signing private keys are the Ed25519 key followed by the PQ key.
+Byte order defined in [FIPS204]_.
 
 
 Signature
@@ -311,6 +315,7 @@ MLDSA87                              4647      0.9.xx  See proposal 169
 Hybrid signatures are the Ed25519 signature followed by the PQ signature.
 Hybrid signatures are verified by verifying both signatures, and failing
 if either one fails.
+Byte order defined in [FIPS204]_.
 
 
 
@@ -1264,6 +1269,18 @@ This is the split() function, exactly as defined in the Noise spec.
 
 {% endhighlight %}
 
+
+
+Relay and Peer Test
+```````````````````
+
+Relay blocks, Peer Test blocks, and Peer Test messages all contain signatures.
+Unfortunately, PQ signatures are larger than the MTU.
+There is no current mechanism to fragment Relay or Peer Test blocks or messages
+across multiple UDP packets.
+The protocol must be extended to support fragmentation.
+This will be done in a separate proposal TBD.
+Until that is completed, Relay and Peer Test will not be supported.
 
 
 Issues
