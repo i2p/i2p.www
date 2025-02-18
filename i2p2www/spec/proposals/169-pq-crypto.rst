@@ -5,7 +5,7 @@ Post-Quantum Crypto Protocols
     :author: zzz
     :created: 2025-01-21
     :thread: http://zzz.i2p/topics/3294
-    :lastupdated: 2025-02-17
+    :lastupdated: 2025-02-18
     :status: Open
     :target: 0.9.80
 
@@ -309,7 +309,7 @@ MLDSA65_EdDSA_SHA512_Ed25519         3373      0.9.xx  See proposal 169
 MLDSA87_EdDSA_SHA512_Ed25519         4691      0.9.xx  See proposal 169
 MLDSA44                              2420      0.9.xx  See proposal 169
 MLDSA65                              3309      0.9.xx  See proposal 169
-MLDSA87                              4647      0.9.xx  See proposal 169
+MLDSA87                              4627      0.9.xx  See proposal 169
 ============================   ==============  ======  =====
 
 Hybrid signatures are the Ed25519 signature followed by the PQ signature.
