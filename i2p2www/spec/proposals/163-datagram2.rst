@@ -5,9 +5,9 @@ Datagram2 Protocol
     :author: zzz
     :created: 2023-01-24
     :thread: http://zzz.i2p/topics/3540
-    :lastupdated: 2025-01-05
+    :lastupdated: 2025-02-21
     :status: Open
-    :target: 0.9.64
+    :target: 0.9.67
 
 .. contents::
 
@@ -24,6 +24,25 @@ Needs a flag to indicate offline signed but there's no place to put a flag.
 Will require a completely new I2CP protocol number and format,
 to be added to the [DATAGRAMS]_ specification.
 Let's call it "Datagram2".
+
+
+Goals
+=====
+
+- Add support for offline signatures
+- Add replay resistance
+- Add flags and options fields for extensibility
+
+
+Non-Goals
+=========
+
+Full end-to-end protocol support for congestion control, etc.
+That would be build on top of, or an alternative to, Datagram2, which is a low-level protocol.
+It would not make sense to design a high-performance protocol solely atop
+Datagram2, because of the from field and signature overhead.
+Any such protocol should do an initial handshake with Datagram2 and then
+switch to RAW datagrams.
 
 
 Motivation
