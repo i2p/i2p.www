@@ -5,7 +5,7 @@ Service Records in LS2
     :author: zzz
     :created: 2024-06-22
     :thread: http://zzz.i2p/topics/3641
-    :lastupdated: 2025-01-19
+    :lastupdated: 2025-03-04
     :status: Open
     :target: 0.9.66
 
@@ -208,15 +208,25 @@ LS2 options for hash, hostname, and destination (request types 2-4).
 Extend HostReplyMessage to add the options mapping if requested.
 Extend HostReplyMessage with additional error codes.
 
-Configuration is implementation-dependent. We may define standard I2CP options
-for i2ptunnel and SAM, to be documented in [I2CP-OPTIONS]_.
-
 Options mappings may be cached or negative cached for a short time on either the client or router side,
 implementation-dependent. Recommended maximum time is one hour, unless the service record TTL is shorter.
 Service records may be cached up to the TTL specified by the application, client, or router.
 
-
 Extend the specification as follows:
+
+Configuration options
+`````````````````````
+Add the following to [I2CP-OPTIONS]
+
+i2cp.leaseSetOption.nnn
+
+Options to be put in the leaseset. Only available for LS2.
+nnn starts with 0. Option value contains "key=value".
+(do not include quotes)
+
+Example:
+i2cp.leaseSetOption.0=_smtp._tcp=1 86400 0 0 25 bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb.b32.i2p
+
 
 HostLookup Message
 ``````````````````
@@ -341,9 +351,6 @@ Implementation Notes
 
 Caching of service records up to the TTL may be done by the router or the application,
 implementation-dependent. Whether to cache persistently is also implementation-dependent.
-
-Configuration is implementation-dependent. We may define standard I2CP options
-for i2ptunnel and SAM, to be documented in [I2CP-OPTIONS]_.
 
 Lookups must also lookup the target leaseset and verify it contains a "self" record
 before returning the target destination to the client.
