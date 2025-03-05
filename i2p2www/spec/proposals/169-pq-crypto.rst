@@ -550,7 +550,7 @@ OR
 
 For IK: After the 'es' message pattern and before the 's' message pattern, add:
 
-  {% highlight lang='text' %}
+  {% highlight %}
 This is the "e1" message pattern:
   (encap_key, decap_key) = KEYGEN()
 
@@ -577,7 +577,7 @@ OR
 
 For IK: After the 'es' message pattern and before the 's' message pattern, add:
 
-  {% highlight lang='text' %}
+  {% highlight %}
 This is the "e1" message pattern:
 
   // MixHash(encap_key)
@@ -604,7 +604,7 @@ OR
 
 For IK: After the 'ee' message pattern and before the 'se' message pattern, add:
 
-  {% highlight lang='text' %}
+  {% highlight %}
 This is the "ekem1" message pattern:
 
   // MixHash(ciphertext)
@@ -635,7 +635,7 @@ Alice KDF for Message 2
 
 After the 'ee' message pattern (and before the 'ss' message pattern for IK), add:
 
-  {% highlight lang='text' %}
+  {% highlight %}
 This is the "ekem1" message pattern:
 
   // MixHash(ciphertext)
@@ -874,25 +874,6 @@ MLKEM1024_X25519         7       32   1640+pl      1600+pl        1568+pl       
 ================    =========  =====  =========  =============  =============  ==========  =======
 
 
-KDF for Payload Section Encrypted Contents
-``````````````````````````````````````````
-
-
-.. raw:: html
-
-  {% highlight lang='text' %}
-// split()
-  keydata = HKDF(chainKey, ZEROLEN, "", 64)
-
-  TODO
-
-  k_ab = keydata[0:31]
-  k_ba = keydata[32:63]
-
-  rest unchanged
-{% endhighlight %}
-
-
 
 
 NTCP2
@@ -1088,31 +1069,7 @@ Unchanged
 Key Derivation Function (KDF) (for data phase)
 ``````````````````````````````````````````````
 
-The data phase uses a zero-length associated data input.
-
-
-The KDF generates two cipher keys k_ab and k_ba from the chaining key ck,
-using HMAC-SHA256(key, data) as defined in [RFC-2104]_.
-This is the Split() function, exactly as defined in the Noise spec.
-
-.. raw:: html
-
-  {% highlight lang='text' %}
-
-ck = from handshake phase
-
-  // k_ab, k_ba = HKDF(ck, zerolen)
-  // ask_master = HKDF(ck, zerolen, info="ask")
-
-  // zerolen is a zero-length byte array
-  temp_key = HMAC-SHA256(ck, zerolen)
-
-  TODO
-
-
-  remainder unchanged
-
-{% endhighlight %}
+Unchanged
 
 
 
