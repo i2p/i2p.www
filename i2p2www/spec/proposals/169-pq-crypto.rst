@@ -135,6 +135,7 @@ RouterInfo                  yes             yes
 LeaseSet                    yes             yes
 Streaming SYN/SYNACK/Close  yes             yes
 Repliable Datagrams         yes             yes
+Datagram2 (prop. 163)       yes             yes
 I2CP create session msg     yes             yes
 SU3 files                   yes             yes
 X.509 certificates          yes             yes
@@ -159,7 +160,10 @@ MLDSA87_EdDSA_SHA512_Ed25519   14
 MLDSA44                        15
 MLDSA65                        16
 MLDSA87                        17
-============================  ====
+MLDSA44_Ed25519ph              18
+MLDSA65_Ed25519ph              19
+MLDSA87_Ed25519ph              20
+=============== ============= ====
 
 X.509 certificates and other DER encodings will use the
 composite structures and OIDs defined in [COMPOSITE-SIGS]_.
@@ -282,6 +286,9 @@ MLDSA87_EdDSA_SHA512_Ed25519         2624      0.9.xx  See proposal 169
 MLDSA44                              1312      0.9.xx  See proposal 169
 MLDSA65                              1952      0.9.xx  See proposal 169
 MLDSA87                              2592      0.9.xx  See proposal 169
+MLDSA44_Ed25519ph                    1344      0.9.xx  Only for SU3 files, not for netdb structures
+MLDSA65_Ed25519ph                    1984      0.9.xx  Only for SU3 files, not for netdb structures
+MLDSA87_Ed25519ph                    2624      0.9.xx  Only for SU3 files, not for netdb structures
 ============================   ==============  ======  =====
 
 Hybrid signing public keys are the Ed25519 key followed by the PQ key.
@@ -300,6 +307,9 @@ MLDSA87_EdDSA_SHA512_Ed25519         4928      0.9.xx  See proposal 169
 MLDSA44                              2560      0.9.xx  See proposal 169
 MLDSA65                              4032      0.9.xx  See proposal 169
 MLDSA87                              4896      0.9.xx  See proposal 169
+MLDSA44_Ed25519ph                    2592      0.9.xx  Only for SU3 files, not for netdb structuresSee proposal 169
+MLDSA65_Ed25519ph                    4064      0.9.xx  Only for SU3 files, not for netdb structuresSee proposal 169
+MLDSA87_Ed25519ph                    4928      0.9.xx  Only for SU3 files, not for netdb structuresSee proposal 169
 ============================   ==============  ======  =====
 
 Hybrid signing private keys are the Ed25519 key followed by the PQ key.
@@ -317,6 +327,9 @@ MLDSA87_EdDSA_SHA512_Ed25519         4691      0.9.xx  See proposal 169
 MLDSA44                              2420      0.9.xx  See proposal 169
 MLDSA65                              3309      0.9.xx  See proposal 169
 MLDSA87                              4627      0.9.xx  See proposal 169
+MLDSA44_Ed25519ph                    2484      0.9.xx  Only for SU3 files, not for netdb structuresSee proposal 169
+MLDSA65_Ed25519ph                    3373      0.9.xx  Only for SU3 files, not for netdb structuresSee proposal 169
+MLDSA87_Ed25519ph                    4691      0.9.xx  Only for SU3 files, not for netdb structuresSee proposal 169
 ============================   ==============  ======  =====
 
 Hybrid signatures are the Ed25519 signature followed by the PQ signature.
@@ -340,7 +353,9 @@ MLDSA87_EdDSA_SHA512_Ed25519      14                 2624           0.9.xx  See 
 MLDSA44                           15                 1312           0.9.xx  See proposal 169
 MLDSA65                           16                 1952           0.9.xx  See proposal 169
 MLDSA87                           17                 2592           0.9.xx  See proposal 169
-NULL                             255                    0           0.9.xx  See proposal 169
+MLDSA44_Ed25519ph                 18                  n/a           0.9.xx  Only for SU3 files
+MLDSA65_Ed25519ph                 19                  n/a           0.9.xx  Only for SU3 files
+MLDSA87_Ed25519ph                 20                  n/a           0.9.xx  Only for SU3 files
 ============================  ===========  =======================  ======  =====
 
 
@@ -353,6 +368,7 @@ The defined Crypto Public Key types are:
 MLKEM512_X25519          5                 32            0.9.xx  See proposal 169, for Leasesets only, not for RIs or Destinations
 MLKEM768_X25519          6                 32            0.9.xx  See proposal 169, for Leasesets only, not for RIs or Destinations
 MLKEM1024_X25519         7                 32            0.9.xx  See proposal 169, for Leasesets only, not for RIs or Destinations
+NULL                   255                  0            0.9.xx  See proposal 169
 ================    ===========  ======================= ======  =====
 
 
@@ -534,7 +550,7 @@ OR
 
 For IK: After the 'es' message pattern and before the 's' message pattern, add:
 
-  {% highlight lang='dataspec' %}
+  {% highlight lang='text' %}
 This is the "e1" message pattern:
   (encap_key, decap_key) = KEYGEN()
 
@@ -561,7 +577,7 @@ OR
 
 For IK: After the 'es' message pattern and before the 's' message pattern, add:
 
-  {% highlight lang='dataspec' %}
+  {% highlight lang='text' %}
 This is the "e1" message pattern:
 
   // MixHash(encap_key)
@@ -588,7 +604,7 @@ OR
 
 For IK: After the 'ee' message pattern and before the 'se' message pattern, add:
 
-  {% highlight lang='dataspec' %}
+  {% highlight lang='text' %}
 This is the "ekem1" message pattern:
 
   // MixHash(ciphertext)
@@ -619,7 +635,7 @@ Alice KDF for Message 2
 
 After the 'ee' message pattern (and before the 'ss' message pattern for IK), add:
 
-  {% highlight lang='dataspec' %}
+  {% highlight lang='text' %}
 This is the "ekem1" message pattern:
 
   // MixHash(ciphertext)
@@ -1377,6 +1393,32 @@ For messages 1 and 2, MLKEM1024 would increase packet sizes beyond 1500 maximum 
 This would require fragmenting messages 1 and 2, and it would be a big complication.
 Probably won't do it.
 
+Relay and Peer Test: See above
+
+
+Streaming
+---------
+
+TODO: Is there a more efficient way to define signing/verification
+to avoid copying the signature?
+
+
+
+SU3 Files
+---------
+
+For PQ-only signatures of SU3 files,
+use the OIDs defined in [MLDSA-OIDS]_ for the certificates.
+For hybrid signatures of SU3 files,
+We would have to define our own OIDs.
+Note that we disallow Ed25519 signing of SU3 files,
+and while we have defined Ed25519ph signing, we have never agreed on an OID for it,
+or used it.
+
+The normal hybrid sig types are disallowed for SU3 files; use the ph (prehash) variants.
+
+
+
 Other Specs
 -----------
 
@@ -1853,6 +1895,9 @@ References
 
 .. [FIPS205]
    https://nvlpubs.nist.gov/nistpubs/FIPS/NIST.FIPS.205.pdf
+
+.. [MLDSA-OIDS]
+   https://datatracker.ietf.org/doc/draft-ietf-lamps-dilithium-certificates/
 
 .. [NIST-PQ]
    https://www.nist.gov/news-events/news/2024/08/nist-releases-first-3-finalized-post-quantum-encryption-standards
