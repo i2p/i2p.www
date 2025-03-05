@@ -550,7 +550,9 @@ OR
 
 For IK: After the 'es' message pattern and before the 's' message pattern, add:
 
-  {% highlight %}
+.. raw:: html
+
+  {% highlight lang='text' %}
 This is the "e1" message pattern:
   (encap_key, decap_key) = KEYGEN()
 
@@ -565,6 +567,7 @@ This is the "e1" message pattern:
   ciphertext = ENCRYPT(k, n, flags/static key section, ad)
 
   End of "e1" message pattern.
+
 {% endhighlight %}
 
 
@@ -577,7 +580,9 @@ OR
 
 For IK: After the 'es' message pattern and before the 's' message pattern, add:
 
-  {% highlight %}
+.. raw:: html
+
+  {% highlight lang='text' %}
 This is the "e1" message pattern:
 
   // MixHash(encap_key)
@@ -604,7 +609,9 @@ OR
 
 For IK: After the 'ee' message pattern and before the 'se' message pattern, add:
 
-  {% highlight %}
+.. raw:: html
+
+  {% highlight lang='text' %}
 This is the "ekem1" message pattern:
 
   // MixHash(ciphertext)
@@ -635,7 +642,9 @@ Alice KDF for Message 2
 
 After the 'ee' message pattern (and before the 'ss' message pattern for IK), add:
 
-  {% highlight %}
+.. raw:: html
+
+  {% highlight lang='text' %}
 This is the "ekem1" message pattern:
 
   // MixHash(ciphertext)
