@@ -5,7 +5,7 @@ ECIES Tunnels
     :author: chisana, zzz, orignal
     :created: 2019-07-04
     :thread: http://zzz.i2p/topics/2737
-    :lastupdated: 2021-03-21
+    :lastupdated: 2025-03-05
     :status: Closed
     :target: 0.9.48
     :implementedin: 0.9.48
@@ -700,7 +700,7 @@ Failing to use unique keys opens an attack vector for colluding hops to confirm 
   chainKey = keydata[0:31]
 
   // AEAD parameters
-  k = keydata[32:64]
+  k = keydata[32:63]
   n = 0
   plaintext = 464 byte build request record
   ad = h

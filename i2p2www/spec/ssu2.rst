@@ -3,8 +3,8 @@ SSU2
 ======
 .. meta::
     :category: Transports
-    :lastupdated: 2024-11
-    :accuratefor: 0.9.64
+    :lastupdated: 2025-03
+    :accuratefor: 0.9.65
 
 .. contents::
 
@@ -1075,7 +1075,7 @@ KDF for Session Request
   chainKey = keydata[0:31]
 
   // AEAD parameters
-  k = keydata[32:64]
+  k = keydata[32:63]
   n = 0
   ad = h
   ciphertext = ENCRYPT(k, n, payload, ad)
@@ -1375,7 +1375,7 @@ KDF for Session Created and Session Confirmed part 1
   chainKey = keydata[0:31]
 
   // AEAD parameters
-  k = keydata[32:64]
+  k = keydata[32:63]
   n = 0
   ad = h
   ciphertext = ENCRYPT(k, n, payload, ad)
@@ -1654,7 +1654,7 @@ This is the "se" message pattern:
   chainKey = keydata[0:31]
 
   // AEAD parameters
-  k = keydata[32:64]
+  k = keydata[32:63]
   n = 0
   ad = h
   ciphertext = ENCRYPT(k, n, payload, ad)

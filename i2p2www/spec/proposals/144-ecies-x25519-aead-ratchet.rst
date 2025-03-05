@@ -5,7 +5,7 @@ ECIES-X25519-AEAD-Ratchet
     :author: zzz, chisana, orignal
     :created: 2018-11-22
     :thread: http://zzz.i2p/topics/2639
-    :lastupdated: 2020-11-12
+    :lastupdated: 2025-03-05
     :status: Closed
     :target: 0.9.46
     :implementedin: 0.9.46
@@ -1109,7 +1109,7 @@ This is the "e" message pattern:
   chainKey = keydata[0:31]
 
   // AEAD parameters
-  k = keydata[32:64]
+  k = keydata[32:63]
   n = 0
   ad = h
   ciphertext = ENCRYPT(k, n, flags/static key section, ad)
@@ -1153,7 +1153,7 @@ This is the "ss" message pattern:
   chainKey = keydata[0:31]
 
   // AEAD parameters
-  k = keydata[32:64]
+  k = keydata[32:63]
   n = 0
   ad = h
   ciphertext = ENCRYPT(k, n, payload, ad)
@@ -1358,7 +1358,7 @@ KDF for Reply Key Section Encrypted Contents
   chainKey = keydata[0:31]
 
   // AEAD parameters
-  k = keydata[32:64]
+  k = keydata[32:63]
   n = 0
   ad = h
   ciphertext = ENCRYPT(k, n, ZEROLEN, ad)

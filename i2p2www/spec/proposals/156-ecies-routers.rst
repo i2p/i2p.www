@@ -5,7 +5,7 @@ ECIES Routers
     :author: zzz, orignal
     :created: 2020-09-01
     :thread: http://zzz.i2p/topics/2950
-    :lastupdated: 2021-07-31
+    :lastupdated: 2025-03-05
     :status: Closed
     :target: 0.9.51
 
@@ -331,7 +331,7 @@ This is the same as specified in [Tunnel-Creation-ECIES]_ and [Prop152]_ for tun
   //chainKey = keydata[0:31]
 
   // AEAD parameters
-  k = keydata[32:64]
+  k = keydata[32:63]
   n = 0
   plaintext = 464 byte build request record
   ad = h

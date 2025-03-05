@@ -3,8 +3,8 @@ ECIES-X25519 Router Messages
 =============================
 .. meta::
     :category: Protocols
-    :lastupdated: 2021-01
-    :accuratefor: 0.9.49
+    :lastupdated: 2025-03
+    :accuratefor: 0.9.65
 
 .. contents::
 
@@ -271,7 +271,7 @@ This is the same as specified in [Tunnel-Creation-ECIES]_ and [Prop152]_ for tun
   //chainKey = keydata[0:31]
 
   // AEAD parameters
-  k = keydata[32:64]
+  k = keydata[32:63]
   n = 0
   plaintext = 464 byte build request record
   ad = h
