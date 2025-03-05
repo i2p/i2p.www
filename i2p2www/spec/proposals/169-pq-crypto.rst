@@ -5,7 +5,7 @@ Post-Quantum Crypto Protocols
     :author: zzz
     :created: 2025-01-21
     :thread: http://zzz.i2p/topics/3294
-    :lastupdated: 2025-02-18
+    :lastupdated: 2025-03-05
     :status: Open
     :target: 0.9.80
 
@@ -233,12 +233,19 @@ MLKEM1024_X25519              32      0.9.xx  See proposal 169, for Leasesets on
 MLKEM512                     800      0.9.xx  See proposal 169, for handshakes only, not for Leasesets, RIs or Destinations
 MLKEM768                    1184      0.9.xx  See proposal 169, for handshakes only, not for Leasesets, RIs or Destinations
 MLKEM1024                   1568      0.9.xx  See proposal 169, for handshakes only, not for Leasesets, RIs or Destinations
+MLKEM512_CT                  768      0.9.xx  See proposal 169, for handshakes only, not for Leasesets, RIs or Destinations
+MLKEM768_CT                 1088      0.9.xx  See proposal 169, for handshakes only, not for Leasesets, RIs or Destinations
+MLKEM1024_CT                1568      0.9.xx  See proposal 169, for handshakes only, not for Leasesets, RIs or Destinations
 NULL                           0      0.9.xx  See proposal 169, for destinations with PQ sig types only, not for RIs or Leasesets
 ================    ================= ======  =====
 
 Hybrid public keys are the X25519 key.
 KEM public keys are the ephemeral PQ key sent from Alice to Bob.
 Byte order defined in [FIPS203]_.
+
+MLKEM*_CT keys are not really public keys, they are the "ciphertext" sent from Bob to Alice in the Noise handshake.
+They are listed here for completeness.
+
 
 
 PrivateKey
@@ -432,7 +439,8 @@ The following letter mapping is used:
 - e1 = one-time ephemeral PQ key, sent from Alice to Bob
 - ekem1 = the KEM ciphertext, sent from Bob to Alice
 
-The following modifications to XK and IK for hybrid forward secrecy (hfs) are:
+The following modifications to XK and IK for hybrid forward secrecy (hfs) are
+as defined in [Noise-Hybrid]_
 
 .. raw:: html
 
@@ -472,10 +480,18 @@ Noise Handshake KDF
 
 This section applies to both IK and XK protocols.
 
-The KEM 32-byte shared secret is combined or mixHash()ed or HKDF()ed into the
-final Noise shared secret, before split(), for a final 32-byte shared secret.
-Not concatenated with the DH shared secret for a 64-byte final shared secret,
-which is what TLS does [TLS-HYBRID]_.
+The hybrid handshake is defined in [Noise-Hybrid]_.
+The first message, from Alice to Bob, contains e1, the encapsulation key, before the message payload.
+This is treated as an additional static key; call EncryptAndHash() on it (as Alice)
+or DecryptAndHash() (as Bob).
+Then process the message payload as usual.
+
+The second message, from Bob to Alice, contains ekem1, the ciphertext, before the message payload.
+This is treated as an additional static key; call EncryptAndHash() on it (as Bob)
+or DecryptAndHash() (as Alice).
+Then, calculate the kem_shared_key and call MixKey(kem_shared_key).
+Then process the message payload as usual.
+
 
 Defined ML-KEM Operations
 `````````````````````````
@@ -488,7 +504,7 @@ as defined in [FIPS203]_.
     The encapsulation key is sent in message 1.
     encap_key and decap_key sizes vary based on ML-KEM variant.
 
-(cihpertext, kem_shared_key) = ENCAPS(encap_key)
+(ciphertext, kem_shared_key) = ENCAPS(encap_key)
     Bob calculates the ciphertext and shared key,
     using the ciphertext received in message 1.
     The ciphertext is sent in message 2.
@@ -512,27 +528,126 @@ See below for details.
 Alice KDF for Message 1
 `````````````````````````
 
-(encap_key, decap_key) = KEYGEN()
+For XK: After the 'es' message pattern and before the payload, add:
+
+OR
+
+For IK: After the 'es' message pattern and before the 's' message pattern, add:
+
+  {% highlight lang='dataspec' %}
+This is the "e1" message pattern:
+  (encap_key, decap_key) = KEYGEN()
+
+  // MixHash(encap_key)
+  // Save for Payload section KDF
+  h = SHA256(h || encap_key)
+
+  // AEAD parameters
+  k = keydata[32:63]
+  n = 0
+  ad = h
+  ciphertext = ENCRYPT(k, n, flags/static key section, ad)
+
+  End of "e1" message pattern.
+{% endhighlight %}
+
+
+Bob KDF for Message 1
+`````````````````````````
+
+For XK: After the 'es' message pattern and before the payload, add:
+
+OR
+
+For IK: After the 'es' message pattern and before the 's' message pattern, add:
+
+  {% highlight lang='dataspec' %}
+This is the "e1" message pattern:
+
+  // MixHash(encap_key)
+  // Save for Payload section KDF
+  h = SHA256(h || encap_key)
+
+  // AEAD parameters
+  k = keydata[32:63]
+  n = 0
+  ad = h
+  ciphertext = ENCRYPT(k, n, flags/static key section, ad)
+
+  End of "e1" message pattern.
+
+{% endhighlight %}
 
 
 Bob KDF for Message 2
 `````````````````````````
 
-(cihpertext, kem_shared_key) = ENCAPS(encap_key)
+For XK: After the 'ee' message pattern and before the payload, add:
+
+OR
+
+For IK: After the 'ee' message pattern and before the 'se' message pattern, add:
+
+  {% highlight lang='dataspec' %}
+This is the "ekem1" message pattern:
+
+  // MixHash(ciphertext)
+  // Save for Payload section KDF
+  h = SHA256(h || ciphertext)
+
+  (ciphertext, kem_shared_key) = ENCAPS(encap_key)
+
+  // MixKey(kem_shared_key)
+  //[chainKey, k] = MixKey(sharedSecret)
+  // ChaChaPoly parameters to encrypt/decrypt
+  keydata = HKDF(chainKey, kem_shared_key, "", 64)
+  chainKey = keydata[0:31]
+
+  // AEAD parameters
+  k = keydata[32:63]
+  n = 0
+  ad = h
+  ciphertext = ENCRYPT(k, n, flags/static key section, ad)
+
+  End of "ekem1" message pattern.
+
+{% endhighlight %}
 
 
 Alice KDF for Message 2
 `````````````````````````
 
-kem_shared_key = DECAPS(ciphertext, decap_key)
+After the 'ee' message pattern (and before the 'ss' message pattern for IK), add:
+
+  {% highlight lang='dataspec' %}
+This is the "ekem1" message pattern:
+
+  // MixHash(ciphertext)
+  // Save for Payload section KDF
+  h = SHA256(h || ciphertext)
+
+  kem_shared_key = DECAPS(ciphertext, decap_key)
+
+  // MixKey(kem_shared_key)
+  //[chainKey, k] = MixKey(sharedSecret)
+  // ChaChaPoly parameters to encrypt/decrypt
+  keydata = HKDF(chainKey, kem_shared_key, "", 64)
+  chainKey = keydata[0:31]
+
+  // AEAD parameters
+  k = keydata[32:63]
+  n = 0
+  ad = h
+  ciphertext = ENCRYPT(k, n, flags/static key section, ad)
+
+  End of "ekem1" message pattern.
+
+{% endhighlight %}
 
 
 Alice/Bob KDF for split()
 `````````````````````````
-
-see below
-
-
+unchanged
 
 
 
@@ -1236,38 +1351,7 @@ unchanged
 
 KDF for data phase
 ```````````````````
-
-This section applies to both IK and XK protocols.
-
-The KDF generates two cipher keys k_ab and k_ba from the chaining key ck,
-using HMAC-SHA256(key, data) as defined in [RFC-2104]_.
-This is the split() function, exactly as defined in the Noise spec.
-
-.. raw:: html
-
-  {% highlight lang='text' %}
-// Alice side
-  (cihpertext, kem_shared_key) = ENCAPS(encap_key)
-  // Bob side
-  kem_shared_key = DECAPS(ciphertext, decap_key)
-
-  // split()
-  // chainKey = from handshake phase
-
-  // mix the ML-KEM shared key into the chaining key
-  mixKey(kem_shared_key);
-
-  // chainKey was changed by the mixKey()
-
-  keydata = HKDF(chainKey, ZEROLEN, "", 64)
-
-  remainder unchanged
-
-  k_ab = ...
-  k_ba = ...
-
-
-{% endhighlight %}
+unchanged
 
 
 
@@ -1460,6 +1544,10 @@ Library Support
 
 Bouncycastle, BoringSSL, and WolfSSL libraries support MLKEM and MLDSA now.
 OpenSSL support will be in their 3.5 release scheduled for April 8, 2025 [OPENSSL]_.
+
+The southernstorm.com Noise library adapted by Java I2P contained preliminary support for
+hybrid handshakes, but we removed it as unused; we will have to add it back
+and update it to match [Noise-Hybrid]_.
 
 
 Reliability
