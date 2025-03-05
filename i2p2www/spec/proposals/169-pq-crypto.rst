@@ -145,7 +145,8 @@ Java keystores              yes             yes
 
 So we will support both PQ-only and hybrid signatures.
 We will define the three ML-DSA variants as in [FIPS204]_,
-for 6 new signature types total.
+as well as three hybrid variants with Ed25519 prehash for SU3 files only,
+for 9 new signature types total.
 Hybrid types will only be defined in combination with Ed25519.
 We will use the standard ML-DSA, NOT the pre-hash variants (HashML-DSA).
 
@@ -163,7 +164,7 @@ MLDSA87                        17
 MLDSA44_Ed25519ph              18
 MLDSA65_Ed25519ph              19
 MLDSA87_Ed25519ph              20
-=============== ============= ====
+============================= ====
 
 X.509 certificates and other DER encodings will use the
 composite structures and OIDs defined in [COMPOSITE-SIGS]_.
