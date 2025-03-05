@@ -164,7 +164,7 @@ MLDSA87                        17
 MLDSA44_Ed25519ph              18
 MLDSA65_Ed25519ph              19
 MLDSA87_Ed25519ph              20
-============================= ====
+============================  ====
 
 X.509 certificates and other DER encodings will use the
 composite structures and OIDs defined in [COMPOSITE-SIGS]_.
