@@ -5,7 +5,7 @@ Post-Quantum Crypto Protocols
     :author: zzz
     :created: 2025-01-21
     :thread: http://zzz.i2p/topics/3294
-    :lastupdated: 2025-03-05
+    :lastupdated: 2025-03-06
     :status: Open
     :target: 0.9.80
 
@@ -226,8 +226,13 @@ Specification
 Common Structures
 -----------------
 
+Update the sections and tables in the common structures document [COMMON]_ as follows:
+
+
 PublicKey
 ````````````````
+
+The new Public Key types are:
 
 ================    ================= ======  =====
   Type              Public Key Length Since   Usage
@@ -256,6 +261,8 @@ They are listed here for completeness.
 PrivateKey
 ````````````````
 
+The new Private Key types are:
+
 ================    ================== ======  =====
   Type              Private Key Length Since   Usage
 ================    ================== ======  =====
@@ -277,6 +284,7 @@ Byte order defined in [FIPS203]_.
 SigningPublicKey
 ````````````````
 
+The new Signing Public Key types are:
 
 ============================   ==============  ======  =====
          Type                  Length (bytes)  Since   Usage
@@ -299,6 +307,8 @@ Byte order defined in [FIPS204]_.
 SigningPrivateKey
 `````````````````
 
+The new Signing Private Key types are:
+
 ============================   ==============  ======  =====
          Type                  Length (bytes)  Since   Usage
 ============================   ==============  ======  =====
@@ -319,6 +329,9 @@ Byte order defined in [FIPS204]_.
 
 Signature
 ``````````
+
+The new Signature types are:
+
 ============================   ==============  ======  =====
          Type                  Length (bytes)  Since   Usage
 ============================   ==============  ======  =====
@@ -343,7 +356,7 @@ Byte order defined in [FIPS204]_.
 Key Certificates
 ````````````````
 
-The defined Signing Public Key types are:
+The new Signing Public Key types are:
 
 ============================  ===========  =======================  ======  =====
         Type                  Type Code    Total Public Key Length  Since   Usage
@@ -361,7 +374,7 @@ MLDSA87_Ed25519ph                 20                  n/a           0.9.xx  Only
 
 
 
-The defined Crypto Public Key types are:
+The new Crypto Public Key types are:
 
 ================    ===========  ======================= ======  =====
   Type              Type Code    Total Public Key Length Since   Usage
@@ -680,7 +693,11 @@ unchanged
 Ratchet
 ---------
 
-Noise identifiers:
+Update the ECIES-Ratchet specification [ECIES]_ as follows:
+
+
+Noise identifiers
+`````````````````
 
 - "Noise_IKhfselg2_25519+MLKEM512_ChaChaPoly_SHA256"
 - "Noise_IKhfselg2_25519+MLKEM768_ChaChaPoly_SHA256"
@@ -889,7 +906,11 @@ MLKEM1024_X25519         7       32   1640+pl      1600+pl        1568+pl       
 NTCP2
 ------
 
-Noise identifiers:
+Update the NTCP2 specification [NTCP2]_ as follows:
+
+
+Noise identifiers
+`````````````````
 
 - "Noise_XKhfsaesobfse+hs2+hs3_25519+MLKEM512_ChaChaPoly_SHA256"
 - "Noise_XKhfsaesobfse+hs2+hs3_25519+MLKEM768_ChaChaPoly_SHA256"
@@ -1087,11 +1108,16 @@ Unchanged
 SSU2
 ----
 
-Noise identifiers:
+Update the SSU2 specification [SSU2]_ as follows:
+
+
+Noise identifiers
+`````````````````
 
 - "Noise_XKhfschaobfse+hs1+hs2+hs3_25519+MLKEM512_ChaChaPoly_SHA256"
 - "Noise_XKhfschaobfse+hs1+hs2+hs3_25519+MLKEM768_ChaChaPoly_SHA256"
 - "Noise_XKhfschaobfse+hs1+hs2+hs3_25519+MLKEM1024_ChaChaPoly_SHA256"
+
 
 Long Header
 `````````````
@@ -1845,8 +1871,14 @@ References
 .. [CLOUDFLARE]
    https://blog.cloudflare.com/pq-2024/
 
+.. [COMMON]
+    {{ spec_url('common-structures') }}
+
 .. [COMPOSITE-SIGS]
    https://datatracker.ietf.org/doc/draft-ietf-lamps-pq-composite-sigs/
+
+.. [ECIES]
+   {{ spec_url('ecies') }}
 
 .. [FORUM]
    http://zzz.i2p/topics/3294
@@ -1881,6 +1913,9 @@ References
 .. [NSA-PQ]
    https://media.defense.gov/2022/Sep/07/2003071836/-1/-1/0/CSI_CNSA_2.0_FAQ\_.PDF
 
+.. [NTCP2]
+   {{ spec_url('ntcp2') }}
+
 .. [OPENSSL]
    https://openssl-library.org/post/2025-02-04-release-announcement-3.5/
 
@@ -1889,6 +1924,9 @@ References
 
 .. [RFC-2104]
     https://tools.ietf.org/html/rfc2104
+
+.. [SSU2]
+   {{ spec_url('ssu2') }}
 
 .. [TLS-HYBRID]
    https://www.ietf.org/archive/id/draft-tls-westerbaan-xyber768d00-03.html
