@@ -5,7 +5,7 @@ Post-Quantum Crypto Protocols
     :author: zzz
     :created: 2025-01-21
     :thread: http://zzz.i2p/topics/3294
-    :lastupdated: 2025-03-06
+    :lastupdated: 2025-03-10
     :status: Open
     :target: 0.9.80
 
@@ -502,6 +502,60 @@ XK:                       XKhfs:
 
 {% endhighlight %}
 
+The e1 pattern is defined as follows, as specified in [Noise-Hybrid]_
+
+.. raw:: html
+
+  {% highlight lang='dataspec' %}
+
+For Alice:
+  (encap_key, decap_key) = PQ_KEYGEN()
+
+  // EncryptAndHash(encap_key)
+  ciphertext = ENCRYPT(k, n, encap_key, ad)
+  MixHash(ciphertext)
+
+  For Bob:
+
+  // DecryptAndHash(ciphertext)
+  encap_key = DECRYPT(k, n, ciphertext, ad)
+  MixHash(ciphertext)
+
+
+{% endhighlight %}
+
+
+The ekem1 pattern is defined as follows, as specified in [Noise-Hybrid]_
+
+.. raw:: html
+
+  {% highlight lang='dataspec' %}
+
+For Bob:
+
+  (kem_ciphertext, kem_shared_key) = ENCAPS(encap_key)
+
+  // EncryptAndHash(kem_ciphertext)
+  ciphertext = ENCRYPT(k, n, kem_ciphertext, ad)
+  MixHash(ciphertext)
+
+  // MixKey
+  MixKey(kem_shared_key)
+
+
+  For Alice:
+
+  // DecryptAndHash(ciphertext)
+  kem_ciphertext = DECRYPT(k, n, ciphertext, ad)
+  MixHash(ciphertext)
+
+  // MixKey
+  kem_shared_key = DECAPS(kem_ciphertext, decap_key)
+  MixKey(kem_shared_key)
+
+
+{% endhighlight %}
+
 
 
 
@@ -529,7 +583,7 @@ Defined ML-KEM Operations
 We define the following functions corresponding to the cryptographic building blocks used
 as defined in [FIPS203]_.
 
-(encap_key, decap_key) = KEYGEN()
+(encap_key, decap_key) = PQ_KEYGEN()
     Alice creates the encapsulation and decapsulation keys
     The encapsulation key is sent in message 1.
     encap_key and decap_key sizes vary based on ML-KEM variant.
@@ -550,8 +604,7 @@ Note that both the encap_key and the ciphertext are encrypted inside ChaCha/Poly
 blocks in the Noise handshake messages 1 and 2.
 They will be decrypted as part of the handshake process.
 
-The kem_shared_key is combined with the X25519 DH shared key to
-create a shared session key.
+The kem_shared_key is mixed into the chaining key with MixHash().
 See below for details.
 
 
@@ -568,17 +621,17 @@ For IK: After the 'es' message pattern and before the 's' message pattern, add:
 
   {% highlight lang='text' %}
 This is the "e1" message pattern:
-  (encap_key, decap_key) = KEYGEN()
-
-  // MixHash(encap_key)
-  // Save for Payload section KDF
-  h = SHA256(h || encap_key)
+  (encap_key, decap_key) = PQ_KEYGEN()
 
   // AEAD parameters
   k = keydata[32:63]
   n = 0
   ad = h
-  ciphertext = ENCRYPT(k, n, flags/static key section, ad)
+  ciphertext = ENCRYPT(k, n, encap_key, ad)
+
+  // MixHash(ciphertext)
+  h = SHA256(h || ciphertext)
+
 
   End of "e1" message pattern.
 
@@ -599,15 +652,14 @@ For IK: After the 'es' message pattern and before the 's' message pattern, add:
   {% highlight lang='text' %}
 This is the "e1" message pattern:
 
-  // MixHash(encap_key)
-  // Save for Payload section KDF
-  h = SHA256(h || encap_key)
-
   // AEAD parameters
   k = keydata[32:63]
   n = 0
   ad = h
-  ciphertext = ENCRYPT(k, n, flags/static key section, ad)
+  encap_key = DECRYPT(k, n, encap_key_section, ad)
+
+  // MixHash(encap_key_section)
+  h = SHA256(h || encap_key_section)
 
   End of "e1" message pattern.
 
@@ -628,23 +680,20 @@ For IK: After the 'ee' message pattern and before the 'se' message pattern, add:
   {% highlight lang='text' %}
 This is the "ekem1" message pattern:
 
-  // MixHash(ciphertext)
-  // Save for Payload section KDF
-  h = SHA256(h || ciphertext)
-
-  (ciphertext, kem_shared_key) = ENCAPS(encap_key)
-
-  // MixKey(kem_shared_key)
-  //[chainKey, k] = MixKey(sharedSecret)
-  // ChaChaPoly parameters to encrypt/decrypt
-  keydata = HKDF(chainKey, kem_shared_key, "", 64)
-  chainKey = keydata[0:31]
+  (kem_ciphertext, kem_shared_key) = ENCAPS(encap_key)
 
   // AEAD parameters
   k = keydata[32:63]
   n = 0
   ad = h
-  ciphertext = ENCRYPT(k, n, flags/static key section, ad)
+  ciphertext = ENCRYPT(k, n, kem_ciphertext, ad)
+
+  // MixHash(ciphertext)
+  h = SHA256(h || ciphertext)
+
+  // MixKey(kem_shared_key)
+  keydata = HKDF(chainKey, kem_shared_key, "", 64)
+  chainKey = keydata[0:31]
 
   End of "ekem1" message pattern.
 
@@ -661,23 +710,19 @@ After the 'ee' message pattern (and before the 'ss' message pattern for IK), add
   {% highlight lang='text' %}
 This is the "ekem1" message pattern:
 
-  // MixHash(ciphertext)
-  // Save for Payload section KDF
-  h = SHA256(h || ciphertext)
-
-  kem_shared_key = DECAPS(ciphertext, decap_key)
-
-  // MixKey(kem_shared_key)
-  //[chainKey, k] = MixKey(sharedSecret)
-  // ChaChaPoly parameters to encrypt/decrypt
-  keydata = HKDF(chainKey, kem_shared_key, "", 64)
-  chainKey = keydata[0:31]
-
   // AEAD parameters
   k = keydata[32:63]
   n = 0
   ad = h
-  ciphertext = ENCRYPT(k, n, flags/static key section, ad)
+  kem_ciphertext = DECRYPT(k, n, kem_ciphertext_section, ad)
+
+  // MixHash(kem_ciphertext_section)
+  h = SHA256(h || kem_ciphertext_section)
+
+  // MixKey(kem_shared_key)
+  kem_shared_key = DECAPS(kem_ciphertext, decap_key)
+  keydata = HKDF(chainKey, kem_shared_key, "", 64)
+  chainKey = keydata[0:31]
 
   End of "ekem1" message pattern.
 
@@ -708,8 +753,12 @@ Noise identifiers
 1b) New session format (with binding)
 `````````````````````````````````````
 
-Changes: Current ratchet contained only the static key in the first ChaCha section.
-With ML-KEM, the first ChaCha section will also contain the encrypted PQ public key.
+Changes: Current ratchet contained the static key in the first ChaCha section,
+and the payload in the second section.
+With ML-KEM, there are now three sections.
+The first section contains the encrypted PQ public key.
+The second section contains the static key.
+The third section contains the payload.
 
 
 Encrypted format:
@@ -727,9 +776,21 @@ Encrypted format:
   |                                       |
   +----+----+----+----+----+----+----+----+
   |                                       |
-  + ML-KEM encap_key and X25519 Static Key+
+  +           ML-KEM encap_key            +
   |       ChaCha20 encrypted data         |
   +      (see table below for length)     +
+  |                                       |
+  ~                                       ~
+  |                                       |
+  +----+----+----+----+----+----+----+----+
+  |  Poly1305 Message Authentication Code |
+  +    (MAC) for encap_key Section        +
+  |             16 bytes                  |
+  +----+----+----+----+----+----+----+----+
+  |                                       |
+  +           X25519 Static Key           +
+  |       ChaCha20 encrypted data         |
+  +             32 bytes                  +
   |                                       |
   +                                       +
   |                                       |
@@ -761,7 +822,6 @@ Decrypted format:
   {% highlight lang='dataspec' %}
 Payload Part 1:
 
-
   +----+----+----+----+----+----+----+----+
   |                                       |
   +       ML-KEM encap_key                +
@@ -770,6 +830,10 @@ Payload Part 1:
   |                                       |
   ~                                       ~
   |                                       |
+  +----+----+----+----+----+----+----+----+
+
+  Payload Part 2:
+
   +----+----+----+----+----+----+----+----+
   |                                       |
   +       X25519 Static Key               +
@@ -780,7 +844,7 @@ Payload Part 1:
   |                                       |
   +----+----+----+----+----+----+----+----+
 
-  Payload Part 2:
+  Payload Part 3:
 
   +----+----+----+----+----+----+----+----+
   |                                       |
@@ -800,17 +864,21 @@ Sizes:
   Type              Type Code  X len  Msg 1 len  Msg 1 Enc len  Msg 1 Dec len  PQ key len  pl len
 ================    =========  =====  =========  =============  =============  ==========  =======
 X25519                   4       32     96+pl        64+pl             pl           --       pl
-MLKEM512_X25519          5       32    896+pl       864+pl         800+pl          800       pl
-MLKEM768_X25519          6       32   1280+pl      1344+pl        1184+pl         1184       pl
-MLKEM1024_X25519         7       32   1664+pl      1632+pl        1568+pl         1568       pl
+MLKEM512_X25519          5       32    912+pl       880+pl         800+pl          800       pl
+MLKEM768_X25519          6       32   1296+pl      1360+pl        1184+pl         1184       pl
+MLKEM1024_X25519         7       32   1680+pl      1648+pl        1568+pl         1568       pl
 ================    =========  =====  =========  =============  =============  ==========  =======
 
 
 1g) New Session Reply format
 ````````````````````````````
 
-Changes: Current ratchet has an empty payload for the first ChaCha section.
-With ML-KEM, the first ChaCha section will contain the encrypted PQ ciphertext.
+Changes: Current ratchet has an empty payload for the first ChaCha section,
+and the payload in the second section.
+With ML-KEM, there are now three sections.
+The first section contains the encrypted PQ ciphertext.
+The second section has an empty payload.
+The third section contains the payload.
 
 
 Encrypted format:
@@ -838,7 +906,11 @@ Encrypted format:
   |                                       |
   +----+----+----+----+----+----+----+----+
   |  Poly1305 Message Authentication Code |
-  +  (MAC) for Key Section                +
+  +  (MAC) for ciphertext Section         +
+  |             16 bytes                  |
+  +----+----+----+----+----+----+----+----+
+  |  Poly1305 Message Authentication Code |
+  +  (MAC) for key Section (no data)      +
   |             16 bytes                  |
   +----+----+----+----+----+----+----+----+
   |                                       |
@@ -877,6 +949,10 @@ Payload Part 1:
 
   Payload Part 2:
 
+  empty
+
+  Payload Part 3:
+
   +----+----+----+----+----+----+----+----+
   |                                       |
   +            Payload Section            +
@@ -895,9 +971,9 @@ Sizes:
   Type              Type Code  Y len  Msg 2 len  Msg 2 Enc len  Msg 2 Dec len  PQ CT len   opt len
 ================    =========  =====  =========  =============  =============  ==========  =======
 X25519                   4       32     72+pl        32+pl             pl           --       pl
-MLKEM512_X25519          5       32    840+pl       800+pl         768+pl          768       pl
-MLKEM768_X25519          6       32   1160+pl      1120+pl        1088+pl         1088       pl
-MLKEM1024_X25519         7       32   1640+pl      1600+pl        1568+pl         1568       pl
+MLKEM512_X25519          5       32    856+pl       816+pl         768+pl          768       pl
+MLKEM768_X25519          6       32   1176+pl      1136+pl        1088+pl         1088       pl
+MLKEM1024_X25519         7       32   1656+pl      1616+pl        1568+pl         1568       pl
 ================    =========  =====  =========  =============  =============  ==========  =======
 
 
@@ -938,10 +1014,17 @@ Raw contents:
   +                                       +
   |                                       |
   +----+----+----+----+----+----+----+----+
+  |   ChaChaPoly frame (MLKEM)            |
+  +      (see table below for length)     +
+  |   k defined in KDF for message 1      |
+  +   n = 0                               +
+  |   see KDF for associated data         |
+  ~   n = 0                               ~
+  +----+----+----+----+----+----+----+----+
   |                                       |
   +                                       +
-  |   ChaChaPoly frame                    |
-  +      (see table below for length)     +
+  |   ChaChaPoly frame (options)          |
+  +         32 bytes                      +
   |   k defined in KDF for message 1      |
   +   n = 0                               +
   |   see KDF for associated data         |
@@ -951,7 +1034,7 @@ Raw contents:
   |     length defined in options block   |
   +----+----+----+----+----+----+----+----+
 
-  Same as before except ChaChaPoly frame is bigger
+  Same as before except add a second ChaChaPoly frame
 
 
 {% endhighlight %}
@@ -995,9 +1078,9 @@ Sizes:
   Type              Type Code  X len  Msg 1 len  Msg 1 Enc len  Msg 1 Dec len  PQ key len  opt len
 ================    =========  =====  =========  =============  =============  ==========  =======
 X25519                   4       32     64+pad       32              16           --         16
-MLKEM512_X25519          5       32    864+pad      832             816          800         16
-MLKEM768_X25519          6       32   1248+pad     1216            1200         1184         16
-MLKEM1024_X25519         7       32   1632+pad     1600            1584         1568         16
+MLKEM512_X25519          5       32    880+pad      848             816          800         16
+MLKEM768_X25519          6       32   1264+pad     1232            1200         1184         16
+MLKEM1024_X25519         7       32   1648+pad     1616            1584         1568         16
 ================    =========  =====  =========  =============  =============  ==========  =======
 
 Note: Type codes are for internal use only. Routers will remain type 4,
@@ -1025,9 +1108,17 @@ Raw contents:
   +                                       +
   |                                       |
   +----+----+----+----+----+----+----+----+
-  |   ChaChaPoly frame                    |
+  |   ChaChaPoly frame (MLKEM)            |
   +   Encrypted and authenticated data    +
   -      (see table below for length)     -
+  +   k defined in KDF for message 2      +
+  |   n = 0; see KDF for associated data  |
+  +                                       +
+  |                                       |
+  +----+----+----+----+----+----+----+----+
+  |   ChaChaPoly frame (options)          |
+  +   Encrypted and authenticated data    +
+  -           32 bytes                    -
   +   k defined in KDF for message 2      +
   |   n = 0; see KDF for associated data  |
   +                                       +
@@ -1040,7 +1131,7 @@ Raw contents:
   |                                       |
   +----+----+----+----+----+----+----+----+
 
-  Same as before except ChaChaPoly frame is bigger
+  Same as before except add a second ChaChaPoly frame
 
 {% endhighlight %}
 
@@ -1081,9 +1172,9 @@ Sizes:
   Type              Type Code  Y len  Msg 2 len  Msg 2 Enc len  Msg 2 Dec len  PQ CT len   opt len
 ================    =========  =====  =========  =============  =============  ==========  =======
 X25519                   4       32     64+pad       32              16           --         16
-MLKEM512_X25519          5       32    832+pad      800             784          768         16
-MLKEM768_X25519          6       32   1120+pad     1088            1104         1088         16
-MLKEM1024_X25519         7       32   1600+pad     1568            1584         1568         16
+MLKEM512_X25519          5       32    848+pad      816             784          768         16
+MLKEM768_X25519          6       32   1136+pad     1104            1104         1088         16
+MLKEM1024_X25519         7       32   1616+pad     1584            1584         1568         16
 ================    =========  =====  =========  =============  =============  ==========  =======
 
 Note: Type codes are for internal use only. Routers will remain type 4,
@@ -1190,7 +1281,15 @@ Raw contents:
   +----+----+----+----+----+----+----+----+
   |                                       |
   +                                       +
-  |   ChaCha20 encrypted data             |
+  |   ChaCha20 encrypted data (MLKEM)     |
+  +          (length varies)              +
+  |  k defined in KDF for Session Request |
+  +  n = 0                                +
+  |  see KDF for associated data          |
+  +----+----+----+----+----+----+----+----+
+  |                                       |
+  +                                       +
+  |   ChaCha20 encrypted data (payload)   |
   +          (length varies)              +
   |  k defined in KDF for Session Request |
   +  n = 0                                +
@@ -1244,8 +1343,8 @@ Sizes, not including IP overhead:
   Type              Type Code  X len  Msg 1 len  Msg 1 Enc len  Msg 1 Dec len  PQ key len  pl len
 ================    =========  =====  =========  =============  =============  ==========  =======
 X25519                   4       32     80+pl        16+pl             pl         --         pl
-MLKEM512_X25519          5       32    880+pl       816+pl         800+pl        800         pl
-MLKEM768_X25519          6       32   1264+pl      1200+pl        1184+pl       1184         pl
+MLKEM512_X25519          5       32    896+pl       832+pl         800+pl        800         pl
+MLKEM768_X25519          6       32   1280+pl      1216+pl        1184+pl       1184         pl
 MLKEM1024_X25519         7      n/a   too big
 ================    =========  =====  =========  =============  =============  ==========  =======
 
@@ -1253,7 +1352,7 @@ Note: Type codes are for internal use only. Routers will remain type 4,
 and support will be indicated in the router addresses.
 
 Minimum MTU for MLKEM768_X25519:
-About 1300 for IPv4 and 1320 for IPv6.
+About 1316 for IPv4 and 1336 for IPv6.
 
 
 
@@ -1285,7 +1384,15 @@ Raw contents:
   +                                       +
   |                                       |
   +----+----+----+----+----+----+----+----+
-  |   ChaCha20 data                       |
+  |   ChaCha20 data (MLKEM)               |
+  +   Encrypted and authenticated data    +
+  |  length varies                        |
+  +  k defined in KDF for Session Created +
+  |  n = 0; see KDF for associated data   |
+  +                                       +
+  |                                       |
+  +----+----+----+----+----+----+----+----+
+  |   ChaCha20 data (payload)             |
   +   Encrypted and authenticated data    +
   |  length varies                        |
   +  k defined in KDF for Session Created +
@@ -1340,8 +1447,8 @@ Sizes, not including IP overhead:
   Type              Type Code  Y len  Msg 2 len  Msg 2 Enc len  Msg 2 Dec len  PQ CT len   pl len
 ================    =========  =====  =========  =============  =============  ==========  =======
 X25519                   4       32     80+pl        16+pl             pl         --         pl
-MLKEM512_X25519          5       32    848+pl       784+pl         768+pl        768         pl
-MLKEM768_X25519          6       32   1168+pl      1102+pl        1088+pl       1088         pl
+MLKEM512_X25519          5       32    864+pl       800+pl         768+pl        768         pl
+MLKEM768_X25519          6       32   1184+pl      1118+pl        1088+pl       1088         pl
 MLKEM1024_X25519         7      n/a   too big
 ================    =========  =====  =========  =============  =============  ==========  =======
 
@@ -1349,7 +1456,7 @@ Note: Type codes are for internal use only. Routers will remain type 4,
 and support will be indicated in the router addresses.
 
 Minimum MTU for MLKEM768_X25519:
-About 1300 for IPv4 and 1320 for IPv6.
+About 1316 for IPv4 and 1336 for IPv6.
 
 
 SessionConfirmed (Type 2)
@@ -1437,9 +1544,9 @@ Size increase (bytes):
 ================    ==============  =============
   Type              Pubkey (Msg 1)  Cipertext (Msg 2)
 ================    ==============  =============
-MLKEM512_X25519       +800               +768
-MLKEM768_X25519      +1184              +1088
-MLKEM1024_X25519     +1568              +1568
+MLKEM512_X25519       +816               +784
+MLKEM768_X25519      +1200              +1104
+MLKEM1024_X25519     +1584              +1584
 ================    ==============  =============
 
 Speed:
@@ -1579,6 +1686,7 @@ Library Support
 
 Bouncycastle, BoringSSL, and WolfSSL libraries support MLKEM and MLDSA now.
 OpenSSL support will be in their 3.5 release scheduled for April 8, 2025 [OPENSSL]_.
+3.5-alpha will be availabe March 11, 2025.
 
 The southernstorm.com Noise library adapted by Java I2P contained preliminary support for
 hybrid handshakes, but we removed it as unused; we will have to add it back
