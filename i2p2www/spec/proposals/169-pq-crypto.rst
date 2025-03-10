@@ -470,7 +470,7 @@ The following letter mapping is used:
 - ekem1 = the KEM ciphertext, sent from Bob to Alice
 
 The following modifications to XK and IK for hybrid forward secrecy (hfs) are
-as defined in [Noise-Hybrid]_
+as specified in [Noise-Hybrid]_ section 5:
 
 .. raw:: html
 
@@ -485,8 +485,7 @@ XK:                       XKhfs:
   <- p                      <- p
   p ->                      p ->
 
-  e1 is encrypted together with the message 1 payload p
-  ekem1 is encrypted together with the message 2 payload p
+  e1 and ekem1 are encrypted. See pattern definitions below.
 
 
   IK:                       IKhfs:
@@ -497,12 +496,11 @@ XK:                       XKhfs:
   <- p                     <- p
   p ->                     p ->
 
-  e1 is encrypted together with the message 1 alice static key s
-  ekem1 is encrypted with the message 2 ee DH result state FIXME
+  e1 and ekem1 are encrypted. See pattern definitions below.
 
 {% endhighlight %}
 
-The e1 pattern is defined as follows, as specified in [Noise-Hybrid]_
+The e1 pattern is defined as follows, as specified in [Noise-Hybrid]_ section 4:
 
 .. raw:: html
 
@@ -525,7 +523,7 @@ For Alice:
 {% endhighlight %}
 
 
-The ekem1 pattern is defined as follows, as specified in [Noise-Hybrid]_
+The ekem1 pattern is defined as follows, as specified in [Noise-Hybrid]_ section 4:
 
 .. raw:: html
 
@@ -1215,6 +1213,10 @@ Long Header
 The long header is 32 bytes. It is used before a session is created, for Token Request, SessionRequest, SessionCreated, and Retry.
 It is also used for out-of-session Peer Test and Hole Punch messages.
 
+TODO: We could internally use the version field and use 3 for MLKEM512 and 4 for MLKEM768.
+Do we only do that for types 0 and 1 or for all 6 types?
+
+
 Before header encryption:
 
 .. raw:: html
@@ -1238,6 +1240,7 @@ Before header encryption:
   type :: The message type = 0, 1, 7, 9, 10, or 11
 
   ver :: The protocol version, equal to 2
+         TODO We could internally use the version field and use 3 for MLKEM512 and 4 for MLKEM768.
 
   id :: 1 byte, the network ID (currently 2, except for test networks)
 
@@ -1248,6 +1251,11 @@ Before header encryption:
   Token :: 8 bytes, unsigned big endian integer
 
 {% endhighlight %}
+
+
+Short Header
+`````````````
+unchanged
 
 
 SessionRequest (Type 0)
@@ -1485,6 +1493,8 @@ Until that is completed, Relay and Peer Test will not be supported.
 
 Issues
 ``````
+
+We could internally use the version field and use 3 for MLKEM512 and 4 for MLKEM768.
 
 For messages 1 and 2, MLKEM768 would increase packet sizes beyond the 1280 minimum MTU.
 Probably would just not support it for that connection if the MTU was too low.
