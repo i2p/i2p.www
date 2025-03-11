@@ -5,7 +5,7 @@ Post-Quantum Crypto Protocols
     :author: zzz
     :created: 2025-01-21
     :thread: http://zzz.i2p/topics/3294
-    :lastupdated: 2025-03-10
+    :lastupdated: 2025-03-11
     :status: Open
     :target: 0.9.80
 
@@ -56,6 +56,7 @@ Non-Goals
 =========
 
 - Don't change one-way (Noise N) encryption protocols
+- Don't move away from SHA256, not threatened near-term by PQ
 
 
 Threat Model
@@ -485,8 +486,6 @@ XK:                       XKhfs:
   <- p                      <- p
   p ->                      p ->
 
-  e1 and ekem1 are encrypted. See pattern definitions below.
-
 
   IK:                       IKhfs:
   <- s                      <- s
@@ -497,6 +496,7 @@ XK:                       XKhfs:
   p ->                     p ->
 
   e1 and ekem1 are encrypted. See pattern definitions below.
+  NOTE: e1 and ekem1 are different sizes (unlike X25519)
 
 {% endhighlight %}
 
@@ -1969,7 +1969,7 @@ Migration
 If we can't support both old and new ratchet protocols on the same tunnels,
 migration will be much more difficult.
 
-TODO
+We should be able to just try one-then-the-other, as we did with X25519, to be proven.
 
 
 
@@ -1977,8 +1977,14 @@ TODO
 Issues
 =========
 
-TODO
-
+- Noise Hash selection - stay with SHA256 or upgrade?
+  SHA256 should be good for another 20-30 years, not threatened by PQ,
+  See [NIST-PQ-UPDATE]_ and [NIST-PQ-END]_.
+  If SHA256 is broken we have worse problems (netdb).
+- NTCP2 separate port, separate router address
+- SSU2 relay / peer test
+- SSU2 version field
+- SSU2 router address version
 
 
 
@@ -2018,6 +2024,12 @@ References
 
 .. [NIST-PQ]
    https://www.nist.gov/news-events/news/2024/08/nist-releases-first-3-finalized-post-quantum-encryption-standards
+
+.. [NIST-PQ-UPDATE]
+   https://csrc.nist.gov/csrc/media/Presentations/2022/update-on-post-quantum-encryption-and-cryptographi/Day%202%20-%20230pm%20Chen%20PQC%20ISPAB.pdf
+
+.. [NIST-PQ-END]
+   https://www.nccoe.nist.gov/sites/default/files/2023-08/pqc-light-at-the-end-of-the-tunnel-presentation.pdf
 
 .. [NIST-VECTORS]
    https://csrc.nist.gov/projects/cryptographic-standards-and-guidelines/example-values
