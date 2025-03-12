@@ -869,6 +869,10 @@ MLKEM768_X25519          6       32   1296+pl      1360+pl        1184+pl       
 MLKEM1024_X25519         7       32   1680+pl      1648+pl        1568+pl         1568       pl
 ================    =========  =====  =========  =============  =============  ==========  =======
 
+Note that the payload must contain a DateTime block, so the minimum payload size is 7.
+The minimum message 1 sizes may be caculated accordingly.
+
+
 
 1g) New Session Reply format
 ````````````````````````````
@@ -976,6 +980,9 @@ MLKEM768_X25519          6       32   1176+pl      1136+pl        1088+pl       
 MLKEM1024_X25519         7       32   1656+pl      1616+pl        1568+pl         1568       pl
 ================    =========  =====  =========  =============  =============  ==========  =======
 
+Note that while message 2 will normally have a nonzero payload,
+the ratchet specification [ECIES]_ does not require it, so the minimum payload size is 0.
+The minimum message 2 sizes may be caculated accordingly.
 
 
 
@@ -1765,18 +1772,21 @@ Increase minimum bandwidth requirements for floodfills?
 Ratchet
 --------
 
+Shared Tunnels
+``````````````
+
 Auto-classify/detect of multiple protocols on the same tunnels should be possible based
-on a length check of message 1.
+on a length check of message 1 (New Session Message).
 Using MLKEM512_X25519 as an example, message 1 length is 816 bytes larger
-than current ratchet protocol, and the minimum message 1 size (with no payload included)
-is 912 bytes. Most message 1 sizes with current ratchet have a payload less than
+than current ratchet protocol, and the minimum message 1 size (with only a DateTime payload included)
+is 919 bytes. Most message 1 sizes with current ratchet have a payload less than
 816 bytes, so they can be classified as non-hybrid ratchet.
-Large message 1s are probably POSTs which is rare.
+Large messages are probably POSTs which are rare.
 
 So the recommended strategy is:
 
-- If message 1 is less than 912 bytes, it's the current ratchet protocol.
-- If message 1 is greater than or equal to 912 bytes, it's probably MLKEM512_X25519.
+- If message 1 is less than 919 bytes, it's the current ratchet protocol.
+- If message 1 is greater than or equal to 919 bytes, it's probably MLKEM512_X25519.
   Try MLKEM512_X25519 first, and if it fails, try the current ratchet protocol.
 
 This should allow us to efficiently support standard ratchet and hybrid ratchet
@@ -1785,16 +1795,52 @@ on the same destination. Therefore, we can migrate to the MLKEM hybrid protocol
 much more quickly than if we could not support dual-protocols for the same destination,
 because we can add MLKEM support to existing destinations.
 
-We should probably NOT attempt to support multiple MLKEM flavors
+We may not attempt to support multiple MLKEM algorithms
 (for example, MLKEM512_X25519 and MLKEM_768_X25519)
 on the same destination. Pick just one; however, that depends on us
 selecting a preferred MLKEM variant, so HTTP client tunnels can use one.
+Implementation-dependent.
 
-We MAY attempt to support three flavors (for example ElGamal, X25519, and MLKEM512_X25519)
+We MAY attempt to support three algorithms (for example X25519, MLKEM512_X25519, and MLKEM769_X25519)
 on the same destination. The classification and retry strategy may be too complex.
+The configuration and configuration UI may be too complex.
+Implementation-dependent.
+
+We will probably NOT attempt to support ElGamal and hybrid algorithms on the same destination.
+ElGamal is obsolete, and ElGamal + hybrid only (no X25519) doesn't make much sense.
+Also, ElGamal and Hybrid New Session Messages are both large, so
+classification strategies would often have to try both decryptions,
+which would be inefficient.
+Implementation-dependent.
 
 Clients may use the same or different X25519 static keys for the X25519
 and the hybrid protocols on the same tunnels, implementation-dependent.
+
+Forward Secrecy
+```````````````
+The ECIES specification allows Garlic Messages in the New Session Message payload,
+which allows for 0-RTT delivery of the initial streaming packet,
+usually a HTTP GET, together with the client's leaseset.
+However, the New Session Message payload does not have forward secrecy.
+As this proposal is emphasizing enhanced forward secrecy for ratchet,
+implementations may or should defer inclusion of the streaming payload,
+or the full streaming message, until the first Existing Session Message.
+This would be at the expense of 0-RTT delivery.
+Strategies may also depend on traffic type or tunnel type,
+or on GET vs. POST, for example.
+Implementation-dependent.
+
+New Session Size
+````````````````
+MLKEM, MLDSA, or both on the same destination, will dramatically increase
+the size of the New Session Message, as described above.
+This may significantly decrease the reliability of New Session Message
+delivery through tunnels, where they must be fragmented into
+multiple 1024 byte tunnel messages. Delivery success is
+proportional to the exponential number of fragments.
+Implementations may use various strategies to limit the size of the message,
+at the expense of 0-RTT delivery.
+Implementation-dependent.
 
 
 NTCP2
@@ -1816,7 +1862,7 @@ MAY Need different transport address/port,
 but hopefully not, we have a header with flags for message 1.
 We could internally use the version field and use 3 for MLKEM512 and 4 for MLKEM768.
 Maybe just v=2,3,4 in the address would be sufficient.
-But we need identifiers for all 3 new flavors: 3a, 3b, 3c?
+But we need identifiers for all 3 new algorithms: 3a, 3b, 3c?
 
 Check and verify that SSU2 can handle the RI fragmented across
 multiple packets (6-8?)
