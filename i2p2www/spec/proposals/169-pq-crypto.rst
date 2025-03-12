@@ -5,7 +5,7 @@ Post-Quantum Crypto Protocols
     :author: zzz
     :created: 2025-01-21
     :thread: http://zzz.i2p/topics/3294
-    :lastupdated: 2025-03-11
+    :lastupdated: 2025-03-12
     :status: Open
     :target: 0.9.80
 
@@ -48,6 +48,7 @@ Goals
 
 - Select PQ-resistant algorithms
 - Add PQ-only and hybrid algorithms to I2P protocols where appropriate
+- Define multiple variants
 - Select best variants after implementation, testing, analysis, and research
 - Add support incrementally and with backward compatibility
 
@@ -57,6 +58,7 @@ Non-Goals
 
 - Don't change one-way (Noise N) encryption protocols
 - Don't move away from SHA256, not threatened near-term by PQ
+- Don't select the final preferred variants at this time
 
 
 Threat Model
@@ -1645,24 +1647,59 @@ MLDSA87                    11.1x slower    1.5x slower   same
 Security Analysis
 =================
 
+NIST security categories are summarized in [NIST-PQ-END]_ slide 10.
+Preliminary criteria:
+Our minimum NIST security category should be 2 for hybrid protocols
+and 3 for PQ-only.
+
+========  ======
+Category  As Secure As
+========  ======
+   1      AES128
+   2      SHA256
+   3      AES192
+   4      SHA384
+   5      AES256
+========  ======
+
+
 Handshakes
 ----------
+These are all hybrid protocols.
 Probably need to prefer MLKEM768; MLKEM512 is not secure enough.
 
+NIST security categories [FIPS203]_ :
 
+=========  ========
+Algorithm  Security Category
+=========  ========
+MLKEM512      1
+MLKEM768      3
+MLKEM1024     5
+=========  ========
 
 
 Signatures
 ----------
+This proposal defines both hybrid and PQ-only signature types.
 MLDSA44 hybrid is preferable to MLDSA65 PQ-only.
 The keys and sig sizes for MLDSA65 and MLDSA87 are probably too big for us, at least at first.
 
+NIST security categories [FIPS204]_ :
+
+=========  ========
+Algorithm  Security Category
+=========  ========
+MLDSA44       2
+MLKEM67       3
+MLKEM87       5
+=========  ========
 
 
 Type Preferences
 =================
 
-While we will define and implement 3 crypto and 6 signature types, we
+While we will define and implement 3 crypto and 9 signature types, we
 plan to measure performance during development, and further analyze
 the effects of increased structure sizes. We will also continue
 to research and monitor developments in other projects and protocols.
@@ -1727,18 +1764,19 @@ Increase minimum bandwidth requirements for floodfills?
 
 Ratchet
 --------
-Auto-classify/detect on same tunnels should be possible based
+
+Auto-classify/detect of multiple protocols on the same tunnels should be possible based
 on a length check of message 1.
-Using MLKEM512_X25519 as an example, message 1 length is 800 bytes larger
+Using MLKEM512_X25519 as an example, message 1 length is 816 bytes larger
 than current ratchet protocol, and the minimum message 1 size (with no payload included)
-is 872 bytes. Most message 1 sizes with current ratchet have a payload less than
-800 bytes, so they can be classified as non-hybrid ratchet.
+is 912 bytes. Most message 1 sizes with current ratchet have a payload less than
+816 bytes, so they can be classified as non-hybrid ratchet.
 Large message 1s are probably POSTs which is rare.
 
 So the recommended strategy is:
 
-- If message 1 is less than 872 bytes, it's the current ratchet protocol.
-- If message 1 is greater than or equal to 872 bytes, it's probably MLKEM512_X25519.
+- If message 1 is less than 912 bytes, it's the current ratchet protocol.
+- If message 1 is greater than or equal to 912 bytes, it's probably MLKEM512_X25519.
   Try MLKEM512_X25519 first, and if it fails, try the current ratchet protocol.
 
 This should allow us to efficiently support standard ratchet and hybrid ratchet
@@ -1749,11 +1787,14 @@ because we can add MLKEM support to existing destinations.
 
 We should probably NOT attempt to support multiple MLKEM flavors
 (for example, MLKEM512_X25519 and MLKEM_768_X25519)
-on the same destination. Pick just one.
+on the same destination. Pick just one; however, that depends on us
+selecting a preferred MLKEM variant, so HTTP client tunnels can use one.
 
 We MAY attempt to support three flavors (for example ElGamal, X25519, and MLKEM512_X25519)
 on the same destination. The classification and retry strategy may be too complex.
 
+Clients may use the same or different X25519 static keys for the X25519
+and the hybrid protocols on the same tunnels, implementation-dependent.
 
 
 NTCP2
