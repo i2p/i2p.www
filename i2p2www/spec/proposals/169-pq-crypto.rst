@@ -191,7 +191,7 @@ Legal Combinations
 ------------------
 
 For Destinations, the new signature types are supported with all encryption
-types in the leaseset. Set the encryption type in the key certificate to NULL (255).
+types in the leaseset. Set the encryption type in the key certificate to NONE (255).
 
 For RouterIdentities, ElGamal encryption type is deprecated.
 The new signature types are supported with X25519 (type 4) encryption only.
@@ -249,7 +249,7 @@ MLKEM1024                   1568      0.9.xx  See proposal 169, for handshakes o
 MLKEM512_CT                  768      0.9.xx  See proposal 169, for handshakes only, not for Leasesets, RIs or Destinations
 MLKEM768_CT                 1088      0.9.xx  See proposal 169, for handshakes only, not for Leasesets, RIs or Destinations
 MLKEM1024_CT                1568      0.9.xx  See proposal 169, for handshakes only, not for Leasesets, RIs or Destinations
-NULL                           0      0.9.xx  See proposal 169, for destinations with PQ sig types only, not for RIs or Leasesets
+NONE                           0      0.9.xx  See proposal 169, for destinations with PQ sig types only, not for RIs or Leasesets
 ================    ================= ======  =====
 
 Hybrid public keys are the X25519 key.
@@ -385,14 +385,14 @@ The new Crypto Public Key types are:
 MLKEM512_X25519          5                 32            0.9.xx  See proposal 169, for Leasesets only, not for RIs or Destinations
 MLKEM768_X25519          6                 32            0.9.xx  See proposal 169, for Leasesets only, not for RIs or Destinations
 MLKEM1024_X25519         7                 32            0.9.xx  See proposal 169, for Leasesets only, not for RIs or Destinations
-NULL                   255                  0            0.9.xx  See proposal 169
+NONE                   255                  0            0.9.xx  See proposal 169
 ================    ===========  ======================= ======  =====
 
 
 Hybrid key types are NEVER included in key certificates; only in leasesets.
 
 For destinations with Hybrid or PQ signature types,
-use NULL (type 255) for the encryption type,
+use NONE (type 255) for the encryption type,
 but there is no crypto key, and the
 entire 384-byte main section is for the signing key.
 
@@ -401,7 +401,7 @@ Destination sizes
 ``````````````````
 
 Here are lengths for the new Destination types.
-Enc type for all is NULL (type 255) and the encryption key length is treated as 0.
+Enc type for all is NONE (type 255) and the encryption key length is treated as 0.
 The entire 384-byte section is used for the first part of the signing public key.
 NOTE: This is different than the spec for the ECDSA_SHA512_P521
 and the RSA signature types, where we maintained the 256-byte ElGamal
