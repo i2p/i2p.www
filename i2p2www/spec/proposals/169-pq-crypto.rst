@@ -159,7 +159,9 @@ We will use the "hedged" or randomized signing variant,
 not the "determinstic" variant, as defined in [FIPS204]_ section 3.4.
 This ensures that each signature is different, even when over the same data,
 and provides additional protection against side-channel attacks.
-See the implementation notes section below.
+See the implementation notes section below for additional details
+about algorithm choices including encoding and context.
+
 
 The new signature types are:
 
@@ -1772,6 +1774,15 @@ and provides additional protection against side-channel attacks.
 While [FIPS204]_ specifies that the "hedged" variant is the default,
 this may or may not be true in various libraries.
 Implementors must ensure that the "hedged" variant is used for signing.
+
+We use the normal signing process (called Pure ML-DSA Signature Generation)
+which encodes the message internally as 0x00 || len(ctx) || ctx || message,
+where ctx is some optional value of size 0x00..0xFF.
+We are not using any optional context. len(ctx) == 0.
+This process is defined in [FIPS204]_ Algorithm 2 step 10 and Algorithm 3 step 5.
+Note that some published test vectors may require setting a mode
+where the message is not encoded.
+
 
 
 Reliability
