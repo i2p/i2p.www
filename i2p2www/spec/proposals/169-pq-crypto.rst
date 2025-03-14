@@ -5,7 +5,7 @@ Post-Quantum Crypto Protocols
     :author: zzz
     :created: 2025-01-21
     :thread: http://zzz.i2p/topics/3294
-    :lastupdated: 2025-03-12
+    :lastupdated: 2025-03-14
     :status: Open
     :target: 0.9.80
 
@@ -148,10 +148,18 @@ Java keystores              yes             yes
 
 So we will support both PQ-only and hybrid signatures.
 We will define the three ML-DSA variants as in [FIPS204]_,
-as well as three hybrid variants with Ed25519 prehash for SU3 files only,
+three hybrid variants with Ed25519,
+and three PQ-only variants with prehash for SU3 files only,
 for 9 new signature types total.
 Hybrid types will only be defined in combination with Ed25519.
-We will use the standard ML-DSA, NOT the pre-hash variants (HashML-DSA).
+We will use the standard ML-DSA, NOT the pre-hash variants (HashML-DSA),
+except for SU3 files.
+
+We will use the "hedged" or randomized signing variant,
+not the "determinstic" variant, as defined in [FIPS204]_ section 3.4.
+This ensures that each signature is different, even when over the same data,
+and provides additional protection against side-channel attacks.
+See the implementation notes section below.
 
 The new signature types are:
 
@@ -164,9 +172,9 @@ MLDSA87_EdDSA_SHA512_Ed25519   14
 MLDSA44                        15
 MLDSA65                        16
 MLDSA87                        17
-MLDSA44_Ed25519ph              18
-MLDSA65_Ed25519ph              19
-MLDSA87_Ed25519ph              20
+MLDSA44ph                      18
+MLDSA65ph                      19
+MLDSA87ph                      20
 ============================  ====
 
 X.509 certificates and other DER encodings will use the
@@ -184,7 +192,6 @@ As the new destination and router identity types will not contain padding,
 they will not be compressible. Sizes of destinations and router identities
 that are gzipped in-transit will increase by 12x - 38x depending on algorithm.
 
-TODO: Add RSA4096 hybrid types for su3?
 
 
 Legal Combinations
@@ -298,9 +305,9 @@ MLDSA87_EdDSA_SHA512_Ed25519         2624      0.9.xx  See proposal 169
 MLDSA44                              1312      0.9.xx  See proposal 169
 MLDSA65                              1952      0.9.xx  See proposal 169
 MLDSA87                              2592      0.9.xx  See proposal 169
-MLDSA44_Ed25519ph                    1344      0.9.xx  Only for SU3 files, not for netdb structures
-MLDSA65_Ed25519ph                    1984      0.9.xx  Only for SU3 files, not for netdb structures
-MLDSA87_Ed25519ph                    2624      0.9.xx  Only for SU3 files, not for netdb structures
+MLDSA44ph                            1344      0.9.xx  Only for SU3 files, not for netdb structures
+MLDSA65ph                            1984      0.9.xx  Only for SU3 files, not for netdb structures
+MLDSA87ph                            2624      0.9.xx  Only for SU3 files, not for netdb structures
 ============================   ==============  ======  =====
 
 Hybrid signing public keys are the Ed25519 key followed by the PQ key.
@@ -321,9 +328,9 @@ MLDSA87_EdDSA_SHA512_Ed25519         4928      0.9.xx  See proposal 169
 MLDSA44                              2560      0.9.xx  See proposal 169
 MLDSA65                              4032      0.9.xx  See proposal 169
 MLDSA87                              4896      0.9.xx  See proposal 169
-MLDSA44_Ed25519ph                    2592      0.9.xx  Only for SU3 files, not for netdb structuresSee proposal 169
-MLDSA65_Ed25519ph                    4064      0.9.xx  Only for SU3 files, not for netdb structuresSee proposal 169
-MLDSA87_Ed25519ph                    4928      0.9.xx  Only for SU3 files, not for netdb structuresSee proposal 169
+MLDSA44ph                            2592      0.9.xx  Only for SU3 files, not for netdb structuresSee proposal 169
+MLDSA65ph                            4064      0.9.xx  Only for SU3 files, not for netdb structuresSee proposal 169
+MLDSA87ph                            4928      0.9.xx  Only for SU3 files, not for netdb structuresSee proposal 169
 ============================   ==============  ======  =====
 
 Hybrid signing private keys are the Ed25519 key followed by the PQ key.
@@ -344,9 +351,9 @@ MLDSA87_EdDSA_SHA512_Ed25519         4691      0.9.xx  See proposal 169
 MLDSA44                              2420      0.9.xx  See proposal 169
 MLDSA65                              3309      0.9.xx  See proposal 169
 MLDSA87                              4627      0.9.xx  See proposal 169
-MLDSA44_Ed25519ph                    2484      0.9.xx  Only for SU3 files, not for netdb structuresSee proposal 169
-MLDSA65_Ed25519ph                    3373      0.9.xx  Only for SU3 files, not for netdb structuresSee proposal 169
-MLDSA87_Ed25519ph                    4691      0.9.xx  Only for SU3 files, not for netdb structuresSee proposal 169
+MLDSA44ph                            2484      0.9.xx  Only for SU3 files, not for netdb structuresSee proposal 169
+MLDSA65ph                            3373      0.9.xx  Only for SU3 files, not for netdb structuresSee proposal 169
+MLDSA87ph                            4691      0.9.xx  Only for SU3 files, not for netdb structuresSee proposal 169
 ============================   ==============  ======  =====
 
 Hybrid signatures are the Ed25519 signature followed by the PQ signature.
@@ -370,9 +377,9 @@ MLDSA87_EdDSA_SHA512_Ed25519      14                 2624           0.9.xx  See 
 MLDSA44                           15                 1312           0.9.xx  See proposal 169
 MLDSA65                           16                 1952           0.9.xx  See proposal 169
 MLDSA87                           17                 2592           0.9.xx  See proposal 169
-MLDSA44_Ed25519ph                 18                  n/a           0.9.xx  Only for SU3 files
-MLDSA65_Ed25519ph                 19                  n/a           0.9.xx  Only for SU3 files
-MLDSA87_Ed25519ph                 20                  n/a           0.9.xx  Only for SU3 files
+MLDSA44ph                         18                  n/a           0.9.xx  Only for SU3 files
+MLDSA65ph                         19                  n/a           0.9.xx  Only for SU3 files
+MLDSA87ph                         20                  n/a           0.9.xx  Only for SU3 files
 ============================  ===========  =======================  ======  =====
 
 
@@ -1526,15 +1533,24 @@ to avoid copying the signature?
 SU3 Files
 ---------
 
+TODO
+
+[MLDSA-OIDS]_ section 8.1 disallows HashML-DSA in X.509 certificates
+and does not assign OIDs for HashML-DSA, because of implementation
+complexities and reduced security.
+
 For PQ-only signatures of SU3 files,
-use the OIDs defined in [MLDSA-OIDS]_ for the certificates.
-For hybrid signatures of SU3 files,
-We would have to define our own OIDs.
+use the OIDs defined in [MLDSA-OIDS]_ of the non-prehash variants for the certificates.
+We do not define hybrid signatures of SU3 files,
+because we may have to hash the files twice (although HashML-DSA and X2559 use the same
+hash function SHA512). Also, concatenating two keys and signatures in
+a X.509 certificate would be completely nonstandard.
+
 Note that we disallow Ed25519 signing of SU3 files,
 and while we have defined Ed25519ph signing, we have never agreed on an OID for it,
 or used it.
 
-The normal hybrid sig types are disallowed for SU3 files; use the ph (prehash) variants.
+The normal sig types are disallowed for SU3 files; use the ph (prehash) variants.
 
 
 
@@ -1745,6 +1761,17 @@ OpenSSL support will be in their 3.5 release scheduled for April 8, 2025 [OPENSS
 The southernstorm.com Noise library adapted by Java I2P contained preliminary support for
 hybrid handshakes, but we removed it as unused; we will have to add it back
 and update it to match [Noise-Hybrid]_.
+
+Signing Variants
+----------------
+
+We will use the "hedged" or randomized signing variant,
+not the "determinstic" variant, as defined in [FIPS204]_ section 3.4.
+This ensures that each signature is different, even when over the same data,
+and provides additional protection against side-channel attacks.
+While [FIPS204]_ specifies that the "hedged" variant is the default,
+this may or may not be true in various libraries.
+Implementors must ensure that the "hedged" variant is used for signing.
 
 
 Reliability
