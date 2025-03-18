@@ -5,7 +5,7 @@ Post-Quantum Crypto Protocols
     :author: zzz
     :created: 2025-01-21
     :thread: http://zzz.i2p/topics/3294
-    :lastupdated: 2025-03-14
+    :lastupdated: 2025-03-18
     :status: Open
     :target: 0.9.80
 
@@ -168,12 +168,12 @@ The new signature types are:
 ============================  ====
         Type                  Code
 ============================  ====
-MLDSA44_EdDSA_SHA512_Ed25519   12
-MLDSA65_EdDSA_SHA512_Ed25519   13
-MLDSA87_EdDSA_SHA512_Ed25519   14
-MLDSA44                        15
-MLDSA65                        16
-MLDSA87                        17
+MLDSA44                        12
+MLDSA65                        13
+MLDSA87                        14
+MLDSA44_EdDSA_SHA512_Ed25519   15
+MLDSA65_EdDSA_SHA512_Ed25519   16
+MLDSA87_EdDSA_SHA512_Ed25519   17
 MLDSA44ph                      18
 MLDSA65ph                      19
 MLDSA87ph                      20
@@ -263,7 +263,7 @@ NONE                           0      0.9.xx  See proposal 169, for destinations
 
 Hybrid public keys are the X25519 key.
 KEM public keys are the ephemeral PQ key sent from Alice to Bob.
-Byte order defined in [FIPS203]_.
+Encoding and byte order are defined in [FIPS203]_.
 
 MLKEM*_CT keys are not really public keys, they are the "ciphertext" sent from Bob to Alice in the Noise handshake.
 They are listed here for completeness.
@@ -286,9 +286,9 @@ MLKEM768                    2400       0.9.xx  See proposal 169, for handshakes 
 MLKEM1024                   3168       0.9.xx  See proposal 169, for handshakes only, not for Leasesets, RIs or Destinations
 ================    ================== ======  =====
 
-Hybrid private keys are the X25519 key followed by the PQ key.
+Hybrid private keys are the X25519 key followed by the PQ key, as in [COMPOSITE-SIGS]_.
 KEM private keys are the ciphertext sent from Bob to Alice.
-Byte order defined in [FIPS203]_.
+Encoding and byte order are defined in [FIPS203]_.
 
 
 
@@ -301,19 +301,19 @@ The new Signing Public Key types are:
 ============================   ==============  ======  =====
          Type                  Length (bytes)  Since   Usage
 ============================   ==============  ======  =====
-MLDSA44_EdDSA_SHA512_Ed25519         1344      0.9.xx  See proposal 169
-MLDSA65_EdDSA_SHA512_Ed25519         1984      0.9.xx  See proposal 169
-MLDSA87_EdDSA_SHA512_Ed25519         2624      0.9.xx  See proposal 169
 MLDSA44                              1312      0.9.xx  See proposal 169
 MLDSA65                              1952      0.9.xx  See proposal 169
 MLDSA87                              2592      0.9.xx  See proposal 169
+MLDSA44_EdDSA_SHA512_Ed25519         1344      0.9.xx  See proposal 169
+MLDSA65_EdDSA_SHA512_Ed25519         1984      0.9.xx  See proposal 169
+MLDSA87_EdDSA_SHA512_Ed25519         2624      0.9.xx  See proposal 169
 MLDSA44ph                            1344      0.9.xx  Only for SU3 files, not for netdb structures
 MLDSA65ph                            1984      0.9.xx  Only for SU3 files, not for netdb structures
 MLDSA87ph                            2624      0.9.xx  Only for SU3 files, not for netdb structures
 ============================   ==============  ======  =====
 
-Hybrid signing public keys are the Ed25519 key followed by the PQ key.
-Byte order defined in [FIPS204]_.
+Hybrid signing public keys are the Ed25519 key followed by the PQ key, as in [COMPOSITE-SIGS]_.
+Encoding and byte order are defined in [FIPS204]_.
 
 
 SigningPrivateKey
@@ -324,19 +324,19 @@ The new Signing Private Key types are:
 ============================   ==============  ======  =====
          Type                  Length (bytes)  Since   Usage
 ============================   ==============  ======  =====
-MLDSA44_EdDSA_SHA512_Ed25519         2592      0.9.xx  See proposal 169
-MLDSA65_EdDSA_SHA512_Ed25519         4064      0.9.xx  See proposal 169
-MLDSA87_EdDSA_SHA512_Ed25519         4928      0.9.xx  See proposal 169
 MLDSA44                              2560      0.9.xx  See proposal 169
 MLDSA65                              4032      0.9.xx  See proposal 169
 MLDSA87                              4896      0.9.xx  See proposal 169
+MLDSA44_EdDSA_SHA512_Ed25519         2592      0.9.xx  See proposal 169
+MLDSA65_EdDSA_SHA512_Ed25519         4064      0.9.xx  See proposal 169
+MLDSA87_EdDSA_SHA512_Ed25519         4928      0.9.xx  See proposal 169
 MLDSA44ph                            2592      0.9.xx  Only for SU3 files, not for netdb structuresSee proposal 169
 MLDSA65ph                            4064      0.9.xx  Only for SU3 files, not for netdb structuresSee proposal 169
 MLDSA87ph                            4928      0.9.xx  Only for SU3 files, not for netdb structuresSee proposal 169
 ============================   ==============  ======  =====
 
-Hybrid signing private keys are the Ed25519 key followed by the PQ key.
-Byte order defined in [FIPS204]_.
+Hybrid signing private keys are the Ed25519 key followed by the PQ key, as in [COMPOSITE-SIGS]_.
+Encoding and byte order are defined in [FIPS204]_.
 
 
 Signature
@@ -347,21 +347,21 @@ The new Signature types are:
 ============================   ==============  ======  =====
          Type                  Length (bytes)  Since   Usage
 ============================   ==============  ======  =====
-MLDSA44_EdDSA_SHA512_Ed25519         2484      0.9.xx  See proposal 169
-MLDSA65_EdDSA_SHA512_Ed25519         3373      0.9.xx  See proposal 169
-MLDSA87_EdDSA_SHA512_Ed25519         4691      0.9.xx  See proposal 169
 MLDSA44                              2420      0.9.xx  See proposal 169
 MLDSA65                              3309      0.9.xx  See proposal 169
 MLDSA87                              4627      0.9.xx  See proposal 169
+MLDSA44_EdDSA_SHA512_Ed25519         2484      0.9.xx  See proposal 169
+MLDSA65_EdDSA_SHA512_Ed25519         3373      0.9.xx  See proposal 169
+MLDSA87_EdDSA_SHA512_Ed25519         4691      0.9.xx  See proposal 169
 MLDSA44ph                            2484      0.9.xx  Only for SU3 files, not for netdb structuresSee proposal 169
 MLDSA65ph                            3373      0.9.xx  Only for SU3 files, not for netdb structuresSee proposal 169
 MLDSA87ph                            4691      0.9.xx  Only for SU3 files, not for netdb structuresSee proposal 169
 ============================   ==============  ======  =====
 
-Hybrid signatures are the Ed25519 signature followed by the PQ signature.
+Hybrid signatures are the Ed25519 signature followed by the PQ signature, as in [COMPOSITE-SIGS]_.
 Hybrid signatures are verified by verifying both signatures, and failing
 if either one fails.
-Byte order defined in [FIPS204]_.
+Encoding and byte order are defined in [FIPS204]_.
 
 
 
@@ -373,12 +373,12 @@ The new Signing Public Key types are:
 ============================  ===========  =======================  ======  =====
         Type                  Type Code    Total Public Key Length  Since   Usage
 ============================  ===========  =======================  ======  =====
-MLDSA44_EdDSA_SHA512_Ed25519      12                 1344           0.9.xx  See proposal 169
-MLDSA65_EdDSA_SHA512_Ed25519      13                 1984           0.9.xx  See proposal 169
-MLDSA87_EdDSA_SHA512_Ed25519      14                 2624           0.9.xx  See proposal 169
-MLDSA44                           15                 1312           0.9.xx  See proposal 169
-MLDSA65                           16                 1952           0.9.xx  See proposal 169
-MLDSA87                           17                 2592           0.9.xx  See proposal 169
+MLDSA44                           12                 1312           0.9.xx  See proposal 169
+MLDSA65                           13                 1952           0.9.xx  See proposal 169
+MLDSA87                           14                 2592           0.9.xx  See proposal 169
+MLDSA44_EdDSA_SHA512_Ed25519      15                 1344           0.9.xx  See proposal 169
+MLDSA65_EdDSA_SHA512_Ed25519      16                 1984           0.9.xx  See proposal 169
+MLDSA87_EdDSA_SHA512_Ed25519      17                 2624           0.9.xx  See proposal 169
 MLDSA44ph                         18                  n/a           0.9.xx  Only for SU3 files
 MLDSA65ph                         19                  n/a           0.9.xx  Only for SU3 files
 MLDSA87ph                         20                  n/a           0.9.xx  Only for SU3 files
@@ -429,12 +429,12 @@ skey[0:383] 5 (932 >> 8) (932 & 0xff) 00 12 00 255 skey[384:1311]
 ============================  ===========  =======================  ======  ======  =====
         Type                  Type Code    Total Public Key Length  Main    Excess  Total Dest Length
 ============================  ===========  =======================  ======  ======  =====
-MLDSA44_EdDSA_SHA512_Ed25519      12                 1344           384      960    1351
-MLDSA65_EdDSA_SHA512_Ed25519      13                 1984           384     1600    1991
-MLDSA87_EdDSA_SHA512_Ed25519      14                 2624           384     2240    2631
-MLDSA44                           15                 1312           384      928    1319
-MLDSA65                           16                 1952           384     1568    1959
-MLDSA87                           17                 2592           384     2208    2599
+MLDSA44                           12                 1312           384      928    1319
+MLDSA65                           13                 1952           384     1568    1959
+MLDSA87                           14                 2592           384     2208    2599
+MLDSA44_EdDSA_SHA512_Ed25519      15                 1344           384      960    1351
+MLDSA65_EdDSA_SHA512_Ed25519      16                 1984           384     1600    1991
+MLDSA87_EdDSA_SHA512_Ed25519      17                 2624           384     2240    2631
 ============================  ===========  =======================  ======  ======  =====
 
 
@@ -458,12 +458,12 @@ enckey[0:31] skey[0:351] 5 (960 >> 8) (960 & 0xff) 00 12 00 4 skey[352:1311]
 ============================  ===========  =======================  ======  ======  =====
         Type                  Type Code    Total Public Key Length  Main    Excess  Total RouterIdent Length
 ============================  ===========  =======================  ======  ======  =====
-MLDSA44_EdDSA_SHA512_Ed25519      12                 1344           352      992    1383
-MLDSA65_EdDSA_SHA512_Ed25519      13                 1984           352     1632    2023
-MLDSA87_EdDSA_SHA512_Ed25519      14                 2624           352     2272    2663
-MLDSA44                           15                 1312           352      960    1351
-MLDSA65                           16                 1952           352     1600    1991
-MLDSA87                           17                 2592           352     2240    2631
+MLDSA44                           12                 1312           352      960    1351
+MLDSA65                           13                 1952           352     1600    1991
+MLDSA87                           14                 2592           352     2240    2631
+MLDSA44_EdDSA_SHA512_Ed25519      15                 1344           352      992    1383
+MLDSA65_EdDSA_SHA512_Ed25519      16                 1984           352     1632    2023
+MLDSA87_EdDSA_SHA512_Ed25519      17                 2624           352     2272    2663
 ============================  ===========  =======================  ======  ======  =====
 
 
@@ -738,8 +738,13 @@ This is the "ekem1" message pattern:
 {% endhighlight %}
 
 
-Alice/Bob KDF for split()
-`````````````````````````
+KDF for Message 3 (XK only)
+```````````````````````````
+unchanged
+
+
+KDF for split()
+```````````````
 unchanged
 
 
@@ -1634,12 +1639,12 @@ See design section above.
         Type                  Pubkey   Sig   Key+Sig  RIdent  Dest    RInfo     LS/Streaming/Datagram (each msg)
 ============================  =======  ====  =======  ======  ======  ========  =====
 EdDSA_SHA512_Ed25519              32     64     96      391     391   baseline  baseline
-MLDSA44_EdDSA_SHA512_Ed25519    1344   2484   3828     1383    1351   +3412     +3380
-MLDSA65_EdDSA_SHA512_Ed25519    1984   3373   5357     2023    1991   +5668     +5636
-MLDSA87_EdDSA_SHA512_Ed25519    2624   4691   7315     2663    2631   +7488     +7456
 MLDSA44                         1312   2420   3732     1351    1319   +3316     +3284
 MLDSA65                         1952   3309   5261     1991    1959   +5668     +5636
 MLDSA87                         2592   4627   7219     2631    2599   +7072     +7040
+MLDSA44_EdDSA_SHA512_Ed25519    1344   2484   3828     1383    1351   +3412     +3380
+MLDSA65_EdDSA_SHA512_Ed25519    1984   3373   5357     2023    1991   +5668     +5636
+MLDSA87_EdDSA_SHA512_Ed25519    2624   4691   7315     2663    2631   +7488     +7456
 ============================  =======  ====  =======  ======  ======  ========  =====
 
 Speed:
