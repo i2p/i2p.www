@@ -2,10 +2,10 @@
 Datagram2 Protocol
 ===================================
 .. meta::
-    :author: zzz
+    :author: zzz, orignal, drzed, eyedeekay
     :created: 2023-01-24
     :thread: http://zzz.i2p/topics/3540
-    :lastupdated: 2025-02-21
+    :lastupdated: 2025-03-23
     :status: Open
     :target: 0.9.67
 
@@ -31,6 +31,7 @@ Goals
 
 - Add support for offline signatures
 - Add replay resistance
+- Add flavor without signatures
 - Add flags and options fields for extensibility
 
 
@@ -116,6 +117,7 @@ Design
 ======
 
 - Define new protocol 19 - Repliable datagram with options.
+- Define new protocol 20 - Repliable datagram without signature.
 - Add flags field for offline signatures and future expansion
 - Move signature after the payload for easier processing
 - New signature specification different from repliable datagram or streaming, so that
@@ -139,9 +141,12 @@ Protocol
 The new I2CP protocol number for Datagram2 is 19.
 Add it as PROTO_DATAGRAM2 to [I2CP]_.
 
+The new I2CP protocol number for Datagram3 is 20.
+Add it as PROTO_DATAGRAM2 to [I2CP]_.
 
-Format
--------
+
+Datagram2 Format
+----------------
 
 Add Datagram2 to [DATAGRAMS]_ as follows:
 
@@ -229,7 +234,7 @@ Add Datagram2 to [DATAGRAMS]_ as follows:
 
 Total length: minimum 433 + payload length;
 typical length for X25519 senders and without offline signatures:
-461 + payload length.
+457 + payload length.
 Note that the message will typically be compressed with gzip at the I2CP layer,
 which will result in significant savings if the from destination is compressible.
 
@@ -258,10 +263,58 @@ Receivers must verify the signature (using their destination hash)
 and discard the datagram on failure, for replay prevention.
 
 
+Datagram3 Format
+----------------
+
+Add Datagram3 to [DATAGRAMS]_ as follows:
+
+.. raw:: html
+
+  {% highlight lang='dataspec' -%}
++----+----+----+----+----+----+----+----+
+  |                                       |
+  ~            fromhash                   ~
+  ~                                       ~
+  |                                       |
+  +----+----+----+----+----+----+----+----+
+  |  flags  |     options (optional)      |
+  +----+----+                             +
+  ~                                       ~
+  ~                                       ~
+  +----+----+----+----+----+----+----+----+
+  |                                       |
+  ~            payload                    ~
+  ~                                       ~
+  |                                       |
+  +----+----+----+----+----+----+----+----+
+
+  fromhash :: a `Hash`
+              length: 32 bytes
+              The originator of the datagram
+
+  flags :: (2 bytes)
+           Bit order: 15 14 ... 3 2 1 0
+           Bits 3-0: Version: 0x03 (0 0 1 1)
+           Bit 4: If 0, no options; if 1, options mapping is included
+           Bits 15-5: unused, set to 0 for compatibility with future uses
+
+  options :: (2+ bytes if present)
+           If flag indicates options are present, a `Mapping`
+           containing arbitrary text options
+
+  payload ::  The data
+              Length: 0 to about 61 KB (see notes)
+
+{% endhighlight %}
+
+Total length: minimum 34 + payload length.
+
+
+
 SAM
 ---
 
-Add STYLE=DATAGRAM2 to the SAMv3 specification.
+Add STYLE=DATAGRAM2 and STYLE=DATAGRAM3 to the SAMv3 specification.
 Update the information on offline signatures.
 
 
@@ -277,6 +330,10 @@ Security Analysis
 =================
 
 Including the target hash in the signature should be effective at preventing replay attacks.
+
+The Datagram3 format lacks signatures, so the sender cannot be verified,
+and replay attacks are possible. Any required validation must be done at the application layer,
+or by the router at the ratchet layer.
 
 
 

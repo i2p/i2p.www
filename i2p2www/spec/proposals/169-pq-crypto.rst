@@ -2,10 +2,10 @@
 Post-Quantum Crypto Protocols
 ===================================
 .. meta::
-    :author: zzz
+    :author: zzz, orignal, drzed, eyedeekay
     :created: 2025-01-21
     :thread: http://zzz.i2p/topics/3294
-    :lastupdated: 2025-03-18
+    :lastupdated: 2025-03-23
     :status: Open
     :target: 0.9.80
 
@@ -286,9 +286,9 @@ MLKEM768                    2400       0.9.xx  See proposal 169, for handshakes 
 MLKEM1024                   3168       0.9.xx  See proposal 169, for handshakes only, not for Leasesets, RIs or Destinations
 ================    ================== ======  =====
 
-Hybrid private keys are the X25519 key followed by the PQ key, as in [COMPOSITE-SIGS]_.
-KEM private keys are the ciphertext sent from Bob to Alice.
-Encoding and byte order are defined in [FIPS203]_.
+Hybrid private keys are the X25519 keys.
+KEM private keys are for Alice only.
+KEM encoding and byte order are defined in [FIPS203]_.
 
 
 
@@ -1838,6 +1838,20 @@ on the same destination. Therefore, we can migrate to the MLKEM hybrid protocol
 much more quickly than if we could not support dual-protocols for the same destination,
 because we can add MLKEM support to existing destinations.
 
+The required supported combinations are:
+
+- X25519 + MLKEM512
+- X25519 + MLKEM768
+- X25519 + MLKEM1024
+
+The following combinations may be complex, and are NOT required to be supported,
+but may be, implementation-dependent:
+
+- More than one MLKEM
+- ElG + one or more MLKEM
+- X25519 + one or more MLKEM
+- ElG + X25519 + one or more MLKEM
+
 We may not attempt to support multiple MLKEM algorithms
 (for example, MLKEM512_X25519 and MLKEM_768_X25519)
 on the same destination. Pick just one; however, that depends on us
@@ -1858,6 +1872,7 @@ Implementation-dependent.
 
 Clients may use the same or different X25519 static keys for the X25519
 and the hybrid protocols on the same tunnels, implementation-dependent.
+
 
 Forward Secrecy
 ```````````````

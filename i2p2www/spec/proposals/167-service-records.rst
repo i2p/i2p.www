@@ -2,10 +2,10 @@
 Service Records in LS2
 ===================================
 .. meta::
-    :author: zzz
+    :author: zzz, orignal, eyedeekay
     :created: 2024-06-22
     :thread: http://zzz.i2p/topics/3641
-    :lastupdated: 2025-03-04
+    :lastupdated: 2025-03-23
     :status: Open
     :target: 0.9.66
 
