@@ -1173,7 +1173,7 @@ KDF for Payload Section (without Alice static key)
 Note that this is a Noise "N" pattern, but we use the same "IK" initializer
 as for bound sessions.
 
-New Session essages can not be identified as containing Alice's static key or not
+New Session messages can not be identified as containing Alice's static key or not
 until the static key is decrypted and inspected to determine if it contains all zeros.
 Therefore, the receiver must use the "IK" state machine for all
 New Session messages.
