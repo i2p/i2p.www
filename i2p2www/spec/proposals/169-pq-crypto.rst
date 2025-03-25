@@ -5,7 +5,7 @@ Post-Quantum Crypto Protocols
     :author: zzz, orignal, drzed, eyedeekay
     :created: 2025-01-21
     :thread: http://zzz.i2p/topics/3294
-    :lastupdated: 2025-03-23
+    :lastupdated: 2025-03-25
     :status: Open
     :target: 0.9.80
 
@@ -522,12 +522,14 @@ For Alice:
 
   // EncryptAndHash(encap_key)
   ciphertext = ENCRYPT(k, n, encap_key, ad)
+  n++
   MixHash(ciphertext)
 
   For Bob:
 
   // DecryptAndHash(ciphertext)
   encap_key = DECRYPT(k, n, ciphertext, ad)
+  n++
   MixHash(ciphertext)
 
 
@@ -632,17 +634,23 @@ For IK: After the 'es' message pattern and before the 's' message pattern, add:
 This is the "e1" message pattern:
   (encap_key, decap_key) = PQ_KEYGEN()
 
+  // EncryptAndHash(encap_key)
   // AEAD parameters
   k = keydata[32:63]
   n = 0
   ad = h
   ciphertext = ENCRYPT(k, n, encap_key, ad)
+  n++
 
   // MixHash(ciphertext)
   h = SHA256(h || ciphertext)
 
 
   End of "e1" message pattern.
+
+  NOTE: For the next section (payload for XK or static key for IK),
+  the keydata and chain key remain the same,
+  and n now equals 1 (instead of 0 for non-hybrid).
 
 {% endhighlight %}
 
@@ -661,16 +669,22 @@ For IK: After the 'es' message pattern and before the 's' message pattern, add:
   {% highlight lang='text' %}
 This is the "e1" message pattern:
 
+  // DecryptAndHash(encap_key_section)
   // AEAD parameters
   k = keydata[32:63]
   n = 0
   ad = h
   encap_key = DECRYPT(k, n, encap_key_section, ad)
+  n++
 
   // MixHash(encap_key_section)
   h = SHA256(h || encap_key_section)
 
   End of "e1" message pattern.
+
+  NOTE: For the next section (payload for XK or static key for IK),
+  the keydata and chain key remain the same,
+  and n now equals 1 (instead of 0 for non-hybrid).
 
 {% endhighlight %}
 
@@ -691,6 +705,7 @@ This is the "ekem1" message pattern:
 
   (kem_ciphertext, kem_shared_key) = ENCAPS(encap_key)
 
+  // EncryptAndHash(kem_ciphertext)
   // AEAD parameters
   k = keydata[32:63]
   n = 0
@@ -719,6 +734,7 @@ After the 'ee' message pattern (and before the 'ss' message pattern for IK), add
   {% highlight lang='text' %}
 This is the "ekem1" message pattern:
 
+  // DecryptAndHash(kem_ciphertext_section)
   // AEAD parameters
   k = keydata[32:63]
   n = 0
