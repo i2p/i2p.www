@@ -5,7 +5,7 @@ Post-Quantum Crypto Protocols
     :author: zzz, orignal, drzed, eyedeekay
     :created: 2025-01-21
     :thread: http://zzz.i2p/topics/3294
-    :lastupdated: 2025-03-25
+    :lastupdated: 2025-03-29
     :status: Open
     :target: 0.9.80
 
@@ -2101,6 +2101,12 @@ Signatures are the lowest priority.
 
 Signature rollout will also be a year or more later than encryption rollout,
 because no backward compatibility is possible.
+Also, MLDSA adoption in the industry will be standardized by the CA/Browser Forum
+and Certificate Authorities. CAs need hardware security module (HSM) support
+first, which is not currently available [CABFORUM]_.
+We expect the CA/Browser Forum to drive decisions on specific parameter
+choices, including whether to support or require composite signatures [COMPOSITE-SIGS]_.
+
 
 
 
@@ -2152,6 +2158,8 @@ Issues
 References
 ==========
 
+.. [CABFORUM]
+   https://cabforum.org/2024/10/10/2024-10-10-minutes-of-the-code-signing-certificate-working-group/
 
 .. [CLOUDFLARE]
    https://blog.cloudflare.com/pq-2024/
