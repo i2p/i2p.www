@@ -3860,9 +3860,12 @@ used as a keep-alive or to validate an IP/Port change.
 
 Notes:
 
-A minimum data size of 8 bytes, containing random data,
-is recommended but not required.
-
+- A minimum data size of 8 bytes, containing random data,
+  is recommended but not required.
+- The max size is not specified, but it should be well under
+  1280, because the PMTU during the path validation phase is 1280.
+- Large challenge sizes are not recommended because they could
+  be a vector for packet amplification attacks.
 
 
 Path Response
