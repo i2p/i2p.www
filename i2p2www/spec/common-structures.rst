@@ -3,8 +3,8 @@ Common structures Specification
 ===============================
 .. meta::
     :category: Design
-    :lastupdated: 2025-02
-    :accuratefor: 0.9.65
+    :lastupdated: 2025-04
+    :accuratefor: 0.9.66
 
 .. contents::
 
@@ -1263,6 +1263,57 @@ by the Destination_'s SigningPrivateKey_ or the transient key.
                          if present in the header
 
 {% endhighlight %}
+
+Options
+```````
+As of API 0.9.66, a standard format for service record options
+is defined. See proposal 167 for details.
+Options other than service records, using a different format,
+may be defined in the future.
+
+LS2 options MUST be sorted by key, so the signature is invariant.
+
+Service record options are defined as follows:
+
+- serviceoption := optionkey optionvalue
+- optionkey := _service._proto
+- service := The symbolic name of the desired service. Must be lower case. Example: "smtp".
+  Allowed chars are [a-z0-9-] and must not start or end with a '-'.
+  Standard identifiers from [REGISTRY]_ or Linux /etc/services must be used if defined there.
+- proto := The transport protocol of the desired service. Must be lower case, either "tcp" or "udp".
+  "tcp" means streaming and "udp" means repliable datagrams.
+  Protocol indicators for raw datagrams and datagram2 may be defined later.
+  Allowed chars are [a-z0-9-] and must not start or end with a '-'.
+- optionvalue := self | srvrecord[,srvrecord]*
+- self := "0" ttl port [appoptions]
+- srvrecord := "1" ttl priority weight port target [appoptions]
+- ttl := time to live, integer seconds. Positive integer. Example: "86400".
+  A minimum of 86400 (one day) is recommended, see Recommendations section below for details.
+- priority := The priority of the target host, lower value means more preferred. Non-negative integer. Example: "0"
+  Only useful if more than one record, but required even if just one record.
+- weight := A relative weight for records with the same priority. Higher value means more chance of getting picked. Non-negative integer. Example: "0"
+  Only useful if more than one record, but required even if just one record.
+- port := The I2CP port on which the service is to be found. Non-negative integer. Example: "25"
+  Port 0 is supported but not recommended.
+- target := The hostname or b32 of the destination providing the service. A valid hostname as in [NAMING]_. Must be lower case.
+  Example: "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa.b32.i2p" or "example.i2p".
+  b32 is recommended unless the hostname is "well known", i.e. in official or default address books.
+- appoptions := arbitrary text specific to the application, must not contain " " or ",". Encoding is UTF-8.
+
+Examples:
+
+In LS2 for aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa.b32.i2p, pointing to one SMTP server:
+
+"_smtp._tcp" "1 86400 0 0 25 bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb.b32.i2p"
+
+In LS2 for aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa.b32.i2p, pointing to two SMTP servers:
+
+"_smtp._tcp" "1 86400 0 0 25 bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb.b32.i2p,86400 1 0 25 cccccccccccccccccccccccccccccccccccccccccccc.b32.i2p"
+
+In LS2 for bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb.b32.i2p, pointing to itself as a SMTP server:
+
+"_smtp._tcp" "0 999999 25"
+
 
 Notes
 `````

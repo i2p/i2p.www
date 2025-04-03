@@ -1,7 +1,7 @@
 {% extends "global/layout.html" %}
 {% block title %}SAM V3{% endblock %}
-{% block lastupdated %}2024-09{% endblock %}
-{% block accuratefor %}API 0.9.63{% endblock %}
+{% block lastupdated %}2025-04{% endblock %}
+{% block accuratefor %}API 0.9.66{% endblock %}
 {% block content %}
 <p>SAM is a simple client protocol for interacting with I2P.
 SAM is the recommended protocol for non-Java applications to connect to the I2P network,
@@ -1631,6 +1631,7 @@ bridge for name resolution:
 <pre>
  NAMING LOOKUP
         NAME=$name
+        [OPTIONS=true]     # Default false, as of router API 0.9.66
 </pre>
 
 </p><p>
@@ -1642,6 +1643,7 @@ which is answered by
         NAME=$name
         [VALUE=$destination]
         [MESSAGE="$message"]
+        [OPTION:optionkey="$optionvalue"]   # As of router API 0.9.66
 </pre>
 
 
@@ -1673,6 +1675,35 @@ However, in some implementations, a .b32.i2p lookup which is uncached and requir
 a network query may fail, as no client tunnels are available for the lookup.
 </p>
 
+<h4>Name Lookup Options</h4>
+<p>
+NAMING LOOKUP is extended as of router API 0.9.66 to support service lookups.
+Support may vary by implementation.
+See proposal 167 for additional information.
+
+</p><p>
+NAMING LOOKUP NAME=example.i2p OPTIONS=true requests the options mapping in the reply.
+NAME may be a full base64 destination when OPTIONS=true.
+
+</p><p>
+If the destination lookup was successful and options were present in the leaseset,
+then in the reply, following the destination,
+will be one or more options in the form of OPTION:key=value.
+Each option will have a separate OPTION: prefix.
+All options from the leaseset will be included, not just service record options.
+For example, options for parameters defined in the future may be present.
+Example:
+
+</p><p>
+NAMING REPLY RESULT=OK NAME=example.i2p VALUE=base64dest OPTION:_smtp._tcp="1 86400 0 0 25 bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb.b32.i2p"
+
+</p><p>
+Keys containing '=', and keys or values containing a newline,
+are considered invalid and the key/value pair will be removed from the reply.
+If there are no options found in the leaseset, or if the leaseset was version 1,
+then the response will not include any options.
+If OPTIONS=true was in the lookup, and the leaseset is not found, a new result value LEASESET_NOT_FOUND will be returned.
+</p>
 
 <h4>Destination Key Generation</h4>
 </p><p>
@@ -1830,6 +1861,7 @@ their meaning:
  KEY_NOT_FOUND   The naming system can't resolve the given name
  PEER_NOT_FOUND  The peer cannot be found on the network
  TIMEOUT         Timeout while waiting for an event (e.g. peer answer)
+ LEASESET_NOT_FOUND  See Name Lookup Options above. As of router API 0.9.66.
 </pre>
 
 <p>

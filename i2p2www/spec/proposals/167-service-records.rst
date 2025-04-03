@@ -5,12 +5,16 @@ Service Records in LS2
     :author: zzz, orignal, eyedeekay
     :created: 2024-06-22
     :thread: http://zzz.i2p/topics/3641
-    :lastupdated: 2025-03-23
-    :status: Open
+    :lastupdated: 2025-04-03
+    :status: Closed
     :target: 0.9.66
 
 .. contents::
 
+
+Status
+======
+Approved on 2nd review 2025-04-01; specs are updated; not yet implemented.
 
 
 Overview
@@ -108,7 +112,7 @@ Specification
 LS2 Option Specification
 ---------------------------
 
-LS2 options MUST be sorted by key.
+LS2 options MUST be sorted by key, so the signature is invariant.
 
 Defined as follows:
 
@@ -242,7 +246,8 @@ For lookup type 4, item 5 is a Destination.
 HostReply Message
 ``````````````````
 
-For lookup types 2-4, the router fetches the leaseset.
+For lookup types 2-4, the router must fetch the leaseset,
+even if the lookup key is in the address book.
 
 If successful, the HostReply will contain the options Mapping
 from the leaseset, and includes it as item 5 after the destination.
@@ -274,8 +279,10 @@ NAMING LOOKUP NAME=example.i2p OPTIONS=true requests the options mapping in the 
 
 NAME may be a full base64 destination when OPTIONS=true.
 
-If the destination lookup was successful, in the reply, following the destination,
-will be options in the form of OPTION:key=value.
+If the destination lookup was successful and options were present in the leaseset,
+then in the reply, following the destination,
+will be one or more options in the form of OPTION:key=value.
+Each option will have a separate OPTION: prefix.
 All options from the leaseset will be included, not just service record options.
 For example, options for parameters defined in the future may be present.
 Example:

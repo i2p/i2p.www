@@ -3,8 +3,8 @@ I2CP Specification
 ==================
 .. meta::
     :category: Protocols
-    :lastupdated: 2025-02
-    :accuratefor: 0.9.65
+    :lastupdated: 2025-04
+    :accuratefor: 0.9.66
 
 .. contents::
 
@@ -237,6 +237,8 @@ below.
 ==============  ======================
    Version      Required I2CP Features
 ==============  ======================
+   0.9.66       Host lookup/reply extensions (see proposal 167)
+
    0.9.62       MessageStatus message Loopback error code
 
    0.9.43       BlindingInfo message supported
@@ -887,7 +889,24 @@ Contents
 2. 4 byte [Integer]_ request ID
 3. 4 byte [Integer]_ timeout (ms)
 4. 1 byte [Integer]_ request type
-5. SHA-256 [Hash]_ or host name [String]_
+5. SHA-256 [Hash]_ or host name [String]_ or [Destination]_
+
+Request types:
+
+====  ===================  =======
+Type  Lookup key (item 5)  As of
+====  ===================  =======
+0     Hash
+1     host name String
+2     Hash                 0.9.66
+3     host name String     0.9.66
+4     Destination          0.9.66
+====  ===================  =======
+
+Types 2-4 request that the options mapping from the LeaseSet
+be returned in the HostReply message.
+See proposal 167.
+
 
 Notes
 `````
@@ -899,8 +918,6 @@ Notes
 * Timeout is useful for Hash lookups. Recommended minimum 10,000 (10 sec.). In
   the future it may also be useful for remote naming service lookups. The value
   may be not be honored for local host name lookups, which should be fast.
-
-* The request type is 0 for Hash and 1 for host name.
 
 * Base 32 host name lookup is supported but it is preferred to convert it to a
   Hash first.
@@ -926,8 +943,44 @@ Contents
   - 3: Private key required (as of 0.9.43)
   - 4: Lookup password and private key required (as of 0.9.43)
   - 5: Leaseset decryption failure (as of 0.9.43)
+  - 6: Leaseset lookup failure (as of 0.9.66)
+  - 7: Lookup type unsupported (as of 0.9.66)
 
-4. [Destination]_, only present if result code is zero.
+4. [Destination]_, only present if result code is zero,
+   except may also be returned for lookup types 2-4.
+   See below.
+
+5. [Mapping]_, only present if result code is zero,
+   only returned for lookup types 2-4.
+   As of 0.9.66. See below.
+
+
+Responses for lookup types 2-4
+``````````````````````````````
+Proposal 167 defines additional lookup types that
+return all options from the leaseset, if present.
+For lookup types 2-4, the router must fetch the leaseset,
+even if the lookup key is in the address book.
+
+If successful, the HostReply will contain the options Mapping
+from the leaseset, and includes it as item 5 after the destination.
+If there are no options in the Mapping, or the leaseset was version 1,
+it will still be included as an empty Mapping (two bytes: 0 0).
+All options from the leaseset will be included, not just service record options.
+For example, options for parameters defined in the future may be present.
+The returned Mapping may or may not be sorted, implementation-dependent.
+
+On leaseset lookup failure, the reply will contain a new error code 6 (Leaseset lookup failure)
+and will not include a mapping.
+When error code 6 is returned, the Destination field may or may not be present.
+It will be present if a hostname lookup in the address book was successful,
+or if a previous lookup was successful and the result was cached,
+or if the Destination was present in the lookup message (lookup type 4).
+
+If a lookup type is not supported,
+the reply will contain a new error code 7 (lookup type unsupported).
+
+
 
 Notes
 `````
@@ -940,6 +993,9 @@ Notes
   As of 0.9.43, the additional failure codes 2-5 were defined
   to support extended errors for "b33" lookups.
   See proposals 123 and 149 for additional information.
+  As of 0.9.66, the additional failure codes 6-7 were defined
+  to support extended errors for type 2-4 lookups.
+  See proposal 167 for additional information.
 
 .. _msg-MessagePayload:
 

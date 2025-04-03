@@ -3,8 +3,8 @@ I2NP Specification
 ==================
 .. meta::
     :category: Protocols
-    :lastupdated: 2025-02
-    :accuratefor: 0.9.65
+    :lastupdated: 2025-04
+    :accuratefor: 0.9.66
 
 .. contents::
 
@@ -45,6 +45,10 @@ below.
 ==============  ================================================================
  API Version    Required I2NP Features
 ==============  ================================================================
+   0.9.66       LeaseSet2 service record options (see proposal 167)
+
+   0.9.65       Tunnel build bandwidth parameters (see proposal 168)
+
    0.9.59       Minimum peers will build tunnels through, as of 0.9.63
 
                 Minimum floodfill peers will send DSM to, as of 0.9.63
