@@ -521,7 +521,12 @@ A set of key/value mappings or properties
 
 Contents
 ````````
-A 2-byte size Integer followed by a series of String=String; pairs
+A 2-byte size Integer followed by a series of String=String; pairs.
+
+WARNING: Most uses of Mapping are in signed structures, where the
+Mapping entries must be sorted by key, so the signature is immutable.
+Failure to sort by key will result in signature failures!
+
 
 .. raw:: html
 
