@@ -162,11 +162,11 @@ Certificate of a Destination.  The default type is DSA_SHA1.  As of release
          Type           Length (bytes)  Since   Usage
 ======================  ==============  ======  =====
 DSA_SHA1                     128                Deprecated for Router Identities as of 09.58; discouraged for Destinations
-ECDSA_SHA256_P256             64        0.9.12  Older Destinations
-ECDSA_SHA384_P384             96        0.9.12  Rarely used for Destinations
-ECDSA_SHA512_P521            132        0.9.12  Rarely used for Destinations
-RSA_SHA256_2048              256        0.9.12  Offline signing, never used for Router Identities or Destinations
-RSA_SHA384_3072              384        0.9.12  Offline signing, never used for Router Identities or Destinations
+ECDSA_SHA256_P256             64        0.9.12  Deprecated Older Destinations
+ECDSA_SHA384_P384             96        0.9.12  Deprecated Rarely used for Destinations
+ECDSA_SHA512_P521            132        0.9.12  Deprecated Rarely used for Destinations
+RSA_SHA256_2048              256        0.9.12  Deprecated Offline signing, never used for Router Identities or Destinations
+RSA_SHA384_3072              384        0.9.12  Deprecated Offline signing, never used for Router Identities or Destinations
 RSA_SHA512_4096              512        0.9.12  Offline signing, never used for Router Identities or Destinations
 EdDSA_SHA512_Ed25519          32        0.9.15  Recent Router Identities and Destinations
 EdDSA_SHA512_Ed25519ph        32        0.9.25  Offline signing, never used for Router Identities or Destinations
@@ -202,11 +202,11 @@ As of release 0.9.12, other types may be supported, depending on context.
          Type           Length (bytes)  Since   Usage
 ======================  ==============  ======  =====
 DSA_SHA1                      20                Deprecated for Router Identities as of 09.58; discouraged for Destinations
-ECDSA_SHA256_P256             32        0.9.12  Recent Destinations
-ECDSA_SHA384_P384             48        0.9.12  Rarely used for Destinations
-ECDSA_SHA512_P521             66        0.9.12  Rarely used for Destinations
-RSA_SHA256_2048              512        0.9.12  Offline signing, never used for Router Identities or Destinations
-RSA_SHA384_3072              768        0.9.12  Offline signing, never used for Router Identities or Destinations
+ECDSA_SHA256_P256             32        0.9.12  Deprecated Older Destinations
+ECDSA_SHA384_P384             48        0.9.12  Deprecated Rarely used for Destinations
+ECDSA_SHA512_P521             66        0.9.12  Deprecated Rarely used for Destinations
+RSA_SHA256_2048              512        0.9.12  Deprecated Offline signing, never used for Router Identities or Destinations
+RSA_SHA384_3072              768        0.9.12  Deprecated Offline signing, never used for Router Identities or Destinations
 RSA_SHA512_4096             1024        0.9.12  Offline signing, never used for Router Identities or Destinations
 EdDSA_SHA512_Ed25519          32        0.9.15  Recent Router Identities and Destinations
 EdDSA_SHA512_Ed25519ph        32        0.9.25  Offline signing, never used for Router Identities or Destinations
@@ -243,11 +243,11 @@ depending on context.
          Type           Length (bytes)  Since   Usage
 ======================  ==============  ======  =====
 DSA_SHA1                      40                Deprecated for Router Identities as of 09.58; discouraged for Destinations
-ECDSA_SHA256_P256             64        0.9.12  Recent Destinations
-ECDSA_SHA384_P384             96        0.9.12  Rarely used for Destinations
-ECDSA_SHA512_P521            132        0.9.12  Rarely used for Destinations
-RSA_SHA256_2048              256        0.9.12  Offline signing, never used for Router Identities or Destinations
-RSA_SHA384_3072              384        0.9.12  Offline signing, never used for Router Identities or Destinations
+ECDSA_SHA256_P256             64        0.9.12  Deprecated Older Destinations
+ECDSA_SHA384_P384             96        0.9.12  Deprecated Rarely used for Destinations
+ECDSA_SHA512_P521            132        0.9.12  Deprecated Rarely used for Destinations
+RSA_SHA256_2048              256        0.9.12  Deprecated Offline signing, never used for Router Identities or Destinations
+RSA_SHA384_3072              384        0.9.12  Deprecated Offline signing, never used for Router Identities or Destinations
 RSA_SHA512_4096              512        0.9.12  Offline signing, never used for Router Identities or Destinations
 EdDSA_SHA512_Ed25519          64        0.9.15  Recent Router Identities and Destinations
 EdDSA_SHA512_Ed25519ph        64        0.9.25  Offline signing, never used for Router Identities or Destinations
@@ -428,11 +428,11 @@ The defined Signing Public Key types are:
         Type             Type Code   Total Public Key Length  Since   Usage
 ======================  ===========  =======================  ======  =====
 DSA_SHA1                     0                  128           0.9.12  Deprecated for Router Identities as of 0.9.58; discouraged for Destinations
-ECDSA_SHA256_P256            1                   64           0.9.12  Older Destinations
-ECDSA_SHA384_P384            2                   96           0.9.12  Rarely if ever used for Destinations
-ECDSA_SHA512_P521            3                  132           0.9.12  Rarely if ever used for Destinations
-RSA_SHA256_2048              4                  256           0.9.12  Offline only; never used in Key Certificates for Router Identities or Destinations
-RSA_SHA384_3072              5                  384           0.9.12  Offline only; never used in Key Certificates for Router Identities or Destinations
+ECDSA_SHA256_P256            1                   64           0.9.12  Deprecated Older Destinations
+ECDSA_SHA384_P384            2                   96           0.9.12  Deprecated Rarely if ever used for Destinations
+ECDSA_SHA512_P521            3                  132           0.9.12  Deprecated Rarely if ever used for Destinations
+RSA_SHA256_2048              4                  256           0.9.12  Deprecated Offline only; never used in Key Certificates for Router Identities or Destinations
+RSA_SHA384_3072              5                  384           0.9.12  Deprecated Offline only; never used in Key Certificates for Router Identities or Destinations
 RSA_SHA512_4096              6                  512           0.9.12  Offline only; never used in Key Certificates for Router Identities or Destinations
 EdDSA_SHA512_Ed25519         7                   32           0.9.15  Recent Router Identities and Destinations
 EdDSA_SHA512_Ed25519ph       8                   32           0.9.25  Offline only; never used in Key Certificates for Router Identities or Destinations
