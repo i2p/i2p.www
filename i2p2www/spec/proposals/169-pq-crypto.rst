@@ -5,7 +5,7 @@ Post-Quantum Crypto Protocols
     :author: zzz, orignal, drzed, eyedeekay
     :created: 2025-01-21
     :thread: http://zzz.i2p/topics/3294
-    :lastupdated: 2025-03-29
+    :lastupdated: 2025-04-04
     :status: Open
     :target: 0.9.80
 
@@ -1919,10 +1919,16 @@ Implementation-dependent.
 
 NTCP2
 -----
-Need different transport address/port,
-would be hard to run both on the same port, we have no header or flags
-for message 1, it is fixed size (before padding).
-So probably a protocol name such as "NTCP1PQ1".
+We can set the MSB of the ephemeral key
+(key[31] & 0x80) in the session request to indicate that this
+is a hybrid connection.
+This would allow us to run both standard NTCP and hybrid NTCP
+on the same port.
+Only one hybrid variant would be supported, and advertised in the router address.
+For example, v=2,3 or v=2,4 or v=2,5.
+
+If we don't do that, we need different transport address/port,
+and a new protocol name such as "NTCP1PQ1".
 
 Note: Type codes are for internal use only. Routers will remain type 4,
 and support will be indicated in the router addresses.
@@ -1936,10 +1942,10 @@ MAY Need different transport address/port,
 but hopefully not, we have a header with flags for message 1.
 We could internally use the version field and use 3 for MLKEM512 and 4 for MLKEM768.
 Maybe just v=2,3,4 in the address would be sufficient.
-But we need identifiers for all 3 new algorithms: 3a, 3b, 3c?
+But we need identifiers for both new algorithms: 3a, 3b?
 
 Check and verify that SSU2 can handle the RI fragmented across
-multiple packets (6-8?)
+multiple packets (6-8?). i2pd currently supports only 2 fragments max?
 
 Note: Type codes are for internal use only. Routers will remain type 4,
 and support will be indicated in the router addresses.
@@ -1955,7 +1961,12 @@ Router Compatibility
 Transport Names
 ---------------
 
-We require new transport names.
+We will probably not require new transport names,
+if we can run both standard and hybrid on the same port,
+with version flags.
+
+If we do require new transport names, they would be:
+
 
 =========  ====
 Transport  Type
