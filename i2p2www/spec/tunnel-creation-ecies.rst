@@ -906,6 +906,9 @@ Implementation Notes
 Build Records
 -------------
 
+Build record order must be randomized, so middle hops do not
+know their location within the tunnel.
+
 The recommended minimum number of build records is 4.
 If there are more build records than hops, "fake" records must be added,
 containing random or implementation-specific data.
