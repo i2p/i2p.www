@@ -903,6 +903,36 @@ Implementation Notes
   Implementers should detect and reject these records prior to the DH operation
   if possible, to reduce CPU usage.
 
+Build Records
+-------------
+
+The recommended minimum number of build records is 4.
+If there are more build records than hops, "fake" records must be added,
+containing random or implementation-specific data.
+For inbound tunnel builds, there must always be one "fake" record for the
+originating router, with the correct 16-byte hash prefix, otherwise
+the closest hop will know that the next hop is the originator.
+The MSB of the ephemeral key (data[47] & 0x80) must also be cleared
+so it looks like a real X25519 public key.
+
+The remainder of the "fake" record may be random data, or may encrypted in any format
+for the originator to send data to itself about the build,
+perhaps to reduce storage requirements for pending builds.
+
+Originators of inbound tunnels must use some method to validate
+that their "fake" record has not been modified by the previous hop,
+as this may also be used for deanonimization.
+The orignator may store and verify a checksum of the record,
+or use an AEAD encryption/decryption function, implementation-dependent.
+If the 16-byte hash prefix or other build record contents were
+modified, the router must discard the tunnel.
+
+Fake records for outbound tunnels, and additional fake records for
+inbound tunnels, do not have these requirements, and may
+be completely random data, as they will never be visible
+to any hop. It may still be desirable for the originator
+to validate that they have not been modified.
+
 
 Tunnel Bandwidth Parameters
 ===========================
