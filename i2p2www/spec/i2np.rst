@@ -1679,7 +1679,7 @@ OutboundTunnelBuildReply
 
 Description
 ```````````
-Sent from the outbound gateway of a new tunnel to the originator.
+Sent from the outbound endpoint of a new tunnel to the originator.
 As of API version 0.9.51, for ECIES-X25519 routers only.
 
 .. raw:: html
