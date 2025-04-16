@@ -1879,8 +1879,14 @@ References
 .. [I2NP]
     {{ site_url('docs/protocol/i2np', True) }}
 
+.. [NAMING]
+    {{ site_url('docs/naming', True) }}
+
 .. [NETDB-ROUTERINFO]
     {{ site_url('docs/how/network-database', True) }}#routerInfo
+
+.. [REGISTRY]
+    http://www.dns-sd.org/ServiceTypes.html
 
 .. [SSU]
     {{ site_url('docs/transport/ssu', True) }}
