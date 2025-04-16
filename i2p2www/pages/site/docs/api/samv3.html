@@ -433,14 +433,18 @@ As of SAM 3.2, optional authentication user/password parameters are supported in
 and may be required by the bridge.
 
 </p><p>
-I2P communications can take three distinct forms:
+I2P communications can take several distinct forms:
 <ul><li>
 <a href="{{ site_url('docs/api/streaming') }}">Virtual streams</a>
-</lil><li>
-<a href="{{ site_url('docs/spec/datagrams') }}#repliable">Repliable datagrams</a> (messages with a FROM field)
-</lil><li>
+</li><li>
+<a href="{{ site_url('docs/spec/datagrams') }}#repliable">Repliable and authenticated datagrams</a> (messages with a FROM field)
+</li><li>
 <a href="{{ site_url('docs/spec/datagrams') }}#raw">Anonymous datagrams</a> (raw anonymous messages)
-</lil></ul>
+</li><li>
+<a href="{{ site_url('docs/spec/datagrams') }}#datagram2">Datagram2</a> (a new repliable and authenticated format)
+</li><li>
+<a href="{{ site_url('docs/spec/datagrams') }}#datagram3">Datagram3</a> (a new repliable but unauthenticated format)
+</li></ul>
 </p><p>
 I2P communications are supported by I2P sessions, and each I2P
 session is bound to an address (called destination). An I2P session
@@ -665,18 +669,18 @@ received through other forms are answered with an error message) :
 
 <pre>
 -&gt;  SESSION CREATE
-          STYLE={STREAM,DATAGRAM,RAW}
+          STYLE={STREAM,DATAGRAM,RAW,DATAGRAM2,DATAGRAM3}   # See below for DATAGRAM2/3
           ID=$nickname
           DESTINATION={$privkey,TRANSIENT}
           [SIGNATURE_TYPE=value]               # SAM 3.1 or higher only, for DESTINATION=TRANSIENT only, default DSA_SHA1
-          [PORT=$port]                         # Required for DATAGRAM and RAW, invalid for STREAM
-          [HOST=$host]                         # Optional for DATAGRAM and RAW, invalid for STREAM
+          [PORT=$port]                         # Required for DATAGRAM* RAW, invalid for STREAM
+          [HOST=$host]                         # Optional for DATAGRAM* and RAW, invalid for STREAM
           [FROM_PORT=nnn]                      # SAM 3.2 or higher only, default 0
           [TO_PORT=nnn]                        # SAM 3.2 or higher only, default 0
           [PROTOCOL=nnn]                       # SAM 3.2 or higher only, for STYLE=RAW only, default 18
           [HEADER={true,false}]                # SAM 3.2 or higher only, for STYLE=RAW only, default false
-          [sam.udp.host=hostname]              # Datagram bind host, Java I2P only, DATAGRAM/RAW only, default 127.0.0.1
-          [sam.udp.port=nnn]                   # Datagram bind port, Java I2P only, DATAGRAM/RAW only, default 7655
+          [sam.udp.host=hostname]              # Datagram bind host, Java I2P only, DATAGRAM*/RAW only, default 127.0.0.1
+          [sam.udp.port=nnn]                   # Datagram bind port, Java I2P only, DATAGRAM*/RAW only, default 7655
           [option=value]*                      # I2CP and streaming options
 </pre>
 
@@ -1132,15 +1136,19 @@ SAMv3 provides mechanisms to send and receive datagrams over local datagram sock
 Some SAMv3 implementations also support the older v1/v2 way of sending/receiving
 datagrams over the SAM bridge socket. Both are documented below.
 </p><p>
-I2P supports two types of datagrams:
+I2P supports four types of datagrams:
 </p>
 <ul><li>
-"Repliable" datagrams are prefixed with the destination of the sender,
+Repliable and authenticated datagrams are prefixed with the destination of the sender,
 and contain the signature of the sender, so the receiver
 may verify that the sender's destination was not spoofed,
 and may reply to the datagram.
+The new Datagram2 format is also repliable and authenticated.
 </li><li>
-"Raw" datagrams do not contain the destination of the sender or a signature.
+The new Datagram3 format is repliable but not authenticated.
+The sender information is unverified.
+</li><li>
+Raw datagrams do not contain the destination of the sender or a signature.
 </li></ul>
 <p>
 Default I2CP ports are defined for both repliable and raw datagrams.
@@ -1247,7 +1255,7 @@ message:
 
 <pre>
 &lt;-  DATAGRAM RECEIVED
-           DESTINATION=$destination
+           DESTINATION=$destination           # See notes below for Datagram3 format
            SIZE=$numBytes
            FROM_PORT=nnn                      # SAM 3.2 or higher only
            TO_PORT=nnn                        # SAM 3.2 or higher only
@@ -1275,7 +1283,7 @@ CREATE command with PORT and HOST options:
 
 <pre>
 -&gt; SESSION CREATE
-          STYLE={DATAGRAM,RAW}
+          STYLE={DATAGRAM,RAW,DATAGRAM2,DATAGRAM3}   # See below for DATAGRAM2/3
           ID=$nickname
           DESTINATION={$privkey,TRANSIENT}
           PORT=$port
@@ -1298,8 +1306,9 @@ CREATE command with PORT and HOST options:
    The binary format is specified in <a href="http://{{ i2pconv('idk.i2p/javadoc-i2p') }}/net/i2p/data/PrivateKeyFile.html">Private Key File</a>.
 
 </p><p>
-Offline signatures are only supported for RAW datagrams.
-See the SESSION CREATE section above for details.
+Offline signatures are supported for RAW, DATAGRAM2, and DATAGRAM3 datagrams,
+but not for DATAGRAM.
+See the SESSION CREATE section above and the DATAGRAM2/3 section below for details.
 
 </p><p>
  $host is the hostname or IP address of the datagram server to
@@ -1318,12 +1327,13 @@ configuration if not interpreted by the SAM bridge (e.g.
 outbound.length=0). These options <a href="#options">are documented below</a>.
 
 </p><p>
-Forwarded repliable datagrams are always prefixed with the destination.
+Forwarded repliable datagrams are always prefixed with the base64 destination,
+except for Datagram3, see below.
 When a repliable datagram arrives, the bridge sends to the specified host:port
 a UDP packet containing the following data:
 
 <pre>
-    $destination
+    $destination                       # See notes below for Datagram3 format
     FROM_PORT=nnn                      # SAM 3.2 or higher only
     TO_PORT=nnn                        # SAM 3.2 or higher only
     \n
@@ -1419,6 +1429,54 @@ the forwarded raw datagram will be prepended with a header line as follows:
 For an alternate method of sending anonymous datagrams, see <a href="#dgsend">RAW SEND</a>.
 </p>
 
+<h4>Datagram 2/3</h4>
+
+<p>
+Datagram 2/3 are new formats specified in early 2025.
+No known implementations currently exist.
+Check implementation documentation for current status.
+See <a href="{{ site_url('docs/spec/datagrams') }}">the specification</a> for more information.
+
+</p><p>
+There are no current plans to increase the SAM version to indicate Datagram 2/3 support.
+This may be problematic as implementations may wish to support Datagram 2/3
+but not SAM v3.3 features.
+Any version change is TBD.
+
+</p><p>
+Both Datagram2 and Datagram3 are repliable. Only Datagram2 is authenticated.
+
+</p><p>
+Datagram2 is identical to repliable datagrams from a SAM perspective..
+Both are authenticated.
+Only the I2CP format and signature are different, but this is not visible
+to SAM clients.
+Datagram2 also supports offline signatures, so it may be used
+by offline-signed destinations.
+
+</p><p>
+The intention is for Datagram2 to replace Repliable datagrams
+for new applications that do not require backward-compatibility.
+Datagram2 provides replay protection that is not present for Repliable datagrams.
+If backward-compatibility is required, an application may support
+both Datagram2 and Repliable may be supported on the same
+session with SAM 3.3 PRIMARY sessions.
+
+</p><p>
+Datagram3 is repliable but not authenticated.
+The 'from' field in the I2CP format is a hash, not a destination.
+The $destination as sent from the SAM server to the client
+will be a 44-byte base64 hash.
+To convert it to a full destination for reply,
+base64-decode it to 32 bytes binary, then base32-encode it to 52 characters
+and append ".b32.i2p" for a NAMING LOOKUP.
+As usual, clients should maintain their own cache to avoid repeated NAMING LOOKUPs.
+
+</p><p>
+Application designers should use extreme caution and consider the security implications
+of unauthenticated datagrams.
+
+</p>
 
 <h4>V3 Datagram MTU Considerations</h4>
 <p>
@@ -1464,6 +1522,10 @@ the parameter PROTOCOL=nnn to override the default protocol.
 These commands do <i>not</i> support the ID parameter. The datagrams are
 sent to the most recently created DATAGRAM- or RAW-style session,
 as appropriate. Support for the ID parameter may be added in a future release.
+
+</p><p>
+DATAGRAM2 and DATAGRAM3 formats are <i>not</i> supported
+in the V1/V2 compatible way.
 
 
 <h3 id="primary">SAM PRIMARY Sessions (V3.3 and higher)</h3>
@@ -1541,10 +1603,10 @@ Using the same control socket on which the PRIMARY session was created:
 
 <pre>
 -&gt;  SESSION ADD
-          STYLE={STREAM,DATAGRAM,RAW}
+          STYLE={STREAM,DATAGRAM,RAW,DATAGRAM2,DATAGRAM3}   # See above for DATAGRAM2/3
           ID=$nickname                         # must be unique
-          [PORT=$port]                         # Required for DATAGRAM and RAW, invalid for STREAM
-          [HOST=$host]                         # Optional for DATAGRAM and RAW, invalid for STREAM
+          [PORT=$port]                         # Required for DATAGRAM* and RAW, invalid for STREAM
+          [HOST=$host]                         # Optional for DATAGRAM* and RAW, invalid for STREAM
           [FROM_PORT=nnn]                      # For outbound traffic, default 0
           [TO_PORT=nnn]                        # For outbound traffic, default 0
           [PROTOCOL=nnn]                       # For outbound traffic for STYLE=RAW only, default 18
@@ -1553,8 +1615,8 @@ Using the same control socket on which the PRIMARY session was created:
           [LISTEN_PROTOCOL=nnn]                # For inbound traffic for STYLE=RAW only.
                                                # Default is the PROTOCOL value; 6 (streaming) is disallowed
           [HEADER={true,false}]                # For STYLE=RAW only, default false
-          [sam.udp.host=hostname]              # Datagram bind host, Java I2P only, DATAGRAM/RAW only, default 127.0.0.1
-          [sam.udp.port=nnn]                   # Datagram bind port, Java I2P only, DATAGRAM/RAW only, default 7655
+          [sam.udp.host=hostname]              # Datagram bind host, Java I2P only, DATAGRAM*/RAW only, default 127.0.0.1
+          [sam.udp.port=nnn]                   # Datagram bind port, Java I2P only, DATAGRAM*/RAW only, default 7655
           [option=value]*                      # I2CP and streaming options
 </pre>
 
