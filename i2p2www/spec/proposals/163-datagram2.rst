@@ -5,11 +5,21 @@ Datagram2 Protocol
     :author: zzz, orignal, drzed, eyedeekay
     :created: 2023-01-24
     :thread: http://zzz.i2p/topics/3540
-    :lastupdated: 2025-03-23
-    :status: Open
+    :lastupdated: 2025-04-16
+    :status: Closed
     :target: 0.9.67
 
 .. contents::
+
+
+Status
+======
+
+Approved at review 2025-04-15.
+Changes incorporated into specs.
+Not yet supported in any known implenentations.
+Target implementation for Java I2P is API 0.9.67.
+Check implementation documentation for status.
 
 
 
