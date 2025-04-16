@@ -449,6 +449,9 @@ Total length: minimum 34 + payload length.
 References
 ==========
 
+.. [Common]
+    {{ spec_url('common-structures') }}
+
 .. [DATAGRAMS]
     {{ site_url('docs/api/datagrams', True) }}
 
@@ -466,6 +469,9 @@ References
 
 .. [SAMv3]
     {{ site_url('docs/api/samv3') }}
+
+.. [Streaming]
+    {{ spec_url('streaming') }}
 
 .. [TRANSPORT]
     {{ site_url('docs/transport', True) }}
