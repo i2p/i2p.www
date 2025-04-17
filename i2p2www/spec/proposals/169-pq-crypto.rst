@@ -5,7 +5,7 @@ Post-Quantum Crypto Protocols
     :author: zzz, orignal, drzed, eyedeekay
     :created: 2025-01-21
     :thread: http://zzz.i2p/topics/3294
-    :lastupdated: 2025-04-04
+    :lastupdated: 2025-04-17
     :status: Open
     :target: 0.9.80
 
@@ -572,6 +572,22 @@ For Bob:
 
 Noise Handshake KDF
 ---------------------
+
+Issues
+``````
+
+- Should we change the handshake hash function? See [Choosing-Hash]_.
+  SHA256 is not vulnerable to PQ, but if we do want to upgrade
+  our hash function, now is the time, while we're changing other things.
+  The current IETF SSH proposal [SSH-HYBRID]_ is to use MLKEM768
+  with SHA256, and MLKEM1024 with SHA384. That proposal includes
+  a discussion of the security considerations.
+- Should we stop sending 0-RTT ratchet data (other than the LS)?
+- Should we switch ratchet from IK to XK if we don't send 0-RTT data?
+
+
+Overview
+````````
 
 This section applies to both IK and XK protocols.
 
@@ -2172,6 +2188,9 @@ References
 .. [CABFORUM]
    https://cabforum.org/2024/10/10/2024-10-10-minutes-of-the-code-signing-certificate-working-group/
 
+.. [Choosing-Hash]
+   https://kerkour.com/fast-secure-hash-function-sha256-sha512-sha3-blake3
+
 .. [CLOUDFLARE]
    https://blog.cloudflare.com/pq-2024/
 
@@ -2235,8 +2254,11 @@ References
 .. [RFC-2104]
     https://tools.ietf.org/html/rfc2104
 
+.. [SSH-HYBRID]
+   https://datatracker.ietf.org/doc/draft-ietf-sshm-mlkem-hybrid-kex/
+
 .. [SSU2]
    {{ spec_url('ssu2') }}
 
 .. [TLS-HYBRID]
-   https://www.ietf.org/archive/id/draft-tls-westerbaan-xyber768d00-03.html
+   https://datatracker.ietf.org/doc/draft-ietf-tls-hybrid-design/
