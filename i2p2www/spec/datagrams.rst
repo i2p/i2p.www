@@ -34,6 +34,23 @@ is TBD. Check the documentation for those implementations.
 
 
 
+Datagram Type Identification
+----------------------------
+
+The four datagram types do not share a common header with the protocol
+version in the same place. Packets cannot be identified by type
+based on their content. When using multiple types on the same session,
+or a single type together with streaming, applications must use
+protocol numbers and/or I2CP/SAM ports to route incoming packets to the
+right place. Using standard protocol numbers will make this easier.
+Leaving the protocol number unset (0 or PROTO_ANY), even for a datagram-only
+application, is not recommended as it increases the chance of routing
+errors and makes upgrades to a multi-protocol application harder.
+Version fields in Datagram 2 and 3 are provided only as
+an additional check for routing errors and future changes.
+
+
+
 Application Design
 ------------------
 
