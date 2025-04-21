@@ -1252,7 +1252,7 @@ by the Destination_'s SigningPrivateKey_ or the transient key.
             length -> 2 bytes
 
   encryption_key :: `PublicKey`
-                    length -> 256 bytes
+                    length -> keylen bytes
 
   num :: `Integer`
          length -> 1 byte
@@ -1268,6 +1268,26 @@ by the Destination_'s SigningPrivateKey_ or the transient key.
                          if present in the header
 
 {% endhighlight %}
+
+
+Encryption Key Preference
+`````````````````````````
+
+For published (server) leasesets, the encryption keys are in order of server preference,
+most-preferred first. If clients support more than one encryption type, it is recommended
+that they honor the server preference and select the first supported type as the
+encryption method to use to connect to the server.
+Generally, the newer (higher-numbered) key types are more secure or efficient and
+are preferred, so the keys should be listed in reverse order of key type.
+
+However, clients may, implementation-dependent, select based on their preference instead,
+or use some method to determine the "combined" preference. This may be useful as
+a configuration option, or for debugging.
+
+The key order in unpublished (client) leasesets effectively does not matter, because
+connections will usually not be attempted to unpublished clients.
+Unless this order is used to determine a combined preference, as described above.
+
 
 Options
 ```````
