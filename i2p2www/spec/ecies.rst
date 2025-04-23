@@ -3,19 +3,19 @@ ECIES-X25519-AEAD-Ratchet
 =========================
 .. meta::
     :category: Protocols
-    :lastupdated: 2025-03
-    :accuratefor: 0.9.65
+    :lastupdated: 2025-04
+    :accuratefor: 0.9.66
 
 .. contents::
 
 
 Note
 ====
-Network deployment and testing in progress.
+Network deployment complete.
 Subject to minor revisions.
 See [Prop144]_ for the original proposal, including background discussion and additional information.
 
-The following features are not implemented as of 0.9.63:
+The following features are not implemented as of 0.9.66:
 
 - MessageNumbers, Options, and Termination blocks
 - Protocol-layer responses
@@ -2999,8 +2999,24 @@ non-mod-16 padding, things will need to be done differently.
 
 
 
+Retransmissions and State Transistions
+--------------------------------------
+
+The ratchet layer does not do retransmissions, and with two exceptions,
+does not use timers for tranmssions. Timers are also required
+for tagset timeout.
+
+Transmission timers are used only for sending NSR and for
+replying with an ES when a received ES contains an ACK request.
+Recommended timeout is one second. In almost all cases, the
+higher layer (datagram or streaming) will reply, forcing
+a NSR or ES, and the timer may be cancelled.
+If the timer does fire, send an empty payload with the NSR or ES.
+
+
+
 Protocol-layer Responses
--------------------------
+````````````````````````
 
 Initial implementations rely on bidirectional traffic at the higher layers.
 That is, the implementations assume that traffic in the opposite direction
@@ -3023,6 +3039,67 @@ responses to NS and NSR messages, to shift the traffic to
 the efficient ES messages as soon as possible.
 
 
+Multiple NS Messages
+````````````````````
+
+If no NSR response is received before the higher layer (datagram or streaming)
+sends more data, possibly as a retransmission, Alice must compose a new NS, using a new ephemeral key.
+Do not reuse the ephemeral key from any previous NS.
+Alice must maintain the additional handshake state and derived receive tagset,
+to receive NSR messages in reply to any NSR that was sent.
+
+Implementations may limit the total number of NS messages sent,
+or the rate of NS message sending,
+either by queueing or dropping higher layer messages before they are sent.
+
+In certain situations, when under high load, or under certain attack scenarios,
+it may be appropriate for Bob to queue, drop, or limit apparent NS messages without attempting to decrypt,
+to avoid a resource exhaustion attack.
+
+For each NS received, Bob generates an NSR outbund tagset, sends an NSR, does a split(),
+and generates the inbound and outbound ES tagsets.
+However, Bob does not send any ES messages until the first ES message
+on the corresponding inbound tagset is received. After that, Bob may discard
+all handshake states and tagsets for any other NS received or NSR sent, or allow
+them to expire shortly. Do not use NSR tagsets for ES messages.
+
+It is a topic for further study if Bob may choose to speculatively send ES messages immediately after
+the NSR, even before receiving the first ES from Alice.
+In certain scenarios and traffic patterns, this could save substantial
+bandwidth and CPU.
+This strategy may be based on heuristics such as traffic patterns,
+percentage of ESs received on the first session's tagset, or other data.
+
+
+
+Multiple NSR Messages
+`````````````````````
+
+For each NS message received, until an ES message is received, Bob must reply
+with a new NSR, either due to higher layer traffic being sent, or NSR send timer expiration.
+
+Each NSR uses the handshake state and tagset corresponding to the incoming NS.
+Bob must maintain the handshake state and tagest for all NS messages received, until
+an ES message is received.
+
+Implementations may limit the total number of NSR messages sent,
+or the rate of NSR message sending,
+either by queueing or dropping higher layer messages before they are sent.
+These may be limited either when caused by incoming NS messages, or
+additional higher layer outbound traffic.
+
+In certain situations, when under high load, or under certain attack scenarios,
+it may be appropriate for Alice to queue, drop, or limit NSR messages
+without attempting to decrypt, to avoid a resource exhaustion attack.
+These limits may be either total across all sessions, per session, or both.
+
+Once Alice receives an NSR, Alice does a split() to derive the ES session keys.
+Alice should set a timer, and send an empty ES message if the higher layer does
+not send any traffic, typically within one second.
+
+The other inbound NSR tagsets may be removed soon or allowed
+to expire, but Alice should keep them for a short while, to
+decrypt any other NSR messages that are received.
 
 
 
