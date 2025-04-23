@@ -5,7 +5,7 @@ Post-Quantum Crypto Protocols
     :author: zzz, orignal, drzed, eyedeekay
     :created: 2025-01-21
     :thread: http://zzz.i2p/topics/3294
-    :lastupdated: 2025-04-17
+    :lastupdated: 2025-04-23
     :status: Open
     :target: 0.9.80
 
@@ -72,6 +72,31 @@ Threat Model
   or other structures
 
 
+Affected Protocols
+==================
+
+We will modify the following protocols, roughly in order
+of development. The overall rollout will probably be from late 2025 through mid-2027.
+See the Priorities and Rollout section below for details.
+
+
+==================================  ======
+Protocol / Feature                  Status
+==================================  ======
+Hybrid EncTypes 5-7                 Preliminary, final hash choices pending
+Hybrid Dests, Ratchet               Tested on live net, no net upgrade required
+Select preferred combo              Probably 6,4
+Combo Hybrid/X25519 Dests, Ratchet
+Combo Hybrid/X25519 NTCP2
+Combo Hybrid/X25519 SSU2
+Hybrid Routers, Dests, Ratchet
+MLDSA SigTypes 12-14                Probably final
+MLDSA Dests                         Tested on live net, requires net upgrade for floodfill support
+Hybrid SigTypes 15-17               Preliminary
+Hybrid Dests
+==================================  ======
+
+
 
 Design
 ======
@@ -85,17 +110,17 @@ CRYSTALS-Kyber and CRYSTALS-Dilithium (versions 3.1, 3, and older).
 Key Exchange
 -------------
 
-We will support key exchange in the following protocols:
+We will support hybrid key exchange in the following protocols:
 
-=======  ==========  ==============  ===============
-Proto    Noise Type  Support PQ?     Support Hybrid?
-=======  ==========  ==============  ===============
-NTCP2       XK       no              yes
-SSU2        XK       no              yes
-Ratchet     IK       no              yes
-TBM          N       no              no
-NetDB        N       no              no
-=======  ==========  ==============  ===============
+=======  ==========  ================  ===============
+Proto    Noise Type  Support PQ only?  Support Hybrid?
+=======  ==========  ================  ===============
+NTCP2       XK       no                yes
+SSU2        XK       no                yes
+Ratchet     IK       no                yes
+TBM          N       no                no
+NetDB        N       no                no
+=======  ==========  ================  ===============
 
 PQ KEM provides ephemeral keys only, and does not directly support
 static-key handshakes such as Noise XK and IK.
@@ -131,19 +156,19 @@ Signatures
 
 We will support PQ and hybrid signatures in the following structures:
 
-==========================  ==============  ===============
-Type                        Support PQ?     Support Hybrid?
-==========================  ==============  ===============
-RouterInfo                  yes             yes
-LeaseSet                    yes             yes
-Streaming SYN/SYNACK/Close  yes             yes
-Repliable Datagrams         yes             yes
-Datagram2 (prop. 163)       yes             yes
-I2CP create session msg     yes             yes
-SU3 files                   yes             yes
-X.509 certificates          yes             yes
-Java keystores              yes             yes
-==========================  ==============  ===============
+==========================  ================  ===============
+Type                        Support PQ only?  Support Hybrid?
+==========================  ================  ===============
+RouterInfo                  yes               yes
+LeaseSet                    yes               yes
+Streaming SYN/SYNACK/Close  yes               yes
+Repliable Datagrams         yes               yes
+Datagram2 (prop. 163)       yes               yes
+I2CP create session msg     yes               yes
+SU3 files                   yes               yes
+X.509 certificates          yes               yes
+Java keystores              yes               yes
+==========================  ================  ===============
 
 
 So we will support both PQ-only and hybrid signatures.
