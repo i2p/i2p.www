@@ -158,11 +158,22 @@ Common header to all I2NP messages, which contains important information like a 
 
 Contents
 ````````
+
+There are three separate formats used, depending on context;
+one standard format, and two short format.
+
+The standard 16 byte format contains
 1 byte [Integer]_ specifying the type of this message, followed by a 4 byte
 [Integer]_ specifying the message-id.  After that there is an expiration
 [Date]_, followed by a 2 byte [Integer]_ specifying the length of the message
 payload, followed by a [Hash]_, which is truncated to the first byte. After
 that the actual message data follows.
+
+The short formats use a 4 byte expiration in seconds instead of an
+8 byte expiration in milliseconds.
+The short formats do not contain a checksum or size,
+those are provided by the encapsulations, depending on context.
+
 
 .. raw:: html
 
@@ -175,13 +186,13 @@ Standard (16 bytes):
                            |  size   |chks|
   +----+----+----+----+----+----+----+----+
 
-  Short (SSU, 5 bytes):
+  Short (SSU, 5 bytes) (obsolete):
 
   +----+----+----+----+----+
   |type| short_expiration  |
   +----+----+----+----+----+
 
-  Short (NTCP2 and SSU2, 9 bytes):
+  Short (NTCP2, SSU2, and ECIES-Ratchet Garlic Cloves, 9 bytes):
 
   +----+----+----+----+----+----+----+----+
   |type|      msg_id       | short_expira-
@@ -514,6 +525,11 @@ See [TUNNEL-CREATION-ECIES]_.
 GarlicClove
 -----------
 
+Warning: This is the format used for garlic cloves within ElGamal-encrypted garlic messages [CRYPTO-ELG]_.
+The format for ECIES-AEAD-X25519-Ratchet garlic messages and garlic cloves
+is significantly different; see [ECIES]_ for the specification.
+
+
 .. raw:: html
 
   {% highlight lang='dataspec' %}
@@ -570,16 +586,24 @@ Notes
 * The Clove ID is generally set to a random number on transmit and is checked
   for duplicates on receive (same message ID space as top-level Message IDs)
 
+
 .. _struct-GarlicCloveDeliveryInstructions:
 
 Garlic Clove Delivery Instructions
 ----------------------------------
+
+This is the format used for both ElGamal-encrypted [CRYPTO-ELG]_
+and ECIES-AEAD-X25519-Ratchet encrypted [ECIES]_ garlic cloves.
 
 This specification is for Delivery Instructions inside Garlic Cloves only.
 Note that "Delivery Instructions" are also used inside Tunnel Messages, where
 the format is significantly different.  See the Tunnel Message documentation
 [TMDI]_ for details.  Do NOT use the following specification for Tunnel Message
 Delivery Instructions!
+
+Session key and delay are unused and never present, so the three
+possible lengths are 1 (LOCAL), 33 (ROUTER and DESTINATION), and 37 (TUNNEL) bytes.
+
 
 .. raw:: html
 
@@ -1282,10 +1306,17 @@ Notes
   "arrival time" is set to the current network-wide ID, which is 2 (i.e.
   0x0000000000000002).
 
+
+
 .. _msg-Garlic:
 
 Garlic
 ------
+
+Warning: This is the format used for ElGamal-encrypted garlic messages [CRYPTO-ELG]_.
+The format for ECIES-AEAD-X25519-Ratchet garlic messages and garlic cloves
+is significantly different; see [ECIES]_ for the specification.
+
 
 Description
 ```````````
