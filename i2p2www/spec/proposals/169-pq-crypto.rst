@@ -124,9 +124,6 @@ NetDB        N       no                no
 
 PQ KEM provides ephemeral keys only, and does not directly support
 static-key handshakes such as Noise XK and IK.
-While there is some recent research [PQ-WIREGUARD]_ on adapting Wireguard (IK)
-for pure PQ crypto, there are several open questions, and
-this approach is unproven.
 
 Noise N does not use a two-way key exchange and so it is not suitable
 for hybrid encryption.
@@ -255,6 +252,33 @@ Alternatives
 We will not support [FIPS205]_ (Sphincs+), it is much much slower and bigger than ML-DSA.
 We will not support the upcoming FIPS206 (Falcon), it is not yet standardized.
 We will not support NTRU or other PQ candidates that were not standardized by NIST.
+
+
+Rosenpass
+`````````
+
+There is some research [PQ-WIREGUARD]_ on adapting Wireguard (IK)
+for pure PQ crypto, but there are several open questions in that paper.
+Later, this approach was implemented as Rosenpass [Rosenpass]_ [Rosenpass-Whitepaper]_
+for PQ Wireguard.
+
+Rosenpass uses a Noise KK-like handshake with preshared Classic McEliece 460896 static keys
+(500 KB each) and Kyber-512 (essentially MLKEM-512) ephemeral keys.
+As the Classic McEliece ciphertexts are only 188 bytes, and the Kyber-512
+public keys and ciphertexts are reasonable, both handshake messages fit in a standard UDP MTU.
+The output shared key (osk) from the PQ KK handshake is used as the input preshared key (psk)
+for the standard Wireguard IK handshake.
+So there are two complete handshakes in total, one pure PQ and one pure X25519.
+
+We can't do any of this to replace our XK and IK handshakes because:
+
+- We can't do KK, Bob doesn't have Alice's static key
+- 500KB static keys are far too big
+- We don't want an extra round-trip
+
+There is a lot of good information in the whitepaper,
+and we will review it for ideas and inspiration. TODO.
+
 
 
 Specification
@@ -2278,6 +2302,12 @@ References
 
 .. [RFC-2104]
     https://tools.ietf.org/html/rfc2104
+
+.. [Rosenpass]
+   https://rosenpass.eu/
+
+.. [Rosenpass-Whitepaper]
+   https://raw.githubusercontent.com/rosenpass/rosenpass/papers-pdf/whitepaper.pdf
 
 .. [SSH-HYBRID]
    https://datatracker.ietf.org/doc/draft-ietf-sshm-mlkem-hybrid-kex/
