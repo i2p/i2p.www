@@ -2147,6 +2147,9 @@ Assists in replay prevention.
 Bob must validate that the message is recent, using this timestamp.
 Bob must implement a Bloom filter or other mechanism to prevent replay attacks,
 if the time is valid.
+Bob may also use an earlier replay detection check for a duplicate ephemeral key
+(either pre- or post-Elligator2 decode) to detect and drop recent duplicate NS messages
+before decryption.
 Generally included in New Session messages only.
 
 .. raw:: html
@@ -3100,6 +3103,24 @@ not send any traffic, typically within one second.
 The other inbound NSR tagsets may be removed soon or allowed
 to expire, but Alice should keep them for a short while, to
 decrypt any other NSR messages that are received.
+
+
+Replay Prevention
+-----------------
+
+Bob must implement a Bloom filter or other mechanism to prevent NS replay attacks,
+if the included DateTime is recent, and reject NS messages where the
+DateTime is too old.
+Bob may also have use an earlier replay detection check for a duplicate ephemeral key
+(either pre- or post-Elligator2 decode) to detect and drop recent duplicate NS messages
+before decryption.
+
+NSR and ES messages have inherent replay prevention because the
+session tag is one-time-use.
+
+Garlic messages also have replay prevention if the router implements
+a router-wide Bloom filter based on I2NP message ID.
+
 
 
 
