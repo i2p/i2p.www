@@ -5,7 +5,7 @@ UDP Trackers
     :author: zzz
     :created: 2022-01-03
     :thread: http://zzz.i2p/topics/1634
-    :lastupdated: 2025-04-23
+    :lastupdated: 2025-04-25
     :status: Open
     :target: 0.9.68
 
@@ -128,12 +128,27 @@ All subsequent requests/responses are raw.
 
 
 
-Non-Java Tracker/Client support
--------------------------------
+Tracker/Client support
+----------------------
 
-For an integrated application (router and client in one process, for example i2psnark and the ZzzOT Java plugin),
+For an integrated application (router and client in one process, for example i2psnark, and the ZzzOT Java plugin),
+or for an I2CP-based application (for example BiglyBT),
 it should be straightforward to implement and route the streaming and datagram traffic separately.
 ZzzOT and i2psnark are expected to be the first tracker and client to implement this proposal.
+
+Non-integrated trackers and clients are discussed below.
+
+
+Trackers
+````````
+
+There are four known I2P tracker implementations:
+
+- zzzot, an integrated Java router plugin, running at opentracker.dg2.i2p and several others
+- tracker2.postman.i2p, running presumably behind a Java router and HTTP Server tunnel
+- The old C opentracker, ported by zzz, with UDP support commented out
+- The new C opentracker, ported by r4sas, running at opentracker.r4sas.i2p and possibly others,
+  running presumably behind a i2pd router and HTTP Server tunnel
 
 For an external tracker application that currently uses an HTTP server tunnel to receive
 announce requests, the implementation could be quite difficult.
@@ -143,10 +158,14 @@ that would forward the datagrams to the external process.
 These design decisions will depend heavily on the specific router and tracker implementations,
 and are outside the scope of this proposal.
 
+
+Clients
+```````
 External SAM-based torrent clients such as qbittorrent and other libtorrent-based clients
 would require SAM v3.3 [SAMv3]_ which is not supported by i2pd.
 This is also required for DHT support, and is complex enough that no known
 SAM torrent client has implemented it.
+No SAM-based implementations of this proposal are expected soon.
 
 
 Connection Lifetime
@@ -431,6 +450,10 @@ after an all-zeros 32-byte hash.
 
 Implementation guidelines
 ==========================
+
+See the design section above for a discussion of the challenges for
+non-integrated, non-I2CP clients and trackers.
+
 
 Clients
 --------
