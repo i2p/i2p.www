@@ -5,7 +5,7 @@ UDP Trackers
     :author: zzz
     :created: 2022-01-03
     :thread: http://zzz.i2p/topics/1634
-    :lastupdated: 2025-04-25
+    :lastupdated: 2025-04-27
     :status: Open
     :target: 0.9.68
 
