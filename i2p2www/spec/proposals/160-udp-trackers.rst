@@ -76,10 +76,12 @@ overhead where possible before PQ crypto is adopted in I2P.
 Design
 ============
 
-This proposal uses both repliable datagram2 and raw datagrams,
+This proposal uses repliable datagram2, repliable datagram3, and raw datagrams,
 as defined in [DATAGRAMS]_.
-Datagram2 is a new variant of repliable datagrams,
-defined in Proposal 163 [Prop163]_,  that adds replay resistance.
+Datagram2 and Datagram3 are new variants of repliable datagrams,
+defined in Proposal 163 [Prop163]_.
+Datagram2 adds replay resistance and offline signature support.
+Datagram3 is smaller than the old datagram format, but without authentication.
 
 
 BEP 15
@@ -113,9 +115,9 @@ for efficiency, and for security reasons discussed below:
 Client                        Tracker
     Connect Req. ------------->       (Repliable Datagram2)
       <-------------- Connect Resp.   (Raw)
-    Announce Req. ------------->      (Raw)
+    Announce Req. ------------->      (Repliable Datagram3)
       <-------------- Announce Resp.  (Raw)
-    Announce Req. ------------->      (Raw)
+    Announce Req. ------------->      (Repliable Datagram3)
       <-------------- Announce Resp.  (Raw)
              ...
 {% endhighlight %}
@@ -124,8 +126,16 @@ This potentially provides a large bandwidth savings over
 streaming (TCP) announces.
 While the Datagram2 is about the same size as a streaming SYN,
 the raw response is much smaller than the streaming SYN ACK.
-All subsequent requests/responses are raw.
+Subsequent requests use Datagram3, and the subsequent responses are raw.
 
+The announce requests are Datagram3 so that the tracker need not
+maintain a large mapping table of connection IDs to announce destination or hash.
+Instead, the tracker may generate connection IDs cryptographically
+from the sender hash, the current timestamp (based on some interval),
+and a secret value.
+When an announce request is received, the tracker validates the
+connection ID, and then uses the
+Datagram3 sender hash as the send target.
 
 
 Tracker/Client support
@@ -224,8 +234,10 @@ Specification
 Protocols and Ports
 -------------------
 
-Repliable Datagram2 uses I2CP protocol 19; raw datagrams use I2CP protocol 18.
-Requests may be Datagram2 or raw. Responses are always raw.
+Repliable Datagram2 uses I2CP protocol 19;
+repliable Datagram3 uses I2CP protocol 20;
+raw datagrams use I2CP protocol 18.
+Requests may be Datagram2 or Datagram3. Responses are always raw.
 The older repliable datagram ("Datagram1") format using I2CP protocol 17
 must NOT be used for requests or replies; these must be dropped if received
 on the request/reply ports. Note that Datagram1 protocol 17
@@ -313,7 +325,7 @@ Announce Request
 ````````````````
 
 Client to tracker.
-98 bytes minimum. Must be raw. Same as in [BEP15]_ except as noted below.
+98 bytes minimum. Must be repliable Datagram3. Same as in [BEP15]_ except as noted below.
 
 The connection_id is as received in the connect response.
 
@@ -405,7 +417,8 @@ Scrape
 Scrape request/response from [BEP15]_ is not required by this proposal,
 but may be implemented if desired, no changes required.
 The client must acquire a connection ID first.
-The scrape request and response are always raw.
+The scrape request is always repliable Datagram3.
+The scrape response is always raw.
 
 
 
@@ -485,7 +498,7 @@ Trackers
 
 Trackers with existing BEP 15 support should require only small modifications.
 This proposal differs from the 2014 proposal, in that the tracker
-must support reception of repliable datagram2 and raw datagrams on the same port.
+must support reception of repliable datagram2 and datagram3 on the same port.
 
 
 
@@ -494,7 +507,7 @@ Migration
 
 Existing clients do not support UDP announce URLs and ignore them.
 
-Existing trackers do not support reception of repliable datagram2 or raw datagrams, they will be dropped.
+Existing trackers do not support reception of repliable or raw datagrams, they will be dropped.
 
 This proposal is completely optional. Neither clients nor trackers are required to implement it at any time.
 
