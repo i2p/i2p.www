@@ -3,7 +3,7 @@ NTCP 2
 ======
 .. meta::
     :category: Transports
-    :lastupdated: 2025-04
+    :lastupdated: 2025-05
     :accuratefor: 0.9.66
 
 .. contents::
@@ -573,6 +573,10 @@ Notes
   For probing resistance, after an AEAD failure, Bob should
   set a random timeout (range TBD) and then read a random number of bytes (range TBD),
   before closing the socket.
+
+- Bob may do a fast MSB check for a valid key (X[31] & 0x80 == 0) before
+  attempting decryption. If the high bit is set, implement probing resistance
+  as for AEAD failures.
 
 - DoS Mitigation: DH is a relatively expensive operation. As with the previous NTCP protocol,
   routers should take all necessary measures to prevent CPU or connection exhaustion.
