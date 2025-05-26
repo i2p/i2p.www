@@ -3,14 +3,26 @@ Low-level Cryptography Specification
 ====================================
 .. meta::
     :category: Design
-    :lastupdated: 2020-09
-    :accuratefor: 0.9.47
+    :lastupdated: 2025-05
+    :accuratefor: 0.9.66
 
 .. contents::
 
 
 Overview
 ========
+
+NOTE: MOSTLY OBSOLETE -
+See the following documents for current specifications:
+
+- {{ spec_url('ecies') }}
+- {{ spec_url('encryptedleaseset') }}
+- {{ spec_url('ntcp2') }}
+- {{ spec_url('red25519') }}
+- {{ spec_url('ssu2') }}
+- {{ spec_url('tunnel-creation-ecies') }}
+
+
 
 This page specifies the low-level details of the cryptography in I2P.
 
@@ -39,11 +51,10 @@ of ElGamal asymmetric encryption and AES symmetric encryption.
 Newer protocols NTCP2 and ECIES-X25519-AEAD-Ratchet
 use a combination of X25519 key exchange and ChaCha20/Poly1305 symmetric encryption.
 
+- ECIES-X25519-AEAD-Ratchet has replaced ElGamal/AES+SessionTags.
 - NTCP2 has replaced NTCP.
-- ECIES-X25519-AEAD-Ratchet design and implementation are complete,
-  and will replace ElGamal/AES+SessionTags in late 2020.
-- SSU2, using X25519 and ChaCha20/Poly1305, is scheduled for design in late 2020
-  to replace SSU in 2021.
+- SSU2 has replaced SSU.
+- X25519 tunnel creation has replaced ElGamal tunnel creation.
 
 
 Asymmetric Encryption

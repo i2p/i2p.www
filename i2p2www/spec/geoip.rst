@@ -3,14 +3,20 @@ GeoIP File Specification
 ========================
 .. meta::
     :category: Formats
-    :lastupdated: December 2013
-    :accuratefor: 0.9.9
+    :lastupdated: 2025-05
+    :accuratefor: 0.9.66
 
 .. contents::
 
 
 Overview
 ========
+
+NOTE: OBSOLETE - We now support three formats, in order of preference:
+
+- Maxmind geoip2 (GeoLite2-Country.mmdb) bundled with all installs except Debian packages and Android
+- Maxmind geoip1 (GeoIP.dat) in the Debian geoip-database package
+- The IPv4 Tor format (geoip.txt) and the custom IPv6 format (geoipv6.dat.gz) documented below, still supported but unused.
 
 This page specifies the format of the various GeoIP files,
 used by the router to look up a country for an IP.
