@@ -5,7 +5,7 @@ UDP Trackers
     :author: zzz
     :created: 2022-01-03
     :thread: http://zzz.i2p/topics/1634
-    :lastupdated: 2025-04-27
+    :lastupdated: 2025-06-08
     :status: Open
     :target: 0.9.68
 
@@ -500,6 +500,22 @@ Trackers with existing BEP 15 support should require only small modifications.
 This proposal differs from the 2014 proposal, in that the tracker
 must support reception of repliable datagram2 and datagram3 on the same port.
 
+To minimize tracker resource requirements,
+this protocol is designed to eliminate any requirement that the tracker
+store mappings of client hashes to connection IDs for later validation.
+This is possible because the announce request packet is a repliable
+Datagram3 packet, so it contains the sender's hash.
+
+A recommended implementation is:
+
+- Define the current epoch as the current time with a resolution of the connection lifetime,
+  epoch = now % lifetime.
+- Define a cryptographic hash function H(secret, clienthash, epoch) which generates
+  an 8 byte output.
+- Generate the random constant secret used for all connections.
+- For connect responses, generate connection_id = H(secret,  clienthash, epoch)
+- For announce requests, validate the received connection ID in the current epoch by verifying
+  connection_id == H(secret, clienthash, epoch) || connection_id == H(secret, clienthash, epoch - 1)
 
 
 Migration
