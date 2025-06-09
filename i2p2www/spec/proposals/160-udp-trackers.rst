@@ -5,7 +5,7 @@ UDP Trackers
     :author: zzz
     :created: 2022-01-03
     :thread: http://zzz.i2p/topics/1634
-    :lastupdated: 2025-06-08
+    :lastupdated: 2025-06-09
     :status: Open
     :target: 0.9.68
 
@@ -509,13 +509,13 @@ Datagram3 packet, so it contains the sender's hash.
 A recommended implementation is:
 
 - Define the current epoch as the current time with a resolution of the connection lifetime,
-  epoch = now % lifetime.
-- Define a cryptographic hash function H(secret, clienthash, epoch) which generates
+  ``epoch = now / lifetime``.
+- Define a cryptographic hash function ``H(secret, clienthash, epoch)`` which generates
   an 8 byte output.
 - Generate the random constant secret used for all connections.
-- For connect responses, generate connection_id = H(secret,  clienthash, epoch)
+- For connect responses, generate ``connection_id = H(secret,  clienthash, epoch)``
 - For announce requests, validate the received connection ID in the current epoch by verifying
-  connection_id == H(secret, clienthash, epoch) || connection_id == H(secret, clienthash, epoch - 1)
+  ``connection_id == H(secret, clienthash, epoch) || connection_id == H(secret, clienthash, epoch - 1)``
 
 
 Migration
