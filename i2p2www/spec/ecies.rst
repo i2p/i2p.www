@@ -3,8 +3,8 @@ ECIES-X25519-AEAD-Ratchet
 =========================
 .. meta::
     :category: Protocols
-    :lastupdated: 2025-04
-    :accuratefor: 0.9.66
+    :lastupdated: 2025-06
+    :accuratefor: 0.9.67
 
 .. contents::
 
@@ -22,6 +22,7 @@ The following features are not implemented as of 0.9.66:
 - Zero static key
 - Multicast
 
+For the MLKEM PQ Hybrid version of this protocol, see [ECIES-HYBRID]_.
 
 
 Overview
@@ -3250,6 +3251,9 @@ References
 
 .. [CRYPTO-ELG]
     {{ site_url('docs/how/cryptography', True) }}#elgamal
+
+.. [ECIES-HYBRID]_
+   {{ spec_url('ecies-hybrid') }}
 
 .. [Datagrams]
     {{ spec_url('datagrams') }}
