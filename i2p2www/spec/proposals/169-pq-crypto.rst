@@ -5,7 +5,7 @@ Post-Quantum Crypto Protocols
     :author: zzz, orignal, drzed, eyedeekay
     :created: 2025-01-21
     :thread: http://zzz.i2p/topics/3294
-    :lastupdated: 2025-04-23
+    :lastupdated: 2025-06-12
     :status: Open
     :target: 0.9.80
 
@@ -83,14 +83,10 @@ See the Priorities and Rollout section below for details.
 ==================================  ======
 Protocol / Feature                  Status
 ==================================  ======
-Hybrid EncTypes 5-7                 Preliminary, final hash choices pending
-Hybrid Dests, Ratchet               Tested on live net, no net upgrade required
-Select preferred combo              Probably 6,4
-Combo Hybrid/X25519 Dests, Ratchet
-Combo Hybrid/X25519 NTCP2
-Combo Hybrid/X25519 SSU2
-Hybrid Routers, Dests, Ratchet
-MLDSA SigTypes 12-14                Probably final
+Hybrid MLKEM Ratchet and LS         Approved 2026-06; beta target 2025-08; release target 2025-11
+Hybrid MLKEM NTCP2                  Some details to be finalized
+Hybrid MLKEM SSU2                   Some details to be finalized
+MLDSA SigTypes 12-14                Proposal is stable but may not be finalized until 2026
 MLDSA Dests                         Tested on live net, requires net upgrade for floodfill support
 Hybrid SigTypes 15-17               Preliminary
 Hybrid Dests
@@ -243,7 +239,7 @@ New Crypto Required
 Test vectors for SHA3-256, SHAKE128, and SHAKE256 are at [NIST-VECTORS]_.
 
 Note that the Java bouncycastle library supports all the above.
-C++ library support will be in OpenSSL 3.5 [OPENSSL]_.
+C++ library support is in OpenSSL 3.5 [OPENSSL]_.
 
 
 Alternatives
@@ -965,7 +961,7 @@ MLKEM1024_X25519         7       32   1680+pl      1648+pl        1568+pl       
 ================    =========  =====  =========  =============  =============  ==========  =======
 
 Note that the payload must contain a DateTime block, so the minimum payload size is 7.
-The minimum message 1 sizes may be caculated accordingly.
+The minimum message 1 sizes may be calculated accordingly.
 
 
 
@@ -1077,7 +1073,7 @@ MLKEM1024_X25519         7       32   1656+pl      1616+pl        1568+pl       
 
 Note that while message 2 will normally have a nonzero payload,
 the ratchet specification [ECIES]_ does not require it, so the minimum payload size is 0.
-The minimum message 2 sizes may be caculated accordingly.
+The minimum message 2 sizes may be calculated accordingly.
 
 
 
@@ -1843,8 +1839,7 @@ Library Support
 ---------------
 
 Bouncycastle, BoringSSL, and WolfSSL libraries support MLKEM and MLDSA now.
-OpenSSL support will be in their 3.5 release scheduled for April 8, 2025 [OPENSSL]_.
-3.5-alpha will be availabe March 11, 2025.
+OpenSSL support is be in their 3.5 release April 8, 2025 [OPENSSL]_.
 
 The southernstorm.com Noise library adapted by Java I2P contained preliminary support for
 hybrid handshakes, but we removed it as unused; we will have to add it back
