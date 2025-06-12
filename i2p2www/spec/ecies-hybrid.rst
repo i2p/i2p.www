@@ -487,7 +487,7 @@ Payload Part 1:
 Sizes:
 
 ================    =========  =====  =========  =============  =============  ==========  =======
-  Type              Type Code  X len  Msg 1 len  Msg 1 Enc len  Msg 1 Dec len  PQ key len  pl len
+  Type              Type Code  X len  NS len     NS Enc len     NS Dec len     PQ key len  pl len
 ================    =========  =====  =========  =============  =============  ==========  =======
 X25519                   4       32     96+pl        64+pl             pl           --       pl
 MLKEM512_X25519          5       32    912+pl       880+pl         800+pl          800       pl
@@ -598,7 +598,7 @@ Payload Part 1:
 Sizes:
 
 ================    =========  =====  =========  =============  =============  ==========  =======
-  Type              Type Code  Y len  Msg 2 len  Msg 2 Enc len  Msg 2 Dec len  PQ CT len   opt len
+  Type              Type Code  Y len  NSR len    NSR Enc len    NSR Dec len    PQ CT len   opt len
 ================    =========  =====  =========  =============  =============  ==========  =======
 X25519                   4       32     72+pl        32+pl             pl           --       pl
 MLKEM512_X25519          5       32    856+pl       816+pl         768+pl          768       pl
@@ -621,7 +621,7 @@ Key Exchange
 Size increase (bytes):
 
 ================    ==============  =============
-  Type              Pubkey (Msg 1)  Cipertext (Msg 2)
+  Type              Pubkey (NS)     Cipertext (NSR)
 ================    ==============  =============
 MLKEM512_X25519       +816               +784
 MLKEM768_X25519      +1200              +1104
