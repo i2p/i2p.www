@@ -18,7 +18,7 @@ It is a portion of the overall proposal
 
 There are two versions specified.
 The first uses the existing build messages and build record size, for compatibility with ElGamal routers.
-This specification is implemented as of release 0.9.48.
+This specification was implemented as of release 0.9.48 and is now deprecated.
 The second uses two new build messages and a smaller build record size, and may only be used with ECIES routers.
 This specification is implemented as of release 0.9.51.
 
@@ -138,6 +138,7 @@ ECIES replies use ChaCha20/Poly1305 AEAD for integrity, and authentication.
 Long Record Specification
 =========================
 
+NOTE: Deprecated, obsolete. Use the Short Record format specified  below.
 
 
 Build Request Records
