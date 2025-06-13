@@ -3252,7 +3252,7 @@ References
 .. [CRYPTO-ELG]
     {{ site_url('docs/how/cryptography', True) }}#elgamal
 
-.. [ECIES-HYBRID]_
+.. [ECIES-HYBRID]
    {{ spec_url('ecies-hybrid') }}
 
 .. [Datagrams]

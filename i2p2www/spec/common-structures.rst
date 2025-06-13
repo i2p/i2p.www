@@ -1899,7 +1899,7 @@ References
 .. [ECIES]
    {{ spec_url('ecies') }}
 
-.. [ECIES-HYBRID]_
+.. [ECIES-HYBRID]
    {{ spec_url('ecies-hybrid') }}
 
 .. [ECIES-ROUTERS]

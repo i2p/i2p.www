@@ -802,9 +802,6 @@ References
 .. [ECIES]
    {{ spec_url('ecies') }}
 
-.. [ECIES-HYBRID]_
-   {{ spec_url('ecies-hybrid') }}
-
 .. [FORUM]
    http://zzz.i2p/topics/3294
 
