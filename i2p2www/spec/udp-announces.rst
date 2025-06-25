@@ -3,7 +3,7 @@ UDP Trackers
 ================================
 .. meta::
     :category: Protocols
-    :lastupdated: 2025-06-09
+    :lastupdated: 2025-06
     :accuratefor: 0.9.67
 
 .. contents::
