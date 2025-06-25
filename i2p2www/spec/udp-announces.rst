@@ -2,85 +2,20 @@
 UDP Trackers
 ================================
 .. meta::
-    :author: zzz
-    :created: 2022-01-03
-    :thread: http://zzz.i2p/topics/1634
-    :lastupdated: 2025-06-25
-    :status: Closed
-    :target: 0.9.67
+    :category: Protocols
+    :lastupdated: 2025-06-09
+    :accuratefor: 0.9.67
 
 .. contents::
-
-
-Status
-======
-
-Approved at review 2025-06-24.
-Specification is at [UDP]_.
-Implementated in zzzot 0.20.0-beta2.
-Implementated in i2psnark as of API 0.9.67.
-Check documentation of other implementations for status.
 
 
 Overview
 ========
 
-This proposal is for implemention of UDP trackers in I2P.
-
-
-Change History
---------------
-
-A preliminary proposal for UDP trackers in I2P was posted on our bittorrent spec page [SPEC]_
-in May 2014; this predated our formal proposal process, and it was never implemented.
-This proposal was created in early 2022 and simplifies the 2014 version.
-
-As this proposal relies on repliable datagrams, it was put on hold once we
-started working on the Datagram2 proposal [Prop163]_ in early 2023.
-That proposal was approved in April 2025.
-
-The 2023 version of this proposal specified two modes, "compatibility" and "fast".
-Further analysis revealed that the fast mode would be insecure, and would also
-be inefficient for clients with a large number of torrents.
-Further, BiglyBT indicated a preference for compatibility mode.
-This mode will be easier to implement for any tracker or client supporting
-standard [BEP15]_.
-
-While the compatibility mode is more complex to implement from-scratch
-on the client size, we do have preliminary code for it started in 2023.
-
-Therefore, the current version here is further simplified to remove fast mode,
-and remove the term "compatibility". The current version switches to
-the new Datagram2 format, and adds references to the UDP announce extenstion
-protocol [BEP41]_.
-
-Also, a connection ID lifetime field is added to the connect response,
-to extend the efficiency gains of this protocol.
-
-
-Motivation
-==========
-
-As the user base in general and the number of bittorrent users specifically continues to grow,
-we need to make trackers and announces more efficient so that trackers are not overwhelemed.
-
-Bittorrent proposed UDP trackers in BEP 15 [BEP15]_ in 2008, and the vast majority
-of trackers on clearnet are now UDP-only.
-
-It is difficult to calculate the bandwidth savings of datagrams vs. streaming protocol.
-A repliable request is about the same size as a streaming SYN, but the payload
-is about 500 bytes smaller because the HTTP GET has a huge 600 byte
-URL parameter string.
-The raw reply is much smaller than a streaming SYN ACK, providing significant reduction
-for a tracker's outbound traffic.
-
-Additionally, there should be implementation-specific memory reductions,
-as datagrams require much less in-memory state than a streaming connection.
-
-Post-Quantum encryption and signatures as envisioned in [Prop169]_ will substantially
-increase the overhead of encrypted and signed structures, including destinations,
-leasesets, streaming SYN and SYN ACK. It is important to minimize this
-overhead where possible before PQ crypto is adopted in I2P.
+This specification documents the protocol for UDP bittorrent announces in I2P.
+For the overall specification of bittorrent in I2P, see [SPEC]_.
+For background and additional information on the development
+of this specification, see Proposal 160 [Prop160]_.
 
 
 Design
@@ -148,44 +83,6 @@ connection ID, and then uses the
 Datagram3 sender hash as the send target.
 
 
-Tracker/Client support
-----------------------
-
-For an integrated application (router and client in one process, for example i2psnark, and the ZzzOT Java plugin),
-or for an I2CP-based application (for example BiglyBT),
-it should be straightforward to implement and route the streaming and datagram traffic separately.
-ZzzOT and i2psnark are expected to be the first tracker and client to implement this proposal.
-
-Non-integrated trackers and clients are discussed below.
-
-
-Trackers
-````````
-
-There are four known I2P tracker implementations:
-
-- zzzot, an integrated Java router plugin, running at opentracker.dg2.i2p and several others
-- tracker2.postman.i2p, running presumably behind a Java router and HTTP Server tunnel
-- The old C opentracker, ported by zzz, with UDP support commented out
-- The new C opentracker, ported by r4sas, running at opentracker.r4sas.i2p and possibly others,
-  running presumably behind a i2pd router and HTTP Server tunnel
-
-For an external tracker application that currently uses an HTTP server tunnel to receive
-announce requests, the implementation could be quite difficult.
-A specialized tunnel could be developed to translate datagrams to local HTTP requests/responses.
-Or, a specialized tunnel that handles both HTTP requests and datagrams could be designed
-that would forward the datagrams to the external process.
-These design decisions will depend heavily on the specific router and tracker implementations,
-and are outside the scope of this proposal.
-
-
-Clients
-```````
-External SAM-based torrent clients such as qbittorrent and other libtorrent-based clients
-would require SAM v3.3 [SAMv3]_ which is not supported by i2pd.
-This is also required for DHT support, and is complex enough that no known
-SAM torrent client has implemented it.
-No SAM-based implementations of this proposal are expected soon.
 
 
 Connection Lifetime
@@ -232,7 +129,7 @@ This protocol accomplishes that goal.
 Issues
 ------
 
-- This proposal does not support blinded destinations,
+- This protocol does not support blinded destinations,
   but may be extended to do so. See below.
 
 
@@ -424,7 +321,7 @@ although that hash is already banned by Java routers.
 Scrape
 ``````
 
-Scrape request/response from [BEP15]_ is not required by this proposal,
+Scrape request/response from [BEP15]_ is not required by this specification,
 but may be implemented if desired, no changes required.
 The client must acquire a connection ID first.
 The scrape request is always repliable Datagram3.
@@ -507,7 +404,7 @@ Trackers
 ---------
 
 Trackers with existing BEP 15 support should require only small modifications.
-This proposal differs from the 2014 proposal, in that the tracker
+This specification differs from the 2014 proposal, in that the tracker
 must support reception of repliable datagram2 and datagram3 on the same port.
 
 To minimize tracker resource requirements,
@@ -528,25 +425,6 @@ A recommended implementation is:
   ``connection_id == H(secret, clienthash, epoch) || connection_id == H(secret, clienthash, epoch - 1)``
 
 
-Migration
-=========
-
-Existing clients do not support UDP announce URLs and ignore them.
-
-Existing trackers do not support reception of repliable or raw datagrams, they will be dropped.
-
-This proposal is completely optional. Neither clients nor trackers are required to implement it at any time.
-
-
-
-Rollout
-=======
-
-The first implementations are expected to be in ZzzOT and i2psnark.
-They will be used for testing and verification of this proposal.
-
-Other implementations will follow as desired after the testing and verification are complete.
-
 
 
 
@@ -562,6 +440,9 @@ References
 .. [DATAGRAMS]
     {{ spec_url('datagrams') }}
 
+.. [Prop160]
+    {{ proposal_url('160') }}
+
 .. [Prop163]
     {{ proposal_url('163') }}
 
@@ -573,6 +454,3 @@ References
 
 .. [SPEC]
     {{ site_url('docs/applications/bittorrent', True) }}
-
-.. [UDP]
-    {{ spec_url('udp-announces') }}
