@@ -251,17 +251,18 @@ Offset  Size            Name            Value
   64      64-bit integer  left
   72      64-bit integer  uploaded
   80      32-bit integer  event           0     // 0: none; 1: completed; 2: started; 3: stopped
-  84      32-bit integer  IP address      0     // default
+  84      32-bit integer  IP address      0     // default, unused in I2P
   88      32-bit integer  key
   92      32-bit integer  num_want        -1    // default
-  96      16-bit integer  port
+  96      16-bit integer  port                  // must be same as I2CP from port
   98      varies          options     optional  // As specified in BEP 41
 {% endhighlight %}
 
 Changes from [BEP15]_:
 
 - key is ignored
-- port is probably ignored
+- IP address is unused
+- port is probably ignored but must be same as I2CP from port
 - The options section, if present, is as defined in [BEP41]_
 
 The response MUST be sent to the I2CP "to port" that was received as the request "from port".
