@@ -3,8 +3,8 @@ I2CP Specification
 ==================
 .. meta::
     :category: Protocols
-    :lastupdated: 2025-04
-    :accuratefor: 0.9.66
+    :lastupdated: 2025-06
+    :accuratefor: 0.9.67
 
 .. contents::
 
@@ -237,9 +237,13 @@ below.
 ==============  ======================
    Version      Required I2CP Features
 ==============  ======================
+   0.9.67       PQ Hybrid ML-KEM (enc types 5-7) supported in LS
+
    0.9.66       Host lookup/reply extensions (see proposal 167)
 
    0.9.62       MessageStatus message Loopback error code
+
+   0.9.46       X25519 (enc type 4) supported in LS
 
    0.9.43       BlindingInfo message supported
 
