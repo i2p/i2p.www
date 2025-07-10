@@ -3,7 +3,7 @@ I2CP Specification
 ==================
 .. meta::
     :category: Protocols
-    :lastupdated: 2025-06
+    :lastupdated: 2025-07
     :accuratefor: 0.9.67
 
 .. contents::
@@ -785,7 +785,9 @@ Description
 ```````````
 This message is sent from a client to destroy a session.
 
-Sent from Client to Router. The router responds with a SessionStatusMessage_.
+Sent from Client to Router. The router should respond with a SessionStatusMessage_ (Destroyed).
+However, see important notes below.
+
 
 Contents
 ````````
@@ -795,6 +797,26 @@ Notes
 `````
 The router at this point should release all resources related to the session.
 
+Through API 0.9.66,
+the Java I2P router and client libraries deviate substantially from this specification.
+The router never sends a SessionStatus(Destroyed) response.
+If no sessions are left, it sends a DisconnectMessage_.
+If there are subsessions or the primary session is remaining, it does not reply.
+
+The Java client library responds to a SessionStatus message by destroying
+all sessions and reconnecting.
+
+Destroying individual subsessions on a connection with multiple sessions
+may not be fully tested or working on various router and client implementations.
+Use caution.
+
+Implementations should treat a destroy for a primary session as a destroy
+for all subsessions, but allow a destroy for a single subsession
+and keep the connection open, but Java I2P does not do that now.
+If Java I2P behavior is changed in subsequent releases, it will be documented here.
+
+
+
 .. _msg-Disconnect:
 
 DisconnectMessage
@@ -803,7 +825,8 @@ DisconnectMessage
 Description
 ```````````
 Tell the other party that there are problems and the current connection is about to
-be destroyed. This does not necessarily end a session.
+be destroyed. This ends all sessions on that connection.
+The socket will be closed shortly.
 Sent either from router to client or from client to router.
 
 Contents
@@ -812,8 +835,8 @@ Contents
 
 Notes
 `````
-Only implemented in the router-to-client direction.  Disconnecting probably
-does end a session, in practice.
+Only implemented in the router-to-client direction, at least in Java I2P.
+
 
 .. _msg-GetBandwidthLimits:
 
