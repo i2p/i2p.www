@@ -3,7 +3,7 @@ I2NP Specification
 ==================
 .. meta::
     :category: Protocols
-    :lastupdated: 2025-04
+    :lastupdated: 2025-08
     :accuratefor: 0.9.66
 
 .. contents::
@@ -927,8 +927,9 @@ Contents
                       `LeaseSet2`, `MetaLeaseSet`, or `EncryptedLeaseSet`.
                10  => RI lookup, return `RouterInfo` or
                       `DatabaseSearchReplyMessage`
-               11  => exploration lookup, return `DatabaseSearchReplyMessage`
-                      containing non-floodfill routers only (replaces an
+               11  => exploration lookup, return `RouterInfo` or
+                      `DatabaseSearchReplyMessage` containing
+                      non-floodfill routers only (replaces an
                       excludedPeer of all zeroes)
        bit 4: ECIESFlag
                before release 0.9.46 ignored
