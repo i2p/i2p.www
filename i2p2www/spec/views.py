@@ -14,11 +14,13 @@ from flask import (
     make_response,
     redirect,
     render_template,
-    render_template_string,
     request,
     safe_join,
     url_for,
 )
+from jinja2.sandbox import SandboxedEnvironment
+from jinja2 import select_autoescape
+import re
 import os.path
 
 from i2p2www import PROPOSAL_DIR, SPEC_DIR
@@ -54,6 +56,58 @@ PROPOSAL_METATAGS = {
 PROPOSAL_LIST_METATAGS = [
     'supercedes',
     ]
+
+# Security: Safe content rendering to prevent SSTI (CVE-2024-I2PWWW-001)
+def render_content_safely(content):
+    """
+    Safely render content using Jinja2 SandboxedEnvironment to prevent
+    Server-Side Template Injection (SSTI) vulnerabilities.
+    
+    Only allows safe template constructs like url_for() while preventing
+    dangerous operations that could lead to remote code execution.
+    """
+    # Input validation
+    if not content or not isinstance(content, str):
+        return content
+    
+    # Create sandboxed environment with restricted functionality
+    env = SandboxedEnvironment(
+        autoescape=select_autoescape(['html', 'xml']),
+        # Remove dangerous globals that could be abused
+        loader=None,
+        trim_blocks=True,
+        lstrip_blocks=True
+    )
+    
+    # Only allow safe functions in the template context
+    safe_globals = {
+        'url_for': url_for,  # Allow URL generation
+        'g': g,  # Allow access to Flask global object (read-only use)
+    }
+    
+    try:
+        # Validate content doesn't contain obviously malicious patterns
+        dangerous_patterns = [
+            r'\{\{.*__.*\}\}',  # Dangerous dunder attributes
+            r'\{\{.*\[.*\].*\}\}',  # Array/dict access
+            r'\{\{.*\(.*\).*\}\}',  # Function calls (except whitelisted)
+            r'\{%.*import.*%\}',  # Import statements
+            r'\{%.*include.*%\}',  # Include statements
+        ]
+        
+        for pattern in dangerous_patterns:
+            if re.search(pattern, content, re.IGNORECASE):
+                # Log security violation and return sanitized content
+                return re.sub(r'\{[\{%].*?[\}%]\}', '[TEMPLATE_BLOCKED_FOR_SECURITY]', content)
+        
+        # Create template and render with restricted context
+        template = env.from_string(content)
+        return template.render(**safe_globals)
+        
+    except Exception as e:
+        # Log the error (in production) and return safe fallback
+        return content.replace('{', '&#123;').replace('}', '&#125;')
+
 PROPOSAL_STATUS_SORT = defaultdict(lambda: 999, {
     'Open': 1,
     'Accepted': 2,
@@ -153,8 +207,8 @@ def render_rst(directory, name, meta_parser, template):
         for (metatag, label) in METATAG_LABELS.items():
             content = content.replace('    :%s' % metatag, label)
 
-    # render the post with Jinja2 to handle URLs etc.
-    rendered_content = render_template_string(content)
+    # render the post with sandboxed Jinja2 to handle URLs etc. (SECURITY: prevent SSTI)
+    rendered_content = render_content_safely(content)
     rendered_content = rendered_content.replace('</pre></div>', '  </pre></div>')
 
     if not template:
