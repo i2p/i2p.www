@@ -917,10 +917,9 @@ Contents
                through release 0.9.5, must be set to 00
                as of release 0.9.6, ignored
                as of release 0.9.16:
-               00  => normal lookup, return `RouterInfo` or `LeaseSet` or
-                      `DatabaseSearchReplyMessage`
-                      Not recommended when sending to routers
-                      with version 0.9.16 or higher.
+               00  => ANY lookup, return `RouterInfo` or `LeaseSet` or
+                      `DatabaseSearchReplyMessage`. DEPRECATED.
+                      Use LS or RI lookup as of 0.9.16.
                01  => LS lookup, return `LeaseSet` or
                       `DatabaseSearchReplyMessage`
                       As of release 0.9.38, may also return a
