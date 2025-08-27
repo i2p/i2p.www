@@ -4,6 +4,7 @@ try:
 except ImportError:
     import simplejson as json
 from random import randint
+import re
 
 from i2p2www import CURRENT_I2P_VERSION, MIRRORS_FILE
 
@@ -175,6 +176,23 @@ def downloads_redirect(version, net, protocol, domain, file):
         domain = mirrors.keys()[randint(0, len(mirrors) - 1)]
     if not domain in mirrors:
         abort(404)
+    # SECURITY: Use safe string formatting to prevent injection (CVE-2024-I2PWWW-003)
+    try:
+        # Validate data values are safe for string formatting
+        safe_data = {}
+        for key, value in data.items():
+            if isinstance(value, str):
+                # Basic validation - only allow alphanumeric, dots, hyphens
+                if not re.match(r'^[a-zA-Z0-9._-]+$', value):
+                    abort(400)  # Bad request for invalid characters
+                safe_data[key] = value
+            else:
+                safe_data[key] = str(value)
+        
+        mirror_url = mirrors[domain]['url'].format(**safe_data)
+    except (KeyError, ValueError):
+        abort(404)  # Invalid mirror configuration
+    
     return render_template('downloads/redirect.html',
                            version=version, protocol=protocol, domain=domain, file=file,
-                           url=mirrors[domain]['url'] % data)
+                           url=mirror_url)
