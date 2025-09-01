@@ -3,8 +3,8 @@ Software Update Specification
 =============================
 .. meta::
     :category: Design
-    :lastupdated: 2022-08
-    :accuratefor: 0.9.55
+    :lastupdated: 2025-04
+    :accuratefor: 0.9.65
 
 .. contents::
 
@@ -370,6 +370,21 @@ SU3 Details
 * Router info files must be named "routerInfo-(44 character base 64 router
   hash).dat", as in the old reseed mechanism. The I2P base 64 alphabet must be
   used.
+
+
+Notes
+`````
+* Warning: Several reseeds are known to be unresponsive via IPv6.
+  Forcing or preferring IPv4 is recommended.
+
+* Warning: Some reseeds use selfsigned CA certificates.
+  Implementations must either import and trust these CAs when
+  reseeding, or omit the selfsigned reseeds from the reseed list.
+
+* Reseed signer keys are distributed to implementations as
+  selfsigned X.509 certificates with RSA-4096 keys (signature type 6).
+  Implementations should enforce the valid dates in the certificates.
+
 
 SU3 Plugin File Specification
 -----------------------------

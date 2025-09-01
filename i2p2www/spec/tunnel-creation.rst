@@ -3,8 +3,8 @@ Tunnel Creation Specification
 =============================
 .. meta::
     :category: Design
-    :lastupdated: July 2019
-    :accuratefor: 0.9.41
+    :lastupdated: 2025-05
+    :accuratefor: 0.9.66
 
 .. contents::
 
@@ -13,6 +13,9 @@ Tunnel Creation Specification
 
 Overview
 ========
+
+NOTE: OBSOLETE - This is the ElGamal tunnel build specification.
+See {{ spec_url('tunnel-creation-ecies') }} for the X25519 tunnel build specification.
 
 This document specifies the details of the encrypted tunnel build messages used
 to create tunnels using a "non-interactive telescoping" method.  See the tunnel

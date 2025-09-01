@@ -7,7 +7,7 @@ Datagram2 Protocol
     :thread: http://zzz.i2p/topics/3540
     :lastupdated: 2025-04-16
     :status: Closed
-    :target: 0.9.67
+    :target: 0.9.66
 
 .. contents::
 
@@ -17,8 +17,7 @@ Status
 
 Approved at review 2025-04-15.
 Changes incorporated into specs.
-Not yet supported in any known implenentations.
-Target implementation for Java I2P is API 0.9.67.
+Implementated in Java I2P as of API 0.9.66.
 Check implementation documentation for status.
 
 

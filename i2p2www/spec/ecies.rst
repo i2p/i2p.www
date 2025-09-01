@@ -3,8 +3,8 @@ ECIES-X25519-AEAD-Ratchet
 =========================
 .. meta::
     :category: Protocols
-    :lastupdated: 2025-04
-    :accuratefor: 0.9.66
+    :lastupdated: 2025-06
+    :accuratefor: 0.9.67
 
 .. contents::
 
@@ -22,6 +22,7 @@ The following features are not implemented as of 0.9.66:
 - Zero static key
 - Multicast
 
+For the MLKEM PQ Hybrid version of this protocol, see [ECIES-HYBRID]_.
 
 
 Overview
@@ -180,6 +181,44 @@ Bound sessions are similar to the Noise IK pattern.
   p ->
 
 {% endhighlight %}
+
+
+Security Properties
+```````````````````
+
+Using Noise terminology, the establishment and data sequence is as follows:
+(Payload Security Properties from [Noise]_ )
+
+.. raw:: html
+
+  {% highlight lang='text' %}
+IK(s, rs):           Authentication   Confidentiality
+    <- s
+    ...
+    -> e, es, s, ss           1                2
+    <- e, ee, se              2                4
+    ->                        2                5
+    <-                        2                5
+{% endhighlight %}
+
+
+Differences From XK
+```````````````````
+IK handshakes have several differences from XK handshakes used
+in [NTCP2]_ and [SSU2]_.
+
+- Four total DH operations compared to three for XK
+- Sender authentication in first message: The payload is authenticated
+  as belonging to the owner of the sender's public key, although
+  the key could have been compromised (Authentication 1)
+  XK requires another round trip before Alice is authenticated.
+- Full forward secrecy (Confidentiality 5) after the second message.
+  Bob may send a payload immediately after the second message with
+  full forward secrecy.
+  XK requires another round trip for full forward secrecy.
+
+In summary, IK allows 1-RTT delivery of the response payload from Bob to Alice
+with full forward secrecy, however the request payload is not forward-secret.
 
 
 Sessions
@@ -2147,6 +2186,9 @@ Assists in replay prevention.
 Bob must validate that the message is recent, using this timestamp.
 Bob must implement a Bloom filter or other mechanism to prevent replay attacks,
 if the time is valid.
+Bob may also use an earlier replay detection check for a duplicate ephemeral key
+(either pre- or post-Elligator2 decode) to detect and drop recent duplicate NS messages
+before decryption.
 Generally included in New Session messages only.
 
 .. raw:: html
@@ -3015,7 +3057,7 @@ If the timer does fire, send an empty payload with the NSR or ES.
 
 
 
-Protocol-layer Responses
+Ratchet-layer Responses
 ````````````````````````
 
 Initial implementations rely on bidirectional traffic at the higher layers.
@@ -3028,7 +3070,7 @@ such that there is no higher-layer traffic to generate a timely response.
 Receipt of NS and NSR messages require a response;
 receipt of ACK Request and Next Key blocks also require a response.
 
-A sophisticated implementation may start a timer when one of these
+Implementations should start a timer when one of these
 messages is received which requires a response,
 and generate an "empty" (no Garlic Clove block) response
 at the ECIES layer
@@ -3037,6 +3079,51 @@ if no reverse traffic is sent in a short period of time (e.g. 1 second).
 It may also be appropriate for an even shorter timeout for
 responses to NS and NSR messages, to shift the traffic to
 the efficient ES messages as soon as possible.
+
+
+NS Binding For NSR
+``````````````````
+
+At the ratchet layer, as Bob, Alice is only known by static key.
+The NS message is authenticated ([Noise]_ IK sender authentication 1).
+However, this is not sufficient for the ratchet layer to be able to send anything
+to Alice, as network routing requires a full Destination.
+
+Before the NSR may be sent, Alice's full Destination must be discovered either
+by the ratchet layer or a higher-layer repliable protocol,
+either repliable [Datagrams]_ or [Streaming]_.
+After finding the Leaseset for that Destination, that Leaseset
+will contain the same static key as contained in the NS.
+
+Typically, the higher layer will respond, forcing a network database
+lookup of Alice's Leaseset by Alice's Destination Hash.
+That Leaseset will almost always be found locally, because the
+NS contained a Garlic Clove block, containing a Database Store message,
+containing Alice's Leaseset.
+
+For Bob to be prepared to send a ratchet-layer NSR, and to bind
+the pending session to Alice's Destination, Bob should
+"capture" the Destination while processing the NS payload.
+If a Database Store message is found containing a Leaseset
+with a key matching the static key in the NS,
+the pending session is now bound to that Destination,
+and Bob knows where to send any NSR if the response timer expires.
+This is the recommended implementation.
+
+An alternative design is to maintain a cache or database
+where the static key is mapped to a Destination.
+The security and practicality of this approach
+is a topic for further study.
+
+Neither this specification nor others strictly require that
+every NS contains Alice's Leaseset.
+However, in practice, it should.
+The recommended ES tagset sender timeout (8 minutes)
+is shorter than the maximum Leaseset timeout (10 minutes),
+so there could be a small window where the previous session
+has expired, Alice thinks that Bob
+still has her valid Leaseset, and does not send a new Leaseset
+with the new NS. This is a topic for further study.
 
 
 Multiple NS Messages
@@ -3102,6 +3189,24 @@ to expire, but Alice should keep them for a short while, to
 decrypt any other NSR messages that are received.
 
 
+Replay Prevention
+-----------------
+
+Bob must implement a Bloom filter or other mechanism to prevent NS replay attacks,
+if the included DateTime is recent, and reject NS messages where the
+DateTime is too old.
+Bob may also have use an earlier replay detection check for a duplicate ephemeral key
+(either pre- or post-Elligator2 decode) to detect and drop recent duplicate NS messages
+before decryption.
+
+NSR and ES messages have inherent replay prevention because the
+session tag is one-time-use.
+
+Garlic messages also have replay prevention if the router implements
+a router-wide Bloom filter based on I2NP message ID.
+
+
+
 
 Related Changes
 =====================
@@ -3146,6 +3251,12 @@ References
 
 .. [CRYPTO-ELG]
     {{ site_url('docs/how/cryptography', True) }}#elgamal
+
+.. [ECIES-HYBRID]
+   {{ spec_url('ecies-hybrid') }}
+
+.. [Datagrams]
+    {{ spec_url('datagrams') }}
 
 .. [Elligator2]
     https://elligator.cr.yp.to/elligator-20130828.pdf
@@ -3217,6 +3328,12 @@ References
 
 .. [SSU]
     {{ site_url('docs/transport/ssu', True) }}
+
+.. [SSU2]
+    {{ spec_url('ssu2') }}
+
+.. [Streaming]
+    {{ spec_url('streaming') }}
 
 .. [STS]
     Diffie, W.; van Oorschot P. C.; Wiener M. J., Authentication and

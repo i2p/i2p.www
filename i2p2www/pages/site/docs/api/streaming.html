@@ -1,7 +1,7 @@
 {% extends "global/layout.html" %}
 {% block title %}{% trans %}Streaming Protocol{% endtrans %}{% endblock %}
-{% block lastupdated %}2024-09{% endblock %}
-{% block accuratefor %}0.9.64{% endblock %}
+{% block lastupdated %}2025-07{% endblock %}
+{% block accuratefor %}0.9.67{% endblock %}
 {% block content %}
 <h2>{% trans %}Overview{% endtrans %}</h2>
 
@@ -457,16 +457,34 @@ Optional delay values greater than 60000 indicate choking, see below.
 {%- endtrans %}</p>
 
 
-<h3>{% trans %}Receive Window and Choking{% endtrans %}</h3>
-<p>{% trans -%}
-TCP headers include the receive window in bytes.
-The streaming protocol does not contain a receive window, it uses only a simple choke/unchoke indication.
+<h3>Transmit/Receive Windows and Choking</h3>
+<p>
+TCP headers include the receive window in bytes; however,
+the streaming protocol does not provide a way to exchange max receive window size either in bytes or packets.
+There is only a simple choke/unchoke indication indicating that the receive buffer is full.
 Each endpoint must maintain its own estimate of the far-end receive window, in either bytes or packets.
-The recommended minimum buffer size for receiver implementations is 128 packets or 217 KB (approximately 128x1730).
+Note that a receive buffer may overflow at any window size if the
+client application is slow to empty the buffer.
+</p><p>
+The default maximum transmit and receive window size in the Java implementation is 128 packets.
+Implementations setting a maximum transmit window size higher than 128
+must consider the following issues:
+</p>
+<ul>
+<li>CHOKE responses from Java routers due to receive buffer overflow are much more likely.
+<li>Far-end receiver buffer size estimation must be implemented to mitigate repeated overflows (see above)
+<li>CHOKE must be handled correctly (see below)
+<li>Max window sizes over 256 are even more error-prone, because the nack count option field length
+is one byte, limiting the maximum NACKs to 255.
+This specification does not address what to do if there are more than 255 NACKs.
+Max window sizes over 256 are not recommended.
+</ul>
+<p>
+The recommended minimum buffer size for receiver implementations is 128 packets or 232 KB (approximately 128 * 1812).
 Because of I2P netowrk latency, packet drops, and the resulting congestion control,
 a buffer of this size is rarely filled.
-Overflow is, however, likely to occur on high-bandwidth "local loopback" (same-router) connections.
-{%- endtrans %}</p>
+Overflow is, however, much more likely to occur on high-bandwidth "local loopback" (same-router) connections or in local testing.
+</p>
 <p>{% trans -%}
 To quickly indicate and smoothly recover from overflow conditions,
 there is a simple mechanism for pushback in the streaming protocol.
@@ -579,13 +597,14 @@ The following Control Block Sharing parameters can be set per router:
 </p>
 
 <h3 id="other">{% trans %}Other Parameters{% endtrans %}</h3>
-<p>{% trans -%}
-The following parameters are hardcoded, but may be of interest for analysis:
-{%- endtrans %}</p>
+<p>
+The following parameters are recommended defaults. Defaults may vary, implementation dependent:
+</p>
 <ul>
 <li>MIN_RESEND_DELAY = 100 ms (minimum RTO)
 <li>MAX_RESEND_DELAY = 45 sec (maximum RTO)
 <li>MIN_WINDOW_SIZE = 1
+<li>MAX_WINDOW_SIZE = 128
 <li>TREND_COUNT = 3
 <li>MIN_MESSAGE_SIZE = 512 (minimum MTU)
 <li>INBOUND_BUFFER_SIZE = maxMessageSize * (maxWindowSize + 2)

@@ -3,8 +3,8 @@ Common structures Specification
 ===============================
 .. meta::
     :category: Design
-    :lastupdated: 2025-04
-    :accuratefor: 0.9.66
+    :lastupdated: 2025-06
+    :accuratefor: 0.9.67
 
 .. contents::
 
@@ -84,15 +84,24 @@ X25519 keys are supported in RouterIdentities as of release 0.9.48.
 
 
 
-=======  ==============  ======  =====
- Type    Length (bytes)  Since   Usage
-=======  ==============  ======  =====
-ElGamal       256                Deprecated for Router Identities as of 0.9.58; use for Destinations, as the public key field is unused there; discouraged for leasesets
-P256           64         TBD    Reserved, see proposal 145
-P384           96         TBD    Reserved, see proposal 145
-P521          132         TBD    Reserved, see proposal 145
-X25519         32        0.9.38  Little-endian. See [ECIES]_ and [ECIES-ROUTERS]_
-=======  ==============  ======  =====
+================    ================= ======  =====
+ Type                 Length (bytes)  Since   Usage
+================    ================= ======  =====
+ElGamal                      256              Deprecated for Router Identities as of 0.9.58; use for Destinations, as the public key field is unused there; discouraged for leasesets
+P256                          64       TBD    Reserved, see proposal 145
+P384                          96       TBD    Reserved, see proposal 145
+P521                         132       TBD    Reserved, see proposal 145
+X25519                        32      0.9.38  Little-endian. See [ECIES]_ and [ECIES-ROUTERS]_
+MLKEM512_X25519               32      0.9.67  See [ECIES-HYBRID]_, for Leasesets only, not for RIs or Destinations
+MLKEM768_X25519               32      0.9.67  See [ECIES-HYBRID]_, for Leasesets only, not for RIs or Destinations
+MLKEM1024_X25519              32      0.9.67  See [ECIES-HYBRID]_, for Leasesets only, not for RIs or Destinations
+MLKEM512                     800      0.9.67  See [ECIES-HYBRID]_, for handshakes only, not for Leasesets, RIs or Destinations
+MLKEM768                    1184      0.9.67  See [ECIES-HYBRID]_, for handshakes only, not for Leasesets, RIs or Destinations
+MLKEM1024                   1568      0.9.67  See [ECIES-HYBRID]_, for handshakes only, not for Leasesets, RIs or Destinations
+MLKEM512_CT                  768      0.9.67  See [ECIES-HYBRID]_, for handshakes only, not for Leasesets, RIs or Destinations
+MLKEM768_CT                 1088      0.9.67  See [ECIES-HYBRID]_, for handshakes only, not for Leasesets, RIs or Destinations
+MLKEM1024_CT                1568      0.9.67  See [ECIES-HYBRID]_, for handshakes only, not for Leasesets, RIs or Destinations
+================    ================= ======  =====
 
 JavaDoc: http://{{ i2pconv('idk.i2p/javadoc-i2p') }}/net/i2p/data/PublicKey.html
 
@@ -116,15 +125,21 @@ The default type is ElGamal.  As of release
 0.9.38, other types may be supported, depending on context.
 Keys are big-endian unless otherwise noted.
 
-=======  ==============  ======  =====
- Type    Length (bytes)  Since   Usage
-=======  ==============  ======  =====
-ElGamal       256                Deprecated for Router Identities as of 0.9.58; use for Destinations, as the public key field is unused there; discouraged for leasesets
-P256           32         TBD    Reserved, see proposal 145
-P384           48         TBD    Reserved, see proposal 145
-P521           66         TBD    Reserved, see proposal 145
-X25519         32        0.9.38  Little-endian. See [ECIES]_ and [ECIES-ROUTERS]_
-=======  ==============  ======  =====
+================    ================== ======  =====
+ Type                  Length (bytes)  Since   Usage
+================    ================== ======  =====
+ElGamal                      256               Deprecated for Router Identities as of 0.9.58; use for Destinations, as the public key field is unused there; discouraged for leasesets
+P256                          32        TBD    Reserved, see proposal 145
+P384                          48        TBD    Reserved, see proposal 145
+P521                          66        TBD    Reserved, see proposal 145
+X25519                        32       0.9.38  Little-endian. See [ECIES]_ and [ECIES-ROUTERS]_
+MLKEM512_X25519               32       0.9.67  See [ECIES-HYBRID]_, for Leasesets only, not for RIs or Destinations
+MLKEM768_X25519               32       0.9.67  See [ECIES-HYBRID]_, for Leasesets only, not for RIs or Destinations
+MLKEM1024_X25519              32       0.9.67  See [ECIES-HYBRID]_, for Leasesets only, not for RIs or Destinations
+MLKEM512                    1632       0.9.67  See [ECIES-HYBRID]_, for handshakes only, not for Leasesets, RIs or Destinations
+MLKEM768                    2400       0.9.67  See [ECIES-HYBRID]_, for handshakes only, not for Leasesets, RIs or Destinations
+MLKEM1024                   3168       0.9.67  See [ECIES-HYBRID]_, for handshakes only, not for Leasesets, RIs or Destinations
+================    ================== ======  =====
 
 JavaDoc: http://{{ i2pconv('idk.i2p/javadoc-i2p') }}/net/i2p/data/PrivateKey.html
 
@@ -436,26 +451,39 @@ RSA_SHA384_3072              5                  384           0.9.12  Deprecated
 RSA_SHA512_4096              6                  512           0.9.12  Offline only; never used in Key Certificates for Router Identities or Destinations
 EdDSA_SHA512_Ed25519         7                   32           0.9.15  Recent Router Identities and Destinations
 EdDSA_SHA512_Ed25519ph       8                   32           0.9.25  Offline only; never used in Key Certificates for Router Identities or Destinations
-reserved  (GOST)             9                   64                   Reserved, see proposal 134
-reserved  (GOST)            10                  128                   Reserved, see proposal 134
+reserved  (GOST)             9                   64                   Reserved, see [Prop134]_
+reserved  (GOST)            10                  128                   Reserved, see [Prop134]_
 RedDSA_SHA512_Ed25519       11                   32           0.9.39  For Destinations and encrypted leasesets only; never used for Router Identities
+reserved  (MLDSA)           12                                        Reserved, see [Prop169]_
+reserved  (MLDSA)           13                                        Reserved, see [Prop169]_
+reserved  (MLDSA)           14                                        Reserved, see [Prop169]_
+reserved  (MLDSA)           15                                        Reserved, see [Prop169]_
+reserved  (MLDSA)           16                                        Reserved, see [Prop169]_
+reserved  (MLDSA)           17                                        Reserved, see [Prop169]_
+reserved  (MLDSA)           18                                        Reserved, see [Prop169]_
+reserved  (MLDSA)           19                                        Reserved, see [Prop169]_
+reserved  (MLDSA)           20                                        Reserved, see [Prop169]_
 reserved                65280-65534                                   Reserved for experimental use
 reserved                   65535                                      Reserved for future expansion
 ======================  ===========  =======================  ======  =====
 
 The defined Crypto Public Key types are:
 
-========  ===========  =======================  =====
-  Type     Type Code   Total Public Key Length  Usage
-========  ===========  =======================  =====
-ElGamal        0                 256            Deprecated for Router Identities as of 0.9.58; use for Destinations, as the public key field is unused there
-P256           1                  64            Reserved, see proposal 145
-P384           2                  96            Reserved, see proposal 145
-P521           3                 132            Reserved, see proposal 145
-X25519         4                  32            See [ECIES]_ and proposal 156
-reserved  65280-65534                           Reserved for experimental use
-reserved     65535                              Reserved for future expansion
-========  ===========  =======================  =====
+================    ===========  ======================= ======  =====
+  Type              Type Code    Total Public Key Length Since   Usage
+================    ===========  ======================= ======  =====
+ElGamal                  0                 256                   Deprecated for Router Identities as of 0.9.58; use for Destinations, as the public key field is unused there
+P256                     1                  64                   Reserved, see proposal 145
+P384                     2                  96                   Reserved, see proposal 145
+P521                     3                 132                   Reserved, see proposal 145
+X25519                   4                  32           0.9.38  See [ECIES]_ and proposal 156
+MLKEM512_X25519          5                  32           0.9.67  See [ECIES-HYBRID]_, for Leasesets only, not for RIs or Destinations
+MLKEM768_X25519          6                  32           0.9.67  See [ECIES-HYBRID]_, for Leasesets only, not for RIs or Destinations
+MLKEM1024_X25519         7                  32           0.9.67  See [ECIES-HYBRID]_, for Leasesets only, not for RIs or Destinations
+reserved  (NONE)       255                                       Reserved, see [Prop169]_
+reserved            65280-65534                                  Reserved for experimental use
+reserved               65535                                     Reserved for future expansion
+================    ===========  ======================= ======  =====
 
 When a Key Certificate is not present, the preceeding 384 bytes in the
 Destination or RouterIdentity are defined as the 256-byte ElGamal PublicKey
@@ -1881,6 +1909,9 @@ References
 .. [ECIES]
    {{ spec_url('ecies') }}
 
+.. [ECIES-HYBRID]
+   {{ spec_url('ecies-hybrid') }}
+
 .. [ECIES-ROUTERS]
    {{ spec_url('ecies-routers') }}
 
@@ -1904,6 +1935,12 @@ References
 
 .. [NETDB-ROUTERINFO]
     {{ site_url('docs/how/network-database', True) }}#routerInfo
+
+.. [Prop134]
+    {{ proposal_url('134') }}
+
+.. [Prop169]
+    {{ proposal_url('169') }}
 
 .. [REGISTRY]
     http://www.dns-sd.org/ServiceTypes.html

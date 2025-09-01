@@ -3,8 +3,8 @@ NTCP 2
 ======
 .. meta::
     :category: Transports
-    :lastupdated: 2024-01
-    :accuratefor: 0.9.61
+    :lastupdated: 2025-05
+    :accuratefor: 0.9.66
 
 .. contents::
 
@@ -110,7 +110,7 @@ Alice                           Bob
 {% endhighlight %}
 
 Using Noise terminology, the establishment and data sequence is as follows:
-(Payload Security Properties)
+(Payload Security Properties from [Noise]_ )
 
 .. raw:: html
 
@@ -368,7 +368,7 @@ Noise content: Alice's ephemeral key X
 Noise payload: 16 byte option block
 Non-noise payload: Random padding
 
-(Payload Security Properties)
+(Payload Security Properties from [Noise]_ )
 
 .. raw:: html
 
@@ -574,6 +574,10 @@ Notes
   set a random timeout (range TBD) and then read a random number of bytes (range TBD),
   before closing the socket.
 
+- Bob may do a fast MSB check for a valid key (X[31] & 0x80 == 0) before
+  attempting decryption. If the high bit is set, implement probing resistance
+  as for AEAD failures.
+
 - DoS Mitigation: DH is a relatively expensive operation. As with the previous NTCP protocol,
   routers should take all necessary measures to prevent CPU or connection exhaustion.
   Place limits on maximum active connections and maximum connection setups in progress.
@@ -703,7 +707,7 @@ Noise content: Bob's ephemeral key Y
 Noise payload: 16 byte option block
 Non-noise payload: Random padding
 
-(Payload Security Properties)
+(Payload Security Properties from [Noise]_ )
 
 .. raw:: html
 
@@ -992,7 +996,7 @@ Noise content: Alice's static key
 Noise payload: Alice's RouterInfo and random padding
 Non-noise payload: none
 
-(Payload Security Properties)
+(Payload Security Properties from [Noise]_ )
 
 
 .. raw:: html
@@ -1267,7 +1271,7 @@ Types include date/time, I2NP message, options, termination, and padding.
 Note: Bob may, but is not required, to send his RouterInfo to Alice as
 his first message to Alice in the data phase.
 
-(Payload Security Properties)
+(Payload Security Properties from [Noise]_ )
 
 
 .. raw:: html

@@ -3,7 +3,7 @@ SSU2
 ======
 .. meta::
     :category: Transports
-    :lastupdated: 2025-03
+    :lastupdated: 2025-04
     :accuratefor: 0.9.65
 
 .. contents::
@@ -1549,7 +1549,7 @@ Payload
 - DateTime block
 - Address block
 - Relay Tag block (optional)
-- New Token block (optional)
+- New Token block (not recommended, see note)
 - First Packet Number block (optional)
 - Options block (optional)
 - Termination block (not recommended, send in a retry message instead)
@@ -1588,6 +1588,10 @@ Notes
   do not match the Source and Destination Connection IDs of the Session Request.
 
 - Bob sends a relay tag block if requested by Alice in the Session Request.
+
+- New Token block is not recommended in Session Created, because Bob
+  should do validation of the Session Confirmed first. See
+  the Tokens section below.
 
 
 Issues
@@ -4219,7 +4223,9 @@ stores the values and associated IP and port (in-memory or persistently).
 The generator may not generate an opaque value, for example,
 using the SipHash (with a secret seed K0, K1) of the IP, port, and current hour or day,
 to create tokens that do not need to be saved in-memory,
-because this method make it difficult to reject reused tokens and replay attacks.
+because this method makes it difficult to reject reused tokens and replay attacks.
+However, it is a topic for further study if we may migrate to such a scheme,
+as [WireGuard]_ does, using a 16-byte HMAC of a server secret and IP address.
 
 Tokens may only be used once.
 A token sent from Bob to Alice in a Retry message must be used immediately, and expires
@@ -4228,7 +4234,8 @@ A token sent in a New Token block in an established session
 may be used in a subsequent connection, and it
 expires at the time specified in that block.
 Expiration is specified by the sender; recommended values are
-one hour minimum, several hours maximum.
+several minutes minimum, one or more hours maximum, depending on
+desired maximum overhead of stored tokens.
 
 If a router's IP or port changes, it must delete all saved tokens
 (both inbound and outbound) for the old IP or port, as they are no longer valid.
@@ -4239,9 +4246,15 @@ A router may choose to limit token storage, and remove the oldest stored tokens
 even if they have not expired.
 
 New Token blocks may be sent from Alice to Bob or Bob to Alice.
-They would typically be sent once, during or soon after session establishment.
-The token may be resent before or after expiration with a new expiration time,
-or a new token may be sent.
+They would typically be sent at least once, during or soon after session establishment.
+Due to validation checks of the RouterInfo in the Session Confirmed message,
+Bob should not send a New Token block in the Session Created message,
+it may be sent with the ACK 0 and Router Info after the Session Confirmed is received
+and validated.
+
+As session lifetimes are often longer than token expiration,
+the token should be resent before or after expiration with a new expiration time,
+or a new token should be sent.
 Routers should assume that only the last token received is valid;
 there is no requirement to store multiple inbound or outbound tokens for the same IP/port.
 
@@ -6114,6 +6127,22 @@ Total                                                       1314
 ==================   ===========   =====   ======  =======  ======  =====
 
 
+Issues and Future Work
+======================
+
+Tokens
+------
+
+We specify above that the token must be a randomly-generated 8 byte value,
+not generate an opaque value such as a hash or HMAC of a server secret
+and the IP, port, due to reuse attacks.
+However, this requires temporary and (optionally) persistent storage of
+delivered tokens.
+[WireGuard]_ uses a 16-byte HMAC of a server secret and IP address,
+and the server secret rotates every two minutes.
+We should investigate something similar, with a longer server secret lifetime.
+If we embed a timestamp in the token, that may be a solution, but
+an 8-byte token may not be large enough for that.
 
 
 

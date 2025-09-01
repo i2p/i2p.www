@@ -3,8 +3,8 @@ ECIES-X25519 Tunnel Creation
 =============================
 .. meta::
     :category: Protocols
-    :lastupdated: 2025-03
-    :accuratefor: 0.9.65
+    :lastupdated: 2025-06
+    :accuratefor: 0.9.66
 
 .. contents::
 
@@ -18,7 +18,7 @@ It is a portion of the overall proposal
 
 There are two versions specified.
 The first uses the existing build messages and build record size, for compatibility with ElGamal routers.
-This specification is implemented as of release 0.9.48.
+This specification was implemented as of release 0.9.48 and is now deprecated.
 The second uses two new build messages and a smaller build record size, and may only be used with ECIES routers.
 This specification is implemented as of release 0.9.51.
 
@@ -138,6 +138,7 @@ ECIES replies use ChaCha20/Poly1305 AEAD for integrity, and authentication.
 Long Record Specification
 =========================
 
+NOTE: Deprecated, obsolete. Use the Short Record format specified  below.
 
 
 Build Request Records
@@ -913,10 +914,9 @@ The recommended minimum number of build records is 4.
 If there are more build records than hops, "fake" records must be added,
 containing random or implementation-specific data.
 For inbound tunnel builds, there must always be one "fake" record for the
-originating router, with the correct 16-byte hash prefix, otherwise
+originating router, with the correct 16-byte hash prefix
+and a real X25519 ephemeral key, otherwise
 the closest hop will know that the next hop is the originator.
-The MSB of the ephemeral key (data[47] & 0x80) must also be cleared
-so it looks like a real X25519 public key.
 
 The remainder of the "fake" record may be random data, or may encrypted in any format
 for the originator to send data to itself about the build,
@@ -926,6 +926,7 @@ Originators of inbound tunnels must use some method to validate
 that their "fake" record has not been modified by the previous hop,
 as this may also be used for deanonimization.
 The orignator may store and verify a checksum of the record,
+or include the checksum in the record,
 or use an AEAD encryption/decryption function, implementation-dependent.
 If the 16-byte hash prefix or other build record contents were
 modified, the router must discard the tunnel.

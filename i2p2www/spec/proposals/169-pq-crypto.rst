@@ -5,7 +5,7 @@ Post-Quantum Crypto Protocols
     :author: zzz, orignal, drzed, eyedeekay
     :created: 2025-01-21
     :thread: http://zzz.i2p/topics/3294
-    :lastupdated: 2025-04-23
+    :lastupdated: 2025-06-12
     :status: Open
     :target: 0.9.80
 
@@ -83,14 +83,10 @@ See the Priorities and Rollout section below for details.
 ==================================  ======
 Protocol / Feature                  Status
 ==================================  ======
-Hybrid EncTypes 5-7                 Preliminary, final hash choices pending
-Hybrid Dests, Ratchet               Tested on live net, no net upgrade required
-Select preferred combo              Probably 6,4
-Combo Hybrid/X25519 Dests, Ratchet
-Combo Hybrid/X25519 NTCP2
-Combo Hybrid/X25519 SSU2
-Hybrid Routers, Dests, Ratchet
-MLDSA SigTypes 12-14                Probably final
+Hybrid MLKEM Ratchet and LS         Approved 2026-06; beta target 2025-08; release target 2025-11
+Hybrid MLKEM NTCP2                  Some details to be finalized
+Hybrid MLKEM SSU2                   Some details to be finalized
+MLDSA SigTypes 12-14                Proposal is stable but may not be finalized until 2026
 MLDSA Dests                         Tested on live net, requires net upgrade for floodfill support
 Hybrid SigTypes 15-17               Preliminary
 Hybrid Dests
@@ -124,9 +120,6 @@ NetDB        N       no                no
 
 PQ KEM provides ephemeral keys only, and does not directly support
 static-key handshakes such as Noise XK and IK.
-While there is some recent research [PQ-WIREGUARD]_ on adapting Wireguard (IK)
-for pure PQ crypto, there are several open questions, and
-this approach is unproven.
 
 Noise N does not use a two-way key exchange and so it is not suitable
 for hybrid encryption.
@@ -246,7 +239,7 @@ New Crypto Required
 Test vectors for SHA3-256, SHAKE128, and SHAKE256 are at [NIST-VECTORS]_.
 
 Note that the Java bouncycastle library supports all the above.
-C++ library support will be in OpenSSL 3.5 [OPENSSL]_.
+C++ library support is in OpenSSL 3.5 [OPENSSL]_.
 
 
 Alternatives
@@ -255,6 +248,33 @@ Alternatives
 We will not support [FIPS205]_ (Sphincs+), it is much much slower and bigger than ML-DSA.
 We will not support the upcoming FIPS206 (Falcon), it is not yet standardized.
 We will not support NTRU or other PQ candidates that were not standardized by NIST.
+
+
+Rosenpass
+`````````
+
+There is some research [PQ-WIREGUARD]_ on adapting Wireguard (IK)
+for pure PQ crypto, but there are several open questions in that paper.
+Later, this approach was implemented as Rosenpass [Rosenpass]_ [Rosenpass-Whitepaper]_
+for PQ Wireguard.
+
+Rosenpass uses a Noise KK-like handshake with preshared Classic McEliece 460896 static keys
+(500 KB each) and Kyber-512 (essentially MLKEM-512) ephemeral keys.
+As the Classic McEliece ciphertexts are only 188 bytes, and the Kyber-512
+public keys and ciphertexts are reasonable, both handshake messages fit in a standard UDP MTU.
+The output shared key (osk) from the PQ KK handshake is used as the input preshared key (psk)
+for the standard Wireguard IK handshake.
+So there are two complete handshakes in total, one pure PQ and one pure X25519.
+
+We can't do any of this to replace our XK and IK handshakes because:
+
+- We can't do KK, Bob doesn't have Alice's static key
+- 500KB static keys are far too big
+- We don't want an extra round-trip
+
+There is a lot of good information in the whitepaper,
+and we will review it for ideas and inspiration. TODO.
+
 
 
 Specification
@@ -941,7 +961,7 @@ MLKEM1024_X25519         7       32   1680+pl      1648+pl        1568+pl       
 ================    =========  =====  =========  =============  =============  ==========  =======
 
 Note that the payload must contain a DateTime block, so the minimum payload size is 7.
-The minimum message 1 sizes may be caculated accordingly.
+The minimum message 1 sizes may be calculated accordingly.
 
 
 
@@ -1053,7 +1073,7 @@ MLKEM1024_X25519         7       32   1656+pl      1616+pl        1568+pl       
 
 Note that while message 2 will normally have a nonzero payload,
 the ratchet specification [ECIES]_ does not require it, so the minimum payload size is 0.
-The minimum message 2 sizes may be caculated accordingly.
+The minimum message 2 sizes may be calculated accordingly.
 
 
 
@@ -1819,8 +1839,7 @@ Library Support
 ---------------
 
 Bouncycastle, BoringSSL, and WolfSSL libraries support MLKEM and MLDSA now.
-OpenSSL support will be in their 3.5 release scheduled for April 8, 2025 [OPENSSL]_.
-3.5-alpha will be availabe March 11, 2025.
+OpenSSL support is be in their 3.5 release April 8, 2025 [OPENSSL]_.
 
 The southernstorm.com Noise library adapted by Java I2P contained preliminary support for
 hybrid handshakes, but we removed it as unused; we will have to add it back
@@ -2278,6 +2297,12 @@ References
 
 .. [RFC-2104]
     https://tools.ietf.org/html/rfc2104
+
+.. [Rosenpass]
+   https://rosenpass.eu/
+
+.. [Rosenpass-Whitepaper]
+   https://raw.githubusercontent.com/rosenpass/rosenpass/papers-pdf/whitepaper.pdf
 
 .. [SSH-HYBRID]
    https://datatracker.ietf.org/doc/draft-ietf-sshm-mlkem-hybrid-kex/

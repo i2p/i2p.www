@@ -3,8 +3,8 @@ Encrypted LeaseSet Specification
 ================================
 .. meta::
     :category: Protocols
-    :lastupdated: June 2019
-    :accuratefor: 0.9.41
+    :lastupdated: 2025-05
+    :accuratefor: 0.9.66
 
 .. contents::
 
