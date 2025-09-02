@@ -1,11 +1,13 @@
-from flask import abort, redirect, render_template, request
+from flask import abort, redirect, render_template, request, jsonify
 try:
     import json
 except ImportError:
     import simplejson as json
 from random import randint
+import re
+import os.path
 
-from i2p2www import CURRENT_I2P_VERSION, MIRRORS_FILE
+from i2p2www import CURRENT_I2P_VERSION, MIRRORS_FILE, TEMPLATE_DIR
 
 DEFAULT_MIRROR = {
     "net": "clearnet", 
@@ -72,6 +74,85 @@ def read_mirrors():
             ret[net][protocol]={}
         ret[net][protocol][domain]=obj
     return ret
+
+# Extract hashes and filenames from macros file
+def extract_hashes_from_macros():
+    macros_path = os.path.join(TEMPLATE_DIR, 'downloads', 'macros')
+    if not os.path.exists(macros_path):
+        return {}
+    
+    with open(macros_path, 'r') as f:
+        content = f.read()
+    
+    # Dictionary to store hash variable name to hash value mapping
+    hashes = {}
+    
+    # Regex to extract hash variables
+    hash_pattern = re.compile(r'{%\s*set\s+(\w+_hash)\s*=\s*[\'"]([a-fA-F0-9]+)[\'"]')
+    
+    for match in hash_pattern.finditer(content):
+        var_name = match.group(1)
+        hash_value = match.group(2)
+        hashes[var_name] = hash_value
+    
+    # Now map hash variables to their corresponding file patterns
+    hash_to_file = {}
+    
+    # Extract the filename patterns for each package type
+    if 'i2pinstall_windows_hash' in hashes:
+        hash_to_file['i2pinstall_windows_hash'] = {
+            'hash': hashes['i2pinstall_windows_hash'],
+            'filename_pattern': 'i2pinstall_{version}_windows.exe'
+        }
+    
+    if 'i2pinstall_jar_hash' in hashes:
+        hash_to_file['i2pinstall_jar_hash'] = {
+            'hash': hashes['i2pinstall_jar_hash'], 
+            'filename_pattern': 'i2pinstall_{version}.jar'
+        }
+    
+    if 'i2psource_hash' in hashes:
+        hash_to_file['i2psource_hash'] = {
+            'hash': hashes['i2psource_hash'],
+            'filename_pattern': 'i2psource_{version}.tar.bz2'
+        }
+    
+    if 'i2pupdate_hash' in hashes:
+        hash_to_file['i2pupdate_hash'] = {
+            'hash': hashes['i2pupdate_hash'],
+            'filename_pattern': 'i2pupdate_{version}.zip'
+        }
+    
+    if 'i2p_android_hash' in hashes:
+        hash_to_file['i2p_android_hash'] = {
+            'hash': hashes['i2p_android_hash'],
+            'filename_pattern': 'app.apk'
+        }
+    
+    if 'i2p_macnative_hash' in hashes:
+        # Extract the OSX launcher version from macros
+        osx_version_pattern = re.compile(r'{%\s*set\s+i2p_macosx_launcher_version\s*=\s*[\'"]([^\'\"]+)[\'"]')
+        osx_match = osx_version_pattern.search(content)
+        osx_version = osx_match.group(1) if osx_match else '1.9.0'
+        
+        hash_to_file['i2p_macnative_hash'] = {
+            'hash': hashes['i2p_macnative_hash'],
+            'filename_pattern': 'I2PMacLauncher-{version}-beta-' + osx_version + '.dmg'
+        }
+    
+    if 'i2p_bundle_hash' in hashes:
+        hash_to_file['i2p_bundle_hash'] = {
+            'hash': hashes['i2p_bundle_hash'],
+            'filename_pattern': 'i2p-bundle-{version}.exe'
+        }
+    
+    # Generate final JSON with actual filenames using current version
+    result = {}
+    for key, data in hash_to_file.items():
+        filename = data['filename_pattern'].format(version=CURRENT_I2P_VERSION)
+        result[filename] = data['hash']
+    
+    return result
 
 # List of downloads
 def downloads_list():
@@ -178,3 +259,10 @@ def downloads_redirect(version, net, protocol, domain, file):
     return render_template('downloads/redirect.html',
                            version=version, protocol=protocol, domain=domain, file=file,
                            url=mirrors[domain]['url'] % data)
+
+# JSON endpoint for hashes
+def downloads_hashes():
+    """Return JSON with hashes and filenames from the macros file"""
+    hashes = extract_hashes_from_macros()
+    return jsonify(hashes)
+

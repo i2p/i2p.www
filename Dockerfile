@@ -1,6 +1,9 @@
-FROM debian:oldoldstable as builder
+FROM debian:buster as builder
 ENV SERVERNAME=geti2p.net \
     SERVERMAIL=example@geti2p.net
+
+# Replace the buster repos with the archive.debian.org versions
+RUN sed -i 's|http://deb.debian.org/debian|http://archive.debian.org/debian|g' /etc/apt/sources.list
 
 # Install only build dependencies first
 RUN apt-get update && \
@@ -9,8 +12,10 @@ RUN apt-get update && \
         python-pip \
         patch \
         python-virtualenv \
+        virtualenv \
         git \
-        python-polib && \
+        python-polib \
+        build-essential && \
     rm -rf /var/lib/apt/lists/*
 
 WORKDIR /build
@@ -34,7 +39,10 @@ RUN . env/bin/activate && \
     echo "Git revision: $(git log -n 1 | grep commit | sed 's/commit //' | sed 's/ .*$//')" > ./i2p2www/pages/include/mtnversion
 
 # Start second stage with same old base image
-FROM debian:oldoldstable
+FROM debian:buster
+
+# Replace the buster repos with the archive.debian.org versions
+RUN sed -i 's|http://deb.debian.org/debian|http://archive.debian.org/debian|g' /etc/apt/sources.list
 
 # Install only runtime dependencies
 RUN apt-get update && \
@@ -42,7 +50,8 @@ RUN apt-get update && \
         apache2 \
         apache2-utils \
         libapache2-mod-wsgi \
-        python2-minimal && \
+        python2-minimal \
+        build-essential && \
     rm -rf /var/lib/apt/lists/*
 
 WORKDIR /var/www/i2p.www
