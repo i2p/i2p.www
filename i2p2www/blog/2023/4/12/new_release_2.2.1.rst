@@ -37,4 +37,4 @@ The best way to maintain security and help the network is to run the latest rele
 - {% trans %}Remove invalid signing keys from old installs{% endtrans %}
 - {% trans %}Update Tomcat version in Ubuntu Lunar and Debian Sid{% endtrans %}
 
-Full list of fixed bugs: http://git.idk.i2p/i2p-hackers/i2p.i2p/-/issues?scope=all&state=closed&milestone_title=2.2.1
+Full list of fixed bugs: http://git.idk.i2p/I2P_Developers/i2p.i2p/-/issues?scope=all&state=closed&milestone_title=2.2.1

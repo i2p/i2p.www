@@ -47,7 +47,7 @@ on the server. Gitlab has a very simple sign-up form:
 To make sure the setup process works, it helps to make a repository to
 test with from the server, and for the sake of this tutorial, we’re
 going to use a fork of the I2P router. First, browse to the
-i2p-hackers/i2p.i2p repository:
+I2P_Developers/i2p.i2p repository:
 {%- endtrans %}
 
 .. class:: screenshot
@@ -226,7 +226,7 @@ take the following steps:
 
    ::
 
-       git remote add upstream git@127.0.0.1:i2p-hackers/i2p.i2p
+       git remote add upstream git@127.0.0.1:I2P_Developers/i2p.i2p
 
 2. {% trans -%}Pull in any upstream changes on your current master:{%- endtrans %}
 
@@ -258,7 +258,7 @@ take the following steps:
        git checkout master
        git pull upstream master
 
-6. {% trans -%}Whenever a change to the upstream master(i2p-hackers/i2p.i2p) is
+6. {% trans -%}Whenever a change to the upstream master(I2P_Developers/i2p.i2p) is
    made, you can update your master code using this procedure as well.{%- endtrans %}
 
    ::

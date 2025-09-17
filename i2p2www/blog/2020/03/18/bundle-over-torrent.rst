@@ -96,7 +96,7 @@ remote to the upstream repository source.{%- endtrans %}
 
 ::
 
-       git remote set-url origin git@127.0.0.1:i2p-hackers/i2p.i2p
+       git remote set-url origin git@127.0.0.1:I2P_Developers/i2p.i2p
 
 {% trans -%}Generating a Bundle{%- endtrans %}
 ----------------------------------------------

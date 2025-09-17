@@ -88,7 +88,7 @@ The best way to maintain security and help the network is to run the latest rele
 
 `{% trans %}Full list of fixed bugs{% endtrans %}`__
 
-__ http://{{ i2pconv('git.idk.i2p') }}/i2p-hackers/i2p.i2p/-/issues?scope=all&state=closed&milestone_title=2.4.0
+__ http://{{ i2pconv('git.idk.i2p') }}/I2P_Developers/i2p.i2p/-/issues?scope=all&state=closed&milestone_title=2.4.0
 
 
 **{% trans %}SHA256 Checksums:{% endtrans %}**

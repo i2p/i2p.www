@@ -297,7 +297,7 @@ References
     {{ spec_url('i2np') }}
 
 .. [MR]
-    http://git.idk.i2p/i2p-hackers/i2p.i2p/-/merge_requests/66
+    http://git.idk.i2p/I2P_Developers/i2p.i2p/-/merge_requests/66
 
 .. [NTCP2]
     {{ spec_url('ntcp2') }}

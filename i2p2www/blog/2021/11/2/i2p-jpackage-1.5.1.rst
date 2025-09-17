@@ -42,9 +42,9 @@ Windows only packages recieve the following updates:
 
 * Updates I2P in Private Browsing, NoScript browser extensions
 * Begins to phase out HTTPS everywhere on new Firefox releases
-* Updates launcher script to `fix post NSIS launch issue on some architectures <https://i2pgit.org/i2p-hackers/i2p.firefox/-/issues/9>`_
+* Updates launcher script to `fix post NSIS launch issue on some architectures <https://i2pgit.org/I2P_Developers/i2p.firefox/-/issues/9>`_
 
-For a full list of changes see the `changelog.txt in i2p.firefox <https://i2pgit.org/i2p-hackers/i2p.firefox/>`_
+For a full list of changes see the `changelog.txt in i2p.firefox <https://i2pgit.org/I2P_Developers/i2p.firefox/>`_
 {%- endtrans %}
 
 {% trans -%}
@@ -57,5 +57,5 @@ Mac OS only packages recieve the following updates:
 
 * No Mac-Specific changes. Mac OS is updated to build with JDK 17.
 
-For a summary of development see the `checkins in i2p-jpackage-mac <https://i2pgit.org/i2p-hackers/i2p-jpackage-mac>`_
+For a summary of development see the `checkins in i2p-jpackage-mac <https://i2pgit.org/I2P_Developers/i2p-jpackage-mac>`_
 {%- endtrans %}

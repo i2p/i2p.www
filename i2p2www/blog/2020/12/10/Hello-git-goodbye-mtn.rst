@@ -58,8 +58,8 @@ Official Repositories and Gitlab/Github Syncing
 -----------------------------------------------
 
 {% trans -%}
-The official repository is the one hosted at https://i2pgit.org/i2p-hackers/i2p.i2p
-and at https://git.idk.i2p/i2p-hackers/i2p.i2p, but there is a "Mirror" available
+The official repository is the one hosted at https://i2pgit.org/I2P_Developers/i2p.i2p
+and at https://git.idk.i2p/I2P_Developers/i2p.i2p, but there is a "Mirror" available
 at Github at https://github.com/i2p/i2p.i2p.
 {%- endtrans %}
 

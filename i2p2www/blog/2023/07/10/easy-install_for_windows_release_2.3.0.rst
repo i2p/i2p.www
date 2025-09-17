@@ -38,8 +38,8 @@ It uses i2p.i2p version 2.3.0 as an I2P router, and to provide applications.
 As always it is recommended that you update to the latest version of the I2P router at your earliest convenient opportunity.
 {%- endtrans %}
 
-- `Easy-Install Bundle Source <http://git.idk.i2p/i2p-hackers/i2p.firefox/-/tree/i2p-firefox-2.3.0>`_
-- `Router Source <http://git.idk.i2p/i2p-hackers/i2p.i2p/-/tree/i2p-2.3.0>`_
-- `Profile Manager Source <http://git.idk.i2p/i2p-hackers/i2p.plugins.firefox/-/tree/1.1.0>`_
+- `Easy-Install Bundle Source <http://git.idk.i2p/I2P_Developers/i2p.firefox/-/tree/i2p-firefox-2.3.0>`_
+- `Router Source <http://git.idk.i2p/I2P_Developers/i2p.i2p/-/tree/i2p-2.3.0>`_
+- `Profile Manager Source <http://git.idk.i2p/I2P_Developers/i2p.plugins.firefox/-/tree/1.1.0>`_
 
 

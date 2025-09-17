@@ -57,7 +57,7 @@ This will require downloading Java and the I2P software via the .jar based insta
 Easy-Install users can update to that latest version using a locally-produced development build.
 {%- endtrans %}
 
-`{% trans -%}Easy-Install Build Instructions are available here.{%- endtrans %} <https://i2pgit.org/i2p-hackers/i2p-jpackage-mac/-/blob/master/BUILD.md>`_
+`{% trans -%}Easy-Install Build Instructions are available here.{%- endtrans %} <https://i2pgit.org/I2P_Developers/i2p-jpackage-mac/-/blob/master/BUILD.md>`_
 
 {% trans -%}
 There is also the option to uninstall the software, remove the I2P configuration directory and reinstall I2P using the .jar installer.

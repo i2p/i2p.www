@@ -94,7 +94,7 @@ We will never ask you to participate in these unless you already have an account
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 {% trans -%}
-This post attempts to provide ways of vetting the source for obtaining the Java I2P package represented by the source code contained in https://i2pgit.org/i2p-hackers/i2p.i2p and https://github.com/i2p/i2p.i2p, and which is available for download from the web site https://geti2p.net/.
+This post attempts to provide ways of vetting the source for obtaining the Java I2P package represented by the source code contained in https://i2pgit.org/I2P_Developers/i2p.i2p and https://github.com/i2p/i2p.i2p, and which is available for download from the web site https://geti2p.net/.
 It is not intended to pass judgement on third-party forks, downstream projects, embedders, packagers, people experimenting in laboratories, or people who just disagree with us.
 You are all valued members of our community who are trying to protect, and not compromise, the privacy of others.
 Since we are aware of attempts to impersonate I2P project community members, you may wish to review the download, verification, and installation procedures which you recommend to your users in order to document your official sources and known mirrors.
