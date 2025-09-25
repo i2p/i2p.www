@@ -1176,6 +1176,15 @@ Notes
 
 * Types 3, 5, and 7 may be returned as of release 0.9.38. See proposal 123 for more information.
 
+* Exploratory lookup notes: An exploratory lookup is defined to return a list of
+  non-floodfill hashes close to the key. However, see important notes
+  for DatabaseSearchReply for implementation variants.
+  Additionally, this specification has never made clear whether the receiver
+  should look up the search key for an RI and returning a DatabaseStore instead of a DSRM
+  if present. Java does do the lookup; i2pd does not. Therefore, it is not recommended
+  to use an exploratory lookup for previously-received hashes.
+
+
 
 .. _msg-DatabaseSearchReply:
 
