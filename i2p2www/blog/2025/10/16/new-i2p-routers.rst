@@ -93,6 +93,7 @@ Why Go?
 {% trans -%}
 While Rust and Go have many of the same advantages, in many ways Go is much simpler to learn.
 For years, there have been excellent libraries and applications for using I2P in the Go programming language, including the most complete implementations of the SAMv3.3 libraries.
+But without an I2P router we can manage automatically(such as an embedded router), it still presents a barrier to users.
 The point of go-i2p is bridge that gap, and to remove all the rough edges for I2P application developers who are working in Go.
 {%- endtrans %}
 
