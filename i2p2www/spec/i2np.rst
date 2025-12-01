@@ -3,7 +3,7 @@ I2NP Specification
 ==================
 .. meta::
     :category: Protocols
-    :lastupdated: 2025-08
+    :lastupdated: 2025-12
     :accuratefor: 0.9.66
 
 .. contents::
@@ -255,6 +255,10 @@ Notes
 
 * The short expiration is unsigned and will wrap around on Feb. 7, 2106. As of
   that date, an offset must be added to get the correct time.
+
+* Implementations may reject messages with expirations too far in the future.
+  Recommended maximum expiration is 60s in the future.
+
 
 .. _struct-BuildRequestRecord:
 
