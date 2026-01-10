@@ -10,39 +10,57 @@
 #
 # Authentication is handled by the GITHUB_TOKEN secret provided by GitHub Actions.
 
-name: Mirror from Gitea to GitHub
-
-on:
-  schedule:
-    - cron: "0 */6 * * *"   # every 6 hours
-  workflow_dispatch: {}
-
-permissions:
-  contents: write
-  workflows: write
-
 jobs:
   sync:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout GitHub mirror
-        uses: actions/checkout@v4
+      - name: Validate Github Actions Environment
+        run: if [ "$GITHUB_ACTIONS" != "true" ]; then echo 'This script must be run in a GitHub Actions environment.'; exit 1; fi
+      - name: Checkout GitHub Mirror
+        uses: actions/checkout@v3
         with:
           fetch-depth: 0
+      - name: Configure Git
+        run: |-
+          git config user.name 'GitHub Actions'
+          git config user.email 'actions@github.com'
+      - env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        name: Sync Primary Repository
+        run: |-
+          # Add the primary repository as a remote
+          git remote add primary https://i2pgit.org/I2P_Developers/i2p.www.git
 
-      - name: Fetch from Gitea
-        run: |
-          set -euo pipefail
-          git remote add gitea "https://i2pgit.org/I2P_Developers/i2p.www.git"
-          git fetch --prune gitea
+          # Fetch the latest changes from the primary repository
+          git fetch primary
 
-      - name: Reset mirror branch to Gitea
-        run: |
-          set -euo pipefail
-          git checkout master || git checkout -b master
-          git reset --hard gitea/master
+          # Check if the primary branch exists in the primary repository
+          if git ls-remote --heads primary master | grep -q master; then
+            echo "Primary branch master found in primary repository"
+          else
+            echo "Error: Primary branch master not found in primary repository"
+            exit 1
+          fi
 
-      - name: Push to GitHub (mirror)
-        run: |
-          set -euo pipefail
-          git push --force-with-lease origin master
+          # Check if we're already on the mirror branch
+          if git rev-parse --verify --quiet master; then
+            git checkout master
+          else
+            # Create the mirror branch if it doesn't exist
+            git checkout -b master
+          fi
+
+
+          # Force-apply all changes from primary, overriding any conflicts
+          echo "Performing force sync from primary/master to master"
+          git reset --hard primary/master
+
+
+          # Push changes back to the mirror repository
+          git push origin master
+name: Sync Primary Repository to GitHub Mirror
+"on":
+  push: {}
+  schedule:
+    - cron: 0 0 * * *
+  workflow_dispatch: {}
