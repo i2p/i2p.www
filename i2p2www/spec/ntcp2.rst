@@ -3,7 +3,7 @@ NTCP 2
 ======
 .. meta::
     :category: Transports
-    :lastupdated: 2025-05
+    :lastupdated: 2026-01
     :accuratefor: 0.9.66
 
 .. contents::
@@ -566,6 +566,7 @@ Notes
   with excessive padding.  Bob will specify his padding options in message 2.
   Min/max guidelines TBD. Random size from 0 to 31 bytes minimum?
   (Distribution is implementation-dependent)
+  Java implementations currently limit padding to 256 bytes max.
 
 - On any error, including AEAD, DH, timestamp, apparent replay, or key
   validation failure, Bob must halt further message processing and close the
