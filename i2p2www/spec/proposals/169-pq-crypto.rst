@@ -1389,11 +1389,12 @@ to fit within a standard 1500 byte datagram.
 
 Long Header
 `````````````
-The long header is 32 bytes. It is used before a session is created, for Token Request, SessionRequest, SessionCreated, and Retry.
-It is also used for out-of-session Peer Test and Hole Punch messages.
+In all long headers (used for message types 0, 1, 7, 9, 10, and 11),
+set the ver (version) field to 3 or 4, to indidate MLKEM-512 or MLKEM-768.
 
-TODO: We could internally use the version field and use 3 for MLKEM512 and 4 for MLKEM768.
-Do we only do that for types 0 and 1 or for all 6 types?
+While this may not be strictly required for messages other than
+Session Request and Session Created (types 0 and 1), doing so will
+help fail attempted PQ connections earlier if unsupported.
 
 
 Before header encryption:
@@ -1418,8 +1419,8 @@ Before header encryption:
 
   type :: The message type = 0, 1, 7, 9, 10, or 11
 
-  ver :: The protocol version, equal to 2
-         TODO We could internally use the version field and use 3 for MLKEM512 and 4 for MLKEM768.
+  ver :: The protocol version, equal to 2, 3, or 4
+         (non-PQ, MLKEM512, MLKEM768)
 
   id :: 1 byte, the network ID (currently 2, except for test networks)
 
@@ -1697,16 +1698,6 @@ This will be done in a separate proposal TBD.
 Until that is completed, Relay and Peer Test will not be supported.
 
 
-Long Header Version
-```````````````````
-In all long headers (used for message types 0, 1, 7, 9, 10, and 11),
-set the ver (version) field to 3 or 4, to indidate MLKEM-512 or MLKEM-768.
-
-While this may not be strictly required for messages other than
-Session Request and Session Created (types 0 and 1), doing so will
-help fail attempted PQ connections earlier if unsupported.
-
-
 Published Addresses
 ```````````````````
 In all cases, use the SSU2 transport name as usual.
@@ -1914,7 +1905,7 @@ Category  As Secure As
 Handshakes
 ----------
 These are all hybrid protocols.
-Probably need to prefer MLKEM768; MLKEM512 is not secure enough.
+Implementations should prefer MLKEM768; MLKEM512 is not secure enough.
 
 NIST security categories [FIPS203]_ :
 
@@ -2121,19 +2112,8 @@ Implementation-dependent.
 
 SSU2
 -----
-MAY Need different transport address/port,
-but hopefully not, we have a header with flags for message 1.
-We could internally use the version field and use 3 for MLKEM512 and 4 for MLKEM768.
-Maybe just v=2,3,4 in the address would be sufficient.
-But we need identifiers for both new algorithms: 3a, 3b?
-
-Check and verify that SSU2 can handle the RI fragmented across
+Check and verify that SSU2 can handle the MLDSA-signed RI fragmented across
 multiple packets (6-8?). i2pd currently supports only 2 fragments max?
-
-Note: Type codes are for internal use only. Routers will remain type 4,
-and support will be indicated in the router addresses.
-
-TODO
 
 
 
