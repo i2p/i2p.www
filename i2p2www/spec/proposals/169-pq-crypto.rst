@@ -1693,7 +1693,16 @@ unchanged
 
 Relay and Peer Test
 ```````````````````
+TODO: The following blocks contain version fields.
+Should those remain version 2 (for compatibility with a non-PQ Bob),
+or should they be version 3/4 for PQ?
 
+- Relay Request
+- Relay Response
+- Relay Intro
+- Peer Test
+
+PQ Signatures:
 Relay blocks, Peer Test blocks, and Peer Test messages all contain signatures.
 Unfortunately, PQ signatures are larger than the MTU.
 There is no current mechanism to fragment Relay or Peer Test blocks or messages
