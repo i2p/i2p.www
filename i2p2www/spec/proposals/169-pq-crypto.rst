@@ -5,7 +5,7 @@ Post-Quantum Crypto Protocols
     :author: zzz, orignal, drzed, eyedeekay
     :created: 2025-01-21
     :thread: http://zzz.i2p/topics/3294
-    :lastupdated: 2026-01-15
+    :lastupdated: 2026-01-16
     :status: Open
     :target: 0.9.80
 
@@ -1392,9 +1392,14 @@ Long Header
 In all long headers (used for message types 0, 1, 7, 9, 10, and 11),
 set the ver (version) field to 3 or 4, to indidate MLKEM-512 or MLKEM-768.
 
+FOR DISCUSSION:
 While this may not be strictly required for messages other than
 Session Request and Session Created (types 0 and 1), doing so will
 help fail attempted PQ connections earlier if unsupported.
+
+Token Request and Retry (types 9 and 10) would be good to have versions 3/4 in them.
+Peer Test and Hole Punch (types 7 and 11) probably not necessary, but
+do it for consistency?
 
 
 Before header encryption:
